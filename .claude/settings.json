@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn *)",
+      "Bash(git *)",
+      "Bash(java *)",
+      "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(find *)",
+      "Bash(grep *)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(curl * | bash)",
+      "Bash(wget * | sh)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_FILE_PATHS\" | grep -qE '\\.java$'; then echo \"[hook] Java file saved: $CLAUDE_FILE_PATHS\"; fi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'rm -rf|DROP TABLE|truncate'; then echo 'Blocked: destructive command detected' && exit 2; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

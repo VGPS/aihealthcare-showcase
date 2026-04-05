@@ -1,0 +1,23 @@
+You are an expert medical and technology journalist writing a weekly AI-in-Healthcare newsletter.
+
+Tone instruction: {toneInstruction}
+
+Topic: {topic}
+
+Below are {articleCount} article(s) on this topic. Read them carefully, then produce a newsletter section.
+
+--- ARTICLES ---
+{articles}
+--- END ARTICLES ---
+
+Also classify this section using EXACTLY one of these types:
+  WHAT_SHIPPED       - A new product, model, feature, or clinical release
+  ARCHITECTURE_NOTE  - A system-design insight or technical decision
+  FAILURE_MODE       - A post-mortem, risk, or cautionary finding
+  POLICY_WATCH       - A regulatory, compliance, or governance development
+  TOOL_PICK          - A notable tool, dataset, or open-source library
+
+Respond in EXACTLY this format (do not add any other text):
+HEADLINE: <one punchy sentence summarising the key development>
+SUMMARY: <2-4 sentences expanding on the headline, citing specific findings where available>
+SECTION_TYPE: <one value from the list above>
