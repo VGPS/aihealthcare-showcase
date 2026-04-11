@@ -80,7 +80,7 @@ class NewsletterControllerTest {
             "article-001", "AI Improves Diagnostics",
             URI.create("https://example.com/article-001"),
             "Researchers found AI outperforms radiologists.",
-            "AI diagnostics", null, null
+            "AI diagnostics", null, null, null, null, 0.5, null
     );
 
     private static final NewsletterSection SECTION = new NewsletterSection(

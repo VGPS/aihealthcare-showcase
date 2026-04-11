@@ -3,9 +3,12 @@ package com.wgblackmon.aihealthcare.infrastructure.config;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Spring configuration class that wires the application-layer service as a bean.
@@ -29,10 +32,12 @@ import org.springframework.context.annotation.Configuration;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-04
+ * @updated 2026-04-10
  */
 @Slf4j
 @Configuration
+@EnableScheduling
+@EnableConfigurationProperties(FeedSourceProperties.class)
 public class AppConfig {
 
     /**

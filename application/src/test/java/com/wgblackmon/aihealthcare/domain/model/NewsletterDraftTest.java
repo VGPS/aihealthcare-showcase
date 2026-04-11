@@ -33,7 +33,7 @@ class NewsletterDraftTest {
             "Researchers found that AI models outperform radiologists.",
             "AI diagnostics",
             null,  // author — optional
-            null   // publishedDate — optional
+            null, null, null, 0.5, null  // topicId, sourceName, sourceTier, sourceWeight, publishedAt
     );
 
     private static final NewsletterSection SECTION = new NewsletterSection(

@@ -60,6 +60,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Rome RSS/Atom feed parser -->
+        <dependency>
+            <groupId>com.rometools</groupId>
+            <artifactId>rome</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

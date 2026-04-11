@@ -69,8 +69,12 @@ class NewsletterServiceTest {
             URI.create("https://example.com/article-001"),
             "Researchers found that AI models outperform radiologists.",
             TOPIC,
-            null,  // author — optional
-            null   // publishedDate — optional
+            null,   // author — optional
+            null,   // topicId — null until Slice 2
+            null,   // sourceName
+            null,   // sourceTier
+            0.5,    // sourceWeight
+            null    // publishedAt — optional
     );
 
     private static final NewsletterSection SECTION = new NewsletterSection(
@@ -108,7 +112,7 @@ class NewsletterServiceTest {
                 "article-002", "ML in Drug Discovery",
                 URI.create("https://example.com/article-002"),
                 "Machine learning is accelerating drug discovery pipelines.",
-                "ML drug discovery", null, null
+                "ML drug discovery", null, null, null, null, 0.5, null
         );
 
         when(ingestionPort.fetchArticles(eq(TOPIC), anyInt())).thenReturn(List.of(ARTICLE));
