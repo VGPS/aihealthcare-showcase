@@ -164,7 +164,20 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 2b — Vector Store — COMPLETE — 90 tests passing**
+**Slice 3 — Scheduling + Delivery — COMPLETE — 137 tests passing**
+- [x] Domain: `Subscriber` record, `DuplicateSubscriberException`, `SubscriberNotFoundException`
+- [x] Ports: `ManageSubscribersUseCase`, `DeliverNewsletterUseCase` (inbound); `SubscriberPort`, `NewsletterDeliveryPort` (outbound)
+- [x] `DeliveryService` — implements both use cases; wires run lookup → active-subscriber fetch → delivery dispatch → flip run status to `SENT`
+- [x] Persistence: `SubscriberEntity`, `SubscriberRepository` (`findByEmail`, `findAllByActiveTrue`), `SubscriberAdapter`
+- [x] `EmailDeliveryAdapter` — `JavaMailSender` with MIME multipart (HTML + plain-text alternative); per-recipient failures caught and logged
+- [x] `NewsletterGenerationScheduler` — `@Scheduled(cron = "${aihealthcare.newsletter.schedule}")`; runs `ingest → generate → deliver` end-to-end; swallows exceptions so the thread survives; depends only on inbound ports
+- [x] Web: `SubscriberController`, `NewsletterDeliveryController`, `SubscriberRequest`/`SubscriberResponse`/`DeliverRequest` DTOs
+- [x] `GlobalExceptionHandler` — `DuplicateSubscriberException` → 409, `SubscriberNotFoundException` → 404
+- [x] `application.yml` — `aihealthcare.newsletter.{from-address, schedule}`; profile-specific SMTP in `application-dev.yml` / `application-prod.yml`
+- [x] OpenAPI spec updated with `/api/v1/subscribers` (POST, GET, DELETE) and `/api/v1/newsletter/deliver` (POST)
+- [x] Tests: `DeliveryServiceTest` (8), `DeliveryServiceDeliverTest` (4), `SubscriberAdapterTest` (6 @DataJpaTest), `EmailDeliveryAdapterTest` (4), `SubscriberControllerTest` (7), `NewsletterDeliveryControllerTest` (2), `NewsletterGenerationSchedulerTest` (5 Mockito + InOrder)
+
+**Previously complete: Slice 2b — Vector Store**
 - [x] `pom.xml` — added `spring-ai-vector-store` (Spring AI 1.0.0 split this into its own module); added resources directory config so `application.yml` is on the classpath
 - [x] `AppConfig` — manually registers `SimpleVectorStore` bean (Spring AI 1.0.0 has no auto-config for it; needs `EmbeddingModel` from the OpenAI starter)
 - [x] `EmbeddingScheduler` — `@Scheduled` job embeds all `NewsArticleEntity` rows into the vector store; idempotent (re-run safe); swallows embedding exceptions so the scheduler thread stays alive
@@ -181,11 +194,6 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 - [x] `application.yml` + `data.sql` (topics seed)
 - [x] OpenAPI spec updated with all 6 endpoints
 - [x] Tests: `NewsletterRendererTest` (12), `ArticleStorageAdapterTest` (5 @DataJpaTest), `NewsletterServiceGenerateTest` (4 Mockito/ArgumentCaptor)
-
-**Next: Slice 3 — Scheduling + Delivery**
-- [ ] `@Scheduled` weekly newsletter generation trigger
-- [ ] Email delivery adapter
-- [ ] Subscriber list management
 
 ---
 
