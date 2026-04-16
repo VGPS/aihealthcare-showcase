@@ -1,0 +1,485 @@
+openapi: 3.1.0
+
+info:
+  title: AIHealthcare Newsletter API
+  description: >
+    AI-powered newsletter generation API. Ingests articles from configured RSS
+    feeds, summarizes them with Spring AI, and produces formatted newsletter
+    drafts. Historical runs are stored and retrievable for subscriber archive
+    display.
+  version: 2.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+
+  # ---------------------------------------------------------------------------
+  # Article ingestion
+  # ---------------------------------------------------------------------------
+  /api/v1/ingest:
+    post:
+      summary: Start an article ingestion run
+      operationId: ingestArticles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestRequest'
+      responses:
+        '201':
+          description: Ingestion accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ---------------------------------------------------------------------------
+  # Articles — query persisted articles
+  # ---------------------------------------------------------------------------
+  /api/v1/articles:
+    get:
+      summary: List persisted articles for a topic
+      description: >
+        Returns articles stored in the database that match the given topic name.
+        Use this endpoint to confirm that the feed harvester is persisting
+        articles correctly.
+      operationId: listArticles
+      parameters:
+        - name: topic
+          in: query
+          required: true
+          description: Topic name to filter by (e.g. "PubMed AI Healthcare")
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of articles to return (default 20)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 200
+      responses:
+        '200':
+          description: List of matching articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArticleResponse'
+
+  # ---------------------------------------------------------------------------
+  # Newsletter draft generation
+  # ---------------------------------------------------------------------------
+  /api/v1/drafts:
+    post:
+      summary: Generate a newsletter draft
+      operationId: generateDraft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateRequest'
+      responses:
+        '201':
+          description: Draft created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Ingestion run not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/drafts/{draftId}:
+    get:
+      summary: Retrieve a previously generated draft
+      operationId: getDraft
+      parameters:
+        - name: draftId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Draft found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftResponse'
+        '404':
+          description: Draft not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ---------------------------------------------------------------------------
+  # Subscriber management
+  # ---------------------------------------------------------------------------
+  /api/v1/subscribers:
+    post:
+      summary: Add a newsletter subscriber
+      operationId: addSubscriber
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriberRequest'
+      responses:
+        '201':
+          description: Subscriber added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriberResponse'
+        '400':
+          description: Invalid email or name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already subscribed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: List all subscribers
+      operationId: listSubscribers
+      responses:
+        '200':
+          description: List of subscribers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriberResponse'
+
+  /api/v1/subscribers/{email}:
+    delete:
+      summary: Remove a subscriber
+      operationId: removeSubscriber
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Subscriber removed
+        '404':
+          description: Subscriber not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ---------------------------------------------------------------------------
+  # Newsletter delivery (manual trigger)
+  # ---------------------------------------------------------------------------
+  /api/v1/newsletter/deliver:
+    post:
+      summary: Deliver a newsletter run to all active subscribers
+      description: >
+        Looks up the specified run, retrieves all active subscribers, and sends
+        the HTML newsletter to each recipient via email.  Updates the run status
+        to SENT on success.
+      operationId: deliverNewsletter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliverRequest'
+      responses:
+        '204':
+          description: Delivery triggered successfully
+        '404':
+          description: Run not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ---------------------------------------------------------------------------
+  # Newsletter run archive
+  # ---------------------------------------------------------------------------
+  /api/v1/runs:
+    get:
+      summary: List all newsletter runs (subscriber archive)
+      description: >
+        Returns a summary list of all persisted newsletter runs. Does not include
+        htmlContent or plainTextContent — use GET /api/v1/runs/{runId} for the
+        full rendered content.
+      operationId: listRuns
+      responses:
+        '200':
+          description: List of run summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RunSummaryResponse'
+
+  /api/v1/runs/{runId}:
+    get:
+      summary: Get full detail for a newsletter run
+      description: >
+        Returns the complete newsletter run including the HTML-formatted email
+        body (for rendering in a styled div) and the plain-text version
+        (for display in a textarea).
+      operationId: getNewsletterRun
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Run found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunDetailResponse'
+        '404':
+          description: Run not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+
+    IngestRequest:
+      type: object
+      required: [runId, weekOf, topics, maxArticlesPerTopic]
+      properties:
+        runId:
+          type: string
+          example: run-2026-04-11
+        weekOf:
+          type: string
+          format: date
+          example: 2026-04-11
+        topics:
+          type: array
+          items:
+            type: string
+          example: ["PubMed AI Healthcare"]
+        maxArticlesPerTopic:
+          type: integer
+          minimum: 1
+          example: 20
+
+    IngestResponse:
+      type: object
+      properties:
+        runId:
+          type: string
+        articleCount:
+          type: integer
+
+    GenerateRequest:
+      type: object
+      required: [runId, draftId, title, tone, maxSectionsPerTopic]
+      properties:
+        runId:
+          type: string
+        draftId:
+          type: string
+        title:
+          type: string
+          example: AI in Healthcare Weekly
+        tone:
+          type: string
+          enum: [PROFESSIONAL, ACCESSIBLE, TECHNICAL]
+        maxSectionsPerTopic:
+          type: integer
+          minimum: 1
+          example: 3
+
+    DraftResponse:
+      type: object
+      properties:
+        draftId:
+          type: string
+        runId:
+          type: string
+        title:
+          type: string
+        weekOf:
+          type: string
+          format: date
+        introduction:
+          type: string
+        sections:
+          type: array
+          items:
+            $ref: '#/components/schemas/SectionResponse'
+        sourceCount:
+          type: integer
+        generatedAt:
+          type: string
+          format: date-time
+
+    SectionResponse:
+      type: object
+      properties:
+        sectionId:
+          type: string
+        sectionType:
+          type: string
+        topic:
+          type: string
+        headline:
+          type: string
+        summary:
+          type: string
+
+    ArticleResponse:
+      type: object
+      properties:
+        articleId:
+          type: string
+        title:
+          type: string
+        url:
+          type: string
+          format: uri
+        topic:
+          type: string
+        author:
+          type: string
+          nullable: true
+        sourceName:
+          type: string
+          nullable: true
+        sourceTier:
+          type: string
+          nullable: true
+          enum: [ACADEMIC, REGULATORY, INDUSTRY]
+        sourceWeight:
+          type: number
+          format: double
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    RunSummaryResponse:
+      type: object
+      properties:
+        runId:
+          type: string
+        title:
+          type: string
+        weekOf:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [DRAFT, SENT, ARCHIVED]
+        generatedAt:
+          type: string
+          format: date-time
+
+    RunDetailResponse:
+      type: object
+      properties:
+        runId:
+          type: string
+        title:
+          type: string
+        weekOf:
+          type: string
+          format: date
+        htmlContent:
+          type: string
+          description: Full inline-styled HTML email body
+        plainTextContent:
+          type: string
+          description: Plain text version with no HTML markup
+        status:
+          type: string
+          enum: [DRAFT, SENT, ARCHIVED]
+        generatedAt:
+          type: string
+          format: date-time
+
+    DeliverRequest:
+      type: object
+      required: [runId]
+      properties:
+        runId:
+          type: string
+          description: ID of the newsletter run to deliver
+          example: draft-2026-04-13
+
+    SubscriberRequest:
+      type: object
+      required: [email, name]
+      properties:
+        email:
+          type: string
+          format: email
+          example: jane.doe@example.com
+        name:
+          type: string
+          example: Jane Doe
+
+    SubscriberResponse:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        active:
+          type: boolean
+        subscribedAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

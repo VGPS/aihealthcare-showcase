@@ -1,0 +1,25 @@
+
+
+------ NotebookLM steps ------------------
+
+Search is done and results are returned.
+
+Results are filtered (toDo in Agent)
+
+Filtered results are saved as a text file for use with NotebookLM
+	-> Resulting text has demarcations on each section like <topic>, <body>, <title> inserted at correct places
+	   so NotebookLM can index the result properly for later use.
+	-> Newly demarcated text is written to a textfile named <title>
+    -> Directory location is specified in application.yml as NotebookLMDirectory
+    -> The initial NotebookLMDirectory will be contained in the project directory and 
+	   is named NoteboolLMDirectory
+
+	-> IF the directory doesn't exist please created it before attemtping to save the file. 
+
+	   
+I have created the directory in my local project.	 
+
+Please put all of the code for the above in a separate Service class with all of the required 
+comments and debug statements used for the existing code.
+
+----------------------------------------------------------------------

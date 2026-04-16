@@ -1,0 +1,20 @@
+# ---------------------------------------------------------------------------
+# Prod profile — Amazon SES via STARTTLS.
+#
+# Required environment variables:
+#   SES_USERNAME  — SMTP user from the SES SMTP credentials page
+#   SES_PASSWORD  — SMTP password from the SES SMTP credentials page
+#
+# The from-address (aihealthcare.newsletter.from-address) must be verified
+# in your SES account before production use.
+# ---------------------------------------------------------------------------
+spring:
+  mail:
+    host: email-smtp.us-east-1.amazonaws.com
+    port: 587
+    username: ${SES_USERNAME}
+    password: ${SES_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true

@@ -1,0 +1,98 @@
+spring:
+  application:
+    name: ai-healthcare
+
+  # ---------------------------------------------------------------------------
+  # Spring AI — provider keys
+  # Set ANTHROPIC_API_KEY / OPENAI_API_KEY as environment variables (or .env).
+  # The application starts with placeholder values; AI calls fail until real
+  # keys are supplied.
+  # ---------------------------------------------------------------------------
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:placeholder-set-ANTHROPIC_API_KEY}
+    openai:
+      api-key: ${OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
+
+  # ---------------------------------------------------------------------------
+  # H2 in-memory datasource (dev / Slice 2a)
+  # Swap datasource.url and driver-class-name for Postgres when ready.
+  # ---------------------------------------------------------------------------
+  datasource:
+    url: jdbc:h2:mem:aihealthcaredb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # ---------------------------------------------------------------------------
+  # JPA / Hibernate
+  # ddl-auto: create-drop rebuilds schema on each start (suitable for H2 dev).
+  # defer-datasource-initialization ensures data.sql runs AFTER Hibernate DDL.
+  # ---------------------------------------------------------------------------
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+
+server:
+  port: 8080
+
+# -----------------------------------------------------------------------------
+# Logging
+# DEBUG for our packages enables full entry/exit method tracing per CONVENTIONS.
+# Set to INFO in production to suppress tracing output.
+# -----------------------------------------------------------------------------
+logging:
+  level:
+    com.wgblackmon: DEBUG
+    org.springframework.web: INFO
+
+# -----------------------------------------------------------------------------
+# Feed harvesting — sources configured here in application.yml for Slice 2a.
+# Each entry maps to a FeedSourceConfig record.
+# -----------------------------------------------------------------------------
+aihealthcare:
+  feeds:
+    sources: []
+
+  # ---------------------------------------------------------------------------
+  # Embedding scheduler — cron expression for the EmbeddingScheduler job.
+  # Default: daily at midnight.  Change freely without recompiling.
+  # Examples:
+  #   "0 0 0 * * *"   — daily at midnight
+  #   "0 0 */2 * * *" — every 2 hours
+  #   "0 */30 * * * *"— every 30 minutes
+  # ---------------------------------------------------------------------------
+  embedding:
+    schedule: "0 0 0 * * *"
+
+  # ---------------------------------------------------------------------------
+  # NotebookLM export — directory where search-result text files are written.
+  # Path is relative to the working directory (project root when running locally).
+  # The directory is created automatically if it does not exist.
+  # ---------------------------------------------------------------------------
+  notebooklm:
+    directory: NotebookLMDirectory
+
+  # ---------------------------------------------------------------------------
+  # Newsletter delivery — from address used in outgoing emails.
+  # SMTP connection settings live in the active profile (dev or prod).
+  # Schedule used by Slice 3c NewsletterGenerationScheduler (every Monday 8 AM).
+  # ---------------------------------------------------------------------------
+  newsletter:
+    from-address: newsletter@aihealthcare.local
+    schedule: "0 0 8 * * MON"

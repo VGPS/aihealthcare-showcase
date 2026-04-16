@@ -1,0 +1,120 @@
+package com.wgblackmon.aihealthcare.infrastructure.ai;
+
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Scheduled job that embeds persisted articles into the in-memory vector store.
+ *
+ * <p>Runs on the cron schedule defined by {@code aihealthcare.embedding.schedule}
+ * in {@code application.yml} (default: daily at midnight).  On each run it
+ * fetches all rows from {@code news_articles}, converts them to Spring AI
+ * {@link Document} objects, and calls {@link VectorStore#add}.
+ *
+ * <p>{@link org.springframework.ai.vectorstore.SimpleVectorStore} is backed by
+ * a {@code ConcurrentHashMap} keyed by document ID.  Because each
+ * {@link Document} is created with {@code id = articleId}, re-running this
+ * scheduler is safe and idempotent — an already-embedded article is simply
+ * overwritten in place; no duplicates accumulate.
+ *
+ * <p>If the embedding API call fails (e.g., missing or invalid API key), the
+ * exception is caught and logged as an error so that the scheduler thread is
+ * not terminated and subsequent runs can still succeed once a valid key is
+ * configured.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-04-11
+ * @updated 2026-04-11
+ */
+@Slf4j
+@Component
+public class EmbeddingScheduler {
+
+    private final NewsArticleRepository repository;
+    private final VectorStore           vectorStore;
+
+    public EmbeddingScheduler(NewsArticleRepository repository, VectorStore vectorStore) {
+        log.debug("EmbeddingScheduler() | repository={}, vectorStore={}",
+                  repository.getClass().getSimpleName(),
+                  vectorStore.getClass().getSimpleName());
+        this.repository  = repository;
+        this.vectorStore = vectorStore;
+    }
+
+    /**
+     * Embeds all persisted articles into the vector store.
+     *
+     * <p>Invoked on the schedule configured by
+     * {@code aihealthcare.embedding.schedule}.  Failures are logged and
+     * swallowed so the scheduler thread remains alive for future runs.
+     */
+    @Scheduled(cron = "${aihealthcare.embedding.schedule}")
+    public void embedArticles() {
+        log.debug("embedArticles() | starting embedding run");
+
+        List<NewsArticleEntity> entities = repository.findAll();
+        log.info("embedArticles() | Found {} articles to embed", entities.size());
+
+        if (entities.isEmpty()) {
+            log.debug("embedArticles() | return=void (nothing to embed)");
+            return;
+        }
+
+        List<Document> documents = new ArrayList<>();
+        for (NewsArticleEntity entity : entities) {
+            String content = buildContent(entity);
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("articleId", entity.getArticleId());
+            metadata.put("topic",     entity.getTopic());
+            metadata.put("url",       entity.getUrl() != null ? entity.getUrl() : "");
+            Document doc = new Document(entity.getArticleId(), content, metadata);
+            documents.add(doc);
+        }
+
+        try {
+            vectorStore.add(documents);
+            log.info("embedArticles() | Successfully embedded {} articles", documents.size());
+        } catch (Exception ex) {
+            log.error("embedArticles() | Embedding failed — check API key configuration: {}",
+                      ex.getMessage());
+        }
+
+        log.debug("embedArticles() | return=void");
+    }
+
+    /**
+     * Builds the plain-text content string used as the document body for
+     * embedding.  Combines title and body text so the embedding captures
+     * the full article context.
+     *
+     * @param entity the article entity to build content from
+     * @return non-blank content string
+     */
+    private String buildContent(NewsArticleEntity entity) {
+        log.debug("buildContent() | articleId={}", entity.getArticleId());
+        StringBuilder sb = new StringBuilder();
+        if (entity.getTitle() != null && !entity.getTitle().isBlank()) {
+            sb.append(entity.getTitle());
+        }
+        if (entity.getBodyText() != null && !entity.getBodyText().isBlank()) {
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(entity.getBodyText());
+        }
+        String result = sb.length() > 0 ? sb.toString() : entity.getArticleId();
+        log.debug("buildContent() | return={} chars", result.length());
+        return result;
+    }
+}
