@@ -9,6 +9,8 @@ import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
+import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +46,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-04
+ * @updated 2026-04-11
  */
 @ExtendWith(MockitoExtension.class)
 class NewsletterServiceTest {
@@ -54,6 +56,9 @@ class NewsletterServiceTest {
 
     @Mock
     private AiSummarizationPort summarizationPort;
+
+    @Mock
+    private NewsletterRunPort newsletterRunPort;
 
     private NewsletterService service;
 
@@ -88,7 +93,8 @@ class NewsletterServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new NewsletterService(ingestionPort, summarizationPort);
+        service = new NewsletterService(ingestionPort, summarizationPort,
+                                        new NewsletterRenderer(), newsletterRunPort);
     }
 
     // -------------------------------------------------------------------------

@@ -4,12 +4,15 @@ import com.wgblackmon.aihealthcare.domain.exception.NoArticlesFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.RunNotFoundException;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterDraft;
+import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
+import com.wgblackmon.aihealthcare.domain.model.NewsletterRunStatus;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GenerateNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestArticlesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
@@ -21,38 +24,54 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Application service that implements both inbound use-case ports for Slice 1.
+ * Application service that implements both inbound use-case ports.
  *
- * <p>All state is held in-memory for Slice 1 — no persistence layer yet.
- * Slice 2 will introduce JPA and replace the in-memory maps with repository calls.
+ * <p>All article state is held in-memory for the duration of a request cycle
+ * (the {@code articlesByRunId} map).  Slice 2 introduces JPA persistence for
+ * articles via {@link ArticleIngestionPort}; the map remains for transient
+ * ingest → generate handoff within a single server session.
  *
- * <p>This class is intentionally free of Spring annotations; the {@code web} module
- * wires it via a {@code @Bean} factory method so the application layer stays
- * framework-free and trivially testable without a Spring context.
+ * <p>When {@link #generate} completes, the resulting {@link NewsletterDraft}
+ * is rendered to HTML and plain text by {@link NewsletterRenderer}, then saved
+ * as a {@link NewsletterRun} via {@link NewsletterRunPort} for the subscriber
+ * archive.  The in-memory {@code draftByDraftId} map is also retained so that
+ * {@link #getDraft} can return the full draft (with sections and articles) in
+ * the same server session without a round-trip to the DB.
+ *
+ * <p>This class carries no Spring annotations; {@code AppConfig} wires it as a
+ * {@code @Bean} so the application layer remains framework-free and trivially
+ * testable without a Spring context.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2025-01-27
- * @updated 2026-04-04
+ * @updated 2026-04-11
  */
 @Slf4j
 public class NewsletterService implements IngestArticlesUseCase, GenerateNewsletterUseCase {
 
-    private final ArticleIngestionPort ingestionPort;
-    private final AiSummarizationPort  summarizationPort;
+    private final ArticleIngestionPort  ingestionPort;
+    private final AiSummarizationPort   summarizationPort;
+    private final NewsletterRenderer    renderer;
+    private final NewsletterRunPort     newsletterRunPort;
 
-    // In-memory stores — replaced by repositories in Slice 2
+    // In-memory stores — articles map supports ingest→generate handoff;
+    // draftByDraftId supports getDraft() in the same session.
     private final Map<String, List<NewsArticle>> articlesByRunId = new HashMap<>();
     private final Map<String, NewsletterDraft>   draftByDraftId  = new HashMap<>();
 
     private final AtomicInteger sectionCounter = new AtomicInteger(0);
 
     public NewsletterService(ArticleIngestionPort ingestionPort,
-                             AiSummarizationPort summarizationPort) {
-        log.debug("NewsletterService() | ingestionPort={}, summarizationPort={}",
-                  ingestionPort, summarizationPort);
-        this.ingestionPort     = ingestionPort;
-        this.summarizationPort = summarizationPort;
+                             AiSummarizationPort summarizationPort,
+                             NewsletterRenderer renderer,
+                             NewsletterRunPort newsletterRunPort) {
+        log.debug("NewsletterService() | ingestionPort={}, summarizationPort={}, renderer={}, newsletterRunPort={}",
+                  ingestionPort, summarizationPort, renderer, newsletterRunPort);
+        this.ingestionPort      = ingestionPort;
+        this.summarizationPort  = summarizationPort;
+        this.renderer           = renderer;
+        this.newsletterRunPort  = newsletterRunPort;
     }
 
     // -------------------------------------------------------------------------
@@ -149,14 +168,31 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
                 Instant.now()
         );
 
+        // Render and persist the run for the subscriber archive
+        String html      = renderer.renderHtml(result);
+        String plainText = renderer.renderPlainText(result);
+        NewsletterRun run = new NewsletterRun(
+                draftId,
+                newsletterTitle,
+                LocalDate.now(),
+                html,
+                plainText,
+                NewsletterRunStatus.DRAFT,
+                Instant.now()
+        );
+        newsletterRunPort.save(run);
+
+        // Retain in-memory for same-session getDraft() calls
         draftByDraftId.put(draftId, result);
-        log.info("generate() | Draft generated: draftId={}, sectionCount={}", draftId, sections.size());
+
+        log.info("generate() | Draft generated and persisted: draftId={}, sectionCount={}",
+                 draftId, sections.size());
         log.debug("generate() | return={}", result);
         return result;
     }
 
     /**
-     * Retrieve a previously generated draft by ID.
+     * Retrieve a previously generated draft by ID (same session only).
      *
      * @param draftId The draft identifier to look up.
      * @return The matching {@link NewsletterDraft}.

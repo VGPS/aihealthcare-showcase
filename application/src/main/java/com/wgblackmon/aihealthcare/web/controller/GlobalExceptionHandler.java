@@ -1,7 +1,9 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.exception.DuplicateSubscriberException;
 import com.wgblackmon.aihealthcare.domain.exception.NoArticlesFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.RunNotFoundException;
+import com.wgblackmon.aihealthcare.domain.exception.SubscriberNotFoundException;
 import com.wgblackmon.aihealthcare.web.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -64,6 +66,32 @@ public class GlobalExceptionHandler {
         ErrorResponse body = new ErrorResponse("NO_ARTICLES", ex.getMessage());
         log.debug("handleNoArticles() | return=422");
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(body);
+    }
+
+    /**
+     * Handles attempts to register an email address that is already subscribed.
+     * Maps to HTTP 409 Conflict.
+     */
+    @ExceptionHandler(DuplicateSubscriberException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateSubscriber(DuplicateSubscriberException ex) {
+        log.debug("handleDuplicateSubscriber() | ex={}", ex.getMessage());
+        log.warn("handleDuplicateSubscriber() | Duplicate subscriber: email={}", ex.getEmail());
+        ErrorResponse body = new ErrorResponse("CONFLICT", ex.getMessage());
+        log.debug("handleDuplicateSubscriber() | return=409");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    /**
+     * Handles subscriber lookup failures (remove on unknown email, etc.).
+     * Maps to HTTP 404 Not Found.
+     */
+    @ExceptionHandler(SubscriberNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleSubscriberNotFound(SubscriberNotFoundException ex) {
+        log.debug("handleSubscriberNotFound() | ex={}", ex.getMessage());
+        log.warn("handleSubscriberNotFound() | Subscriber not found: email={}", ex.getEmail());
+        ErrorResponse body = new ErrorResponse("NOT_FOUND", ex.getMessage());
+        log.debug("handleSubscriberNotFound() | return=404");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
     /**

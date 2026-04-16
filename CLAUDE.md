@@ -1,4 +1,4 @@
-# AIHealthcare — Claude Code Project Memory
+tim# AIHealthcare — Claude Code Project Memory
 
 ## What This Project Is
 A Spring Boot application that scrapes AI-in-Healthcare articles from the web weekly,
@@ -34,16 +34,33 @@ AIHealthcare/
 ---
 
 ## Core Domain Types
-| Record / Interface       | Package                              | Notes                              |
-|--------------------------|--------------------------------------|------------------------------------|
-| `NewsArticle`            | `domain.model`                       | Scraped article + source URL       |
-| `NewsletterSection`      | `domain.model`                       | AI-summarized section for one topic|
-| `NewsletterDraft`        | `domain.model`                       | Full draft: intro + sections + sources |
-| `ArticleIngestionPort`   | `domain.port.outbound`               | Fetch articles for a topic/keyword |
-| `AiSummarizationPort`    | `domain.port.outbound`               | Summarize articles via AI          |
-| `NewsletterGenerationPort` | `domain.port.outbound`             | Orchestrate draft generation       |
-| `IngestArticlesUseCase`  | `application.usecase`                | Inbound port — drive ingestion     |
-| `GenerateNewsletterUseCase` | `application.usecase`             | Inbound port — drive generation    |
+| Record / Interface          | Package                              | Notes                                                      |
+|-----------------------------|--------------------------------------|------------------------------------------------------------|
+| `NewsArticle`               | `domain.model`                       | Harvested/ingested article; carries source metadata fields |
+| `Topic`                     | `domain.model`                       | Newsletter topic (name, slug, promptContext, tone, active) |
+| `NewsletterSection`         | `domain.model`                       | AI-summarized section for one topic                        |
+| `NewsletterDraft`           | `domain.model`                       | Full draft: intro + sections + sources                     |
+| `ArticleIngestionPort`      | `domain.port.outbound`               | Fetch stored articles for a topic/keyword (use-case side)  |
+| `ArticleHarvestingPort`     | `domain.port.outbound`               | Bulk-harvest raw articles from all configured feeds        |
+| `AiSummarizationPort`       | `domain.port.outbound`               | Summarize articles via AI                                  |
+| `IngestArticlesUseCase`     | `domain.port.inbound`                | Inbound port — drive ingestion                             |
+| `GenerateNewsletterUseCase` | `domain.port.inbound`                | Inbound port — drive generation                            |
+
+### `NewsArticle` field inventory (11 fields)
+```
+articleId    String   required, non-blank (entry URI, link URL, or UUID fallback)
+title        String   required, non-blank
+url          URI      required, non-null
+bodyText     String   optional (RSS descriptions can be empty)
+topic        String   required, non-blank (feed name or search keyword for grouping)
+author       String   optional (null if not determinable)
+topicId      Long     optional — null in Slice 1; populated from FeedSourceConfig in Slice 2
+sourceName   String   optional — feed label (e.g. "PubMed AI Healthcare")
+sourceTier   String   optional — "ACADEMIC", "REGULATORY", or "INDUSTRY"
+sourceWeight double   baseline relevance multiplier [0.0, 1.0]; 0.5 for unknown
+publishedAt  Instant  optional — null if not determinable
+```
+`bodyText` non-blank validation was intentionally relaxed — RSS descriptions are frequently empty.
 
 ---
 
@@ -79,22 +96,103 @@ mvn test -Dspring.profiles.active=ai-integration
 
 ---
 
+## Infrastructure Classes (Slice 1 additions)
+| Class                    | Package                                    | Notes                                              |
+|--------------------------|--------------------------------------------|----------------------------------------------------|
+| `FeedSourceConfig`       | `infrastructure.ingestion.feed`            | Immutable record: topicId, name, url, tier, weight |
+| `FeedSourceProperties`   | `infrastructure.ingestion.feed`            | `@ConfigurationProperties(prefix="aihealthcare.feeds")` + `@Component` |
+| `RomeFeedHarvester`      | `infrastructure.ingestion.feed`            | Implements `ArticleHarvestingPort` via Rome library |
+| `FeedHarvestScheduler`   | `infrastructure.ingestion.feed`            | `@Scheduled` — daily (ACADEMIC/REGULATORY) + 4 h (INDUSTRY); calls `ArticleStoragePort.save()` |
+| `ArticleIngestionAdapter`| `infrastructure.ingestion`                 | DB-backed; queries `NewsArticleRepository` by topic |
+| `AiSummarizationAdapter` | `infrastructure.ai`                        | Spring AI `ChatClient` adapter                     |
+| `AppConfig`              | `infrastructure.config`                    | `@EnableScheduling` + `@EnableConfigurationProperties(FeedSourceProperties.class)` |
+
+### Feed harvesting YAML shape
+```yaml
+aihealthcare:
+  feeds:
+    sources:
+      - topic-id: 1
+        name: PubMed AI Healthcare
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=artificial+intelligence+healthcare&format=rss
+        tier: ACADEMIC        # ACADEMIC | REGULATORY | INDUSTRY
+        base-weight: 0.9      # [0.0, 1.0]
+        max-items: 50
+```
+
+### Harvesting pipeline (Slice 2a state)
+```
+FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
+                                                       ↓
+                                           ArticleStoragePort.save()
+                                                       ↓
+                                            ArticleStorageAdapter
+                                                       ↓
+                                            news_articles (H2 table)
+```
+
+---
+
+## Infrastructure Classes (Slice 2a additions)
+| Class                     | Package                              | Notes                                                    |
+|---------------------------|--------------------------------------|----------------------------------------------------------|
+| `NewsletterRenderer`      | `domain.service`                     | Pure Java — renders HTML + plain-text from `NewsletterDraft` |
+| `NewsletterRunStatus`     | `domain.model`                       | Enum: DRAFT → SENT → ARCHIVED                            |
+| `NewsletterRun`           | `domain.model`                       | Record: persisted newsletter run (html + plainText + status) |
+| `ArticleStoragePort`      | `domain.port.outbound`               | `void save(List<NewsArticle>)` — silently skips duplicate URLs |
+| `NewsletterRunPort`       | `domain.port.outbound`               | `save`, `findByRunId`, `findAll`                         |
+| `TopicEntity`             | `infrastructure.persistence`         | JPA entity for `topics` table                            |
+| `NewsArticleEntity`       | `infrastructure.persistence`         | JPA entity for `news_articles` table; url VARCHAR(2048), bodyText TEXT |
+| `NewsletterRunEntity`     | `infrastructure.persistence`         | JPA entity for `newsletter_runs` table; htmlContent + plainTextContent as CLOB |
+| `TopicRepository`         | `infrastructure.persistence`         | `JpaRepository` + `findByName(String)`                   |
+| `NewsArticleRepository`   | `infrastructure.persistence`         | `JpaRepository` + `existsByUrl`, `findByTopic`           |
+| `NewsletterRunRepository` | `infrastructure.persistence`         | `JpaRepository<NewsletterRunEntity, String>`             |
+| `ArticleStorageAdapter`   | `infrastructure.persistence`         | Implements `ArticleStoragePort`; dedup via `existsByUrl` |
+| `NewsletterRunAdapter`    | `infrastructure.persistence`         | Implements `NewsletterRunPort`; `toEntity`/`toDomain` helpers |
+| `ArticleController`       | `web.controller`                     | `GET /api/v1/articles?topic=&limit=` (default 20)        |
+| `NewsletterRunController` | `web.controller`                     | `GET /api/v1/runs` + `GET /api/v1/runs/{runId}`          |
+| `ArticleResponse`         | `web.dto`                            | 9-field response record                                  |
+| `RunSummaryResponse`      | `web.dto`                            | List-level summary (no HTML/text content)                |
+| `RunDetailResponse`       | `web.dto`                            | Full run detail including htmlContent + plainTextContent |
+
+### Persistence notes
+- `application.yml` uses H2 in-memory, `ddl-auto: create-drop`, `defer-datasource-initialization: true`
+- `data.sql` seeds one `topics` row with `WHERE NOT EXISTS` guard
+- `NewsletterService.generate()` now calls `NewsletterRenderer` then `NewsletterRunPort.save()` after building the draft
+- `NewsletterService` retains in-memory `draftByDraftId` map for same-session `getDraft()` calls (sections/articles not stored in `newsletter_runs`)
+
+---
+
 ## Current Slice
-**Slice 1 — Ingest & Summarize (single vertical)**
-- [x] `pom.xml` (Spring Boot 3.4.5, Spring AI 1.0.0, Lombok, JUnit 5 + Mockito)
-- [x] Domain records: `NewsArticle`, `NewsletterSection`, `NewsletterDraft`
-- [x] Port interfaces: `ArticleIngestionPort`, `AiSummarizationPort`
-- [x] Use cases: `IngestArticlesUseCase`, `GenerateNewsletterUseCase`
-- [x] Application service: `NewsletterService` (in-memory, no persistence)
-- [x] Unit tests — 35 passing (domain record validation + mock-AI pattern)
-- [ ] Spring AI adapter stub (`infrastructure/ai` — `AiSummarizationAdapter`)
-- [ ] Web controller wired to use cases
+**Slice 2b — Vector Store — COMPLETE — 90 tests passing**
+- [x] `pom.xml` — added `spring-ai-vector-store` (Spring AI 1.0.0 split this into its own module); added resources directory config so `application.yml` is on the classpath
+- [x] `AppConfig` — manually registers `SimpleVectorStore` bean (Spring AI 1.0.0 has no auto-config for it; needs `EmbeddingModel` from the OpenAI starter)
+- [x] `EmbeddingScheduler` — `@Scheduled` job embeds all `NewsArticleEntity` rows into the vector store; idempotent (re-run safe); swallows embedding exceptions so the scheduler thread stays alive
+- [x] `VectorStoreArticleSearchAdapter` — implements `ArticleSearchPort`; fixed `SearchRequest` API to builder pattern (`SearchRequest.builder().query(...).topK(...).build()` — `SearchRequest.query()` was removed in Spring AI 1.0.0)
+- [x] Tests: `EmbeddingSchedulerTest` (6 Mockito), `VectorStoreArticleSearchAdapterTest` (8 Mockito)
+
+**Previously complete: Slice 2a — JPA Persistence (H2)**
+- [x] `pom.xml` — added `spring-boot-starter-data-jpa`, `h2` runtime
+- [x] Domain: `NewsletterRun`, `NewsletterRunStatus`, `NewsletterRenderer`, `ArticleStoragePort`, `NewsletterRunPort`
+- [x] JPA entities: `TopicEntity`, `NewsArticleEntity`, `NewsletterRunEntity`
+- [x] JPA repositories: `TopicRepository`, `NewsArticleRepository`, `NewsletterRunRepository`
+- [x] Adapters: `ArticleStorageAdapter` (dedup by URL), `NewsletterRunAdapter`, `ArticleIngestionAdapter` (DB-backed)
+- [x] Web: `ArticleController`, `NewsletterRunController`, `ArticleResponse`, `RunSummaryResponse`, `RunDetailResponse`
+- [x] `application.yml` + `data.sql` (topics seed)
+- [x] OpenAPI spec updated with all 6 endpoints
+- [x] Tests: `NewsletterRendererTest` (12), `ArticleStorageAdapterTest` (5 @DataJpaTest), `NewsletterServiceGenerateTest` (4 Mockito/ArgumentCaptor)
+
+**Next: Slice 3 — Scheduling + Delivery**
+- [ ] `@Scheduled` weekly newsletter generation trigger
+- [ ] Email delivery adapter
+- [ ] Subscriber list management
 
 ---
 
 ## What NOT to Do
-- Do not add persistence (JPA/DB) until Slice 2 — use in-memory maps for now.
 - Do not add auth/security until explicitly requested.
 - Do not modify `openapi.yaml` without confirming the change first.
 - Do not place business logic in controllers or adapters.
 - Do not use `@Autowired` field injection — constructor injection only.
+- Do not put outbound port interfaces in `infrastructure` packages — they belong in `domain.port.outbound`.
+- Do not use `com.aihealthcare.*` as the base package — all code uses `com.wgblackmon.aihealthcare.*`.
