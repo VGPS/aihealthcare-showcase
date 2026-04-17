@@ -55,8 +55,8 @@ Swapping the AI provider, database, or delivery mechanism requires no domain cha
 ```bash
 # PostgreSQL + PGVector (relational DB + vector store)
 docker run -d --name aihealthcare-postgres \
-  -e POSTGRES_USER=admin \
-  -e POSTGRES_PASSWORD=1454 \
+  -e POSTGRES_USER=**** \
+  -e POSTGRES_PASSWORD=**** \
   -e POSTGRES_DB=aihealthcaredb \
   -p 5432:5432 \
   pgvector/pgvector:pg16
@@ -111,25 +111,6 @@ The application starts on `http://localhost:8080`.
 Schedules are configurable via `application.yml` cron expressions.
 
 ## Configuration
-
-Key settings in `application/src/main/resources/application.yml`:
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/aihealthcaredb
-    username: admin
-    password: 1454
-
-aihealthcare:
-  newsletter:
-    from-address: newsletter@aihealthcare.local
-    schedule: "0 0 8 * * MON"
-  embedding:
-    schedule: "0 0 0 * * *"
-  feeds:
-    sources: []   # Add RSS feed sources here
-```
 
 ### Profiles
 
