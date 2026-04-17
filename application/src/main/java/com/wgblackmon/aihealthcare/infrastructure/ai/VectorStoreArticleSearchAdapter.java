@@ -20,7 +20,7 @@ import java.util.Optional;
  *
  * <p>Translates a natural-language or topic-name query into a vector similarity
  * search using the configured {@link VectorStore} (a
- * {@link org.springframework.ai.vectorstore.SimpleVectorStore} in development).
+ * {@code PgVectorStore} backed by PostgreSQL + pgvector).
  * Each {@link Document} returned by the vector store carries the originating
  * {@code articleId} in its metadata; this adapter resolves that ID back to a
  * full {@link NewsArticle} domain record by querying {@link NewsArticleRepository}.
@@ -35,7 +35,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-11
+ * @updated 2026-04-17
  */
 @Slf4j
 @Component

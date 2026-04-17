@@ -12,8 +12,8 @@ spring:
   mail:
     host: email-smtp.us-east-1.amazonaws.com
     port: 587
-    username: ${SES_USERNAME}
-    password: ${SES_PASSWORD}
+    username: ${SES_USERNAME:admin}
+    password: ${SES_PASSWORD:1454}
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true

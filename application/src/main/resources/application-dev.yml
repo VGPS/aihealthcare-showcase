@@ -2,17 +2,20 @@
 # Dev profile — points Spring Mail at a local MailHog container.
 #
 # Start MailHog before running the application:
-#   docker run -d --name mailhog -p 1025:1025 -p 8025:8025 mailhog/mailhog
+#   docker run -d --name aihealthcare-mailhog -p 1025:1025 -p 8025:8025 mailhog/mailhog
 #
 # Inspect outgoing emails at: http://localhost:8025
 # No real emails are sent; MailHog captures them for local inspection only.
+#
+# Note: MailHog does not enforce SMTP authentication.  The username and
+# password below are stored for consistency but are ignored by MailHog.
 # ---------------------------------------------------------------------------
 spring:
   mail:
     host: localhost
     port: 1025
-    username:
-    password:
+    username: admin
+    password: 1454
     properties:
       mail.smtp.auth: false
       mail.smtp.starttls.enable: false

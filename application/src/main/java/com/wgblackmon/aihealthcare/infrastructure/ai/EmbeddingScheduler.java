@@ -21,11 +21,11 @@ import java.util.Map;
  * fetches all rows from {@code news_articles}, converts them to Spring AI
  * {@link Document} objects, and calls {@link VectorStore#add}.
  *
- * <p>{@link org.springframework.ai.vectorstore.SimpleVectorStore} is backed by
- * a {@code ConcurrentHashMap} keyed by document ID.  Because each
- * {@link Document} is created with {@code id = articleId}, re-running this
- * scheduler is safe and idempotent — an already-embedded article is simply
- * overwritten in place; no duplicates accumulate.
+ * <p>The {@code PgVectorStore} persists embeddings in a PostgreSQL table with
+ * the {@code pgvector} extension.  Because each {@link Document} is created
+ * with {@code id = articleId}, re-running this scheduler is safe and
+ * idempotent — an already-embedded article is simply overwritten in place;
+ * no duplicates accumulate.
  *
  * <p>If the embedding API call fails (e.g., missing or invalid API key), the
  * exception is caught and logged as an error so that the scheduler thread is
@@ -35,7 +35,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-11
+ * @updated 2026-04-17
  */
 @Slf4j
 @Component

@@ -10,9 +10,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.ai.vectorstore.SimpleVectorStore;
-import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,50 +34,20 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * {@code @EnableConfigurationProperties} registers {@link FeedSourceProperties}
  * for {@code @ConfigurationProperties} binding.
  *
- * <p>A {@link SimpleVectorStore} bean is manually registered here because Spring AI
- * 1.0.0 does not auto-configure {@code SimpleVectorStore}.  The store is backed by
- * the auto-configured {@link EmbeddingModel} from the OpenAI starter.
+ * <p>The {@code PgVectorStore} bean is auto-configured by the
+ * {@code spring-ai-starter-vector-store-pgvector} starter — no manual bean
+ * registration is needed here.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-13
+ * @updated 2026-04-17
  */
 @Slf4j
 @Configuration
 @EnableScheduling
 @EnableConfigurationProperties(FeedSourceProperties.class)
 public class AppConfig {
-
-    /**
-     * Creates the single {@link NewsletterService} instance shared across the application.
-     *
-     * <p>Spring injects the {@code @Component}-annotated adapters automatically.
-     * {@link NewsletterRenderer} is stateless and constructed inline — it requires
-     * no Spring lifecycle management.
-     *
-     * @param ingestionPort      Adapter implementing article fetching (auto-detected).
-     * @param summarizationPort  Adapter implementing AI summarization (auto-detected).
-     * @param newsletterRunPort  Adapter implementing run persistence (auto-detected).
-     * @return The wired {@link NewsletterService} instance.
-     */
-    /**
-     * In-memory vector store backed by the auto-configured OpenAI {@link EmbeddingModel}.
-     *
-     * <p>Spring AI 1.0.0 does not provide auto-configuration for {@link SimpleVectorStore},
-     * so the bean is registered here.  Swap the implementation (e.g., to PgVector or
-     * Chroma) by replacing this bean — no other code changes are required.
-     *
-     * @param embeddingModel The embedding model auto-configured by the OpenAI starter.
-     * @return A new {@link SimpleVectorStore} instance.
-     */
-    @Bean
-    public VectorStore vectorStore(EmbeddingModel embeddingModel) {
-        log.debug("vectorStore() | embeddingModel={}", embeddingModel.getClass().getSimpleName());
-        VectorStore result = SimpleVectorStore.builder(embeddingModel).build();
-        log.debug("vectorStore() | return={}", result.getClass().getSimpleName());
-        return result;
-    }
 
     /**
      * Creates the {@link DeliveryService} instance that implements subscriber management.
@@ -101,6 +68,18 @@ public class AppConfig {
         return result;
     }
 
+    /**
+     * Creates the single {@link NewsletterService} instance shared across the application.
+     *
+     * <p>Spring injects the {@code @Component}-annotated adapters automatically.
+     * {@link NewsletterRenderer} is stateless and constructed inline — it requires
+     * no Spring lifecycle management.
+     *
+     * @param ingestionPort      Adapter implementing article fetching (auto-detected).
+     * @param summarizationPort  Adapter implementing AI summarization (auto-detected).
+     * @param newsletterRunPort  Adapter implementing run persistence (auto-detected).
+     * @return The wired {@link NewsletterService} instance.
+     */
     @Bean
     public NewsletterService newsletterService(ArticleIngestionPort ingestionPort,
                                                AiSummarizationPort summarizationPort,

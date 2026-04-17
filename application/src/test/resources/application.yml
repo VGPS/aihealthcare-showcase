@@ -1,0 +1,71 @@
+# ---------------------------------------------------------------------------
+# Test profile — overrides main application.yml for unit / slice tests.
+#
+# Uses H2 in-memory instead of PostgreSQL.
+# Disables PgVector auto-configuration (tests mock the VectorStore).
+# Disables scheduling so @Scheduled methods do not fire during tests.
+# ---------------------------------------------------------------------------
+spring:
+  application:
+    name: ai-healthcare
+
+  ai:
+    anthropic:
+      api-key: test-placeholder
+    openai:
+      api-key: test-placeholder
+    vectorstore:
+      pgvector:
+        enabled: false
+
+  datasource:
+    url: jdbc:h2:mem:aihealthcaredb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always
+
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
+
+  mail:
+    host: localhost
+    port: 1025
+    username: admin
+    password: 1454
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.wgblackmon: DEBUG
+    org.springframework.web: INFO
+
+aihealthcare:
+  feeds:
+    sources: []
+  embedding:
+    schedule: "0 0 0 * * *"
+  notebooklm:
+    directory: NotebookLMDirectory
+  newsletter:
+    from-address: newsletter@aihealthcare.local
+    schedule: "0 0 8 * * MON"

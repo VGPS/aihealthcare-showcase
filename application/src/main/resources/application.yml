@@ -15,38 +15,47 @@ spring:
       api-key: ${OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
 
   # ---------------------------------------------------------------------------
-  # H2 in-memory datasource (dev / Slice 2a)
-  # Swap datasource.url and driver-class-name for Postgres when ready.
+  # PostgreSQL datasource
+  # Requires a running PostgreSQL instance with the pgvector extension.
+  # Docker:  docker run -d --name aihealthcare-postgres \
+  #            -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=1454 \
+  #            -e POSTGRES_DB=aihealthcaredb -p 5432:5432 pgvector/pgvector:pg16
   # ---------------------------------------------------------------------------
   datasource:
-    url: jdbc:h2:mem:aihealthcaredb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: jdbc:postgresql://localhost:5432/aihealthcaredb
+    driver-class-name: org.postgresql.Driver
+    username: admin
+    password: 1454
 
   # ---------------------------------------------------------------------------
   # JPA / Hibernate
-  # ddl-auto: create-drop rebuilds schema on each start (suitable for H2 dev).
+  # ddl-auto: update creates/updates tables without dropping existing data.
   # defer-datasource-initialization ensures data.sql runs AFTER Hibernate DDL.
   # ---------------------------------------------------------------------------
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
         format_sql: false
-    database-platform: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     defer-datasource-initialization: true
 
   sql:
     init:
       mode: always
+
+  # ---------------------------------------------------------------------------
+  # Spring AI — PGVector auto-configuration
+  # Uses the same datasource as JPA.  The vector_store table and pgvector
+  # extension are initialised automatically on first start.
+  # ---------------------------------------------------------------------------
+  ai:
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        dimensions: 1536
 
 server:
   port: 8080
