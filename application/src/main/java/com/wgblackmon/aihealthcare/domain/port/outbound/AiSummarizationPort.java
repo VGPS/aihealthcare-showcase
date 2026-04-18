@@ -32,6 +32,26 @@ public interface AiSummarizationPort {
     );
 
     /**
+     * Summarize a set of articles using a caller-provided prompt template
+     * instead of the default template.  Used by the prompt evaluation framework
+     * to experiment with different prompt variants.
+     *
+     * @param articles     Source articles to summarize; must not be empty.
+     * @param topic        The topic/keyword shared by all articles.
+     * @param tone         Desired writing tone for the generated content.
+     * @param sectionId    Identifier to assign to the returned section.
+     * @param templateText Custom prompt template text with placeholders.
+     * @return A {@link NewsletterSection} with an AI-generated headline and summary.
+     */
+    NewsletterSection summarizeWithTemplate(
+            List<NewsArticle> articles,
+            String topic,
+            NewsletterTone tone,
+            String sectionId,
+            String templateText
+    );
+
+    /**
      * Generate an introductory paragraph for the full newsletter draft.
      *
      * @param sections The sections already generated for this draft.

@@ -63,7 +63,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-04
+ * @updated 2026-04-17
  */
 @Slf4j
 @Component
@@ -129,6 +129,35 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
     /**
      * {@inheritDoc}
      *
+     * <p><b>Implementation detail:</b> identical to {@link #summarize} but uses the
+     * caller-provided {@code templateText} instead of loading from the classpath.
+     * Placeholders in the template are substituted with the same values as the
+     * default flow.
+     */
+    @Override
+    public NewsletterSection summarizeWithTemplate(List<NewsArticle> articles,
+                                                    String topic,
+                                                    NewsletterTone tone,
+                                                    String sectionId,
+                                                    String templateText) {
+        log.debug("summarizeWithTemplate() | topic={}, tone={}, sectionId={}, articleCount={}, templateLength={}",
+                  topic, tone, sectionId, articles.size(), templateText.length());
+
+        String prompt = buildPromptFromTemplate(articles, topic, tone, templateText);
+        log.debug("summarizeWithTemplate() | sending prompt to LLM, length={} chars", prompt.length());
+
+        String response = chatClient.prompt(prompt).call().content();
+        log.debug("summarizeWithTemplate() | received LLM response, length={} chars", response.length());
+
+        NewsletterSection result = parseSection(response, topic, sectionId, articles);
+        log.info("summarizeWithTemplate() | Section produced: sectionId={}, topic={}", sectionId, topic);
+        log.debug("summarizeWithTemplate() | return={}", result);
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
      * <p><b>Implementation detail:</b> builds a prompt from the section headlines already
      * generated, then returns the model's reply directly as the introduction string.
      */
@@ -183,6 +212,38 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
                 .replace("{articles}", articlesBlock.toString().trim());
 
         log.debug("buildSummarizePrompt() | return=prompt[{} chars]", result.length());
+        return result;
+    }
+
+    /**
+     * Constructs a summarization prompt using a caller-provided template string
+     * instead of loading from the classpath.  Uses the same placeholder
+     * substitution as {@link #buildSummarizePrompt}.
+     */
+    private String buildPromptFromTemplate(List<NewsArticle> articles,
+                                            String topic,
+                                            NewsletterTone tone,
+                                            String templateText) {
+        log.debug("buildPromptFromTemplate() | topic={}, tone={}, articleCount={}", topic, tone, articles.size());
+
+        StringBuilder articlesBlock = new StringBuilder();
+        int index = 1;
+        for (NewsArticle article : articles) {
+            articlesBlock.append("[").append(index).append("] Title: ").append(article.title()).append("\n");
+            if (article.author() != null && !article.author().isBlank()) {
+                articlesBlock.append("    By:    ").append(article.author()).append("\n");
+            }
+            articlesBlock.append("    Body:  ").append(article.bodyText()).append("\n\n");
+            index++;
+        }
+
+        String result = templateText
+                .replace("{toneInstruction}", toneInstruction(tone))
+                .replace("{topic}", topic)
+                .replace("{articleCount}", String.valueOf(articles.size()))
+                .replace("{articles}", articlesBlock.toString().trim());
+
+        log.debug("buildPromptFromTemplate() | return=prompt[{} chars]", result.length());
         return result;
     }
 

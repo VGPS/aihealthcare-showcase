@@ -19,7 +19,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-11
+ * @updated 2026-04-17
  */
 public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, String> {
 
@@ -39,4 +39,13 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, 
      * @return list of matching entities; empty if none found
      */
     List<NewsArticleEntity> findByTopic(String topic);
+
+    /**
+     * Finds all articles whose IDs are in the given list.
+     * Used by the prompt evaluation framework to load specific articles.
+     *
+     * @param articleIds the article IDs to search for
+     * @return list of matching entities; may be smaller than the input if some IDs are missing
+     */
+    List<NewsArticleEntity> findByArticleIdIn(List<String> articleIds);
 }

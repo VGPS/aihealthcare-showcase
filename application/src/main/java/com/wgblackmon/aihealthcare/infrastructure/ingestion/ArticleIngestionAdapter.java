@@ -30,7 +30,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-11
+ * @updated 2026-04-17
  */
 @Slf4j
 @Component
@@ -56,6 +56,21 @@ public class ArticleIngestionAdapter implements ArticleIngestionPort {
         }
 
         log.debug("fetchArticles() | return={} articles", result.size());
+        return result;
+    }
+
+    @Override
+    public List<NewsArticle> fetchArticlesByIds(List<String> articleIds) {
+        log.debug("fetchArticlesByIds() | articleIds={}", articleIds);
+
+        List<NewsArticleEntity> entities = repository.findByArticleIdIn(articleIds);
+        List<NewsArticle> result = new ArrayList<>();
+
+        for (NewsArticleEntity entity : entities) {
+            result.add(toDomain(entity));
+        }
+
+        log.debug("fetchArticlesByIds() | return={} articles", result.size());
         return result;
     }
 

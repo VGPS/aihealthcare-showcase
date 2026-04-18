@@ -24,4 +24,16 @@ public interface ArticleIngestionPort {
      * @return An unordered list of ingested articles; may be empty if no results are found.
      */
     List<NewsArticle> fetchArticles(String topic, int maxArticles);
+
+    /**
+     * Fetch specific articles by their unique identifiers.
+     *
+     * <p>Used by the prompt evaluation framework to load known articles for
+     * controlled experiments.  Articles not found in the database are silently
+     * skipped; callers should verify the returned list size.
+     *
+     * @param articleIds List of article IDs to fetch.
+     * @return The matching articles; may be smaller than the input list if some IDs are missing.
+     */
+    List<NewsArticle> fetchArticlesByIds(List<String> articleIds);
 }
