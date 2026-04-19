@@ -157,14 +157,32 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 
 ### Persistence notes
 - `application.yml` uses H2 in-memory, `ddl-auto: create-drop`, `defer-datasource-initialization: true`
-- `data.sql` seeds one `topics` row with `WHERE NOT EXISTS` guard
+- `data.sql` seeds one `topics` row + 3 prompt variants with `WHERE NOT EXISTS` guards
 - `NewsletterService.generate()` now calls `NewsletterRenderer` then `NewsletterRunPort.save()` after building the draft
 - `NewsletterService` retains in-memory `draftByDraftId` map for same-session `getDraft()` calls (sections/articles not stored in `newsletter_runs`)
 
 ---
 
 ## Current Slice
-**Slice 3 — Scheduling + Delivery — COMPLETE — 137 tests passing**
+**Slice 4 — Prompt Evaluation — COMPLETE — 233 tests passing**
+- [x] Domain: `PromptVariant`, `EvaluationResult`, `ComparisonResult`, `EvaluationScore` records
+- [x] Domain: `PromptVariantNotFoundException`, `EvaluationNotFoundException` exceptions
+- [x] Domain service: `PromptEvaluationService` — variant CRUD, evaluate, compare, result retrieval (11 operations)
+- [x] Inbound port: `EvaluatePromptsUseCase`
+- [x] Outbound ports: `PromptVariantPort`, `AiEvaluationPort`, `EvaluationResultPort`
+- [x] JPA entities: `PromptVariantEntity`, `EvaluationResultEntity`, `ComparisonResultEntity`
+- [x] JPA repositories: `PromptVariantRepository`, `EvaluationResultRepository`, `ComparisonResultRepository`
+- [x] Adapters: `PromptVariantAdapter`, `EvaluationResultAdapter` (article IDs pipe-delimited), `AiEvaluationAdapter` (LLM-as-judge via ChatClient)
+- [x] Web: `PromptVariantController`, `PromptEvaluationController`
+- [x] DTOs: `VariantRequest`/`VariantResponse`, `EvaluateRequest`, `EvaluationResultResponse`, `CompareRequest`, `ComparisonResultResponse`, `EvalSectionResponse`, `EvaluationScoreResponse`
+- [x] `GlobalExceptionHandler` — `PromptVariantNotFoundException` → 404, `EvaluationNotFoundException` → 404
+- [x] `AppConfig` — `@Bean promptEvaluationService()` wiring 5 ports
+- [x] Prompt template: `evaluate-section.txt` (LLM-as-judge scoring on 5 dimensions)
+- [x] `data.sql` — 3 seed prompt variants (concise baseline, detailed analysis, plain language)
+- [x] OpenAPI spec updated with `/api/v1/variants` (POST, GET, GET/{id}, DELETE), `/api/v1/evaluations` (POST, GET, GET/{id}), `/api/v1/comparisons` (POST, GET, GET/{id})
+- [x] Tests: `PromptEvaluationServiceTest`, `AiEvaluationAdapterTest`, `PromptVariantAdapterTest`, `EvaluationResultAdapterTest`, `PromptVariantControllerTest` (6), `PromptEvaluationControllerTest` (9)
+
+**Previously complete: Slice 3 — Scheduling + Delivery — 137 tests**
 - [x] Domain: `Subscriber` record, `DuplicateSubscriberException`, `SubscriberNotFoundException`
 - [x] Ports: `ManageSubscribersUseCase`, `DeliverNewsletterUseCase` (inbound); `SubscriberPort`, `NewsletterDeliveryPort` (outbound)
 - [x] `DeliveryService` — implements both use cases; wires run lookup → active-subscriber fetch → delivery dispatch → flip run status to `SENT`

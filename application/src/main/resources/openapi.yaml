@@ -7,7 +7,7 @@ info:
     feeds, summarizes them with Spring AI, and produces formatted newsletter
     drafts. Historical runs are stored and retrievable for subscriber archive
     display.
-  version: 2.0.0
+  version: 3.0.0
 
 servers:
   - url: http://localhost:8080
@@ -223,6 +223,240 @@ paths:
           description: Delivery triggered successfully
         '404':
           description: Run not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ---------------------------------------------------------------------------
+  # Prompt variant management
+  # ---------------------------------------------------------------------------
+  /api/v1/variants:
+    post:
+      summary: Create a new prompt variant
+      operationId: createVariant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VariantRequest'
+      responses:
+        '201':
+          description: Variant created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VariantResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: List all prompt variants
+      operationId: listVariants
+      responses:
+        '200':
+          description: List of variants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VariantResponse'
+
+  /api/v1/variants/{variantId}:
+    get:
+      summary: Get a prompt variant by ID
+      operationId: getVariant
+      parameters:
+        - name: variantId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Variant found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VariantResponse'
+        '404':
+          description: Variant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a prompt variant
+      operationId: deleteVariant
+      parameters:
+        - name: variantId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Variant deleted
+        '404':
+          description: Variant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ---------------------------------------------------------------------------
+  # Prompt evaluation
+  # ---------------------------------------------------------------------------
+  /api/v1/evaluations:
+    post:
+      summary: Evaluate a prompt variant
+      description: >
+        Summarizes the given articles using the specified prompt variant, then
+        scores the output with an AI evaluator on five quality dimensions.
+      operationId: evaluatePrompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateRequest'
+      responses:
+        '201':
+          description: Evaluation complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResultResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Variant or articles not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: List evaluation results
+      description: >
+        Returns all evaluation results, optionally filtered by variant ID.
+      operationId: listEvaluations
+      parameters:
+        - name: variantId
+          in: query
+          required: false
+          description: Filter evaluations by variant ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of evaluation results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EvaluationResultResponse'
+
+  /api/v1/evaluations/{evaluationId}:
+    get:
+      summary: Get an evaluation result by ID
+      operationId: getEvaluation
+      parameters:
+        - name: evaluationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Evaluation found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResultResponse'
+        '404':
+          description: Evaluation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ---------------------------------------------------------------------------
+  # Prompt comparison
+  # ---------------------------------------------------------------------------
+  /api/v1/comparisons:
+    post:
+      summary: Compare prompt variants side by side
+      description: >
+        Evaluates the same articles against multiple prompt variants and
+        groups the results for side-by-side comparison.
+      operationId: comparePrompts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompareRequest'
+      responses:
+        '201':
+          description: Comparison complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComparisonResultResponse'
+        '400':
+          description: Invalid request (fewer than 2 variants, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Variant or articles not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: List all comparisons
+      operationId: listComparisons
+      responses:
+        '200':
+          description: List of comparison results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ComparisonResultResponse'
+
+  /api/v1/comparisons/{comparisonId}:
+    get:
+      summary: Get a comparison result by ID
+      operationId: getComparison
+      parameters:
+        - name: comparisonId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Comparison found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComparisonResultResponse'
+        '404':
+          description: Comparison not found
           content:
             application/json:
               schema:
@@ -468,6 +702,172 @@ components:
         active:
           type: boolean
         subscribedAt:
+          type: string
+          format: date-time
+
+    VariantRequest:
+      type: object
+      required: [variantId, name, templateText]
+      properties:
+        variantId:
+          type: string
+          example: summarize-v1
+        name:
+          type: string
+          example: Default V1
+        templateText:
+          type: string
+          description: Full prompt template with {topic}, {articles}, etc. placeholders
+          example: "Summarize {topic} articles in {toneInstruction} style."
+        description:
+          type: string
+          nullable: true
+          example: Baseline prompt for summarization
+
+    VariantResponse:
+      type: object
+      properties:
+        variantId:
+          type: string
+        name:
+          type: string
+        templateText:
+          type: string
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    EvaluateRequest:
+      type: object
+      required: [variantId, articleIds, topic, tone]
+      properties:
+        variantId:
+          type: string
+          example: summarize-v1
+        articleIds:
+          type: array
+          items:
+            type: string
+          example: ["art-001", "art-002"]
+        topic:
+          type: string
+          example: AI Healthcare
+        tone:
+          type: string
+          enum: [PROFESSIONAL, ACCESSIBLE, TECHNICAL]
+          example: PROFESSIONAL
+
+    CompareRequest:
+      type: object
+      required: [variantIds, articleIds, topic, tone]
+      properties:
+        variantIds:
+          type: array
+          items:
+            type: string
+          minItems: 2
+          example: ["summarize-v1", "summarize-v2"]
+        articleIds:
+          type: array
+          items:
+            type: string
+          example: ["art-001", "art-002"]
+        topic:
+          type: string
+          example: AI Healthcare
+        tone:
+          type: string
+          enum: [PROFESSIONAL, ACCESSIBLE, TECHNICAL]
+          example: PROFESSIONAL
+
+    EvaluationScoreResponse:
+      type: object
+      properties:
+        relevance:
+          type: number
+          format: double
+        conciseness:
+          type: number
+          format: double
+        attributionQuality:
+          type: number
+          format: double
+        toneMatch:
+          type: number
+          format: double
+        completeness:
+          type: number
+          format: double
+        overall:
+          type: number
+          format: double
+        scoringNotes:
+          type: string
+
+    EvalSectionResponse:
+      type: object
+      properties:
+        sectionId:
+          type: string
+        sectionType:
+          type: string
+        topic:
+          type: string
+        headline:
+          type: string
+        summary:
+          type: string
+        articleIds:
+          type: array
+          items:
+            type: string
+
+    EvaluationResultResponse:
+      type: object
+      properties:
+        evaluationId:
+          type: string
+        variantId:
+          type: string
+        variantName:
+          type: string
+        articleIds:
+          type: array
+          items:
+            type: string
+        topic:
+          type: string
+        tone:
+          type: string
+        section:
+          $ref: '#/components/schemas/EvalSectionResponse'
+        score:
+          $ref: '#/components/schemas/EvaluationScoreResponse'
+        evaluatedAt:
+          type: string
+          format: date-time
+
+    ComparisonResultResponse:
+      type: object
+      properties:
+        comparisonId:
+          type: string
+        articleIds:
+          type: array
+          items:
+            type: string
+        topic:
+          type: string
+        tone:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationResultResponse'
+        comparedAt:
           type: string
           format: date-time
 

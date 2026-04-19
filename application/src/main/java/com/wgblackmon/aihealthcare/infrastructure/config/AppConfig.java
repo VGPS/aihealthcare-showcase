@@ -3,10 +3,14 @@ package com.wgblackmon.aihealthcare.infrastructure.config;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
+import com.wgblackmon.aihealthcare.domain.service.PromptEvaluationService;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.EvaluationResultPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.PromptVariantPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +45,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-17
+ * @updated 2026-04-18
  */
 @Slf4j
 @Configuration
@@ -92,6 +96,37 @@ public class AppConfig {
         NewsletterService result = new NewsletterService(
                 ingestionPort, summarizationPort, renderer, newsletterRunPort);
         log.debug("newsletterService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link PromptEvaluationService} instance that implements
+     * the prompt evaluation and comparison workflow.
+     *
+     * @param variantPort       Adapter implementing variant persistence (auto-detected).
+     * @param summarizationPort Adapter implementing AI summarization (auto-detected).
+     * @param evaluationPort    Adapter implementing AI evaluation (auto-detected).
+     * @param ingestionPort     Adapter implementing article fetching (auto-detected).
+     * @param resultPort        Adapter implementing evaluation result persistence (auto-detected).
+     * @return The wired {@link PromptEvaluationService} instance.
+     */
+    @Bean
+    public PromptEvaluationService promptEvaluationService(
+            PromptVariantPort variantPort,
+            AiSummarizationPort summarizationPort,
+            AiEvaluationPort evaluationPort,
+            ArticleIngestionPort ingestionPort,
+            EvaluationResultPort resultPort) {
+        log.debug("promptEvaluationService() | variantPort={}, summarizationPort={}, "
+                  + "evaluationPort={}, ingestionPort={}, resultPort={}",
+                  variantPort.getClass().getSimpleName(),
+                  summarizationPort.getClass().getSimpleName(),
+                  evaluationPort.getClass().getSimpleName(),
+                  ingestionPort.getClass().getSimpleName(),
+                  resultPort.getClass().getSimpleName());
+        PromptEvaluationService result = new PromptEvaluationService(
+                variantPort, summarizationPort, evaluationPort, ingestionPort, resultPort);
+        log.debug("promptEvaluationService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 }

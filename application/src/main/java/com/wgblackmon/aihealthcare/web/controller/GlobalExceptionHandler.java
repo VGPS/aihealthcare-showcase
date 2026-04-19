@@ -1,7 +1,9 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.exception.DuplicateSubscriberException;
+import com.wgblackmon.aihealthcare.domain.exception.EvaluationNotFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.NoArticlesFoundException;
+import com.wgblackmon.aihealthcare.domain.exception.PromptVariantNotFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.RunNotFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.SubscriberNotFoundException;
 import com.wgblackmon.aihealthcare.web.dto.ErrorResponse;
@@ -36,7 +38,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-04
+ * @updated 2026-04-18
  */
 @Slf4j
 @RestControllerAdvice
@@ -91,6 +93,32 @@ public class GlobalExceptionHandler {
         log.warn("handleSubscriberNotFound() | Subscriber not found: email={}", ex.getEmail());
         ErrorResponse body = new ErrorResponse("NOT_FOUND", ex.getMessage());
         log.debug("handleSubscriberNotFound() | return=404");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    /**
+     * Handles prompt variant lookup failures.
+     * Maps to HTTP 404 Not Found.
+     */
+    @ExceptionHandler(PromptVariantNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleVariantNotFound(PromptVariantNotFoundException ex) {
+        log.debug("handleVariantNotFound() | ex={}", ex.getMessage());
+        log.warn("handleVariantNotFound() | Variant not found: variantId={}", ex.getVariantId());
+        ErrorResponse body = new ErrorResponse("NOT_FOUND", ex.getMessage());
+        log.debug("handleVariantNotFound() | return=404");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    /**
+     * Handles evaluation or comparison lookup failures.
+     * Maps to HTTP 404 Not Found.
+     */
+    @ExceptionHandler(EvaluationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEvaluationNotFound(EvaluationNotFoundException ex) {
+        log.debug("handleEvaluationNotFound() | ex={}", ex.getMessage());
+        log.warn("handleEvaluationNotFound() | Evaluation not found: evaluationId={}", ex.getEvaluationId());
+        ErrorResponse body = new ErrorResponse("NOT_FOUND", ex.getMessage());
+        log.debug("handleEvaluationNotFound() | return=404");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
