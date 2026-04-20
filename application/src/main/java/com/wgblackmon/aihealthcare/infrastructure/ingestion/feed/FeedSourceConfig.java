@@ -53,6 +53,10 @@ public record FeedSourceConfig(
         /** Government and regulatory bodies. Harvested daily. */
         REGULATORY,
         /** Trade news and industry publications. Harvested every few hours. */
-        INDUSTRY
+        INDUSTRY,
+        /** Competitor web pages monitored for content changes. Harvested daily. */
+        COMPETITOR,
+        /** HuggingFace model registry. Harvested daily. */
+        HUGGINGFACE
     }
 }

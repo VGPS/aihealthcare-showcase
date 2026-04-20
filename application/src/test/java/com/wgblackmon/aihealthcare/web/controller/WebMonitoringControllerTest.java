@@ -1,0 +1,124 @@
+package com.wgblackmon.aihealthcare.web.controller;
+
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashRepository;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.List;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * MockMvc slice tests for {@link WebMonitoringController}.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-04-19
+ * @updated 2026-04-19
+ */
+@WebMvcTest(WebMonitoringController.class)
+class WebMonitoringControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private WebPageHarvester webPageHarvester;
+
+    @MockBean
+    private HuggingFaceHarvester huggingFaceHarvester;
+
+    @MockBean
+    private ArticleStoragePort articleStoragePort;
+
+    @MockBean
+    private PageContentHashRepository hashRepository;
+
+    @Test
+    void triggerCompetitorHarvest_withChanges_returns200() throws Exception {
+        NewsArticle article = new NewsArticle(
+                "test-id", "Changed Page", URI.create("https://example.com#snapshot-123"),
+                "new content", "Test", "Test", 1L, "Test", "COMPETITOR", 0.7, Instant.now());
+        when(webPageHarvester.harvestChangedPages()).thenReturn(List.of(article));
+        when(hashRepository.count()).thenReturn(4L);
+
+        mockMvc.perform(post("/api/v1/monitoring/harvest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.changesDetected").value(1));
+
+        verify(articleStoragePort).save(List.of(article));
+    }
+
+    @Test
+    void triggerCompetitorHarvest_noChanges_returns200() throws Exception {
+        when(webPageHarvester.harvestChangedPages()).thenReturn(List.of());
+        when(hashRepository.count()).thenReturn(4L);
+
+        mockMvc.perform(post("/api/v1/monitoring/harvest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.changesDetected").value(0));
+
+        verify(articleStoragePort, never()).save(anyList());
+    }
+
+    @Test
+    void triggerHuggingFaceHarvest_withModels_returns200() throws Exception {
+        NewsArticle model = new NewsArticle(
+                "hf-test/model", "test/model", URI.create("https://huggingface.co/test/model"),
+                "body", "HF LLMs", "test", 1L, "HF LLMs", "HUGGINGFACE", 0.5, Instant.now());
+        when(huggingFaceHarvester.harvestModels()).thenReturn(List.of(model));
+
+        mockMvc.perform(post("/api/v1/monitoring/huggingface"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.modelsDiscovered").value(1));
+
+        verify(articleStoragePort).save(List.of(model));
+    }
+
+    @Test
+    void triggerHuggingFaceHarvest_noModels_returns200() throws Exception {
+        when(huggingFaceHarvester.harvestModels()).thenReturn(List.of());
+
+        mockMvc.perform(post("/api/v1/monitoring/huggingface"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.modelsDiscovered").value(0));
+
+        verify(articleStoragePort, never()).save(anyList());
+    }
+
+    @Test
+    void listPageHashes_returnsEntries() throws Exception {
+        PageContentHashEntity entity = new PageContentHashEntity(
+                "https://example.com/page", "abc123", Instant.parse("2026-04-19T10:00:00Z"));
+        when(hashRepository.findAll()).thenReturn(List.of(entity));
+
+        mockMvc.perform(get("/api/v1/monitoring/hashes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].pageUrl").value("https://example.com/page"))
+                .andExpect(jsonPath("$[0].contentHash").value("abc123"));
+    }
+
+    @Test
+    void listPageHashes_empty_returnsEmptyArray() throws Exception {
+        when(hashRepository.findAll()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/v1/monitoring/hashes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+}

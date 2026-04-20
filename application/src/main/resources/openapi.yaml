@@ -463,6 +463,57 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
   # ---------------------------------------------------------------------------
+  # Web monitoring (manual triggers + diagnostics)
+  # ---------------------------------------------------------------------------
+  /api/v1/monitoring/harvest:
+    post:
+      summary: Trigger competitor page harvest
+      description: >
+        Manually triggers a scrape of all configured competitor web pages,
+        detects content changes via SHA-256 hashing, and persists changed
+        pages as articles in the newsletter pipeline.
+      operationId: triggerCompetitorHarvest
+      responses:
+        '200':
+          description: Harvest completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HarvestResultResponse'
+
+  /api/v1/monitoring/huggingface:
+    post:
+      summary: Trigger HuggingFace model discovery
+      description: >
+        Manually triggers a query of the HuggingFace Models API to discover
+        healthcare-related LLMs and persist them as articles.
+      operationId: triggerHuggingFaceHarvest
+      responses:
+        '200':
+          description: Discovery completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HuggingFaceHarvestResponse'
+
+  /api/v1/monitoring/hashes:
+    get:
+      summary: List page content hashes
+      description: >
+        Returns all stored SHA-256 content hashes for monitored competitor
+        pages.  Useful for verifying change detection state.
+      operationId: listPageHashes
+      responses:
+        '200':
+          description: List of page hash entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PageHashResponse'
+
+  # ---------------------------------------------------------------------------
   # Newsletter run archive
   # ---------------------------------------------------------------------------
   /api/v1/runs:
@@ -621,7 +672,7 @@ components:
         sourceTier:
           type: string
           nullable: true
-          enum: [ACADEMIC, REGULATORY, INDUSTRY]
+          enum: [ACADEMIC, REGULATORY, INDUSTRY, COMPETITOR, HUGGINGFACE]
         sourceWeight:
           type: number
           format: double
@@ -870,6 +921,37 @@ components:
         comparedAt:
           type: string
           format: date-time
+
+    HarvestResultResponse:
+      type: object
+      properties:
+        pagesChecked:
+          type: integer
+          description: Number of competitor pages checked
+        changesDetected:
+          type: integer
+          description: Number of pages with content changes
+
+    HuggingFaceHarvestResponse:
+      type: object
+      properties:
+        modelsDiscovered:
+          type: integer
+          description: Number of healthcare LLMs discovered from HuggingFace
+
+    PageHashResponse:
+      type: object
+      properties:
+        pageUrl:
+          type: string
+          description: URL of the monitored page
+        contentHash:
+          type: string
+          description: SHA-256 hex digest of the page content
+        lastCheckedAt:
+          type: string
+          format: date-time
+          description: Timestamp of the last content check
 
     ErrorResponse:
       type: object

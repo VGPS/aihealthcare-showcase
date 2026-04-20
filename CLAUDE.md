@@ -164,7 +164,24 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 4 — Prompt Evaluation — COMPLETE — 233 tests passing**
+**Slice 5 — Web Monitoring & Competitive Intelligence — COMPLETE — 264 tests passing**
+- [x] `pom.xml` — added `org.jsoup:jsoup:1.18.3` for HTML scraping
+- [x] `FeedTier` enum — added `COMPETITOR` (daily web page scraping) and `HUGGINGFACE` (API model discovery)
+- [x] Domain: `ContentHashPort` outbound port — `getHash(url)`, `saveHash(url, hash)` for change detection
+- [x] JPA: `PageContentHashEntity` (page_url PK, content_hash, last_checked_at) + `PageContentHashRepository`
+- [x] `ContentHashAdapter` — implements `ContentHashPort` with upsert behavior
+- [x] `WebPageHarvester` — jsoup scraper with SHA-256 change detection; CSS selector `main, article, [role=main]` with body fallback; 10K char truncation; snapshot URL fragments bypass dedup
+- [x] `HuggingFaceHarvester` — public API client discovering healthcare LLMs; maps models to `NewsArticle`; `hf-{modelId}` article IDs
+- [x] `HuggingFaceModelResponse` — infrastructure deserialization record
+- [x] `WebMonitoringScheduler` — daily at 07:00 UTC (competitor pages) + 07:30 UTC (HuggingFace); separate from RSS `FeedHarvestScheduler`
+- [x] `RomeFeedHarvester` — updated to filter out COMPETITOR/HUGGINGFACE tiers (RSS-only)
+- [x] `application.yml` — 4 competitor sources (Anthropic x2, Perplexity, Google) + 1 HuggingFace source configured
+- [x] Web: `WebMonitoringController` — `POST /monitoring/harvest`, `POST /monitoring/huggingface`, `GET /monitoring/hashes`
+- [x] DTOs: `HarvestResultResponse`, `HuggingFaceHarvestResponse`, `PageHashResponse`
+- [x] OpenAPI spec updated with 3 monitoring endpoints + 3 new schemas; `sourceTier` enum updated
+- [x] Tests: `WebPageHarvesterTest` (9), `WebMonitoringSchedulerTest` (6), `ContentHashAdapterTest` (4), `HuggingFaceHarvesterTest` (6), `WebMonitoringControllerTest` (6)
+
+**Previously complete: Slice 4 — Prompt Evaluation — 233 tests**
 - [x] Domain: `PromptVariant`, `EvaluationResult`, `ComparisonResult`, `EvaluationScore` records
 - [x] Domain: `PromptVariantNotFoundException`, `EvaluationNotFoundException` exceptions
 - [x] Domain service: `PromptEvaluationService` — variant CRUD, evaluate, compare, result retrieval (11 operations)

@@ -123,10 +123,11 @@ class RomeFeedHarvesterTest {
     }
 
     @Test
-    @DisplayName("FeedTier enum covers all three expected tiers")
+    @DisplayName("FeedTier enum covers all expected tiers")
     void feedTier_allValuesPresent() {
         assertThat(FeedTier.values())
-                .containsExactlyInAnyOrder(FeedTier.ACADEMIC, FeedTier.REGULATORY, FeedTier.INDUSTRY);
+                .containsExactlyInAnyOrder(FeedTier.ACADEMIC, FeedTier.REGULATORY,
+                        FeedTier.INDUSTRY, FeedTier.COMPETITOR, FeedTier.HUGGINGFACE);
     }
 
     @Test

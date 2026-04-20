@@ -9,6 +9,8 @@ import com.rometools.rome.io.XmlReader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceConfig.FeedTier;
+
 import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
@@ -54,8 +56,15 @@ public class RomeFeedHarvester implements ArticleHarvestingPort {
      */
     public RomeFeedHarvester(FeedSourceProperties properties) {
         log.debug("RomeFeedHarvester() | properties={}", properties.getClass().getSimpleName());
-        this.feedSources = properties.toFeedSourceConfigs();
-        log.debug("RomeFeedHarvester() | initialized with {} feed sources", feedSources.size());
+        List<FeedSourceConfig> rssOnly = new ArrayList<>();
+        for (FeedSourceConfig config : properties.toFeedSourceConfigs()) {
+            if (config.tier() != FeedTier.COMPETITOR && config.tier() != FeedTier.HUGGINGFACE) {
+                rssOnly.add(config);
+            }
+        }
+        this.feedSources = List.copyOf(rssOnly);
+        log.debug("RomeFeedHarvester() | initialized with {} RSS feed sources (filtered out non-RSS tiers)",
+                  feedSources.size());
     }
 
     /**

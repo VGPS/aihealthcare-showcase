@@ -76,7 +76,43 @@ logging:
 # -----------------------------------------------------------------------------
 aihealthcare:
   feeds:
-    sources: []
+    sources:
+      # -----------------------------------------------------------------
+      # Competitor web pages — scraped daily by WebPageHarvester (Slice 5)
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Anthropic Healthcare AI
+        url: https://www.anthropic.com/news/healthcare-life-sciences
+        tier: COMPETITOR
+        base-weight: 0.7
+        max-items: 1
+      - topic-id: 1
+        name: Anthropic Healthcare Webinar
+        url: https://www.anthropic.com/webinars/claude-code-in-healthcare-how-physicians-are-building-with-claude
+        tier: COMPETITOR
+        base-weight: 0.7
+        max-items: 1
+      - topic-id: 1
+        name: Perplexity Health
+        url: https://www.perplexity.ai/hub/blog/introducing-perplexity-health
+        tier: COMPETITOR
+        base-weight: 0.6
+        max-items: 1
+      - topic-id: 1
+        name: Google Health AI
+        url: https://ai.google/health/
+        tier: COMPETITOR
+        base-weight: 0.7
+        max-items: 1
+      # -----------------------------------------------------------------
+      # HuggingFace model discovery — queried daily by HuggingFaceHarvester
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: HuggingFace Healthcare LLMs
+        url: https://huggingface.co/api/models?search=healthcare+medical&sort=downloads&direction=-1&limit=25
+        tier: HUGGINGFACE
+        base-weight: 0.5
+        max-items: 25
 
   # ---------------------------------------------------------------------------
   # Embedding scheduler — cron expression for the EmbeddingScheduler job.
