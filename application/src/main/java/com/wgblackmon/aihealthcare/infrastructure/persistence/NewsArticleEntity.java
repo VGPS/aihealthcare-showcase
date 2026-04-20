@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
@@ -27,7 +28,7 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-11
+ * @updated 2026-04-20
  */
 @Entity
 @Table(name = "news_articles")
@@ -59,8 +60,17 @@ public class NewsArticleEntity {
 
     private Instant publishedAt;
 
+    private Instant createdAt;
+
     /** Required no-arg constructor for JPA. */
     public NewsArticleEntity() {}
+
+    @PrePersist
+    void prePersist() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
 
     public String getArticleId() { return articleId; }
     public void setArticleId(String articleId) { this.articleId = articleId; }
@@ -94,4 +104,7 @@ public class NewsArticleEntity {
 
     public Instant getPublishedAt() { return publishedAt; }
     public void setPublishedAt(Instant publishedAt) { this.publishedAt = publishedAt; }
+
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

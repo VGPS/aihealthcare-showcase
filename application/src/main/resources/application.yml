@@ -76,6 +76,13 @@ logging:
 # Each entry maps to a FeedSourceConfig record.
 # -----------------------------------------------------------------------------
 aihealthcare:
+  # ---------------------------------------------------------------------------
+  # Article query — how far back (in days) to look when fetching articles.
+  # Set to 0 for no date restriction.  Change freely for experimentation.
+  # ---------------------------------------------------------------------------
+  articles:
+    days-back: 7
+
   feeds:
     sources:
       # -----------------------------------------------------------------

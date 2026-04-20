@@ -16,19 +16,21 @@ import java.util.List;
 /**
  * REST controller exposing the article query endpoint.
  *
- * <p>Provides {@code GET /api/v1/articles?topic={topic}&limit={limit}} to allow
- * callers to confirm that the RSS feed harvester is persisting articles to the
- * database correctly.  The controller delegates to
- * {@link ArticleIngestionPort#fetchArticles} which is backed by the JPA adapter
- * in Slice 2a.
+ * <p>Provides {@code GET /api/v1/articles?topic={topic}&limit={limit}&daysBack={daysBack}}
+ * to allow callers to query harvested articles.  The {@code topic} parameter
+ * uses case-insensitive substring matching (e.g. "health" matches
+ * "Anthropic Healthcare AI" and "HuggingFace Healthcare LLMs").
+ *
+ * <p>The {@code daysBack} parameter is optional; when omitted the adapter
+ * uses its configured default from {@code aihealthcare.articles.days-back}.
  *
  * <p>This controller never references the JPA adapter, repository, or any
  * infrastructure class directly — it depends only on the domain port interface.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-11
- * @updated 2026-04-11
+ * @updated 2026-04-20
  */
 @Slf4j
 @RestController
@@ -43,10 +45,13 @@ public class ArticleController {
     }
 
     /**
-     * Returns persisted articles matching the given topic name.
+     * Returns persisted articles matching the given topic keyword.
      *
-     * @param topic the topic name to filter by (e.g. "PubMed AI Healthcare")
-     * @param limit maximum number of articles to return (default 20)
+     * <p>Topic matching is case-insensitive substring search — "health"
+     * matches "Anthropic Healthcare AI", "Google Health AI", etc.
+     *
+     * @param topic   keyword to match against article topics (case-insensitive contains)
+     * @param limit   maximum number of articles to return (default 20)
      * @return 200 OK with a list of {@link ArticleResponse} DTOs
      */
     @GetMapping("/articles")
@@ -56,6 +61,8 @@ public class ArticleController {
         log.debug("listArticles() | topic={}, limit={}", topic, limit);
 
         List<NewsArticle> articles = ingestionPort.fetchArticles(topic, limit);
+        log.debug("listArticles() | fetched {} articles from ingestionPort", articles.size());
+
         List<ArticleResponse> responses = new ArrayList<>();
 
         for (NewsArticle article : articles) {

@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -19,7 +20,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-17
+ * @updated 2026-04-20
  */
 public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, String> {
 
@@ -39,6 +40,26 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, 
      * @return list of matching entities; empty if none found
      */
     List<NewsArticleEntity> findByTopic(String topic);
+
+    /**
+     * Finds articles whose topic contains the given keyword (case-insensitive)
+     * and that were created on or after the given cutoff instant.
+     *
+     * @param topic   substring to match against the topic column (case-insensitive)
+     * @param cutoff  only articles created at or after this instant are returned
+     * @return list of matching entities; empty if none found
+     */
+    List<NewsArticleEntity> findByTopicContainingIgnoreCaseAndCreatedAtAfter(
+            String topic, Instant cutoff);
+
+    /**
+     * Finds articles whose topic contains the given keyword (case-insensitive),
+     * with no date restriction.
+     *
+     * @param topic substring to match against the topic column (case-insensitive)
+     * @return list of matching entities; empty if none found
+     */
+    List<NewsArticleEntity> findByTopicContainingIgnoreCase(String topic);
 
     /**
      * Finds all articles whose IDs are in the given list.

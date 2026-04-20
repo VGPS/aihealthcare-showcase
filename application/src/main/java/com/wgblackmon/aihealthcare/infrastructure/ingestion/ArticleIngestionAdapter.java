@@ -5,19 +5,24 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * JPA-backed implementation of {@link ArticleIngestionPort}.
  *
- * <p>Queries the {@code news_articles} table for articles matching the given
- * topic name, applying the {@code maxArticles} limit in-memory after the
- * query.  Articles are mapped from {@link NewsArticleEntity} back to the
- * immutable {@link NewsArticle} domain record before returning.
+ * <p>Queries the {@code news_articles} table for articles whose topic
+ * <em>contains</em> the given keyword (case-insensitive), optionally
+ * filtered to articles created within the last {@code daysBack} days.
+ * The {@code daysBack} value is read from
+ * {@code aihealthcare.articles.days-back} in {@code application.yml}
+ * and defaults to {@code 7}.  Set to {@code 0} to disable date filtering.
  *
  * <p>The {@code url} column is stored as a {@code String}; this adapter
  * restores it to a {@code java.net.URI} via {@code URI.create()}.  If a
@@ -28,26 +33,42 @@ import java.util.List;
  * <p>Replaces the Slice 1 stub that always returned an empty list.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-04
- * @updated 2026-04-17
+ * @updated 2026-04-20
  */
 @Slf4j
 @Component
 public class ArticleIngestionAdapter implements ArticleIngestionPort {
 
     private final NewsArticleRepository repository;
+    private final int daysBack;
 
-    public ArticleIngestionAdapter(NewsArticleRepository repository) {
-        log.debug("ArticleIngestionAdapter() | repository={}", repository.getClass().getSimpleName());
+    public ArticleIngestionAdapter(
+            NewsArticleRepository repository,
+            @Value("${aihealthcare.articles.days-back:7}") int daysBack) {
+        log.debug("ArticleIngestionAdapter() | repository={}, daysBack={}",
+                  repository.getClass().getSimpleName(), daysBack);
         this.repository = repository;
+        this.daysBack = daysBack;
     }
 
     @Override
     public List<NewsArticle> fetchArticles(String topic, int maxArticles) {
-        log.debug("fetchArticles() | topic={}, maxArticles={}", topic, maxArticles);
+        log.debug("fetchArticles() | topic={}, maxArticles={}, daysBack={}", topic, maxArticles, daysBack);
 
-        List<NewsArticleEntity> entities = repository.findByTopic(topic);
+        List<NewsArticleEntity> entities;
+        if (daysBack > 0) {
+            Instant cutoff = Instant.now().minus(daysBack, ChronoUnit.DAYS);
+            log.debug("fetchArticles() | using date filter: cutoff={}", cutoff);
+            entities = repository.findByTopicContainingIgnoreCaseAndCreatedAtAfter(topic, cutoff);
+        } else {
+            log.debug("fetchArticles() | daysBack=0, no date filter applied");
+            entities = repository.findByTopicContainingIgnoreCase(topic);
+        }
+
+        log.debug("fetchArticles() | query returned {} entities", entities.size());
+
         List<NewsArticle> result = new ArrayList<>();
         int limit = Math.min(entities.size(), maxArticles);
 
@@ -55,7 +76,7 @@ public class ArticleIngestionAdapter implements ArticleIngestionPort {
             result.add(toDomain(entities.get(i)));
         }
 
-        log.debug("fetchArticles() | return={} articles", result.size());
+        log.debug("fetchArticles() | return={} articles (limit applied: {})", result.size(), limit);
         return result;
     }
 
@@ -75,7 +96,8 @@ public class ArticleIngestionAdapter implements ArticleIngestionPort {
     }
 
     private NewsArticle toDomain(NewsArticleEntity entity) {
-        log.debug("toDomain() | articleId={}", entity.getArticleId());
+        log.debug("toDomain() | articleId={}, topic={}, createdAt={}",
+                  entity.getArticleId(), entity.getTopic(), entity.getCreatedAt());
 
         URI url;
         try {
