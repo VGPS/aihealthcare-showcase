@@ -102,6 +102,7 @@ class HuggingFaceHarvesterTest {
     @Test
     void harvestModels_apiReturnsError_returnsEmpty() throws Exception {
         when(httpResponse.statusCode()).thenReturn(500);
+        when(httpResponse.body()).thenReturn("Internal Server Error");
         when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
                 .thenReturn(httpResponse);
 

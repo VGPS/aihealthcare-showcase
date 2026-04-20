@@ -158,16 +158,26 @@ public class WebPageHarvester {
      */
     String fetchPageHtml(String url) {
         log.debug("fetchPageHtml() | url={}", url);
+        Instant startTime = Instant.now();
+        log.debug("fetchPageHtml() | PRE-SCRAPE  url={} startTime={}", url, startTime);
         try {
             Document doc = Jsoup.connect(url)
                     .timeout(CONNECT_TIMEOUT_MS)
                     .userAgent("AIHealthcare-Monitor/1.0")
                     .get();
             String html = doc.html();
+            Instant endTime = Instant.now();
+            long elapsedMs = java.time.Duration.between(startTime, endTime).toMillis();
+            String preview = html.length() > 500 ? html.substring(0, 500) + "..." : html;
+            log.debug("fetchPageHtml() | POST-SCRAPE url={} endTime={} elapsedMs={} contentLength={} contentPreview={}",
+                      url, endTime, elapsedMs, html.length(), preview);
             log.debug("fetchPageHtml() | return={} chars", html.length());
             return html;
         } catch (Exception ex) {
-            log.error("fetchPageHtml() | failed to fetch '{}': {}", url, ex.getMessage());
+            Instant endTime = Instant.now();
+            long elapsedMs = java.time.Duration.between(startTime, endTime).toMillis();
+            log.error("fetchPageHtml() | POST-SCRAPE FAILED url={} endTime={} elapsedMs={} error={}",
+                      url, endTime, elapsedMs, ex.getMessage());
             log.debug("fetchPageHtml() | return=empty");
             return "";
         }

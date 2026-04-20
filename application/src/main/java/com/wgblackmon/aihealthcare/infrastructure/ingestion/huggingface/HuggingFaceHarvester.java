@@ -120,8 +120,19 @@ public class HuggingFaceHarvester {
                 .GET()
                 .build();
 
+        Instant startTime = Instant.now();
+        log.debug("harvestFromSource() | PRE-FETCH  url={} startTime={}", source.url(), startTime);
+
         HttpResponse<String> response = httpClient.send(request,
                 HttpResponse.BodyHandlers.ofString());
+
+        Instant endTime = Instant.now();
+        long elapsedMs = java.time.Duration.between(startTime, endTime).toMillis();
+        String preview = response.body().length() > 500
+                ? response.body().substring(0, 500) + "..." : response.body();
+        log.debug("harvestFromSource() | POST-FETCH url={} endTime={} elapsedMs={} status={} contentLength={} contentPreview={}",
+                  source.url(), endTime, elapsedMs, response.statusCode(),
+                  response.body().length(), preview);
 
         if (response.statusCode() != 200) {
             log.warn("harvestFromSource() | HuggingFace API returned status {}",
@@ -136,9 +147,16 @@ public class HuggingFaceHarvester {
         int limit = Math.min(models.size(), source.maxItems());
         for (int i = 0; i < limit; i++) {
             HuggingFaceModelResponse model = models.get(i);
+            Instant modelStart = Instant.now();
             NewsArticle article = mapModelToArticle(model, source);
+            Instant modelEnd = Instant.now();
+            long modelMs = java.time.Duration.between(modelStart, modelEnd).toMillis();
             if (article != null) {
                 articles.add(article);
+                log.debug("harvestFromSource() | MODEL-MAPPED modelId={} elapsedMs={} bodyPreview={}",
+                          model.modelId(), modelMs,
+                          article.bodyText().length() > 200
+                                  ? article.bodyText().substring(0, 200) + "..." : article.bodyText());
             }
         }
 
