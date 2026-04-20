@@ -13,6 +13,10 @@ spring:
       api-key: ${ANTHROPIC_API_KEY:placeholder-set-ANTHROPIC_API_KEY}
     openai:
       api-key: ${OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        dimensions: 1536
 
   # ---------------------------------------------------------------------------
   # PostgreSQL datasource
@@ -47,15 +51,12 @@ spring:
       mode: always
 
   # ---------------------------------------------------------------------------
-  # Spring AI — PGVector auto-configuration
-  # Uses the same datasource as JPA.  The vector_store table and pgvector
-  # extension are initialised automatically on first start.
+  # Mail — defaults for local development (no real SMTP server required).
+  # Override in application-dev.yml / application-prod.yml for actual delivery.
   # ---------------------------------------------------------------------------
-  ai:
-    vectorstore:
-      pgvector:
-        initialize-schema: true
-        dimensions: 1536
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
 
 server:
   port: 8080

@@ -12,11 +12,12 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PromptVariantPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
-import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -50,7 +51,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Slf4j
 @Configuration
 @EnableScheduling
-@EnableConfigurationProperties(FeedSourceProperties.class)
 public class AppConfig {
 
     /**
@@ -128,5 +128,26 @@ public class AppConfig {
                 variantPort, summarizationPort, evaluationPort, ingestionPort, resultPort);
         log.debug("promptEvaluationService() | return={}", result.getClass().getSimpleName());
         return result;
+    }
+
+    /**
+     * Designates the Anthropic {@link ChatModel} as the primary chat model.
+     *
+     * <p>Both {@code spring-ai-starter-model-anthropic} and
+     * {@code spring-ai-starter-model-openai} register a {@link ChatModel} bean.
+     * OpenAI is on the classpath solely for its {@code EmbeddingModel} (used by
+     * PgVector); Anthropic is the intended LLM for all chat/summarization work.
+     * Marking it {@code @Primary} resolves the ambiguity for
+     * {@link org.springframework.ai.chat.client.ChatClient.Builder} injection.
+     *
+     * @param anthropicChatModel the auto-configured Anthropic chat model
+     * @return the same instance, now marked as primary
+     */
+    @Bean
+    @Primary
+    public ChatModel primaryChatModel(
+            @Qualifier("anthropicChatModel") ChatModel anthropicChatModel) {
+        log.debug("primaryChatModel() | anthropicChatModel={}", anthropicChatModel.getClass().getSimpleName());
+        return anthropicChatModel;
     }
 }

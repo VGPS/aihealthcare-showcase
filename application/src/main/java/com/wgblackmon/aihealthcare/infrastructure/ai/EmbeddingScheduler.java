@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleReposit
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +40,7 @@ import java.util.Map;
  */
 @Slf4j
 @Component
+@ConditionalOnBean(VectorStore.class)
 public class EmbeddingScheduler {
 
     private final NewsArticleRepository repository;

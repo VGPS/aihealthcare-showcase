@@ -8,6 +8,7 @@ import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceConfi
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceConfig.FeedTier;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -51,6 +52,7 @@ public class HuggingFaceHarvester {
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
 
+    @Autowired
     public HuggingFaceHarvester(FeedSourceProperties properties) {
         log.debug("HuggingFaceHarvester() | properties={}",
                   properties.getClass().getSimpleName());

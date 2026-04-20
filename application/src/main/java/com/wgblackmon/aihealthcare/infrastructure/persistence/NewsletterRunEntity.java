@@ -44,10 +44,10 @@ public class NewsletterRunEntity {
 
     private LocalDate weekOf;
 
-    @Column(name = "html_content", columnDefinition = "CLOB")
+    @Column(name = "html_content", columnDefinition = "TEXT")
     private String htmlContent;
 
-    @Column(name = "plain_text_content", columnDefinition = "CLOB")
+    @Column(name = "plain_text_content", columnDefinition = "TEXT")
     private String plainTextContent;
 
     @Enumerated(EnumType.STRING)
