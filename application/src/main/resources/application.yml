@@ -81,7 +81,7 @@ aihealthcare:
   # Set to 0 for no date restriction.  Change freely for experimentation.
   # ---------------------------------------------------------------------------
   articles:
-    days-back: 7
+    days-back: 3
 
   feeds:
     sources:

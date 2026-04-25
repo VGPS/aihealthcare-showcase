@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.delivery;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.ArticleContentEnricher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -16,6 +17,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 /**
  * Unit tests for {@link NotebookLMService}.
@@ -26,14 +29,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * {@code exportDirectory} and {@code summariesDirectory} constructor arguments,
  * exercising the same code path that the {@code @Value} injection follows at runtime.
  *
- * <p>Tests cover both outputs: the date-stamped summary document (historical record
- * in the summaries directory) and individual per-article files (NotebookLM indexing
- * in the export directory), including title-based dedup, tag structure, directory
- * auto-creation, filename sanitization, empty article list, body-text fallback to
- * URL, and blank-title validation.
+ * <p>The {@link ArticleContentEnricher} is spied so that {@code fetchPageHtml()}
+ * never makes real HTTP calls.  Tests cover both outputs: the date-stamped summary
+ * document (historical record) and individual per-article files (NotebookLM indexing),
+ * including content enrichment, link-only filtering, title-based dedup, tag structure,
+ * directory auto-creation, and blank-title validation.
  *
  * @author  Bill Blackmon
- * @version 4.0
+ * @version 5.0
  * @since   2026-04-13
  * @updated 2026-04-25
  */
@@ -44,12 +47,16 @@ class NotebookLMServiceTest {
 
     private Path exportDir;
     private Path summariesDir;
+    private ArticleContentEnricher enricher;
     private NotebookLMService service;
 
     // --- shared fixtures ---
 
     private static final String TITLE = "AI in Healthcare Weekly";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy_MM_dd");
+
+    /** Minimum body length to pass the enricher's useful-body check. */
+    private static final String USEFUL_BODY = "This is a sufficiently long body text that exceeds the minimum threshold for useful content.";
 
     private static NewsArticle article(String id, String topic, String articleTitle, String body) {
         return new NewsArticle(
@@ -68,7 +75,8 @@ class NotebookLMServiceTest {
     void setUp() {
         exportDir = tempDir.resolve("articles");
         summariesDir = tempDir.resolve("summaries");
-        service = new NotebookLMService(exportDir.toString(), summariesDir.toString());
+        enricher = spy(new ArticleContentEnricher());
+        service = new NotebookLMService(exportDir.toString(), summariesDir.toString(), enricher);
     }
 
     /** Returns today's expected summary filename. */
@@ -112,7 +120,7 @@ class NotebookLMServiceTest {
 
     @Test
     void export_summaryContainsAllArticleTags() throws IOException {
-        NewsArticle a = article("a-001", "AI Diagnostics", "AI Detects Cancer", "Body text.");
+        NewsArticle a = article("a-001", "AI Diagnostics", "AI Detects Cancer", USEFUL_BODY);
         Path result = service.export(TITLE, List.of(a));
 
         String content = Files.readString(result, StandardCharsets.UTF_8);
@@ -120,14 +128,14 @@ class NotebookLMServiceTest {
         assertThat(content).contains("<topic>AI Diagnostics</topic>");
         assertThat(content).contains("<title>AI Detects Cancer</title>");
         assertThat(content).contains("<url>https://example.com/a-001</url>");
-        assertThat(content).contains("<body>Body text.</body>");
+        assertThat(content).contains("<body>" + USEFUL_BODY + "</body>");
     }
 
     @Test
     void export_summaryContainsMultipleArticles() throws IOException {
         List<NewsArticle> articles = List.of(
-                article("a-001", "AI Diagnostics", "Article One", "Body one."),
-                article("a-002", "ML Research",    "Article Two", "Body two.")
+                article("a-001", "AI Diagnostics", "Article One", USEFUL_BODY + " one"),
+                article("a-002", "ML Research",    "Article Two", USEFUL_BODY + " two")
         );
 
         Path result = service.export(TITLE, articles);
@@ -152,16 +160,15 @@ class NotebookLMServiceTest {
     @Test
     void export_summaryStillContainsDuplicatedArticles() throws IOException {
         List<NewsArticle> articles = List.of(
-                article("a-001", "AI", "Same Title", "First body."),
-                article("a-002", "ML", "Same Title", "Second body.")
+                article("a-001", "AI", "Same Title", USEFUL_BODY + " first"),
+                article("a-002", "ML", "Same Title", USEFUL_BODY + " second")
         );
 
         Path summary = service.export(TITLE, articles);
 
-        // Summary document should contain BOTH articles regardless of dedup
         String content = Files.readString(summary, StandardCharsets.UTF_8);
-        assertThat(content).contains("First body.");
-        assertThat(content).contains("Second body.");
+        assertThat(content).contains(USEFUL_BODY + " first");
+        assertThat(content).contains(USEFUL_BODY + " second");
     }
 
     // =========================================================================
@@ -171,8 +178,8 @@ class NotebookLMServiceTest {
     @Test
     void export_createsIndividualFilePerArticle() throws IOException {
         List<NewsArticle> articles = List.of(
-                article("a-001", "AI Diagnostics", "AI Detects Cancer", "Body text here."),
-                article("a-002", "ML Research", "ML in Clinical Trials", "Body two.")
+                article("a-001", "AI Diagnostics", "AI Detects Cancer", USEFUL_BODY + " one"),
+                article("a-002", "ML Research", "ML in Clinical Trials", USEFUL_BODY + " two")
         );
 
         service.export(TITLE, articles);
@@ -183,7 +190,7 @@ class NotebookLMServiceTest {
 
     @Test
     void export_individualFileHasSourceTopicTitleUrlBodyTags() throws IOException {
-        NewsArticle a = article("a-001", "AI Diagnostics", "AI Detects Cancer", "Body text.");
+        NewsArticle a = article("a-001", "AI Diagnostics", "AI Detects Cancer", USEFUL_BODY);
         service.export(TITLE, List.of(a));
 
         String content = Files.readString(exportDir.resolve("AI Detects Cancer.txt"), StandardCharsets.UTF_8);
@@ -191,13 +198,13 @@ class NotebookLMServiceTest {
         assertThat(content).contains("<topic>AI Diagnostics</topic>");
         assertThat(content).contains("<title>AI Detects Cancer</title>");
         assertThat(content).contains("<url>https://example.com/a-001</url>");
-        assertThat(content).contains("<body>Body text.</body>");
+        assertThat(content).contains("<body>" + USEFUL_BODY + "</body>");
     }
 
     @Test
     void export_individualFileDoesNotContainSummaryTitle() throws IOException {
         service.export(TITLE, List.of(
-                article("a-001", "AI", "Test Article", "Body.")
+                article("a-001", "AI", "Test Article", USEFUL_BODY)
         ));
 
         String content = Files.readString(exportDir.resolve("Test Article.txt"), StandardCharsets.UTF_8);
@@ -207,11 +214,10 @@ class NotebookLMServiceTest {
     @Test
     void export_individualFilesWrittenToExportDirectory() throws IOException {
         service.export(TITLE, List.of(
-                article("a-001", "AI", "Test Article", "Body.")
+                article("a-001", "AI", "Test Article", USEFUL_BODY)
         ));
 
         assertThat(exportDir.resolve("Test Article.txt")).exists();
-        // Summaries dir should NOT contain individual files
         assertThat(summariesDir.resolve("Test Article.txt")).doesNotExist();
     }
 
@@ -219,7 +225,6 @@ class NotebookLMServiceTest {
     void export_emptyArticleList_noIndividualFilesWritten() throws IOException {
         service.export(TITLE, List.of());
 
-        // Export directory should have no .txt files (summary is in summariesDir)
         if (Files.exists(exportDir)) {
             long txtFileCount = Files.list(exportDir)
                     .filter(p -> p.getFileName().toString().endsWith(".txt"))
@@ -231,10 +236,60 @@ class NotebookLMServiceTest {
     @Test
     void export_specialCharsInArticleTitleAreSanitized() throws IOException {
         service.export(TITLE, List.of(
-                article("a-001", "AI", "AI/Healthcare: Weekly*Report?", "Body.")
+                article("a-001", "AI", "AI/Healthcare: Weekly*Report?", USEFUL_BODY)
         ));
 
         assertThat(exportDir.resolve("AI_Healthcare_ Weekly_Report_.txt")).exists();
+    }
+
+    // =========================================================================
+    // Content enrichment and link-only filtering
+    // =========================================================================
+
+    @Test
+    void export_linkOnlyArticle_droppedFromExport() throws IOException {
+        // Article with no useful body and fetch fails
+        NewsArticle linkOnly = article("a-001", "AI", "Link Only Article", "short");
+        doReturn("").when(enricher).fetchPageHtml("https://example.com/a-001");
+
+        service.export(TITLE, List.of(linkOnly));
+
+        // No individual file should be created
+        if (Files.exists(exportDir)) {
+            long txtFileCount = Files.list(exportDir)
+                    .filter(p -> p.getFileName().toString().endsWith(".txt"))
+                    .count();
+            assertThat(txtFileCount).isEqualTo(0);
+        }
+    }
+
+    @Test
+    void export_linkOnlyArticle_enrichedFromUrl_keptInExport() throws IOException {
+        NewsArticle linkOnly = article("a-001", "AI", "Enriched Article", "");
+        doReturn("<html><body><main>" + USEFUL_BODY + "</main></body></html>")
+                .when(enricher).fetchPageHtml("https://example.com/a-001");
+
+        service.export(TITLE, List.of(linkOnly));
+
+        assertThat(exportDir.resolve("Enriched Article.txt")).exists();
+        String content = Files.readString(exportDir.resolve("Enriched Article.txt"), StandardCharsets.UTF_8);
+        assertThat(content).contains(USEFUL_BODY);
+    }
+
+    @Test
+    void export_mixedArticles_onlyUsefulOnesExported() throws IOException {
+        NewsArticle withBody = article("a-001", "AI", "Good Article", USEFUL_BODY);
+        NewsArticle linkOnly = article("a-002", "ML", "Link Article", "tiny");
+        doReturn("").when(enricher).fetchPageHtml("https://example.com/a-002");
+
+        service.export(TITLE, List.of(withBody, linkOnly));
+
+        assertThat(exportDir.resolve("Good Article.txt")).exists();
+        // Link-only should be filtered out — no individual file
+        long txtFileCount = Files.list(exportDir)
+                .filter(p -> p.getFileName().toString().endsWith(".txt"))
+                .count();
+        assertThat(txtFileCount).isEqualTo(1);
     }
 
     // =========================================================================
@@ -244,21 +299,21 @@ class NotebookLMServiceTest {
     @Test
     void export_duplicateTitlesInBatch_onlyFirstIndividualFileIsWritten() throws IOException {
         List<NewsArticle> articles = List.of(
-                article("a-001", "AI", "Same Title", "First body."),
-                article("a-002", "ML", "Same Title", "Second body.")
+                article("a-001", "AI", "Same Title", USEFUL_BODY + " first"),
+                article("a-002", "ML", "Same Title", USEFUL_BODY + " second")
         );
 
         service.export(TITLE, articles);
 
         String content = Files.readString(exportDir.resolve("Same Title.txt"), StandardCharsets.UTF_8);
-        assertThat(content).contains("First body.");
+        assertThat(content).contains(USEFUL_BODY + " first");
     }
 
     @Test
     void export_duplicateTitlesCaseInsensitive_onlyFirstIndividualFileIsWritten() throws IOException {
         List<NewsArticle> articles = List.of(
-                article("a-001", "AI", "AI Cancer Detection", "First."),
-                article("a-002", "ML", "ai cancer detection", "Second.")
+                article("a-001", "AI", "AI Cancer Detection", USEFUL_BODY + " first"),
+                article("a-002", "ML", "ai cancer detection", USEFUL_BODY + " second")
         );
 
         service.export(TITLE, articles);
@@ -271,30 +326,28 @@ class NotebookLMServiceTest {
 
     @Test
     void export_individualFileAlreadyOnDisk_isSkipped() throws IOException {
-        // Pre-create the export directory and an existing file
         Files.createDirectories(exportDir);
         Files.writeString(exportDir.resolve("Existing Article.txt"), "old content", StandardCharsets.UTF_8);
 
         service.export(TITLE, List.of(
-                article("a-001", "AI", "Existing Article", "New body.")
+                article("a-001", "AI", "Existing Article", USEFUL_BODY)
         ));
 
-        // Should not overwrite the pre-existing individual file
         String content = Files.readString(exportDir.resolve("Existing Article.txt"), StandardCharsets.UTF_8);
         assertThat(content).isEqualTo("old content");
     }
 
     // =========================================================================
-    // Body-text fallback
+    // Body-text fallback in summary (enriched articles use real body)
     // =========================================================================
 
     @Test
-    void export_blankBodyText_fallsBackToUrl() throws IOException {
-        NewsArticle a = article("a-001", "AI Diagnostics", "Title Only", "");
+    void export_articleWithUsefulBody_summaryContainsBody() throws IOException {
+        NewsArticle a = article("a-001", "AI", "Full Article", USEFUL_BODY);
         Path result = service.export(TITLE, List.of(a));
 
         String content = Files.readString(result, StandardCharsets.UTF_8);
-        assertThat(content).contains("<body>https://example.com/a-001</body>");
+        assertThat(content).contains("<body>" + USEFUL_BODY + "</body>");
     }
 
     // =========================================================================
@@ -305,12 +358,13 @@ class NotebookLMServiceTest {
     void export_directoriesDoNotExist_createdAutomatically() throws IOException {
         Path newExportDir = tempDir.resolve("new-export");
         Path newSummariesDir = tempDir.resolve("new-summaries");
-        NotebookLMService svc = new NotebookLMService(newExportDir.toString(), newSummariesDir.toString());
+        NotebookLMService svc = new NotebookLMService(
+                newExportDir.toString(), newSummariesDir.toString(), enricher);
 
         assertThat(newExportDir).doesNotExist();
         assertThat(newSummariesDir).doesNotExist();
 
-        svc.export(TITLE, List.of(article("a-001", "AI", "Test", "Body.")));
+        svc.export(TITLE, List.of(article("a-001", "AI", "Test", USEFUL_BODY)));
 
         assertThat(newExportDir).exists().isDirectory();
         assertThat(newSummariesDir).exists().isDirectory();

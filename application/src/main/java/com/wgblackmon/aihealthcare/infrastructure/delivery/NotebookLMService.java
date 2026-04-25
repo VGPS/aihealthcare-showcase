@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.delivery;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.ArticleContentEnricher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -35,8 +36,10 @@ import java.util.Set;
  * <p>This service is the final step in the NotebookLM pipeline:
  * <ol>
  *   <li>Search results arrive as a {@link List} of {@link NewsArticle} objects.</li>
- *   <li>Articles are passed through {@link #filter} — currently a pass-through;
- *       AI-based relevance scoring will be introduced in a future slice.</li>
+ *   <li>Articles are passed through {@link #filter} which enriches articles
+ *       that have no body text by fetching their URL content via
+ *       {@link ArticleContentEnricher}, then drops any articles that still
+ *       have no meaningful content after enrichment.</li>
  *   <li>Filtered articles are serialized to structured plain-text using
  *       XML-style demarcation tags ({@code <topic>}, {@code <title>}, {@code <body>})
  *       that NotebookLM can parse and index per section.</li>
@@ -58,7 +61,7 @@ import java.util.Set;
  * }</pre>
  *
  * @author  Bill Blackmon
- * @version 4.0
+ * @version 5.0
  * @since   2026-04-13
  * @updated 2026-04-25
  */
@@ -71,9 +74,10 @@ public class NotebookLMService {
 
     private final String exportDirectory;
     private final String summariesDirectory;
+    private final ArticleContentEnricher contentEnricher;
 
     /**
-     * Constructs the service with the configured export and summaries directories.
+     * Constructs the service with the configured directories and content enricher.
      *
      * @param exportDirectory    Path to the directory where individual article files
      *                           are written.  Resolved from
@@ -83,14 +87,18 @@ public class NotebookLMService {
      *                           files are written.  Resolved from
      *                           {@code aihealthcare.notebooklm.summaries-directory};
      *                           defaults to {@code NotebookLMDirectory/summaries}.
+     * @param contentEnricher    Enricher that fetches page content for articles
+     *                           with empty body text.
      */
     public NotebookLMService(
             @Value("${aihealthcare.notebooklm.directory:NotebookLMDirectory}") String exportDirectory,
-            @Value("${aihealthcare.notebooklm.summaries-directory:NotebookLMDirectory/summaries}") String summariesDirectory) {
-        log.debug("NotebookLMService() | exportDirectory={}, summariesDirectory={}",
-                  exportDirectory, summariesDirectory);
+            @Value("${aihealthcare.notebooklm.summaries-directory:NotebookLMDirectory/summaries}") String summariesDirectory,
+            ArticleContentEnricher contentEnricher) {
+        log.debug("NotebookLMService() | exportDirectory={}, summariesDirectory={}, contentEnricher={}",
+                  exportDirectory, summariesDirectory, contentEnricher.getClass().getSimpleName());
         this.exportDirectory = exportDirectory;
         this.summariesDirectory = summariesDirectory;
+        this.contentEnricher = contentEnricher;
     }
 
     // -------------------------------------------------------------------------
@@ -150,30 +158,38 @@ public class NotebookLMService {
     // -------------------------------------------------------------------------
 
     /**
-     * Filters the article list before export.
+     * Enriches and filters the article list before export.
      *
-     * <p><b>Current behaviour:</b> all articles are passed through unchanged.
-     *
-     * <p><b>TODO (future slice):</b> Replace with AI-based relevance filtering
-     * via the Agent step.  Each article will be scored against a configurable
-     * relevance threshold; articles that fall below the threshold are excluded
-     * so that only high-signal content reaches the NotebookLM index.
+     * <p>First, articles with empty or insufficient body text are enriched by
+     * fetching their URL content via {@link ArticleContentEnricher}.  Then,
+     * any articles that still have no meaningful body text (less than
+     * {@link ArticleContentEnricher#MIN_USEFUL_LENGTH} characters) are dropped.
+     * This ensures only articles with useful content reach the export stage.
      *
      * @param articles The raw search-result articles.
-     * @return A filtered (currently identical) copy of the input list.
+     * @return A filtered list containing only articles with meaningful content.
      */
     private List<NewsArticle> filter(List<NewsArticle> articles) {
         log.debug("filter() | articleCount={}", articles.size());
 
-        // TODO (future slice): AI-based relevance scoring and threshold filtering.
-        //   Planned approach: call ArticleSearchPort with a relevance query, score
-        //   each article against the newsletter topic context, and drop articles
-        //   whose score falls below aihealthcare.notebooklm.relevance-threshold.
+        // Step 1: Enrich articles with empty body text by fetching URL content
+        List<NewsArticle> enriched = contentEnricher.enrich(articles);
+
+        // Step 2: Drop articles that still have no meaningful body text
         List<NewsArticle> result = new ArrayList<>();
-        for (NewsArticle article : articles) {
-            result.add(article);
+        int dropped = 0;
+        for (NewsArticle article : enriched) {
+            if (contentEnricher.hasUsefulBody(article)) {
+                result.add(article);
+            } else {
+                log.debug("filter() | dropping link-only article: '{}' ({})",
+                          article.title(), article.url());
+                dropped++;
+            }
         }
 
+        log.info("filter() | {} articles kept, {} link-only articles dropped",
+                 result.size(), dropped);
         log.debug("filter() | return={} articles", result.size());
         return result;
     }
