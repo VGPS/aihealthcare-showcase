@@ -24,14 +24,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * {@code exportDirectory} constructor argument, exercising the same code path
  * that the {@code @Value} injection follows at runtime.
  *
- * <p>Tests cover: file creation, NotebookLM tag structure, directory auto-creation,
- * filename sanitization, empty article list, body-text fallback to URL, and
- * blank-title validation.
+ * <p>Tests cover both outputs: the summary document (historical record) and
+ * individual per-article files (NotebookLM indexing), including title-based
+ * dedup, tag structure, directory auto-creation, filename sanitization,
+ * empty article list, body-text fallback to URL, and blank-title validation.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 3.0
  * @since   2026-04-13
- * @updated 2026-04-13
+ * @updated 2026-04-25
  */
 class NotebookLMServiceTest {
 
@@ -51,7 +52,7 @@ class NotebookLMServiceTest {
                 URI.create("https://example.com/" + id),
                 body,
                 topic,
-                null, null, null, null,
+                null, null, "TestSource", null,
                 0.5,
                 null
         );
@@ -62,24 +63,20 @@ class NotebookLMServiceTest {
         service = new NotebookLMService(tempDir.toString());
     }
 
-    // -------------------------------------------------------------------------
-    // export() — file creation and naming
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // Summary document tests (historical record)
+    // =========================================================================
 
     @Test
-    void export_createsFileInConfiguredDirectory() throws IOException {
-        List<NewsArticle> articles = List.of(
-                article("a-001", "AI Diagnostics", "AI Detects Cancer", "Body text here.")
-        );
-
-        Path result = service.export(TITLE, articles);
+    void export_returnsSummaryFilePath() throws IOException {
+        Path result = service.export(TITLE, List.of());
 
         assertThat(result).exists();
         assertThat(result.getParent()).isEqualTo(tempDir);
     }
 
     @Test
-    void export_filenameMatchesSanitizedTitle() throws IOException {
+    void export_summaryFilenameMatchesSanitizedTitle() throws IOException {
         Path result = service.export(TITLE, List.of());
 
         assertThat(result.getFileName().toString()).isEqualTo("AI in Healthcare Weekly.txt");
@@ -93,12 +90,8 @@ class NotebookLMServiceTest {
                 .isEqualTo("AI_Healthcare_ Weekly_Report_.txt");
     }
 
-    // -------------------------------------------------------------------------
-    // export() — NotebookLM content format
-    // -------------------------------------------------------------------------
-
     @Test
-    void export_contentStartsWithTitleTag() throws IOException {
+    void export_summaryContentStartsWithTitleTag() throws IOException {
         Path result = service.export(TITLE, List.of());
 
         String content = Files.readString(result, StandardCharsets.UTF_8);
@@ -106,18 +99,20 @@ class NotebookLMServiceTest {
     }
 
     @Test
-    void export_eachArticleHasTopicTitleBodyTags() throws IOException {
+    void export_summaryContainsAllArticleTags() throws IOException {
         NewsArticle a = article("a-001", "AI Diagnostics", "AI Detects Cancer", "Body text.");
         Path result = service.export(TITLE, List.of(a));
 
         String content = Files.readString(result, StandardCharsets.UTF_8);
+        assertThat(content).contains("<source>TestSource</source>");
         assertThat(content).contains("<topic>AI Diagnostics</topic>");
         assertThat(content).contains("<title>AI Detects Cancer</title>");
+        assertThat(content).contains("<url>https://example.com/a-001</url>");
         assertThat(content).contains("<body>Body text.</body>");
     }
 
     @Test
-    void export_multipleArticlesAllAppearInFile() throws IOException {
+    void export_summaryContainsMultipleArticles() throws IOException {
         List<NewsArticle> articles = List.of(
                 article("a-001", "AI Diagnostics", "Article One", "Body one."),
                 article("a-002", "ML Research",    "Article Two", "Body two.")
@@ -133,7 +128,7 @@ class NotebookLMServiceTest {
     }
 
     @Test
-    void export_emptyArticleList_writesOnlyTitleTag() throws IOException {
+    void export_emptyArticleList_summaryContainsOnlyTitleTag() throws IOException {
         Path result = service.export(TITLE, List.of());
 
         String content = Files.readString(result, StandardCharsets.UTF_8);
@@ -142,9 +137,122 @@ class NotebookLMServiceTest {
         assertThat(content).doesNotContain("<body>");
     }
 
-    // -------------------------------------------------------------------------
-    // export() — body-text fallback
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // Individual article file tests (NotebookLM indexing)
+    // =========================================================================
+
+    @Test
+    void export_createsIndividualFilePerArticle() throws IOException {
+        List<NewsArticle> articles = List.of(
+                article("a-001", "AI Diagnostics", "AI Detects Cancer", "Body text here."),
+                article("a-002", "ML Research", "ML in Clinical Trials", "Body two.")
+        );
+
+        service.export(TITLE, articles);
+
+        assertThat(tempDir.resolve("AI Detects Cancer.txt")).exists();
+        assertThat(tempDir.resolve("ML in Clinical Trials.txt")).exists();
+    }
+
+    @Test
+    void export_individualFileHasSourceTopicTitleUrlBodyTags() throws IOException {
+        NewsArticle a = article("a-001", "AI Diagnostics", "AI Detects Cancer", "Body text.");
+        service.export(TITLE, List.of(a));
+
+        String content = Files.readString(tempDir.resolve("AI Detects Cancer.txt"), StandardCharsets.UTF_8);
+        assertThat(content).contains("<source>TestSource</source>");
+        assertThat(content).contains("<topic>AI Diagnostics</topic>");
+        assertThat(content).contains("<title>AI Detects Cancer</title>");
+        assertThat(content).contains("<url>https://example.com/a-001</url>");
+        assertThat(content).contains("<body>Body text.</body>");
+    }
+
+    @Test
+    void export_individualFileDoesNotContainSummaryTitle() throws IOException {
+        service.export(TITLE, List.of(
+                article("a-001", "AI", "Test Article", "Body.")
+        ));
+
+        String content = Files.readString(tempDir.resolve("Test Article.txt"), StandardCharsets.UTF_8);
+        assertThat(content).doesNotContain(TITLE);
+    }
+
+    @Test
+    void export_emptyArticleList_noIndividualFilesWritten() throws IOException {
+        service.export(TITLE, List.of());
+
+        // Only the summary file should exist
+        long txtFileCount = Files.list(tempDir)
+                .filter(p -> p.getFileName().toString().endsWith(".txt"))
+                .count();
+        assertThat(txtFileCount).isEqualTo(1); // just the summary
+    }
+
+    // =========================================================================
+    // Individual file — title-based dedup
+    // =========================================================================
+
+    @Test
+    void export_duplicateTitlesInBatch_onlyFirstIndividualFileIsWritten() throws IOException {
+        List<NewsArticle> articles = List.of(
+                article("a-001", "AI", "Same Title", "First body."),
+                article("a-002", "ML", "Same Title", "Second body.")
+        );
+
+        service.export(TITLE, articles);
+
+        String content = Files.readString(tempDir.resolve("Same Title.txt"), StandardCharsets.UTF_8);
+        assertThat(content).contains("First body.");
+    }
+
+    @Test
+    void export_duplicateTitlesCaseInsensitive_onlyFirstIndividualFileIsWritten() throws IOException {
+        List<NewsArticle> articles = List.of(
+                article("a-001", "AI", "AI Cancer Detection", "First."),
+                article("a-002", "ML", "ai cancer detection", "Second.")
+        );
+
+        service.export(TITLE, articles);
+
+        // Only one individual file (plus the summary)
+        long txtFileCount = Files.list(tempDir)
+                .filter(p -> p.getFileName().toString().endsWith(".txt"))
+                .count();
+        assertThat(txtFileCount).isEqualTo(2); // summary + 1 individual
+    }
+
+    @Test
+    void export_individualFileAlreadyOnDisk_isSkipped() throws IOException {
+        // Pre-create a file that matches an article title
+        Files.writeString(tempDir.resolve("Existing Article.txt"), "old content", StandardCharsets.UTF_8);
+
+        service.export(TITLE, List.of(
+                article("a-001", "AI", "Existing Article", "New body.")
+        ));
+
+        // Should not overwrite the pre-existing individual file
+        String content = Files.readString(tempDir.resolve("Existing Article.txt"), StandardCharsets.UTF_8);
+        assertThat(content).isEqualTo("old content");
+    }
+
+    @Test
+    void export_summaryStillContainsDuplicatedArticles() throws IOException {
+        List<NewsArticle> articles = List.of(
+                article("a-001", "AI", "Same Title", "First body."),
+                article("a-002", "ML", "Same Title", "Second body.")
+        );
+
+        Path summary = service.export(TITLE, articles);
+
+        // Summary document should contain BOTH articles regardless of dedup
+        String content = Files.readString(summary, StandardCharsets.UTF_8);
+        assertThat(content).contains("First body.");
+        assertThat(content).contains("Second body.");
+    }
+
+    // =========================================================================
+    // Body-text fallback
+    // =========================================================================
 
     @Test
     void export_blankBodyText_fallsBackToUrl() throws IOException {
@@ -155,9 +263,9 @@ class NotebookLMServiceTest {
         assertThat(content).contains("<body>https://example.com/a-001</body>");
     }
 
-    // -------------------------------------------------------------------------
-    // export() — directory auto-creation
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // Directory auto-creation
+    // =========================================================================
 
     @Test
     void export_directoryDoesNotExist_isCreatedAutomatically() throws IOException {
@@ -171,9 +279,9 @@ class NotebookLMServiceTest {
         assertThat(subDir).exists().isDirectory();
     }
 
-    // -------------------------------------------------------------------------
-    // export() — validation
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // Validation
+    // =========================================================================
 
     @Test
     void export_blankTitle_throwsIllegalArgument() {

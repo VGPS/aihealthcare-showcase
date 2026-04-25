@@ -86,6 +86,63 @@ aihealthcare:
   feeds:
     sources:
       # -----------------------------------------------------------------
+      # ACADEMIC RSS feeds — peer-reviewed and research sources
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: PubMed AI Healthcare
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1iCIuphPfzMUfIkqJ3mOSNQlFJKYJb1xPnBx7XEBOQ1haHy2hW/?limit=20&utm_campaign=pubmed-2&fc=20220101000000
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 20
+      - topic-id: 1
+        name: PubMed Machine Learning Clinical
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1MiuHQ7HGxZ0iqhHwJbLHqaGzKfhEKPFWiPmwM-HadPVdsBX3j/?limit=15&utm_campaign=pubmed-2&fc=20220101000000
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      # -----------------------------------------------------------------
+      # REGULATORY RSS feeds — government and regulatory bodies
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: FDA Medical Devices News
+        url: https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-devices/rss.xml
+        tier: REGULATORY
+        base-weight: 0.95
+        max-items: 15
+      - topic-id: 1
+        name: WHO News
+        url: https://www.who.int/rss-feeds/news-english.xml
+        tier: REGULATORY
+        base-weight: 0.85
+        max-items: 10
+      # -----------------------------------------------------------------
+      # INDUSTRY RSS feeds — trade news, broad AI healthcare coverage
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Healthcare IT News
+        url: https://www.healthcareitnews.com/feed
+        tier: INDUSTRY
+        base-weight: 0.7
+        max-items: 20
+      - topic-id: 1
+        name: MIT Technology Review AI
+        url: https://www.technologyreview.com/feed/
+        tier: INDUSTRY
+        base-weight: 0.75
+        max-items: 15
+      - topic-id: 1
+        name: Google News AI Healthcare
+        url: https://news.google.com/rss/search?q=artificial+intelligence+healthcare&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.6
+        max-items: 25
+      - topic-id: 1
+        name: Google News Clinical AI
+        url: https://news.google.com/rss/search?q=clinical+AI+FDA+approval+medical+device&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 20
+      # -----------------------------------------------------------------
       # Competitor web pages — scraped daily by WebPageHarvester (Slice 5)
       # -----------------------------------------------------------------
       - topic-id: 1

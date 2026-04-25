@@ -35,9 +35,10 @@ import java.time.Instant;
 public class NewsArticleEntity {
 
     @Id
-    @Column(name = "article_id")
+    @Column(name = "article_id", length = 512)
     private String articleId;
 
+    @Column(length = 1024)
     private String title;
 
     @Column(length = 2048)
@@ -46,8 +47,10 @@ public class NewsArticleEntity {
     @Column(columnDefinition = "TEXT")
     private String bodyText;
 
+    @Column(length = 512)
     private String topic;
 
+    @Column(length = 512)
     private String author;
 
     private Long topicId;

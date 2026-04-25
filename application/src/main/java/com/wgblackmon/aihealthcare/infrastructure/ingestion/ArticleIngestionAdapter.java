@@ -99,7 +99,7 @@ public class ArticleIngestionAdapter implements ArticleIngestionPort {
         log.debug("toDomain() | articleId={}, topic={}, createdAt={}",
                   entity.getArticleId(), entity.getTopic(), entity.getCreatedAt());
 
-        URI url;
+        URI url = null;
         try {
             url = entity.getUrl() != null && !entity.getUrl().isBlank()
                     ? URI.create(entity.getUrl())
@@ -107,7 +107,6 @@ public class ArticleIngestionAdapter implements ArticleIngestionPort {
         } catch (IllegalArgumentException ex) {
             log.warn("toDomain() | invalid URI stored for articleId={}, using empty URI",
                     entity.getArticleId());
-            url = URI.create("");
         }
 
         NewsArticle result = new NewsArticle(

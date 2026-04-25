@@ -11,23 +11,35 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
- * Exports article search results to a NotebookLM-compatible text file.
+ * Exports article search results in two complementary formats:
+ *
+ * <ol>
+ *   <li><b>Summary document</b> — a single file named after the export title
+ *       containing all articles in structured XML-style tags.  This file serves
+ *       as a historical record of each export run.</li>
+ *   <li><b>Individual article files</b> — one file per article, named after
+ *       the sanitized article title.  These files are consumed directly by
+ *       NotebookLM for indexing.  Duplicate titles (case-insensitive) within a
+ *       batch and files that already exist on disk are skipped.</li>
+ * </ol>
  *
  * <p>This service is the final step in the NotebookLM pipeline:
  * <ol>
  *   <li>Search results arrive as a {@link List} of {@link NewsArticle} objects.</li>
  *   <li>Articles are passed through {@link #filter} — currently a pass-through;
  *       AI-based relevance scoring will be introduced in a future slice.</li>
- *   <li>Filtered articles are serialized to a structured plain-text format using
+ *   <li>Filtered articles are serialized to structured plain-text using
  *       XML-style demarcation tags ({@code <topic>}, {@code <title>}, {@code <body>})
  *       that NotebookLM can parse and index per section.</li>
- *   <li>The resulting text is written to a file named after the export title inside
- *       the directory configured by {@code aihealthcare.notebooklm.directory}
- *       (default: {@code NotebookLMDirectory} relative to the working directory).
- *       The directory is created automatically if it does not yet exist.</li>
+ *   <li>Both the summary document and individual files are written inside the
+ *       directory configured by {@code aihealthcare.notebooklm.directory}
+ *       (default: {@code NotebookLMDirectory}).  The directory is created
+ *       automatically if it does not yet exist.</li>
  * </ol>
  *
  * <p>This class lives in {@code infrastructure.delivery} because writing to the
@@ -42,9 +54,9 @@ import java.util.List;
  * }</pre>
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 3.0
  * @since   2026-04-13
- * @updated 2026-04-13
+ * @updated 2026-04-25
  */
 @Slf4j
 @Service
@@ -70,17 +82,24 @@ public class NotebookLMService {
     // -------------------------------------------------------------------------
 
     /**
-     * Filters, formats, and writes the supplied articles to a NotebookLM text file.
+     * Filters, formats, and writes the supplied articles to both a summary
+     * document and individual per-article files.
      *
-     * <p>The output file is named {@code <sanitized-title>.txt} and is placed
-     * inside the configured export directory.  The directory is created if absent.
+     * <p>The summary document is named {@code <sanitized-title>.txt} and contains
+     * all articles in a single file — used as a historical record of the export.
      *
-     * @param title    Display title for the export (also used as the filename).
+     * <p>Individual article files are named {@code <sanitized-article-title>.txt}.
+     * Duplicate titles are detected by normalizing the sanitized filename to
+     * lowercase — the second (and subsequent) articles with the same title are
+     * skipped and logged.  Files that already exist on disk from a previous run
+     * are also skipped, preventing accumulation across runs.
+     *
+     * @param title    Display title for the export (also used as the summary filename).
      *                 Must not be blank.
-     * @param articles Articles to export; may be empty, in which case a file
+     * @param articles Articles to export; may be empty, in which case a summary file
      *                 containing only the title tag is written.
-     * @return The {@link Path} of the written file.
-     * @throws IOException              if the directory cannot be created or the file
+     * @return The {@link Path} of the summary document.
+     * @throws IOException              if the directory cannot be created or a file
      *                                  cannot be written.
      * @throws IllegalArgumentException if {@code title} is blank.
      */
@@ -97,12 +116,17 @@ public class NotebookLMService {
         List<NewsArticle> filtered = filter(articles);
         log.info("export() | Articles after filtering: {} of {} kept", filtered.size(), articles.size());
 
-        String content = formatForNotebookLm(title, filtered);
-        Path outputPath = writeToFile(title, content);
+        // 1. Write the summary document (historical record)
+        String summaryContent = formatForNotebookLm(title, filtered);
+        Path summaryPath = writeToFile(title, summaryContent);
+        log.info("export() | Summary document written: {}", summaryPath.toAbsolutePath());
 
-        log.info("export() | Wrote {} articles to {}", filtered.size(), outputPath.toAbsolutePath());
-        log.debug("export() | return={}", outputPath);
-        return outputPath;
+        // 2. Write individual per-article files (for NotebookLM indexing)
+        writeIndividualFiles(filtered);
+
+        log.info("export() | Wrote {} articles to {}", filtered.size(), summaryPath.toAbsolutePath());
+        log.debug("export() | return={}", summaryPath);
+        return summaryPath;
     }
 
     // -------------------------------------------------------------------------
@@ -139,14 +163,17 @@ public class NotebookLMService {
     }
 
     /**
-     * Serializes articles to NotebookLM-compatible structured text.
+     * Serializes all articles to a single NotebookLM-compatible structured text
+     * document for historical record keeping.
      *
      * <p>The output format is:
      * <pre>
      * &lt;title&gt;Export Title&lt;/title&gt;
      *
+     * &lt;source&gt;Source Name&lt;/source&gt;
      * &lt;topic&gt;Topic Name&lt;/topic&gt;
      * &lt;title&gt;Article Title&lt;/title&gt;
+     * &lt;url&gt;https://...&lt;/url&gt;
      * &lt;body&gt;Article body text or URL fallback.&lt;/body&gt;
      *
      * ...repeated per article...
@@ -166,18 +193,110 @@ public class NotebookLMService {
         sb.append("<title>").append(title).append("</title>\n\n");
 
         for (NewsArticle article : articles) {
+            String source = article.sourceName() != null ? article.sourceName() : "";
             String topic = article.topic() != null ? article.topic() : "";
             String articleTitle = article.title() != null ? article.title() : "";
+            String url = article.url() != null ? article.url().toString() : "";
             String body = resolveBody(article);
 
+            sb.append("<source>").append(source).append("</source>\n");
             sb.append("<topic>").append(topic).append("</topic>\n");
             sb.append("<title>").append(articleTitle).append("</title>\n");
+            sb.append("<url>").append(url).append("</url>\n");
             sb.append("<body>").append(body).append("</body>\n\n");
         }
 
         String result = sb.toString();
         log.debug("formatForNotebookLm() | return={} chars", result.length());
         return result;
+    }
+
+    /**
+     * Serializes a single article to NotebookLM-compatible structured text
+     * for individual file export.
+     *
+     * <p>The output format is:
+     * <pre>
+     * &lt;source&gt;Source Name&lt;/source&gt;
+     * &lt;topic&gt;Topic Name&lt;/topic&gt;
+     * &lt;title&gt;Article Title&lt;/title&gt;
+     * &lt;url&gt;https://...&lt;/url&gt;
+     * &lt;body&gt;Article body text or URL fallback.&lt;/body&gt;
+     * </pre>
+     *
+     * @param article The article to serialize.
+     * @return The formatted document as a single {@link String}.
+     */
+    private String formatSingleArticle(NewsArticle article) {
+        log.debug("formatSingleArticle() | articleId={}", article.articleId());
+
+        String topic = article.topic() != null ? article.topic() : "";
+        String articleTitle = article.title() != null ? article.title() : "";
+        String source = article.sourceName() != null ? article.sourceName() : "";
+        String url = article.url() != null ? article.url().toString() : "";
+        String body = resolveBody(article);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<source>").append(source).append("</source>\n");
+        sb.append("<topic>").append(topic).append("</topic>\n");
+        sb.append("<title>").append(articleTitle).append("</title>\n");
+        sb.append("<url>").append(url).append("</url>\n");
+        sb.append("<body>").append(body).append("</body>\n");
+
+        String result = sb.toString();
+        log.debug("formatSingleArticle() | return={} chars", result.length());
+        return result;
+    }
+
+    /**
+     * Writes individual per-article files into the export directory.
+     *
+     * <p>Each article is written as {@code <sanitized-article-title>.txt}.
+     * Duplicate titles (case-insensitive) within the batch are skipped.
+     * Files that already exist on disk from a previous run are also skipped.
+     *
+     * @param articles The filtered articles to write individually.
+     * @throws IOException if a file cannot be written.
+     */
+    private void writeIndividualFiles(List<NewsArticle> articles) throws IOException {
+        log.debug("writeIndividualFiles() | articleCount={}", articles.size());
+
+        Path dir = Paths.get(exportDirectory);
+        Set<String> seenTitles = new HashSet<>();
+        int written = 0;
+        int skippedDuplicate = 0;
+        int skippedExists = 0;
+
+        for (NewsArticle article : articles) {
+            String articleTitle = article.title() != null && !article.title().isBlank()
+                    ? article.title()
+                    : article.articleId();
+            String sanitized = sanitizeFilename(articleTitle);
+            String normalizedKey = sanitized.toLowerCase();
+
+            if (seenTitles.contains(normalizedKey)) {
+                log.debug("writeIndividualFiles() | skipping duplicate title in batch: '{}'", articleTitle);
+                skippedDuplicate++;
+                continue;
+            }
+            seenTitles.add(normalizedKey);
+
+            Path file = dir.resolve(sanitized + ".txt");
+            if (Files.exists(file)) {
+                log.debug("writeIndividualFiles() | skipping already-on-disk: {}", file.getFileName());
+                skippedExists++;
+                continue;
+            }
+
+            String content = formatSingleArticle(article);
+            Files.writeString(file, content, StandardCharsets.UTF_8);
+            written++;
+            log.debug("writeIndividualFiles() | wrote {}", file.getFileName());
+        }
+
+        log.info("writeIndividualFiles() | {} files written, {} duplicate titles skipped, {} already on disk",
+                 written, skippedDuplicate, skippedExists);
+        log.debug("writeIndividualFiles() | return=void");
     }
 
     /**
