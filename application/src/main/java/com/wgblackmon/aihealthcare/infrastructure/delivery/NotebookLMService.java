@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,13 +21,15 @@ import java.util.Set;
  * Exports article search results in two complementary formats:
  *
  * <ol>
- *   <li><b>Summary document</b> — a single file named after the export title
- *       containing all articles in structured XML-style tags.  This file serves
- *       as a historical record of each export run.</li>
+ *   <li><b>Summary document</b> — a single date-stamped file written to the
+ *       summaries directory ({@code aihealthcare.notebooklm.summaries-directory}).
+ *       The filename follows the {@code yyyy_MM_dd.txt} pattern so that each
+ *       day's export is preserved as a historical record.</li>
  *   <li><b>Individual article files</b> — one file per article, named after
- *       the sanitized article title.  These files are consumed directly by
- *       NotebookLM for indexing.  Duplicate titles (case-insensitive) within a
- *       batch and files that already exist on disk are skipped.</li>
+ *       the sanitized article title, written to the main export directory
+ *       ({@code aihealthcare.notebooklm.directory}).  These files are consumed
+ *       directly by NotebookLM for indexing.  Duplicate titles (case-insensitive)
+ *       within a batch and files that already exist on disk are skipped.</li>
  * </ol>
  *
  * <p>This service is the final step in the NotebookLM pipeline:
@@ -36,25 +40,25 @@ import java.util.Set;
  *   <li>Filtered articles are serialized to structured plain-text using
  *       XML-style demarcation tags ({@code <topic>}, {@code <title>}, {@code <body>})
  *       that NotebookLM can parse and index per section.</li>
- *   <li>Both the summary document and individual files are written inside the
- *       directory configured by {@code aihealthcare.notebooklm.directory}
- *       (default: {@code NotebookLMDirectory}).  The directory is created
- *       automatically if it does not yet exist.</li>
+ *   <li>The summary document is written to the summaries directory; individual
+ *       article files are written to the main export directory.  Both directories
+ *       are created automatically if they do not yet exist.</li>
  * </ol>
  *
  * <p>This class lives in {@code infrastructure.delivery} because writing to the
  * filesystem is an outbound infrastructure concern.  It carries no business logic —
  * the caller decides which articles to pass in and what title to use.
  *
- * <p>The export directory path is read from {@code application.yml}:
+ * <p>Directory paths are read from {@code application.yml}:
  * <pre>{@code
  * aihealthcare:
  *   notebooklm:
  *     directory: NotebookLMDirectory
+ *     summaries-directory: NotebookLMDirectory/summaries
  * }</pre>
  *
  * @author  Bill Blackmon
- * @version 3.0
+ * @version 4.0
  * @since   2026-04-13
  * @updated 2026-04-25
  */
@@ -62,19 +66,31 @@ import java.util.Set;
 @Service
 public class NotebookLMService {
 
+    private static final DateTimeFormatter SUMMARY_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy_MM_dd");
+
     private final String exportDirectory;
+    private final String summariesDirectory;
 
     /**
-     * Constructs the service with the configured export directory.
+     * Constructs the service with the configured export and summaries directories.
      *
-     * @param exportDirectory Path to the directory where export files are written.
-     *                        Resolved from {@code aihealthcare.notebooklm.directory};
-     *                        defaults to {@code NotebookLMDirectory} if unset.
+     * @param exportDirectory    Path to the directory where individual article files
+     *                           are written.  Resolved from
+     *                           {@code aihealthcare.notebooklm.directory};
+     *                           defaults to {@code NotebookLMDirectory} if unset.
+     * @param summariesDirectory Path to the directory where date-stamped summary
+     *                           files are written.  Resolved from
+     *                           {@code aihealthcare.notebooklm.summaries-directory};
+     *                           defaults to {@code NotebookLMDirectory/summaries}.
      */
     public NotebookLMService(
-            @Value("${aihealthcare.notebooklm.directory:NotebookLMDirectory}") String exportDirectory) {
-        log.debug("NotebookLMService() | exportDirectory={}", exportDirectory);
+            @Value("${aihealthcare.notebooklm.directory:NotebookLMDirectory}") String exportDirectory,
+            @Value("${aihealthcare.notebooklm.summaries-directory:NotebookLMDirectory/summaries}") String summariesDirectory) {
+        log.debug("NotebookLMService() | exportDirectory={}, summariesDirectory={}",
+                  exportDirectory, summariesDirectory);
         this.exportDirectory = exportDirectory;
+        this.summariesDirectory = summariesDirectory;
     }
 
     // -------------------------------------------------------------------------
@@ -82,24 +98,24 @@ public class NotebookLMService {
     // -------------------------------------------------------------------------
 
     /**
-     * Filters, formats, and writes the supplied articles to both a summary
-     * document and individual per-article files.
+     * Filters, formats, and writes the supplied articles to both a date-stamped
+     * summary document and individual per-article files.
      *
-     * <p>The summary document is named {@code <sanitized-title>.txt} and contains
-     * all articles in a single file — used as a historical record of the export.
+     * <p>The summary document is named {@code yyyy_MM_dd.txt} (using the current
+     * date) and written to the summaries directory — used as a historical record.
      *
-     * <p>Individual article files are named {@code <sanitized-article-title>.txt}.
-     * Duplicate titles are detected by normalizing the sanitized filename to
-     * lowercase — the second (and subsequent) articles with the same title are
-     * skipped and logged.  Files that already exist on disk from a previous run
-     * are also skipped, preventing accumulation across runs.
+     * <p>Individual article files are named {@code <sanitized-article-title>.txt}
+     * and written to the main export directory.  Duplicate titles are detected by
+     * normalizing the sanitized filename to lowercase — the second (and subsequent)
+     * articles with the same title are skipped and logged.  Files that already
+     * exist on disk from a previous run are also skipped.
      *
-     * @param title    Display title for the export (also used as the summary filename).
-     *                 Must not be blank.
+     * @param title    Display title for the export (used in the summary document
+     *                 header).  Must not be blank.
      * @param articles Articles to export; may be empty, in which case a summary file
      *                 containing only the title tag is written.
      * @return The {@link Path} of the summary document.
-     * @throws IOException              if the directory cannot be created or a file
+     * @throws IOException              if a directory cannot be created or a file
      *                                  cannot be written.
      * @throws IllegalArgumentException if {@code title} is blank.
      */
@@ -116,15 +132,15 @@ public class NotebookLMService {
         List<NewsArticle> filtered = filter(articles);
         log.info("export() | Articles after filtering: {} of {} kept", filtered.size(), articles.size());
 
-        // 1. Write the summary document (historical record)
+        // 1. Write the date-stamped summary document (historical record)
         String summaryContent = formatForNotebookLm(title, filtered);
-        Path summaryPath = writeToFile(title, summaryContent);
+        Path summaryPath = writeSummaryFile(summaryContent);
         log.info("export() | Summary document written: {}", summaryPath.toAbsolutePath());
 
         // 2. Write individual per-article files (for NotebookLM indexing)
         writeIndividualFiles(filtered);
 
-        log.info("export() | Wrote {} articles to {}", filtered.size(), summaryPath.toAbsolutePath());
+        log.info("export() | Wrote {} articles; summary at {}", filtered.size(), summaryPath.toAbsolutePath());
         log.debug("export() | return={}", summaryPath);
         return summaryPath;
     }
@@ -178,9 +194,6 @@ public class NotebookLMService {
      *
      * ...repeated per article...
      * </pre>
-     *
-     * <p>If an article has no body text, the canonical URL is substituted so that
-     * NotebookLM always has a non-empty {@code <body>} to index.
      *
      * @param title    The export title written as the first tag in the document.
      * @param articles The filtered articles to serialize.
@@ -261,7 +274,7 @@ public class NotebookLMService {
     private void writeIndividualFiles(List<NewsArticle> articles) throws IOException {
         log.debug("writeIndividualFiles() | articleCount={}", articles.size());
 
-        Path dir = Paths.get(exportDirectory);
+        Path dir = ensureDirectory(Paths.get(exportDirectory));
         Set<String> seenTitles = new HashSet<>();
         int written = 0;
         int skippedDuplicate = 0;
@@ -325,31 +338,46 @@ public class NotebookLMService {
     }
 
     /**
-     * Ensures the export directory exists and writes the formatted content to a
-     * file named {@code <sanitized-title>.txt}.
+     * Writes the summary content to a date-stamped file in the summaries directory.
      *
-     * @param title   The export title (used to derive the filename).
-     * @param content The formatted document content to write.
-     * @return The {@link Path} of the written file.
+     * <p>The filename is {@code yyyy_MM_dd.txt} based on the current date.
+     * The summaries directory is created if it does not exist.
+     *
+     * @param content The formatted summary document content.
+     * @return The {@link Path} of the written summary file.
      * @throws IOException if the directory cannot be created or the file cannot be written.
      */
-    private Path writeToFile(String title, String content) throws IOException {
-        log.debug("writeToFile() | title={}, contentLength={}", title, content.length());
+    private Path writeSummaryFile(String content) throws IOException {
+        log.debug("writeSummaryFile() | contentLength={}", content.length());
 
-        Path dir = Paths.get(exportDirectory);
-        if (!Files.exists(dir)) {
-            log.info("writeToFile() | Export directory does not exist — creating: {}",
-                     dir.toAbsolutePath());
-            Files.createDirectories(dir);
-        }
-
-        String filename = sanitizeFilename(title) + ".txt";
+        Path dir = ensureDirectory(Paths.get(summariesDirectory));
+        String filename = LocalDate.now().format(SUMMARY_DATE_FORMAT) + ".txt";
         Path file = dir.resolve(filename);
 
         Files.writeString(file, content, StandardCharsets.UTF_8);
 
-        log.debug("writeToFile() | return={}", file.toAbsolutePath());
+        log.debug("writeSummaryFile() | return={}", file.toAbsolutePath());
         return file;
+    }
+
+    /**
+     * Ensures the given directory exists, creating it (and parents) if absent.
+     *
+     * @param dir The directory path to ensure.
+     * @return The same directory path, guaranteed to exist.
+     * @throws IOException if the directory cannot be created.
+     */
+    private Path ensureDirectory(Path dir) throws IOException {
+        log.debug("ensureDirectory() | dir={}", dir);
+
+        if (!Files.exists(dir)) {
+            log.info("ensureDirectory() | Directory does not exist — creating: {}",
+                     dir.toAbsolutePath());
+            Files.createDirectories(dir);
+        }
+
+        log.debug("ensureDirectory() | return={}", dir.toAbsolutePath());
+        return dir;
     }
 
     /**

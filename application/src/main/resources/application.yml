@@ -197,6 +197,7 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   notebooklm:
     directory: NotebookLMDirectory
+    summaries-directory: NotebookLMDirectory/summaries
 
   # ---------------------------------------------------------------------------
   # Newsletter delivery — from address used in outgoing emails.
