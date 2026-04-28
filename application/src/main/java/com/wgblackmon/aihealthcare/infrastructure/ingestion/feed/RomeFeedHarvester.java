@@ -58,7 +58,9 @@ public class RomeFeedHarvester implements ArticleHarvestingPort {
         log.debug("RomeFeedHarvester() | properties={}", properties.getClass().getSimpleName());
         List<FeedSourceConfig> rssOnly = new ArrayList<>();
         for (FeedSourceConfig config : properties.toFeedSourceConfigs()) {
-            if (config.tier() != FeedTier.COMPETITOR && config.tier() != FeedTier.HUGGINGFACE) {
+            if (config.tier() != FeedTier.COMPETITOR
+                    && config.tier() != FeedTier.HUGGINGFACE
+                    && config.tier() != FeedTier.PERPLEXITY) {
                 rssOnly.add(config);
             }
         }

@@ -127,7 +127,8 @@ class RomeFeedHarvesterTest {
     void feedTier_allValuesPresent() {
         assertThat(FeedTier.values())
                 .containsExactlyInAnyOrder(FeedTier.ACADEMIC, FeedTier.REGULATORY,
-                        FeedTier.INDUSTRY, FeedTier.COMPETITOR, FeedTier.HUGGINGFACE);
+                        FeedTier.INDUSTRY, FeedTier.COMPETITOR, FeedTier.HUGGINGFACE,
+                        FeedTier.PERPLEXITY);
     }
 
     @Test

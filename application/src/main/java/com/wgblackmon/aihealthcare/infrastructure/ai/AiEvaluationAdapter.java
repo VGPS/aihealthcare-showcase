@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
+import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Component;
@@ -27,19 +28,23 @@ import java.util.List;
  * degrades gracefully.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-04-18
- * @updated 2026-04-18
+ * @updated 2026-04-28
  */
 @Slf4j
 @Component
 public class AiEvaluationAdapter implements AiEvaluationPort {
 
     private final ChatClient chatClient;
+    private final PromptLoaderService promptLoaderService;
 
-    public AiEvaluationAdapter(ChatClient.Builder chatClientBuilder) {
-        log.debug("AiEvaluationAdapter() | chatClientBuilder={}", chatClientBuilder);
+    public AiEvaluationAdapter(ChatClient.Builder chatClientBuilder,
+                                PromptLoaderService promptLoaderService) {
+        log.debug("AiEvaluationAdapter() | chatClientBuilder={}, promptLoaderService={}",
+                  chatClientBuilder, promptLoaderService.getClass().getSimpleName());
         this.chatClient = chatClientBuilder.build();
+        this.promptLoaderService = promptLoaderService;
         log.debug("AiEvaluationAdapter() | return=void");
     }
 
@@ -84,7 +89,7 @@ public class AiEvaluationAdapter implements AiEvaluationPort {
             index++;
         }
 
-        String template = loadTemplate("evaluate-section.txt");
+        String template = promptLoaderService.load("evaluate-section.txt");
         String result = template
                 .replace("{topic}", topic)
                 .replace("{tone}", tone.name())
@@ -181,18 +186,4 @@ public class AiEvaluationAdapter implements AiEvaluationPort {
     // Helpers
     // -------------------------------------------------------------------------
 
-    private String loadTemplate(String filename) {
-        log.debug("loadTemplate() | filename={}", filename);
-        try (var stream = getClass().getResourceAsStream("/prompts/" + filename)) {
-            if (stream == null) {
-                throw new IllegalStateException("Prompt template not found on classpath: /prompts/" + filename);
-            }
-            String result = new String(stream.readAllBytes());
-            log.debug("loadTemplate() | return=template[{} chars]", result.length());
-            return result;
-        } catch (java.io.IOException e) {
-            log.error("loadTemplate() | Failed to read prompt template: filename={}", filename, e);
-            throw new IllegalStateException("Failed to read prompt template: /prompts/" + filename, e);
-        }
-    }
 }

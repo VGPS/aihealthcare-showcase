@@ -56,6 +56,82 @@ SECTION_TYPE: <WHAT_SHIPPED | ARCHITECTURE_NOTE | FAILURE_MODE | POLICY_WATCH | 
        CURRENT_TIMESTAMP
 WHERE NOT EXISTS (SELECT 1 FROM prompt_variants WHERE variant_id = 'summarize-v2-detailed');
 
+-- ---------------------------------------------------------------------------
+-- Search engine harvest prompts (Slice 6 — Prompt Refactoring)
+-- GooglePrompt: broad discovery query for finding sources across categories.
+-- PerplexityPrompt: deep-research query that demands extracted page content.
+-- ---------------------------------------------------------------------------
+INSERT INTO search_prompts (engine, name, template_text, description, active)
+SELECT 'GOOGLE',
+       'Google Broad Discovery',
+       'Search for the most recent and relevant content about AI in Healthcare on the topic: {topic}.
+
+Prioritize these source types (in order):
+  1. Peer-reviewed papers and clinical studies
+  2. FDA, CMS, WHO, and government regulatory announcements
+  3. Hospital and health-system publications
+  4. Company press releases (Google, Anthropic, OpenAI healthcare offerings)
+  5. Conference proceedings and technical reports
+  6. GitHub repositories for open-source healthcare AI tools (include README link)
+  7. Hugging Face models tagged for medical, clinical, or biomedical use (include model card link)
+
+For each result return:
+  - Title
+  - Source name and type
+  - Date published
+  - URL
+
+Group results into: Clinical AI | Regulatory/Policy | Market/News | Technical/Programming
+Exclude generic blog posts and social media unless uniquely authoritative.',
+       'Broad discovery query — finds titles, source types, dates, and URLs across four content categories. Designed for use with Google Custom Search or Serper API.',
+       true
+WHERE NOT EXISTS (SELECT 1 FROM search_prompts WHERE engine = 'GOOGLE');
+
+INSERT INTO search_prompts (engine, name, template_text, description, active)
+SELECT 'PERPLEXITY',
+       'Perplexity Deep Research',
+       'You are my research assistant for an AI in Healthcare newsletter.
+Find the most substantive, current, and credible web sources on this topic: {topic}.
+
+Do not return only links or generic search results.
+For each result, either:
+  - Open the page and extract the relevant content, or
+  - If the page cannot be opened, clearly say so and give only the link.
+
+Prioritize primary sources first: peer-reviewed papers, hospital/health-system publications,
+government or regulator sites, clinical organizations, company press releases, and conference
+proceedings.
+
+Also include:
+  - Programming-related content: open-source healthcare AI projects with GitHub repo links,
+    README summaries, and tool descriptions.
+  - Company summaries: Google (MedGemma, Health AI), Anthropic (Claude for Healthcare),
+    and OpenAI (ChatGPT Health) current healthcare offerings.
+  - Hugging Face healthcare LLMs: models tagged for medical-QA, radiology, EHR, or
+    clinical NLP — with model card links and brief descriptions.
+
+For each source return:
+  - Title
+  - Source type (academic | regulatory | company | open-source | huggingface)
+  - Date published
+  - Why it matters for AI in healthcare
+  - 3 to 5 bullet points of substantive findings
+  - Direct quotes only when essential and kept brief
+  - URL
+
+Also provide:
+  - A 3-sentence synthesis of the main trend across all sources
+  - Any disagreements or uncertainty across sources
+  - A confidence rating for the overall quality of evidence (High / Medium / Low)
+
+Group results into: Clinical AI | Regulatory/Policy | Market/News | Technical/Programming
+
+Prefer results whose page content can be opened and extracted. If a result is only a link,
+treat it as lower priority unless it is highly authoritative.',
+       'Deep-research query — demands extracted page content with per-source bullet points, citations, synthesis, and confidence rating. Designed for the Perplexity Sonar API.',
+       true
+WHERE NOT EXISTS (SELECT 1 FROM search_prompts WHERE engine = 'PERPLEXITY');
+
 -- V3: accessible style — plain language for non-specialist readers.
 INSERT INTO prompt_variants (variant_id, name, template_text, description, created_at)
 SELECT 'summarize-v3-accessible',

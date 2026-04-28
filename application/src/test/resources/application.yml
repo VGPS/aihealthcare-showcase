@@ -60,6 +60,8 @@ logging:
     org.springframework.web: INFO
 
 aihealthcare:
+  prompts:
+    directory: ""
   feeds:
     sources: []
   embedding:

@@ -5,11 +5,14 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
+import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.ai.chat.client.ChatClient;
 
 import java.net.URI;
@@ -34,6 +37,7 @@ import static org.mockito.Mockito.when;
  * @updated 2026-04-18
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AiEvaluationAdapterTest {
 
     @Mock
@@ -41,6 +45,9 @@ class AiEvaluationAdapterTest {
 
     @Mock
     private ChatClient chatClient;
+
+    @Mock
+    private PromptLoaderService promptLoaderService;
 
     private AiEvaluationAdapter adapter;
 
@@ -68,7 +75,9 @@ class AiEvaluationAdapterTest {
     @BeforeEach
     void setUp() {
         when(chatClientBuilder.build()).thenReturn(chatClient);
-        adapter = new AiEvaluationAdapter(chatClientBuilder);
+        when(promptLoaderService.load("evaluate-section.txt"))
+                .thenReturn("Evaluate {topic} {tone} {headline} {summary} {sectionType} {articles}");
+        adapter = new AiEvaluationAdapter(chatClientBuilder, promptLoaderService);
     }
 
     @Test

@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
+import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Component;
@@ -61,9 +62,9 @@ import java.util.List;
  * LLM happen only in smoke tests annotated with {@code @ActiveProfiles("ai-integration")}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-04-04
- * @updated 2026-04-17
+ * @updated 2026-04-28
  */
 @Slf4j
 @Component
@@ -75,6 +76,7 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
      * every request — {@link ChatClient} instances are thread-safe.
      */
     private final ChatClient chatClient;
+    private final PromptLoaderService promptLoaderService;
 
     /**
      * Constructs the adapter and builds the shared {@link ChatClient}.
@@ -84,11 +86,16 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
      * credentials are read from {@code application.properties} (or environment variables)
      * by the auto-configuration.
      *
-     * @param chatClientBuilder Auto-configured builder provided by Spring AI.
+     * @param chatClientBuilder    Auto-configured builder provided by Spring AI.
+     * @param promptLoaderService  Service that resolves prompt templates from the
+     *                             external filesystem directory or classpath fallback.
      */
-    public AiSummarizationAdapter(ChatClient.Builder chatClientBuilder) {
-        log.debug("AiSummarizationAdapter() | chatClientBuilder={}", chatClientBuilder);
+    public AiSummarizationAdapter(ChatClient.Builder chatClientBuilder,
+                                   PromptLoaderService promptLoaderService) {
+        log.debug("AiSummarizationAdapter() | chatClientBuilder={}, promptLoaderService={}",
+                  chatClientBuilder, promptLoaderService.getClass().getSimpleName());
         this.chatClient = chatClientBuilder.build();
+        this.promptLoaderService = promptLoaderService;
         log.debug("AiSummarizationAdapter() | return=void");
     }
 
@@ -158,6 +165,36 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
     /**
      * {@inheritDoc}
      *
+     * <p><b>Implementation detail:</b> builds a RAG-enhanced prompt using
+     * {@code summarize-articles-rag.txt}, which includes both a fresh-articles
+     * block and a related-past-context block. The context articles provide
+     * historical perspective only; they are not listed in the returned section's
+     * article ID attribution.
+     */
+    @Override
+    public NewsletterSection summarizeWithContext(List<NewsArticle> articles,
+                                                   List<NewsArticle> contextArticles,
+                                                   String topic,
+                                                   NewsletterTone tone,
+                                                   String sectionId) {
+        log.debug("summarizeWithContext() | topic={}, tone={}, sectionId={}, articleCount={}, contextCount={}",
+                  topic, tone, sectionId, articles.size(), contextArticles.size());
+
+        String prompt = buildRagSummarizePrompt(articles, contextArticles, topic, tone);
+        log.debug("summarizeWithContext() | sending prompt to LLM, length={} chars", prompt.length());
+
+        String response = chatClient.prompt(prompt).call().content();
+        log.debug("summarizeWithContext() | received LLM response, length={} chars", response.length());
+
+        NewsletterSection result = parseSection(response, topic, sectionId, articles);
+        log.info("summarizeWithContext() | Section produced: sectionId={}, topic={}", sectionId, topic);
+        log.debug("summarizeWithContext() | return={}", result);
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
      * <p><b>Implementation detail:</b> builds a prompt from the section headlines already
      * generated, then returns the model's reply directly as the introduction string.
      */
@@ -204,7 +241,7 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
             index++;
         }
 
-        String template = loadTemplate("summarize-articles.txt");
+        String template = promptLoaderService.load("summarize-articles.txt");
         String result = template
                 .replace("{toneInstruction}", toneInstruction(tone))
                 .replace("{topic}", topic)
@@ -248,6 +285,61 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
     }
 
     /**
+     * Constructs the RAG-enhanced summarization prompt by filling the
+     * {@code summarize-articles-rag.txt} template with both the fresh articles
+     * and the retrieved context articles.
+     *
+     * <p>Context articles are rendered the same way as fresh articles (numbered
+     * blocks). When {@code contextArticles} is empty the placeholder is replaced
+     * with {@code "(none)"} so the LLM receives a well-formed prompt.
+     */
+    private String buildRagSummarizePrompt(List<NewsArticle> articles,
+                                            List<NewsArticle> contextArticles,
+                                            String topic,
+                                            NewsletterTone tone) {
+        log.debug("buildRagSummarizePrompt() | topic={}, tone={}, articleCount={}, contextCount={}",
+                  topic, tone, articles.size(), contextArticles.size());
+
+        StringBuilder articlesBlock = new StringBuilder();
+        int index = 1;
+        for (NewsArticle article : articles) {
+            articlesBlock.append("[").append(index).append("] Title: ").append(article.title()).append("\n");
+            if (article.author() != null && !article.author().isBlank()) {
+                articlesBlock.append("    By:    ").append(article.author()).append("\n");
+            }
+            articlesBlock.append("    Body:  ").append(article.bodyText()).append("\n\n");
+            index++;
+        }
+
+        StringBuilder contextBlock = new StringBuilder();
+        if (contextArticles.isEmpty()) {
+            contextBlock.append("(none)");
+        } else {
+            int ctxIndex = 1;
+            for (NewsArticle ctx : contextArticles) {
+                contextBlock.append("[").append(ctxIndex).append("] Title: ").append(ctx.title()).append("\n");
+                if (ctx.author() != null && !ctx.author().isBlank()) {
+                    contextBlock.append("    By:    ").append(ctx.author()).append("\n");
+                }
+                contextBlock.append("    Body:  ").append(ctx.bodyText()).append("\n\n");
+                ctxIndex++;
+            }
+        }
+
+        String template = promptLoaderService.load("summarize-articles-rag.txt");
+        String result = template
+                .replace("{toneInstruction}", toneInstruction(tone))
+                .replace("{topic}", topic)
+                .replace("{articleCount}", String.valueOf(articles.size()))
+                .replace("{articles}", articlesBlock.toString().trim())
+                .replace("{contextCount}", String.valueOf(contextArticles.size()))
+                .replace("{contextArticles}", contextBlock.toString().trim());
+
+        log.debug("buildRagSummarizePrompt() | return=prompt[{} chars]", result.length());
+        return result;
+    }
+
+    /**
      * Constructs the introduction prompt by listing the headline of each section
      * so the model can write a cohesive overview paragraph.
      */
@@ -259,7 +351,7 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
             headlines.append("- ").append(section.headline()).append("\n");
         }
 
-        String template = loadTemplate("generate-introduction.txt");
+        String template = promptLoaderService.load("generate-introduction.txt");
         String result = template
                 .replace("{toneInstruction}", toneInstruction(tone))
                 .replace("{sectionCount}", String.valueOf(sections.size()))
@@ -387,28 +479,4 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
         return result;
     }
 
-    /**
-     * Loads a prompt template from {@code /prompts/} on the classpath.
-     *
-     * <p>Templates live in {@code src/main/resources/prompts/} and are packaged into
-     * the application JAR, making them easy to edit without recompiling Java classes.
-     *
-     * @param filename The filename within the {@code /prompts/} directory.
-     * @return The template content as a plain String.
-     * @throws IllegalStateException if the template file cannot be found or read.
-     */
-    private String loadTemplate(String filename) {
-        log.debug("loadTemplate() | filename={}", filename);
-        try (var stream = getClass().getResourceAsStream("/prompts/" + filename)) {
-            if (stream == null) {
-                throw new IllegalStateException("Prompt template not found on classpath: /prompts/" + filename);
-            }
-            String result = new String(stream.readAllBytes());
-            log.debug("loadTemplate() | return=template[{} chars]", result.length());
-            return result;
-        } catch (java.io.IOException e) {
-            log.error("loadTemplate() | Failed to read prompt template: filename={}", filename, e);
-            throw new IllegalStateException("Failed to read prompt template: /prompts/" + filename, e);
-        }
-    }
 }

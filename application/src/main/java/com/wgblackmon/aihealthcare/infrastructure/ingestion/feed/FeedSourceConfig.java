@@ -57,6 +57,8 @@ public record FeedSourceConfig(
         /** Competitor web pages monitored for content changes. Harvested daily. */
         COMPETITOR,
         /** HuggingFace model registry. Harvested daily. */
-        HUGGINGFACE
+        HUGGINGFACE,
+        /** Perplexity Sonar API — deep-research harvest. Harvested daily when API key present. */
+        PERPLEXITY
     }
 }

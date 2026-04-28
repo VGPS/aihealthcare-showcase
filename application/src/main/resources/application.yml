@@ -2,6 +2,9 @@ spring:
   application:
     name: ai-healthcare
 
+  profiles:
+    active: demo
+
   # ---------------------------------------------------------------------------
   # Spring AI — provider keys
   # Set ANTHROPIC_API_KEY / OPENAI_API_KEY as environment variables (or .env).
@@ -178,6 +181,23 @@ aihealthcare:
         tier: HUGGINGFACE
         base-weight: 0.5
         max-items: 25
+      # -----------------------------------------------------------------
+      # Perplexity Sonar API — deep-research harvest (stub; requires API key)
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Perplexity AI Healthcare Research
+        url: https://api.perplexity.ai/chat/completions
+        tier: PERPLEXITY
+        base-weight: 0.85
+        max-items: 20
+
+  # ---------------------------------------------------------------------------
+  # Perplexity Sonar API — used by PerplexityHarvester.
+  # Set PERPLEXITY_API_KEY as an environment variable to enable harvesting.
+  # When the key is absent the harvester logs a warning and returns no articles.
+  # ---------------------------------------------------------------------------
+  perplexity:
+    api-key: ${PERPLEXITY_API_KEY:}
 
   # ---------------------------------------------------------------------------
   # Embedding scheduler — cron expression for the EmbeddingScheduler job.
@@ -195,6 +215,12 @@ aihealthcare:
   # Path is relative to the working directory (project root when running locally).
   # The directory is created automatically if it does not exist.
   # ---------------------------------------------------------------------------
+  prompts:
+    # External directory for prompt template files. When set, templates are loaded
+    # from here first; classpath /prompts/ is used as fallback.
+    # Leave empty to always use the packaged classpath templates.
+    directory: ""
+
   notebooklm:
     directory: NotebookLMDirectory
     summaries-directory: NotebookLMDirectory/summaries
