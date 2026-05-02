@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -137,11 +138,11 @@ class NewsletterControllerTest {
     @Test
     void postDrafts_validRequest_returns201WithDraftBody() throws Exception {
         when(generateUseCase.generate(eq(RUN_ID), eq(DRAFT_ID), anyString(),
-                any(NewsletterTone.class), anyInt()))
+                any(NewsletterTone.class), anyInt(), anyBoolean(), anyInt()))
                 .thenReturn(DRAFT);
 
         GenerateRequest req = new GenerateRequest(RUN_ID, DRAFT_ID,
-                "AI in Healthcare Weekly", NewsletterTone.PROFESSIONAL, 3);
+                "AI in Healthcare Weekly", NewsletterTone.PROFESSIONAL, 3, null, null);
 
         mockMvc.perform(post("/api/v1/drafts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -156,11 +157,11 @@ class NewsletterControllerTest {
 
     @Test
     void postDrafts_unknownRunId_returns404() throws Exception {
-        when(generateUseCase.generate(anyString(), anyString(), anyString(), any(), anyInt()))
+        when(generateUseCase.generate(anyString(), anyString(), anyString(), any(), anyInt(), anyBoolean(), anyInt()))
                 .thenThrow(new RunNotFoundException("no-such-run"));
 
         GenerateRequest req = new GenerateRequest("no-such-run", DRAFT_ID,
-                "Title", NewsletterTone.ACCESSIBLE, 3);
+                "Title", NewsletterTone.ACCESSIBLE, 3, null, null);
 
         mockMvc.perform(post("/api/v1/drafts")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -171,11 +172,11 @@ class NewsletterControllerTest {
 
     @Test
     void postDrafts_emptyRun_returns422() throws Exception {
-        when(generateUseCase.generate(anyString(), anyString(), anyString(), any(), anyInt()))
+        when(generateUseCase.generate(anyString(), anyString(), anyString(), any(), anyInt(), anyBoolean(), anyInt()))
                 .thenThrow(new NoArticlesFoundException(RUN_ID));
 
         GenerateRequest req = new GenerateRequest(RUN_ID, DRAFT_ID,
-                "Title", NewsletterTone.TECHNICAL, 3);
+                "Title", NewsletterTone.TECHNICAL, 3, null, null);
 
         mockMvc.perform(post("/api/v1/drafts")
                         .contentType(MediaType.APPLICATION_JSON)

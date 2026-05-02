@@ -12,6 +12,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.GenerateNewsletterUseCase
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestArticlesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,8 +20,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -45,7 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2025-01-27
- * @updated 2026-04-11
+ * @updated 2026-04-27
  */
 @Slf4j
 public class NewsletterService implements IngestArticlesUseCase, GenerateNewsletterUseCase {
@@ -54,6 +57,7 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
     private final AiSummarizationPort   summarizationPort;
     private final NewsletterRenderer    renderer;
     private final NewsletterRunPort     newsletterRunPort;
+    private final ArticleSearchPort     searchPort;
 
     // In-memory stores — articles map supports ingest→generate handoff;
     // draftByDraftId supports getDraft() in the same session.
@@ -65,13 +69,15 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
     public NewsletterService(ArticleIngestionPort ingestionPort,
                              AiSummarizationPort summarizationPort,
                              NewsletterRenderer renderer,
-                             NewsletterRunPort newsletterRunPort) {
-        log.debug("NewsletterService() | ingestionPort={}, summarizationPort={}, renderer={}, newsletterRunPort={}",
-                  ingestionPort, summarizationPort, renderer, newsletterRunPort);
+                             NewsletterRunPort newsletterRunPort,
+                             ArticleSearchPort searchPort) {
+        log.debug("NewsletterService() | ingestionPort={}, summarizationPort={}, renderer={}, newsletterRunPort={}, searchPort={}",
+                  ingestionPort, summarizationPort, renderer, newsletterRunPort, searchPort);
         this.ingestionPort      = ingestionPort;
         this.summarizationPort  = summarizationPort;
         this.renderer           = renderer;
         this.newsletterRunPort  = newsletterRunPort;
+        this.searchPort         = searchPort;
     }
 
     // -------------------------------------------------------------------------
@@ -121,9 +127,11 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
                                     String draftId,
                                     String newsletterTitle,
                                     NewsletterTone tone,
-                                    int maxSectionsPerTopic) {
-        log.debug("generate() | runId={}, draftId={}, newsletterTitle={}, tone={}, maxSectionsPerTopic={}",
-                  runId, draftId, newsletterTitle, tone, maxSectionsPerTopic);
+                                    int maxSectionsPerTopic,
+                                    boolean ragEnabled,
+                                    int ragContextCount) {
+        log.debug("generate() | runId={}, draftId={}, newsletterTitle={}, tone={}, maxSectionsPerTopic={}, ragEnabled={}, ragContextCount={}",
+                  runId, draftId, newsletterTitle, tone, maxSectionsPerTopic, ragEnabled, ragContextCount);
 
         List<NewsArticle> articles = articlesByRunId.get(runId);
         if (articles == null) {
@@ -145,13 +153,30 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
         for (Map.Entry<String, List<NewsArticle>> entry : byTopic.entrySet()) {
             List<NewsArticle> topicArticles = entry.getValue();
             int cap = Math.min(topicArticles.size(), maxSectionsPerTopic);
+            List<NewsArticle> freshSlice = topicArticles.subList(0, cap);
             String sectionId = "section-%03d".formatted(sectionCounter.incrementAndGet());
-            NewsletterSection section = summarizationPort.summarize(
-                    topicArticles.subList(0, cap),
-                    entry.getKey(),
-                    tone,
-                    sectionId
-            );
+
+            NewsletterSection section;
+            if (ragEnabled) {
+                List<NewsArticle> candidates = searchPort.findSimilar(entry.getKey(), ragContextCount);
+                // De-duplicate: exclude articles already present in the fresh batch
+                Set<String> freshIds = new HashSet<>();
+                for (NewsArticle a : freshSlice) {
+                    freshIds.add(a.articleId());
+                }
+                List<NewsArticle> contextArticles = new ArrayList<>();
+                for (NewsArticle candidate : candidates) {
+                    if (!freshIds.contains(candidate.articleId())) {
+                        contextArticles.add(candidate);
+                    }
+                }
+                log.debug("generate() | RAG context: topic={}, freshCount={}, contextCount={}",
+                          entry.getKey(), freshSlice.size(), contextArticles.size());
+                section = summarizationPort.summarizeWithContext(
+                        freshSlice, contextArticles, entry.getKey(), tone, sectionId);
+            } else {
+                section = summarizationPort.summarize(freshSlice, entry.getKey(), tone, sectionId);
+            }
             sections.add(section);
         }
 

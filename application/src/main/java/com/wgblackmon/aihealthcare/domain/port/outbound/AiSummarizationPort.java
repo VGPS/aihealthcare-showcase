@@ -12,6 +12,11 @@ import java.util.List;
  * <p>Implementations live in {@code infrastructure/ai} and wrap Spring AI's
  * {@code ChatClient}. Unit tests inject a mock implementation so no real AI calls
  * are made outside the {@code ai-integration} Spring profile.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2025-01-27
+ * @updated 2026-04-27
  */
 public interface AiSummarizationPort {
 
@@ -49,6 +54,30 @@ public interface AiSummarizationPort {
             NewsletterTone tone,
             String sectionId,
             String templateText
+    );
+
+    /**
+     * Summarize fresh articles for a topic, enriched with semantically similar past
+     * articles retrieved from the vector store (retrieval-augmented generation).
+     *
+     * <p>The {@code contextArticles} list is used only to provide historical perspective
+     * in the prompt — they are not treated as the primary source material and are not
+     * included in the returned section's article ID list.
+     *
+     * @param articles        Fresh articles for this topic; must not be empty.
+     * @param contextArticles Past articles retrieved via RAG; may be empty.
+     * @param topic           The topic/keyword shared by the fresh articles.
+     * @param tone            Desired writing tone for the generated content.
+     * @param sectionId       Identifier to assign to the returned section.
+     * @return A {@link NewsletterSection} whose headline and summary incorporate both
+     *         fresh and historical context.
+     */
+    NewsletterSection summarizeWithContext(
+            List<NewsArticle> articles,
+            List<NewsArticle> contextArticles,
+            String topic,
+            NewsletterTone tone,
+            String sectionId
     );
 
     /**

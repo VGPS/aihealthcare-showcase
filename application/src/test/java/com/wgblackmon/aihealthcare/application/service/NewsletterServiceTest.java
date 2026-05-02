@@ -9,6 +9,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
@@ -60,6 +61,9 @@ class NewsletterServiceTest {
     @Mock
     private NewsletterRunPort newsletterRunPort;
 
+    @Mock
+    private ArticleSearchPort searchPort;
+
     private NewsletterService service;
 
     // --- shared fixtures ---
@@ -94,7 +98,7 @@ class NewsletterServiceTest {
     @BeforeEach
     void setUp() {
         service = new NewsletterService(ingestionPort, summarizationPort,
-                                        new NewsletterRenderer(), newsletterRunPort);
+                                        new NewsletterRenderer(), newsletterRunPort, searchPort);
     }
 
     // -------------------------------------------------------------------------
@@ -165,7 +169,7 @@ class NewsletterServiceTest {
 
         service.ingest(RUN_ID, LocalDate.now(), List.of(TOPIC), 5);
         NewsletterDraft draft = service.generate(RUN_ID, DRAFT_ID, "AI in Healthcare Weekly",
-                NewsletterTone.PROFESSIONAL, 3);
+                NewsletterTone.PROFESSIONAL, 3, false, 3);
 
         assertThat(draft.draftId()).isEqualTo(DRAFT_ID);
         assertThat(draft.runId()).isEqualTo(RUN_ID);
@@ -178,7 +182,7 @@ class NewsletterServiceTest {
     @Test
     void generate_unknownRunId_throwsRunNotFoundException() {
         assertThatThrownBy(() -> service.generate("no-such-run", DRAFT_ID,
-                "Title", NewsletterTone.ACCESSIBLE, 3))
+                "Title", NewsletterTone.ACCESSIBLE, 3, false, 3))
                 .isInstanceOf(RunNotFoundException.class);
     }
 
@@ -189,7 +193,7 @@ class NewsletterServiceTest {
         service.ingest(RUN_ID, LocalDate.now(), List.of(TOPIC), 5);
 
         assertThatThrownBy(() -> service.generate(RUN_ID, DRAFT_ID,
-                "Title", NewsletterTone.TECHNICAL, 3))
+                "Title", NewsletterTone.TECHNICAL, 3, false, 3))
                 .isInstanceOf(NoArticlesFoundException.class);
     }
 
@@ -206,7 +210,7 @@ class NewsletterServiceTest {
                 .thenReturn("Intro.");
 
         service.ingest(RUN_ID, LocalDate.now(), List.of(TOPIC), 5);
-        service.generate(RUN_ID, DRAFT_ID, "Title", NewsletterTone.PROFESSIONAL, 3);
+        service.generate(RUN_ID, DRAFT_ID, "Title", NewsletterTone.PROFESSIONAL, 3, false, 3);
 
         NewsletterDraft retrieved = service.getDraft(DRAFT_ID);
 

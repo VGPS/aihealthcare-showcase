@@ -11,10 +11,14 @@ import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
  * Accepts the {@code runId} from a completed ingestion run and returns a fully
  * assembled {@link NewsletterDraft}.
  *
+ * <p>When {@code ragEnabled} is {@code true}, the service queries the vector store
+ * for semantically similar past articles per topic and enriches the summarization
+ * prompt with that historical context (retrieval-augmented generation).
+ *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2025-01-27
- * @updated 2026-04-04
+ * @updated 2026-04-27
  */
 public interface GenerateNewsletterUseCase {
 
@@ -26,6 +30,10 @@ public interface GenerateNewsletterUseCase {
      * @param newsletterTitle     Title for this newsletter issue.
      * @param tone                Desired writing tone for AI-generated content.
      * @param maxSectionsPerTopic Maximum number of sections to generate per topic.
+     * @param ragEnabled          When {@code true}, retrieves similar past articles from
+     *                            the vector store to enrich each section's prompt.
+     * @param ragContextCount     Number of past articles to retrieve per topic when RAG
+     *                            is enabled; ignored when {@code ragEnabled} is false.
      * @return A fully assembled {@link NewsletterDraft} including sources for attribution.
      * @throws com.wgblackmon.aihealthcare.domain.exception.RunNotFoundException if no ingestion
      *         run exists for the given {@code runId}.
@@ -37,7 +45,9 @@ public interface GenerateNewsletterUseCase {
             String draftId,
             String newsletterTitle,
             NewsletterTone tone,
-            int maxSectionsPerTopic
+            int maxSectionsPerTopic,
+            boolean ragEnabled,
+            int ragContextCount
     );
 
     /**

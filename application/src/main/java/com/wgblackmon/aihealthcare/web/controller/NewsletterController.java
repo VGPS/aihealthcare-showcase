@@ -47,7 +47,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-04
+ * @updated 2026-04-27
  */
 @Slf4j
 @RestController
@@ -112,7 +112,9 @@ public class NewsletterController {
                 request.draftId(),
                 request.title(),
                 request.tone(),
-                request.maxSectionsPerTopic()
+                request.maxSectionsPerTopic(),
+                request.ragEnabled()      != null ? request.ragEnabled()      : false,
+                request.ragContextCount() != null ? request.ragContextCount() : 3
         );
 
         DraftResponse response = toResponse(draft);

@@ -7,7 +7,7 @@ info:
     feeds, summarizes them with Spring AI, and produces formatted newsletter
     drafts. Historical runs are stored and retrievable for subscriber archive
     display.
-  version: 3.0.0
+  version: 3.1.0
 
 servers:
   - url: http://localhost:8080
@@ -463,6 +463,87 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
   # ---------------------------------------------------------------------------
+  # Document ingestion to vector store
+  # ---------------------------------------------------------------------------
+  /api/v1/documents/ingest:
+    post:
+      summary: Ingest documents from a directory into the vector store
+      description: >
+        Scans the given directory for supported file types (PDF, DOCX, TXT, MD),
+        extracts text, splits it into chunks, embeds each chunk via OpenAI, and
+        stores the results in the pgvector database for semantic search.
+      operationId: ingestDocuments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentIngestRequest'
+      responses:
+        '200':
+          description: Ingestion completed (partial failures are reported in the response body)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentIngestResponse'
+        '400':
+          description: Invalid request (directory missing or unreadable)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ---------------------------------------------------------------------------
+  # Search prompt configuration
+  # ---------------------------------------------------------------------------
+  /api/v1/search-prompts:
+    get:
+      summary: List all search prompt configurations
+      description: >
+        Returns the prompt template configured for each search engine (e.g. GOOGLE,
+        PERPLEXITY). These prompts are sent to external search/harvest APIs to
+        guide article discovery, and are separate from the LLM summarization
+        prompt variants managed under /api/v1/variants.
+      operationId: listSearchPrompts
+      responses:
+        '200':
+          description: List of search prompt configurations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchPromptResponse'
+
+  /api/v1/search-prompts/{engine}:
+    get:
+      summary: Get the search prompt for a specific engine
+      description: >
+        Returns the prompt template and metadata for the named search engine.
+        The engine identifier is case-insensitive (e.g. "google" or "GOOGLE").
+      operationId: getSearchPrompt
+      parameters:
+        - name: engine
+          in: path
+          required: true
+          description: Search engine identifier (e.g. GOOGLE, PERPLEXITY)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search prompt found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchPromptResponse'
+        '404':
+          description: No prompt configured for this engine
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ---------------------------------------------------------------------------
   # Web monitoring (manual triggers + diagnostics)
   # ---------------------------------------------------------------------------
   /api/v1/monitoring/harvest:
@@ -612,6 +693,21 @@ components:
           type: integer
           minimum: 1
           example: 3
+        ragEnabled:
+          type: boolean
+          default: false
+          description: >
+            When true, retrieves semantically similar past articles from the
+            vector store and injects them as context for each newsletter section,
+            enabling retrieval-augmented generation (RAG).
+        ragContextCount:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 3
+          description: >
+            Number of past articles to retrieve per topic when ragEnabled is true.
+            Ignored when ragEnabled is false.
 
     DraftResponse:
       type: object
@@ -672,7 +768,7 @@ components:
         sourceTier:
           type: string
           nullable: true
-          enum: [ACADEMIC, REGULATORY, INDUSTRY, COMPETITOR, HUGGINGFACE]
+          enum: [ACADEMIC, REGULATORY, INDUSTRY, COMPETITOR, HUGGINGFACE, PERPLEXITY]
         sourceWeight:
           type: number
           format: double
@@ -952,6 +1048,62 @@ components:
           type: string
           format: date-time
           description: Timestamp of the last content check
+
+    DocumentIngestRequest:
+      type: object
+      required: [directory, sourceLabel]
+      properties:
+        directory:
+          type: string
+          description: Absolute path to the directory containing documents to ingest.
+          example: /data/clinical-guidelines
+        sourceLabel:
+          type: string
+          description: Human-readable label applied to all chunks from this ingestion run.
+          example: Clinical Guidelines 2026
+        chunkSize:
+          type: integer
+          minimum: 100
+          maximum: 5000
+          default: 1000
+          description: Maximum character length of each text chunk before embedding.
+
+    DocumentIngestResponse:
+      type: object
+      properties:
+        filesProcessed:
+          type: integer
+          description: Number of files successfully parsed.
+        chunksEmbedded:
+          type: integer
+          description: Total number of text chunks embedded and stored in the vector store.
+        failures:
+          type: array
+          items:
+            type: string
+          description: List of files that could not be parsed, with error messages.
+
+    SearchPromptResponse:
+      type: object
+      properties:
+        engine:
+          type: string
+          description: Search engine identifier (e.g. GOOGLE, PERPLEXITY)
+          example: PERPLEXITY
+        name:
+          type: string
+          description: Human-readable name for this prompt configuration
+          example: Perplexity Deep-Research Prompt
+        templateText:
+          type: string
+          description: Full prompt template sent to the search engine API
+        description:
+          type: string
+          nullable: true
+          description: Optional description of this prompt's purpose and strategy
+        active:
+          type: boolean
+          description: Whether this prompt is currently used during harvesting
 
     ErrorResponse:
       type: object

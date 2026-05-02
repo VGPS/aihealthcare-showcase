@@ -387,4 +387,59 @@ class NotebookLMServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("title");
     }
+
+    // =========================================================================
+    // HTML summary document tests
+    // =========================================================================
+
+    @Test
+    void export_htmlFileCreatedAlongsideTxtFile() throws IOException {
+        service.export(TITLE, List.of());
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        assertThat(summariesDir.resolve(expectedHtml)).exists();
+    }
+
+    @Test
+    void export_htmlFileIsValidHtmlDocument() throws IOException {
+        service.export(TITLE, List.of());
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).startsWith("<!DOCTYPE html>");
+        assertThat(content).contains("<html lang=\"en\">");
+        assertThat(content).contains("</html>");
+    }
+
+    @Test
+    void export_htmlFileContainsTitleInHeadAndBody() throws IOException {
+        service.export(TITLE, List.of());
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("<title>" + TITLE + "</title>");
+        assertThat(content).contains("<h1>" + TITLE + "</h1>");
+    }
+
+    @Test
+    void export_htmlFileGroupsArticlesBySource() throws IOException {
+        NewsArticle a = article("a-001", "AI Diagnostics", "AI Detects Cancer", USEFUL_BODY);
+
+        service.export(TITLE, List.of(a));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("TestSource");
+        assertThat(content).contains("AI Detects Cancer");
+    }
+
+    @Test
+    void export_htmlFileTitleEscapesHtmlEntities() throws IOException {
+        service.export("AI & Healthcare <Weekly>", List.of());
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("AI &amp; Healthcare &lt;Weekly&gt;");
+        assertThat(content).doesNotContain("<Weekly>");
+    }
 }

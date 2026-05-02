@@ -101,7 +101,7 @@ public class NewsletterGenerationScheduler {
                      runId, draftId, weekOf);
 
             ingestUseCase.ingest(runId, weekOf, List.of(topic), maxArticlesPerTopic);
-            generateUseCase.generate(runId, draftId, title, tone, maxSectionsPerTopic);
+            generateUseCase.generate(runId, draftId, title, tone, maxSectionsPerTopic, false, 3);
             deliverUseCase.deliver(draftId);
 
             log.info("runWeeklyNewsletter() | Pipeline complete: draftId={}", draftId);

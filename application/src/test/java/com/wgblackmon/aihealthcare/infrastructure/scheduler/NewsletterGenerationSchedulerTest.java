@@ -17,6 +17,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -82,7 +83,7 @@ class NewsletterGenerationSchedulerTest {
 
         InOrder ordered = inOrder(ingestUseCase, generateUseCase, deliverUseCase);
         ordered.verify(ingestUseCase).ingest(anyString(), any(LocalDate.class), anyList(), anyInt());
-        ordered.verify(generateUseCase).generate(anyString(), anyString(), anyString(), any(NewsletterTone.class), anyInt());
+        ordered.verify(generateUseCase).generate(anyString(), anyString(), anyString(), any(NewsletterTone.class), anyInt(), anyBoolean(), anyInt());
         ordered.verify(deliverUseCase).deliver(anyString());
     }
 
@@ -100,7 +101,9 @@ class NewsletterGenerationSchedulerTest {
                 anyString(),
                 eq(TITLE),
                 eq(TONE),
-                eq(MAX_SECTIONS_PER_TOPIC));
+                eq(MAX_SECTIONS_PER_TOPIC),
+                eq(false),
+                eq(3));
     }
 
     // -------------------------------------------------------------------------
@@ -114,14 +117,14 @@ class NewsletterGenerationSchedulerTest {
 
         assertThatCode(() -> scheduler.runWeeklyNewsletter()).doesNotThrowAnyException();
 
-        verify(generateUseCase, never()).generate(anyString(), anyString(), anyString(), any(NewsletterTone.class), anyInt());
+        verify(generateUseCase, never()).generate(anyString(), anyString(), anyString(), any(NewsletterTone.class), anyInt(), anyBoolean(), anyInt());
         verify(deliverUseCase, never()).deliver(anyString());
     }
 
     @Test
     void runWeeklyNewsletter_generateThrows_doesNotCallDeliverAndDoesNotPropagate() {
         doThrow(new RuntimeException("generate failure"))
-                .when(generateUseCase).generate(anyString(), anyString(), anyString(), any(NewsletterTone.class), anyInt());
+                .when(generateUseCase).generate(anyString(), anyString(), anyString(), any(NewsletterTone.class), anyInt(), anyBoolean(), anyInt());
 
         assertThatCode(() -> scheduler.runWeeklyNewsletter()).doesNotThrowAnyException();
 

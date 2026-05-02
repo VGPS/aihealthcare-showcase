@@ -164,7 +164,42 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 5 — Web Monitoring & Competitive Intelligence — COMPLETE — 264 tests passing**
+**Slice 7 — RAG Generation + Document Ingestion + HTML Export — COMPLETE — 333 tests passing**
+- [x] `pom.xml` — added `pdfbox:3.0.3` and `poi-ooxml:5.3.0` for PDF/DOCX parsing
+- [x] Domain: `DocumentChunk`, `DocumentIngestionResult` records
+- [x] Domain: `IngestDocumentsUseCase` inbound port — `ingest(directory, sourceLabel, chunkSize)`
+- [x] Domain: `DocumentVectorPort` outbound port — `store(List<DocumentChunk>)`
+- [x] Domain: `FileParserPort` outbound port — `supports(Path)`, `parse(Path)`
+- [x] Domain service: `DocumentIngestionService` — directory scan, multi-parser dispatch, chunk splitting, vector store write
+- [x] `AiSummarizationPort` — added `summarizeWithContext(fresh, context, topic, tone, sectionId)` for RAG
+- [x] `GenerateNewsletterUseCase` / `NewsletterService` — new `ragEnabled` + `ragContextCount` params; RAG path calls `searchPort.findSimilar()` + deduplicates + delegates to `summarizeWithContext`
+- [x] `GenerateRequest` — new `ragEnabled` (Boolean) + `ragContextCount` (Integer) optional fields
+- [x] `NewsletterController` — defaults `ragEnabled=false`, `ragContextCount=3` when fields are null
+- [x] `AppConfig` — wires `ArticleSearchPort` into `NewsletterService`; no-op fallback beans for `ArticleSearchPort` and `IngestDocumentsUseCase` when pgvector is absent
+- [x] Infrastructure: `PdfParser`, `DocxParser`, `PlainTextParser` — `@Component` adapters implementing `FileParserPort`
+- [x] Infrastructure: `DocumentIngestionAdapter` — `@ConditionalOnBean(VectorStore.class)` implements `DocumentVectorPort`
+- [x] Infrastructure: `NoOpArticleSearchAdapter` — `@ConditionalOnMissingBean` fallback (RAG disabled gracefully)
+- [x] `NotebookLMService` — added companion `.html` export alongside `.txt` summary; articles grouped by source, styled card layout, inline CSS, HTML-escaped titles
+- [x] Web: `DocumentIngestionController` — `POST /api/v1/documents/ingest`; maps `IllegalArgumentException` → 400 via `GlobalExceptionHandler`
+- [x] DTOs: `DocumentIngestRequest`, `DocumentIngestResponse`
+- [x] OpenAPI spec updated: `/api/v1/documents/ingest`, `/api/v1/search-prompts`, `/api/v1/search-prompts/{engine}`
+- [x] `application-h2.yml` — H2 test profile config
+- [x] `prompts/summarize-articles-rag.txt` — RAG-enhanced summarization prompt template
+- [x] Tests: `DocumentIngestionServiceTest` (8), `NewsletterServiceRagTest` (4), `DocumentIngestionControllerTest` (5), `NotebookLMServiceTest` HTML export (5 new, 29 total)
+
+**Previously complete: Slice 6 — Prompt Refactoring — 323 tests passing**
+- [x] Domain: `SearchPromptConfig` record (engine, name, templateText, description, active)
+- [x] Domain: `SearchPromptPort` outbound — `findByEngine`, `findAll`, `save`
+- [x] JPA: `SearchPromptEntity` + `SearchPromptRepository` + `SearchPromptAdapter`
+- [x] `PromptLoaderService` — filesystem-first template loader; falls back to classpath
+- [x] `FeedTier.PERPLEXITY` — new enum value; `RomeFeedHarvester` filters it out
+- [x] `PerplexityHarvester` — stub; returns empty list when `PERPLEXITY_API_KEY` absent
+- [x] `data.sql` — `search_prompts` table + `GooglePrompt` + `PerplexityPrompt` seeds
+- [x] Web: `SearchPromptController` — `GET /api/v1/search-prompts`, `GET /api/v1/search-prompts/{engine}`, `PUT /api/v1/search-prompts/{engine}`
+- [x] OpenAPI spec updated with search-prompts endpoints
+- [x] Tests: `SearchPromptAdapterTest` (6), `PerplexityHarvesterTest` (5), `SearchPromptControllerTest` (5)
+
+**Previously complete: Slice 5 — Web Monitoring & Competitive Intelligence — COMPLETE — 264 tests passing**
 - [x] `pom.xml` — added `org.jsoup:jsoup:1.18.3` for HTML scraping
 - [x] `FeedTier` enum — added `COMPETITOR` (daily web page scraping) and `HUGGINGFACE` (API model discovery)
 - [x] Domain: `ContentHashPort` outbound port — `getHash(url)`, `saveHash(url, hash)` for change detection

@@ -1,12 +1,18 @@
 package com.wgblackmon.aihealthcare.infrastructure.config;
 
+import com.wgblackmon.aihealthcare.domain.model.DocumentIngestionResult;
+import com.wgblackmon.aihealthcare.domain.port.inbound.IngestDocumentsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentVectorPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.FileParserPort;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
+import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
 import com.wgblackmon.aihealthcare.domain.service.PromptEvaluationService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.EvaluationResultPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
@@ -15,10 +21,15 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Spring configuration class that wires the application-layer service as a bean.
@@ -46,8 +57,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-20
+ * @updated 2026-04-27
  */
+
 @Slf4j
 @Configuration
 @EnableScheduling
@@ -73,6 +85,22 @@ public class AppConfig {
     }
 
     /**
+     * No-op fallback {@link ArticleSearchPort} registered only when the pgvector
+     * {@link com.wgblackmon.aihealthcare.infrastructure.ai.VectorStoreArticleSearchAdapter}
+     * is absent (e.g. h2 profile).  RAG features degrade gracefully to empty context.
+     *
+     * @return a port that always returns an empty list
+     */
+    @Bean
+    @ConditionalOnMissingBean(ArticleSearchPort.class)
+    public ArticleSearchPort noOpArticleSearchPort() {
+        log.debug("noOpArticleSearchPort() | pgvector not configured — RAG disabled");
+        ArticleSearchPort result = (query, topK) -> Collections.emptyList();
+        log.debug("noOpArticleSearchPort() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
      * Creates the single {@link NewsletterService} instance shared across the application.
      *
      * <p>Spring injects the {@code @Component}-annotated adapters automatically.
@@ -82,19 +110,22 @@ public class AppConfig {
      * @param ingestionPort      Adapter implementing article fetching (auto-detected).
      * @param summarizationPort  Adapter implementing AI summarization (auto-detected).
      * @param newsletterRunPort  Adapter implementing run persistence (auto-detected).
+     * @param searchPort         Adapter implementing vector-store similarity search (auto-detected).
      * @return The wired {@link NewsletterService} instance.
      */
     @Bean
     public NewsletterService newsletterService(ArticleIngestionPort ingestionPort,
                                                AiSummarizationPort summarizationPort,
-                                               NewsletterRunPort newsletterRunPort) {
-        log.debug("newsletterService() | ingestionPort={}, summarizationPort={}, newsletterRunPort={}",
+                                               NewsletterRunPort newsletterRunPort,
+                                               ArticleSearchPort searchPort) {
+        log.debug("newsletterService() | ingestionPort={}, summarizationPort={}, newsletterRunPort={}, searchPort={}",
                   ingestionPort.getClass().getSimpleName(),
                   summarizationPort.getClass().getSimpleName(),
-                  newsletterRunPort.getClass().getSimpleName());
+                  newsletterRunPort.getClass().getSimpleName(),
+                  searchPort.getClass().getSimpleName());
         NewsletterRenderer renderer = new NewsletterRenderer();
         NewsletterService result = new NewsletterService(
-                ingestionPort, summarizationPort, renderer, newsletterRunPort);
+                ingestionPort, summarizationPort, renderer, newsletterRunPort, searchPort);
         log.debug("newsletterService() | return={}", result.getClass().getSimpleName());
         return result;
     }
@@ -127,6 +158,45 @@ public class AppConfig {
         PromptEvaluationService result = new PromptEvaluationService(
                 variantPort, summarizationPort, evaluationPort, ingestionPort, resultPort);
         log.debug("promptEvaluationService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link DocumentIngestionService} when a {@link DocumentVectorPort}
+     * bean is available (i.e., when pgvector is configured).
+     *
+     * <p>Spring injects all {@link FileParserPort} {@code @Component} beans as a list
+     * automatically, so adding a new parser requires no change to this method.
+     *
+     * @param parsers     All registered file-parser adapters (PDF, DOCX, plain-text).
+     * @param vectorPort  Adapter implementing vector-store writes (auto-detected).
+     * @return The wired {@link DocumentIngestionService} instance.
+     */
+    @Bean
+    @ConditionalOnBean(DocumentVectorPort.class)
+    public DocumentIngestionService documentIngestionService(List<FileParserPort> parsers,
+                                                              DocumentVectorPort vectorPort) {
+        log.debug("documentIngestionService() | parserCount={}, vectorPort={}",
+                  parsers.size(), vectorPort.getClass().getSimpleName());
+        DocumentIngestionService result = new DocumentIngestionService(parsers, vectorPort);
+        log.debug("documentIngestionService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * No-op fallback {@link IngestDocumentsUseCase} used when pgvector is not configured.
+     * Returns a result indicating that document ingestion is unavailable in this environment.
+     *
+     * @return a use case that always returns a descriptive failure result
+     */
+    @Bean
+    @ConditionalOnMissingBean(IngestDocumentsUseCase.class)
+    public IngestDocumentsUseCase noOpIngestDocumentsUseCase() {
+        log.debug("noOpIngestDocumentsUseCase() | pgvector not configured — document ingestion disabled");
+        IngestDocumentsUseCase result = (directory, sourceLabel, chunkSize) ->
+                new DocumentIngestionResult(0, 0,
+                        List.of("Document ingestion is unavailable — pgvector is not configured in this environment."));
+        log.debug("noOpIngestDocumentsUseCase() | return=lambda");
         return result;
     }
 

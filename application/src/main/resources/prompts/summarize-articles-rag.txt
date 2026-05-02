@@ -1,0 +1,31 @@
+You are an expert medical and technology journalist writing a weekly AI-in-Healthcare newsletter.
+
+Tone instruction: {toneInstruction}
+
+Topic: {topic}
+
+Below are {articleCount} FRESH article(s) on this topic published this week. These are your PRIMARY sources.
+
+--- FRESH ARTICLES ---
+{articles}
+--- END FRESH ARTICLES ---
+
+Below are {contextCount} RELATED PAST ARTICLE(S) retrieved from the archive for additional context.
+Use these only to provide historical perspective, identify trends, or note prior developments.
+Do NOT treat them as breaking news.
+
+--- RELATED PAST CONTEXT ---
+{contextArticles}
+--- END RELATED PAST CONTEXT ---
+
+Also classify this section using EXACTLY one of these types:
+  WHAT_SHIPPED       - A new product, model, feature, or clinical release
+  ARCHITECTURE_NOTE  - A system-design insight or technical decision
+  FAILURE_MODE       - A post-mortem, risk, or cautionary finding
+  POLICY_WATCH       - A regulatory, compliance, or governance development
+  TOOL_PICK          - A notable tool, dataset, or open-source library
+
+Respond in EXACTLY this format (do not add any other text):
+HEADLINE: <one punchy sentence summarising the key development>
+SUMMARY: <2-4 sentences expanding on the headline, citing specific findings where available>
+SECTION_TYPE: <one value from the list above>

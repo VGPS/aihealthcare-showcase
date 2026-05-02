@@ -8,6 +8,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
@@ -57,6 +58,9 @@ class NewsletterServiceGenerateTest {
     @Mock
     private NewsletterRunPort newsletterRunPort;
 
+    @Mock
+    private ArticleSearchPort searchPort;
+
     private NewsletterService service;
 
     private static final String RUN_ID   = "run-001";
@@ -84,7 +88,7 @@ class NewsletterServiceGenerateTest {
     @BeforeEach
     void setUp() {
         service = new NewsletterService(ingestionPort, summarizationPort,
-                                        new NewsletterRenderer(), newsletterRunPort);
+                                        new NewsletterRenderer(), newsletterRunPort, searchPort);
     }
 
     @Test
@@ -98,7 +102,7 @@ class NewsletterServiceGenerateTest {
 
         service.ingest(RUN_ID, LocalDate.now(), List.of(TOPIC), 5);
         service.generate(RUN_ID, DRAFT_ID, "AI in Healthcare Weekly",
-                         NewsletterTone.PROFESSIONAL, 3);
+                         NewsletterTone.PROFESSIONAL, 3, false, 3);
 
         verify(newsletterRunPort).save(any(NewsletterRun.class));
     }
@@ -114,7 +118,7 @@ class NewsletterServiceGenerateTest {
 
         service.ingest(RUN_ID, LocalDate.now(), List.of(TOPIC), 5);
         service.generate(RUN_ID, DRAFT_ID, "AI in Healthcare Weekly",
-                         NewsletterTone.PROFESSIONAL, 3);
+                         NewsletterTone.PROFESSIONAL, 3, false, 3);
 
         ArgumentCaptor<NewsletterRun> captor = ArgumentCaptor.forClass(NewsletterRun.class);
         verify(newsletterRunPort).save(captor.capture());
@@ -133,7 +137,7 @@ class NewsletterServiceGenerateTest {
 
         service.ingest(RUN_ID, LocalDate.now(), List.of(TOPIC), 5);
         service.generate(RUN_ID, DRAFT_ID, "AI in Healthcare Weekly",
-                         NewsletterTone.PROFESSIONAL, 3);
+                         NewsletterTone.PROFESSIONAL, 3, false, 3);
 
         ArgumentCaptor<NewsletterRun> captor = ArgumentCaptor.forClass(NewsletterRun.class);
         verify(newsletterRunPort).save(captor.capture());
@@ -153,7 +157,7 @@ class NewsletterServiceGenerateTest {
 
         service.ingest(RUN_ID, LocalDate.now(), List.of(TOPIC), 5);
         service.generate(RUN_ID, DRAFT_ID, "AI in Healthcare Weekly",
-                         NewsletterTone.PROFESSIONAL, 3);
+                         NewsletterTone.PROFESSIONAL, 3, false, 3);
 
         ArgumentCaptor<NewsletterRun> captor = ArgumentCaptor.forClass(NewsletterRun.class);
         verify(newsletterRunPort).save(captor.capture());
