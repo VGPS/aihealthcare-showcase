@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
 import java.util.List;
@@ -69,4 +70,33 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, 
      * @return list of matching entities; may be smaller than the input if some IDs are missing
      */
     List<NewsArticleEntity> findByArticleIdIn(List<String> articleIds);
+
+    /**
+     * Returns article counts grouped by {@code sourceTier}, ordered by count descending.
+     * Each element is a two-element {@code Object[]} where index 0 is the tier string
+     * and index 1 is the {@code Long} count.
+     *
+     * @return list of [sourceTier, count] pairs
+     */
+    @Query("SELECT n.sourceTier, COUNT(n) FROM NewsArticleEntity n GROUP BY n.sourceTier ORDER BY COUNT(n) DESC")
+    List<Object[]> countBySourceTierGrouped();
+
+    /**
+     * Returns article counts grouped by {@code topic}, ordered by count descending.
+     * Each element is a two-element {@code Object[]} where index 0 is the topic string
+     * and index 1 is the {@code Long} count.
+     *
+     * @return list of [topic, count] pairs
+     */
+    @Query("SELECT n.topic, COUNT(n) FROM NewsArticleEntity n GROUP BY n.topic ORDER BY COUNT(n) DESC")
+    List<Object[]> countByTopicGrouped();
+
+    /**
+     * Counts articles whose {@code createdAt} is strictly after the given instant.
+     * Used to compute 7-day and 30-day ingestion windows.
+     *
+     * @param since the lower-bound instant (exclusive)
+     * @return count of matching articles
+     */
+    long countByCreatedAtAfter(Instant since);
 }

@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
@@ -29,4 +30,29 @@ public interface EvaluationResultRepository extends JpaRepository<EvaluationResu
      * @return matching entities, or an empty list
      */
     List<EvaluationResultEntity> findByComparisonId(String comparisonId);
+
+    /**
+     * Returns aggregate score averages grouped by variant, ordered by average
+     * overall score descending.  Each element is a nine-element {@code Object[]}:
+     * <ol>
+     *   <li>variantId (String)</li>
+     *   <li>variantName (String)</li>
+     *   <li>count (Long)</li>
+     *   <li>avgOverall (Double)</li>
+     *   <li>avgRelevance (Double)</li>
+     *   <li>avgConciseness (Double)</li>
+     *   <li>avgCompleteness (Double)</li>
+     *   <li>avgToneMatch (Double)</li>
+     *   <li>avgAttributionQuality (Double)</li>
+     * </ol>
+     *
+     * @return list of per-variant aggregate score rows
+     */
+    @Query("SELECT e.variantId, e.variantName, COUNT(e), "
+         + "AVG(e.overall), AVG(e.relevance), AVG(e.conciseness), "
+         + "AVG(e.completeness), AVG(e.toneMatch), AVG(e.attributionQuality) "
+         + "FROM EvaluationResultEntity e "
+         + "GROUP BY e.variantId, e.variantName "
+         + "ORDER BY AVG(e.overall) DESC")
+    List<Object[]> getVariantAggregates();
 }

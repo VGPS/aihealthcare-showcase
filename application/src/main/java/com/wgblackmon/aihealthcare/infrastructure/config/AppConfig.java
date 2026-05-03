@@ -4,6 +4,8 @@ import com.wgblackmon.aihealthcare.domain.model.DocumentIngestionResult;
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestDocumentsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentVectorPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FileParserPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AnalyticsPort;
+import com.wgblackmon.aihealthcare.domain.service.AnalyticsService;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
 import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
 import com.wgblackmon.aihealthcare.domain.service.MarketIntelligenceService;
@@ -219,6 +221,21 @@ public class AppConfig {
                   aiReportPort.getClass().getSimpleName());
         MarketIntelligenceService result = new MarketIntelligenceService(searchPromptPort, aiReportPort);
         log.debug("marketIntelligenceService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link AnalyticsService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase}.
+     *
+     * @param analyticsPort Adapter implementing aggregate DB queries (auto-detected).
+     * @return The wired {@link AnalyticsService} instance.
+     */
+    @Bean
+    public AnalyticsService analyticsService(AnalyticsPort analyticsPort) {
+        log.debug("analyticsService() | analyticsPort={}", analyticsPort.getClass().getSimpleName());
+        AnalyticsService result = new AnalyticsService(analyticsPort);
+        log.debug("analyticsService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

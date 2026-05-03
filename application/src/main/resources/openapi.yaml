@@ -617,6 +617,57 @@ paths:
           description: Generation or file write failed (prompt not configured or I/O error)
 
   # ---------------------------------------------------------------------------
+  # Analytics dashboard
+  # ---------------------------------------------------------------------------
+  /api/v1/analytics/ingestion:
+    get:
+      summary: Get article ingestion analytics
+      description: >
+        Returns aggregate statistics about harvested articles: total count,
+        breakdown by source tier (ACADEMIC, REGULATORY, INDUSTRY, etc.),
+        breakdown by topic, and counts for the last 7 and 30 days.
+      operationId: getIngestionAnalytics
+      responses:
+        '200':
+          description: Ingestion analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestionAnalyticsResponse'
+
+  /api/v1/analytics/runs:
+    get:
+      summary: Get newsletter run analytics
+      description: >
+        Returns aggregate statistics about newsletter runs: total count and
+        breakdown by status (DRAFT, SENT, ARCHIVED), plus the timestamp of
+        the most recently generated run.
+      operationId: getRunAnalytics
+      responses:
+        '200':
+          description: Run analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunAnalyticsResponse'
+
+  /api/v1/analytics/evaluations:
+    get:
+      summary: Get prompt evaluation analytics
+      description: >
+        Returns aggregate statistics about prompt evaluations: total evaluation
+        and comparison counts, per-variant average scores across all quality
+        dimensions, and the ID of the best-performing variant by overall score.
+      operationId: getEvaluationAnalytics
+      responses:
+        '200':
+          description: Evaluation analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationAnalyticsResponse'
+
+  # ---------------------------------------------------------------------------
   # Newsletter run archive
   # ---------------------------------------------------------------------------
   /api/v1/runs:
@@ -1142,6 +1193,112 @@ components:
           type: integer
           description: Number of bytes in the generated HTML file.
           example: 48200
+
+    CountByLabelResponse:
+      type: object
+      properties:
+        label:
+          type: string
+          description: The group label (e.g. source tier name or topic name)
+        count:
+          type: integer
+          format: int64
+          description: Number of articles in this group
+
+    IngestionAnalyticsResponse:
+      type: object
+      properties:
+        totalArticles:
+          type: integer
+          format: int64
+          description: Total articles stored in the database
+        bySourceTier:
+          type: array
+          items:
+            $ref: '#/components/schemas/CountByLabelResponse'
+          description: Article counts grouped by source tier
+        byTopic:
+          type: array
+          items:
+            $ref: '#/components/schemas/CountByLabelResponse'
+          description: Article counts grouped by topic, ordered by count descending
+        last7DaysCount:
+          type: integer
+          format: int64
+          description: Articles ingested in the last 7 days
+        last30DaysCount:
+          type: integer
+          format: int64
+          description: Articles ingested in the last 30 days
+
+    RunAnalyticsResponse:
+      type: object
+      properties:
+        totalRuns:
+          type: integer
+          format: int64
+        draftCount:
+          type: integer
+          format: int64
+        sentCount:
+          type: integer
+          format: int64
+        archivedCount:
+          type: integer
+          format: int64
+        mostRecentRunAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp of the most recently generated newsletter run
+
+    VariantScoreResponse:
+      type: object
+      properties:
+        variantId:
+          type: string
+        variantName:
+          type: string
+        evaluationCount:
+          type: integer
+          format: int64
+        avgOverall:
+          type: number
+          format: double
+        avgRelevance:
+          type: number
+          format: double
+        avgConciseness:
+          type: number
+          format: double
+        avgCompleteness:
+          type: number
+          format: double
+        avgToneMatch:
+          type: number
+          format: double
+        avgAttributionQuality:
+          type: number
+          format: double
+
+    EvaluationAnalyticsResponse:
+      type: object
+      properties:
+        totalEvaluations:
+          type: integer
+          format: int64
+        totalComparisons:
+          type: integer
+          format: int64
+        variantScores:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantScoreResponse'
+          description: Per-variant aggregate scores, ordered by avgOverall descending
+        bestVariantId:
+          type: string
+          nullable: true
+          description: ID of the variant with the highest average overall score
 
     ErrorResponse:
       type: object
