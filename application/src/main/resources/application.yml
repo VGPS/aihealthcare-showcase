@@ -84,7 +84,7 @@ aihealthcare:
   # Set to 0 for no date restriction.  Change freely for experimentation.
   # ---------------------------------------------------------------------------
   articles:
-    days-back: 3
+    days-back: 1
 
   feeds:
     sources:
@@ -155,12 +155,6 @@ aihealthcare:
         base-weight: 0.7
         max-items: 1
       - topic-id: 1
-        name: Anthropic Healthcare Webinar
-        url: https://www.anthropic.com/webinars/claude-code-in-healthcare-how-physicians-are-building-with-claude
-        tier: COMPETITOR
-        base-weight: 0.7
-        max-items: 1
-      - topic-id: 1
         name: Perplexity Health
         url: https://www.perplexity.ai/hub/blog/introducing-perplexity-health
         tier: COMPETITOR
@@ -224,6 +218,9 @@ aihealthcare:
   notebooklm:
     directory: NotebookLMDirectory
     summaries-directory: NotebookLMDirectory/summaries
+    # Comma-separated list of source names in desired display order for the HTML summary.
+    # Sources not listed here appear alphabetically after the configured ones.
+    source-order: "Google News AI Healthcare,Google News Clinical AI,MIT Technology Review AI"
 
   # ---------------------------------------------------------------------------
   # Newsletter delivery — from address used in outgoing emails.

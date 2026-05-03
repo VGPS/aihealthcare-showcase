@@ -65,9 +65,9 @@ import java.util.Set;
  * }</pre>
  *
  * @author  Bill Blackmon
- * @version 6.0
+ * @version 7.0
  * @since   2026-04-13
- * @updated 2026-04-28
+ * @updated 2026-05-02
  */
 @Slf4j
 @Service
@@ -78,6 +78,7 @@ public class NotebookLMService {
 
     private final String exportDirectory;
     private final String summariesDirectory;
+    private final List<String> sourceOrder;
     private final ArticleContentEnricher contentEnricher;
 
     /**
@@ -91,18 +92,45 @@ public class NotebookLMService {
      *                           files are written.  Resolved from
      *                           {@code aihealthcare.notebooklm.summaries-directory};
      *                           defaults to {@code NotebookLMDirectory/summaries}.
+     * @param sourceOrderCsv     Comma-separated list of source names specifying the
+     *                           display order of source blocks in the HTML summary.
+     *                           Sources not in this list appear alphabetically after
+     *                           the configured ones.  Empty string disables ordering.
      * @param contentEnricher    Enricher that fetches page content for articles
      *                           with empty body text.
      */
     public NotebookLMService(
             @Value("${aihealthcare.notebooklm.directory:NotebookLMDirectory}") String exportDirectory,
             @Value("${aihealthcare.notebooklm.summaries-directory:NotebookLMDirectory/summaries}") String summariesDirectory,
+            @Value("${aihealthcare.notebooklm.source-order:}") String sourceOrderCsv,
             ArticleContentEnricher contentEnricher) {
-        log.debug("NotebookLMService() | exportDirectory={}, summariesDirectory={}, contentEnricher={}",
-                  exportDirectory, summariesDirectory, contentEnricher.getClass().getSimpleName());
+        log.debug("NotebookLMService() | exportDirectory={}, summariesDirectory={}, sourceOrderCsv={}, contentEnricher={}",
+                  exportDirectory, summariesDirectory, sourceOrderCsv, contentEnricher.getClass().getSimpleName());
         this.exportDirectory = exportDirectory;
         this.summariesDirectory = summariesDirectory;
+        this.sourceOrder = parseSourceOrder(sourceOrderCsv);
         this.contentEnricher = contentEnricher;
+    }
+
+    /**
+     * Parses a comma-separated source-order string into an ordered list of source names.
+     *
+     * @param csv comma-delimited string; blank or null produces an empty list
+     * @return immutable ordered list of source names
+     */
+    private List<String> parseSourceOrder(String csv) {
+        log.debug("parseSourceOrder() | csv={}", csv);
+        List<String> result = new ArrayList<>();
+        if (csv != null && !csv.isBlank()) {
+            for (String s : csv.split(",")) {
+                String trimmed = s.trim();
+                if (!trimmed.isEmpty()) {
+                    result.add(trimmed);
+                }
+            }
+        }
+        log.debug("parseSourceOrder() | return={} entries", result.size());
+        return List.copyOf(result);
     }
 
     // -------------------------------------------------------------------------
@@ -397,6 +425,19 @@ public class NotebookLMService {
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM d, yyyy"));
         StringBuilder sb = new StringBuilder();
 
+        // Sort source blocks: configured order first, then alphabetically for the rest
+        List<Map.Entry<String, List<NewsArticle>>> orderedEntries = new ArrayList<>(bySource.entrySet());
+        orderedEntries.sort((a, b) -> {
+            int aIdx = sourceOrder.indexOf(a.getKey());
+            int bIdx = sourceOrder.indexOf(b.getKey());
+            int aRank = aIdx >= 0 ? aIdx : Integer.MAX_VALUE;
+            int bRank = bIdx >= 0 ? bIdx : Integer.MAX_VALUE;
+            if (aRank != bRank) {
+                return Integer.compare(aRank, bRank);
+            }
+            return a.getKey().compareTo(b.getKey());
+        });
+
         sb.append("<!DOCTYPE html>\n");
         sb.append("<html lang=\"en\">\n<head>\n");
         sb.append("  <meta charset=\"UTF-8\">\n");
@@ -420,10 +461,12 @@ public class NotebookLMService {
         sb.append("               border-top: 1px solid #e4eaf1; }\n");
         sb.append("    .article:first-of-type { border-top: none; }\n");
         sb.append("    .article-title { font-size: 1.05em; font-weight: bold; margin-bottom: 6px; }\n");
-        sb.append("    .article-title a { color: #1a3a5c; text-decoration: none; }\n");
+        sb.append("    .article-title a { color: #1a3a5c; text-decoration: underline; }\n");
         sb.append("    .article-title a:hover { color: #2c5f8a; text-decoration: underline; }\n");
         sb.append("    .article-body { font-size: 0.93em; color: #444; line-height: 1.65;\n");
         sb.append("                    margin-top: 6px; }\n");
+        sb.append("    .article-body p { margin-bottom: 0.75em; }\n");
+        sb.append("    .article-body p:last-child { margin-bottom: 0; }\n");
         sb.append("    .toc { background: #fff; border: 1px solid #dce4ec; border-radius: 8px;\n");
         sb.append("           padding: 20px 24px; margin-bottom: 36px; }\n");
         sb.append("    .toc h2 { font-size: 1em; color: #2c5f8a; margin-bottom: 10px;\n");
@@ -433,6 +476,10 @@ public class NotebookLMService {
         sb.append("              font-size: 0.9em; }\n");
         sb.append("    .toc li a { color: #2c5f8a; text-decoration: none; }\n");
         sb.append("    .toc li a:hover { text-decoration: underline; }\n");
+        sb.append("    .read-more { display: inline-block; margin-top: 8px; font-size: 0.85em;\n");
+        sb.append("                 color: #2c5f8a; text-decoration: underline;\n");
+        sb.append("                 font-family: Arial, sans-serif; }\n");
+        sb.append("    .read-more:hover { color: #1a3a5c; }\n");
         sb.append("    .badge { display: inline-block; background: #e8f0fa; color: #2c5f8a;\n");
         sb.append("             font-size: 0.75em; padding: 1px 7px; border-radius: 10px;\n");
         sb.append("             font-family: Arial, sans-serif; margin-left: 6px;\n");
@@ -445,9 +492,9 @@ public class NotebookLMService {
           .append(" &bull; ").append(articles.size()).append(" articles across ")
           .append(bySource.size()).append(" sources</div>\n\n");
 
-        // Table of contents
+        // Table of contents (in display order)
         sb.append("  <div class=\"toc\">\n    <h2>Sources</h2>\n    <ul>\n");
-        for (Map.Entry<String, List<NewsArticle>> entry : bySource.entrySet()) {
+        for (Map.Entry<String, List<NewsArticle>> entry : orderedEntries) {
             String anchorId = "src-" + sanitizeFilename(entry.getKey()).replace(" ", "-");
             sb.append("      <li><a href=\"#").append(escapeHtml(anchorId)).append("\">")
               .append(escapeHtml(entry.getKey()))
@@ -455,8 +502,8 @@ public class NotebookLMService {
         }
         sb.append("    </ul>\n  </div>\n\n");
 
-        // Article sections grouped by source
-        for (Map.Entry<String, List<NewsArticle>> entry : bySource.entrySet()) {
+        // Article sections grouped by source (in display order)
+        for (Map.Entry<String, List<NewsArticle>> entry : orderedEntries) {
             String anchorId = "src-" + sanitizeFilename(entry.getKey()).replace(" ", "-");
             sb.append("  <div class=\"source-block\" id=\"").append(escapeHtml(anchorId)).append("\">\n");
             sb.append("    <div class=\"source-header\">").append(escapeHtml(entry.getKey())).append("</div>\n");
@@ -470,7 +517,9 @@ public class NotebookLMService {
                 sb.append("      <div class=\"article-title\"><a href=\"").append(escapeHtml(url))
                   .append("\" target=\"_blank\" rel=\"noopener\">")
                   .append(escapeHtml(articleTitle)).append("</a></div>\n");
-                sb.append("      <div class=\"article-body\">").append(body).append("</div>\n");
+                sb.append("      <div class=\"article-body\">").append(renderBodyAsHtml(body)).append("</div>\n");
+                sb.append("      <a class=\"read-more\" href=\"").append(escapeHtml(url))
+                  .append("\" target=\"_blank\" rel=\"noopener\">Read article &rarr;</a>\n");
                 sb.append("    </div>\n");
             }
 
@@ -550,6 +599,64 @@ public class NotebookLMService {
 
         log.debug("ensureDirectory() | return={}", dir.toAbsolutePath());
         return dir;
+    }
+
+    /**
+     * Renders article body text as HTML suitable for the {@code .article-body} div.
+     *
+     * <p>Three cases are handled:
+     * <ol>
+     *   <li><b>HTML markup</b> — if the body already contains HTML tags
+     *       (e.g., RSS feed descriptions with {@code <a>} elements), it is
+     *       returned as-is so existing links and formatting are preserved.</li>
+     *   <li><b>Structured plain text</b> — if the body was scraped from a web
+     *       page via {@link com.wgblackmon.aihealthcare.infrastructure.ingestion.ArticleContentEnricher}
+     *       it will contain {@code \n\n} paragraph separators.  These are split
+     *       into {@code <p>} elements; single {@code \n} within a paragraph
+     *       becomes {@code <br>}.  Text content is HTML-escaped.</li>
+     *   <li><b>Single-line plain text</b> — wrapped in a single {@code <p>}
+     *       element with HTML-escaping applied.</li>
+     * </ol>
+     *
+     * @param body the resolved body string from {@link #resolveBody}
+     * @return HTML fragment ready for insertion into the {@code .article-body} div
+     */
+    private String renderBodyAsHtml(String body) {
+        log.debug("renderBodyAsHtml() | length={}", body == null ? 0 : body.length());
+
+        if (body == null || body.isBlank()) {
+            log.debug("renderBodyAsHtml() | return=empty");
+            return "";
+        }
+
+        // RSS feeds deliver body text as HTML (contains < and >) — render as-is
+        if (body.contains("<") && body.contains(">")) {
+            log.debug("renderBodyAsHtml() | return=html-passthrough ({} chars)", body.length());
+            return body;
+        }
+
+        // Plain text — escape first, then split into paragraphs
+        String escaped = escapeHtml(body);
+
+        if (escaped.contains("\n")) {
+            String[] paragraphs = escaped.split("\\n\\n+");
+            StringBuilder sb = new StringBuilder();
+            for (String para : paragraphs) {
+                String trimmed = para.trim();
+                if (!trimmed.isEmpty()) {
+                    // Single newlines within a paragraph become <br>
+                    sb.append("<p>").append(trimmed.replace("\n", "<br>")).append("</p>");
+                }
+            }
+            String result = sb.length() > 0 ? sb.toString() : "<p>" + escaped + "</p>";
+            log.debug("renderBodyAsHtml() | return=paragraph-formatted ({} chars)", result.length());
+            return result;
+        }
+
+        // Single-line plain text — wrap in one paragraph
+        String result = "<p>" + escaped + "</p>";
+        log.debug("renderBodyAsHtml() | return=single-paragraph ({} chars)", result.length());
+        return result;
     }
 
     /**

@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion.feed;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.Topic;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.ArticleRelevanceFilter;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceConfig.FeedTier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,7 +54,7 @@ class RomeFeedHarvesterTest {
                         FeedTier.INDUSTRY, 0.5, 10)
         ));
 
-        harvester = new RomeFeedHarvester(mockProperties);
+        harvester = new RomeFeedHarvester(mockProperties, new ArticleRelevanceFilter());
     }
 
     @Test

@@ -35,7 +35,7 @@ import java.time.Instant;
 public class NewsArticleEntity {
 
     @Id
-    @Column(name = "article_id", length = 512)
+    @Column(name = "article_id", length = 1024)
     private String articleId;
 
     @Column(length = 1024)

@@ -7,6 +7,8 @@ import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourcePrope
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +41,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-19
- * @updated 2026-04-19
+ * @updated 2026-05-02
  */
 @Slf4j
 @Component
@@ -188,22 +190,81 @@ public class WebPageHarvester {
      * containers ({@code main}, {@code article}, {@code [role=main]}) to
      * avoid false change detection from navigation and footer churn.
      *
+     * <p>Block-level HTML elements ({@code p}, {@code h1-h6}, {@code div},
+     * {@code section}, {@code li}, {@code blockquote}) are converted to
+     * {@code \n\n} paragraph separators before stripping tags.  This preserves
+     * paragraph structure so that competitor page content is not flattened into
+     * a single run-on sentence in the HTML summary export.
+     *
      * @param doc the parsed HTML document
-     * @return text content of the main area, or full body text as fallback
+     * @return structured plain text with {@code \n\n} paragraph breaks, or empty
      */
     String extractMainContent(Document doc) {
         log.debug("extractMainContent() | title={}", doc.title());
 
         Elements mainElements = doc.select("main, article, [role=main]");
-        String content;
+        Element root;
         if (!mainElements.isEmpty()) {
-            content = mainElements.first().text();
+            root = mainElements.first();
+        } else if (doc.body() != null) {
+            root = doc.body();
         } else {
-            content = doc.body() != null ? doc.body().text() : "";
+            log.debug("extractMainContent() | return=empty (no body element)");
+            return "";
         }
+
+        String content = extractTextPreservingStructure(root);
 
         log.debug("extractMainContent() | return={} chars", content.length());
         return content;
+    }
+
+    /**
+     * Converts an HTML element's content to structured plain text by replacing
+     * block-level opening tags with {@code \n\n} separators, {@code <br>} with
+     * {@code \n}, stripping remaining tags, and decoding HTML entities.
+     *
+     * @param root the root element to convert
+     * @return normalized plain text with paragraph breaks as {@code \n\n}
+     */
+    private String extractTextPreservingStructure(Element root) {
+        log.debug("extractTextPreservingStructure() | tag={}", root.tagName());
+
+        String html = root.html();
+
+        // Remove entire <style>, <script>, and <noscript> blocks (content + tags)
+        // so that inline CSS and JavaScript do not appear as text output
+        html = html.replaceAll("(?is)<style[^>]*>.*?</style>", "");
+        html = html.replaceAll("(?is)<script[^>]*>.*?</script>", "");
+        html = html.replaceAll("(?is)<noscript[^>]*>.*?</noscript>", "");
+
+        // Replace block-level opening tags with paragraph separator
+        html = html.replaceAll(
+                "(?i)<(p|h[1-6]|div|section|article|li|blockquote|pre|header|footer|tr)[^>]*>",
+                "\n\n");
+
+        // Replace <br> variants with single newline
+        html = html.replaceAll("(?i)<br[^>]*/?>", "\n");
+
+        // Strip all remaining HTML tags
+        html = html.replaceAll("<[^>]+>", "");
+
+        // Decode HTML entities
+        html = Parser.unescapeEntities(html, false);
+
+        // Normalize each line: collapse internal whitespace, trim
+        String[] lines = html.split("\n");
+        StringBuilder sb = new StringBuilder();
+        for (String line : lines) {
+            String normalized = line.replaceAll("[ \\t]+", " ").trim();
+            sb.append(normalized).append("\n");
+        }
+
+        // Collapse 3+ consecutive newlines to exactly 2, trim edges
+        String result = sb.toString().replaceAll("\n{3,}", "\n\n").trim();
+
+        log.debug("extractTextPreservingStructure() | return={} chars", result.length());
+        return result;
     }
 
     /**

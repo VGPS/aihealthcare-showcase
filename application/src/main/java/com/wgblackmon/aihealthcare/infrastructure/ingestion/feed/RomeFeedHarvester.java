@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion.feed;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.ArticleRelevanceFilter;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
@@ -41,21 +42,25 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-10
- * @updated 2026-04-10
+ * @updated 2026-05-02
  */
 @Slf4j
 @Component
 public class RomeFeedHarvester implements ArticleHarvestingPort {
 
     private final List<FeedSourceConfig> feedSources;
+    private final ArticleRelevanceFilter relevanceFilter;
 
     /**
-     * Constructor injection of the resolved feed source list.
+     * Constructor injection of the resolved feed source list and relevance filter.
      *
-     * @param properties externalized feed configuration from {@code application.yml}
+     * @param properties      externalized feed configuration from {@code application.yml}
+     * @param relevanceFilter filters harvested articles to Healthcare+AI relevance
      */
-    public RomeFeedHarvester(FeedSourceProperties properties) {
+    public RomeFeedHarvester(FeedSourceProperties properties,
+                             ArticleRelevanceFilter relevanceFilter) {
         log.debug("RomeFeedHarvester() | properties={}", properties.getClass().getSimpleName());
+        this.relevanceFilter = relevanceFilter;
         List<FeedSourceConfig> rssOnly = new ArrayList<>();
         for (FeedSourceConfig config : properties.toFeedSourceConfigs()) {
             if (config.tier() != FeedTier.COMPETITOR
@@ -128,8 +133,13 @@ public class RomeFeedHarvester implements ArticleHarvestingPort {
             log.error("harvestFeed() | failed to harvest feed '{}': {}", source.name(), ex.getMessage(), ex);
         }
 
-        log.debug("harvestFeed() | return={} articles from '{}'", results.size(), source.name());
-        return results;
+        // Apply relevance filter — keep only articles that mention both healthcare and AI
+        List<NewsArticle> filtered = relevanceFilter.filter(results);
+        log.info("harvestFeed() | relevance filter: {} kept of {} from '{}'",
+                 filtered.size(), results.size(), source.name());
+
+        log.debug("harvestFeed() | return={} articles from '{}'", filtered.size(), source.name());
+        return filtered;
     }
 
     /**

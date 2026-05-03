@@ -76,7 +76,7 @@ class NotebookLMServiceTest {
         exportDir = tempDir.resolve("articles");
         summariesDir = tempDir.resolve("summaries");
         enricher = spy(new ArticleContentEnricher());
-        service = new NotebookLMService(exportDir.toString(), summariesDir.toString(), enricher);
+        service = new NotebookLMService(exportDir.toString(), summariesDir.toString(), "", enricher);
     }
 
     /** Returns today's expected summary filename. */
@@ -359,7 +359,7 @@ class NotebookLMServiceTest {
         Path newExportDir = tempDir.resolve("new-export");
         Path newSummariesDir = tempDir.resolve("new-summaries");
         NotebookLMService svc = new NotebookLMService(
-                newExportDir.toString(), newSummariesDir.toString(), enricher);
+                newExportDir.toString(), newSummariesDir.toString(), "", enricher);
 
         assertThat(newExportDir).doesNotExist();
         assertThat(newSummariesDir).doesNotExist();
