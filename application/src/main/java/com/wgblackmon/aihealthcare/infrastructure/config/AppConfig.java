@@ -6,10 +6,12 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentVectorPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FileParserPort;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
 import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
+import com.wgblackmon.aihealthcare.domain.service.MarketIntelligenceService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
 import com.wgblackmon.aihealthcare.domain.service.PromptEvaluationService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AiReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
@@ -17,6 +19,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.EvaluationResultPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PromptVariantPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SearchPromptPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -197,6 +200,25 @@ public class AppConfig {
                 new DocumentIngestionResult(0, 0,
                         List.of("Document ingestion is unavailable — pgvector is not configured in this environment."));
         log.debug("noOpIngestDocumentsUseCase() | return=lambda");
+        return result;
+    }
+
+    /**
+     * Creates the {@link MarketIntelligenceService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.GenerateMarketIntelligenceUseCase}.
+     *
+     * @param searchPromptPort Port for loading the configured prompt template (auto-detected).
+     * @param aiReportPort     Port for sending the prompt to the AI model (auto-detected).
+     * @return The wired {@link MarketIntelligenceService} instance.
+     */
+    @Bean
+    public MarketIntelligenceService marketIntelligenceService(SearchPromptPort searchPromptPort,
+                                                                AiReportPort aiReportPort) {
+        log.debug("marketIntelligenceService() | searchPromptPort={}, aiReportPort={}",
+                  searchPromptPort.getClass().getSimpleName(),
+                  aiReportPort.getClass().getSimpleName());
+        MarketIntelligenceService result = new MarketIntelligenceService(searchPromptPort, aiReportPort);
+        log.debug("marketIntelligenceService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

@@ -132,6 +132,29 @@ treat it as lower priority unless it is highly authoritative.',
        true
 WHERE NOT EXISTS (SELECT 1 FROM search_prompts WHERE engine = 'PERPLEXITY');
 
+-- ---------------------------------------------------------------------------
+-- Market Intelligence prompt (Slice 9) — monthly competitive landscape report.
+-- Engine key: MARKET_INTELLIGENCE
+-- Editable via PUT /api/v1/search-prompts/MARKET_INTELLIGENCE
+-- ---------------------------------------------------------------------------
+INSERT INTO search_prompts (engine, name, template_text, description, active)
+SELECT 'MARKET_INTELLIGENCE',
+       'Healthcare AI Market Intelligence',
+       'I am analyzing Healthcare AI Frameworks from Anthropic, Google (Gemini/DeepMind), Perplexity, and OpenAI. Please summarize each company''s offerings and features, pricing, developer tools, and market placement in HTML output so it can be used in a newsletter. Order features within each company section by last date updated (most recent first). Provide direct links to each item. Provide a final summary paragraph for each company. Provide a summary of the current state of this market in the Healthcare and AI segment.
+
+Format requirements:
+- Return a complete, self-contained HTML document with inline CSS only (no external stylesheets or JavaScript).
+- Use a dark, professional newsletter aesthetic.
+- Group content by company (Anthropic, OpenAI, Google/DeepMind, Perplexity) with clear section headers.
+- Include a feature/capability table per company with columns: Feature, Details, Date Updated, Source Link.
+- Include a pricing section per company.
+- Include a strengths/weaknesses verdict per company.
+- Include a market state section at the end with key statistics and a competitive timeline.
+- All source citations must be real, working URLs.',
+       'Monthly competitive landscape report: Anthropic, OpenAI, Google, Perplexity healthcare AI offerings, pricing, developer tools. Returns a styled, self-contained HTML document.',
+       true
+WHERE NOT EXISTS (SELECT 1 FROM search_prompts WHERE engine = 'MARKET_INTELLIGENCE');
+
 -- V3: accessible style — plain language for non-specialist readers.
 INSERT INTO prompt_variants (variant_id, name, template_text, description, created_at)
 SELECT 'summarize-v3-accessible',
