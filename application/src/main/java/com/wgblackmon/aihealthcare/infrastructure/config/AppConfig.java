@@ -1,17 +1,23 @@
 package com.wgblackmon.aihealthcare.infrastructure.config;
 
 import com.wgblackmon.aihealthcare.domain.model.DocumentIngestionResult;
+import com.wgblackmon.aihealthcare.domain.model.ResearchMode;
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestDocumentsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentVectorPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FileParserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalyticsPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SourceRetrievalPort;
 import com.wgblackmon.aihealthcare.domain.service.AnalyticsService;
+import com.wgblackmon.aihealthcare.domain.service.CitationAssembler;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
 import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
 import com.wgblackmon.aihealthcare.domain.service.MarketIntelligenceService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
 import com.wgblackmon.aihealthcare.domain.service.PromptEvaluationService;
+import com.wgblackmon.aihealthcare.domain.service.ResearchOrchestratorService;
+import com.wgblackmon.aihealthcare.domain.service.ResearchPlanningService;
+import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
@@ -23,9 +29,12 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PromptVariantPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SearchPromptPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.infrastructure.research.LegacyGoogleResearchAdapter;
+import com.wgblackmon.aihealthcare.infrastructure.research.PerplexityResearchAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -236,6 +245,56 @@ public class AppConfig {
         log.debug("analyticsService() | analyticsPort={}", analyticsPort.getClass().getSimpleName());
         AnalyticsService result = new AnalyticsService(analyticsPort);
         log.debug("analyticsService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link ResearchOrchestratorService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase}.
+     *
+     * <p>Prompt templates for the planning and synthesis services are loaded once at
+     * startup via {@link PromptLoaderService}.  Both adapters are injected by name
+     * to avoid ambiguity (both implement {@link SourceRetrievalPort}).
+     *
+     * @param researchModeStr         Configured default mode from
+     *                                {@code aihealthcare.research.mode}.
+     * @param aiReportPort            Generic AI prompt→text port (auto-detected).
+     * @param promptLoaderService     Template loader (auto-detected).
+     * @param legacyGoogleAdapter     Legacy ingestion-backed retrieval adapter.
+     * @param perplexityAdapter       Perplexity-backed retrieval adapter.
+     * @return The wired {@link ResearchOrchestratorService} instance.
+     */
+    @Bean
+    public ResearchOrchestratorService researchOrchestratorService(
+            @Value("${aihealthcare.research.mode:LEGACY_GOOGLE}") String researchModeStr,
+            AiReportPort aiReportPort,
+            PromptLoaderService promptLoaderService,
+            LegacyGoogleResearchAdapter legacyGoogleAdapter,
+            PerplexityResearchAdapter perplexityAdapter) {
+
+        log.debug("researchOrchestratorService() | researchMode={}", researchModeStr);
+
+        ResearchMode defaultMode;
+        try {
+            defaultMode = ResearchMode.valueOf(researchModeStr.toUpperCase().trim());
+        } catch (IllegalArgumentException e) {
+            log.warn("researchOrchestratorService() | Unrecognised mode '{}' — defaulting to LEGACY_GOOGLE",
+                     researchModeStr);
+            defaultMode = ResearchMode.LEGACY_GOOGLE;
+        }
+
+        String planTemplate      = promptLoaderService.load("research-plan.txt");
+        String synthesisTemplate = promptLoaderService.load("research-synthesis.txt");
+
+        CitationAssembler       citationAssembler = new CitationAssembler();
+        ResearchPlanningService planningService   = new ResearchPlanningService(aiReportPort, planTemplate);
+        ResearchSynthesisService synthesisService = new ResearchSynthesisService(aiReportPort, synthesisTemplate);
+
+        ResearchOrchestratorService result = new ResearchOrchestratorService(
+                defaultMode, legacyGoogleAdapter, perplexityAdapter,
+                planningService, synthesisService, citationAssembler);
+
+        log.debug("researchOrchestratorService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

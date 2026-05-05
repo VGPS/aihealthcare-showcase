@@ -164,7 +164,29 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 7 — RAG Generation + Document Ingestion + HTML Export — COMPLETE — 333 tests passing**
+**Slice 12 — Research Refactor: Perplexity-Style Staged Research Architecture — COMPLETE — 415 tests passing**
+- [x] Domain: `ResearchMode` enum, `ResearchRequest`, `ResearchPlan`, `RetrievalQuery`, `RetrievedSource`, `SourceCitation`, `ResearchSection`, `ResearchAnswer`, `VendorAssessment` records
+- [x] Domain: `SourceRetrievalPort` outbound, `ConductResearchUseCase` inbound
+- [x] Domain services: `CitationAssembler`, `ResearchPlanningService`, `ResearchSynthesisService`, `ResearchOrchestratorService`
+- [x] Infrastructure: `LegacyGoogleResearchAdapter` (wraps `ArticleIngestionPort`), `PerplexityResearchAdapter` (wraps `PerplexityHarvester`) — package `infrastructure.research`
+- [x] Prompt templates: `research-plan.txt`, `research-synthesis.txt`
+- [x] Web: `ResearchController` — `POST /api/v1/research`
+- [x] DTOs: `ResearchRequestDto`, `ResearchAnswerDto`, `ResearchSectionDto`, `SourceCitationDto`
+- [x] OpenAPI spec updated with `/api/v1/research` endpoint + 4 new schemas
+- [x] `AppConfig` wires `researchOrchestratorService()` bean; loads prompt templates via `PromptLoaderService`
+- [x] `application.yml` — `aihealthcare.research.mode: LEGACY_GOOGLE` (no API key required; switch to STAGED_RESEARCH once `PERPLEXITY_API_KEY` is set)
+- [x] Tests: `CitationAssemblerTest` (8), `ResearchOrchestratorServiceTest` (7), `LegacyGoogleResearchAdapterTest` (5), `PerplexityResearchAdapterTest` (4), `ResearchControllerTest` (7) = 31 new tests
+
+**Migration to STAGED_RESEARCH:** set `PERPLEXITY_API_KEY` env var + `aihealthcare.research.mode: STAGED_RESEARCH` in `application.yml`. Zero code changes required.
+
+**Previously complete: Slice 11 — Analytics Dashboard UI — 379 tests passing**
+- [x] Thymeleaf starter in `pom.xml`; `DashboardController` — `GET /dashboard`, `GET /dashboard/articles?topic=&sort=`
+- [x] `ArticleIngestionPort.fetchAllByTopic()` + adapter; `dashboard.html` + `articles.html` templates
+
+**Previously complete: Slice 10 — Analytics Dashboard REST — 372 tests passing**
+- [x] `IngestionAnalytics`, `RunAnalytics`, `EvaluationAnalytics` records; `AnalyticsController` — 3 GET endpoints
+
+**Previously complete: Slice 7 — RAG Generation + Document Ingestion + HTML Export — COMPLETE — 333 tests passing**
 - [x] `pom.xml` — added `pdfbox:3.0.3` and `poi-ooxml:5.3.0` for PDF/DOCX parsing
 - [x] Domain: `DocumentChunk`, `DocumentIngestionResult` records
 - [x] Domain: `IngestDocumentsUseCase` inbound port — `ingest(directory, sourceLabel, chunkSize)`
