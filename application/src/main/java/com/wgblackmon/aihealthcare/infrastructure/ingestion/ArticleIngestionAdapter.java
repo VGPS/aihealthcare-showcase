@@ -81,6 +81,20 @@ public class ArticleIngestionAdapter implements ArticleIngestionPort {
     }
 
     @Override
+    public List<NewsArticle> fetchAllByTopic(String topic) {
+        log.debug("fetchAllByTopic() | topic={}", topic);
+
+        List<NewsArticleEntity> entities = repository.findByTopicContainingIgnoreCase(topic);
+        List<NewsArticle> result = new ArrayList<>();
+        for (NewsArticleEntity entity : entities) {
+            result.add(toDomain(entity));
+        }
+
+        log.debug("fetchAllByTopic() | return={} articles", result.size());
+        return result;
+    }
+
+    @Override
     public List<NewsArticle> fetchArticlesByIds(List<String> articleIds) {
         log.debug("fetchArticlesByIds() | articleIds={}", articleIds);
 

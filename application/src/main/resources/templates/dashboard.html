@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AIHealthcare Analytics Dashboard</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            font-size: 14px;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+        }
+        header h1 { font-size: 1.25rem; font-weight: 600; }
+        header p  { font-size: 0.8rem; opacity: 0.6; }
+
+        nav {
+            background: #16213e;
+            padding: 0 2rem;
+            display: flex;
+            gap: 1.5rem;
+        }
+        nav a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 0.6rem 0;
+            border-bottom: 2px solid transparent;
+            display: inline-block;
+        }
+        nav a:hover { color: white; }
+
+        main {
+            max-width: 1200px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .section-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        .api-link {
+            font-size: 0.75rem;
+            color: #4361ee;
+            text-decoration: none;
+        }
+        .api-link:hover { text-decoration: underline; }
+
+        /* Stat cards */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 0.875rem;
+            margin-bottom: 1.25rem;
+        }
+        .stat-card {
+            background: #f8f9ff;
+            border-left: 4px solid #4361ee;
+            border-radius: 6px;
+            padding: 0.875rem 1rem;
+        }
+        .stat-card.green  { background: #f0fff8; border-color: #27ae60; }
+        .stat-card.amber  { background: #fffbf0; border-color: #f39c12; }
+        .stat-card.slate  { background: #f5f6fa; border-color: #95a5a6; }
+        .stat-card .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            line-height: 1;
+        }
+        .stat-card .value.sm { font-size: 1rem; margin-top: 0.25rem; }
+        .stat-card .label {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 0.35rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Tables */
+        .table-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead th {
+            background: #f5f6fa;
+            text-align: left;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #777;
+            font-weight: 600;
+        }
+        tbody td {
+            padding: 0.55rem 0.75rem;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 0.875rem;
+        }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr.highlight td { background: #f0fff8; font-weight: 600; }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 0.15em 0.55em;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 0.4rem;
+            vertical-align: middle;
+        }
+        .badge-best { background: #d4edda; color: #155724; }
+
+        /* Score bar */
+        .score-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .bar-bg {
+            flex: 1;
+            background: #e9ecef;
+            border-radius: 99px;
+            height: 5px;
+            min-width: 40px;
+        }
+        .bar-fill {
+            background: #4361ee;
+            border-radius: 99px;
+            height: 5px;
+        }
+        .bar-fill.green { background: #27ae60; }
+
+        /* Empty state */
+        .empty {
+            color: #bbb;
+            font-style: italic;
+            padding: 0.75rem 0;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AIHealthcare Analytics</h1>
+    <p>Live stats &mdash; refreshes on each page load</p>
+</header>
+
+<nav>
+    <a href="#ingestion">Ingestion</a>
+    <a href="#runs">Newsletter Runs</a>
+    <a href="#evaluations">Evaluations</a>
+</nav>
+
+<main>
+
+    <!-- ================================================================
+         SECTION 1 — Article Ingestion
+         ================================================================ -->
+    <section id="ingestion">
+        <div class="section-header">
+            <h2>Article Ingestion</h2>
+            <a class="api-link" href="/api/v1/analytics/ingestion" target="_blank">JSON &rarr;</a>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="value" th:text="${ingestion.totalArticles}">0</div>
+                <div class="label">Total Articles</div>
+            </div>
+            <div class="stat-card green">
+                <div class="value" th:text="${ingestion.last7DaysCount}">0</div>
+                <div class="label">Last 7 Days</div>
+            </div>
+            <div class="stat-card amber">
+                <div class="value" th:text="${ingestion.last30DaysCount}">0</div>
+                <div class="label">Last 30 Days</div>
+            </div>
+        </div>
+
+        <div class="table-row">
+            <!-- By source tier -->
+            <div>
+                <table>
+                    <thead>
+                        <tr><th>Source Tier</th><th style="text-align:right">Articles</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(ingestion.bySourceTier)}">
+                            <td colspan="2" class="empty">No data yet</td>
+                        </tr>
+                        <tr th:each="entry : ${ingestion.bySourceTier}">
+                            <td th:text="${entry.label}">—</td>
+                            <td style="text-align:right" th:text="${entry.count}">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- By topic -->
+            <div>
+                <table>
+                    <thead>
+                        <tr><th>Topic / Feed</th><th style="text-align:right">Articles</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${#lists.isEmpty(ingestion.byTopic)}">
+                            <td colspan="2" class="empty">No data yet</td>
+                        </tr>
+                        <tr th:each="entry : ${ingestion.byTopic}">
+                            <td><a th:href="@{/dashboard/articles(topic=${entry.label})}"
+                                   th:text="${entry.label}">—</a></td>
+                            <td style="text-align:right" th:text="${entry.count}">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 2 — Newsletter Runs
+         ================================================================ -->
+    <section id="runs">
+        <div class="section-header">
+            <h2>Newsletter Runs</h2>
+            <a class="api-link" href="/api/v1/analytics/runs" target="_blank">JSON &rarr;</a>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="value" th:text="${runs.totalRuns}">0</div>
+                <div class="label">Total Runs</div>
+            </div>
+            <div class="stat-card amber">
+                <div class="value" th:text="${runs.draftCount}">0</div>
+                <div class="label">Draft</div>
+            </div>
+            <div class="stat-card green">
+                <div class="value" th:text="${runs.sentCount}">0</div>
+                <div class="label">Sent</div>
+            </div>
+            <div class="stat-card slate">
+                <div class="value" th:text="${runs.archivedCount}">0</div>
+                <div class="label">Archived</div>
+            </div>
+            <div class="stat-card slate" th:if="${mostRecentRunDisplay != null}">
+                <div class="value sm" th:text="${mostRecentRunDisplay}">—</div>
+                <div class="label">Most Recent Run</div>
+            </div>
+            <div class="stat-card slate" th:if="${mostRecentRunDisplay == null}">
+                <div class="value sm">—</div>
+                <div class="label">Most Recent Run</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 3 — Prompt Evaluations
+         ================================================================ -->
+    <section id="evaluations">
+        <div class="section-header">
+            <h2>Prompt Evaluations</h2>
+            <a class="api-link" href="/api/v1/analytics/evaluations" target="_blank">JSON &rarr;</a>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="value" th:text="${evaluations.totalEvaluations}">0</div>
+                <div class="label">Total Evaluations</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" th:text="${evaluations.totalComparisons}">0</div>
+                <div class="label">Comparisons</div>
+            </div>
+            <div class="stat-card green" th:if="${evaluations.bestVariantId != null}">
+                <div class="value sm" th:text="${evaluations.bestVariantId}">—</div>
+                <div class="label">Best Variant</div>
+            </div>
+            <div class="stat-card slate" th:if="${evaluations.bestVariantId == null}">
+                <div class="value sm">—</div>
+                <div class="label">Best Variant</div>
+            </div>
+        </div>
+
+        <p class="empty" th:if="${#lists.isEmpty(evaluations.variantScores)}">No evaluation data yet.</p>
+
+        <table th:unless="${#lists.isEmpty(evaluations.variantScores)}">
+            <thead>
+                <tr>
+                    <th>Variant</th>
+                    <th style="text-align:right">Evals</th>
+                    <th>Overall</th>
+                    <th>Relevance</th>
+                    <th>Conciseness</th>
+                    <th>Completeness</th>
+                    <th>Tone</th>
+                    <th>Attribution</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="vs : ${evaluations.variantScores}"
+                    th:classappend="${vs.variantId == evaluations.bestVariantId} ? 'highlight' : ''">
+                    <td>
+                        <span th:text="${vs.variantName}">—</span>
+                        <span th:if="${vs.variantId == evaluations.bestVariantId}"
+                              class="badge badge-best">Best</span>
+                    </td>
+                    <td style="text-align:right" th:text="${vs.evaluationCount}">0</td>
+                    <td>
+                        <div class="score-bar">
+                            <div class="bar-bg">
+                                <div class="bar-fill green"
+                                     th:style="'width:' + ${vs.avgOverall * 100} + '%'"></div>
+                            </div>
+                            <span th:text="${#numbers.formatDecimal(vs.avgOverall, 1, 2)}">0.00</span>
+                        </div>
+                    </td>
+                    <td th:text="${#numbers.formatDecimal(vs.avgRelevance, 1, 2)}">0.00</td>
+                    <td th:text="${#numbers.formatDecimal(vs.avgConciseness, 1, 2)}">0.00</td>
+                    <td th:text="${#numbers.formatDecimal(vs.avgCompleteness, 1, 2)}">0.00</td>
+                    <td th:text="${#numbers.formatDecimal(vs.avgToneMatch, 1, 2)}">0.00</td>
+                    <td th:text="${#numbers.formatDecimal(vs.avgAttributionQuality, 1, 2)}">0.00</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+</main>
+</body>
+</html>

@@ -26,6 +26,18 @@ public interface ArticleIngestionPort {
     List<NewsArticle> fetchArticles(String topic, int maxArticles);
 
     /**
+     * Fetch all articles for the given topic with no date restriction.
+     *
+     * <p>Used by the analytics dashboard detail view to show the complete
+     * article list that matches the analytics count, bypassing any
+     * {@code days-back} window applied by {@link #fetchArticles}.
+     *
+     * @param topic exact topic label to filter by (case-insensitive substring match)
+     * @return all matching articles; may be empty if no results are found
+     */
+    List<NewsArticle> fetchAllByTopic(String topic);
+
+    /**
      * Fetch specific articles by their unique identifiers.
      *
      * <p>Used by the prompt evaluation framework to load known articles for
