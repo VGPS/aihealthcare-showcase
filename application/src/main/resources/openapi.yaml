@@ -725,7 +725,7 @@ paths:
       description: >
         Returns a summary of every research pipeline execution that has been
         persisted.  Each entry records the original query, pipeline mode
-        (LEGACY_GOOGLE or STAGED_RESEARCH), citation count, and timestamp.
+        (LEGACY_GOOGLE, STAGED_RESEARCH, or COMBINED), citation count, and timestamp.
       operationId: listResearchRuns
       responses:
         '200':
@@ -765,11 +765,13 @@ paths:
     post:
       summary: Conduct a research query
       description: >
-        Executes the research pipeline (LEGACY_GOOGLE or STAGED_RESEARCH) for the given
-        query and returns a structured answer with thematic sections and numbered citations.
+        Executes the research pipeline for the given query and returns a structured answer
+        with thematic sections and numbered citations.
         LEGACY_GOOGLE uses stored articles from the ingestion database and requires no API keys.
         STAGED_RESEARCH activates AI planning, Perplexity retrieval (with legacy fallback),
         and AI synthesis.
+        COMBINED runs both retrievers, merges and deduplicates by URL, then AI-synthesizes
+        across the full source set for maximum breadth and historical depth.
       operationId: conductResearch
       requestBody:
         required: true
@@ -1385,11 +1387,13 @@ components:
           example: What are the latest AI breakthroughs in clinical diagnostics?
         mode:
           type: string
-          enum: [LEGACY_GOOGLE, STAGED_RESEARCH]
+          enum: [LEGACY_GOOGLE, STAGED_RESEARCH, COMBINED]
           default: LEGACY_GOOGLE
           description: >
             Pipeline mode. LEGACY_GOOGLE uses stored articles (no API keys required).
             STAGED_RESEARCH activates AI planning + Perplexity retrieval + AI synthesis.
+            COMBINED runs both retrievers, merges by URL dedup, then AI-synthesizes across
+            the full source set for maximum breadth and historical depth.
         topicHint:
           type: string
           nullable: true
@@ -1470,7 +1474,7 @@ components:
           description: The original research question.
         mode:
           type: string
-          description: Pipeline mode used — LEGACY_GOOGLE or STAGED_RESEARCH.
+          description: Pipeline mode used — LEGACY_GOOGLE, STAGED_RESEARCH, or COMBINED.
           example: STAGED_RESEARCH
         citationCount:
           type: integer

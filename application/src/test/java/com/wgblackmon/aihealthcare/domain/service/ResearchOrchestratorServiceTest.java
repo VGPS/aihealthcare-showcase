@@ -200,6 +200,94 @@ class ResearchOrchestratorServiceTest {
     }
 
     // -------------------------------------------------------------------------
+    // COMBINED mode
+    // -------------------------------------------------------------------------
+
+    @Test
+    void conduct_combinedMode_callsPlanningService() {
+        ResearchPlan plan = new ResearchPlan("plan-1", "AI health",
+                List.of("AI health sub-query"), "rationale", 10);
+        when(planningService.plan(anyString(), nullable(String.class))).thenReturn(plan);
+        when(perplexityAdapter.retrieve(any())).thenReturn(Collections.emptyList());
+        when(legacyAdapter.retrieve(any())).thenReturn(Collections.emptyList());
+        when(synthesisService.synthesize(anyString(), any(), any(), any()))
+                .thenReturn(emptyAnswer("AI health"));
+
+        orchestrator.conduct(new ResearchRequest("AI health", ResearchMode.COMBINED, null, 10));
+
+        verify(planningService).plan("AI health", null);
+    }
+
+    @Test
+    void conduct_combinedMode_callsBothAdapters() {
+        ResearchPlan plan = new ResearchPlan("plan-1", "AI surgery",
+                List.of("sub-query"), "rationale", 10);
+        when(planningService.plan(anyString(), nullable(String.class))).thenReturn(plan);
+        when(perplexityAdapter.retrieve(any())).thenReturn(Collections.emptyList());
+        when(legacyAdapter.retrieve(any())).thenReturn(Collections.emptyList());
+        when(synthesisService.synthesize(anyString(), any(), any(), any()))
+                .thenReturn(emptyAnswer("AI surgery"));
+
+        orchestrator.conduct(new ResearchRequest("AI surgery", ResearchMode.COMBINED, null, 10));
+
+        verify(perplexityAdapter, atLeastOnce()).retrieve(any());
+        verify(legacyAdapter, atLeastOnce()).retrieve(any());
+    }
+
+    @Test
+    void conduct_combinedMode_perplexitySourcesPersistedNotLegacy() {
+        ResearchPlan plan = new ResearchPlan("plan-1", "AI oncology",
+                List.of("AI oncology sub"), "rationale", 10);
+        when(planningService.plan(anyString(), nullable(String.class))).thenReturn(plan);
+        when(perplexityAdapter.retrieve(any())).thenReturn(List.of(
+                source("p1", "Perplexity Article", "https://perplexity.com/1")));
+        when(legacyAdapter.retrieve(any())).thenReturn(List.of(
+                source("g1", "Legacy Article", "https://legacy.com/1")));
+        when(synthesisService.synthesize(anyString(), any(), any(), any()))
+                .thenReturn(emptyAnswer("AI oncology"));
+
+        orchestrator.conduct(new ResearchRequest("AI oncology", ResearchMode.COMBINED, null, 10));
+
+        // Only Perplexity-sourced articles should be persisted (legacy already in DB)
+        verify(articleStoragePort, atLeastOnce()).save(anyList());
+        verify(researchExportPort, atLeastOnce()).export(anyString(), anyList());
+    }
+
+    @Test
+    void conduct_combinedMode_persistsResearchRun() {
+        ResearchPlan plan = new ResearchPlan("plan-1", "AI radiology",
+                List.of("sub"), "rationale", 5);
+        when(planningService.plan(anyString(), nullable(String.class))).thenReturn(plan);
+        when(perplexityAdapter.retrieve(any())).thenReturn(Collections.emptyList());
+        when(legacyAdapter.retrieve(any())).thenReturn(Collections.emptyList());
+        when(synthesisService.synthesize(anyString(), any(), any(), any()))
+                .thenReturn(emptyAnswer("AI radiology"));
+
+        orchestrator.conduct(new ResearchRequest("AI radiology", ResearchMode.COMBINED, null, 5));
+
+        verify(researchRunPort).save(any());
+    }
+
+    @Test
+    void conduct_combinedMode_emptyPerplexityStillRunsLegacyAndPersistsRun() {
+        ResearchPlan plan = new ResearchPlan("plan-1", "AI imaging",
+                List.of("sub"), "rationale", 10);
+        when(planningService.plan(anyString(), nullable(String.class))).thenReturn(plan);
+        when(perplexityAdapter.retrieve(any())).thenReturn(Collections.emptyList());
+        when(legacyAdapter.retrieve(any())).thenReturn(List.of(
+                source("g1", "Legacy Only", "https://legacy.com/1")));
+        when(synthesisService.synthesize(anyString(), any(), any(), any()))
+                .thenReturn(emptyAnswer("AI imaging"));
+
+        orchestrator.conduct(new ResearchRequest("AI imaging", ResearchMode.COMBINED, null, 10));
+
+        // Legacy still runs; no Perplexity articles to save
+        verify(legacyAdapter, atLeastOnce()).retrieve(any());
+        verify(articleStoragePort, never()).save(anyList());
+        verify(researchRunPort).save(any());
+    }
+
+    // -------------------------------------------------------------------------
     // Default mode fallback
     // -------------------------------------------------------------------------
 

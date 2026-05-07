@@ -8,8 +8,8 @@ package com.wgblackmon.aihealthcare.web.dto;
  * {@code 20} when not provided.
  *
  * @param query       The research question; required, must not be blank.
- * @param mode        Pipeline mode: {@code "LEGACY_GOOGLE"} or {@code "STAGED_RESEARCH"}.
- *                    Defaults to {@code "LEGACY_GOOGLE"} when omitted.
+ * @param mode        Pipeline mode: {@code "LEGACY_GOOGLE"}, {@code "STAGED_RESEARCH"},
+ *                    or {@code "COMBINED"}. Defaults to {@code "LEGACY_GOOGLE"} when omitted.
  * @param topicHint   Optional narrowing hint (e.g., {@code "clinical AI diagnostics"}).
  * @param maxSources  Maximum number of sources to retrieve; defaults to {@code 20}.
  *

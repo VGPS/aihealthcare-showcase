@@ -33,5 +33,15 @@ public enum ResearchMode {
      * Use the full staged pipeline: AI planning, Perplexity retrieval (with
      * legacy fallback), AI synthesis, and citation assembly.
      */
-    STAGED_RESEARCH
+    STAGED_RESEARCH,
+
+    /**
+     * Use both the ingestion DB (historical depth) and Perplexity Sonar (current
+     * AI-curated sources). Sources from both are merged, deduplicated by URL, then
+     * AI-synthesized into thematic sections with inline citations.
+     *
+     * <p>Requires the same API keys as {@code STAGED_RESEARCH}. Provides the broadest
+     * possible source coverage: real-time web content plus the full historical corpus.
+     */
+    COMBINED
 }

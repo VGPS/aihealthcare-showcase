@@ -117,10 +117,10 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
     /**
      * {@inheritDoc}
      *
-     * <p>Routes to the LEGACY_GOOGLE or STAGED_RESEARCH branch based on the effective mode,
-     * then persists a {@link ResearchRun} tracking record.  For STAGED_RESEARCH runs the
-     * retrieved sources are also saved as {@link NewsArticle} records and exported to the
-     * NotebookLM corpus.
+     * <p>Routes to the LEGACY_GOOGLE, STAGED_RESEARCH, or COMBINED branch based on the
+     * effective mode, then persists a {@link ResearchRun} tracking record.  For
+     * STAGED_RESEARCH and COMBINED runs the Perplexity-sourced articles are also saved
+     * as {@link NewsArticle} records and exported to the NotebookLM corpus.
      */
     @Override
     public ResearchAnswer conduct(ResearchRequest request) {
@@ -132,6 +132,8 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
         PipelineResult pipelineResult;
         if (effectiveMode == ResearchMode.STAGED_RESEARCH) {
             pipelineResult = conductStaged(request);
+        } else if (effectiveMode == ResearchMode.COMBINED) {
+            pipelineResult = conductCombined(request);
         } else {
             pipelineResult = conductLegacy(request);
         }
@@ -140,9 +142,11 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
         log.info("conduct() | answer assembled: answerId={}, sections={}, citations={}",
                  result.answerId(), result.sections().size(), result.allCitations().size());
 
-        // Persist new articles + export to corpus for STAGED_RESEARCH only.
+        // Persist new Perplexity articles + export for STAGED_RESEARCH and COMBINED.
         // LEGACY_GOOGLE sources are already in the DB; re-saving is unnecessary.
-        if (effectiveMode == ResearchMode.STAGED_RESEARCH && !pipelineResult.sources().isEmpty()) {
+        // In COMBINED mode pipelineResult.sources() holds only the Perplexity-sourced articles.
+        if ((effectiveMode == ResearchMode.STAGED_RESEARCH || effectiveMode == ResearchMode.COMBINED)
+                && !pipelineResult.sources().isEmpty()) {
             List<NewsArticle> articles = toNewsArticles(pipelineResult.sources(), request.query());
             log.info("conduct() | persisting {} Perplexity articles to DB", articles.size());
             articleStoragePort.save(articles);
@@ -240,6 +244,65 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
         log.debug("conductStaged() | return=ResearchAnswer[sections={}, citations={}]",
                   result.sections().size(), result.allCitations().size());
         return new PipelineResult(result, allSources);
+    }
+
+    /**
+     * COMBINED pipeline: plan → retrieve from both Perplexity and legacy DB → merge
+     * → deduplicate → AI-synthesize across the full combined source set.
+     *
+     * <p>Perplexity sub-queries are based on the AI-decomposed plan, giving them
+     * semantic relevance to the query.  The legacy retrieval runs against the full
+     * query string to provide historical depth.  Sources are merged with Perplexity
+     * first so that URL deduplication in {@link CitationAssembler} retains the
+     * higher-weight Perplexity entry when both backends return the same URL.
+     *
+     * <p>Only Perplexity-sourced articles are returned in the {@link PipelineResult}
+     * for persistence — legacy sources are already present in the {@code news_articles}
+     * table and do not need to be re-saved.
+     */
+    private PipelineResult conductCombined(ResearchRequest request) {
+        log.debug("conductCombined() | query={}", request.query());
+
+        // Step 1: plan (same decomposition as STAGED)
+        ResearchPlan plan = planningService.plan(request.query(), request.topicHint());
+        log.info("conductCombined() | plan produced: subQueryCount={}", plan.subQueries().size());
+
+        // Step 2: Perplexity retrieval for each sub-query
+        List<RetrievedSource> perplexitySources = new ArrayList<>();
+        for (String subQuery : plan.subQueries()) {
+            RetrievalQuery rq = new RetrievalQuery(
+                    subQuery, "PERPLEXITY",
+                    Math.max(1, request.maxSources() / plan.subQueries().size()));
+            List<RetrievedSource> batch = perplexityAdapter.retrieve(rq);
+            log.debug("conductCombined() | sub-query='{}' → {} Perplexity sources", subQuery, batch.size());
+            perplexitySources.addAll(batch);
+        }
+        log.info("conductCombined() | Perplexity retrieved {} total sources", perplexitySources.size());
+
+        // Step 3: legacy retrieval for historical depth
+        RetrievalQuery legacyQuery = new RetrievalQuery(
+                request.query(), "GOOGLE", request.maxSources());
+        List<RetrievedSource> legacySources = legacyAdapter.retrieve(legacyQuery);
+        log.info("conductCombined() | legacy retrieved {} sources", legacySources.size());
+
+        // Step 4: merge — Perplexity first (higher relevance weight)
+        List<RetrievedSource> allSources = new ArrayList<>();
+        allSources.addAll(perplexitySources);
+        allSources.addAll(legacySources);
+        log.info("conductCombined() | merged {} total sources before dedup", allSources.size());
+
+        // Step 5: assemble citations — CitationAssembler deduplicates by URL
+        List<SourceCitation> citations = citationAssembler.assemble(allSources);
+        log.info("conductCombined() | {} citations after dedup", citations.size());
+
+        // Step 6: synthesize across the full combined source set
+        ResearchAnswer result = synthesisService.synthesize(
+                request.query(), plan, allSources, citations);
+
+        log.debug("conductCombined() | return=ResearchAnswer[sections={}, citations={}]",
+                  result.sections().size(), result.allCitations().size());
+        // Return only Perplexity sources — legacy sources are already in the DB
+        return new PipelineResult(result, perplexitySources);
     }
 
     // -------------------------------------------------------------------------
