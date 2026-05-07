@@ -87,7 +87,7 @@ aihealthcare:
   # Set to 0 for no date restriction.  Change freely for experimentation.
   # ---------------------------------------------------------------------------
   articles:
-    days-back: 30
+    days-back: 3
 
   # ---------------------------------------------------------------------------
   # Research pipeline — controls which pipeline branch POST /api/v1/research uses.
@@ -98,6 +98,26 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   research:
     mode: COMBINED
+    harvest:
+      # -----------------------------------------------------------------------
+      # Cron schedule for proactive topic research (default: 06:00 UTC daily).
+      # Standard Spring cron format: second minute hour day month weekday
+      # -----------------------------------------------------------------------
+      cron: "0 0 6 * * *"
+      # Maximum Perplexity + DB sources retrieved per topic per run.
+      max-sources-per-topic: 20
+      # -----------------------------------------------------------------------
+      # Topics harvested automatically on every scheduled run.
+      # Add, remove, or reorder entries here — no code changes required.
+      # -----------------------------------------------------------------------
+      topics:
+        - "AI Healthcare Software Development"
+        - "Healthcare Outsourcing"
+        - "AI Government Policy"
+        - "OpenAI Healthcare"
+        - "Anthropic Healthcare"
+        - "Perplexity Healthcare"
+        - "Google Healthcare"
 
   feeds:
     sources:
