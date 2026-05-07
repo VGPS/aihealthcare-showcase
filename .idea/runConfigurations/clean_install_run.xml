@@ -13,7 +13,7 @@
             <map />
           </option>
           <option name="passParentEnv" value="true" />
-          <option name="skipTests" value="false" />
+          <option name="skipTests" value="true" />
           <option name="vmOptions" value="" />
         </MavenRunnerSettings>
       </option>
@@ -28,6 +28,8 @@
               <option value="clean:clean" />
               <option value="install" />
               <option value="site:run" />
+              <option value="-e" />
+              <option value="-X" />
             </list>
           </option>
           <option name="multimoduleDir" />
