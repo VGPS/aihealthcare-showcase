@@ -716,6 +716,51 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  # ---------------------------------------------------------------------------
+  # Research run history
+  # ---------------------------------------------------------------------------
+  /api/v1/research/runs:
+    get:
+      summary: List all persisted research runs
+      description: >
+        Returns a summary of every research pipeline execution that has been
+        persisted.  Each entry records the original query, pipeline mode
+        (LEGACY_GOOGLE or STAGED_RESEARCH), citation count, and timestamp.
+      operationId: listResearchRuns
+      responses:
+        '200':
+          description: List of research run summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResearchRunResponse'
+
+  /api/v1/research/runs/{runId}:
+    get:
+      summary: Get a specific research run by ID
+      operationId: getResearchRun
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Research run found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchRunResponse'
+        '404':
+          description: Run not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /api/v1/research:
     post:
       summary: Conduct a research query
@@ -1413,6 +1458,27 @@ components:
           format: date-time
           nullable: true
           description: When the source was retrieved.
+
+    ResearchRunResponse:
+      type: object
+      properties:
+        runId:
+          type: string
+          description: UUID of the research run (same as ResearchAnswer.answerId).
+        query:
+          type: string
+          description: The original research question.
+        mode:
+          type: string
+          description: Pipeline mode used — LEGACY_GOOGLE or STAGED_RESEARCH.
+          example: STAGED_RESEARCH
+        citationCount:
+          type: integer
+          description: Number of source citations assembled during this run.
+        researchedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the research was conducted.
 
     ErrorResponse:
       type: object

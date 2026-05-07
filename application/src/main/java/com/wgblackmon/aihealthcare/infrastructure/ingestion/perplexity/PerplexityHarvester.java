@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.SearchPromptConfig;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SearchPromptPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -74,6 +75,7 @@ public class PerplexityHarvester {
      * @param searchPromptPort Port used to retrieve the active PERPLEXITY prompt.
      * @param apiKey           Perplexity API key; blank when env var is not set.
      */
+    @Autowired
     public PerplexityHarvester(
             SearchPromptPort searchPromptPort,
             @Value("${aihealthcare.perplexity.api-key:}") String apiKey) {

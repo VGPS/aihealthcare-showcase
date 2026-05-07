@@ -25,8 +25,11 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.EvaluationResultPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PromptVariantPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchExportPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SearchPromptPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.research.LegacyGoogleResearchAdapter;
@@ -262,6 +265,9 @@ public class AppConfig {
      * @param promptLoaderService     Template loader (auto-detected).
      * @param legacyGoogleAdapter     Legacy ingestion-backed retrieval adapter.
      * @param perplexityAdapter       Perplexity-backed retrieval adapter.
+     * @param articleStoragePort      Port for persisting Perplexity-sourced articles.
+     * @param researchRunPort         Port for persisting research run audit records.
+     * @param researchExportPort      Port for exporting articles to the NotebookLM corpus.
      * @return The wired {@link ResearchOrchestratorService} instance.
      */
     @Bean
@@ -270,7 +276,10 @@ public class AppConfig {
             AiReportPort aiReportPort,
             PromptLoaderService promptLoaderService,
             LegacyGoogleResearchAdapter legacyGoogleAdapter,
-            PerplexityResearchAdapter perplexityAdapter) {
+            PerplexityResearchAdapter perplexityAdapter,
+            ArticleStoragePort articleStoragePort,
+            ResearchRunPort researchRunPort,
+            ResearchExportPort researchExportPort) {
 
         log.debug("researchOrchestratorService() | researchMode={}", researchModeStr);
 
@@ -292,7 +301,8 @@ public class AppConfig {
 
         ResearchOrchestratorService result = new ResearchOrchestratorService(
                 defaultMode, legacyGoogleAdapter, perplexityAdapter,
-                planningService, synthesisService, citationAssembler);
+                planningService, synthesisService, citationAssembler,
+                articleStoragePort, researchRunPort, researchExportPort);
 
         log.debug("researchOrchestratorService() | return={}", result.getClass().getSimpleName());
         return result;

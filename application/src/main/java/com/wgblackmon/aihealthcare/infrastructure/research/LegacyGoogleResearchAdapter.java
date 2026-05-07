@@ -36,7 +36,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-04
- * @updated 2026-05-04
+ * @updated 2026-05-06
  */
 @Slf4j
 @Component
@@ -69,6 +69,15 @@ public class LegacyGoogleResearchAdapter implements SourceRetrievalPort {
         List<NewsArticle> articles = articleIngestionPort.fetchAllByTopic(query.text());
         log.info("retrieve() | fetchAllByTopic('{}') returned {} articles",
                  query.text(), articles.size());
+
+        // Articles are stored under feed-name topics (e.g. "Google News AI Healthcare"),
+        // not the user's free-text query.  Fall back to all DB articles so the Legacy
+        // panel always shows the available corpus.
+        if (articles.isEmpty()) {
+            log.info("retrieve() | no topic match — fetching all DB articles as fallback");
+            articles = articleIngestionPort.fetchAllByTopic("");
+            log.info("retrieve() | fallback returned {} articles", articles.size());
+        }
 
         List<RetrievedSource> result = new ArrayList<>();
         int limit = query.maxResults();

@@ -1,17 +1,23 @@
 package com.wgblackmon.aihealthcare.domain.service;
 
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.ResearchAnswer;
 import com.wgblackmon.aihealthcare.domain.model.ResearchMode;
 import com.wgblackmon.aihealthcare.domain.model.ResearchPlan;
 import com.wgblackmon.aihealthcare.domain.model.ResearchRequest;
+import com.wgblackmon.aihealthcare.domain.model.ResearchRun;
 import com.wgblackmon.aihealthcare.domain.model.ResearchSection;
 import com.wgblackmon.aihealthcare.domain.model.RetrievalQuery;
 import com.wgblackmon.aihealthcare.domain.model.RetrievedSource;
 import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchExportPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SourceRetrievalPort;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +36,7 @@ import java.util.UUID;
  *   <li>Build a single {@link RetrievalQuery} from the request.</li>
  *   <li>Call {@code legacyAdapter.retrieve()} to fetch stored articles.</li>
  *   <li>Assemble citations and wrap in a single-section {@link ResearchAnswer}.</li>
+ *   <li>Persist a {@link ResearchRun} tracking record.</li>
  * </ol>
  *
  * <p><b>STAGED_RESEARCH path</b> (requires AI + optional Perplexity API key):
@@ -38,6 +45,9 @@ import java.util.UUID;
  *   <li>Each sub-query is dispatched to {@code perplexityAdapter.retrieve()}.</li>
  *   <li>All sources are pooled and assembled into citations by {@link CitationAssembler}.</li>
  *   <li>{@link ResearchSynthesisService#synthesize} calls the AI to produce structured sections.</li>
+ *   <li>New source articles are persisted via {@link ArticleStoragePort} (dedup by URL).</li>
+ *   <li>Articles are exported to the NotebookLM corpus via {@link ResearchExportPort}.</li>
+ *   <li>A {@link ResearchRun} tracking record is persisted via {@link ResearchRunPort}.</li>
  * </ol>
  *
  * <p>The effective mode is: {@code request.mode()} if non-null, else {@code defaultMode}.
@@ -46,22 +56,25 @@ import java.util.UUID;
  * in {@link com.wgblackmon.aihealthcare.infrastructure.config.AppConfig}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-05-04
- * @updated 2026-05-04
+ * @updated 2026-05-06
  */
 @Slf4j
 public class ResearchOrchestratorService implements ConductResearchUseCase {
 
-    private final ResearchMode            defaultMode;
-    private final SourceRetrievalPort     legacyAdapter;
-    private final SourceRetrievalPort     perplexityAdapter;
-    private final ResearchPlanningService planningService;
+    private final ResearchMode             defaultMode;
+    private final SourceRetrievalPort      legacyAdapter;
+    private final SourceRetrievalPort      perplexityAdapter;
+    private final ResearchPlanningService  planningService;
     private final ResearchSynthesisService synthesisService;
-    private final CitationAssembler       citationAssembler;
+    private final CitationAssembler        citationAssembler;
+    private final ArticleStoragePort       articleStoragePort;
+    private final ResearchRunPort          researchRunPort;
+    private final ResearchExportPort       researchExportPort;
 
     /**
-     * Constructs the orchestrator with all pipeline dependencies.
+     * Constructs the orchestrator with all pipeline and persistence dependencies.
      *
      * @param defaultMode        Configured default when the request carries a {@code null} mode.
      * @param legacyAdapter      {@link SourceRetrievalPort} backed by stored article ingestion.
@@ -69,13 +82,19 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
      * @param planningService    AI-based query decomposition service.
      * @param synthesisService   AI-based source synthesis service.
      * @param citationAssembler  Pure-Java citation deduplication and numbering service.
+     * @param articleStoragePort Port for persisting new Perplexity-sourced articles.
+     * @param researchRunPort    Port for persisting the research run audit record.
+     * @param researchExportPort Port for exporting articles to the NotebookLM corpus.
      */
     public ResearchOrchestratorService(ResearchMode defaultMode,
                                        SourceRetrievalPort legacyAdapter,
                                        SourceRetrievalPort perplexityAdapter,
                                        ResearchPlanningService planningService,
                                        ResearchSynthesisService synthesisService,
-                                       CitationAssembler citationAssembler) {
+                                       CitationAssembler citationAssembler,
+                                       ArticleStoragePort articleStoragePort,
+                                       ResearchRunPort researchRunPort,
+                                       ResearchExportPort researchExportPort) {
         log.debug("ResearchOrchestratorService() | defaultMode={}, legacyAdapter={}, "
                   + "perplexityAdapter={}, planningService={}, synthesisService={}",
                   defaultMode,
@@ -83,19 +102,25 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
                   perplexityAdapter.getClass().getSimpleName(),
                   planningService.getClass().getSimpleName(),
                   synthesisService.getClass().getSimpleName());
-        this.defaultMode       = defaultMode;
-        this.legacyAdapter     = legacyAdapter;
-        this.perplexityAdapter = perplexityAdapter;
-        this.planningService   = planningService;
-        this.synthesisService  = synthesisService;
-        this.citationAssembler = citationAssembler;
+        this.defaultMode        = defaultMode;
+        this.legacyAdapter      = legacyAdapter;
+        this.perplexityAdapter  = perplexityAdapter;
+        this.planningService    = planningService;
+        this.synthesisService   = synthesisService;
+        this.citationAssembler  = citationAssembler;
+        this.articleStoragePort = articleStoragePort;
+        this.researchRunPort    = researchRunPort;
+        this.researchExportPort = researchExportPort;
         log.debug("ResearchOrchestratorService() | return=void");
     }
 
     /**
      * {@inheritDoc}
      *
-     * <p>Routes to the LEGACY_GOOGLE or STAGED_RESEARCH branch based on the effective mode.
+     * <p>Routes to the LEGACY_GOOGLE or STAGED_RESEARCH branch based on the effective mode,
+     * then persists a {@link ResearchRun} tracking record.  For STAGED_RESEARCH runs the
+     * retrieved sources are also saved as {@link NewsArticle} records and exported to the
+     * NotebookLM corpus.
      */
     @Override
     public ResearchAnswer conduct(ResearchRequest request) {
@@ -104,15 +129,37 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
         ResearchMode effectiveMode = request.mode() != null ? request.mode() : defaultMode;
         log.info("conduct() | effectiveMode={}, query='{}'", effectiveMode, request.query());
 
-        ResearchAnswer result;
+        PipelineResult pipelineResult;
         if (effectiveMode == ResearchMode.STAGED_RESEARCH) {
-            result = conductStaged(request);
+            pipelineResult = conductStaged(request);
         } else {
-            result = conductLegacy(request);
+            pipelineResult = conductLegacy(request);
         }
 
+        ResearchAnswer result = pipelineResult.answer();
         log.info("conduct() | answer assembled: answerId={}, sections={}, citations={}",
                  result.answerId(), result.sections().size(), result.allCitations().size());
+
+        // Persist new articles + export to corpus for STAGED_RESEARCH only.
+        // LEGACY_GOOGLE sources are already in the DB; re-saving is unnecessary.
+        if (effectiveMode == ResearchMode.STAGED_RESEARCH && !pipelineResult.sources().isEmpty()) {
+            List<NewsArticle> articles = toNewsArticles(pipelineResult.sources(), request.query());
+            log.info("conduct() | persisting {} Perplexity articles to DB", articles.size());
+            articleStoragePort.save(articles);
+            log.info("conduct() | exporting {} articles to NotebookLM corpus", articles.size());
+            researchExportPort.export("Research: " + request.query(), articles);
+        }
+
+        // Always save a ResearchRun tracking record regardless of mode.
+        ResearchRun run = new ResearchRun(
+                result.answerId(),
+                request.query(),
+                effectiveMode.name(),
+                result.allCitations().size(),
+                result.generatedAt());
+        researchRunPort.save(run);
+        log.info("conduct() | ResearchRun persisted: runId={}", run.runId());
+
         log.debug("conduct() | return={}", result.answerId());
         return result;
     }
@@ -125,7 +172,7 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
      * LEGACY_GOOGLE pipeline: fetch stored articles, assemble into a single-section answer.
      * No AI planning or synthesis is performed.
      */
-    private ResearchAnswer conductLegacy(ResearchRequest request) {
+    private PipelineResult conductLegacy(ResearchRequest request) {
         log.debug("conductLegacy() | query={}", request.query());
 
         String topic = request.topicHint() != null && !request.topicHint().isBlank()
@@ -150,13 +197,13 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
 
         log.debug("conductLegacy() | return=ResearchAnswer[sections=1, citations={}]",
                   citations.size());
-        return result;
+        return new PipelineResult(result, sources);
     }
 
     /**
      * STAGED_RESEARCH pipeline: plan → retrieve → synthesize → cite.
      */
-    private ResearchAnswer conductStaged(ResearchRequest request) {
+    private PipelineResult conductStaged(ResearchRequest request) {
         log.debug("conductStaged() | query={}", request.query());
 
         // Step 1: plan
@@ -192,8 +239,15 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
 
         log.debug("conductStaged() | return=ResearchAnswer[sections={}, citations={}]",
                   result.sections().size(), result.allCitations().size());
-        return result;
+        return new PipelineResult(result, allSources);
     }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    /** Bundles a pipeline answer with the raw sources so conduct() can persist them. */
+    private record PipelineResult(ResearchAnswer answer, List<RetrievedSource> sources) {}
 
     /** Build a plain-text section body listing titles and URLs for the legacy path. */
     private String buildLegacySectionBody(List<RetrievedSource> sources,
@@ -219,6 +273,58 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
 
         String result = sb.toString().trim();
         log.debug("buildLegacySectionBody() | return={} chars", result.length());
+        return result;
+    }
+
+    /**
+     * Maps {@link RetrievedSource} records from the research pipeline to
+     * {@link NewsArticle} records suitable for persistence and vector embedding.
+     *
+     * <p>Mapping rules:
+     * <ul>
+     *   <li>{@code sourceId}   → {@code articleId}</li>
+     *   <li>{@code title}      → {@code title}</li>
+     *   <li>{@code url}        → {@code URI} (empty URI on parse error)</li>
+     *   <li>{@code snippet}    → {@code bodyText}</li>
+     *   <li>{@code engine}     → {@code sourceTier} + {@code sourceName}</li>
+     *   <li>{@code retrievedAt}→ {@code publishedAt}</li>
+     *   <li>topic              → the original research {@code query}</li>
+     *   <li>sourceWeight       → 0.85 for PERPLEXITY, 0.6 for GOOGLE</li>
+     * </ul>
+     */
+    private List<NewsArticle> toNewsArticles(List<RetrievedSource> sources, String query) {
+        log.debug("toNewsArticles() | sources={}, query={}", sources.size(), query);
+
+        List<NewsArticle> result = new ArrayList<>();
+        for (RetrievedSource source : sources) {
+            URI uri;
+            try {
+                uri = (source.url() != null && !source.url().isBlank())
+                        ? URI.create(source.url())
+                        : URI.create("");
+            } catch (IllegalArgumentException ex) {
+                log.warn("toNewsArticles() | invalid URI for sourceId={}: {} — using empty URI",
+                         source.sourceId(), source.url());
+                uri = URI.create("");
+            }
+
+            double weight = "PERPLEXITY".equalsIgnoreCase(source.engine()) ? 0.85 : 0.6;
+
+            result.add(new NewsArticle(
+                    source.sourceId(),
+                    source.title(),
+                    uri,
+                    source.snippet(),
+                    query,
+                    null,
+                    1L,
+                    source.engine(),
+                    source.engine().toUpperCase(),
+                    weight,
+                    source.retrievedAt()));
+        }
+
+        log.debug("toNewsArticles() | return={} articles", result.size());
         return result;
     }
 }

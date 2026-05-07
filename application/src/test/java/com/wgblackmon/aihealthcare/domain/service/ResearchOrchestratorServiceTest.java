@@ -7,6 +7,9 @@ import com.wgblackmon.aihealthcare.domain.model.ResearchRequest;
 import com.wgblackmon.aihealthcare.domain.model.RetrievalQuery;
 import com.wgblackmon.aihealthcare.domain.model.RetrievedSource;
 import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchExportPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SourceRetrievalPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,8 +23,10 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,12 +34,12 @@ import static org.mockito.Mockito.when;
 /**
  * Unit tests for {@link ResearchOrchestratorService}.
  *
- * <p>All AI and retrieval ports are mocked — no real calls.
+ * <p>All AI, retrieval, and persistence ports are mocked — no real calls.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-05-04
- * @updated 2026-05-04
+ * @updated 2026-05-06
  */
 @ExtendWith(MockitoExtension.class)
 class ResearchOrchestratorServiceTest {
@@ -43,6 +48,9 @@ class ResearchOrchestratorServiceTest {
     @Mock private SourceRetrievalPort     perplexityAdapter;
     @Mock private ResearchPlanningService planningService;
     @Mock private ResearchSynthesisService synthesisService;
+    @Mock private ArticleStoragePort      articleStoragePort;
+    @Mock private ResearchRunPort         researchRunPort;
+    @Mock private ResearchExportPort      researchExportPort;
 
     private CitationAssembler           citationAssembler;
     private ResearchOrchestratorService orchestrator;
@@ -56,7 +64,10 @@ class ResearchOrchestratorServiceTest {
                 perplexityAdapter,
                 planningService,
                 synthesisService,
-                citationAssembler);
+                citationAssembler,
+                articleStoragePort,
+                researchRunPort,
+                researchExportPort);
     }
 
     // -------------------------------------------------------------------------
@@ -112,6 +123,27 @@ class ResearchOrchestratorServiceTest {
         assertThat(answer.allCitations().get(1).citationNumber()).isEqualTo(2);
     }
 
+    @Test
+    void conduct_legacyMode_doesNotPersistArticlesOrExport() {
+        when(legacyAdapter.retrieve(any())).thenReturn(List.of(
+                source("id-1", "Article", "https://example.com/1")));
+
+        orchestrator.conduct(new ResearchRequest("AI", ResearchMode.LEGACY_GOOGLE, null, 10));
+
+        // LEGACY_GOOGLE sources are already in the DB — no re-save or export
+        verify(articleStoragePort, never()).save(anyList());
+        verify(researchExportPort, never()).export(anyString(), anyList());
+    }
+
+    @Test
+    void conduct_legacyMode_alwaysPersistsResearchRun() {
+        when(legacyAdapter.retrieve(any())).thenReturn(Collections.emptyList());
+
+        orchestrator.conduct(new ResearchRequest("AI", ResearchMode.LEGACY_GOOGLE, null, 10));
+
+        verify(researchRunPort).save(any());
+    }
+
     // -------------------------------------------------------------------------
     // STAGED_RESEARCH routing
     // -------------------------------------------------------------------------
@@ -148,6 +180,23 @@ class ResearchOrchestratorServiceTest {
         orchestrator.conduct(request);
 
         verify(legacyAdapter).retrieve(any(RetrievalQuery.class));
+    }
+
+    @Test
+    void conduct_stagedMode_withSources_persistsArticlesAndExports() {
+        ResearchPlan plan = new ResearchPlan("plan-1", "AI health",
+                List.of("AI health query"), "rationale", 10);
+        when(planningService.plan(anyString(), nullable(String.class))).thenReturn(plan);
+        when(perplexityAdapter.retrieve(any())).thenReturn(List.of(
+                source("p1", "Perplexity Article", "https://perplexity.com/1")));
+        when(synthesisService.synthesize(anyString(), any(), any(), any()))
+                .thenReturn(emptyAnswer("AI health"));
+
+        orchestrator.conduct(new ResearchRequest("AI health", ResearchMode.STAGED_RESEARCH, null, 10));
+
+        verify(articleStoragePort, atLeastOnce()).save(anyList());
+        verify(researchExportPort, atLeastOnce()).export(anyString(), anyList());
+        verify(researchRunPort).save(any());
     }
 
     // -------------------------------------------------------------------------
