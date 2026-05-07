@@ -3,7 +3,13 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.ResearchAnswer;
 import com.wgblackmon.aihealthcare.domain.model.ResearchMode;
 import com.wgblackmon.aihealthcare.domain.model.ResearchRequest;
+import com.wgblackmon.aihealthcare.domain.model.ResearchSection;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
+
+import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -95,19 +101,36 @@ public class ResearchCompareController {
 
         // ── Left panel: LEGACY_GOOGLE (DB articles, no AI) ────────────────
         log.info("compare() | running LEGACY_GOOGLE pipeline for query='{}'", trimmed);
-        ResearchAnswer legacyAnswer = conductResearchUseCase.conduct(
-                new ResearchRequest(trimmed, ResearchMode.LEGACY_GOOGLE, null, cappedMax));
-        log.info("compare() | LEGACY_GOOGLE complete: citations={}", legacyAnswer.allCitations().size());
+        ResearchAnswer legacyAnswer;
+        try {
+            legacyAnswer = conductResearchUseCase.conduct(
+                    new ResearchRequest(trimmed, ResearchMode.LEGACY_GOOGLE, null, cappedMax));
+            log.info("compare() | LEGACY_GOOGLE complete: citations={}", legacyAnswer.allCitations().size());
+        } catch (Exception ex) {
+            log.error("compare() | LEGACY_GOOGLE pipeline failed: {}", ex.getMessage());
+            legacyAnswer = buildErrorAnswer(trimmed, "Legacy Google pipeline error: " + ex.getMessage());
+        }
 
         // ── Right panel: STAGED_RESEARCH (AI plan + retrieve + synthesize) ─
         log.info("compare() | running STAGED_RESEARCH pipeline for query='{}'", trimmed);
-        ResearchAnswer stagedAnswer = conductResearchUseCase.conduct(
-                new ResearchRequest(trimmed, ResearchMode.STAGED_RESEARCH, null, cappedMax));
-        log.info("compare() | STAGED_RESEARCH complete: sections={}, citations={}",
-                 stagedAnswer.sections().size(), stagedAnswer.allCitations().size());
+        ResearchAnswer stagedAnswer;
+        String stagedError = null;
+        try {
+            stagedAnswer = conductResearchUseCase.conduct(
+                    new ResearchRequest(trimmed, ResearchMode.STAGED_RESEARCH, null, cappedMax));
+            log.info("compare() | STAGED_RESEARCH complete: sections={}, citations={}",
+                     stagedAnswer.sections().size(), stagedAnswer.allCitations().size());
+        } catch (Exception ex) {
+            log.error("compare() | STAGED_RESEARCH pipeline failed: {}", ex.getMessage());
+            stagedError = ex.getMessage();
+            stagedAnswer = buildErrorAnswer(trimmed,
+                    "Staged Research pipeline error — check that ANTHROPIC_API_KEY is set. Detail: "
+                    + ex.getMessage());
+        }
 
-        model.addAttribute("legacyAnswer", legacyAnswer);
-        model.addAttribute("stagedAnswer", stagedAnswer);
+        model.addAttribute("legacyAnswer",  legacyAnswer);
+        model.addAttribute("stagedAnswer",  stagedAnswer);
+        model.addAttribute("stagedError",   stagedError);
         model.addAttribute("hasPerplexity", detectPerplexityActive(stagedAnswer));
 
         log.debug("compare() | return=research-compare");
@@ -117,6 +140,17 @@ public class ResearchCompareController {
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
+
+    /** Build a minimal error answer so the template always has a non-null model attribute. */
+    private ResearchAnswer buildErrorAnswer(String query, String message) {
+        log.debug("buildErrorAnswer() | query={}", query);
+        ResearchSection section = new ResearchSection("Pipeline Error", message, Collections.emptyList());
+        ResearchAnswer result = new ResearchAnswer(
+                UUID.randomUUID().toString(), query, List.of(section),
+                Collections.emptyList(), Instant.now());
+        log.debug("buildErrorAnswer() | return=ResearchAnswer[error]");
+        return result;
+    }
 
     /**
      * Heuristic: if the staged answer has citations whose engine was PERPLEXITY,

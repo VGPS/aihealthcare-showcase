@@ -14,6 +14,9 @@ spring:
   ai:
     anthropic:
       api-key: ${ANTHROPIC_API_KEY:placeholder-set-ANTHROPIC_API_KEY}
+      chat:
+        options:
+          model: claude-sonnet-4-6
     openai:
       api-key: ${OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
     vectorstore:
@@ -84,7 +87,7 @@ aihealthcare:
   # Set to 0 for no date restriction.  Change freely for experimentation.
   # ---------------------------------------------------------------------------
   articles:
-    days-back: 3
+    days-back: 30
 
   # ---------------------------------------------------------------------------
   # Research pipeline — controls which pipeline branch POST /api/v1/research uses.
@@ -93,7 +96,7 @@ aihealthcare:
   # Switch to STAGED_RESEARCH once PERPLEXITY_API_KEY is configured.
   # ---------------------------------------------------------------------------
   research:
-    mode: LEGACY_GOOGLE
+    mode: STAGED_RESEARCH
 
   feeds:
     sources:

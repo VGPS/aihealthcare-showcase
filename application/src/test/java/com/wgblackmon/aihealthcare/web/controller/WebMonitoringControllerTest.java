@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
@@ -47,6 +48,9 @@ class WebMonitoringControllerTest {
 
     @MockBean
     private PageContentHashRepository hashRepository;
+
+    @MockBean
+    private ArticleHarvestingPort articleHarvestingPort;
 
     @Test
     void triggerCompetitorHarvest_withChanges_returns200() throws Exception {
@@ -120,5 +124,31 @@ class WebMonitoringControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void triggerFeedHarvest_withArticles_returns200() throws Exception {
+        NewsArticle article = new NewsArticle(
+                "feed-id-1", "RSS Article", URI.create("https://pubmed.ncbi.nlm.nih.gov/123"),
+                "body text", "AI Healthcare", null, 1L, "PubMed AI Healthcare", "ACADEMIC", 0.9, Instant.now());
+        when(articleHarvestingPort.harvestAll()).thenReturn(List.of(article));
+
+        mockMvc.perform(post("/api/v1/monitoring/feeds"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pagesChecked").value(1))
+                .andExpect(jsonPath("$.changesDetected").value(1));
+
+        verify(articleStoragePort).save(List.of(article));
+    }
+
+    @Test
+    void triggerFeedHarvest_noArticles_returns200() throws Exception {
+        when(articleHarvestingPort.harvestAll()).thenReturn(List.of());
+
+        mockMvc.perform(post("/api/v1/monitoring/feeds"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.changesDetected").value(0));
+
+        verify(articleStoragePort, never()).save(anyList());
     }
 }

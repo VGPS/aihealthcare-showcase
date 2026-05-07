@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
@@ -40,11 +41,13 @@ public class WebMonitoringController {
     private final HuggingFaceHarvester huggingFaceHarvester;
     private final ArticleStoragePort articleStoragePort;
     private final PageContentHashRepository hashRepository;
+    private final ArticleHarvestingPort articleHarvestingPort;
 
     public WebMonitoringController(WebPageHarvester webPageHarvester,
                                    HuggingFaceHarvester huggingFaceHarvester,
                                    ArticleStoragePort articleStoragePort,
-                                   PageContentHashRepository hashRepository) {
+                                   PageContentHashRepository hashRepository,
+                                   ArticleHarvestingPort articleHarvestingPort) {
         log.debug("WebMonitoringController() | webPageHarvester={}, huggingFaceHarvester={}, " +
                   "articleStoragePort={}, hashRepository={}",
                   webPageHarvester.getClass().getSimpleName(),
@@ -55,6 +58,7 @@ public class WebMonitoringController {
         this.huggingFaceHarvester = huggingFaceHarvester;
         this.articleStoragePort = articleStoragePort;
         this.hashRepository = hashRepository;
+        this.articleHarvestingPort = articleHarvestingPort;
     }
 
     /**
@@ -99,6 +103,26 @@ public class WebMonitoringController {
 
         log.info("triggerHuggingFaceHarvest() | {} models discovered", models.size());
         log.debug("triggerHuggingFaceHarvest() | return={}", response);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Manually triggers a full RSS feed harvest across all tiers and persists results.
+     *
+     * @return harvest result with total article count saved
+     */
+    @PostMapping("/feeds")
+    public ResponseEntity<HarvestResultResponse> triggerFeedHarvest() {
+        log.debug("triggerFeedHarvest() | (no args)");
+
+        List<NewsArticle> all = articleHarvestingPort.harvestAll();
+        if (!all.isEmpty()) {
+            articleStoragePort.save(all);
+        }
+
+        HarvestResultResponse response = new HarvestResultResponse(all.size(), all.size());
+        log.info("triggerFeedHarvest() | harvested and saved {} articles", all.size());
+        log.debug("triggerFeedHarvest() | return={}", response);
         return ResponseEntity.ok(response);
     }
 

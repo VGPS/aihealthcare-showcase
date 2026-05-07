@@ -5,119 +5,287 @@ import com.wgblackmon.aihealthcare.domain.model.SearchPromptConfig;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SearchPromptPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 
+import java.net.URI;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
- * Infrastructure stub for harvesting AI-in-Healthcare articles via the
- * Perplexity Sonar API.
+ * Infrastructure adapter that harvests AI-in-Healthcare articles via the
+ * Perplexity Sonar API ({@code POST https://api.perplexity.ai/chat/completions}).
  *
- * <p>At startup the adapter checks for a configured {@code PERPLEXITY_API_KEY}
- * environment variable.  When the key is absent the stub logs a warning and
- * returns an empty list from {@link #harvestArticles} — the rest of the pipeline
- * continues unaffected.  This allows the full Slice 6 wiring to be merged and
- * tested before an API key is obtained.
+ * <p>When {@code PERPLEXITY_API_KEY} is set as an environment variable (resolved
+ * via {@code aihealthcare.perplexity.api-key} in {@code application.yml}), this
+ * adapter makes a live HTTP call to the Sonar {@code sonar} model with the active
+ * PERPLEXITY search prompt.  The response {@code citations[]} array (URLs cited by
+ * the model) is mapped to {@link NewsArticle} records with
+ * {@code sourceTier="PERPLEXITY"} and {@code sourceWeight=0.85}.
  *
- * <p>When a key is present the stub logs the prompt that <em>would</em> be sent
- * and returns an empty list.  Full Perplexity API integration (HTTP call,
- * response parsing, {@link NewsArticle} construction) is deferred to the slice
- * that follows key acquisition.
+ * <p>When the API key is absent or blank the adapter returns an empty list and
+ * logs an info message — no exception is thrown.  The calling pipeline (e.g.
+ * {@link com.wgblackmon.aihealthcare.infrastructure.research.PerplexityResearchAdapter})
+ * handles empty results gracefully.
+ *
+ * <p>All API call failures are caught and logged; the method returns an empty list
+ * so the research pipeline can always fall back to Google DB articles.
  *
  * <p>The harvest prompt is resolved at call time via {@link SearchPromptPort}
- * using the {@code "PERPLEXITY"} engine key.  If no active prompt is found the
- * method returns an empty list and logs a warning.
+ * using the {@code "PERPLEXITY"} engine key.  If no active prompt exists the
+ * adapter returns an empty list and logs a warning.
  *
- * <p>Planned API endpoint:
+ * <p>API endpoint:
  * <pre>
  * POST https://api.perplexity.ai/chat/completions
- * model: sonar   (Perplexity's online search model)
+ * Authorization: Bearer {PERPLEXITY_API_KEY}
+ * Content-Type: application/json
+ * { "model": "sonar", "messages": [{"role": "user", "content": "{prompt}"}] }
  * </pre>
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-04-28
- * @updated 2026-04-28
+ * @updated 2026-05-06
  */
 @Slf4j
 @Component
 public class PerplexityHarvester {
 
-    private final String apiKey;
+    private static final String BASE_URL    = "https://api.perplexity.ai";
+    private static final String SONAR_MODEL = "sonar";
+
     private final SearchPromptPort searchPromptPort;
+    private final String           apiKey;
+    private final RestClient       restClient;
 
     /**
-     * Constructs the harvester with the Perplexity API key and search prompt port.
+     * Spring-managed constructor — builds a {@link RestClient} targeting the
+     * Perplexity base URL.  API key injected from
+     * {@code aihealthcare.perplexity.api-key} (resolved from
+     * {@code PERPLEXITY_API_KEY} env var; defaults to blank string when absent).
      *
-     * @param apiKey           Value of {@code PERPLEXITY_API_KEY} env var; blank
-     *                         when not configured.
-     * @param searchPromptPort Port used to retrieve the active PERPLEXITY query
-     *                         template at harvest time.
+     * @param searchPromptPort Port used to retrieve the active PERPLEXITY prompt.
+     * @param apiKey           Perplexity API key; blank when env var is not set.
      */
     public PerplexityHarvester(
-            @Value("${aihealthcare.perplexity.api-key:}") String apiKey,
-            SearchPromptPort searchPromptPort) {
-        log.debug("PerplexityHarvester() | apiKey={}, searchPromptPort={}",
-                  apiKey.isBlank() ? "[not configured]" : "[present]",
-                  searchPromptPort.getClass().getSimpleName());
-        this.apiKey = apiKey;
+            SearchPromptPort searchPromptPort,
+            @Value("${aihealthcare.perplexity.api-key:}") String apiKey) {
+        this(searchPromptPort, apiKey, RestClient.builder().baseUrl(BASE_URL).build());
+    }
+
+    /**
+     * Package-private constructor for unit testing — accepts a pre-built
+     * {@link RestClient} so HTTP calls can be intercepted by a mock.
+     *
+     * @param searchPromptPort Port used to retrieve the active PERPLEXITY prompt.
+     * @param apiKey           Perplexity API key (may be blank to test guard path).
+     * @param restClient       Pre-configured RestClient (injected by tests).
+     */
+    PerplexityHarvester(SearchPromptPort searchPromptPort, String apiKey, RestClient restClient) {
+        log.debug("PerplexityHarvester() | searchPromptPort={}, apiKeyPresent={}",
+                  searchPromptPort.getClass().getSimpleName(), !apiKey.isBlank());
         this.searchPromptPort = searchPromptPort;
+        this.apiKey           = apiKey;
+        this.restClient       = restClient;
         if (apiKey.isBlank()) {
-            log.warn("PerplexityHarvester() | PERPLEXITY_API_KEY not set — harvester will return empty results");
+            log.info("PerplexityHarvester() | PERPLEXITY_API_KEY not set — harvester will return empty list");
         } else {
-            log.info("PerplexityHarvester() | API key present — stub ready for full integration");
+            log.info("PerplexityHarvester() | Perplexity Sonar API integration active (model={})", SONAR_MODEL);
         }
         log.debug("PerplexityHarvester() | return=void");
     }
 
     /**
-     * Harvests AI-in-Healthcare articles using the Perplexity Sonar API.
+     * Harvests AI-in-Healthcare articles for the given topic via the Perplexity
+     * Sonar API.  Returns an empty list when the API key is absent, no active
+     * PERPLEXITY prompt is configured, or the API call fails.
      *
-     * <p>Returns an empty list in two cases:
-     * <ul>
-     *   <li>No API key is configured ({@code PERPLEXITY_API_KEY} is blank).</li>
-     *   <li>No active {@code PERPLEXITY} search prompt is found in the database.</li>
-     * </ul>
-     *
-     * <p>Full API integration (HTTP POST, structured response parsing, article
-     * construction) is deferred until an API key is available.
-     *
-     * @param topic The healthcare topic to research (substituted into the prompt
-     *              template as {@code {topic}}).
-     * @return List of harvested {@link NewsArticle} objects, or an empty list
-     *         when the harvester is not yet fully configured.
+     * @param topic The healthcare topic to research (e.g. "AI diagnostics").
+     *              Uses {@code "AI in Healthcare"} when {@code null} or blank.
+     * @return Harvested articles with {@code sourceTier="PERPLEXITY"}; never null.
      */
     public List<NewsArticle> harvestArticles(String topic) {
         log.debug("harvestArticles() | topic={}", topic);
 
         if (apiKey == null || apiKey.isBlank()) {
-            log.warn("harvestArticles() | PERPLEXITY_API_KEY not configured — skipping harvest");
-            log.debug("harvestArticles() | return=[] (no API key)");
+            log.info("harvestArticles() | PERPLEXITY_API_KEY not configured — returning empty");
+            log.debug("harvestArticles() | return=[]");
             return Collections.emptyList();
         }
 
         Optional<SearchPromptConfig> promptOpt = searchPromptPort.findByEngine("PERPLEXITY");
         if (promptOpt.isEmpty() || !promptOpt.get().active()) {
-            log.warn("harvestArticles() | No active PERPLEXITY search prompt found — skipping harvest");
-            log.debug("harvestArticles() | return=[] (no active prompt)");
+            log.warn("harvestArticles() | No active PERPLEXITY search prompt — returning empty");
+            log.debug("harvestArticles() | return=[]");
             return Collections.emptyList();
         }
 
         String resolvedTopic = (topic != null && !topic.isBlank()) ? topic : "AI in Healthcare";
         String prompt = promptOpt.get().templateText().replace("{topic}", resolvedTopic);
-        log.info("harvestArticles() | API key present; prompt built ({} chars) — "
-                 + "full Perplexity Sonar API call deferred until integration slice",
-                 prompt.length());
+        log.info("harvestArticles() | calling Perplexity Sonar API for topic='{}'", resolvedTopic);
 
-        // TODO: Implement full Perplexity Sonar API integration:
-        //   POST https://api.perplexity.ai/chat/completions
-        //   Body: { "model": "sonar", "messages": [{ "role": "user", "content": prompt }] }
-        //   Authorization: Bearer {apiKey}
-        //   Parse structured response → List<NewsArticle> with tier=PERPLEXITY
+        try {
+            List<NewsArticle> result = callPerplexityApi(resolvedTopic, prompt);
+            log.debug("harvestArticles() | return={} articles", result.size());
+            return result;
+        } catch (Exception ex) {
+            log.error("harvestArticles() | Perplexity API call failed: {}", ex.getMessage());
+            log.debug("harvestArticles() | return=[] (error fallback)");
+            return Collections.emptyList();
+        }
+    }
 
-        log.debug("harvestArticles() | return=[] (API integration pending)");
-        return Collections.emptyList();
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    private List<NewsArticle> callPerplexityApi(String topic, String prompt) {
+        log.debug("callPerplexityApi() | topic={}", topic);
+
+        // Build request body as a plain Map so Jackson serializes it correctly
+        Map<String, String> userMessage = new LinkedHashMap<>();
+        userMessage.put("role", "user");
+        userMessage.put("content", prompt);
+
+        List<Map<String, String>> messages = new ArrayList<>();
+        messages.add(userMessage);
+
+        Map<String, Object> requestBody = new LinkedHashMap<>();
+        requestBody.put("model", SONAR_MODEL);
+        requestBody.put("messages", messages);
+
+        PerplexityApiResponse response = restClient.post()
+                .uri("/chat/completions")
+                .header("Authorization", "Bearer " + apiKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody)
+                .retrieve()
+                .body(PerplexityApiResponse.class);
+
+        if (response == null || response.citations() == null || response.citations().isEmpty()) {
+            log.info("callPerplexityApi() | no citations in Perplexity response");
+            log.debug("callPerplexityApi() | return=[]");
+            return Collections.emptyList();
+        }
+
+        String content = "";
+        if (response.choices() != null && !response.choices().isEmpty()
+                && response.choices().get(0) != null
+                && response.choices().get(0).message() != null) {
+            content = response.choices().get(0).message().content();
+        }
+
+        log.info("callPerplexityApi() | received {} citations, content length={}",
+                 response.citations().size(), content.length());
+
+        List<NewsArticle> result = mapCitationsToArticles(response.citations(), content, topic);
+        log.debug("callPerplexityApi() | return={} articles", result.size());
+        return result;
+    }
+
+    private List<NewsArticle> mapCitationsToArticles(
+            List<String> citations, String content, String topic) {
+        log.debug("mapCitationsToArticles() | citations={}, topic={}", citations.size(), topic);
+
+        List<NewsArticle> result = new ArrayList<>();
+        for (int i = 0; i < citations.size(); i++) {
+            String url = citations.get(i);
+            int citationNumber = i + 1;
+            String snippet = extractSnippet(content, citationNumber);
+            String title   = buildTitle(url, citationNumber);
+
+            try {
+                result.add(new NewsArticle(
+                        "perplexity-" + citationNumber,
+                        title,
+                        URI.create(url),
+                        snippet,
+                        topic,
+                        null,
+                        1L,
+                        "Perplexity Sonar",
+                        "PERPLEXITY",
+                        0.85,
+                        Instant.now()));
+            } catch (Exception e) {
+                log.warn("mapCitationsToArticles() | skipping invalid citation[{}]: {} — {}",
+                         citationNumber, url, e.getMessage());
+            }
+        }
+
+        log.debug("mapCitationsToArticles() | return={} articles", result.size());
+        return result;
+    }
+
+    /**
+     * Extracts the sentence(s) surrounding citation marker {@code [{n}]} from
+     * the Perplexity response content.  Returns a 400-char window centred on the
+     * marker, or the first 300 chars of content when the marker is not found.
+     */
+    private String extractSnippet(String content, int citationNumber) {
+        log.debug("extractSnippet() | citationNumber={}", citationNumber);
+
+        if (content == null || content.isBlank()) {
+            log.debug("extractSnippet() | return=(empty)");
+            return "";
+        }
+
+        String marker = "[" + citationNumber + "]";
+        int markerIndex = content.indexOf(marker);
+
+        if (markerIndex < 0) {
+            String fallback = content.length() > 300 ? content.substring(0, 300) + "\u2026" : content;
+            log.debug("extractSnippet() | marker not found — using content prefix");
+            log.debug("extractSnippet() | return=(fallback len={})", fallback.length());
+            return fallback;
+        }
+
+        int start   = Math.max(0, markerIndex - 200);
+        int end     = Math.min(content.length(), markerIndex + marker.length() + 200);
+        String snippet = content.substring(start, end).trim();
+
+        log.debug("extractSnippet() | return=(snippet len={})", snippet.length());
+        return snippet;
+    }
+
+    /**
+     * Builds a human-readable title from a citation URL by combining the
+     * host name with the first meaningful path segment.
+     * Falls back to {@code "Source [{n}]"} on any parsing error.
+     */
+    private String buildTitle(String url, int citationNumber) {
+        log.debug("buildTitle() | url={}, citationNumber={}", url, citationNumber);
+        try {
+            URI uri  = URI.create(url);
+            String host = uri.getHost() != null ? uri.getHost().replace("www.", "") : url;
+            String path = uri.getPath();
+
+            if (path != null && path.length() > 1) {
+                String[] segments = path.split("/");
+                for (String segment : segments) {
+                    if (segment != null && !segment.isBlank() && segment.length() > 3) {
+                        String slug  = segment.replace("-", " ").replace("_", " ");
+                        String title = host + " \u2014 " + slug;
+                        log.debug("buildTitle() | return={}", title);
+                        return title;
+                    }
+                }
+            }
+
+            String result = host + " [" + citationNumber + "]";
+            log.debug("buildTitle() | return={}", result);
+            return result;
+        } catch (Exception e) {
+            String fallback = "Source [" + citationNumber + "]";
+            log.debug("buildTitle() | return={} (fallback)", fallback);
+            return fallback;
+        }
     }
 }
