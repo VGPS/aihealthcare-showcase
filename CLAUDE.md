@@ -164,18 +164,46 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 12 — Research Refactor: Perplexity-Style Staged Research Architecture — COMPLETE — 415 tests passing**
+**Slice 18 — Research Dashboard UI — COMPLETE — 460 tests passing**
+- [x] Web: `ResearchDashboardController` — `GET /research/runs` (list), `GET /research/runs/{runId}` (detail)
+- [x] Templates: `research-runs.html` (run history table with mode badge, citation count, UTC timestamp), `research-run-detail.html` (full detail card)
+- [x] `dashboard.html` nav updated with Research Compare / Research Runs / Vendor Compare links
+- [x] Fix: server-side timestamp formatting via `runTimestamps` map (avoids `#temporals` Instant zone issue)
+- [x] Tests: `ResearchDashboardControllerTest` (5 MockMvc tests)
+
+**Previously complete: Slice 17 — ResearchHarvestScheduler — ~458 tests passing**
+- [x] `ResearchHarvestScheduler` + `ResearchHarvestProperties` — daily COMBINED pipeline per configured topic
+- [x] `application.yml` — `aihealthcare.research.harvest.cron`, `max-sources-per-topic`, `topics` list
+- [x] Proactively pre-warms `research_runs` table so UI has data before a user manually queries
+
+**Previously complete: Slice 16 — COMBINED Research Mode — ~455 tests passing**
+- [x] `ResearchMode.COMBINED` — merges Perplexity API + DB article sources before synthesis
+- [x] `ResearchOrchestratorService` updated to fan out to both adapters and dedup by URL
+- [x] `application.yml` — default mode changed to `COMBINED`
+
+**Previously complete: Slice 15 — Research Result Persistence — ~445 tests passing**
+- [x] `ResearchRunEntity` + `ResearchRunRepository` + `ResearchRunAdapter` — persists every successful research call
+- [x] `ResearchRunController` — `GET /api/v1/research/runs`, `GET /api/v1/research/runs/{runId}`
+- [x] `ResearchRunResponse` DTO; `ResearchExportPort` + `NotebookLMResearchExportAdapter`
+- [x] Tests: `ResearchRunAdapterTest`, `ResearchRunControllerTest`
+
+**Previously complete: Slice 14 — Perplexity Live Integration + Research Compare Resilience — ~430 tests passing**
+- [x] `PerplexityHarvester` upgraded to live Perplexity Sonar API (requires `PERPLEXITY_API_KEY`)
+- [x] `PerplexityApiResponse` deserialization record
+- [x] `ResearchCompareController` resilience: graceful fallback when one mode fails
+
+**Previously complete: Slice 13 — Research Compare UI — ~420 tests passing**
+- [x] `ResearchCompareController` — `GET /research/compare` Thymeleaf page
+- [x] `research-compare.html` — side-by-side LEGACY_GOOGLE vs STAGED_RESEARCH results
+
+**Previously complete: Slice 12 — Research Refactor: Perplexity-Style Staged Research Architecture — 415 tests passing**
 - [x] Domain: `ResearchMode` enum, `ResearchRequest`, `ResearchPlan`, `RetrievalQuery`, `RetrievedSource`, `SourceCitation`, `ResearchSection`, `ResearchAnswer`, `VendorAssessment` records
 - [x] Domain: `SourceRetrievalPort` outbound, `ConductResearchUseCase` inbound
 - [x] Domain services: `CitationAssembler`, `ResearchPlanningService`, `ResearchSynthesisService`, `ResearchOrchestratorService`
-- [x] Infrastructure: `LegacyGoogleResearchAdapter` (wraps `ArticleIngestionPort`), `PerplexityResearchAdapter` (wraps `PerplexityHarvester`) — package `infrastructure.research`
+- [x] Infrastructure: `LegacyGoogleResearchAdapter`, `PerplexityResearchAdapter` — package `infrastructure.research`
 - [x] Prompt templates: `research-plan.txt`, `research-synthesis.txt`
-- [x] Web: `ResearchController` — `POST /api/v1/research`
-- [x] DTOs: `ResearchRequestDto`, `ResearchAnswerDto`, `ResearchSectionDto`, `SourceCitationDto`
-- [x] OpenAPI spec updated with `/api/v1/research` endpoint + 4 new schemas
-- [x] `AppConfig` wires `researchOrchestratorService()` bean; loads prompt templates via `PromptLoaderService`
-- [x] `application.yml` — `aihealthcare.research.mode: LEGACY_GOOGLE` (no API key required; switch to STAGED_RESEARCH once `PERPLEXITY_API_KEY` is set)
-- [x] Tests: `CitationAssemblerTest` (8), `ResearchOrchestratorServiceTest` (7), `LegacyGoogleResearchAdapterTest` (5), `PerplexityResearchAdapterTest` (4), `ResearchControllerTest` (7) = 31 new tests
+- [x] Web: `ResearchController` — `POST /api/v1/research`; DTOs: `ResearchRequestDto`, `ResearchAnswerDto`, `ResearchSectionDto`, `SourceCitationDto`
+- [x] Tests: 31 new tests
 
 **Migration to STAGED_RESEARCH:** set `PERPLEXITY_API_KEY` env var + `aihealthcare.research.mode: STAGED_RESEARCH` in `application.yml`. Zero code changes required.
 
