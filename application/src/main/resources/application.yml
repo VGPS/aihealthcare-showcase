@@ -111,13 +111,16 @@ aihealthcare:
       # Add, remove, or reorder entries here — no code changes required.
       # -----------------------------------------------------------------------
       topics:
+        - "General AI Healthcare News"
         - "AI Healthcare Software Development"
-        - "Healthcare Outsourcing"
-        - "AI Government Policy"
+        - "Healthcare Outsourcing and Jobs Layoffs"
+        - "AI Healthcare Government Policy"
         - "OpenAI Healthcare"
         - "Anthropic Healthcare"
         - "Perplexity Healthcare"
         - "Google Healthcare"
+        - "etc"
+
 
   feeds:
     sources:

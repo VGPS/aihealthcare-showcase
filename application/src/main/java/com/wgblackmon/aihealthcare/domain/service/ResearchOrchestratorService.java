@@ -10,6 +10,8 @@ import com.wgblackmon.aihealthcare.domain.model.ResearchSection;
 import com.wgblackmon.aihealthcare.domain.model.RetrievalQuery;
 import com.wgblackmon.aihealthcare.domain.model.RetrievedSource;
 import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
+import com.wgblackmon.aihealthcare.domain.model.VendorAssessment;
+import com.wgblackmon.aihealthcare.domain.port.inbound.CompareVendorsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchExportPort;
@@ -25,7 +27,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Application-layer service that implements {@link ConductResearchUseCase}.
+ * Application-layer service that implements {@link ConductResearchUseCase} and
+ * {@link CompareVendorsUseCase}.
  *
  * <p>This service is the single entry point for the research pipeline.  It selects the
  * active execution mode ({@code LEGACY_GOOGLE} or {@code STAGED_RESEARCH}), dispatches
@@ -58,20 +61,21 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-05-04
- * @updated 2026-05-06
+ * @updated 2026-05-14
  */
 @Slf4j
-public class ResearchOrchestratorService implements ConductResearchUseCase {
+public class ResearchOrchestratorService implements ConductResearchUseCase, CompareVendorsUseCase {
 
-    private final ResearchMode             defaultMode;
-    private final SourceRetrievalPort      legacyAdapter;
-    private final SourceRetrievalPort      perplexityAdapter;
-    private final ResearchPlanningService  planningService;
-    private final ResearchSynthesisService synthesisService;
-    private final CitationAssembler        citationAssembler;
-    private final ArticleStoragePort       articleStoragePort;
-    private final ResearchRunPort          researchRunPort;
-    private final ResearchExportPort       researchExportPort;
+    private final ResearchMode              defaultMode;
+    private final SourceRetrievalPort       legacyAdapter;
+    private final SourceRetrievalPort       perplexityAdapter;
+    private final ResearchPlanningService   planningService;
+    private final ResearchSynthesisService  synthesisService;
+    private final CitationAssembler         citationAssembler;
+    private final ArticleStoragePort        articleStoragePort;
+    private final ResearchRunPort           researchRunPort;
+    private final ResearchExportPort        researchExportPort;
+    private final VendorAssessmentService   vendorAssessmentService;
 
     /**
      * Constructs the orchestrator with all pipeline and persistence dependencies.
@@ -84,7 +88,8 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
      * @param citationAssembler  Pure-Java citation deduplication and numbering service.
      * @param articleStoragePort Port for persisting new Perplexity-sourced articles.
      * @param researchRunPort    Port for persisting the research run audit record.
-     * @param researchExportPort Port for exporting articles to the NotebookLM corpus.
+     * @param researchExportPort      Port for exporting articles to the NotebookLM corpus.
+     * @param vendorAssessmentService Domain service for vendor-structured AI synthesis.
      */
     public ResearchOrchestratorService(ResearchMode defaultMode,
                                        SourceRetrievalPort legacyAdapter,
@@ -94,7 +99,8 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
                                        CitationAssembler citationAssembler,
                                        ArticleStoragePort articleStoragePort,
                                        ResearchRunPort researchRunPort,
-                                       ResearchExportPort researchExportPort) {
+                                       ResearchExportPort researchExportPort,
+                                       VendorAssessmentService vendorAssessmentService) {
         log.debug("ResearchOrchestratorService() | defaultMode={}, legacyAdapter={}, "
                   + "perplexityAdapter={}, planningService={}, synthesisService={}",
                   defaultMode,
@@ -102,15 +108,16 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
                   perplexityAdapter.getClass().getSimpleName(),
                   planningService.getClass().getSimpleName(),
                   synthesisService.getClass().getSimpleName());
-        this.defaultMode        = defaultMode;
-        this.legacyAdapter      = legacyAdapter;
-        this.perplexityAdapter  = perplexityAdapter;
-        this.planningService    = planningService;
-        this.synthesisService   = synthesisService;
-        this.citationAssembler  = citationAssembler;
-        this.articleStoragePort = articleStoragePort;
-        this.researchRunPort    = researchRunPort;
-        this.researchExportPort = researchExportPort;
+        this.defaultMode             = defaultMode;
+        this.legacyAdapter           = legacyAdapter;
+        this.perplexityAdapter       = perplexityAdapter;
+        this.planningService         = planningService;
+        this.synthesisService        = synthesisService;
+        this.citationAssembler       = citationAssembler;
+        this.articleStoragePort      = articleStoragePort;
+        this.researchRunPort         = researchRunPort;
+        this.researchExportPort      = researchExportPort;
+        this.vendorAssessmentService = vendorAssessmentService;
         log.debug("ResearchOrchestratorService() | return=void");
     }
 
@@ -165,6 +172,65 @@ public class ResearchOrchestratorService implements ConductResearchUseCase {
         log.info("conduct() | ResearchRun persisted: runId={}", run.runId());
 
         log.debug("conduct() | return={}", result.answerId());
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Runs the COMBINED retrieval pipeline (Perplexity + legacy DB) to gather sources,
+     * then delegates synthesis to {@link VendorAssessmentService} which produces one
+     * {@link VendorAssessment} per vendor identified in the retrieved corpus.
+     * No {@link ResearchRun} record is persisted — vendor comparisons are transient.
+     */
+    @Override
+    public List<VendorAssessment> compare(String query, int maxSources) {
+        log.debug("compare() | query={}, maxSources={}", query, maxSources);
+
+        if (query == null || query.isBlank()) {
+            throw new IllegalArgumentException("query must not be blank");
+        }
+        if (maxSources < 1) {
+            throw new IllegalArgumentException("maxSources must be >= 1");
+        }
+
+        ResearchRequest request = new ResearchRequest(query, ResearchMode.COMBINED, null, maxSources);
+
+        // Plan the query decomposition
+        ResearchPlan plan = planningService.plan(query, null);
+        log.info("compare() | plan produced: subQueryCount={}", plan.subQueries().size());
+
+        // Perplexity retrieval
+        List<RetrievedSource> perplexitySources = new ArrayList<>();
+        for (String subQuery : plan.subQueries()) {
+            RetrievalQuery rq = new RetrievalQuery(
+                    subQuery, "PERPLEXITY",
+                    Math.max(1, request.maxSources() / plan.subQueries().size()));
+            List<RetrievedSource> batch = perplexityAdapter.retrieve(rq);
+            log.debug("compare() | sub-query='{}' → {} Perplexity sources", subQuery, batch.size());
+            perplexitySources.addAll(batch);
+        }
+
+        // Legacy retrieval for historical depth
+        RetrievalQuery legacyQuery = new RetrievalQuery(query, "GOOGLE", maxSources);
+        List<RetrievedSource> legacySources = legacyAdapter.retrieve(legacyQuery);
+        log.info("compare() | legacy retrieved {} sources", legacySources.size());
+
+        // Merge — Perplexity first (higher relevance weight)
+        List<RetrievedSource> allSources = new ArrayList<>();
+        allSources.addAll(perplexitySources);
+        allSources.addAll(legacySources);
+        log.info("compare() | merged {} total sources before dedup", allSources.size());
+
+        // Assemble citations — CitationAssembler deduplicates by URL
+        List<SourceCitation> citations = citationAssembler.assemble(allSources);
+        log.info("compare() | {} citations after dedup", citations.size());
+
+        // Vendor-structured synthesis
+        List<VendorAssessment> result = vendorAssessmentService.assess(query, allSources, citations);
+
+        log.info("compare() | vendor assessment complete: vendorCount={}", result.size());
+        log.debug("compare() | return={} vendors", result.size());
         return result;
     }
 

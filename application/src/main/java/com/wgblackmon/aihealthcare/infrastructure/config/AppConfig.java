@@ -18,6 +18,7 @@ import com.wgblackmon.aihealthcare.domain.service.PromptEvaluationService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchOrchestratorService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchPlanningService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
+import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
@@ -292,17 +293,20 @@ public class AppConfig {
             defaultMode = ResearchMode.LEGACY_GOOGLE;
         }
 
-        String planTemplate      = promptLoaderService.load("research-plan.txt");
-        String synthesisTemplate = promptLoaderService.load("research-synthesis.txt");
+        String planTemplate         = promptLoaderService.load("research-plan.txt");
+        String synthesisTemplate    = promptLoaderService.load("research-synthesis.txt");
+        String vendorCompareTemplate = promptLoaderService.load("vendor-compare.txt");
 
-        CitationAssembler       citationAssembler = new CitationAssembler();
-        ResearchPlanningService planningService   = new ResearchPlanningService(aiReportPort, planTemplate);
-        ResearchSynthesisService synthesisService = new ResearchSynthesisService(aiReportPort, synthesisTemplate);
+        CitationAssembler        citationAssembler    = new CitationAssembler();
+        ResearchPlanningService  planningService      = new ResearchPlanningService(aiReportPort, planTemplate);
+        ResearchSynthesisService synthesisService     = new ResearchSynthesisService(aiReportPort, synthesisTemplate);
+        VendorAssessmentService  vendorAssessmentService = new VendorAssessmentService(aiReportPort, vendorCompareTemplate);
 
         ResearchOrchestratorService result = new ResearchOrchestratorService(
                 defaultMode, legacyGoogleAdapter, perplexityAdapter,
                 planningService, synthesisService, citationAssembler,
-                articleStoragePort, researchRunPort, researchExportPort);
+                articleStoragePort, researchRunPort, researchExportPort,
+                vendorAssessmentService);
 
         log.debug("researchOrchestratorService() | return={}", result.getClass().getSimpleName());
         return result;

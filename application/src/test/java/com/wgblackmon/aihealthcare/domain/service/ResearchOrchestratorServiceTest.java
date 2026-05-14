@@ -44,13 +44,14 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ResearchOrchestratorServiceTest {
 
-    @Mock private SourceRetrievalPort     legacyAdapter;
-    @Mock private SourceRetrievalPort     perplexityAdapter;
-    @Mock private ResearchPlanningService planningService;
+    @Mock private SourceRetrievalPort      legacyAdapter;
+    @Mock private SourceRetrievalPort      perplexityAdapter;
+    @Mock private ResearchPlanningService  planningService;
     @Mock private ResearchSynthesisService synthesisService;
-    @Mock private ArticleStoragePort      articleStoragePort;
-    @Mock private ResearchRunPort         researchRunPort;
-    @Mock private ResearchExportPort      researchExportPort;
+    @Mock private ArticleStoragePort       articleStoragePort;
+    @Mock private ResearchRunPort          researchRunPort;
+    @Mock private ResearchExportPort       researchExportPort;
+    @Mock private VendorAssessmentService  vendorAssessmentService;
 
     private CitationAssembler           citationAssembler;
     private ResearchOrchestratorService orchestrator;
@@ -67,7 +68,8 @@ class ResearchOrchestratorServiceTest {
                 citationAssembler,
                 articleStoragePort,
                 researchRunPort,
-                researchExportPort);
+                researchExportPort,
+                vendorAssessmentService);
     }
 
     // -------------------------------------------------------------------------
