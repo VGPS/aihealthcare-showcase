@@ -164,7 +164,17 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 18 — Research Dashboard UI — COMPLETE — 460 tests passing**
+**Slice 19 — Vendor Compare UI — COMPLETE — 470 tests passing**
+- [x] Domain: `CompareVendorsUseCase` inbound port
+- [x] Domain: `VendorAssessmentService` — calls AI with vendor-compare prompt, parses `List<VendorAssessment>`
+- [x] Prompt: `vendor-compare.txt` — structured `## VendorName` + `STRENGTHS/WEAKNESSES/RELEVANCE` format
+- [x] `ResearchOrchestratorService` — now implements `CompareVendorsUseCase`; `compare()` runs COMBINED pipeline then delegates to `VendorAssessmentService`
+- [x] `AppConfig` — loads `vendor-compare.txt`, wires `VendorAssessmentService` into orchestrator
+- [x] Web: `VendorCompareController` at `GET /research/vendors` — form + vendor card grid, graceful error handling
+- [x] Template: `vendor-compare.html` — vendor cards with relevance bar, strengths (+), weaknesses (−)
+- [x] Tests: `VendorAssessmentServiceTest` (4), `VendorCompareControllerTest` (5)
+
+**Previously complete: Slice 18 — Research Dashboard UI — 460 tests passing**
 - [x] Web: `ResearchDashboardController` — `GET /research/runs` (list), `GET /research/runs/{runId}` (detail)
 - [x] Templates: `research-runs.html` (run history table with mode badge, citation count, UTC timestamp), `research-run-detail.html` (full detail card)
 - [x] `dashboard.html` nav updated with Research Compare / Research Runs / Vendor Compare links

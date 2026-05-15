@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-05-13 | Reflects Slice 18 (18 slices complete, 460 tests passing)
+> Last updated: 2026-05-15 | Reflects Slice 19 (19 slices complete, 470 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -51,6 +51,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | 16 | COMBINED Research Mode: merge Perplexity + DB sources before synthesis | ~455 |
 | 17 | ResearchHarvestScheduler: proactive daily COMBINED pipeline per topic | ~458 |
 | 18 | Research Dashboard UI — Thymeleaf at `/research/runs` | 460 |
+| 19 | Vendor Compare UI — Thymeleaf at `/research/vendors` | 470 |
 
 ---
 
@@ -149,6 +150,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /research/compare` | `ResearchCompareController` | `research-compare.html` — side-by-side compare |
 | `GET /research/runs` | `ResearchDashboardController` | `research-runs.html` — run history |
 | `GET /research/runs/{runId}` | `ResearchDashboardController` | `research-run-detail.html` — run detail |
+| `GET /research/vendors` | `VendorCompareController` | `vendor-compare.html` — vendor comparison card grid |
 
 ---
 
