@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Vendor Compare — AIHealthcare</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            font-size: 14px;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+        }
+        header h1 { font-size: 1.25rem; font-weight: 600; }
+        header p  { font-size: 0.8rem; opacity: 0.6; }
+
+        nav {
+            background: #16213e;
+            padding: 0 2rem;
+            display: flex;
+            gap: 1.5rem;
+        }
+        nav a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 0.6rem 0;
+            border-bottom: 2px solid transparent;
+            display: inline-block;
+        }
+        nav a:hover  { color: white; }
+        nav a.active { color: white; border-bottom-color: #4361ee; }
+
+        main {
+            max-width: 1200px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
+        .search-card h2 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #222;
+        }
+        .search-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .search-row input[type="text"] {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #dde;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .search-row input[type="number"] {
+            width: 90px;
+            padding: 0.5rem 0.5rem;
+            border: 1px solid #dde;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .search-row label {
+            font-size: 0.8rem;
+            color: #666;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #4361ee;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 1.25rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-primary:hover { background: #3451d1; }
+
+        /* Vendor cards */
+        .results-header {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .vendor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .vendor-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .vendor-card-header {
+            background: #1a1a2e;
+            color: white;
+            padding: 0.85rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .vendor-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .relevance-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .relevance-high   { background: #22c55e; color: white; }
+        .relevance-medium { background: #f59e0b; color: white; }
+        .relevance-low    { background: #94a3b8; color: white; }
+
+        .vendor-card-body {
+            padding: 1rem 1.25rem;
+        }
+
+        .relevance-bar-wrap {
+            margin-bottom: 1rem;
+        }
+        .relevance-bar-wrap label {
+            font-size: 0.75rem;
+            color: #888;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        .relevance-bar-track {
+            background: #e5e7eb;
+            border-radius: 4px;
+            height: 8px;
+            width: 100%;
+        }
+        .relevance-bar-fill {
+            background: #4361ee;
+            border-radius: 4px;
+            height: 8px;
+        }
+
+        .assessment-section {
+            margin-bottom: 0.85rem;
+        }
+        .assessment-section h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.4rem;
+        }
+        .assessment-section.strengths h4 { color: #16a34a; }
+        .assessment-section.weaknesses h4 { color: #dc2626; }
+
+        .assessment-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        .assessment-section li {
+            font-size: 0.82rem;
+            color: #444;
+            padding: 0.15rem 0;
+            padding-left: 1rem;
+            position: relative;
+        }
+        .assessment-section.strengths li::before {
+            content: '+';
+            position: absolute;
+            left: 0;
+            color: #16a34a;
+            font-weight: 700;
+        }
+        .assessment-section.weaknesses li::before {
+            content: '−';
+            position: absolute;
+            left: 0;
+            color: #dc2626;
+            font-weight: 700;
+        }
+        .empty-items {
+            font-size: 0.8rem;
+            color: #bbb;
+            font-style: italic;
+        }
+
+        /* Error + empty states */
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            padding: 0.9rem 1.25rem;
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .empty-state {
+            text-align: center;
+            color: #bbb;
+            font-style: italic;
+            padding: 2rem 0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AIHealthcare Analytics</h1>
+    <p>AI Vendor Comparison</p>
+</header>
+
+<nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/dashboard/articles">Articles</a>
+    <a href="/research/compare">Research Compare</a>
+    <a href="/research/runs">Research Runs</a>
+    <a href="/research/vendors" class="active">Vendor Compare</a>
+</nav>
+
+<main>
+
+    <!-- Search Form -->
+    <div class="search-card">
+        <h2>Compare AI Vendors for a Healthcare Query</h2>
+        <form method="get" action="/research/vendors">
+            <div class="search-row">
+                <input type="text" name="query" th:value="${query}"
+                       placeholder="e.g. AI diagnostics tools in radiology"
+                       required/>
+                <label>Sources:</label>
+                <input type="number" name="maxSources" th:value="${maxSources}"
+                       min="1" max="100"/>
+                <button type="submit" class="btn-primary">Compare Vendors</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Error -->
+    <div class="alert-error" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+
+    <!-- Results -->
+    <div th:if="${hasResults}">
+        <p class="results-header"
+           th:text="'Found ' + ${vendors.size()} + ' vendor(s) for query: ' + ${query}"></p>
+
+        <div class="vendor-grid">
+            <div class="vendor-card" th:each="vendor : ${vendors}">
+
+                <!-- Card header: vendor name + relevance badge -->
+                <div class="vendor-card-header">
+                    <span class="vendor-name" th:text="${vendor.vendorName()}">Vendor</span>
+                    <span class="relevance-badge"
+                          th:classappend="${vendor.relevanceScore() >= 0.7 ? 'relevance-high' :
+                                          (vendor.relevanceScore() >= 0.4 ? 'relevance-medium' : 'relevance-low')}"
+                          th:text="${#numbers.formatDecimal(vendor.relevanceScore(), 1, 2)}">0.00</span>
+                </div>
+
+                <div class="vendor-card-body">
+
+                    <!-- Relevance progress bar -->
+                    <div class="relevance-bar-wrap">
+                        <label>Relevance Score</label>
+                        <div class="relevance-bar-track">
+                            <div class="relevance-bar-fill"
+                                 th:style="'width: ' + ${vendor.relevanceScore() * 100} + '%'"></div>
+                        </div>
+                    </div>
+
+                    <!-- Strengths -->
+                    <div class="assessment-section strengths">
+                        <h4>Strengths</h4>
+                        <ul th:if="${!vendor.strengths().isEmpty()}">
+                            <li th:each="s : ${vendor.strengths()}" th:text="${s}"></li>
+                        </ul>
+                        <span class="empty-items" th:if="${vendor.strengths().isEmpty()}">None identified</span>
+                    </div>
+
+                    <!-- Weaknesses -->
+                    <div class="assessment-section weaknesses">
+                        <h4>Weaknesses</h4>
+                        <ul th:if="${!vendor.weaknesses().isEmpty()}">
+                            <li th:each="w : ${vendor.weaknesses()}" th:text="${w}"></li>
+                        </ul>
+                        <span class="empty-items" th:if="${vendor.weaknesses().isEmpty()}">None identified</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty state after a query -->
+    <div class="empty-state"
+         th:if="${!hasResults and query != null and !#strings.isEmpty(query) and errorMessage == null}">
+        No vendor assessments were produced for this query. Try a more specific healthcare AI question.
+    </div>
+
+</main>
+</body>
+</html>

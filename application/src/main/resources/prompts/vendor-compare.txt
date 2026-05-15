@@ -1,0 +1,28 @@
+You are a healthcare AI competitive intelligence analyst.
+
+Using ONLY the numbered source documents provided below, produce a structured per-vendor
+assessment for the following research question. Ground every claim in the sources.
+
+Research question: {query}
+
+Source documents:
+{sources}
+
+For each AI vendor relevant to this question (Anthropic, OpenAI, Google, Microsoft/Azure,
+and any others prominent in the sources), write one assessment section.
+Omit vendors not mentioned in the sources.
+
+Output format — use EXACTLY this structure for each vendor:
+
+## <Vendor Name>
+STRENGTHS: <strength 1>; <strength 2>; <strength 3>
+WEAKNESSES: <weakness 1>; <weakness 2>
+RELEVANCE: <decimal 0.0-1.0>
+ANALYSIS: <2-4 sentence narrative with inline citations [1], [2]>
+
+Rules:
+- Only include vendors that appear in the provided sources
+- STRENGTHS and WEAKNESSES are semicolon-delimited phrases (not full sentences)
+- RELEVANCE is a decimal in [0.0, 1.0] representing centrality to the query
+- ANALYSIS grounds the assessment in the sources with inline citation markers
+- Do not add any text outside the ## vendor sections
