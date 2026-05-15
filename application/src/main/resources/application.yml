@@ -2,6 +2,12 @@ spring:
   application:
     name: ai-healthcare
 
+  # Load .env file from project root (KEY=VALUE format) so API keys are available
+  # as Spring properties without requiring shell env vars.  'optional:' means the
+  # app still starts when .env is absent (CI / prod set real env vars instead).
+  config:
+    import: optional:file:.env[.properties]
+
   profiles:
     active: demo
 
