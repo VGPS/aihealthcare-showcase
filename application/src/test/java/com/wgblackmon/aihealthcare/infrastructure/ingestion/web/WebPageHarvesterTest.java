@@ -39,7 +39,8 @@ class WebPageHarvesterTest {
     private WebPageHarvester harvester;
 
     private static final FeedSourceConfig COMPETITOR_SOURCE = new FeedSourceConfig(
-            1L, "Test Competitor", "https://example.com/health",
+            1L, "Test Competitor", "Google Healthcare",
+            "https://example.com/health",
             FeedTier.COMPETITOR, 0.7, 1);
 
     @BeforeEach
@@ -48,6 +49,7 @@ class WebPageHarvesterTest {
         FeedSourceProperties.FeedEntry entry = new FeedSourceProperties.FeedEntry();
         entry.setTopicId(1L);
         entry.setName("Test Competitor");
+        entry.setTopic("Google Healthcare");
         entry.setUrl("https://example.com/health");
         entry.setTier(FeedTier.COMPETITOR);
         entry.setBaseWeight(0.7);

@@ -224,7 +224,7 @@ public class HuggingFaceHarvester {
                 title,
                 url,
                 bodyText,
-                source.name(),
+                source.effectiveTopic(),
                 author,
                 source.topicId(),
                 source.name(),

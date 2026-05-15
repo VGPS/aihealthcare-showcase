@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,7 +18,9 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Thymeleaf controller that renders the analytics dashboard and article-detail pages.
@@ -31,10 +34,14 @@ import java.util.List;
  * and rendering the {@code articles} view.  Null {@code publishedAt} values sort
  * to the end in both directions.
  *
+ * <p>Serves {@code GET /dashboard/news} by fetching articles for all configured
+ * topic names from {@link NewsTopicProperties} and grouping them into an ordered
+ * map for the {@code news-listing} template.
+ *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-05-04
- * @updated 2026-05-04
+ * @updated 2026-05-15
  */
 @Slf4j
 @Controller
@@ -46,11 +53,14 @@ public class DashboardController {
 
     private final GetAnalyticsUseCase analyticsUseCase;
     private final ArticleIngestionPort articleIngestionPort;
+    private final NewsTopicProperties newsTopicProperties;
 
     public DashboardController(GetAnalyticsUseCase analyticsUseCase,
-                               ArticleIngestionPort articleIngestionPort) {
-        this.analyticsUseCase    = analyticsUseCase;
+                               ArticleIngestionPort articleIngestionPort,
+                               NewsTopicProperties newsTopicProperties) {
+        this.analyticsUseCase     = analyticsUseCase;
         this.articleIngestionPort = articleIngestionPort;
+        this.newsTopicProperties  = newsTopicProperties;
     }
 
     /**
@@ -110,6 +120,47 @@ public class DashboardController {
 
         log.debug("articles() | return=articles (count={})", articles.size());
         return "articles";
+    }
+
+    /**
+     * Renders the news listing page with all articles grouped by topic.
+     *
+     * <p>Iterates through the configured topic names from {@link NewsTopicProperties},
+     * fetches all articles for each topic, sorts them newest-first, and builds an
+     * ordered map of topic → articles for the template.
+     *
+     * @param sort  "asc" for oldest-first, "desc" (default) for newest-first
+     * @param model Thymeleaf model
+     * @return Thymeleaf view name "news-listing"
+     */
+    @GetMapping("/news")
+    public String newsListing(
+            @RequestParam(defaultValue = "desc") String sort,
+            Model model) {
+        log.debug("newsListing() | sort={}", sort);
+
+        List<String> topicNames = newsTopicProperties.getTopics();
+        boolean ascending = "asc".equalsIgnoreCase(sort);
+
+        Map<String, List<NewsArticle>> topicArticles = new LinkedHashMap<>();
+        int totalArticles = 0;
+
+        for (String topic : topicNames) {
+            List<NewsArticle> articles = new ArrayList<>(
+                    articleIngestionPort.fetchAllByTopic(topic));
+            sortByPublishedAt(articles, ascending);
+            topicArticles.put(topic, articles);
+            totalArticles += articles.size();
+        }
+
+        model.addAttribute("topicArticles", topicArticles);
+        model.addAttribute("topicNames", topicNames);
+        model.addAttribute("sort", sort);
+        model.addAttribute("totalArticles", totalArticles);
+
+        log.debug("newsListing() | return=news-listing (topics={}, totalArticles={})",
+                  topicNames.size(), totalArticles);
+        return "news-listing";
     }
 
     /**

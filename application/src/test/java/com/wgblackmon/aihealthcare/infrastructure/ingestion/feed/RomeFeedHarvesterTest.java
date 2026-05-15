@@ -50,6 +50,7 @@ class RomeFeedHarvesterTest {
     void setUp() {
         when(mockProperties.toFeedSourceConfigs()).thenReturn(List.of(
                 new FeedSourceConfig(TEST_TOPIC_ID, "Bad Feed",
+                        "General AI Healthcare News",
                         "http://localhost:0/nonexistent-feed.rss",
                         FeedTier.INDUSTRY, 0.5, 10)
         ));
@@ -86,6 +87,7 @@ class RomeFeedHarvesterTest {
         FeedSourceConfig config = new FeedSourceConfig(
                 42L,
                 "PubMed AI Healthcare",
+                "General AI Healthcare News",
                 "https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=artificial+intelligence+healthcare&format=rss",
                 FeedTier.ACADEMIC,
                 0.90,

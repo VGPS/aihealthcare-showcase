@@ -200,7 +200,7 @@ public class RomeFeedHarvester implements ArticleHarvestingPort {
                 title,
                 url,
                 bodyText,
-                source.name(),
+                source.effectiveTopic(),
                 author,
                 source.topicId(),
                 source.name(),

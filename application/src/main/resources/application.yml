@@ -93,7 +93,7 @@ aihealthcare:
   # Set to 0 for no date restriction.  Change freely for experimentation.
   # ---------------------------------------------------------------------------
   articles:
-    days-back: 5
+    days-back: 7
 
   # ---------------------------------------------------------------------------
   # Research pipeline — controls which pipeline branch POST /api/v1/research uses.
@@ -125,107 +125,177 @@ aihealthcare:
         - "Anthropic Healthcare"
         - "Perplexity Healthcare"
         - "Google Healthcare"
-        - "etc"
+        - "Beckers Hospital Review"
 
+  # ---------------------------------------------------------------------------
+  # News listing — ordered topic headers shown on GET /dashboard/news.
+  # Each name must match a feed source 'name' so articles group under it.
+  # ---------------------------------------------------------------------------
+  news:
+    topics:
+      - "General AI Healthcare News"
+      - "AI Healthcare Software Development"
+      - "Healthcare Outsourcing and Jobs Layoffs"
+      - "AI Healthcare Government Policy"
+      - "OpenAI Healthcare"
+      - "Anthropic Healthcare"
+      - "Perplexity Healthcare"
+      - "Google Healthcare"
+      - "Beckers Hospital Review"
 
   feeds:
     sources:
       # -----------------------------------------------------------------
-      # ACADEMIC RSS feeds — peer-reviewed and research sources
+      # General AI Healthcare News — broad coverage from multiple feeds
+      # 'topic' groups articles under a section header on /dashboard/news.
+      # 'name' identifies the individual feed source in logs and metrics.
       # -----------------------------------------------------------------
       - topic-id: 1
         name: PubMed AI Healthcare
+        topic: General AI Healthcare News
         url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1iCIuphPfzMUfIkqJ3mOSNQlFJKYJb1xPnBx7XEBOQ1haHy2hW/?limit=20&utm_campaign=pubmed-2&fc=20220101000000
         tier: ACADEMIC
         base-weight: 0.9
         max-items: 20
       - topic-id: 1
         name: PubMed Machine Learning Clinical
+        topic: General AI Healthcare News
         url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1MiuHQ7HGxZ0iqhHwJbLHqaGzKfhEKPFWiPmwM-HadPVdsBX3j/?limit=15&utm_campaign=pubmed-2&fc=20220101000000
         tier: ACADEMIC
         base-weight: 0.9
         max-items: 15
-      # -----------------------------------------------------------------
-      # REGULATORY RSS feeds — government and regulatory bodies
-      # -----------------------------------------------------------------
-      - topic-id: 1
-        name: FDA Medical Devices News
-        url: https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-devices/rss.xml
-        tier: REGULATORY
-        base-weight: 0.95
-        max-items: 15
-      - topic-id: 1
-        name: WHO News
-        url: https://www.who.int/rss-feeds/news-english.xml
-        tier: REGULATORY
-        base-weight: 0.85
-        max-items: 10
-      # -----------------------------------------------------------------
-      # INDUSTRY RSS feeds — trade news, broad AI healthcare coverage
-      # -----------------------------------------------------------------
       - topic-id: 1
         name: Healthcare IT News
+        topic: General AI Healthcare News
         url: https://www.healthcareitnews.com/feed
         tier: INDUSTRY
         base-weight: 0.7
         max-items: 20
       - topic-id: 1
         name: MIT Technology Review AI
+        topic: General AI Healthcare News
         url: https://www.technologyreview.com/feed/
         tier: INDUSTRY
         base-weight: 0.75
         max-items: 15
       - topic-id: 1
         name: Google News AI Healthcare
+        topic: General AI Healthcare News
         url: https://news.google.com/rss/search?q=artificial+intelligence+healthcare&hl=en-US&gl=US&ceid=US:en
         tier: INDUSTRY
         base-weight: 0.6
         max-items: 25
+      # -----------------------------------------------------------------
+      # AI Healthcare Software Development
+      # -----------------------------------------------------------------
       - topic-id: 1
-        name: Google News Clinical AI
+        name: Google News AI Software Dev
+        topic: AI Healthcare Software Development
+        url: https://news.google.com/rss/search?q=AI+healthcare+software+development+EHR+FHIR&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 20
+      # -----------------------------------------------------------------
+      # Healthcare Outsourcing and Jobs Layoffs
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Google News Healthcare Outsourcing
+        topic: Healthcare Outsourcing and Jobs Layoffs
+        url: https://news.google.com/rss/search?q=healthcare+AI+outsourcing+jobs+layoffs&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.6
+        max-items: 20
+      # -----------------------------------------------------------------
+      # AI Healthcare Government Policy
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: FDA Medical Devices News
+        topic: AI Healthcare Government Policy
+        url: https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-devices/rss.xml
+        tier: REGULATORY
+        base-weight: 0.95
+        max-items: 15
+      - topic-id: 1
+        name: WHO News
+        topic: AI Healthcare Government Policy
+        url: https://www.who.int/rss-feeds/news-english.xml
+        tier: REGULATORY
+        base-weight: 0.85
+        max-items: 10
+      - topic-id: 1
+        name: Google News Clinical AI Policy
+        topic: AI Healthcare Government Policy
         url: https://news.google.com/rss/search?q=clinical+AI+FDA+approval+medical+device&hl=en-US&gl=US&ceid=US:en
         tier: INDUSTRY
         base-weight: 0.65
         max-items: 20
       # -----------------------------------------------------------------
-      # Competitor web pages — scraped daily by WebPageHarvester (Slice 5)
+      # OpenAI Healthcare
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Google News OpenAI Healthcare
+        topic: OpenAI Healthcare
+        url: https://news.google.com/rss/search?q=OpenAI+healthcare+GPT+medical&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 20
+      # -----------------------------------------------------------------
+      # Anthropic Healthcare
       # -----------------------------------------------------------------
       - topic-id: 1
         name: Anthropic Healthcare AI
+        topic: Anthropic Healthcare
         url: https://www.anthropic.com/news/healthcare-life-sciences
         tier: COMPETITOR
         base-weight: 0.7
         max-items: 1
+      # -----------------------------------------------------------------
+      # Perplexity Healthcare
+      # -----------------------------------------------------------------
       - topic-id: 1
-        name: Perplexity Health
+        name: Perplexity Health Blog
+        topic: Perplexity Healthcare
         url: https://www.perplexity.ai/hub/blog/introducing-perplexity-health
         tier: COMPETITOR
         base-weight: 0.6
         max-items: 1
       - topic-id: 1
+        name: Perplexity Sonar API
+        topic: Perplexity Healthcare
+        url: https://api.perplexity.ai/chat/completions
+        tier: PERPLEXITY
+        base-weight: 0.85
+        max-items: 20
+      # -----------------------------------------------------------------
+      # Google Healthcare
+      # -----------------------------------------------------------------
+      - topic-id: 1
         name: Google Health AI
+        topic: Google Healthcare
         url: https://ai.google/health/
         tier: COMPETITOR
         base-weight: 0.7
         max-items: 1
       # -----------------------------------------------------------------
-      # HuggingFace model discovery — queried daily by HuggingFaceHarvester
+      # Beckers Hospital Review
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Beckers Hospital Review
+        topic: Beckers Hospital Review
+        url: https://www.beckershospitalreview.com/feed/
+        tier: INDUSTRY
+        base-weight: 0.7
+        max-items: 25
+      # -----------------------------------------------------------------
+      # HuggingFace model discovery
       # -----------------------------------------------------------------
       - topic-id: 1
         name: HuggingFace Healthcare LLMs
+        topic: General AI Healthcare News
         url: https://huggingface.co/api/models?search=healthcare+medical&sort=downloads&direction=-1&limit=25
         tier: HUGGINGFACE
         base-weight: 0.5
         max-items: 25
-      # -----------------------------------------------------------------
-      # Perplexity Sonar API — deep-research harvest (stub; requires API key)
-      # -----------------------------------------------------------------
-      - topic-id: 1
-        name: Perplexity AI Healthcare Research
-        url: https://api.perplexity.ai/chat/completions
-        tier: PERPLEXITY
-        base-weight: 0.85
-        max-items: 20
 
   # ---------------------------------------------------------------------------
   # Perplexity Sonar API — used by PerplexityHarvester.

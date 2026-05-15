@@ -139,7 +139,7 @@ public class WebPageHarvester {
                 title,
                 snapshotUrl,
                 bodyText,
-                source.name(),
+                source.effectiveTopic(),
                 source.name(),
                 source.topicId(),
                 source.name(),

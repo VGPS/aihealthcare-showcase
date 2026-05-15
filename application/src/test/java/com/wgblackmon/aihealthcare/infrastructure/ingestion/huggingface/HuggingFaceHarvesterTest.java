@@ -44,6 +44,7 @@ class HuggingFaceHarvesterTest {
 
     private static final FeedSourceConfig HF_SOURCE = new FeedSourceConfig(
             1L, "HuggingFace Healthcare LLMs",
+            "General AI Healthcare News",
             "https://huggingface.co/api/models?search=healthcare",
             FeedTier.HUGGINGFACE, 0.5, 25);
 
@@ -139,7 +140,8 @@ class HuggingFaceHarvesterTest {
     @Test
     void harvestModels_respectsMaxItems() throws Exception {
         FeedSourceConfig limitedSource = new FeedSourceConfig(
-                1L, "HF Limited", "https://huggingface.co/api/models",
+                1L, "HF Limited", "General AI Healthcare News",
+                "https://huggingface.co/api/models",
                 FeedTier.HUGGINGFACE, 0.5, 1);
         ObjectMapper objectMapper = new ObjectMapper()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

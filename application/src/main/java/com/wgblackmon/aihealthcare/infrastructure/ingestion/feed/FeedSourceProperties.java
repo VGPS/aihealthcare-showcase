@@ -64,6 +64,7 @@ public class FeedSourceProperties {
             configs.add(new FeedSourceConfig(
                     entry.getTopicId(),
                     entry.getName(),
+                    entry.getTopic(),
                     entry.getUrl(),
                     entry.getTier(),
                     entry.getBaseWeight(),
@@ -83,6 +84,7 @@ public class FeedSourceProperties {
 
         private Long topicId = 1L;
         private String name;
+        private String topic;
         private String url;
         private FeedSourceConfig.FeedTier tier = FeedSourceConfig.FeedTier.INDUSTRY;
         private double baseWeight = 0.5;
@@ -93,6 +95,9 @@ public class FeedSourceProperties {
 
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
+
+        public String getTopic() { return topic; }
+        public void setTopic(String topic) { this.topic = topic; }
 
         public String getUrl() { return url; }
         public void setUrl(String url) { this.url = url; }

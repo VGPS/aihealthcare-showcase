@@ -8,6 +8,7 @@ import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.VariantScore;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -30,13 +31,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * MockMvc slice tests for {@link DashboardController}.
  *
- * <p>Covers {@code GET /dashboard} (main analytics view) and
- * {@code GET /dashboard/articles} (per-topic article detail with sort).
+ * <p>Covers {@code GET /dashboard} (main analytics view),
+ * {@code GET /dashboard/articles} (per-topic article detail with sort),
+ * and {@code GET /dashboard/news} (all topics grouped with section headers).
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-05-04
- * @updated 2026-05-04
+ * @updated 2026-05-15
  */
 @WebMvcTest(DashboardController.class)
 class DashboardControllerTest {
@@ -49,6 +51,9 @@ class DashboardControllerTest {
 
     @MockitoBean
     private ArticleIngestionPort articleIngestionPort;
+
+    @MockitoBean
+    private NewsTopicProperties newsTopicProperties;
 
     // -------------------------------------------------------------------------
     // Fixtures
@@ -227,5 +232,81 @@ class DashboardControllerTest {
         mockMvc.perform(get("/dashboard/articles").param("topic", "PubMed AI Healthcare"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("No articles found")));
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /dashboard/news
+    // -------------------------------------------------------------------------
+
+    @Test
+    void news_returns200AndNewsListingView() throws Exception {
+        when(newsTopicProperties.getTopics()).thenReturn(
+                List.of("General AI Healthcare News", "Anthropic Healthcare"));
+        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+                .thenReturn(List.of());
+        when(articleIngestionPort.fetchAllByTopic(eq("Anthropic Healthcare")))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("news-listing"));
+    }
+
+    @Test
+    void news_rendersTopicHeadersWithArticles() throws Exception {
+        NewsArticle a1 = sampleArticle("AI Article", Instant.parse("2026-05-15T10:00:00Z"));
+        NewsArticle a2 = sampleArticle("Anthropic Article", Instant.parse("2026-05-15T09:00:00Z"));
+        when(newsTopicProperties.getTopics()).thenReturn(
+                List.of("General AI Healthcare News", "Anthropic Healthcare", "Beckers Hospital Review"));
+        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+                .thenReturn(List.of(a1));
+        when(articleIngestionPort.fetchAllByTopic(eq("Anthropic Healthcare")))
+                .thenReturn(List.of(a2));
+        when(articleIngestionPort.fetchAllByTopic(eq("Beckers Hospital Review")))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("General AI Healthcare News")))
+                .andExpect(content().string(containsString("Anthropic Healthcare")));
+    }
+
+    @Test
+    void news_hidesEmptyTopicSections() throws Exception {
+        when(newsTopicProperties.getTopics()).thenReturn(
+                List.of("General AI Healthcare News", "Empty Topic"));
+        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+                .thenReturn(List.of(sampleArticle("Some Article", Instant.now())));
+        when(articleIngestionPort.fetchAllByTopic(eq("Empty Topic")))
+                .thenReturn(List.of());
+
+        String html = mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assert !html.contains("Empty Topic") : "Empty topic section should be hidden";
+    }
+
+    @Test
+    void news_rendersArticlesUnderTopic() throws Exception {
+        NewsArticle article = sampleArticle("Mythos in Healthcare", Instant.parse("2026-05-15T10:00:00Z"));
+        when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
+        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+                .thenReturn(List.of(article));
+
+        mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Mythos in Healthcare")));
+    }
+
+    @Test
+    void news_modelContainsTotalArticleCount() throws Exception {
+        when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
+        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("topicArticles", "topicNames", "totalArticles"));
     }
 }

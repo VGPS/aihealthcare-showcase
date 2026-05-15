@@ -23,7 +23,11 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion.feed;
  * </ul>
  *
  * @param topicId     FK to {@code Topic.id} — scopes this feed to a newsletter topic.
- * @param name        Human-readable label used in logs and metrics.
+ * @param name        Human-readable label used in logs, metrics, and {@code sourceName} on articles.
+ * @param topic       Grouping label stamped on every harvested article's {@code topic} field.
+ *                    Multiple feeds can share the same topic so articles appear under one
+ *                    section header on the news listing page.  Falls back to {@code name}
+ *                    when {@code null} or blank.
  * @param url         Fully-qualified RSS or Atom feed URL.
  * @param tier        Harvest tier controlling scheduling and scoring weight.
  * @param baseWeight  Baseline relevance multiplier applied before AI scoring
@@ -31,18 +35,28 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion.feed;
  * @param maxItems    Maximum number of items to ingest per harvest cycle.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-10
- * @updated 2026-04-10
+ * @updated 2026-05-15
  */
 public record FeedSourceConfig(
         Long topicId,
         String name,
+        String topic,
         String url,
         FeedTier tier,
         double baseWeight,
         int maxItems
 ) {
+
+    /**
+     * Returns the effective topic — the explicit {@code topic} if set, otherwise {@code name}.
+     *
+     * @return non-null topic label for article grouping
+     */
+    public String effectiveTopic() {
+        return (topic != null && !topic.isBlank()) ? topic : name;
+    }
 
     /**
      * Harvest tier for a feed source.
