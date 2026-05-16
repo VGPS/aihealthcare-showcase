@@ -11,6 +11,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -38,7 +39,7 @@ import static org.mockito.Mockito.spy;
  * @author  Bill Blackmon
  * @version 5.0
  * @since   2026-04-13
- * @updated 2026-04-25
+ * @updated 2026-05-16
  */
 class NotebookLMServiceTest {
 
@@ -68,6 +69,20 @@ class NotebookLMServiceTest {
                 null, null, "TestSource", null,
                 0.5,
                 null
+        );
+    }
+
+    private static NewsArticle articleWithMeta(String id, String topic, String articleTitle,
+                                                String body, String author, Instant publishedAt) {
+        return new NewsArticle(
+                id,
+                articleTitle,
+                URI.create("https://example.com/" + id),
+                body,
+                topic,
+                author, null, "TestSource", null,
+                0.5,
+                publishedAt
         );
     }
 
@@ -441,5 +456,70 @@ class NotebookLMServiceTest {
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
         assertThat(content).contains("AI &amp; Healthcare &lt;Weekly&gt;");
         assertThat(content).doesNotContain("<Weekly>");
+    }
+
+    // =========================================================================
+    // HTML article meta (author, date, source)
+    // =========================================================================
+
+    @Test
+    void export_htmlArticleShowsAuthorAndDate() throws IOException {
+        // 2026-05-15T12:00:00Z
+        Instant published = Instant.parse("2026-05-15T12:00:00Z");
+        NewsArticle a = articleWithMeta("a-001", "AI", "Safe AI Platform", USEFUL_BODY,
+                "Jane Doe", published);
+
+        service.export(TITLE, List.of(a));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("article-meta");
+        assertThat(content).contains("Jane Doe");
+        assertThat(content).contains("May 15, 2026");
+        assertThat(content).contains("TestSource");
+    }
+
+    @Test
+    void export_htmlArticleOmitsAuthorWhenNull() throws IOException {
+        Instant published = Instant.parse("2026-03-10T08:00:00Z");
+        NewsArticle a = articleWithMeta("a-001", "AI", "AI in Oncology", USEFUL_BODY,
+                null, published);
+
+        service.export(TITLE, List.of(a));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("Mar 10, 2026");
+        assertThat(content).contains("TestSource");
+        // No dangling comma when author is absent
+        assertThat(content).doesNotContain("- ,");
+    }
+
+    @Test
+    void export_htmlArticleOmitsDateWhenNull() throws IOException {
+        NewsArticle a = articleWithMeta("a-001", "AI", "AI Detects Cancer", USEFUL_BODY,
+                "John Smith", null);
+
+        service.export(TITLE, List.of(a));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("John Smith");
+        assertThat(content).contains("TestSource");
+        // No comma before source when date is absent
+        assertThat(content).doesNotContain("Smith,");
+    }
+
+    @Test
+    void export_htmlArticleNoBodyDivOrReadMore() throws IOException {
+        NewsArticle a = article("a-001", "AI", "Test Article", USEFUL_BODY);
+
+        service.export(TITLE, List.of(a));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).doesNotContain("article-body");
+        assertThat(content).doesNotContain("read-more");
+        assertThat(content).doesNotContain("Read article");
     }
 }

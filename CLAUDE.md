@@ -164,7 +164,14 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 19 — Vendor Compare UI — COMPLETE — 470 tests passing**
+**Slice 20 — News Listing UI + Beckers feed + topic/name separation — COMPLETE — 475 tests passing**
+- [x] `GET /dashboard/news` Thymeleaf page — articles grouped under 9 configurable topic section headers
+- [x] `FeedSourceConfig` — new `topic` field + `effectiveTopic()` fallback separating feed identity from grouping
+- [x] `NewsTopicProperties` — `@ConfigurationProperties` binding for topic display order
+- [x] Beckers Hospital Review added as INDUSTRY RSS feed
+- [x] `DashboardControllerTest` expanded (17 tests total)
+
+**Previously complete: Slice 19 — Vendor Compare UI — 470 tests passing**
 - [x] Domain: `CompareVendorsUseCase` inbound port
 - [x] Domain: `VendorAssessmentService` — calls AI with vendor-compare prompt, parses `List<VendorAssessment>`
 - [x] Prompt: `vendor-compare.txt` — structured `## VendorName` + `STRENGTHS/WEAKNESSES/RELEVANCE` format

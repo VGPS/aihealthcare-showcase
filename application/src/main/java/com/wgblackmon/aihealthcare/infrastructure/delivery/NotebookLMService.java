@@ -11,7 +11,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -67,7 +69,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 7.0
  * @since   2026-04-13
- * @updated 2026-05-02
+ * @updated 2026-05-16
  */
 @Slf4j
 @Service
@@ -75,6 +77,9 @@ public class NotebookLMService {
 
     private static final DateTimeFormatter SUMMARY_DATE_FORMAT =
             DateTimeFormatter.ofPattern("yyyy_MM_dd");
+
+    private static final DateTimeFormatter ARTICLE_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneOffset.UTC);
 
     private final String exportDirectory;
     private final String summariesDirectory;
@@ -463,10 +468,8 @@ public class NotebookLMService {
         sb.append("    .article-title { font-size: 1.05em; font-weight: bold; margin-bottom: 6px; }\n");
         sb.append("    .article-title a { color: #1a3a5c; text-decoration: underline; }\n");
         sb.append("    .article-title a:hover { color: #2c5f8a; text-decoration: underline; }\n");
-        sb.append("    .article-body { font-size: 0.93em; color: #444; line-height: 1.65;\n");
-        sb.append("                    margin-top: 6px; }\n");
-        sb.append("    .article-body p { margin-bottom: 0.75em; }\n");
-        sb.append("    .article-body p:last-child { margin-bottom: 0; }\n");
+        sb.append("    .article-meta { font-weight: normal; font-size: 0.85em; color: #666;\n");
+        sb.append("                    font-family: Arial, sans-serif; }\n");
         sb.append("    .toc { background: #fff; border: 1px solid #dce4ec; border-radius: 8px;\n");
         sb.append("           padding: 20px 24px; margin-bottom: 36px; }\n");
         sb.append("    .toc h2 { font-size: 1em; color: #2c5f8a; margin-bottom: 10px;\n");
@@ -476,10 +479,6 @@ public class NotebookLMService {
         sb.append("              font-size: 0.9em; }\n");
         sb.append("    .toc li a { color: #2c5f8a; text-decoration: none; }\n");
         sb.append("    .toc li a:hover { text-decoration: underline; }\n");
-        sb.append("    .read-more { display: inline-block; margin-top: 8px; font-size: 0.85em;\n");
-        sb.append("                 color: #2c5f8a; text-decoration: underline;\n");
-        sb.append("                 font-family: Arial, sans-serif; }\n");
-        sb.append("    .read-more:hover { color: #1a3a5c; }\n");
         sb.append("    .badge { display: inline-block; background: #e8f0fa; color: #2c5f8a;\n");
         sb.append("             font-size: 0.75em; padding: 1px 7px; border-radius: 10px;\n");
         sb.append("             font-family: Arial, sans-serif; margin-left: 6px;\n");
@@ -511,15 +510,18 @@ public class NotebookLMService {
             for (NewsArticle article : entry.getValue()) {
                 String articleTitle = article.title() != null ? article.title() : "(no title)";
                 String url = article.url() != null ? article.url().toString() : "#";
-                String body = resolveBody(article);
 
                 sb.append("    <div class=\"article\">\n");
                 sb.append("      <div class=\"article-title\"><a href=\"").append(escapeHtml(url))
                   .append("\" target=\"_blank\" rel=\"noopener\">")
-                  .append(escapeHtml(articleTitle)).append("</a></div>\n");
-                sb.append("      <div class=\"article-body\">").append(renderBodyAsHtml(body)).append("</div>\n");
-                sb.append("      <a class=\"read-more\" href=\"").append(escapeHtml(url))
-                  .append("\" target=\"_blank\" rel=\"noopener\">Read article &rarr;</a>\n");
+                  .append(escapeHtml(articleTitle)).append("</a>");
+
+                String metaText = buildArticleMeta(article);
+                if (!metaText.isEmpty()) {
+                    sb.append(" <span class=\"article-meta\">- ").append(escapeHtml(metaText)).append("</span>");
+                }
+
+                sb.append("</div>\n");
                 sb.append("    </div>\n");
             }
 
@@ -530,6 +532,51 @@ public class NotebookLMService {
 
         String result = sb.toString();
         log.debug("formatForHtml() | return={} chars", result.length());
+        return result;
+    }
+
+    /**
+     * Builds a compact metadata string for an article card showing author, date,
+     * and source name.  Returns an empty string when no metadata is available.
+     *
+     * <p>Format examples:
+     * <ul>
+     *   <li>{@code "John Smith, May 15, 2026 Stanford HAI"} — author + date + source</li>
+     *   <li>{@code "John Smith Stanford HAI"} — author only (no comma)</li>
+     *   <li>{@code "May 15, 2026 Stanford HAI"} — date only</li>
+     *   <li>{@code "Stanford HAI"} — source only</li>
+     * </ul>
+     *
+     * @param article the article to extract metadata from
+     * @return a metadata string, or empty string if no metadata is available
+     */
+    private String buildArticleMeta(NewsArticle article) {
+        log.debug("buildArticleMeta() | articleId={}", article.articleId());
+
+        boolean hasAuthor = article.author() != null && !article.author().isBlank();
+        boolean hasDate = article.publishedAt() != null;
+        String source = article.sourceName() != null && !article.sourceName().isBlank()
+                ? article.sourceName() : "";
+
+        StringBuilder meta = new StringBuilder();
+        if (hasAuthor) {
+            meta.append(article.author().trim());
+            if (hasDate) {
+                meta.append(", ");
+            }
+        }
+        if (hasDate) {
+            meta.append(ARTICLE_DATE_FORMAT.format(article.publishedAt()));
+        }
+        if (!source.isEmpty()) {
+            if (meta.length() > 0) {
+                meta.append(" ");
+            }
+            meta.append(source);
+        }
+
+        String result = meta.toString();
+        log.debug("buildArticleMeta() | return={}", result);
         return result;
     }
 

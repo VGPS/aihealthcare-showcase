@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-05-15 | Reflects Slice 19 (19 slices complete, 470 tests passing)
+> Last updated: 2026-05-16 | Reflects Slice 20 (20 slices complete, 475 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -52,6 +52,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | 17 | ResearchHarvestScheduler: proactive daily COMBINED pipeline per topic | ~458 |
 | 18 | Research Dashboard UI — Thymeleaf at `/research/runs` | 460 |
 | 19 | Vendor Compare UI — Thymeleaf at `/research/vendors` | 470 |
+| 20 | News Listing UI + Beckers feed + topic/name separation | 475 |
 
 ---
 
@@ -151,6 +152,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /research/runs` | `ResearchDashboardController` | `research-runs.html` — run history |
 | `GET /research/runs/{runId}` | `ResearchDashboardController` | `research-run-detail.html` — run detail |
 | `GET /research/vendors` | `VendorCompareController` | `vendor-compare.html` — vendor comparison card grid |
+| `GET /dashboard/news` | `DashboardController` | `news-listing.html` — articles grouped by topic |
 
 ---
 
@@ -224,4 +226,4 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**460 tests** across 58 test classes — all pass with `mvn test` (no live AI or network calls).
+**475 tests** across 59 test classes — all pass with `mvn test` (no live AI or network calls).
