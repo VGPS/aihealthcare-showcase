@@ -147,10 +147,16 @@
         }
         .title-cell a:hover { color: #4361ee; text-decoration: underline; }
 
-        .meta {
-            font-size: 0.75rem;
-            color: #999;
-            margin-top: 0.2rem;
+        .author-cell {
+            font-size: 0.8rem;
+            color: #555;
+            white-space: nowrap;
+        }
+
+        .source-cell {
+            font-style: italic;
+            font-size: 0.8rem;
+            color: #555;
         }
 
         .tier-badge {
@@ -224,10 +230,11 @@
         <table>
             <thead>
                 <tr>
-                    <th>Title / Author</th>
-                    <th>Source</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Search Source</th>
                     <th>Tier</th>
-                    <th>Published</th>
+                    <th>Publication Date</th>
                 </tr>
             </thead>
             <tbody>
@@ -235,10 +242,12 @@
                     <td class="title-cell">
                         <a th:href="${article.url}" th:text="${article.title}" target="_blank"
                            rel="noopener noreferrer">-</a>
-                        <div class="meta" th:if="${article.author != null}"
-                             th:text="${article.author}"></div>
                     </td>
-                    <td th:text="${article.sourceName != null ? article.sourceName : article.topic}">-</td>
+                    <td class="author-cell" th:if="${article.author != null}"
+                        th:text="${article.author}">-</td>
+                    <td class="author-cell null-date" th:if="${article.author == null}">-</td>
+                    <td class="source-cell"
+                        th:text="${article.sourceName != null ? article.sourceName : ''}">-</td>
                     <td>
                         <span th:if="${article.sourceTier != null}"
                               th:text="${article.sourceTier}"
@@ -246,9 +255,9 @@
                         <span th:if="${article.sourceTier == null}"
                               class="tier-badge tier-unknown">-</span>
                     </td>
-                    <td th:if="${article.publishedAt != null}" class="date-cell"
-                        th:text="${#strings.replace(#strings.substring(article.publishedAt.toString(), 0, 16), 'T', ' ')} + ' UTC'">-</td>
-                    <td th:if="${article.publishedAt == null}" class="date-cell null-date">unknown</td>
+                    <td th:if="${articleDates.containsKey(article.articleId())}" class="date-cell"
+                        th:text="${articleDates.get(article.articleId())}">-</td>
+                    <td th:if="${!articleDates.containsKey(article.articleId())}" class="date-cell null-date">unknown</td>
                 </tr>
             </tbody>
         </table>

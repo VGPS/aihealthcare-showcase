@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +43,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-05-04
- * @updated 2026-05-15
+ * @updated 2026-05-16
  */
 @Slf4j
 @Controller
@@ -50,6 +52,9 @@ public class DashboardController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneOffset.UTC);
+
+    private static final DateTimeFormatter NEWS_DATE_FMT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z").withZone(ZoneId.of("America/New_York"));
 
     private final GetAnalyticsUseCase analyticsUseCase;
     private final ArticleIngestionPort articleIngestionPort;
@@ -143,6 +148,7 @@ public class DashboardController {
         boolean ascending = "asc".equalsIgnoreCase(sort);
 
         Map<String, List<NewsArticle>> topicArticles = new LinkedHashMap<>();
+        Map<String, String> articleDates = new HashMap<>();
         int totalArticles = 0;
 
         for (String topic : topicNames) {
@@ -151,10 +157,17 @@ public class DashboardController {
             sortByPublishedAt(articles, ascending);
             topicArticles.put(topic, articles);
             totalArticles += articles.size();
+
+            for (NewsArticle article : articles) {
+                if (article.publishedAt() != null) {
+                    articleDates.put(article.articleId(), NEWS_DATE_FMT.format(article.publishedAt()));
+                }
+            }
         }
 
         model.addAttribute("topicArticles", topicArticles);
         model.addAttribute("topicNames", topicNames);
+        model.addAttribute("articleDates", articleDates);
         model.addAttribute("sort", sort);
         model.addAttribute("totalArticles", totalArticles);
 
