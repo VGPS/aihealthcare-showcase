@@ -164,7 +164,15 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 20 — News Listing UI + Beckers feed + topic/name separation — COMPLETE — 475 tests passing**
+**Slice 21 — Newsletter Preview/Edit UI with TinyMCE — COMPLETE — 485 tests passing**
+- [x] `NewsletterPreviewController` — `GET /newsletter/runs` (list), `GET /newsletter/runs/{runId}/edit` (TinyMCE editor), `POST .../save`, `POST .../send`
+- [x] `newsletter-runs.html` — run list with status badges and edit links for DRAFT runs
+- [x] `newsletter-edit.html` — TinyMCE 7.9.0 WYSIWYG editor with save/send buttons; Jsoup HTML→plain-text on save
+- [x] TinyMCE 7.9.0 WebJar dependency in `pom.xml`
+- [x] "Newsletter Preview" nav link added to all 6 existing Thymeleaf templates
+- [x] Tests: `NewsletterPreviewControllerTest` (6 MockMvc tests)
+
+**Previously complete: Slice 20 — News Listing UI + Beckers feed + topic/name separation — 475 tests passing**
 - [x] `GET /dashboard/news` Thymeleaf page — articles grouped under 9 configurable topic section headers
 - [x] `FeedSourceConfig` — new `topic` field + `effectiveTopic()` fallback separating feed identity from grouping
 - [x] `NewsTopicProperties` — `@ConfigurationProperties` binding for topic display order
