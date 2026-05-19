@@ -112,6 +112,13 @@
             <version>1.18.3</version>
         </dependency>
 
+        <!-- TinyMCE WYSIWYG editor — served via WebJars at /webjars/tinymce/ (Slice 21) -->
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>tinymce</artifactId>
+            <version>7.9.0</version>
+        </dependency>
+
         <!-- Apache PDFBox — PDF text extraction for document ingestion (Slice 7) -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>

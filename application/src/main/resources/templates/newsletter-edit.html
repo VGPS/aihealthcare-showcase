@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Edit Newsletter</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            font-size: 14px;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+        }
+        header h1 { font-size: 1.25rem; font-weight: 600; }
+        header p  { font-size: 0.8rem; opacity: 0.6; }
+
+        nav {
+            background: #16213e;
+            padding: 0 2rem;
+            display: flex;
+            gap: 1.5rem;
+        }
+        nav a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 0.6rem 0;
+            border-bottom: 2px solid transparent;
+            display: inline-block;
+        }
+        nav a:hover { color: white; }
+        nav a.active { color: white; border-bottom-color: #4361ee; }
+
+        main {
+            max-width: 1200px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .flash-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 6px;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.9rem;
+        }
+
+        .meta-bar {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .meta-item { font-size: 0.85rem; }
+        .meta-label { color: #888; font-size: 0.75rem; text-transform: uppercase; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-DRAFT    { background: #d0e4ff; color: #1a56db; }
+        .status-SENT     { background: #d4edda; color: #155724; }
+        .status-ARCHIVED { background: #e2e3e5; color: #6c757d; }
+
+        .editor-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .button-bar {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+        .btn-primary   { background: #4361ee; color: white; }
+        .btn-primary:hover { background: #3a56d4; }
+        .btn-success   { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-secondary:hover { background: #5a6268; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AIHealthcare</h1>
+    <p>Newsletter Editor</p>
+</header>
+
+<nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/dashboard/news">News Listing</a>
+    <a href="/newsletter/runs" class="active">Newsletter Preview</a>
+    <a href="/research/compare">Research Compare</a>
+    <a href="/research/runs">Research Runs</a>
+    <a href="/research/vendors">Vendor Compare</a>
+</nav>
+
+<main>
+
+    <div class="flash-success" th:if="${saved}">
+        Draft saved successfully.
+    </div>
+
+    <!-- Metadata bar -->
+    <div class="meta-bar">
+        <div class="meta-item">
+            <div class="meta-label">Title</div>
+            <div th:text="${run.title}">-</div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">Week Of</div>
+            <div th:text="${run.weekOf}">-</div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">Status</div>
+            <span class="status-badge"
+                  th:classappend="'status-' + ${run.status.name()}"
+                  th:text="${run.status.name()}">DRAFT</span>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">Generated</div>
+            <div th:text="${generatedAtFormatted}">-</div>
+        </div>
+    </div>
+
+    <!-- Editor -->
+    <div class="editor-section">
+        <form id="saveForm" method="post"
+              th:action="@{/newsletter/runs/{id}/save(id=${run.runId})}">
+            <textarea id="htmlEditor" name="htmlContent"
+                      th:text="${htmlContent}"
+                      style="width:100%; min-height:400px;"></textarea>
+
+            <div class="button-bar">
+                <a href="/newsletter/runs" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Draft</button>
+                <button type="button" class="btn btn-success" id="sendBtn">Send Newsletter</button>
+            </div>
+        </form>
+
+        <!-- Hidden send form -->
+        <form id="sendForm" method="post"
+              th:action="@{/newsletter/runs/{id}/send(id=${run.runId})}"
+              style="display:none;">
+        </form>
+    </div>
+
+</main>
+
+<!-- TinyMCE via WebJars -->
+<script th:src="@{/webjars/tinymce/7.9.0/tinymce.min.js}"></script>
+<script>
+    tinymce.init({
+        selector: '#htmlEditor',
+        height: 600,
+        menubar: false,
+        plugins: 'link lists code',
+        toolbar: 'undo redo | bold italic underline | h1 h2 h3 | bullist numlist | link | code',
+        content_style: 'body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 10px; }',
+        promotion: false,
+        license_key: 'gpl'
+    });
+
+    document.getElementById('sendBtn').addEventListener('click', function() {
+        if (confirm('Send this newsletter to all active subscribers?')) {
+            document.getElementById('sendForm').submit();
+        }
+    });
+</script>
+</body>
+</html>
