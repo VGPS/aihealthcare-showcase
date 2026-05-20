@@ -121,6 +121,7 @@ aihealthcare:
         - "AI Healthcare Software Development"
         - "Healthcare Outsourcing and Jobs Layoffs"
         - "AI Healthcare Government Policy"
+        - "AI Healthcare Legal"
         - "OpenAI Healthcare"
         - "Anthropic Healthcare"
         - "Perplexity Healthcare"
@@ -137,6 +138,7 @@ aihealthcare:
       - "AI Healthcare Software Development"
       - "Healthcare Outsourcing and Jobs Layoffs"
       - "AI Healthcare Government Policy"
+      - "AI Healthcare Legal"
       - "OpenAI Healthcare"
       - "Anthropic Healthcare"
       - "Perplexity Healthcare"
@@ -286,6 +288,23 @@ aihealthcare:
         tier: INDUSTRY
         base-weight: 0.7
         max-items: 25
+      # -----------------------------------------------------------------
+      # AI Healthcare Legal — liability, malpractice, IP, compliance law
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Google News AI Healthcare Legal
+        topic: AI Healthcare Legal
+        url: https://news.google.com/rss/search?q=AI+healthcare+legal+liability+malpractice+lawsuit&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.7
+        max-items: 20
+      - topic-id: 1
+        name: Google News AI Medical Device Regulation
+        topic: AI Healthcare Legal
+        url: https://news.google.com/rss/search?q=AI+medical+device+regulation+compliance+HIPAA&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.7
+        max-items: 20
       # -----------------------------------------------------------------
       # HuggingFace model discovery
       # -----------------------------------------------------------------

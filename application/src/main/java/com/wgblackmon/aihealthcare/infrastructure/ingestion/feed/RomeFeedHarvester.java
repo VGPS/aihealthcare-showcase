@@ -42,7 +42,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-10
- * @updated 2026-05-02
+ * @updated 2026-05-19
  */
 @Slf4j
 @Component
@@ -185,7 +185,7 @@ public class RomeFeedHarvester implements ArticleHarvestingPort {
 
         String author = entry.getAuthor() != null && !entry.getAuthor().isBlank()
                 ? entry.getAuthor().trim()
-                : source.name();
+                : null;
 
         Instant publishedAt = Instant.now();
         Date publishedDate = entry.getPublishedDate() != null

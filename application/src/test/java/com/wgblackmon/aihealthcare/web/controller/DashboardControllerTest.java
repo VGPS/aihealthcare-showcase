@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-05-04
- * @updated 2026-05-15
+ * @updated 2026-05-19
  */
 @WebMvcTest(DashboardController.class)
 class DashboardControllerTest {
@@ -307,6 +307,43 @@ class DashboardControllerTest {
 
         mockMvc.perform(get("/dashboard/news"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("topicArticles", "topicNames", "totalArticles"));
+                .andExpect(model().attributeExists("topicArticles", "topicNames", "totalArticles",
+                        "articleTitles", "articlePublications"));
+    }
+
+    @Test
+    void news_doesNotRenderAuthorOrSearchSourceColumns() throws Exception {
+        NewsArticle article = sampleArticle("Some Article", Instant.parse("2026-05-15T10:00:00Z"));
+        when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
+        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+                .thenReturn(List.of(article));
+
+        String html = mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assert !html.contains(">Author<") : "Author column should not appear";
+        assert !html.contains("Search Source") : "Search Source column should not appear";
+    }
+
+    @Test
+    void news_extractsPublicationFromTitle() throws Exception {
+        NewsArticle article = new NewsArticle(
+                "id-1", "AI in Nursing Practice - CancerNetwork",
+                URI.create("https://example.com/article"),
+                "body text", "General AI Healthcare News", null,
+                1L, "Google News", "INDUSTRY", 0.6, Instant.parse("2026-05-15T10:00:00Z"));
+        when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
+        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+                .thenReturn(List.of(article));
+
+        String html = mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("articlePublications",
+                        org.hamcrest.Matchers.hasEntry("id-1", "CancerNetwork")))
+                .andReturn().getResponse().getContentAsString();
+
+        assert html.contains("AI in Nursing Practice") : "Cleaned title should appear";
+        assert html.contains("CancerNetwork") : "Publication should appear in its own column";
     }
 }

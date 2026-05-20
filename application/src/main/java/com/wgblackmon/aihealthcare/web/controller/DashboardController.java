@@ -43,7 +43,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-05-04
- * @updated 2026-05-16
+ * @updated 2026-05-19
  */
 @Slf4j
 @Controller
@@ -149,6 +149,8 @@ public class DashboardController {
 
         Map<String, List<NewsArticle>> topicArticles = new LinkedHashMap<>();
         Map<String, String> articleDates = new HashMap<>();
+        Map<String, String> articleTitles = new HashMap<>();
+        Map<String, String> articlePublications = new HashMap<>();
         int totalArticles = 0;
 
         for (String topic : topicNames) {
@@ -162,12 +164,22 @@ public class DashboardController {
                 if (article.publishedAt() != null) {
                     articleDates.put(article.articleId(), NEWS_DATE_FMT.format(article.publishedAt()));
                 }
+                String title = article.title();
+                int dashIndex = title.lastIndexOf(" - ");
+                if (dashIndex > 0) {
+                    articleTitles.put(article.articleId(), title.substring(0, dashIndex).trim());
+                    articlePublications.put(article.articleId(), title.substring(dashIndex + 3).trim());
+                } else {
+                    articleTitles.put(article.articleId(), title);
+                }
             }
         }
 
         model.addAttribute("topicArticles", topicArticles);
         model.addAttribute("topicNames", topicNames);
         model.addAttribute("articleDates", articleDates);
+        model.addAttribute("articleTitles", articleTitles);
+        model.addAttribute("articlePublications", articlePublications);
         model.addAttribute("sort", sort);
         model.addAttribute("totalArticles", totalArticles);
 

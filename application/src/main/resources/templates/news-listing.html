@@ -147,18 +147,6 @@
         }
         .title-cell a:hover { color: #4361ee; text-decoration: underline; }
 
-        .author-cell {
-            font-size: 0.8rem;
-            color: #555;
-            white-space: nowrap;
-        }
-
-        .source-cell {
-            font-style: italic;
-            font-size: 0.8rem;
-            color: #555;
-        }
-
         .tier-badge {
             display: inline-block;
             padding: 0.15em 0.55em;
@@ -174,6 +162,13 @@
         .tier-HUGGINGFACE{ background: #fce7f3; color: #9d174d; }
         .tier-PERPLEXITY { background: #e0f2fe; color: #0369a1; }
         .tier-unknown    { background: #f3f4f6; color: #6b7280; }
+
+        .publication-cell {
+            font-size: 0.8rem;
+            color: #555;
+            font-style: italic;
+            white-space: nowrap;
+        }
 
         .date-cell {
             white-space: nowrap;
@@ -232,8 +227,7 @@
             <thead>
                 <tr>
                     <th>Title</th>
-                    <th>Author</th>
-                    <th>Search Source</th>
+                    <th>Publication</th>
                     <th>Tier</th>
                     <th>Publication Date</th>
                 </tr>
@@ -241,14 +235,12 @@
             <tbody>
                 <tr th:each="article : ${topicArticles.get(topicName)}">
                     <td class="title-cell">
-                        <a th:href="${article.url}" th:text="${article.title}" target="_blank"
-                           rel="noopener noreferrer">-</a>
+                        <a th:href="${article.url}"
+                           th:text="${articleTitles.get(article.articleId())}"
+                           target="_blank" rel="noopener noreferrer">-</a>
                     </td>
-                    <td class="author-cell" th:if="${article.author != null}"
-                        th:text="${article.author}">-</td>
-                    <td class="author-cell null-date" th:if="${article.author == null}">-</td>
-                    <td class="source-cell"
-                        th:text="${article.sourceName != null ? article.sourceName : ''}">-</td>
+                    <td class="publication-cell"
+                        th:text="${articlePublications.containsKey(article.articleId()) ? articlePublications.get(article.articleId()) : ''}"></td>
                     <td>
                         <span th:if="${article.sourceTier != null}"
                               th:text="${article.sourceTier}"
