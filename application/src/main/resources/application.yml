@@ -233,6 +233,10 @@ aihealthcare:
         max-items: 20
       # -----------------------------------------------------------------
       # OpenAI Healthcare
+      # Primary: OpenAI's own pages (COMPETITOR — web-scrape, SHA-256)
+      # Secondary: multi-vendor trade press RSS (INDUSTRY — RomeFeedHarvester)
+      # Note: FierceHealthcare + ClinicalTrialsArena omitted here — already
+      #       configured under Anthropic Healthcare; URL dedup means one topic wins.
       # -----------------------------------------------------------------
       - topic-id: 1
         name: Google News OpenAI Healthcare
@@ -241,6 +245,56 @@ aihealthcare:
         tier: INDUSTRY
         base-weight: 0.65
         max-items: 20
+      - topic-id: 1
+        name: OpenAI for Healthcare
+        topic: OpenAI Healthcare
+        url: https://openai.com/index/openai-for-healthcare/
+        tier: COMPETITOR
+        base-weight: 0.75
+        max-items: 5
+      - topic-id: 1
+        name: ChatGPT Health
+        topic: OpenAI Healthcare
+        url: https://openai.com/index/introducing-chatgpt-health/
+        tier: COMPETITOR
+        base-weight: 0.75
+        max-items: 5
+      - topic-id: 1
+        name: OpenAI Index
+        topic: OpenAI Healthcare
+        url: https://openai.com/index
+        tier: COMPETITOR
+        base-weight: 0.65
+        max-items: 5
+        keywords:
+          - health
+          - healthcare
+          - health care
+          - medical
+          - clinical
+          - patient
+          - hospital
+      - topic-id: 1
+        name: MedCity News
+        topic: OpenAI Healthcare
+        url: https://medcitynews.com/feed/
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 15
+      - topic-id: 1
+        name: Healthcare Dive
+        topic: OpenAI Healthcare
+        url: https://www.healthcaredive.com/feeds/news/
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 15
+      - topic-id: 1
+        name: Crescendo AI Healthcare
+        topic: OpenAI Healthcare
+        url: https://www.crescendo.ai/news/ai-in-healthcare-news
+        tier: COMPETITOR
+        base-weight: 0.55
+        max-items: 5
       # -----------------------------------------------------------------
       # Anthropic Healthcare
       # Primary: Anthropic's own pages (COMPETITOR — web-scrape, SHA-256)
@@ -341,7 +395,21 @@ aihealthcare:
         url: https://ai.google/health/
         tier: COMPETITOR
         base-weight: 0.7
-        max-items: 1
+        max-items: 5
+      - topic-id: 1
+        name: Google Check Up Health AI
+        topic: Google Healthcare
+        url: https://blog.google/innovation-and-ai/technology/health/google-check-up-health-ai-updates-2026/
+        tier: COMPETITOR
+        base-weight: 0.65
+        max-items: 5
+      - topic-id: 1
+        name: Med-PaLM Research
+        topic: Google Healthcare
+        url: https://sites.research.google/gr/med-palm/
+        tier: COMPETITOR
+        base-weight: 0.6
+        max-items: 5
       # -----------------------------------------------------------------
       # Beckers Hospital Review
       # -----------------------------------------------------------------
