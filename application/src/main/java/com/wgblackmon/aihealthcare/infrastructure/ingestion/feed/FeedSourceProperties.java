@@ -28,9 +28,9 @@ import java.util.List;
  * </pre>
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-10
- * @updated 2026-04-10
+ * @updated 2026-05-20
  */
 @Slf4j
 @Component
@@ -68,7 +68,8 @@ public class FeedSourceProperties {
                     entry.getUrl(),
                     entry.getTier(),
                     entry.getBaseWeight(),
-                    entry.getMaxItems()
+                    entry.getMaxItems(),
+                    java.util.List.copyOf(entry.getKeywords())
             ));
         }
         List<FeedSourceConfig> result = List.copyOf(configs);
@@ -89,6 +90,7 @@ public class FeedSourceProperties {
         private FeedSourceConfig.FeedTier tier = FeedSourceConfig.FeedTier.INDUSTRY;
         private double baseWeight = 0.5;
         private int maxItems = 25;
+        private java.util.List<String> keywords = new ArrayList<>();
 
         public Long getTopicId() { return topicId; }
         public void setTopicId(Long topicId) { this.topicId = topicId; }
@@ -110,5 +112,10 @@ public class FeedSourceProperties {
 
         public int getMaxItems() { return maxItems; }
         public void setMaxItems(int maxItems) { this.maxItems = maxItems; }
+
+        public java.util.List<String> getKeywords() { return keywords; }
+        public void setKeywords(java.util.List<String> keywords) {
+            this.keywords = keywords == null ? new ArrayList<>() : keywords;
+        }
     }
 }

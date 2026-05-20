@@ -41,7 +41,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-19
- * @updated 2026-05-02
+ * @updated 2026-05-20
  */
 @Slf4j
 @Component
@@ -125,6 +125,13 @@ public class WebPageHarvester {
                  source.name(),
                  storedHash != null ? storedHash.substring(0, 8) + "..." : "NEW",
                  newHash.substring(0, 8) + "...");
+
+        // Keyword filter: if source declares keywords, skip article if none match page content
+        if (!source.matchesKeywords(mainContent)) {
+            log.debug("harvestPage() | keyword filter: no match for '{}', skipping article", source.name());
+            log.debug("harvestPage() | return=null");
+            return null;
+        }
 
         String title = doc.title().isBlank() ? source.name() : doc.title();
         String bodyText = mainContent.length() > MAX_BODY_LENGTH

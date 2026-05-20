@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-19
- * @updated 2026-04-19
+ * @updated 2026-05-20
  */
 @ExtendWith(MockitoExtension.class)
 class WebPageHarvesterTest {
@@ -41,7 +41,7 @@ class WebPageHarvesterTest {
     private static final FeedSourceConfig COMPETITOR_SOURCE = new FeedSourceConfig(
             1L, "Test Competitor", "Google Healthcare",
             "https://example.com/health",
-            FeedTier.COMPETITOR, 0.7, 1);
+            FeedTier.COMPETITOR, 0.7, 1, java.util.List.of());
 
     @BeforeEach
     void setUp() {
@@ -54,6 +54,7 @@ class WebPageHarvesterTest {
         entry.setTier(FeedTier.COMPETITOR);
         entry.setBaseWeight(0.7);
         entry.setMaxItems(1);
+        entry.setKeywords(List.of());
         properties.setSources(List.of(entry));
 
         harvester = spy(new WebPageHarvester(properties, contentHashPort));
@@ -165,5 +166,59 @@ class WebPageHarvesterTest {
         List<NewsArticle> result = harvester.harvestChangedPages();
 
         assertThat(result.get(0).url().toString()).startsWith("https://example.com/health#snapshot-");
+    }
+
+    @Test
+    void harvestChangedPages_keywordMatch_returnsArticle() {
+        FeedSourceProperties props = new FeedSourceProperties();
+        FeedSourceProperties.FeedEntry entry = new FeedSourceProperties.FeedEntry();
+        entry.setTopicId(1L);
+        entry.setName("Filtered Source");
+        entry.setTopic("Anthropic Healthcare");
+        entry.setUrl("https://example.com/anthropic");
+        entry.setTier(FeedTier.COMPETITOR);
+        entry.setBaseWeight(0.7);
+        entry.setMaxItems(5);
+        entry.setKeywords(List.of("healthcare"));
+        props.setSources(List.of(entry));
+
+        WebPageHarvester filteredHarvester = spy(new WebPageHarvester(props, contentHashPort));
+        doReturn("<html><head><title>Anthropic in Healthcare</title></head>" +
+                 "<body><main>New healthcare AI content from Anthropic</main></body></html>")
+                .when(filteredHarvester).fetchPageHtml("https://example.com/anthropic");
+        when(contentHashPort.getHash("https://example.com/anthropic")).thenReturn(null);
+
+        List<NewsArticle> result = filteredHarvester.harvestChangedPages();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).topic()).isEqualTo("Anthropic Healthcare");
+        verify(contentHashPort).saveHash(eq("https://example.com/anthropic"), anyString());
+    }
+
+    @Test
+    void harvestChangedPages_keywordMismatch_returnsEmptyButSavesHash() {
+        FeedSourceProperties props = new FeedSourceProperties();
+        FeedSourceProperties.FeedEntry entry = new FeedSourceProperties.FeedEntry();
+        entry.setTopicId(1L);
+        entry.setName("Filtered Source");
+        entry.setTopic("Anthropic Healthcare");
+        entry.setUrl("https://example.com/anthropic");
+        entry.setTier(FeedTier.COMPETITOR);
+        entry.setBaseWeight(0.7);
+        entry.setMaxItems(5);
+        entry.setKeywords(List.of("healthcare"));
+        props.setSources(List.of(entry));
+
+        WebPageHarvester filteredHarvester = spy(new WebPageHarvester(props, contentHashPort));
+        doReturn("<html><head><title>Anthropic Safety Research</title></head>" +
+                 "<body><main>New safety policy announcement with no medical content</main></body></html>")
+                .when(filteredHarvester).fetchPageHtml("https://example.com/anthropic");
+        when(contentHashPort.getHash("https://example.com/anthropic")).thenReturn(null);
+
+        List<NewsArticle> result = filteredHarvester.harvestChangedPages();
+
+        assertThat(result).isEmpty();
+        // Hash must still be saved to avoid re-triggering on unchanged content next cycle
+        verify(contentHashPort).saveHash(eq("https://example.com/anthropic"), anyString());
     }
 }

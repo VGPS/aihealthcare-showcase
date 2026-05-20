@@ -46,7 +46,7 @@ class HuggingFaceHarvesterTest {
             1L, "HuggingFace Healthcare LLMs",
             "General AI Healthcare News",
             "https://huggingface.co/api/models?search=healthcare",
-            FeedTier.HUGGINGFACE, 0.5, 25);
+            FeedTier.HUGGINGFACE, 0.5, 25, java.util.List.of());
 
     private static final String SAMPLE_RESPONSE = """
             [
@@ -142,7 +142,7 @@ class HuggingFaceHarvesterTest {
         FeedSourceConfig limitedSource = new FeedSourceConfig(
                 1L, "HF Limited", "General AI Healthcare News",
                 "https://huggingface.co/api/models",
-                FeedTier.HUGGINGFACE, 0.5, 1);
+                FeedTier.HUGGINGFACE, 0.5, 1, java.util.List.of());
         ObjectMapper objectMapper = new ObjectMapper()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         HuggingFaceHarvester limitedHarvester = new HuggingFaceHarvester(

@@ -22,22 +22,29 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion.feed;
  *   <li>INDUSTRY   – frequent harvest (every few hours), needs AI filtering</li>
  * </ul>
  *
+ * <p>The optional {@code keywords} list applies only to {@code COMPETITOR}-tier sources
+ * processed by {@link com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester}.
+ * When non-empty, a page change is only emitted as an article if at least one keyword
+ * appears (case-insensitive) in the extracted page content.  An empty list disables
+ * filtering (all changes are accepted).
+ *
  * @param topicId     FK to {@code Topic.id} — scopes this feed to a newsletter topic.
  * @param name        Human-readable label used in logs, metrics, and {@code sourceName} on articles.
  * @param topic       Grouping label stamped on every harvested article's {@code topic} field.
  *                    Multiple feeds can share the same topic so articles appear under one
  *                    section header on the news listing page.  Falls back to {@code name}
  *                    when {@code null} or blank.
- * @param url         Fully-qualified RSS or Atom feed URL.
+ * @param url         Fully-qualified RSS, Atom, or web page URL.
  * @param tier        Harvest tier controlling scheduling and scoring weight.
  * @param baseWeight  Baseline relevance multiplier applied before AI scoring
  *                    (0.0 – 1.0; higher = more trusted source).
- * @param maxItems    Maximum number of items to ingest per harvest cycle.
+ * @param maxItems    Maximum number of items to ingest per harvest cycle (RSS/Atom only).
+ * @param keywords    Optional keyword filter for COMPETITOR-tier web pages.  Empty = no filter.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-04-10
- * @updated 2026-05-15
+ * @updated 2026-05-20
  */
 public record FeedSourceConfig(
         Long topicId,
@@ -46,7 +53,8 @@ public record FeedSourceConfig(
         String url,
         FeedTier tier,
         double baseWeight,
-        int maxItems
+        int maxItems,
+        java.util.List<String> keywords
 ) {
 
     /**
@@ -56,6 +64,22 @@ public record FeedSourceConfig(
      */
     public String effectiveTopic() {
         return (topic != null && !topic.isBlank()) ? topic : name;
+    }
+
+    /**
+     * Returns {@code true} if the source has no keyword filter (empty list) or if at least
+     * one configured keyword appears (case-insensitive) in the given text.
+     *
+     * @param text the page content to test against the keyword list
+     * @return {@code true} if the content should produce an article
+     */
+    public boolean matchesKeywords(String text) {
+        if (keywords.isEmpty()) return true;
+        String lower = text.toLowerCase();
+        for (String kw : keywords) {
+            if (lower.contains(kw.toLowerCase())) return true;
+        }
+        return false;
     }
 
     /**

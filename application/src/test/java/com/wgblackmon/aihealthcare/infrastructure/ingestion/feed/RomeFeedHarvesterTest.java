@@ -52,7 +52,7 @@ class RomeFeedHarvesterTest {
                 new FeedSourceConfig(TEST_TOPIC_ID, "Bad Feed",
                         "General AI Healthcare News",
                         "http://localhost:0/nonexistent-feed.rss",
-                        FeedTier.INDUSTRY, 0.5, 10)
+                        FeedTier.INDUSTRY, 0.5, 10, java.util.List.of())
         ));
 
         harvester = new RomeFeedHarvester(mockProperties, new ArticleRelevanceFilter());
@@ -91,7 +91,8 @@ class RomeFeedHarvesterTest {
                 "https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=artificial+intelligence+healthcare&format=rss",
                 FeedTier.ACADEMIC,
                 0.90,
-                50
+                50,
+                java.util.List.of()
         );
 
         assertThat(config.topicId()).isEqualTo(42L);

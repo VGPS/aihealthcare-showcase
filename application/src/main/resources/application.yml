@@ -243,6 +243,10 @@ aihealthcare:
         max-items: 20
       # -----------------------------------------------------------------
       # Anthropic Healthcare
+      # Primary: Anthropic's own pages (COMPETITOR — web-scrape, SHA-256)
+      # Secondary: industry RSS feeds (INDUSTRY — RomeFeedHarvester)
+      # Skipped: Bloomberg (bot-blocking, no public RSS), Forbes (no scoped RSS,
+      #          covered by existing Google News entries), LinkedIn (ToS prohibits scraping)
       # -----------------------------------------------------------------
       - topic-id: 1
         name: Anthropic Healthcare AI
@@ -250,7 +254,67 @@ aihealthcare:
         url: https://www.anthropic.com/news/healthcare-life-sciences
         tier: COMPETITOR
         base-weight: 0.7
-        max-items: 1
+        max-items: 5
+      - topic-id: 1
+        name: Anthropic General News
+        topic: Anthropic Healthcare
+        url: https://www.anthropic.com/news
+        tier: COMPETITOR
+        base-weight: 0.65
+        max-items: 5
+        keywords:
+          - healthcare
+          - health care
+          - clinical
+          - medical
+          - hospital
+          - patient
+          - life sciences
+          - pharma
+          - hipaa
+          - ehr
+      - topic-id: 1
+        name: FierceHealthcare AI
+        topic: Anthropic Healthcare
+        url: https://www.fiercehealthcare.com/rss/xml
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 15
+      - topic-id: 1
+        name: ClinicalTrialsArena
+        topic: Anthropic Healthcare
+        url: https://www.clinicaltrialsarena.com/feed/
+        tier: INDUSTRY
+        base-weight: 0.6
+        max-items: 10
+      - topic-id: 1
+        name: IntrepidGP Healthcare AI
+        topic: Anthropic Healthcare
+        url: https://intrepidgp.substack.com/feed
+        tier: INDUSTRY
+        base-weight: 0.6
+        max-items: 10
+      - topic-id: 1
+        name: Chartis Healthcare Insights
+        topic: Anthropic Healthcare
+        url: https://www.chartis.com/insights
+        tier: COMPETITOR
+        base-weight: 0.6
+        max-items: 5
+      - topic-id: 1
+        name: Goodie AI Blog
+        topic: Anthropic Healthcare
+        url: https://higoodie.com/blog
+        tier: COMPETITOR
+        base-weight: 0.55
+        max-items: 5
+        keywords:
+          - healthcare
+          - health care
+          - clinical
+          - medical
+          - hospital
+          - patient
       # -----------------------------------------------------------------
       # Perplexity Healthcare
       # -----------------------------------------------------------------
