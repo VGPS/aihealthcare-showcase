@@ -371,14 +371,50 @@ aihealthcare:
           - patient
       # -----------------------------------------------------------------
       # Perplexity Healthcare
+      # Primary: Perplexity's own pages (COMPETITOR — web-scrape, SHA-256)
+      # Hub page keyword-filtered; dedicated health pages unfiltered.
+      # PR Newswire keyword-filtered for health-related Perplexity press releases.
       # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Perplexity Hub
+        topic: Perplexity Healthcare
+        url: https://www.perplexity.ai/hub
+        tier: COMPETITOR
+        base-weight: 0.7
+        max-items: 5
+        keywords:
+          - health
+          - healthcare
+          - medical
+          - clinical
+          - patient
+          - hospital
       - topic-id: 1
         name: Perplexity Health Blog
         topic: Perplexity Healthcare
         url: https://www.perplexity.ai/hub/blog/introducing-perplexity-health
         tier: COMPETITOR
+        base-weight: 0.7
+        max-items: 5
+      - topic-id: 1
+        name: Perplexity Premium Health Sources
+        topic: Perplexity Healthcare
+        url: https://www.perplexity.ai/hub/blog/announcing-premium-health-sources
+        tier: COMPETITOR
+        base-weight: 0.7
+        max-items: 5
+      - topic-id: 1
+        name: PR Newswire Perplexity
+        topic: Perplexity Healthcare
+        url: https://www.prnewswire.com/search/news/?keyword=Perplexity
+        tier: COMPETITOR
         base-weight: 0.6
-        max-items: 1
+        max-items: 5
+        keywords:
+          - health
+          - healthcare
+          - medical
+          - clinical
       - topic-id: 1
         name: Perplexity Sonar API
         topic: Perplexity Healthcare
