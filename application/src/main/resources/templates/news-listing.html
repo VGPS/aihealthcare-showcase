@@ -228,7 +228,6 @@
                 <tr>
                     <th>Title</th>
                     <th>Publication</th>
-                    <th>Tier</th>
                     <th>Publication Date</th>
                 </tr>
             </thead>
@@ -241,13 +240,6 @@
                     </td>
                     <td class="publication-cell"
                         th:text="${articlePublications.containsKey(article.articleId()) ? articlePublications.get(article.articleId()) : ''}"></td>
-                    <td>
-                        <span th:if="${article.sourceTier != null}"
-                              th:text="${article.sourceTier}"
-                              th:classappend="'tier-badge tier-' + ${article.sourceTier}">-</span>
-                        <span th:if="${article.sourceTier == null}"
-                              class="tier-badge tier-unknown">-</span>
-                    </td>
                     <td th:if="${articleDates.containsKey(article.articleId())}" class="date-cell"
                         th:text="${articleDates.get(article.articleId())}">-</td>
                     <td th:if="${!articleDates.containsKey(article.articleId())}" class="date-cell null-date">unknown</td>
