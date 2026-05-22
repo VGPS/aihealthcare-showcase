@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Thymeleaf controller that renders the analytics dashboard and article-detail pages.
@@ -43,7 +45,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-05-04
- * @updated 2026-05-19
+ * @updated 2026-05-21
  */
 @Slf4j
 @Controller
@@ -59,13 +61,16 @@ public class DashboardController {
     private final GetAnalyticsUseCase analyticsUseCase;
     private final ArticleIngestionPort articleIngestionPort;
     private final NewsTopicProperties newsTopicProperties;
+    private final TopicSummaryPort topicSummaryPort;
 
     public DashboardController(GetAnalyticsUseCase analyticsUseCase,
                                ArticleIngestionPort articleIngestionPort,
-                               NewsTopicProperties newsTopicProperties) {
+                               NewsTopicProperties newsTopicProperties,
+                               TopicSummaryPort topicSummaryPort) {
         this.analyticsUseCase     = analyticsUseCase;
         this.articleIngestionPort = articleIngestionPort;
         this.newsTopicProperties  = newsTopicProperties;
+        this.topicSummaryPort     = topicSummaryPort;
     }
 
     /**
@@ -154,8 +159,13 @@ public class DashboardController {
         int totalArticles = 0;
 
         for (String topic : topicNames) {
-            List<NewsArticle> articles = new ArrayList<>(
-                    articleIngestionPort.fetchAllByTopic(topic));
+            List<NewsArticle> fetched = articleIngestionPort.fetchAllByTopic(topic);
+            List<NewsArticle> articles = new ArrayList<>();
+            for (NewsArticle a : fetched) {
+                if (!"Anthropic Healthcare AI".equals(a.title())) {
+                    articles.add(a);
+                }
+            }
             sortByPublishedAt(articles, ascending);
             topicArticles.put(topic, articles);
             totalArticles += articles.size();
@@ -175,11 +185,24 @@ public class DashboardController {
             }
         }
 
+        Map<String, String> topicSummaries = new HashMap<>();
+        for (String topic : topicNames) {
+            List<NewsArticle> articles = topicArticles.get(topic);
+            if (articles != null && articles.size() > 1) {
+                Optional<com.wgblackmon.aihealthcare.domain.model.TopicSummary> summary =
+                        topicSummaryPort.findByTopic(topic);
+                if (summary.isPresent()) {
+                    topicSummaries.put(topic, summary.get().summaryText());
+                }
+            }
+        }
+
         model.addAttribute("topicArticles", topicArticles);
         model.addAttribute("topicNames", topicNames);
         model.addAttribute("articleDates", articleDates);
         model.addAttribute("articleTitles", articleTitles);
         model.addAttribute("articlePublications", articlePublications);
+        model.addAttribute("topicSummaries", topicSummaries);
         model.addAttribute("sort", sort);
         model.addAttribute("totalArticles", totalArticles);
 

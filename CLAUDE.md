@@ -9,6 +9,32 @@ See @docs/CONVENTIONS.md for all coding rules (logging, loops, records, class he
 
 ---
 
+## LLM Behavioral Guidelines
+> Adapted from [Karpathy guidelines](CLAUDE_karpathy.md). These complement the project-specific conventions below.
+
+### Think Before Coding
+- State assumptions explicitly. If uncertain, ask before implementing.
+- If multiple interpretations exist, present them — don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+
+### Simplicity First
+- No features beyond what was asked. No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- If you write 200 lines and it could be 50, rewrite it.
+
+### Surgical Changes
+- Don't "improve" adjacent code, comments, or formatting — touch only what you must.
+- Don't refactor things that aren't broken. Match existing style.
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked — mention it instead.
+- Every changed line should trace directly to the user's request.
+
+### Goal-Driven Execution
+- Transform tasks into verifiable goals (e.g. "write a test that reproduces the bug, then fix it").
+- For multi-step tasks, state a brief plan with verification checks per step.
+
+---
+
 ## Module Structure
 ```
 AIHealthcare/

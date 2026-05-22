@@ -3,6 +3,8 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion.feed;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.Topic;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
+import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.ArticleRelevanceFilter;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceConfig.FeedTier;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +45,12 @@ class RomeFeedHarvesterTest {
 
     @Mock
     private ArticleStoragePort mockArticleStoragePort;
+
+    @Mock
+    private TopicSummaryGenerationService mockTopicSummaryService;
+
+    @Mock
+    private NewsTopicProperties mockNewsTopicProperties;
 
     private RomeFeedHarvester harvester;
 
@@ -170,7 +178,7 @@ class RomeFeedHarvesterTest {
     @Test
     @DisplayName("FeedHarvestScheduler constructs successfully with both ports")
     void feedHarvestScheduler_constructionWithBothPorts_doesNotThrow() {
-        FeedHarvestScheduler scheduler = new FeedHarvestScheduler(harvester, mockArticleStoragePort);
+        FeedHarvestScheduler scheduler = new FeedHarvestScheduler(harvester, mockArticleStoragePort, mockTopicSummaryService, mockNewsTopicProperties);
 
         assertThat(scheduler).isNotNull();
     }

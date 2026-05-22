@@ -3,6 +3,8 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
+import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashEntity;
@@ -30,7 +32,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-19
- * @updated 2026-04-19
+ * @updated 2026-05-22
  */
 @Slf4j
 @RestController
@@ -42,12 +44,16 @@ public class WebMonitoringController {
     private final ArticleStoragePort articleStoragePort;
     private final PageContentHashRepository hashRepository;
     private final ArticleHarvestingPort articleHarvestingPort;
+    private final TopicSummaryGenerationService topicSummaryService;
+    private final NewsTopicProperties newsTopicProperties;
 
     public WebMonitoringController(WebPageHarvester webPageHarvester,
                                    HuggingFaceHarvester huggingFaceHarvester,
                                    ArticleStoragePort articleStoragePort,
                                    PageContentHashRepository hashRepository,
-                                   ArticleHarvestingPort articleHarvestingPort) {
+                                   ArticleHarvestingPort articleHarvestingPort,
+                                   TopicSummaryGenerationService topicSummaryService,
+                                   NewsTopicProperties newsTopicProperties) {
         log.debug("WebMonitoringController() | webPageHarvester={}, huggingFaceHarvester={}, " +
                   "articleStoragePort={}, hashRepository={}",
                   webPageHarvester.getClass().getSimpleName(),
@@ -59,6 +65,8 @@ public class WebMonitoringController {
         this.articleStoragePort = articleStoragePort;
         this.hashRepository = hashRepository;
         this.articleHarvestingPort = articleHarvestingPort;
+        this.topicSummaryService = topicSummaryService;
+        this.newsTopicProperties = newsTopicProperties;
     }
 
     /**
@@ -124,6 +132,24 @@ public class WebMonitoringController {
         log.info("triggerFeedHarvest() | harvested and saved {} articles", all.size());
         log.debug("triggerFeedHarvest() | return={}", response);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Manually triggers AI topic summary generation for all configured topics.
+     *
+     * @return simple text confirmation
+     */
+    @PostMapping("/summaries")
+    public ResponseEntity<String> triggerTopicSummaries() {
+        log.debug("triggerTopicSummaries() | (no args)");
+
+        List<String> topics = newsTopicProperties.getTopics();
+        topicSummaryService.generateSummaries(topics);
+
+        String result = "Generated summaries for " + topics.size() + " topics";
+        log.info("triggerTopicSummaries() | {}", result);
+        log.debug("triggerTopicSummaries() | return={}", result);
+        return ResponseEntity.ok(result);
     }
 
     /**

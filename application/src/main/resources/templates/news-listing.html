@@ -183,6 +183,23 @@
             color: #bbb;
             font-style: italic;
         }
+
+        .topic-summary {
+            padding: 0.875rem 1.25rem;
+            border-top: 1px solid #f0f0f0;
+            background: #f8f9ff;
+            font-size: 0.85rem;
+            color: #444;
+            line-height: 1.6;
+        }
+        .topic-summary .summary-label {
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #1a73e8;
+            margin-bottom: 0.35rem;
+        }
     </style>
 </head>
 <body>
@@ -246,6 +263,10 @@
                 </tr>
             </tbody>
         </table>
+        <div th:if="${topicSummaries.containsKey(topicName)}" class="topic-summary">
+            <div class="summary-label">AI Summary</div>
+            <p th:text="${topicSummaries.get(topicName)}"></p>
+        </div>
     </div>
 
 </main>

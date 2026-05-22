@@ -7,7 +7,9 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.VariantScore;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
+import com.wgblackmon.aihealthcare.domain.model.TopicSummary;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-05-04
- * @updated 2026-05-19
+ * @updated 2026-05-21
  */
 @WebMvcTest(DashboardController.class)
 class DashboardControllerTest {
@@ -54,6 +57,9 @@ class DashboardControllerTest {
 
     @MockitoBean
     private NewsTopicProperties newsTopicProperties;
+
+    @MockitoBean
+    private TopicSummaryPort topicSummaryPort;
 
     // -------------------------------------------------------------------------
     // Fixtures
@@ -345,5 +351,55 @@ class DashboardControllerTest {
 
         assert html.contains("AI in Nursing Practice") : "Cleaned title should appear";
         assert html.contains("CancerNetwork") : "Publication should appear in its own column";
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /dashboard/news — topic summaries
+    // -------------------------------------------------------------------------
+
+    @Test
+    void news_rendersTopicSummaryWhenPresent() throws Exception {
+        NewsArticle a1 = sampleArticle("Article One", Instant.parse("2026-05-15T10:00:00Z"));
+        NewsArticle a2 = new NewsArticle(
+                "id-2", "Article Two", URI.create("https://example.com/article-2"),
+                "body text", "General AI Healthcare News", null,
+                1L, "PubMed", "ACADEMIC", 0.9, Instant.parse("2026-05-15T09:00:00Z"));
+        when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
+        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+                .thenReturn(List.of(a1, a2));
+        when(topicSummaryPort.findByTopic(eq("General AI Healthcare News")))
+                .thenReturn(Optional.of(new TopicSummary(
+                        "General AI Healthcare News",
+                        "AI healthcare is advancing rapidly. New tools are emerging. Research continues.",
+                        Instant.parse("2026-05-21T10:00:00Z"))));
+
+        mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("AI healthcare is advancing rapidly")))
+                .andExpect(content().string(containsString("AI Summary")));
+    }
+
+    @Test
+    void news_noSummaryForSingleArticleTopic() throws Exception {
+        when(newsTopicProperties.getTopics()).thenReturn(List.of("Anthropic Healthcare"));
+        when(articleIngestionPort.fetchAllByTopic(eq("Anthropic Healthcare")))
+                .thenReturn(List.of(sampleArticle("Single Article", Instant.now())));
+
+        String html = mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        assert !html.contains("AI Summary") : "Summary should not appear for single-article topics";
+    }
+
+    @Test
+    void news_modelContainsTopicSummariesAttribute() throws Exception {
+        when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
+        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("topicSummaries"));
     }
 }

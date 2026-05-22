@@ -18,6 +18,7 @@ import com.wgblackmon.aihealthcare.domain.service.PromptEvaluationService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchOrchestratorService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchPlanningService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
+import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiReportPort;
@@ -33,6 +34,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchExportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SearchPromptPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.infrastructure.research.LegacyGoogleResearchAdapter;
 import com.wgblackmon.aihealthcare.infrastructure.research.PerplexityResearchAdapter;
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +77,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-27
+ * @updated 2026-05-21
  */
 
 @Slf4j
@@ -309,6 +311,30 @@ public class AppConfig {
                 vendorAssessmentService);
 
         log.debug("researchOrchestratorService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link TopicSummaryGenerationService} bean that generates
+     * 3-sentence AI summaries for topic sections on the news listing page.
+     *
+     * @param aiPort        Adapter implementing AI summarization (auto-detected).
+     * @param summaryPort   Adapter implementing topic summary persistence (auto-detected).
+     * @param ingestionPort Adapter implementing article fetching (auto-detected).
+     * @return The wired {@link TopicSummaryGenerationService} instance.
+     */
+    @Bean
+    public TopicSummaryGenerationService topicSummaryGenerationService(
+            AiSummarizationPort aiPort,
+            TopicSummaryPort summaryPort,
+            ArticleIngestionPort ingestionPort) {
+        log.debug("topicSummaryGenerationService() | aiPort={}, summaryPort={}, ingestionPort={}",
+                  aiPort.getClass().getSimpleName(),
+                  summaryPort.getClass().getSimpleName(),
+                  ingestionPort.getClass().getSimpleName());
+        TopicSummaryGenerationService result =
+                new TopicSummaryGenerationService(aiPort, summaryPort, ingestionPort);
+        log.debug("topicSummaryGenerationService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

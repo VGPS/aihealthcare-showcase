@@ -3,6 +3,8 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
+import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashEntity;
@@ -29,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-19
- * @updated 2026-04-19
+ * @updated 2026-05-22
  */
 @WebMvcTest(WebMonitoringController.class)
 class WebMonitoringControllerTest {
@@ -51,6 +53,12 @@ class WebMonitoringControllerTest {
 
     @MockBean
     private ArticleHarvestingPort articleHarvestingPort;
+
+    @MockBean
+    private TopicSummaryGenerationService topicSummaryService;
+
+    @MockBean
+    private NewsTopicProperties newsTopicProperties;
 
     @Test
     void triggerCompetitorHarvest_withChanges_returns200() throws Exception {
@@ -124,6 +132,16 @@ class WebMonitoringControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void triggerTopicSummaries_returns200() throws Exception {
+        when(newsTopicProperties.getTopics()).thenReturn(List.of("AI Healthcare", "OpenAI Healthcare"));
+
+        mockMvc.perform(post("/api/v1/monitoring/summaries"))
+                .andExpect(status().isOk());
+
+        verify(topicSummaryService).generateSummaries(List.of("AI Healthcare", "OpenAI Healthcare"));
     }
 
     @Test

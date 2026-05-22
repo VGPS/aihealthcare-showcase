@@ -64,7 +64,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-04-04
- * @updated 2026-04-28
+ * @updated 2026-05-21
  */
 @Slf4j
 @Component
@@ -208,6 +208,27 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
         String result = chatClient.prompt(prompt).call().content();
         log.info("generateIntroduction() | Introduction generated, length={} chars", result.length());
         log.debug("generateIntroduction() | return={}", result);
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p><b>Implementation detail:</b> builds a lightweight prompt using only article
+     * titles (not full body text) to minimize token cost.  Returns the model's
+     * response directly as a plain-text string.
+     */
+    @Override
+    public String generateTopicSummary(String topic, List<NewsArticle> articles) {
+        log.debug("generateTopicSummary() | topic={}, articleCount={}", topic, articles.size());
+
+        String prompt = buildTopicSummaryPrompt(topic, articles);
+        log.debug("generateTopicSummary() | sending prompt to LLM, length={} chars", prompt.length());
+
+        String result = chatClient.prompt(prompt).call().content();
+        log.info("generateTopicSummary() | Summary generated for topic={}, length={} chars",
+                 topic, result.length());
+        log.debug("generateTopicSummary() | return={}", result);
         return result;
     }
 
@@ -358,6 +379,30 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
                 .replace("{headlines}", headlines.toString().trim());
 
         log.debug("buildIntroductionPrompt() | return=prompt[{} chars]", result.length());
+        return result;
+    }
+
+    /**
+     * Constructs the topic summary prompt using only article titles to keep
+     * token cost low.  Loads the {@code topic-summary.txt} template.
+     */
+    private String buildTopicSummaryPrompt(String topic, List<NewsArticle> articles) {
+        log.debug("buildTopicSummaryPrompt() | topic={}, articleCount={}", topic, articles.size());
+
+        StringBuilder titlesBlock = new StringBuilder();
+        int index = 1;
+        for (NewsArticle article : articles) {
+            titlesBlock.append(index).append(". ").append(article.title()).append("\n");
+            index++;
+        }
+
+        String template = promptLoaderService.load("topic-summary.txt");
+        String result = template
+                .replace("{topic}", topic)
+                .replace("{articleCount}", String.valueOf(articles.size()))
+                .replace("{articleTitles}", titlesBlock.toString().trim());
+
+        log.debug("buildTopicSummaryPrompt() | return=prompt[{} chars]", result.length());
         return result;
     }
 

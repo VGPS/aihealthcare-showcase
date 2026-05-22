@@ -124,6 +124,7 @@ aihealthcare:
         - "AI Healthcare Legal"
         - "OpenAI Healthcare"
         - "Anthropic Healthcare"
+        - "Amazon Connect Health"
         - "Perplexity Healthcare"
         - "Google Healthcare"
         - "Beckers Hospital Review"
@@ -141,6 +142,7 @@ aihealthcare:
       - "AI Healthcare Legal"
       - "OpenAI Healthcare"
       - "Anthropic Healthcare"
+      - "Amazon Connect Health"
       - "Perplexity Healthcare"
       - "Google Healthcare"
       - "Beckers Hospital Review"
@@ -369,6 +371,129 @@ aihealthcare:
           - medical
           - hospital
           - patient
+      # -----------------------------------------------------------------
+      # Amazon Connect Health
+      # Primary: AWS product pages + official announcements (COMPETITOR — web-scrape)
+      # Secondary: industry coverage from HealthcareDive, HLTH, MobiHealthNews,
+      #   TechTarget, GeekWire
+      # Broader context: AWS Health hub, HealthLake, Gen AI landing pages
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Amazon Connect Health Product
+        topic: Amazon Connect Health
+        url: https://aws.amazon.com/products/connect/health/
+        tier: COMPETITOR
+        base-weight: 0.7
+        max-items: 5
+      - topic-id: 1
+        name: AWS Connect Health Launch
+        topic: Amazon Connect Health
+        url: https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-connect-health-agentic-ai-healthcare/
+        tier: COMPETITOR
+        base-weight: 0.7
+        max-items: 5
+      - topic-id: 1
+        name: About Amazon Connect Health
+        topic: Amazon Connect Health
+        url: https://www.aboutamazon.com/news/aws/amazon-connect-health-ai-healthcare
+        tier: COMPETITOR
+        base-weight: 0.7
+        max-items: 5
+      - topic-id: 1
+        name: AWS Industries Blog Connect Health
+        topic: Amazon Connect Health
+        url: https://aws.amazon.com/blogs/industries/introducing-amazon-connect-health-agentic-ai-for-healthcare-built-for-the-people-who-deliver-care/
+        tier: COMPETITOR
+        base-weight: 0.7
+        max-items: 5
+      - topic-id: 1
+        name: AWS Connect Health Docs
+        topic: Amazon Connect Health
+        url: https://docs.aws.amazon.com/connecthealth/latest/userguide/what-is-service.html
+        tier: COMPETITOR
+        base-weight: 0.65
+        max-items: 5
+      - topic-id: 1
+        name: HealthcareDive Connect Health
+        topic: Amazon Connect Health
+        url: https://www.healthcaredive.com/news/amazon-web-services-launch-amazon-connect-health-ai-agent/813796/
+        tier: COMPETITOR
+        base-weight: 0.65
+        max-items: 5
+      - topic-id: 1
+        name: HLTH Connect Health
+        topic: Amazon Connect Health
+        url: https://hlth.com/insights/news/aws-launches-amazon-connect-health-to-expand-ai-agent-capabilities-in-healthcare-2026-03-06
+        tier: COMPETITOR
+        base-weight: 0.65
+        max-items: 5
+      - topic-id: 1
+        name: MobiHealthNews Connect Health
+        topic: Amazon Connect Health
+        url: https://www.mobihealthnews.com/news/qa-aws-launches-amazon-connect-health-streamline-healthcare-workflows
+        tier: COMPETITOR
+        base-weight: 0.65
+        max-items: 5
+      - topic-id: 1
+        name: TechTarget Connect Health
+        topic: Amazon Connect Health
+        url: https://www.techtarget.com/searchhealthit/feature/AWS-Unveils-Amazon-Connect-Health
+        tier: COMPETITOR
+        base-weight: 0.65
+        max-items: 5
+      - topic-id: 1
+        name: GeekWire Amazon Healthcare AI
+        topic: Amazon Connect Health
+        url: https://www.geekwire.com/2026/amazon-makes-new-bet-on-healthcare-ai-challenging-microsoft-in-the-doctors-office/
+        tier: COMPETITOR
+        base-weight: 0.6
+        max-items: 5
+      - topic-id: 1
+        name: AWS Health Hub
+        topic: Amazon Connect Health
+        url: https://aws.amazon.com/health/
+        tier: COMPETITOR
+        base-weight: 0.6
+        max-items: 5
+        keywords:
+          - connect health
+          - healthcare
+          - clinical
+          - patient
+          - agentic
+      - topic-id: 1
+        name: AWS Healthcare Solutions
+        topic: Amazon Connect Health
+        url: https://aws.amazon.com/health/healthcare/solutions/
+        tier: COMPETITOR
+        base-weight: 0.6
+        max-items: 5
+        keywords:
+          - connect health
+          - healthcare
+          - clinical
+          - patient
+      - topic-id: 1
+        name: AWS HealthLake
+        topic: Amazon Connect Health
+        url: https://aws.amazon.com/healthlake/
+        tier: COMPETITOR
+        base-weight: 0.55
+        max-items: 5
+      - topic-id: 1
+        name: AWS Health Gen AI
+        topic: Amazon Connect Health
+        url: https://aws.amazon.com/health/gen-ai/
+        tier: COMPETITOR
+        base-weight: 0.6
+        max-items: 5
+      - topic-id: 1
+        name: AWS Responsible AI Healthcare
+        topic: Amazon Connect Health
+        url: https://aws.amazon.com/blogs/machine-learning/responsible-ai-design-in-healthcare-and-life-sciences/
+        tier: COMPETITOR
+        base-weight: 0.55
+        max-items: 5
       # -----------------------------------------------------------------
       # Perplexity Healthcare
       # Primary: Perplexity's own pages (COMPETITOR — web-scrape, SHA-256)

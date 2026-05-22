@@ -16,7 +16,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2025-01-27
- * @updated 2026-04-27
+ * @updated 2026-05-21
  */
 public interface AiSummarizationPort {
 
@@ -88,4 +88,17 @@ public interface AiSummarizationPort {
      * @return A short, engaging introduction paragraph (typically 2–3 sentences).
      */
     String generateIntroduction(List<NewsletterSection> sections, NewsletterTone tone);
+
+    /**
+     * Generate a concise 3-sentence summary of the given articles for a topic
+     * section on the news listing page.
+     *
+     * <p>Uses only article titles (not full body text) to keep token cost low.
+     * The returned string is plain text — no headline, no bullet points.
+     *
+     * @param topic    the topic name these articles belong to
+     * @param articles articles to summarize; should contain more than one entry
+     * @return a 3-sentence plain-text summary
+     */
+    String generateTopicSummary(String topic, List<NewsArticle> articles);
 }
