@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +19,10 @@ import java.util.List;
  * cadences, filters harvested articles by tier, and persists them via
  * {@link ArticleStoragePort}.
  *
- * <p>Tier cadences:
+ * <p>Tier cadences (configurable via {@code application.yml}):
  * <ul>
- *   <li><b>ACADEMIC + REGULATORY</b> – daily at 06:00 UTC via {@link #harvestDailyFeeds()}</li>
- *   <li><b>INDUSTRY</b>              – every 4 hours via {@link #harvestIndustryFeeds()}</li>
+ *   <li><b>ACADEMIC + REGULATORY</b> – daily via {@link #harvestDailyFeeds()}</li>
+ *   <li><b>INDUSTRY</b>              – every N ms via {@link #harvestIndustryFeeds()}</li>
  * </ul>
  *
  * <p>Duplicate articles are silently skipped by {@link ArticleStoragePort#save}
@@ -83,9 +84,9 @@ public class FeedHarvestScheduler {
 
     /**
      * Daily harvest for ACADEMIC and REGULATORY tier feeds.
-     * Runs at 06:00 UTC every day. Cron: {@code 0 0 6 * * *}.
+     * Cron configured via {@code aihealthcare.harvest.daily-cron} (default: 04:00 UTC).
      */
-    @Scheduled(cron = "0 0 6 * * *", zone = "UTC")
+    @Scheduled(cron = "${aihealthcare.harvest.daily-cron}", zone = "UTC")
     public void harvestDailyFeeds() {
         log.debug("harvestDailyFeeds() | starting daily ACADEMIC + REGULATORY harvest");
         List<NewsArticle> all = harvestingPort.harvestAll();
@@ -106,9 +107,9 @@ public class FeedHarvestScheduler {
 
     /**
      * High-frequency harvest for INDUSTRY tier feeds.
-     * Runs every 4 hours. Fixed-rate: 14_400_000 ms.
+     * Rate configured via {@code aihealthcare.harvest.industry-rate-ms} (default: 4h / 14400000 ms).
      */
-    @Scheduled(fixedRateString = "#{14400 * 1000}")
+    @Scheduled(fixedRateString = "${aihealthcare.harvest.industry-rate-ms}")
     public void harvestIndustryFeeds() {
         log.debug("harvestIndustryFeeds() | starting 4-hour INDUSTRY harvest");
         List<NewsArticle> all = harvestingPort.harvestAll();

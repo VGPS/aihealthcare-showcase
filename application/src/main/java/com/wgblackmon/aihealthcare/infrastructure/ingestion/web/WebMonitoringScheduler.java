@@ -17,10 +17,10 @@ import java.util.List;
  * to avoid Spring bean injection ambiguity and maintain clean separation of
  * concerns between feed-based and web-scraping-based ingestion.
  *
- * <p>Scheduling cadences:
+ * <p>Scheduling cadences (configurable via {@code application.yml}):
  * <ul>
- *   <li><b>Competitor pages</b> — daily at 07:00 UTC via {@link #harvestCompetitorPages()}</li>
- *   <li><b>HuggingFace models</b> — daily at 07:30 UTC via {@link #harvestHuggingFaceModels()}</li>
+ *   <li><b>Competitor pages</b> — daily via {@link #harvestCompetitorPages()}</li>
+ *   <li><b>HuggingFace models</b> — daily via {@link #harvestHuggingFaceModels()}</li>
  * </ul>
  *
  * <p>All harvested content flows into the standard {@link ArticleStoragePort}
@@ -29,7 +29,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-19
- * @updated 2026-04-19
+ * @updated 2026-05-22
  */
 @Slf4j
 @Component
@@ -53,9 +53,9 @@ public class WebMonitoringScheduler {
 
     /**
      * Daily harvest of competitor web pages.
-     * Runs at 07:00 UTC — one hour after the RSS feed harvest.
+     * Cron configured via {@code aihealthcare.harvest.competitor-cron} (default: 05:00 UTC).
      */
-    @Scheduled(cron = "0 0 7 * * *", zone = "UTC")
+    @Scheduled(cron = "${aihealthcare.harvest.competitor-cron}", zone = "UTC")
     public void harvestCompetitorPages() {
         log.debug("harvestCompetitorPages() | starting daily COMPETITOR harvest");
         try {
@@ -75,9 +75,9 @@ public class WebMonitoringScheduler {
 
     /**
      * Daily harvest of HuggingFace healthcare-related models.
-     * Runs at 07:30 UTC — 30 minutes after competitor page harvest.
+     * Cron configured via {@code aihealthcare.harvest.huggingface-cron} (default: 05:30 UTC).
      */
-    @Scheduled(cron = "0 30 7 * * *", zone = "UTC")
+    @Scheduled(cron = "${aihealthcare.harvest.huggingface-cron}", zone = "UTC")
     public void harvestHuggingFaceModels() {
         log.debug("harvestHuggingFaceModels() | starting daily HUGGINGFACE harvest");
         try {

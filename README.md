@@ -6,12 +6,12 @@ An automated AI-powered newsletter and research platform that discovers, summari
 
 AIHealthcare runs multiple automated pipelines:
 
-1. **Harvest** — Scrapes articles from RSS feeds (PubMed, Beckers, Google News), competitor web pages (Anthropic, Perplexity, Google), and the HuggingFace model API
-2. **Store** — Persists articles in H2/PostgreSQL and indexes them as vector embeddings for semantic search
+1. **Harvest** — Scrapes articles from RSS feeds (PubMed, Beckers, Google News), competitor web pages (Anthropic, OpenAI, Amazon, Perplexity, Google), and the HuggingFace model API
+2. **Store** — Persists articles in PostgreSQL and indexes them as vector embeddings (PGVector) for semantic search
 3. **Summarize** — Uses Spring AI (Claude or OpenAI) to generate concise, topic-grouped newsletter sections with attributed sources
 4. **Research** — Staged research pipeline combining Perplexity API + DB articles, with planning, retrieval, citation assembly, and AI synthesis
 5. **Evaluate** — LLM-as-judge prompt evaluation scoring across 5 dimensions with A/B variant comparison
-6. **Deliver** — Emails the formatted newsletter (HTML + plain-text) to all active subscribers
+6. **Deliver** — Generates a daily newsletter draft for review; send manually after editing in the TinyMCE WYSIWYG editor
 7. **Export** — NotebookLM-compatible article exports with HTML summaries grouped by source
 
 ## Architecture
@@ -31,22 +31,63 @@ web (controllers + Thymeleaf)  -->  application (use cases)  -->  domain (models
 
 Swapping the AI provider, database, or delivery mechanism requires no domain changes — only a new adapter.
 
+### Key Flows
+
+**Article Harvest → Newsletter Draft**
+```
+FeedHarvestScheduler (04:00 UTC)
+  → RomeFeedHarvester.harvestAll()         fetch RSS from 50+ configured feeds
+  → ArticleStoragePort.save()              persist to news_articles (dedup by URL)
+  → TopicSummaryGenerationService          AI-summarize each topic (3 sentences)
+
+NewsletterGenerationScheduler (00:00 UTC)
+  → IngestArticlesUseCase.ingest()         load previous day's articles
+  → GenerateNewsletterUseCase.generate()   AI-summarize into sections, render HTML
+  → NewsletterRunPort.save()               persist as DRAFT
+
+User reviews at /newsletter/runs/{runId}/edit (TinyMCE)
+  → POST .../save                          save edits
+  → POST .../send                          deliver to all active subscribers
+```
+
+**Research Pipeline**
+```
+POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
+  → ResearchPlanningService                AI decomposes query into retrieval queries
+  → SourceRetrievalPort adapters           Perplexity API + DB article fetch
+  → CitationAssembler                      deduplicate + rank sources
+  → ResearchSynthesisService               AI synthesizes answer with citations
+  → ResearchRunPort.save()                 persist for audit trail
+```
+
+**Prompt Evaluation**
+```
+POST /api/v1/evaluations
+  → AiSummarizationPort.summarizeWithTemplate()   generate section with variant prompt
+  → AiEvaluationPort.evaluate()                   LLM-as-judge scores on 5 dimensions
+  → EvaluationResultPort.save()                    persist scores
+
+POST /api/v1/comparisons
+  → runs two variants side-by-side, compares scores
+```
+
 ## Tech Stack
 
 | Component         | Technology                                         |
 |-------------------|----------------------------------------------------|
 | Framework         | Spring Boot 3.4.5, Java 17                         |
 | AI                | Spring AI 1.0.0 (Anthropic Claude / OpenAI)        |
-| Relational DB     | H2 (dev) / PostgreSQL 16 (prod)                    |
+| Relational DB     | PostgreSQL 16                                      |
 | Vector Store      | PGVector (PostgreSQL extension)                    |
 | RSS Parsing       | Rome 2.1.0                                         |
 | Web Scraping      | Jsoup 1.18.3                                       |
 | Document Parsing  | PDFBox 3.0.3, POI-OOXML 5.3.0                     |
+| Newsletter Editor | TinyMCE 7.9.0 (WebJar)                             |
 | Email (dev)       | MailHog (SMTP trap)                                |
 | Email (prod)      | Amazon SES                                         |
 | UI                | Thymeleaf (server-side rendered)                   |
 | Build             | Maven                                              |
-| Testing           | JUnit 5 + AssertJ + Mockito (475 tests)            |
+| Testing           | JUnit 5 + AssertJ + Mockito (501 tests)            |
 
 ## Prerequisites
 
@@ -62,8 +103,8 @@ Swapping the AI provider, database, or delivery mechanism requires no domain cha
 ```bash
 # PostgreSQL + PGVector (relational DB + vector store)
 docker run -d --name aihealthcare-postgres \
-  -e POSTGRES_USER=**** \
-  -e POSTGRES_PASSWORD=**** \
+  -e POSTGRES_USER=admin \
+  -e POSTGRES_PASSWORD=1454 \
   -e POSTGRES_DB=aihealthcaredb \
   -p 5432:5432 \
   pgvector/pgvector:pg16
@@ -81,6 +122,9 @@ docker run -d --name aihealthcare-mailhog \
 export ANTHROPIC_API_KEY=your-key-here
 # or
 export OPENAI_API_KEY=your-key-here
+
+# Optional — enables Perplexity research pipeline
+export PERPLEXITY_API_KEY=your-key-here
 ```
 
 ### 3. Build and Run
@@ -101,11 +145,13 @@ The application starts on `http://localhost:8080`.
 |-----|-------------|
 | `/dashboard` | Analytics overview — ingestion stats, run history |
 | `/dashboard/articles` | Article list with topic filter and sort |
-| `/dashboard/news` | Articles grouped by 9 configurable topic sections |
+| `/dashboard/news` | Articles grouped by 11 configurable topic sections with AI summaries |
 | `/research/compare` | Side-by-side LEGACY_GOOGLE vs STAGED_RESEARCH results |
 | `/research/runs` | Research run history table |
 | `/research/runs/{runId}` | Research run detail |
 | `/research/vendors` | Vendor comparison card grid with strengths/weaknesses |
+| `/newsletter/runs` | Newsletter run list with status badges and edit links |
+| `/newsletter/runs/{runId}/edit` | TinyMCE WYSIWYG editor — edit and send newsletter drafts |
 
 ## REST API Endpoints
 
@@ -120,40 +166,67 @@ The application starts on `http://localhost:8080`.
 | POST | `/api/v1/newsletter/deliver` | Trigger newsletter delivery |
 | POST | `/api/v1/research` | Execute staged research query |
 | GET | `/api/v1/research/runs` | List research run history |
+| GET | `/api/v1/research/runs/{runId}` | Get research run detail |
 | POST | `/api/v1/documents/ingest` | Ingest documents for RAG |
 | POST | `/api/v1/market-intelligence/refresh` | Trigger market intelligence report |
 | GET | `/api/v1/analytics/ingestion` | Ingestion analytics |
 | GET | `/api/v1/analytics/runs` | Newsletter run analytics |
 | GET | `/api/v1/analytics/evaluations` | Evaluation analytics |
-| POST | `/monitoring/harvest` | Trigger web page harvest |
+| POST | `/monitoring/harvest` | Trigger RSS feed harvest |
+| POST | `/monitoring/competitor` | Trigger competitor page harvest |
 | POST | `/monitoring/huggingface` | Trigger HuggingFace model discovery |
+| POST | `/monitoring/summaries` | Trigger AI topic summary generation |
+| GET | `/monitoring/hashes` | List page content hashes |
+| GET/PUT | `/api/v1/search-prompts/{engine}` | View/update search prompt templates |
+| POST/GET/DELETE | `/api/v1/variants` | Manage prompt variants |
+| POST/GET | `/api/v1/evaluations` | Run/view prompt evaluations |
+| POST | `/api/v1/comparisons` | Compare two prompt variants |
 
 ## Scheduled Jobs
 
-| Job | Default Schedule | Description |
-|-----|-----------------|-------------|
-| Feed Harvesting | Daily (ACADEMIC/REGULATORY) + every 4h (INDUSTRY) | RSS harvest → DB |
-| Web Monitoring | Daily 07:00 UTC (competitors) + 07:30 (HuggingFace) | Web scrape + model discovery |
-| Embedding | Daily at midnight | Indexes articles into vector store |
-| Newsletter Generation | Mondays at 8:00 AM | Ingest → generate → deliver |
-| Market Intelligence | 1st of month, 8 AM | AI-generated market report |
-| Research Harvest | Daily 06:00 UTC | COMBINED pipeline per topic |
+All schedules are configurable via `application.yml` — no hardcoded cron expressions.
 
-Schedules are configurable via `application.yml` cron expressions.
+| Job | Default (UTC) | Config Key | Description |
+|-----|---------------|------------|-------------|
+| RSS Harvest (ACAD/REG) | 04:00 daily | `aihealthcare.harvest.daily-cron` | RSS feeds → DB + topic summaries |
+| Research Harvest | 04:00 daily | `aihealthcare.research.harvest.cron` | COMBINED pipeline per topic |
+| Competitor Scrape | 05:00 daily | `aihealthcare.harvest.competitor-cron` | Web page SHA-256 change detection |
+| HuggingFace Discovery | 05:30 daily | `aihealthcare.harvest.huggingface-cron` | Healthcare LLM model API |
+| Industry RSS | Every 4 hours | `aihealthcare.harvest.industry-rate-ms` | High-frequency industry feeds |
+| Embedding | 07:00 daily | `aihealthcare.embedding.schedule` | Vector store refresh (after harvests) |
+| Newsletter Draft | 00:00 daily | `aihealthcare.newsletter.schedule` | Generate DRAFT (review + send manually) |
+| Market Intelligence | 1st of month, 08:00 | `aihealthcare.market-intelligence.schedule` | Monthly AI market report |
 
 ## Configuration
 
+### News Topics
+
+11 topic sections are configured in `application.yml`, each with multiple feed sources:
+
+- General AI Healthcare News
+- AI Healthcare Software Development
+- Healthcare Outsourcing and Jobs Layoffs
+- AI Healthcare Government Policy
+- AI Healthcare Legal
+- OpenAI Healthcare
+- Anthropic Healthcare
+- Amazon Connect Health
+- Perplexity Healthcare
+- Google Healthcare
+- Beckers Hospital Review
+
 ### Profiles
 
+- **demo** (default) — development mode with PostgreSQL on localhost
 - **dev** (`application-dev.yml`) — MailHog on `localhost:1025`
 - **prod** (`application-prod.yml`) — Amazon SES with STARTTLS
 
 ## Testing
 
-475 tests across 59 test classes — all pass with no live AI or network calls.
+501 tests across 63 test classes — all pass with no live AI or network calls.
 
 ```bash
-# Run all unit tests (no AI calls, uses H2 in-memory DB)
+# Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
 mvn test
 
 # Run AI integration smoke tests (requires valid API key)
@@ -166,25 +239,25 @@ mvn test -Dspring.profiles.active=ai-integration
 AIHealthcare/
 ├── application/src/main/java/com/wgblackmon/aihealthcare/
 │   ├── domain/
-│   │   ├── model/           # NewsArticle, Topic, NewsletterDraft, Subscriber, ResearchAnswer...
-│   │   ├── port/inbound/    # Use-case interfaces (12 inbound ports)
-│   │   ├── port/outbound/   # Port interfaces (14 outbound ports)
-│   │   ├── service/         # Domain services (Newsletter, Research, Evaluation, Delivery)
+│   │   ├── model/           # NewsArticle, Topic, NewsletterDraft, TopicSummary, ResearchAnswer...
+│   │   ├── port/inbound/    # Use-case interfaces (inbound ports)
+│   │   ├── port/outbound/   # Port interfaces (outbound ports)
+│   │   ├── service/         # Domain services (Newsletter, Research, Evaluation, TopicSummary)
 │   │   └── exception/       # Domain exceptions
 │   ├── infrastructure/
-│   │   ├── ai/              # Spring AI adapters (summarize, evaluate, report)
-│   │   ├── config/          # AppConfig, bean wiring
+│   │   ├── ai/              # Spring AI adapters (summarize, evaluate, embed, report)
+│   │   ├── config/          # AppConfig, bean wiring, properties
 │   │   ├── delivery/        # EmailDeliveryAdapter, NotebookLMService
-│   │   ├── ingestion/       # RSS, web scraping, HuggingFace, document parsing
-│   │   ├── persistence/     # JPA entities, repositories, storage adapters
+│   │   ├── ingestion/       # RSS, web scraping, HuggingFace, Perplexity, document parsing
+│   │   ├── persistence/     # JPA entities, repositories, storage adapters (11 tables)
 │   │   ├── research/        # Perplexity + legacy Google research adapters
-│   │   └── scheduler/       # 6 scheduled jobs
+│   │   └── scheduler/       # NewsletterGenerationScheduler
 │   └── web/
 │       ├── controller/      # REST + Thymeleaf controllers
 │       └── dto/             # Request/response records
 ├── application/src/main/resources/
-│   ├── prompts/             # AI prompt templates (6 templates)
-│   └── templates/           # Thymeleaf HTML templates (7 pages)
+│   ├── prompts/             # AI prompt templates (8 templates)
+│   └── templates/           # Thymeleaf HTML templates (9 pages)
 ├── docs/                    # Architecture and conventions documentation
 ├── pom.xml
 └── CLAUDE.md                # AI assistant project context

@@ -1,0 +1,9 @@
+You are an expert medical journalist summarizing recent news for a healthcare AI newsletter dashboard.
+
+Topic: {topic}
+
+Below are the titles of {articleCount} recent articles in this topic:
+{articleTitles}
+
+Write exactly 3 sentences summarizing the key themes and developments across these articles.
+Be specific but concise. Do not use bullet points. Do not include a headline.

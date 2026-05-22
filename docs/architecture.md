@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-05-19 | Reflects Slice 21 (21 slices complete, 485 tests passing)
+> Last updated: 2026-05-22 | Reflects Slice 26 (26 slices complete, 501 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -54,6 +54,11 @@ api  ──▶  web   (generated DTOs imported here only)
 | 19 | Vendor Compare UI — Thymeleaf at `/research/vendors` | 470 |
 | 20 | News Listing UI + Beckers feed + topic/name separation | 475 |
 | 21 | Newsletter Preview/Edit UI with TinyMCE editor | 485 |
+| 22 | Anthropic Healthcare news source refactor: 7 sources + keyword filter | ~490 |
+| 23 | OpenAI Healthcare & Google Healthcare news source refactor | ~495 |
+| 24 | Perplexity Healthcare news source refactor: 5 sources | ~498 |
+| 25 | Topic Summary AI Generation: per-topic 3-sentence summaries on news page | 502 |
+| 26 | Cron Job Consolidation + Newsletter Draft-First Workflow | 501 |
 
 ---
 
@@ -89,7 +94,7 @@ Spring AI `ChatClient` is wrapped by three AI adapters, all in `infrastructure.a
 
 | Adapter | Port implemented | Purpose |
 |---------|-----------------|---------|
-| `AiSummarizationAdapter` | `AiSummarizationPort` | Newsletter section summarization (standard + RAG) |
+| `AiSummarizationAdapter` | `AiSummarizationPort` | Newsletter section summarization (standard + RAG) + topic summaries |
 | `AiEvaluationAdapter` | `AiEvaluationPort` | LLM-as-judge prompt evaluation scoring |
 | `AiReportAdapter` | `AiReportPort` | Monthly market intelligence report generation |
 
@@ -102,6 +107,8 @@ Prompt templates (`application/src/main/resources/prompts/`):
 - `generate-introduction.txt` — newsletter intro generation
 - `research-plan.txt` — research query decomposition
 - `research-synthesis.txt` — research answer synthesis
+- `vendor-compare.txt` — vendor assessment (strengths/weaknesses/relevance)
+- `topic-summary.txt` — 3-sentence topic summary from article titles
 
 ---
 
@@ -170,7 +177,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | POST/GET/DELETE | `/api/v1/variants`, `/api/v1/variants/{id}` | `PromptVariantController` |
 | POST/GET | `/api/v1/evaluations`, `/api/v1/evaluations/{id}` | `PromptEvaluationController` |
 | POST | `/api/v1/comparisons` | `PromptEvaluationController` |
-| POST/POST/POST/GET | `/monitoring/harvest`, `/monitoring/competitor`, `/monitoring/huggingface`, `/monitoring/hashes` | `WebMonitoringController` |
+| POST/POST/POST/POST/GET | `/monitoring/harvest`, `/monitoring/competitor`, `/monitoring/huggingface`, `/monitoring/summaries`, `/monitoring/hashes` | `WebMonitoringController` |
 | GET/GET/PUT | `/api/v1/search-prompts`, `/api/v1/search-prompts/{engine}` | `SearchPromptController` |
 | POST | `/api/v1/documents/ingest` | `DocumentIngestionController` |
 | POST | `/api/v1/market-intelligence/refresh` | `MarketIntelligenceController` |
@@ -194,19 +201,22 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `page_content_hashes` | `PageContentHashEntity` | SHA-256 change detection for web pages |
 | `search_prompts` | `SearchPromptEntity` | engine, templateText, active |
 | `research_runs` | `ResearchRunEntity` | runId, query, mode, citationCount, researchedAt |
+| `topic_summaries` | `TopicSummaryEntity` | topic PK, summaryText TEXT, generatedAt; upsert by topic |
 
 ---
 
 ## Scheduler Summary
 
-| Scheduler | Trigger | Action |
-|-----------|---------|--------|
-| `FeedHarvestScheduler` | Daily (ACADEMIC/REGULATORY) + every 4h (INDUSTRY) | RSS harvest → DB |
-| `WebMonitoringScheduler` | Daily 07:00 UTC (competitors) + 07:30 UTC (HuggingFace) | Web scrape + HF discovery → DB |
-| `EmbeddingScheduler` | Daily at midnight | Embed all articles into vector store |
-| `NewsletterGenerationScheduler` | Configurable cron (default: Mondays 8 AM) | Ingest → generate → deliver |
-| `MarketIntelligenceScheduler` | 1st of month, 8 AM | AI-generated market intelligence report |
-| `ResearchHarvestScheduler` | Daily 06:00 UTC (configurable topics) | COMBINED pipeline → ResearchRun records |
+All cron expressions are externalized to `application.yml` — no hardcoded schedules.
+
+| Scheduler | Trigger (UTC) | Config key | Action |
+|-----------|---------------|------------|--------|
+| `FeedHarvestScheduler` | 04:00 daily (ACAD/REG) + every 4h (INDUSTRY) | `aihealthcare.harvest.daily-cron`, `industry-rate-ms` | RSS harvest → DB → topic summary generation |
+| `ResearchHarvestScheduler` | 04:00 daily | `aihealthcare.research.harvest.cron` | COMBINED pipeline → ResearchRun records |
+| `WebMonitoringScheduler` | 05:00 daily (competitors) + 05:30 (HuggingFace) | `aihealthcare.harvest.competitor-cron`, `huggingface-cron` | Web scrape + HF discovery → DB |
+| `EmbeddingScheduler` | 07:00 daily | `aihealthcare.embedding.schedule` | Embed all articles into vector store |
+| `NewsletterGenerationScheduler` | 00:00 daily (midnight) | `aihealthcare.newsletter.schedule` | Ingest → generate DRAFT (no auto-send) |
+| `MarketIntelligenceScheduler` | 1st of month, 08:00 | `aihealthcare.market-intelligence.schedule` | AI-generated market intelligence report |
 
 ---
 
@@ -229,4 +239,4 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**485 tests** across 60 test classes — all pass with `mvn test` (no live AI or network calls).
+**501 tests** across 63 test classes — all pass with `mvn test` (no live AI or network calls).

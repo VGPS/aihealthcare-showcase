@@ -96,6 +96,26 @@ aihealthcare:
     days-back: 1
 
   # ---------------------------------------------------------------------------
+  # Harvest scheduling — consolidated daily pipeline (all times UTC).
+  #
+  # Daily timeline:
+  #   04:00  RSS feeds (ACADEMIC + REGULATORY tiers)
+  #   04:00  Research harvest (COMBINED pipeline, 11 topics)
+  #   05:00  Competitor web pages (SHA-256 change detection)
+  #   05:30  HuggingFace model discovery
+  #   06:00  Industry feeds (first run; then every 4 hours)
+  #   07:00  Embedding scheduler (vector store refresh)
+  #   00:00  Newsletter draft generation (previous day's news, DRAFT only)
+  #
+  # All cron expressions use Spring 6-field format: second minute hour day month weekday
+  # ---------------------------------------------------------------------------
+  harvest:
+    daily-cron: "0 0 4 * * *"
+    industry-rate-ms: "14400000"
+    competitor-cron: "0 0 5 * * *"
+    huggingface-cron: "0 30 5 * * *"
+
+  # ---------------------------------------------------------------------------
   # Research pipeline — controls which pipeline branch POST /api/v1/research uses.
   # LEGACY_GOOGLE:   fetch from ingestion DB only (no API keys required, always safe).
   # STAGED_RESEARCH: AI planning + Perplexity retrieval + AI synthesis.
@@ -106,10 +126,11 @@ aihealthcare:
     mode: COMBINED
     harvest:
       # -----------------------------------------------------------------------
-      # Cron schedule for proactive topic research (default: 06:00 UTC daily).
+      # Cron schedule for proactive topic research (default: 04:00 UTC daily).
+      # Runs in parallel with RSS daily harvest — different sources, no conflict.
       # Standard Spring cron format: second minute hour day month weekday
       # -----------------------------------------------------------------------
-      cron: "0 0 6 * * *"
+      cron: "0 0 4 * * *"
       # Maximum Perplexity + DB sources retrieved per topic per run.
       max-sources-per-topic: 20
       # -----------------------------------------------------------------------
@@ -619,14 +640,14 @@ aihealthcare:
 
   # ---------------------------------------------------------------------------
   # Embedding scheduler — cron expression for the EmbeddingScheduler job.
-  # Default: daily at midnight.  Change freely without recompiling.
+  # Default: 07:00 UTC daily — runs AFTER all harvesters complete (04:00-06:00).
   # Examples:
-  #   "0 0 0 * * *"   — daily at midnight
+  #   "0 0 7 * * *"   — daily at 07:00 UTC (default)
   #   "0 0 */2 * * *" — every 2 hours
   #   "0 */30 * * * *"— every 30 minutes
   # ---------------------------------------------------------------------------
   embedding:
-    schedule: "0 0 0 * * *"
+    schedule: "0 0 7 * * *"
 
   # ---------------------------------------------------------------------------
   # NotebookLM export — directory where search-result text files are written.
@@ -658,8 +679,11 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   # Newsletter delivery — from address used in outgoing emails.
   # SMTP connection settings live in the active profile (dev or prod).
-  # Schedule used by Slice 3c NewsletterGenerationScheduler (every Monday 8 AM).
+  #
+  # Schedule: daily at midnight UTC.  The scheduler generates a DRAFT newsletter
+  # from the previous day's articles but does NOT auto-send.  Review and edit
+  # at /newsletter/runs/{runId}/edit (TinyMCE), then click Send when ready.
   # ---------------------------------------------------------------------------
   newsletter:
     from-address: newsletter@aihealthcare.local
-    schedule: "0 0 8 * * MON"
+    schedule: "0 0 0 * * *"

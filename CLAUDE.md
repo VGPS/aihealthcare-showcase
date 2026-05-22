@@ -190,7 +190,39 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 21 — Newsletter Preview/Edit UI with TinyMCE — COMPLETE — 485 tests passing**
+**Slice 26 — Cron Job Consolidation + Newsletter Draft-First Workflow — COMPLETE — 501 tests passing**
+- [x] All cron expressions externalized to `application.yml` — no more hardcoded `@Scheduled` annotations
+- [x] `FeedHarvestScheduler` — daily cron via `${aihealthcare.harvest.daily-cron}`, industry rate via `${aihealthcare.harvest.industry-rate-ms}`
+- [x] `WebMonitoringScheduler` — competitor cron via `${aihealthcare.harvest.competitor-cron}`, HuggingFace via `${aihealthcare.harvest.huggingface-cron}`
+- [x] `NewsletterGenerationScheduler` — **draft-only**: generates DRAFT newsletter but does NOT auto-send; removed `DeliverNewsletterUseCase` dependency; renamed to `runDailyDraftGeneration()`
+- [x] Newsletter workflow: scheduler creates draft at midnight → review/edit at `/newsletter/runs/{runId}/edit` → send manually via Send button
+- [x] Consolidated daily timeline (all UTC): 04:00 RSS+Research → 05:00 Competitor → 05:30 HuggingFace → 06:00+ Industry (every 4h) → 07:00 Embedding → 00:00 Newsletter draft
+- [x] Tests: `NewsletterGenerationSchedulerTest` updated (4 tests, draft-only assertions)
+
+**Previously complete: Slice 25 — Topic Summary AI Generation — 502 tests passing**
+- [x] Domain: `TopicSummary` record, `TopicSummaryPort`, `TopicSummaryGenerationService`
+- [x] `AiSummarizationPort.generateTopicSummary()` + adapter + `topic-summary.txt` prompt
+- [x] Persistence: `TopicSummaryEntity`, `TopicSummaryRepository`, `TopicSummaryAdapter`
+- [x] `FeedHarvestScheduler` — auto-generates summaries after harvest; `POST /monitoring/summaries` manual trigger
+- [x] `news-listing.html` — "AI Summary" box under each topic section
+- [x] Tests: `TopicSummaryGenerationServiceTest` (5), `TopicSummaryAdapterTest` (4)
+
+**Previously complete: Slice 24 — Perplexity Healthcare news source refactor — 502 tests passing**
+- [x] 5 Perplexity feed sources: Hub (keyword-filtered), Health Blog, Premium Health Sources, PR Newswire (keyword-filtered), Sonar API
+- [x] `application.yml` — Perplexity Healthcare topic entries under `feeds.sources` and `news.topics`
+
+**Previously complete: Slice 23 — OpenAI Healthcare & Google Healthcare news source refactor — 502 tests passing**
+- [x] OpenAI Healthcare: 7 sources — Google News, OpenAI for Healthcare, ChatGPT Health, OpenAI Index (keyword-filtered), MedCity News, Healthcare Dive, Crescendo AI
+- [x] Google Healthcare: 3 sources — Google Health AI, Check Up Health AI, Med-PaLM Research
+- [x] `application.yml` — topic entries under `feeds.sources` and `news.topics`
+
+**Previously complete: Slice 22 — Anthropic Healthcare news source refactor — 502 tests passing**
+- [x] 7 Anthropic feed sources: Healthcare AI page, General News (keyword-filtered), FierceHealthcare, ClinicalTrialsArena, IntrepidGP, Chartis, Goodie AI (keyword-filtered)
+- [x] `FeedSourceConfig` — `keywords` field for content-based filtering on web-scraped pages
+- [x] `WebPageHarvester` / `RomeFeedHarvester` — keyword matching support
+- [x] `application.yml` — Anthropic Healthcare topic entries + Amazon Connect Health (15 sources)
+
+**Previously complete: Slice 21 — Newsletter Preview/Edit UI with TinyMCE — 485 tests passing**
 - [x] `NewsletterPreviewController` — `GET /newsletter/runs` (list), `GET /newsletter/runs/{runId}/edit` (TinyMCE editor), `POST .../save`, `POST .../send`
 - [x] `newsletter-runs.html` — run list with status badges and edit links for DRAFT runs
 - [x] `newsletter-edit.html` — TinyMCE 7.9.0 WYSIWYG editor with save/send buttons; Jsoup HTML→plain-text on save

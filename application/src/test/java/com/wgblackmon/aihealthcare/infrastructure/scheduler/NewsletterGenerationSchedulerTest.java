@@ -1,8 +1,6 @@
 package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
-import com.wgblackmon.aihealthcare.domain.exception.RunNotFoundException;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
-import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GenerateNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestArticlesUseCase;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,15 +28,18 @@ import static org.mockito.Mockito.verify;
 /**
  * Unit tests for {@link NewsletterGenerationScheduler}.
  *
- * <p>Verifies the happy-path pipeline (ingest → generate → deliver, in that order
+ * <p>Verifies the draft-only pipeline (ingest → generate, in that order
  * with the configured parameters) and the error-recovery guarantee that no
  * exception from any stage is allowed to propagate out of the scheduled method.
- * No Spring context is loaded — dependencies are provided as Mockito mocks.
+ * The scheduler does NOT auto-deliver — delivery is triggered manually via
+ * the Newsletter Preview UI.
+ *
+ * <p>No Spring context is loaded — dependencies are provided as Mockito mocks.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-04-16
- * @updated 2026-04-16
+ * @updated 2026-05-22
  */
 @ExtendWith(MockitoExtension.class)
 class NewsletterGenerationSchedulerTest {
@@ -55,9 +56,6 @@ class NewsletterGenerationSchedulerTest {
     @Mock
     private GenerateNewsletterUseCase generateUseCase;
 
-    @Mock
-    private DeliverNewsletterUseCase deliverUseCase;
-
     private NewsletterGenerationScheduler scheduler;
 
     @BeforeEach
@@ -65,7 +63,6 @@ class NewsletterGenerationSchedulerTest {
         scheduler = new NewsletterGenerationScheduler(
                 ingestUseCase,
                 generateUseCase,
-                deliverUseCase,
                 TITLE,
                 TONE,
                 TOPIC,
@@ -74,22 +71,21 @@ class NewsletterGenerationSchedulerTest {
     }
 
     // -------------------------------------------------------------------------
-    // runWeeklyNewsletter() — happy path
+    // runDailyDraftGeneration() — happy path
     // -------------------------------------------------------------------------
 
     @Test
-    void runWeeklyNewsletter_invokesIngestThenGenerateThenDeliverInOrder() {
-        scheduler.runWeeklyNewsletter();
+    void runDailyDraftGeneration_invokesIngestThenGenerateInOrder() {
+        scheduler.runDailyDraftGeneration();
 
-        InOrder ordered = inOrder(ingestUseCase, generateUseCase, deliverUseCase);
+        InOrder ordered = inOrder(ingestUseCase, generateUseCase);
         ordered.verify(ingestUseCase).ingest(anyString(), any(LocalDate.class), anyList(), anyInt());
         ordered.verify(generateUseCase).generate(anyString(), anyString(), anyString(), any(NewsletterTone.class), anyInt(), anyBoolean(), anyInt());
-        ordered.verify(deliverUseCase).deliver(anyString());
     }
 
     @Test
-    void runWeeklyNewsletter_passesConfiguredParametersToUseCases() {
-        scheduler.runWeeklyNewsletter();
+    void runDailyDraftGeneration_passesConfiguredParametersToUseCases() {
+        scheduler.runDailyDraftGeneration();
 
         verify(ingestUseCase).ingest(
                 anyString(),
@@ -107,35 +103,24 @@ class NewsletterGenerationSchedulerTest {
     }
 
     // -------------------------------------------------------------------------
-    // runWeeklyNewsletter() — exception handling
+    // runDailyDraftGeneration() — exception handling
     // -------------------------------------------------------------------------
 
     @Test
-    void runWeeklyNewsletter_ingestThrows_doesNotCallGenerateOrDeliverAndDoesNotPropagate() {
+    void runDailyDraftGeneration_ingestThrows_doesNotCallGenerateAndDoesNotPropagate() {
         doThrow(new RuntimeException("ingest failure"))
                 .when(ingestUseCase).ingest(anyString(), any(LocalDate.class), anyList(), anyInt());
 
-        assertThatCode(() -> scheduler.runWeeklyNewsletter()).doesNotThrowAnyException();
+        assertThatCode(() -> scheduler.runDailyDraftGeneration()).doesNotThrowAnyException();
 
         verify(generateUseCase, never()).generate(anyString(), anyString(), anyString(), any(NewsletterTone.class), anyInt(), anyBoolean(), anyInt());
-        verify(deliverUseCase, never()).deliver(anyString());
     }
 
     @Test
-    void runWeeklyNewsletter_generateThrows_doesNotCallDeliverAndDoesNotPropagate() {
+    void runDailyDraftGeneration_generateThrows_doesNotPropagate() {
         doThrow(new RuntimeException("generate failure"))
                 .when(generateUseCase).generate(anyString(), anyString(), anyString(), any(NewsletterTone.class), anyInt(), anyBoolean(), anyInt());
 
-        assertThatCode(() -> scheduler.runWeeklyNewsletter()).doesNotThrowAnyException();
-
-        verify(deliverUseCase, never()).deliver(anyString());
-    }
-
-    @Test
-    void runWeeklyNewsletter_deliverThrows_doesNotPropagate() {
-        doThrow(new RunNotFoundException("missing-run"))
-                .when(deliverUseCase).deliver(anyString());
-
-        assertThatCode(() -> scheduler.runWeeklyNewsletter()).doesNotThrowAnyException();
+        assertThatCode(() -> scheduler.runDailyDraftGeneration()).doesNotThrowAnyException();
     }
 }
