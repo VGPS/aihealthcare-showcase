@@ -10,6 +10,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SourceRetrievalPort;
 import com.wgblackmon.aihealthcare.domain.service.AnalyticsService;
 import com.wgblackmon.aihealthcare.domain.service.CitationAssembler;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
+import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
 import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
 import com.wgblackmon.aihealthcare.domain.service.MarketIntelligenceService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
@@ -86,20 +87,41 @@ import java.util.List;
 public class AppConfig {
 
     /**
-     * Creates the {@link DeliveryService} instance that implements subscriber management.
+     * Creates the {@link NewsletterTeaserBuilder} that truncates newsletter content
+     * for FREE-tier subscribers.  The CTA wording adapts to the configured
+     * {@code aihealthcare.articles.days-back} value.
+     *
+     * @param daysBack article look-back window from configuration.
+     * @return The wired {@link NewsletterTeaserBuilder} instance.
+     */
+    @Bean
+    public NewsletterTeaserBuilder newsletterTeaserBuilder(
+            @Value("${aihealthcare.articles.days-back:1}") int daysBack) {
+        log.debug("newsletterTeaserBuilder() | daysBack={}", daysBack);
+        NewsletterTeaserBuilder result = new NewsletterTeaserBuilder(daysBack);
+        log.debug("newsletterTeaserBuilder() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link DeliveryService} instance that implements subscriber management
+     * and tier-aware newsletter delivery.
      *
      * @param subscriberPort Adapter implementing subscriber persistence (auto-detected).
+     * @param teaserBuilder  Builder for FREE-tier teaser content.
      * @return The wired {@link DeliveryService} instance.
      */
     @Bean
     public DeliveryService deliveryService(SubscriberPort subscriberPort,
                                            NewsletterRunPort newsletterRunPort,
-                                           NewsletterDeliveryPort newsletterDeliveryPort) {
-        log.debug("deliveryService() | subscriberPort={}, newsletterRunPort={}, newsletterDeliveryPort={}",
+                                           NewsletterDeliveryPort newsletterDeliveryPort,
+                                           NewsletterTeaserBuilder teaserBuilder) {
+        log.debug("deliveryService() | subscriberPort={}, newsletterRunPort={}, newsletterDeliveryPort={}, teaserBuilder={}",
                   subscriberPort.getClass().getSimpleName(),
                   newsletterRunPort.getClass().getSimpleName(),
-                  newsletterDeliveryPort.getClass().getSimpleName());
-        DeliveryService result = new DeliveryService(subscriberPort, newsletterRunPort, newsletterDeliveryPort);
+                  newsletterDeliveryPort.getClass().getSimpleName(),
+                  teaserBuilder.getClass().getSimpleName());
+        DeliveryService result = new DeliveryService(subscriberPort, newsletterRunPort, newsletterDeliveryPort, teaserBuilder);
         log.debug("deliveryService() | return={}", result.getClass().getSimpleName());
         return result;
     }

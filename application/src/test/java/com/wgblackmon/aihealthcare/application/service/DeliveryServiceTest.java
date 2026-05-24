@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
+import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,11 +43,13 @@ import static org.mockito.Mockito.when;
 class DeliveryServiceTest {
 
     @Mock
-    private SubscriberPort         subscriberPort;
+    private SubscriberPort          subscriberPort;
     @Mock
-    private NewsletterRunPort      newsletterRunPort;
+    private NewsletterRunPort       newsletterRunPort;
     @Mock
-    private NewsletterDeliveryPort newsletterDeliveryPort;
+    private NewsletterDeliveryPort  newsletterDeliveryPort;
+    @Mock
+    private NewsletterTeaserBuilder teaserBuilder;
 
     private DeliveryService service;
 
@@ -58,7 +61,7 @@ class DeliveryServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new DeliveryService(subscriberPort, newsletterRunPort, newsletterDeliveryPort);
+        service = new DeliveryService(subscriberPort, newsletterRunPort, newsletterDeliveryPort, teaserBuilder);
     }
 
     // -------------------------------------------------------------------------

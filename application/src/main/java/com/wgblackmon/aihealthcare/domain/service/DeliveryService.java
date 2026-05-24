@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.exception.SubscriberNotFoundException;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRunStatus;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageSubscribersUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
@@ -13,6 +14,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,25 +35,29 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-04-13
+ * @updated 2026-05-24
  */
 @Slf4j
 public class DeliveryService implements ManageSubscribersUseCase, DeliverNewsletterUseCase {
 
-    private final SubscriberPort          subscriberPort;
-    private final NewsletterRunPort       newsletterRunPort;
-    private final NewsletterDeliveryPort  newsletterDeliveryPort;
+    private final SubscriberPort           subscriberPort;
+    private final NewsletterRunPort        newsletterRunPort;
+    private final NewsletterDeliveryPort   newsletterDeliveryPort;
+    private final NewsletterTeaserBuilder  teaserBuilder;
 
     public DeliveryService(SubscriberPort subscriberPort,
                            NewsletterRunPort newsletterRunPort,
-                           NewsletterDeliveryPort newsletterDeliveryPort) {
-        log.debug("DeliveryService() | subscriberPort={}, newsletterRunPort={}, newsletterDeliveryPort={}",
+                           NewsletterDeliveryPort newsletterDeliveryPort,
+                           NewsletterTeaserBuilder teaserBuilder) {
+        log.debug("DeliveryService() | subscriberPort={}, newsletterRunPort={}, newsletterDeliveryPort={}, teaserBuilder={}",
                   subscriberPort.getClass().getSimpleName(),
                   newsletterRunPort.getClass().getSimpleName(),
-                  newsletterDeliveryPort.getClass().getSimpleName());
+                  newsletterDeliveryPort.getClass().getSimpleName(),
+                  teaserBuilder.getClass().getSimpleName());
         this.subscriberPort         = subscriberPort;
         this.newsletterRunPort      = newsletterRunPort;
         this.newsletterDeliveryPort = newsletterDeliveryPort;
+        this.teaserBuilder          = teaserBuilder;
     }
 
     // -------------------------------------------------------------------------
@@ -76,14 +82,38 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
 
         NewsletterRun run = newsletterRunPort.findByRunId(runId);
 
-        List<Subscriber> recipients = subscriberPort.findAllActive();
-        if (recipients.isEmpty()) {
+        // Split subscribers by tier — paid tiers get full content, FREE gets a teaser
+        List<Subscriber> premiumRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.PREMIUM);
+        List<Subscriber> enterpriseRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.ENTERPRISE);
+        List<Subscriber> freeRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.FREE);
+
+        List<Subscriber> paidRecipients = new ArrayList<>();
+        for (Subscriber s : premiumRecipients) {
+            paidRecipients.add(s);
+        }
+        for (Subscriber s : enterpriseRecipients) {
+            paidRecipients.add(s);
+        }
+
+        int totalRecipients = paidRecipients.size() + freeRecipients.size();
+        if (totalRecipients == 0) {
             log.warn("deliver() | No active subscribers — skipping delivery for runId={}", runId);
             log.debug("deliver() | return=void (no recipients)");
             return;
         }
 
-        newsletterDeliveryPort.deliver(run, recipients);
+        // Deliver full newsletter to PREMIUM and ENTERPRISE subscribers
+        if (!paidRecipients.isEmpty()) {
+            newsletterDeliveryPort.deliver(run, paidRecipients);
+            log.info("deliver() | Full newsletter sent to {} paid subscribers", paidRecipients.size());
+        }
+
+        // Deliver teaser to FREE subscribers
+        if (!freeRecipients.isEmpty()) {
+            NewsletterRun teaserRun = teaserBuilder.buildTeaser(run);
+            newsletterDeliveryPort.deliver(teaserRun, freeRecipients);
+            log.info("deliver() | Teaser newsletter sent to {} free subscribers", freeRecipients.size());
+        }
 
         NewsletterRun sent = new NewsletterRun(
                 run.runId(),
@@ -96,7 +126,8 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
         );
         newsletterRunPort.save(sent);
 
-        log.info("deliver() | Newsletter delivered: runId={}, recipientCount={}", runId, recipients.size());
+        log.info("deliver() | Newsletter delivered: runId={}, paid={}, free={}",
+                 runId, paidRecipients.size(), freeRecipients.size());
         log.debug("deliver() | return=void");
     }
 
