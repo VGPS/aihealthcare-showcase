@@ -22,7 +22,7 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-04-13
+ * @updated 2026-05-23
  */
 @Entity
 @Table(name = "subscribers")
@@ -41,6 +41,9 @@ public class SubscriberEntity {
     @Column(name = "subscribed_at")
     private Instant subscribedAt;
 
+    @Column(name = "tier", nullable = false, length = 20)
+    private String tier = "FREE";
+
     /** Required no-arg constructor for JPA. */
     public SubscriberEntity() {}
 
@@ -55,4 +58,7 @@ public class SubscriberEntity {
 
     public Instant getSubscribedAt()                   { return subscribedAt; }
     public void setSubscribedAt(Instant subscribedAt)  { this.subscribedAt = subscribedAt; }
+
+    public String getTier()             { return tier; }
+    public void setTier(String tier)    { this.tier = tier; }
 }

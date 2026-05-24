@@ -127,7 +127,7 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
             throw new DuplicateSubscriberException(email);
         }
 
-        Subscriber subscriber = new Subscriber(email, name, true, Instant.now());
+        Subscriber subscriber = new Subscriber(email, name, true, Instant.now(), null);
         subscriberPort.save(subscriber);
 
         log.info("addSubscriber() | Subscriber added: email={}", email);

@@ -15,7 +15,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-04-13
+ * @updated 2026-05-23
  */
 public interface SubscriberRepository extends JpaRepository<SubscriberEntity, String> {
 
@@ -36,4 +36,13 @@ public interface SubscriberRepository extends JpaRepository<SubscriberEntity, St
      * @return List of active subscriber entities; never {@code null}.
      */
     List<SubscriberEntity> findAllByActiveTrue();
+
+    /**
+     * Returns all active subscribers with the given tier.
+     * Used to target content delivery by subscription level.
+     *
+     * @param tier The tier string (FREE, PREMIUM, ENTERPRISE).
+     * @return List of matching subscriber entities; never {@code null}.
+     */
+    List<SubscriberEntity> findAllByActiveTrueAndTier(String tier);
 }

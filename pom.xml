@@ -119,6 +119,19 @@
             <version>7.9.0</version>
         </dependency>
 
+        <!-- Stripe Java SDK — paid subscription billing via Stripe Billing (Slice 27) -->
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>28.2.0</version>
+        </dependency>
+
+        <!-- Gson — required by Stripe SDK for JSON deserialization -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+
         <!-- Apache PDFBox — PDF text extraction for document ingestion (Slice 7) -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>

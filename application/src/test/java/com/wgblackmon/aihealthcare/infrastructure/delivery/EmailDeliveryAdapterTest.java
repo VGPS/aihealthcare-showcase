@@ -57,7 +57,7 @@ class EmailDeliveryAdapterTest {
 
     private static Subscriber subscriber(String email) {
         return new Subscriber(email, "Test User", true,
-                              Instant.parse("2026-04-13T10:00:00Z"));
+                              Instant.parse("2026-04-13T10:00:00Z"), null);
     }
 
     @BeforeEach

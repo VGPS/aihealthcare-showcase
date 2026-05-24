@@ -64,7 +64,7 @@ class DeliveryServiceDeliverTest {
     );
 
     private static final Subscriber SUBSCRIBER = new Subscriber(
-            "jane@example.com", "Jane Doe", true, Instant.parse("2026-04-13T10:00:00Z"));
+            "jane@example.com", "Jane Doe", true, Instant.parse("2026-04-13T10:00:00Z"), null);
 
     @BeforeEach
     void setUp() {

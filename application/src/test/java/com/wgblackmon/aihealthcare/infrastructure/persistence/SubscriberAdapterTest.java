@@ -34,7 +34,7 @@ class SubscriberAdapterTest {
     private static final Instant NOW = Instant.parse("2026-04-13T10:00:00Z");
 
     private static Subscriber subscriber(String email, String name, boolean active) {
-        return new Subscriber(email, name, active, NOW);
+        return new Subscriber(email, name, active, NOW, null);
     }
 
     // -------------------------------------------------------------------------
@@ -66,12 +66,13 @@ class SubscriberAdapterTest {
 
     @Test
     void findAll_returnsAllSubscribers() {
+        int baseline = adapter.findAll().size();
         adapter.save(subscriber("a@example.com", "Alice", true));
         adapter.save(subscriber("b@example.com", "Bob",   false));
 
         List<Subscriber> result = adapter.findAll();
 
-        assertThat(result).hasSize(2);
+        assertThat(result).hasSize(baseline + 2);
     }
 
     // -------------------------------------------------------------------------
@@ -80,13 +81,14 @@ class SubscriberAdapterTest {
 
     @Test
     void findAllActive_returnsOnlyActiveSubscribers() {
+        int baselineActive = adapter.findAllActive().size();
         adapter.save(subscriber("a@example.com", "Alice", true));
         adapter.save(subscriber("b@example.com", "Bob",   false));
 
         List<Subscriber> result = adapter.findAllActive();
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).email()).isEqualTo("a@example.com");
+        assertThat(result).hasSize(baselineActive + 1);
+        assertThat(result).extracting(Subscriber::email).contains("a@example.com");
     }
 
     // -------------------------------------------------------------------------

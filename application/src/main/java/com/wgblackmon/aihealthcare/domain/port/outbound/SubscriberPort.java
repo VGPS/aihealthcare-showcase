@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.domain.port.outbound;
 
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +19,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-04-13
+ * @updated 2026-05-23
  */
 public interface SubscriberPort {
 
@@ -51,6 +52,15 @@ public interface SubscriberPort {
      * @return An {@link Optional} containing the subscriber, or empty if not found.
      */
     Optional<Subscriber> findByEmail(String email);
+
+    /**
+     * Returns only subscribers whose {@code active} flag is {@code true} and
+     * whose tier matches the given value.
+     *
+     * @param tier The subscription tier to filter by.
+     * @return Unmodifiable list; never {@code null}, may be empty.
+     */
+    List<Subscriber> findAllActiveByTier(SubscriptionTier tier);
 
     /**
      * Deletes the subscriber record identified by the given email address.

@@ -687,3 +687,16 @@ aihealthcare:
   newsletter:
     from-address: newsletter@aihealthcare.local
     schedule: "0 0 0 * * *"
+
+  # ---------------------------------------------------------------------------
+  # Stripe Billing — paid subscription management.
+  # Set STRIPE_API_KEY and STRIPE_WEBHOOK_SECRET env vars.
+  # In test mode, use Stripe test-mode keys (sk_test_... / whsec_test_...).
+  # Stripe CLI: stripe listen --forward-to localhost:8080/api/v1/stripe/webhook
+  # ---------------------------------------------------------------------------
+  stripe:
+    api-key: ${STRIPE_API_KEY:}
+    publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    premium-price-id: ${STRIPE_PREMIUM_PRICE_ID:}
+    enterprise-price-id: ${STRIPE_ENTERPRISE_PRICE_ID:}

@@ -54,7 +54,7 @@ class SubscriberControllerTest {
     private static final String NAME  = "Jane Doe";
 
     private static final Subscriber SUBSCRIBER = new Subscriber(
-            EMAIL, NAME, true, Instant.parse("2026-04-13T10:00:00Z"));
+            EMAIL, NAME, true, Instant.parse("2026-04-13T10:00:00Z"), null);
 
     // -------------------------------------------------------------------------
     // POST /api/v1/subscribers
@@ -71,7 +71,8 @@ class SubscriberControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value(EMAIL))
                 .andExpect(jsonPath("$.name").value(NAME))
-                .andExpect(jsonPath("$.active").value(true));
+                .andExpect(jsonPath("$.active").value(true))
+                .andExpect(jsonPath("$.tier").value("FREE"));
     }
 
     @Test
@@ -111,7 +112,8 @@ class SubscriberControllerTest {
         mockMvc.perform(get("/api/v1/subscribers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].email").value(EMAIL))
-                .andExpect(jsonPath("$[0].name").value(NAME));
+                .andExpect(jsonPath("$[0].name").value(NAME))
+                .andExpect(jsonPath("$[0].tier").value("FREE"));
     }
 
     @Test

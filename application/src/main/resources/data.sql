@@ -177,3 +177,14 @@ SECTION_TYPE: <WHAT_SHIPPED | ARCHITECTURE_NOTE | FAILURE_MODE | POLICY_WATCH | 
        'Plain-language prompt — accessible to non-specialist readers',
        CURRENT_TIMESTAMP
 WHERE NOT EXISTS (SELECT 1 FROM prompt_variants WHERE variant_id = 'summarize-v3-accessible');
+
+-- ---------------------------------------------------------------------------
+-- Seed newsletter subscribers for local development and testing.
+-- ---------------------------------------------------------------------------
+INSERT INTO subscribers (email, name, active, subscribed_at, tier)
+SELECT 'wgblackmonall@gmail.com', 'Bill Blackmon', true, CURRENT_TIMESTAMP, 'FREE'
+WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'wgblackmonall@gmail.com');
+
+INSERT INTO subscribers (email, name, active, subscribed_at, tier)
+SELECT 'dshihtzu@gmail.com', 'D Shihtzu', true, CURRENT_TIMESTAMP, 'PREMIUM'
+WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'dshihtzu@gmail.com');
