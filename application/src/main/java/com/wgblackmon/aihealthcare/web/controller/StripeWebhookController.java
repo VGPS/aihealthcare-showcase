@@ -44,7 +44,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-23
- * @updated 2026-05-23
+ * @updated 2026-05-26
  */
 @Slf4j
 @RestController
@@ -208,10 +208,8 @@ public class StripeWebhookController {
         log.debug("mapPriceToTier() | priceId={}", priceId);
 
         SubscriptionTier result;
-        if (priceId != null && priceId.equals(stripeProperties.getEnterprisePriceId())) {
-            result = SubscriptionTier.ENTERPRISE;
-        } else if (priceId != null && priceId.equals(stripeProperties.getPremiumPriceId())) {
-            result = SubscriptionTier.PREMIUM;
+        if (priceId != null && priceId.equals(stripeProperties.getMemberPriceId())) {
+            result = SubscriptionTier.MEMBER;
         } else {
             result = SubscriptionTier.FREE;
         }

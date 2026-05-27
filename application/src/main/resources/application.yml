@@ -93,7 +93,7 @@ aihealthcare:
   # Set to 0 for no date restriction.  Change freely for experimentation.
   # ---------------------------------------------------------------------------
   articles:
-    days-back: 1
+    days-back: 3
 
   # ---------------------------------------------------------------------------
   # Harvest scheduling — consolidated daily pipeline (all times UTC).
@@ -698,5 +698,17 @@ aihealthcare:
     api-key: ${STRIPE_API_KEY:}
     publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
     webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
-    premium-price-id: ${STRIPE_PREMIUM_PRICE_ID:}
-    enterprise-price-id: ${STRIPE_ENTERPRISE_PRICE_ID:}
+    member-price-id: ${STRIPE_MEMBER_PRICE_ID:}
+
+  # ---------------------------------------------------------------------------
+  # Subscription tier feature limits.
+  # archive-days: 0 = unlimited archive access.
+  # monthly-query-limit: max AI research queries per calendar month.
+  # ---------------------------------------------------------------------------
+  tiers:
+    free:
+      archive-days: 30
+      monthly-query-limit: 15
+    member:
+      archive-days: 0
+      monthly-query-limit: 200

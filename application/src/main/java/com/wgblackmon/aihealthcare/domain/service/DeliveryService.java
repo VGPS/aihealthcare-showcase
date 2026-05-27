@@ -14,7 +14,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,7 +34,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-05-24
+ * @updated 2026-05-26
  */
 @Slf4j
 public class DeliveryService implements ManageSubscribersUseCase, DeliverNewsletterUseCase {
@@ -82,30 +81,21 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
 
         NewsletterRun run = newsletterRunPort.findByRunId(runId);
 
-        // Split subscribers by tier — paid tiers get full content, FREE gets a teaser
-        List<Subscriber> premiumRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.PREMIUM);
-        List<Subscriber> enterpriseRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.ENTERPRISE);
+        // Split subscribers by tier — MEMBER gets full content, FREE gets a teaser
+        List<Subscriber> memberRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.MEMBER);
         List<Subscriber> freeRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.FREE);
 
-        List<Subscriber> paidRecipients = new ArrayList<>();
-        for (Subscriber s : premiumRecipients) {
-            paidRecipients.add(s);
-        }
-        for (Subscriber s : enterpriseRecipients) {
-            paidRecipients.add(s);
-        }
-
-        int totalRecipients = paidRecipients.size() + freeRecipients.size();
+        int totalRecipients = memberRecipients.size() + freeRecipients.size();
         if (totalRecipients == 0) {
             log.warn("deliver() | No active subscribers — skipping delivery for runId={}", runId);
             log.debug("deliver() | return=void (no recipients)");
             return;
         }
 
-        // Deliver full newsletter to PREMIUM and ENTERPRISE subscribers
-        if (!paidRecipients.isEmpty()) {
-            newsletterDeliveryPort.deliver(run, paidRecipients);
-            log.info("deliver() | Full newsletter sent to {} paid subscribers", paidRecipients.size());
+        // Deliver full newsletter to MEMBER subscribers
+        if (!memberRecipients.isEmpty()) {
+            newsletterDeliveryPort.deliver(run, memberRecipients);
+            log.info("deliver() | Full newsletter sent to {} member subscribers", memberRecipients.size());
         }
 
         // Deliver teaser to FREE subscribers
@@ -126,8 +116,8 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
         );
         newsletterRunPort.save(sent);
 
-        log.info("deliver() | Newsletter delivered: runId={}, paid={}, free={}",
-                 runId, paidRecipients.size(), freeRecipients.size());
+        log.info("deliver() | Newsletter delivered: runId={}, member={}, free={}",
+                 runId, memberRecipients.size(), freeRecipients.size());
         log.debug("deliver() | return=void");
     }
 

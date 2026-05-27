@@ -7,6 +7,8 @@ import com.wgblackmon.aihealthcare.domain.model.ResearchRequest;
 import com.wgblackmon.aihealthcare.domain.model.ResearchSection;
 import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
+import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.web.dto.ResearchRequestDto;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -34,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-04
- * @updated 2026-05-04
+ * @updated 2026-05-26
  */
 @WebMvcTest(ResearchController.class)
 class ResearchControllerTest {
@@ -47,6 +49,12 @@ class ResearchControllerTest {
 
     @MockitoBean
     private ConductResearchUseCase conductResearchUseCase;
+
+    @MockitoBean
+    private UsageTrackingPort usageTrackingPort;
+
+    @MockitoBean
+    private TierGatingService tierGatingService;
 
     // -------------------------------------------------------------------------
     // POST /api/v1/research — happy path

@@ -76,22 +76,6 @@ class SubscriberAdapterTest {
     }
 
     // -------------------------------------------------------------------------
-    // findAllActive()
-    // -------------------------------------------------------------------------
-
-    @Test
-    void findAllActive_returnsOnlyActiveSubscribers() {
-        int baselineActive = adapter.findAllActive().size();
-        adapter.save(subscriber("a@example.com", "Alice", true));
-        adapter.save(subscriber("b@example.com", "Bob",   false));
-
-        List<Subscriber> result = adapter.findAllActive();
-
-        assertThat(result).hasSize(baselineActive + 1);
-        assertThat(result).extracting(Subscriber::email).contains("a@example.com");
-    }
-
-    // -------------------------------------------------------------------------
     // deleteByEmail()
     // -------------------------------------------------------------------------
 

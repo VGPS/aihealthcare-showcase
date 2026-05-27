@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AIHealthcare — Pricing</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            font-size: 14px;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+        }
+        header h1 { font-size: 1.25rem; font-weight: 600; }
+        header p  { font-size: 0.8rem; opacity: 0.6; }
+
+        nav {
+            background: #16213e;
+            padding: 0 2rem;
+            display: flex;
+            gap: 1.5rem;
+        }
+        nav a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 0.6rem 0;
+            border-bottom: 2px solid transparent;
+            display: inline-block;
+        }
+        nav a:hover { color: white; }
+        nav a.active { color: white; border-bottom-color: #4fc3f7; }
+
+        main {
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .tier-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .tier-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tier-card.member {
+            border: 2px solid #0066cc;
+            position: relative;
+        }
+
+        .tier-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0066cc;
+            color: white;
+            padding: 4px 16px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tier-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: #1a1a2e;
+        }
+
+        .tier-price {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0066cc;
+            margin-bottom: 0.25rem;
+        }
+        .tier-price span {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #999;
+        }
+
+        .tier-desc {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .feature-list {
+            list-style: none;
+            flex: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-list li:last-child { border-bottom: none; }
+
+        .check { color: #22c55e; font-weight: bold; }
+        .cross { color: #ccc; font-weight: bold; }
+
+        .tier-button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .tier-button.free {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .tier-button.member {
+            background: #0066cc;
+            color: white;
+        }
+        .tier-button.member:hover { background: #004499; }
+
+        .comparison-table {
+            margin-top: 3rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .comparison-table h2 {
+            padding: 1.25rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-bottom: 1px solid #eee;
+            color: #1a1a2e;
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 0.75rem 1.5rem;
+            text-align: left;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .comparison-table th {
+            background: #fafafa;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .comparison-table td:nth-child(2),
+        .comparison-table td:nth-child(3) {
+            text-align: center;
+        }
+
+        .comparison-table th:nth-child(2),
+        .comparison-table th:nth-child(3) {
+            text-align: center;
+        }
+
+        @media (max-width: 640px) {
+            .tier-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AIHealthcare</h1>
+    <p>AI-in-Healthcare Intelligence Platform</p>
+</header>
+
+<nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/dashboard/news">News Listing</a>
+    <a href="/newsletter/runs">Newsletter Preview</a>
+    <a href="/research/compare">Research Compare</a>
+    <a href="/research/runs">Research Runs</a>
+    <a href="/research/vendors">Vendor Compare</a>
+    <a href="/pricing" class="active">Pricing</a>
+</nav>
+
+<main>
+    <h1 class="page-title">Choose Your Plan</h1>
+    <p class="page-subtitle">AI-powered healthcare intelligence for professionals and teams</p>
+
+    <div class="tier-grid">
+        <!-- FREE tier card -->
+        <div class="tier-card">
+            <div class="tier-name">Free</div>
+            <div class="tier-price">$0 <span>/month</span></div>
+            <p class="tier-desc">
+                Stay informed with weekly highlights and basic access to the
+                AI-in-Healthcare newsletter.
+            </p>
+            <ul class="feature-list">
+                <li><span class="check">&#10003;</span> Weekly newsletter teaser</li>
+                <li>
+                    <span class="check">&#10003;</span>
+                    <span th:text="${freeArchiveDays} + '-day article archive'">30-day article archive</span>
+                </li>
+                <li><span class="check">&#10003;</span> Basic keyword search</li>
+                <li>
+                    <span class="check">&#10003;</span>
+                    <span th:text="${freeQueryLimit} + ' AI research queries/month'">15 AI research queries/month</span>
+                </li>
+                <li><span class="cross">&#10007;</span> Semantic / vector search</li>
+                <li><span class="cross">&#10007;</span> LLM model choice</li>
+                <li><span class="cross">&#10007;</span> Full newsletter content</li>
+            </ul>
+            <div class="tier-button free">Current Plan</div>
+        </div>
+
+        <!-- MEMBER tier card -->
+        <div class="tier-card member">
+            <div class="tier-badge">Recommended</div>
+            <div class="tier-name">Member</div>
+            <div class="tier-price">$15 <span>/month</span></div>
+            <p class="tier-desc">
+                Full access to the platform: complete newsletters, deep archive,
+                semantic search, and AI-powered research tools.
+            </p>
+            <ul class="feature-list">
+                <li><span class="check">&#10003;</span> Full weekly newsletter</li>
+                <li>
+                    <span class="check">&#10003;</span>
+                    <span th:text="${memberArchiveDays == 0} ? 'Unlimited article archive' : ${memberArchiveDays} + '-day article archive'">Unlimited article archive</span>
+                </li>
+                <li><span class="check">&#10003;</span> Basic + semantic search</li>
+                <li>
+                    <span class="check">&#10003;</span>
+                    <span th:text="${memberQueryLimit} + ' AI research queries/month'">200 AI research queries/month</span>
+                </li>
+                <li><span class="check">&#10003;</span> Semantic / vector search</li>
+                <li><span class="check">&#10003;</span> LLM model choice</li>
+                <li><span class="check">&#10003;</span> Vendor comparisons &amp; reports</li>
+            </ul>
+            <a class="tier-button member" href="#upgrade">Upgrade to Member</a>
+        </div>
+    </div>
+
+    <!-- Feature comparison table -->
+    <div class="comparison-table">
+        <h2>Feature Comparison</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Free</th>
+                    <th>Member</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Newsletter content</td>
+                    <td>Teaser (first section)</td>
+                    <td>Full newsletter</td>
+                </tr>
+                <tr>
+                    <td>Article archive</td>
+                    <td th:text="${freeArchiveDays} + ' days'">30 days</td>
+                    <td th:text="${memberArchiveDays == 0} ? 'Unlimited' : ${memberArchiveDays} + ' days'">Unlimited</td>
+                </tr>
+                <tr>
+                    <td>AI research queries</td>
+                    <td th:text="${freeQueryLimit} + ' / month'">15 / month</td>
+                    <td th:text="${memberQueryLimit} + ' / month'">200 / month</td>
+                </tr>
+                <tr>
+                    <td>Keyword search</td>
+                    <td><span class="check">&#10003;</span></td>
+                    <td><span class="check">&#10003;</span></td>
+                </tr>
+                <tr>
+                    <td>Semantic / vector search</td>
+                    <td><span class="cross">&#10007;</span></td>
+                    <td><span class="check">&#10003;</span></td>
+                </tr>
+                <tr>
+                    <td>LLM model choice</td>
+                    <td>Default only</td>
+                    <td>Multiple models</td>
+                </tr>
+                <tr>
+                    <td>Vendor comparison reports</td>
+                    <td><span class="cross">&#10007;</span></td>
+                    <td><span class="check">&#10003;</span></td>
+                </tr>
+                <tr>
+                    <td>Research run history</td>
+                    <td>Last 7 days</td>
+                    <td>Unlimited</td>
+                </tr>
+                <tr>
+                    <td>Topic AI summaries</td>
+                    <td><span class="check">&#10003;</span></td>
+                    <td><span class="check">&#10003;</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+</body>
+</html>

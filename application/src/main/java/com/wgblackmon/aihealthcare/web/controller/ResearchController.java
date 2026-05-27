@@ -5,20 +5,28 @@ import com.wgblackmon.aihealthcare.domain.model.ResearchMode;
 import com.wgblackmon.aihealthcare.domain.model.ResearchRequest;
 import com.wgblackmon.aihealthcare.domain.model.ResearchSection;
 import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
+import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
+import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.web.dto.ResearchAnswerDto;
 import com.wgblackmon.aihealthcare.web.dto.ResearchRequestDto;
 import com.wgblackmon.aihealthcare.web.dto.ResearchSectionDto;
 import com.wgblackmon.aihealthcare.web.dto.SourceCitationDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller that exposes the research pipeline via {@code POST /api/v1/research}.
@@ -27,6 +35,11 @@ import java.util.List;
  * {@link ResearchRequest}, delegates to {@link ConductResearchUseCase}, and maps the
  * resulting {@link ResearchAnswer} back to a {@link ResearchAnswerDto} for the response.
  *
+ * <p>When the optional {@code X-Subscriber-Email} header is present, the controller
+ * checks the subscriber's monthly AI query usage against their tier limit.  If the
+ * limit is reached, HTTP 429 (Too Many Requests) is returned with usage details.
+ * Without the header, requests are allowed anonymously (backwards-compatible).
+ *
  * <p>Validation rules applied here:
  * <ul>
  *   <li>{@code query} must be non-blank; returns HTTP 400 otherwise.</li>
@@ -34,13 +47,10 @@ import java.util.List;
  *   <li>{@code maxSources} defaults to {@code 20} when absent; clamped to [1, 100].</li>
  * </ul>
  *
- * <p>The {@link com.wgblackmon.aihealthcare.web.GlobalExceptionHandler} catches
- * {@link IllegalArgumentException} and maps it to HTTP 400.
- *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-04
- * @updated 2026-05-04
+ * @updated 2026-05-26
  */
 @Slf4j
 @RestController
@@ -51,32 +61,66 @@ public class ResearchController {
     private static final int MAX_SOURCES_CAP     = 100;
 
     private final ConductResearchUseCase conductResearchUseCase;
+    private final UsageTrackingPort      usageTrackingPort;
+    private final TierGatingService      tierGatingService;
 
     /**
-     * Constructs the controller with its inbound use-case port.
+     * Constructs the controller with its inbound use-case port and usage-tracking
+     * dependencies.
      *
      * @param conductResearchUseCase Use case that drives the research pipeline.
+     * @param usageTrackingPort      Port for tracking per-subscriber query usage.
+     * @param tierGatingService      Service for checking tier-based usage limits.
      */
-    public ResearchController(ConductResearchUseCase conductResearchUseCase) {
-        log.debug("ResearchController() | conductResearchUseCase={}",
-                  conductResearchUseCase.getClass().getSimpleName());
+    public ResearchController(ConductResearchUseCase conductResearchUseCase,
+                              UsageTrackingPort usageTrackingPort,
+                              TierGatingService tierGatingService) {
+        log.debug("ResearchController() | conductResearchUseCase={}, usageTrackingPort={}, tierGatingService={}",
+                  conductResearchUseCase.getClass().getSimpleName(),
+                  usageTrackingPort.getClass().getSimpleName(),
+                  tierGatingService.getClass().getSimpleName());
         this.conductResearchUseCase = conductResearchUseCase;
+        this.usageTrackingPort      = usageTrackingPort;
+        this.tierGatingService      = tierGatingService;
         log.debug("ResearchController() | return=void");
     }
 
     /**
      * Conduct a research query and return a structured answer.
      *
-     * @param dto Incoming request body; {@code query} is required.
-     * @return HTTP 200 with a {@link ResearchAnswerDto}, or HTTP 400 if validation fails.
+     * @param dto             Incoming request body; {@code query} is required.
+     * @param subscriberEmail Optional subscriber email for usage metering.
+     * @return HTTP 200 with a {@link ResearchAnswerDto}, HTTP 400 if validation fails,
+     *         or HTTP 429 if the subscriber's monthly query limit is reached.
      */
     @PostMapping
-    public ResponseEntity<ResearchAnswerDto> research(@RequestBody ResearchRequestDto dto) {
-        log.debug("research() | dto={}", dto);
+    public ResponseEntity<?> research(
+            @RequestBody ResearchRequestDto dto,
+            @RequestHeader(value = "X-Subscriber-Email", required = false) String subscriberEmail) {
+        log.debug("research() | dto={}, subscriberEmail={}", dto, subscriberEmail);
 
         if (dto == null || dto.query() == null || dto.query().isBlank()) {
             log.warn("research() | request rejected: query is blank");
             throw new IllegalArgumentException("query must not be blank");
+        }
+
+        // Usage gating — check monthly limit if subscriber email is provided
+        if (subscriberEmail != null && !subscriberEmail.isBlank()) {
+            String currentMonth = YearMonth.now().toString();
+            UsageRecord usage = usageTrackingPort.getOrCreateUsage(subscriberEmail, currentMonth);
+
+            if (!tierGatingService.canQuery(usage)) {
+                log.warn("research() | Monthly query limit reached: email={}, used={}, limit={}",
+                         subscriberEmail, usage.queryCount(), usage.queryLimit());
+                Map<String, Object> body = new LinkedHashMap<>();
+                body.put("error", "Monthly query limit reached");
+                body.put("used", usage.queryCount());
+                body.put("limit", usage.queryLimit());
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(body);
+            }
+
+            // Increment usage before executing the query
+            usageTrackingPort.incrementAndGet(subscriberEmail, currentMonth);
         }
 
         ResearchMode mode = parseMode(dto.mode());

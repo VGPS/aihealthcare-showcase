@@ -7,10 +7,12 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentVectorPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FileParserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalyticsPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SourceRetrievalPort;
+import com.wgblackmon.aihealthcare.domain.model.TierLimits;
 import com.wgblackmon.aihealthcare.domain.service.AnalyticsService;
 import com.wgblackmon.aihealthcare.domain.service.CitationAssembler;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
+import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
 import com.wgblackmon.aihealthcare.domain.service.MarketIntelligenceService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
@@ -78,7 +80,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-05-21
+ * @updated 2026-05-26
  */
 
 @Slf4j
@@ -100,6 +102,29 @@ public class AppConfig {
         log.debug("newsletterTeaserBuilder() | daysBack={}", daysBack);
         NewsletterTeaserBuilder result = new NewsletterTeaserBuilder(daysBack);
         log.debug("newsletterTeaserBuilder() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link TierGatingService} that evaluates feature access and
+     * usage limits per subscription tier.
+     *
+     * @param props Tier limit configuration from {@code aihealthcare.tiers.*}.
+     * @return The wired {@link TierGatingService} instance.
+     */
+    @Bean
+    public TierGatingService tierGatingService(TierLimitProperties props) {
+        log.debug("tierGatingService() | freeLimits=[archive={}, queries={}], memberLimits=[archive={}, queries={}]",
+                  props.getFree().getArchiveDays(), props.getFree().getMonthlyQueryLimit(),
+                  props.getMember().getArchiveDays(), props.getMember().getMonthlyQueryLimit());
+        TierLimits freeLimits = new TierLimits(
+                props.getFree().getArchiveDays(),
+                props.getFree().getMonthlyQueryLimit());
+        TierLimits memberLimits = new TierLimits(
+                props.getMember().getArchiveDays(),
+                props.getMember().getMonthlyQueryLimit());
+        TierGatingService result = new TierGatingService(freeLimits, memberLimits);
+        log.debug("tierGatingService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

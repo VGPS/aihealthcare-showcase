@@ -9,12 +9,12 @@ import java.time.Instant;
  * @param name         The subscriber's display name.
  * @param active       Whether the subscriber currently receives mailings.
  * @param subscribedAt Timestamp of when the subscription was created.
- * @param tier         Subscription tier (FREE, PREMIUM, ENTERPRISE).
+ * @param tier         Subscription tier (FREE, MEMBER).
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-05-23
+ * @updated 2026-05-26
  */
 public record SubscriberResponse(
         String  email,

@@ -9,8 +9,8 @@ import java.util.Optional;
  * Spring Data JPA repository for {@link SubscriberEntity}.
  *
  * <p>Email is the primary key, so {@code findById(email)} serves as the lookup
- * by email address.  {@code findAllByActiveTrue} limits mailing-list queries to
- * active subscriptions only.
+ * by email address.  {@code findAllByActiveTrueAndTier} limits mailing-list
+ * queries to active subscriptions filtered by tier.
  *
  * @author  Bill Blackmon
  * @version 1.0
@@ -30,18 +30,10 @@ public interface SubscriberRepository extends JpaRepository<SubscriberEntity, St
     Optional<SubscriberEntity> findByEmail(String email);
 
     /**
-     * Returns all subscribers whose {@code active} flag is {@code true}.
-     * Used by the delivery pipeline to build the mailing list.
-     *
-     * @return List of active subscriber entities; never {@code null}.
-     */
-    List<SubscriberEntity> findAllByActiveTrue();
-
-    /**
      * Returns all active subscribers with the given tier.
      * Used to target content delivery by subscription level.
      *
-     * @param tier The tier string (FREE, PREMIUM, ENTERPRISE).
+     * @param tier The tier string (FREE, MEMBER).
      * @return List of matching subscriber entities; never {@code null}.
      */
     List<SubscriberEntity> findAllByActiveTrueAndTier(String tier);

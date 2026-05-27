@@ -63,20 +63,6 @@ public class SubscriberAdapter implements SubscriberPort {
     }
 
     @Override
-    public List<Subscriber> findAllActive() {
-        log.debug("findAllActive() | (no args)");
-
-        List<SubscriberEntity> entities = repository.findAllByActiveTrue();
-        List<Subscriber> result = new ArrayList<>();
-        for (SubscriberEntity entity : entities) {
-            result.add(toDomain(entity));
-        }
-
-        log.debug("findAllActive() | return={} active subscribers", result.size());
-        return result;
-    }
-
-    @Override
     public Optional<Subscriber> findByEmail(String email) {
         log.debug("findByEmail() | email={}", email);
 

@@ -39,13 +39,6 @@ public interface SubscriberPort {
     List<Subscriber> findAll();
 
     /**
-     * Returns only subscribers whose {@code active} flag is {@code true}.
-     *
-     * @return Unmodifiable list; never {@code null}, may be empty.
-     */
-    List<Subscriber> findAllActive();
-
-    /**
      * Looks up a single subscriber by email address.
      *
      * @param email The email address to search for.

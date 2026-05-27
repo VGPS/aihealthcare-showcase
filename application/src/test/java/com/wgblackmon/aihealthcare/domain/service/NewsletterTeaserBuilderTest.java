@@ -79,7 +79,7 @@ class NewsletterTeaserBuilderTest {
 
         assertThat(teaser.htmlContent()).contains("Want the full newsletter?");
         assertThat(teaser.htmlContent()).contains("Upgrade to");
-        assertThat(teaser.htmlContent()).contains("Premium");
+        assertThat(teaser.htmlContent()).contains("Member");
     }
 
     @Test
@@ -100,7 +100,7 @@ class NewsletterTeaserBuilderTest {
         NewsletterRun teaser = dailyBuilder.buildTeaser(fullRun);
 
         assertThat(teaser.plainTextContent()).contains("WANT THE FULL NEWSLETTER?");
-        assertThat(teaser.plainTextContent()).contains("Upgrade to Premium");
+        assertThat(teaser.plainTextContent()).contains("Upgrade to Member");
     }
 
     @Test

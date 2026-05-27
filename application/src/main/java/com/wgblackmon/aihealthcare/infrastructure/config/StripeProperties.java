@@ -14,17 +14,16 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>{@code STRIPE_API_KEY} — Stripe secret key (sk_test_... or sk_live_...)</li>
  *   <li>{@code STRIPE_WEBHOOK_SECRET} — webhook endpoint signing secret (whsec_...)</li>
- *   <li>{@code STRIPE_PREMIUM_PRICE_ID} — Stripe Price ID for the Premium tier</li>
- *   <li>{@code STRIPE_ENTERPRISE_PRICE_ID} — Stripe Price ID for the Enterprise tier</li>
+ *   <li>{@code STRIPE_MEMBER_PRICE_ID} — Stripe Price ID for the Member tier</li>
  * </ul>
  *
  * <p>When {@code apiKey} is blank the Stripe integration is effectively disabled;
  * the webhook controller will reject incoming events gracefully.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-23
- * @updated 2026-05-24
+ * @updated 2026-05-26
  */
 @Slf4j
 @Component
@@ -34,8 +33,7 @@ public class StripeProperties {
     private String apiKey = "";
     private String publishableKey = "";
     private String webhookSecret = "";
-    private String premiumPriceId = "";
-    private String enterprisePriceId = "";
+    private String memberPriceId = "";
 
     /**
      * Initializes the Stripe SDK global API key if configured.
@@ -61,11 +59,8 @@ public class StripeProperties {
     public String getWebhookSecret()                     { return webhookSecret; }
     public void setWebhookSecret(String webhookSecret)   { this.webhookSecret = webhookSecret; }
 
-    public String getPremiumPriceId()                    { return premiumPriceId; }
-    public void setPremiumPriceId(String premiumPriceId) { this.premiumPriceId = premiumPriceId; }
-
-    public String getEnterprisePriceId()                       { return enterprisePriceId; }
-    public void setEnterprisePriceId(String enterprisePriceId) { this.enterprisePriceId = enterprisePriceId; }
+    public String getMemberPriceId()                     { return memberPriceId; }
+    public void setMemberPriceId(String memberPriceId)   { this.memberPriceId = memberPriceId; }
 
     /**
      * Returns {@code true} if a Stripe API key has been configured.

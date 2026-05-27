@@ -186,5 +186,5 @@ SELECT 'wgblackmonall@gmail.com', 'Bill Blackmon', true, CURRENT_TIMESTAMP, 'FRE
 WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'wgblackmonall@gmail.com');
 
 INSERT INTO subscribers (email, name, active, subscribed_at, tier)
-SELECT 'dshihtzu@gmail.com', 'D Shihtzu', true, CURRENT_TIMESTAMP, 'PREMIUM'
+SELECT 'dshihtzu@gmail.com', 'D Shihtzu', true, CURRENT_TIMESTAMP, 'MEMBER'
 WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'dshihtzu@gmail.com');

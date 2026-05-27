@@ -11,8 +11,8 @@ import java.time.Instant;
  * the subscription was created and is set once at registration time.
  *
  * <p>The {@code tier} field determines what content the subscriber receives.
- * Billing for paid tiers (PREMIUM, ENTERPRISE) is handled externally by
- * Stripe Billing; this field is updated via Stripe webhook events.
+ * Billing for the paid tier (MEMBER) is handled externally by Stripe Billing;
+ * this field is updated via Stripe webhook events.
  *
  * <p>Email is the natural business key and serves as the deduplication identifier
  * in the persistence layer.  The domain does not enforce email-format validation
@@ -24,13 +24,13 @@ import java.time.Instant;
  * @param name         The subscriber's display name.  Must not be blank.
  * @param active       {@code true} if the subscriber should receive mailings.
  * @param subscribedAt Timestamp of when the subscription was created.
- * @param tier         Subscription tier (FREE, PREMIUM, ENTERPRISE).
+ * @param tier         Subscription tier (FREE, MEMBER).
  *                     Defaults to {@link SubscriptionTier#FREE} if {@code null}.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-05-23
+ * @updated 2026-05-26
  */
 public record Subscriber(
         String           email,
