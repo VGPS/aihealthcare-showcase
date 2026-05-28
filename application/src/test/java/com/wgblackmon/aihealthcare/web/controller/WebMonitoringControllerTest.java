@@ -11,7 +11,10 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashEnt
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -33,6 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since   2026-04-19
  * @updated 2026-05-22
  */
+@Import(SecurityConfig.class)
+@WithMockUser
 @WebMvcTest(WebMonitoringController.class)
 class WebMonitoringControllerTest {
 

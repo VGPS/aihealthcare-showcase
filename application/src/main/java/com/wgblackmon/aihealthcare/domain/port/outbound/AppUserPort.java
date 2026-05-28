@@ -1,0 +1,37 @@
+package com.wgblackmon.aihealthcare.domain.port.outbound;
+
+import com.wgblackmon.aihealthcare.domain.model.AppUser;
+
+import java.util.Optional;
+
+/**
+ * Outbound port for persisting and retrieving application users.
+ *
+ * <p>Implementations live in {@code infrastructure.persistence}.  The domain
+ * and application layers depend only on this interface and never on JPA or any
+ * other storage technology.
+ *
+ * <p>Email is the natural key for users and serves as the lookup identifier.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-05-28
+ * @updated 2026-05-28
+ */
+public interface AppUserPort {
+
+    /**
+     * Looks up a single user by email address.
+     *
+     * @param email The email address to search for.
+     * @return An {@link Optional} containing the user, or empty if not found.
+     */
+    Optional<AppUser> findByEmail(String email);
+
+    /**
+     * Persists a new user or overwrites an existing one with the same email.
+     *
+     * @param user The user to persist.
+     */
+    void save(AppUser user);
+}

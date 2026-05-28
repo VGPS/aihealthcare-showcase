@@ -4,7 +4,10 @@ import com.wgblackmon.aihealthcare.domain.model.SearchPromptConfig;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SearchPromptPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -25,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since   2026-04-28
  * @updated 2026-04-28
  */
+@Import(SecurityConfig.class)
+@WithMockUser
 @WebMvcTest(SearchPromptController.class)
 class SearchPromptControllerTest {
 

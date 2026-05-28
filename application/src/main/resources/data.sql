@@ -188,3 +188,20 @@ WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'wgblackmonall@gmail.c
 INSERT INTO subscribers (email, name, active, subscribed_at, tier)
 SELECT 'dshihtzu@gmail.com', 'D Shihtzu', true, CURRENT_TIMESTAMP, 'MEMBER'
 WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'dshihtzu@gmail.com');
+
+-- ---------------------------------------------------------------------------
+-- Seed application users for local development and testing (Slice 29).
+-- Passwords: admin@gmail.com / admin123, demo@gmail.com / demo123
+-- Hashes generated with BCrypt (cost factor 10).
+-- ---------------------------------------------------------------------------
+INSERT INTO app_users (email, password_hash, display_name, role, enabled)
+SELECT 'admin@gmail.com',
+       '$2b$10$K7fAbvP1NM3iDl8JEHlR4O/Ct2gfxs5tSJAJ3aB62uYeob6BcX/3m',
+       'Admin', 'ADMIN', true
+WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'admin@gmail.com');
+
+INSERT INTO app_users (email, password_hash, display_name, role, enabled)
+SELECT 'demo@gmail.com',
+       '$2b$10$jEQkdOFoE4afcbjkMm2DY.8b.RSpLYZdE6qHYPGSAB1SWP3aV1v7e',
+       'Demo User', 'USER', true
+WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'demo@gmail.com');

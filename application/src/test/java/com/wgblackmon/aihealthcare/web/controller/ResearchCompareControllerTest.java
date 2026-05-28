@@ -9,7 +9,10 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -40,6 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since   2026-05-05
  * @updated 2026-05-05
  */
+@Import(SecurityConfig.class)
+@WithMockUser
 @WebMvcTest(ResearchCompareController.class)
 class ResearchCompareControllerTest {
 

@@ -4,7 +4,10 @@ import com.wgblackmon.aihealthcare.domain.model.ResearchRun;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchRunPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -30,6 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since   2026-05-12
  * @updated 2026-05-12
  */
+@Import(SecurityConfig.class)
+@WithMockUser
 @WebMvcTest(ResearchDashboardController.class)
 class ResearchDashboardControllerTest {
 

@@ -16,7 +16,9 @@ import com.wgblackmon.aihealthcare.web.dto.GenerateRequest;
 import com.wgblackmon.aihealthcare.web.dto.IngestRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -55,8 +57,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since   2026-04-04
  * @updated 2026-04-04
  */
+@Import({SecurityConfig.class, GlobalExceptionHandler.class})
+@WithMockUser
 @WebMvcTest(NewsletterController.class)
-@Import(GlobalExceptionHandler.class)
 class NewsletterControllerTest {
 
     @Autowired

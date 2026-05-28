@@ -7,7 +7,10 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -19,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -36,6 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since   2026-05-18
  * @updated 2026-05-18
  */
+@Import(SecurityConfig.class)
+@WithMockUser
 @WebMvcTest(NewsletterPreviewController.class)
 class NewsletterPreviewControllerTest {
 
@@ -94,6 +100,7 @@ class NewsletterPreviewControllerTest {
         when(newsletterRunPort.findByRunId("run-001")).thenReturn(SAMPLE_RUN);
 
         mockMvc.perform(post("/newsletter/runs/run-001/save")
+                        .with(csrf())
                         .param("htmlContent", "<h1>Edited</h1><p>New content</p>"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/newsletter/runs/run-001/edit?saved=true"));
@@ -103,7 +110,7 @@ class NewsletterPreviewControllerTest {
 
     @Test
     void sendNewsletter_deliversAndRedirects() throws Exception {
-        mockMvc.perform(post("/newsletter/runs/run-001/send"))
+        mockMvc.perform(post("/newsletter/runs/run-001/send").with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/newsletter/runs?sent=true"));
 
@@ -115,7 +122,7 @@ class NewsletterPreviewControllerTest {
         doThrow(new RunNotFoundException("unknown"))
                 .when(deliverUseCase).deliver("unknown");
 
-        mockMvc.perform(post("/newsletter/runs/unknown/send"))
+        mockMvc.perform(post("/newsletter/runs/unknown/send").with(csrf()))
                 .andExpect(status().isNotFound());
     }
 }
