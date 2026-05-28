@@ -11,8 +11,9 @@ AIHealthcare runs multiple automated pipelines:
 3. **Summarize** — Uses Spring AI (Claude or OpenAI) to generate concise, topic-grouped newsletter sections with attributed sources
 4. **Research** — Staged research pipeline combining Perplexity API + DB articles, with planning, retrieval, citation assembly, and AI synthesis
 5. **Evaluate** — LLM-as-judge prompt evaluation scoring across 5 dimensions with A/B variant comparison
-6. **Deliver** — Generates a daily newsletter draft for review; send manually after editing in the TinyMCE WYSIWYG editor
+6. **Deliver** — Generates a daily newsletter draft for review; send manually after editing in the TinyMCE WYSIWYG editor; tier-aware content gating (FREE gets teaser, MEMBER gets full)
 7. **Export** — NotebookLM-compatible article exports with HTML summaries grouped by source
+8. **Gate** — Usage metering and feature gating per subscription tier (FREE vs MEMBER), with Stripe Billing integration
 
 ## Architecture
 
@@ -23,6 +24,7 @@ web (controllers + Thymeleaf)  -->  application (use cases)  -->  domain (models
                                                                        ^
                         infrastructure/* (adapters) -------------------+
                         - ai/          Spring AI adapter (summarize, evaluate, report)
+                        - config/      AppConfig, SecurityConfig, properties
                         - ingestion/   RSS, web scraping, HuggingFace, Perplexity
                         - persistence/ JPA entities, repositories, storage adapters
                         - delivery/    Email (JavaMailSender) + NotebookLM export
@@ -83,11 +85,13 @@ POST /api/v1/comparisons
 | Web Scraping      | Jsoup 1.18.3                                       |
 | Document Parsing  | PDFBox 3.0.3, POI-OOXML 5.3.0                     |
 | Newsletter Editor | TinyMCE 7.9.0 (WebJar)                             |
+| Authentication    | Spring Security 6 (session-based form login, BCrypt)|
+| Billing           | Stripe Billing (webhooks + checkout)               |
 | Email (dev)       | MailHog (SMTP trap)                                |
 | Email (prod)      | Amazon SES                                         |
-| UI                | Thymeleaf (server-side rendered)                   |
+| UI                | Thymeleaf + Spring Security extras                 |
 | Build             | Maven                                              |
-| Testing           | JUnit 5 + AssertJ + Mockito (501 tests)            |
+| Testing           | JUnit 5 + AssertJ + Mockito (551 tests)            |
 
 ## Prerequisites
 
@@ -137,7 +141,24 @@ mvn verify
 mvn spring-boot:run
 ```
 
-The application starts on `http://localhost:8080`.
+The application starts on `http://localhost:8080`. You will be redirected to the login page.
+
+### Default Login Credentials (dev only)
+
+| Email | Password | Role |
+|-------|----------|------|
+| `admin@gmail.com` | `admin123` | ADMIN |
+| `demo@gmail.com` | `demo123` | USER |
+
+## Authentication
+
+Spring Security protects all Thymeleaf UI pages behind session-based form login. REST API endpoints (`/api/**`), Stripe webhooks (`/stripe/**`), monitoring triggers (`/monitoring/**`), and the pricing page (`/pricing`) remain publicly accessible.
+
+| Path Pattern | Access |
+|-------------|--------|
+| `/login`, `/pricing` | Public |
+| `/api/**`, `/monitoring/**`, `/stripe/**` | Public (secured separately via API keys / Stripe signatures) |
+| `/dashboard`, `/newsletter/**`, `/research/**` | Requires login |
 
 ## Web UI (Thymeleaf)
 
@@ -152,6 +173,8 @@ The application starts on `http://localhost:8080`.
 | `/research/vendors` | Vendor comparison card grid with strengths/weaknesses |
 | `/newsletter/runs` | Newsletter run list with status badges and edit links |
 | `/newsletter/runs/{runId}/edit` | TinyMCE WYSIWYG editor — edit and send newsletter drafts |
+| `/pricing` | Two-tier comparison (Free vs Member) with feature limits |
+| `/login` | Session-based form login |
 
 ## REST API Endpoints
 
@@ -181,6 +204,8 @@ The application starts on `http://localhost:8080`.
 | POST/GET/DELETE | `/api/v1/variants` | Manage prompt variants |
 | POST/GET | `/api/v1/evaluations` | Run/view prompt evaluations |
 | POST | `/api/v1/comparisons` | Compare two prompt variants |
+| POST | `/stripe/create-checkout-session` | Create Stripe Checkout session for upgrade |
+| POST | `/stripe/webhook` | Stripe webhook receiver (tier updates) |
 
 ## Scheduled Jobs
 
@@ -215,6 +240,23 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 - Google Healthcare
 - Beckers Hospital Review
 
+### Subscription Tiers
+
+| Feature | Free | Member ($15/mo) |
+|---------|------|-----------------|
+| Newsletter content | Teaser (first section) | Full newsletter |
+| Article archive | 30 days | Unlimited |
+| AI research queries | 15/month | 200/month |
+| Semantic search | No | Yes |
+
+Tier upgrades are handled via Stripe Billing webhooks. Configure Stripe keys in `.env`:
+```
+STRIPE_API_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_MEMBER_PRICE_ID=price_...
+```
+
 ### Profiles
 
 - **demo** (default) — development mode with PostgreSQL on localhost
@@ -223,7 +265,7 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 
 ## Testing
 
-501 tests across 63 test classes — all pass with no live AI or network calls.
+551 tests across 66 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
@@ -239,17 +281,17 @@ mvn test -Dspring.profiles.active=ai-integration
 AIHealthcare/
 ├── application/src/main/java/com/wgblackmon/aihealthcare/
 │   ├── domain/
-│   │   ├── model/           # NewsArticle, Topic, NewsletterDraft, TopicSummary, ResearchAnswer...
+│   │   ├── model/           # NewsArticle, Topic, NewsletterDraft, AppUser, SubscriptionTier...
 │   │   ├── port/inbound/    # Use-case interfaces (inbound ports)
 │   │   ├── port/outbound/   # Port interfaces (outbound ports)
 │   │   ├── service/         # Domain services (Newsletter, Research, Evaluation, TopicSummary)
 │   │   └── exception/       # Domain exceptions
 │   ├── infrastructure/
 │   │   ├── ai/              # Spring AI adapters (summarize, evaluate, embed, report)
-│   │   ├── config/          # AppConfig, bean wiring, properties
+│   │   ├── config/          # AppConfig, SecurityConfig, bean wiring, properties
 │   │   ├── delivery/        # EmailDeliveryAdapter, NotebookLMService
 │   │   ├── ingestion/       # RSS, web scraping, HuggingFace, Perplexity, document parsing
-│   │   ├── persistence/     # JPA entities, repositories, storage adapters (11 tables)
+│   │   ├── persistence/     # JPA entities, repositories, storage adapters (12 tables)
 │   │   ├── research/        # Perplexity + legacy Google research adapters
 │   │   └── scheduler/       # NewsletterGenerationScheduler
 │   └── web/
@@ -257,7 +299,7 @@ AIHealthcare/
 │       └── dto/             # Request/response records
 ├── application/src/main/resources/
 │   ├── prompts/             # AI prompt templates (8 templates)
-│   └── templates/           # Thymeleaf HTML templates (9 pages)
+│   └── templates/           # Thymeleaf HTML templates (11 pages)
 ├── docs/                    # Architecture and conventions documentation
 ├── pom.xml
 └── CLAUDE.md                # AI assistant project context
