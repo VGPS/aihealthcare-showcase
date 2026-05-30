@@ -707,7 +707,7 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   tiers:
     free:
-      archive-days: 30
+      archive-days: 7
       monthly-query-limit: 15
     member:
       archive-days: 0

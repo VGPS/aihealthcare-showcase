@@ -1,17 +1,23 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.web.dto.ArticleResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * REST controller exposing the article query endpoint.
@@ -28,9 +34,9 @@ import java.util.List;
  * infrastructure class directly — it depends only on the domain port interface.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-04-11
- * @updated 2026-04-20
+ * @updated 2026-05-30
  */
 @Slf4j
 @RestController
@@ -38,10 +44,16 @@ import java.util.List;
 public class ArticleController {
 
     private final ArticleIngestionPort ingestionPort;
+    private final SubscriberPort subscriberPort;
+    private final TierGatingService tierGatingService;
 
-    public ArticleController(ArticleIngestionPort ingestionPort) {
+    public ArticleController(ArticleIngestionPort ingestionPort,
+                             SubscriberPort subscriberPort,
+                             TierGatingService tierGatingService) {
         log.debug("ArticleController() | ingestionPort={}", ingestionPort.getClass().getSimpleName());
-        this.ingestionPort = ingestionPort;
+        this.ingestionPort    = ingestionPort;
+        this.subscriberPort   = subscriberPort;
+        this.tierGatingService = tierGatingService;
     }
 
     /**
@@ -57,10 +69,25 @@ public class ArticleController {
     @GetMapping("/articles")
     public ResponseEntity<List<ArticleResponse>> listArticles(
             @RequestParam String topic,
-            @RequestParam(defaultValue = "20") int limit) {
-        log.debug("listArticles() | topic={}, limit={}", topic, limit);
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestHeader(value = "X-Subscriber-Email", required = false) String subscriberEmail) {
+        log.debug("listArticles() | topic={}, limit={}, subscriberEmail={}", topic, limit, subscriberEmail);
 
-        List<NewsArticle> articles = ingestionPort.fetchArticles(topic, limit);
+        SubscriptionTier tier = resolveTier(subscriberEmail);
+        int archiveDays = tierGatingService.archiveDaysFor(tier);
+        log.debug("listArticles() | resolved tier={}, archiveDays={}", tier, archiveDays);
+
+        List<NewsArticle> articles;
+        if (archiveDays > 0) {
+            List<NewsArticle> filtered = ingestionPort.fetchByTopicWithArchiveLimit(topic, archiveDays);
+            articles = new ArrayList<>();
+            int cap = Math.min(filtered.size(), limit);
+            for (int i = 0; i < cap; i++) {
+                articles.add(filtered.get(i));
+            }
+        } else {
+            articles = ingestionPort.fetchArticles(topic, limit);
+        }
         log.debug("listArticles() | fetched {} articles from ingestionPort", articles.size());
 
         List<ArticleResponse> responses = new ArrayList<>();
@@ -81,5 +108,28 @@ public class ArticleController {
 
         log.debug("listArticles() | return={} articles", responses.size());
         return ResponseEntity.ok(responses);
+    }
+
+    /**
+     * Resolves the subscription tier from an optional subscriber email header.
+     * Returns {@link SubscriptionTier#FREE} if the header is absent or the
+     * subscriber is not found.
+     *
+     * @param email the subscriber email from the X-Subscriber-Email header; may be null
+     * @return the subscriber's tier, defaulting to FREE
+     */
+    private SubscriptionTier resolveTier(String email) {
+        log.debug("resolveTier() | email={}", email);
+
+        if (email == null || email.isBlank()) {
+            log.debug("resolveTier() | return={}", SubscriptionTier.FREE);
+            return SubscriptionTier.FREE;
+        }
+
+        Optional<Subscriber> subscriber = subscriberPort.findByEmail(email);
+        SubscriptionTier result = subscriber.map(Subscriber::tier).orElse(SubscriptionTier.FREE);
+
+        log.debug("resolveTier() | return={}", result);
+        return result;
     }
 }

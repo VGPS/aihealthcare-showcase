@@ -5,11 +5,15 @@ import com.wgblackmon.aihealthcare.domain.model.EvaluationAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.IngestionAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.VariantScore;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
 import com.wgblackmon.aihealthcare.domain.model.TopicSummary;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
+import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +30,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -42,9 +48,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * and {@code GET /dashboard/news} (all topics grouped with section headers).
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-05-04
- * @updated 2026-05-21
+ * @updated 2026-05-30
  */
 @Import(SecurityConfig.class)
 @WithMockUser
@@ -65,6 +71,12 @@ class DashboardControllerTest {
 
     @MockitoBean
     private TopicSummaryPort topicSummaryPort;
+
+    @MockitoBean
+    private SubscriberPort subscriberPort;
+
+    @MockitoBean
+    private TierGatingService tierGatingService;
 
     // -------------------------------------------------------------------------
     // Fixtures
@@ -249,13 +261,19 @@ class DashboardControllerTest {
     // GET /dashboard/news
     // -------------------------------------------------------------------------
 
+    private void stubFreeTierGating() {
+        when(subscriberPort.findByEmail(any())).thenReturn(Optional.empty());
+        when(tierGatingService.archiveDaysFor(any())).thenReturn(7);
+    }
+
     @Test
     void news_returns200AndNewsListingView() throws Exception {
+        stubFreeTierGating();
         when(newsTopicProperties.getTopics()).thenReturn(
                 List.of("General AI Healthcare News", "Anthropic Healthcare"));
-        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(7)))
                 .thenReturn(List.of());
-        when(articleIngestionPort.fetchAllByTopic(eq("Anthropic Healthcare")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("Anthropic Healthcare"), eq(7)))
                 .thenReturn(List.of());
 
         mockMvc.perform(get("/dashboard/news"))
@@ -265,15 +283,16 @@ class DashboardControllerTest {
 
     @Test
     void news_rendersTopicHeadersWithArticles() throws Exception {
+        stubFreeTierGating();
         NewsArticle a1 = sampleArticle("AI Article", Instant.parse("2026-05-15T10:00:00Z"));
         NewsArticle a2 = sampleArticle("Anthropic Article", Instant.parse("2026-05-15T09:00:00Z"));
         when(newsTopicProperties.getTopics()).thenReturn(
                 List.of("General AI Healthcare News", "Anthropic Healthcare", "Beckers Hospital Review"));
-        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(7)))
                 .thenReturn(List.of(a1));
-        when(articleIngestionPort.fetchAllByTopic(eq("Anthropic Healthcare")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("Anthropic Healthcare"), eq(7)))
                 .thenReturn(List.of(a2));
-        when(articleIngestionPort.fetchAllByTopic(eq("Beckers Hospital Review")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("Beckers Hospital Review"), eq(7)))
                 .thenReturn(List.of());
 
         mockMvc.perform(get("/dashboard/news"))
@@ -284,11 +303,12 @@ class DashboardControllerTest {
 
     @Test
     void news_hidesEmptyTopicSections() throws Exception {
+        stubFreeTierGating();
         when(newsTopicProperties.getTopics()).thenReturn(
                 List.of("General AI Healthcare News", "Empty Topic"));
-        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(7)))
                 .thenReturn(List.of(sampleArticle("Some Article", Instant.now())));
-        when(articleIngestionPort.fetchAllByTopic(eq("Empty Topic")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("Empty Topic"), eq(7)))
                 .thenReturn(List.of());
 
         String html = mockMvc.perform(get("/dashboard/news"))
@@ -300,9 +320,10 @@ class DashboardControllerTest {
 
     @Test
     void news_rendersArticlesUnderTopic() throws Exception {
+        stubFreeTierGating();
         NewsArticle article = sampleArticle("Mythos in Healthcare", Instant.parse("2026-05-15T10:00:00Z"));
         when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
-        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(7)))
                 .thenReturn(List.of(article));
 
         mockMvc.perform(get("/dashboard/news"))
@@ -312,8 +333,9 @@ class DashboardControllerTest {
 
     @Test
     void news_modelContainsTotalArticleCount() throws Exception {
+        stubFreeTierGating();
         when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
-        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(7)))
                 .thenReturn(List.of());
 
         mockMvc.perform(get("/dashboard/news"))
@@ -324,9 +346,10 @@ class DashboardControllerTest {
 
     @Test
     void news_doesNotRenderAuthorOrSearchSourceColumns() throws Exception {
+        stubFreeTierGating();
         NewsArticle article = sampleArticle("Some Article", Instant.parse("2026-05-15T10:00:00Z"));
         when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
-        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(7)))
                 .thenReturn(List.of(article));
 
         String html = mockMvc.perform(get("/dashboard/news"))
@@ -339,13 +362,14 @@ class DashboardControllerTest {
 
     @Test
     void news_extractsPublicationFromTitle() throws Exception {
+        stubFreeTierGating();
         NewsArticle article = new NewsArticle(
                 "id-1", "AI in Nursing Practice - CancerNetwork",
                 URI.create("https://example.com/article"),
                 "body text", "General AI Healthcare News", null,
                 1L, "Google News", "INDUSTRY", 0.6, Instant.parse("2026-05-15T10:00:00Z"));
         when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
-        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(7)))
                 .thenReturn(List.of(article));
 
         String html = mockMvc.perform(get("/dashboard/news"))
@@ -364,13 +388,14 @@ class DashboardControllerTest {
 
     @Test
     void news_rendersTopicSummaryWhenPresent() throws Exception {
+        stubFreeTierGating();
         NewsArticle a1 = sampleArticle("Article One", Instant.parse("2026-05-15T10:00:00Z"));
         NewsArticle a2 = new NewsArticle(
                 "id-2", "Article Two", URI.create("https://example.com/article-2"),
                 "body text", "General AI Healthcare News", null,
                 1L, "PubMed", "ACADEMIC", 0.9, Instant.parse("2026-05-15T09:00:00Z"));
         when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
-        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(7)))
                 .thenReturn(List.of(a1, a2));
         when(topicSummaryPort.findByTopic(eq("General AI Healthcare News")))
                 .thenReturn(Optional.of(new TopicSummary(
@@ -386,8 +411,9 @@ class DashboardControllerTest {
 
     @Test
     void news_noSummaryForSingleArticleTopic() throws Exception {
+        stubFreeTierGating();
         when(newsTopicProperties.getTopics()).thenReturn(List.of("Anthropic Healthcare"));
-        when(articleIngestionPort.fetchAllByTopic(eq("Anthropic Healthcare")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("Anthropic Healthcare"), eq(7)))
                 .thenReturn(List.of(sampleArticle("Single Article", Instant.now())));
 
         String html = mockMvc.perform(get("/dashboard/news"))
@@ -399,12 +425,63 @@ class DashboardControllerTest {
 
     @Test
     void news_modelContainsTopicSummariesAttribute() throws Exception {
+        stubFreeTierGating();
         when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
-        when(articleIngestionPort.fetchAllByTopic(eq("General AI Healthcare News")))
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(7)))
                 .thenReturn(List.of());
 
         mockMvc.perform(get("/dashboard/news"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("topicSummaries"));
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /dashboard/news — archive depth gating
+    // -------------------------------------------------------------------------
+
+    @Test
+    void news_freeTier_showsArchiveBanner() throws Exception {
+        stubFreeTierGating();
+        when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(7)))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("archiveLimited", true))
+                .andExpect(model().attribute("archiveDays", 7))
+                .andExpect(content().string(containsString("Upgrade to Member")));
+    }
+
+    @Test
+    void news_memberTier_noArchiveBanner() throws Exception {
+        Subscriber member = new Subscriber("user", "Member User", true, Instant.now(), SubscriptionTier.MEMBER);
+        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(member));
+        when(tierGatingService.archiveDaysFor(SubscriptionTier.MEMBER)).thenReturn(0);
+        when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(0)))
+                .thenReturn(List.of());
+
+        String html = mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("archiveLimited", false))
+                .andReturn().getResponse().getContentAsString();
+
+        assert !html.contains("Upgrade to Member") : "Member should not see upgrade banner";
+    }
+
+    @Test
+    void news_memberTier_usesUnlimitedArchive() throws Exception {
+        Subscriber member = new Subscriber("user", "Member User", true, Instant.now(), SubscriptionTier.MEMBER);
+        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(member));
+        when(tierGatingService.archiveDaysFor(SubscriptionTier.MEMBER)).thenReturn(0);
+        NewsArticle article = sampleArticle("Old Article", Instant.parse("2025-01-01T10:00:00Z"));
+        when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(0)))
+                .thenReturn(List.of(article));
+
+        mockMvc.perform(get("/dashboard/news"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Old Article")));
     }
 }

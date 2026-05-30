@@ -33,9 +33,9 @@ import java.util.List;
  * <p>Replaces the Slice 1 stub that always returned an empty list.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-04-04
- * @updated 2026-04-20
+ * @updated 2026-05-30
  */
 @Slf4j
 @Component
@@ -91,6 +91,29 @@ public class ArticleIngestionAdapter implements ArticleIngestionPort {
         }
 
         log.debug("fetchAllByTopic() | return={} articles", result.size());
+        return result;
+    }
+
+    @Override
+    public List<NewsArticle> fetchByTopicWithArchiveLimit(String topic, int archiveDays) {
+        log.debug("fetchByTopicWithArchiveLimit() | topic={}, archiveDays={}", topic, archiveDays);
+
+        List<NewsArticleEntity> entities;
+        if (archiveDays > 0) {
+            Instant cutoff = Instant.now().minus(archiveDays, ChronoUnit.DAYS);
+            log.debug("fetchByTopicWithArchiveLimit() | using date filter: cutoff={}", cutoff);
+            entities = repository.findByTopicContainingIgnoreCaseAndCreatedAtAfter(topic, cutoff);
+        } else {
+            log.debug("fetchByTopicWithArchiveLimit() | archiveDays=0, no date filter applied");
+            entities = repository.findByTopicContainingIgnoreCase(topic);
+        }
+
+        List<NewsArticle> result = new ArrayList<>();
+        for (NewsArticleEntity entity : entities) {
+            result.add(toDomain(entity));
+        }
+
+        log.debug("fetchByTopicWithArchiveLimit() | return={} articles", result.size());
         return result;
     }
 

@@ -4,9 +4,13 @@ import com.wgblackmon.aihealthcare.domain.model.EvaluationAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.IngestionAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
+import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -43,9 +48,9 @@ import java.util.Optional;
  * map for the {@code news-listing} template.
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-05-04
- * @updated 2026-05-21
+ * @updated 2026-05-30
  */
 @Slf4j
 @Controller
@@ -62,15 +67,21 @@ public class DashboardController {
     private final ArticleIngestionPort articleIngestionPort;
     private final NewsTopicProperties newsTopicProperties;
     private final TopicSummaryPort topicSummaryPort;
+    private final SubscriberPort subscriberPort;
+    private final TierGatingService tierGatingService;
 
     public DashboardController(GetAnalyticsUseCase analyticsUseCase,
                                ArticleIngestionPort articleIngestionPort,
                                NewsTopicProperties newsTopicProperties,
-                               TopicSummaryPort topicSummaryPort) {
+                               TopicSummaryPort topicSummaryPort,
+                               SubscriberPort subscriberPort,
+                               TierGatingService tierGatingService) {
         this.analyticsUseCase     = analyticsUseCase;
         this.articleIngestionPort = articleIngestionPort;
         this.newsTopicProperties  = newsTopicProperties;
         this.topicSummaryPort     = topicSummaryPort;
+        this.subscriberPort       = subscriberPort;
+        this.tierGatingService    = tierGatingService;
     }
 
     /**
@@ -146,8 +157,13 @@ public class DashboardController {
     @GetMapping("/news")
     public String newsListing(
             @RequestParam(defaultValue = "desc") String sort,
+            Principal principal,
             Model model) {
-        log.debug("newsListing() | sort={}", sort);
+        log.debug("newsListing() | sort={}, principal={}", sort, principal != null ? principal.getName() : "anonymous");
+
+        SubscriptionTier tier = resolveTier(principal);
+        int archiveDays = tierGatingService.archiveDaysFor(tier);
+        log.debug("newsListing() | resolved tier={}, archiveDays={}", tier, archiveDays);
 
         List<String> topicNames = newsTopicProperties.getTopics();
         boolean ascending = "asc".equalsIgnoreCase(sort);
@@ -159,7 +175,7 @@ public class DashboardController {
         int totalArticles = 0;
 
         for (String topic : topicNames) {
-            List<NewsArticle> fetched = articleIngestionPort.fetchAllByTopic(topic);
+            List<NewsArticle> fetched = articleIngestionPort.fetchByTopicWithArchiveLimit(topic, archiveDays);
             List<NewsArticle> articles = new ArrayList<>();
             for (NewsArticle a : fetched) {
                 if (!"Anthropic Healthcare AI".equals(a.title())) {
@@ -205,10 +221,35 @@ public class DashboardController {
         model.addAttribute("topicSummaries", topicSummaries);
         model.addAttribute("sort", sort);
         model.addAttribute("totalArticles", totalArticles);
+        model.addAttribute("archiveLimited", archiveDays > 0);
+        model.addAttribute("archiveDays", archiveDays);
 
         log.debug("newsListing() | return=news-listing (topics={}, totalArticles={})",
                   topicNames.size(), totalArticles);
         return "news-listing";
+    }
+
+    /**
+     * Resolves the subscription tier for the currently authenticated user.
+     * Returns {@link SubscriptionTier#FREE} if the user is anonymous or has
+     * no subscriber record.
+     *
+     * @param principal the Spring Security principal; may be {@code null} for anonymous access
+     * @return the subscriber's tier, defaulting to FREE
+     */
+    private SubscriptionTier resolveTier(Principal principal) {
+        log.debug("resolveTier() | principal={}", principal != null ? principal.getName() : "null");
+
+        if (principal == null) {
+            log.debug("resolveTier() | return={}", SubscriptionTier.FREE);
+            return SubscriptionTier.FREE;
+        }
+
+        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
+        SubscriptionTier result = subscriber.map(Subscriber::tier).orElse(SubscriptionTier.FREE);
+
+        log.debug("resolveTier() | return={}", result);
+        return result;
     }
 
     /**

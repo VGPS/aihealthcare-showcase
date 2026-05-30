@@ -201,6 +201,36 @@
             color: #1a73e8;
             margin-bottom: 0.35rem;
         }
+
+        .archive-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+        .archive-banner .banner-text {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .archive-banner .banner-text strong { font-weight: 600; }
+        .archive-banner a {
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            margin-left: 1.5rem;
+        }
+        .archive-banner a:hover { background: #f0f0ff; }
     </style>
 </head>
 <body>
@@ -234,6 +264,15 @@
             <a th:href="@{/dashboard/news(sort='asc')}"
                th:classappend="${sort == 'asc'} ? ' active' : ''">Oldest first</a>
         </div>
+    </div>
+
+    <!-- Archive depth banner for FREE tier users -->
+    <div th:if="${archiveLimited}" class="archive-banner">
+        <span class="banner-text">
+            Showing articles from the last <strong th:text="${archiveDays}">7</strong> days.
+            Upgrade to Member for full archive access.
+        </span>
+        <a href="/pricing">Upgrade</a>
     </div>
 
     <!-- Topic sections -->

@@ -190,7 +190,26 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 26 — Cron Job Consolidation + Newsletter Draft-First Workflow — COMPLETE — 501 tests passing**
+**Slice 30 — Archive Depth Gating — COMPLETE — 559 tests passing**
+- [x] `application.yml` — FREE tier `archive-days` changed from 30 to 7
+- [x] `ArticleIngestionPort` — new `fetchByTopicWithArchiveLimit(topic, archiveDays)` method
+- [x] `ArticleIngestionAdapter` — implements date-filtered query (archiveDays > 0 → cutoff, 0 → unlimited)
+- [x] `DashboardController.newsListing()` — resolves logged-in user's tier via `SubscriberPort` + `TierGatingService`, applies archive depth filter; adds `archiveLimited` + `archiveDays` model attributes
+- [x] `ArticleController` — optional `X-Subscriber-Email` header for tier-based archive gating on REST API
+- [x] `news-listing.html` — upgrade banner for FREE-tier users: "Showing articles from the last 7 days. Upgrade to Member for full archive access."
+- [x] `SubscriptionTier` Javadoc updated (30 → 7 days)
+- [x] Tests: `ArticleControllerTest` (5 new), `DashboardControllerTest` (3 new archive gating tests), `TierGatingServiceTest` updated (7 → 30)
+
+**Previously complete: Slice 29 — Spring Security Session-Based Authentication — 551 tests passing**
+_(see git log for details)_
+
+**Previously complete: Slice 28 — Tier Rename + Usage Metering + Feature Gating — 542 tests passing**
+_(see git log for details)_
+
+**Previously complete: Slice 27 — Tier-Based Content Gating — 520 tests passing**
+_(see git log for details)_
+
+**Previously complete: Slice 26 — Cron Job Consolidation + Newsletter Draft-First Workflow — COMPLETE — 501 tests passing**
 - [x] All cron expressions externalized to `application.yml` — no more hardcoded `@Scheduled` annotations
 - [x] `FeedHarvestScheduler` — daily cron via `${aihealthcare.harvest.daily-cron}`, industry rate via `${aihealthcare.harvest.industry-rate-ms}`
 - [x] `WebMonitoringScheduler` — competitor cron via `${aihealthcare.harvest.competitor-cron}`, HuggingFace via `${aihealthcare.harvest.huggingface-cron}`

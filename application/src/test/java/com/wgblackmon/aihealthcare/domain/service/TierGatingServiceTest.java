@@ -17,13 +17,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-26
- * @updated 2026-05-26
+ * @updated 2026-05-30
  */
 class TierGatingServiceTest {
 
     private TierGatingService service;
 
-    private static final TierLimits FREE_LIMITS   = new TierLimits(30, 15);
+    private static final TierLimits FREE_LIMITS   = new TierLimits(7, 15);
     private static final TierLimits MEMBER_LIMITS = new TierLimits(0, 200);
 
     @BeforeEach
@@ -35,7 +35,7 @@ class TierGatingServiceTest {
     void getLimits_freeTier_returnsFreeLimits() {
         TierLimits result = service.getLimits(SubscriptionTier.FREE);
 
-        assertThat(result.archiveDays()).isEqualTo(30);
+        assertThat(result.archiveDays()).isEqualTo(7);
         assertThat(result.monthlyQueryLimit()).isEqualTo(15);
     }
 
@@ -76,8 +76,8 @@ class TierGatingServiceTest {
     }
 
     @Test
-    void archiveDaysFor_freeTier_returns30() {
-        assertThat(service.archiveDaysFor(SubscriptionTier.FREE)).isEqualTo(30);
+    void archiveDaysFor_freeTier_returns7() {
+        assertThat(service.archiveDaysFor(SubscriptionTier.FREE)).isEqualTo(7);
     }
 
     @Test

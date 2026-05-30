@@ -38,6 +38,20 @@ public interface ArticleIngestionPort {
     List<NewsArticle> fetchAllByTopic(String topic);
 
     /**
+     * Fetch all articles for the given topic, restricted to articles created
+     * within the last {@code archiveDays} days.  If {@code archiveDays} is 0,
+     * no date restriction is applied (unlimited archive access).
+     *
+     * <p>Used by tier-gated UI pages to enforce archive depth limits per
+     * subscription tier (e.g. FREE sees last 7 days, MEMBER sees all).
+     *
+     * @param topic       exact topic label to filter by (case-insensitive substring match)
+     * @param archiveDays maximum article age in days; 0 = unlimited
+     * @return matching articles within the date window; may be empty
+     */
+    List<NewsArticle> fetchByTopicWithArchiveLimit(String topic, int archiveDays);
+
+    /**
      * Fetch specific articles by their unique identifiers.
      *
      * <p>Used by the prompt evaluation framework to load known articles for

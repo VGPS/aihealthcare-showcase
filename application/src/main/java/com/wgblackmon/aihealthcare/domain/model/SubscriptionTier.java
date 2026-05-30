@@ -6,7 +6,7 @@ package com.wgblackmon.aihealthcare.domain.model;
  *
  * <p>Two tiers are supported:
  * <ul>
- *   <li>{@code FREE} — receives a teaser newsletter, limited archive (30 days),
+ *   <li>{@code FREE} — receives a teaser newsletter, limited archive (7 days),
  *       basic search, and a capped number of AI queries per month.</li>
  *   <li>{@code MEMBER} — receives the full newsletter plus premium features:
  *       full archive, semantic search, higher AI query allowance, and model choice.</li>
