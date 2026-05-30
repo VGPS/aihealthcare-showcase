@@ -91,7 +91,7 @@ POST /api/v1/comparisons
 | Email (prod)      | Amazon SES                                         |
 | UI                | Thymeleaf + Spring Security extras                 |
 | Build             | Maven                                              |
-| Testing           | JUnit 5 + AssertJ + Mockito (559 tests)            |
+| Testing           | JUnit 5 + AssertJ + Mockito (567 tests)            |
 
 ## Prerequisites
 
@@ -171,6 +171,7 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | `/research/runs` | Research run history table |
 | `/research/runs/{runId}` | Research run detail |
 | `/research/vendors` | Vendor comparison card grid with strengths/weaknesses |
+| `/research/search` | Member-only semantic vector search across article archive |
 | `/newsletter/runs` | Newsletter run list with status badges and edit links |
 | `/newsletter/runs/{runId}/edit` | TinyMCE WYSIWYG editor — edit and send newsletter drafts |
 | `/pricing` | Two-tier comparison (Free vs Member) with feature limits |
@@ -265,7 +266,7 @@ STRIPE_MEMBER_PRICE_ID=price_...
 
 ## Testing
 
-559 tests across 67 test classes — all pass with no live AI or network calls.
+567 tests across 68 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
