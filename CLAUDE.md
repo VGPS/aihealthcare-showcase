@@ -190,15 +190,19 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 30 — Archive Depth Gating — COMPLETE — 559 tests passing**
-- [x] `application.yml` — FREE tier `archive-days` changed from 30 to 7
-- [x] `ArticleIngestionPort` — new `fetchByTopicWithArchiveLimit(topic, archiveDays)` method
-- [x] `ArticleIngestionAdapter` — implements date-filtered query (archiveDays > 0 → cutoff, 0 → unlimited)
-- [x] `DashboardController.newsListing()` — resolves logged-in user's tier via `SubscriberPort` + `TierGatingService`, applies archive depth filter; adds `archiveLimited` + `archiveDays` model attributes
-- [x] `ArticleController` — optional `X-Subscriber-Email` header for tier-based archive gating on REST API
-- [x] `news-listing.html` — upgrade banner for FREE-tier users: "Showing articles from the last 7 days. Upgrade to Member for full archive access."
-- [x] `SubscriptionTier` Javadoc updated (30 → 7 days)
-- [x] Tests: `ArticleControllerTest` (5 new), `DashboardControllerTest` (3 new archive gating tests), `TierGatingServiceTest` updated (7 → 30)
+**Slice 32 — Role-Based Access Control (ADMIN vs USER) — COMPLETE — 573 tests passing**
+- [x] `SecurityConfig` — `/newsletter/runs/**` restricted to `ROLE_ADMIN`; custom `accessDeniedPage("/access-denied")`
+- [x] `AccessDeniedController` — `GET /access-denied` renders 403 page
+- [x] `access-denied.html` — styled 403 page with "Back to Dashboard" link
+- [x] All 9 nav bars — "Newsletter Preview" link wrapped with `sec:authorize="hasRole('ADMIN')"`; hidden for USER role
+- [x] Tests: `NewsletterPreviewControllerTest` updated to `@WithMockUser(roles = "ADMIN")` + 4 new USER-denied tests
+- [x] Tests: `AccessDeniedControllerTest` (2 tests)
+
+**Previously complete: Slice 31 — Member-Only Semantic Search — 567 tests passing**
+_(see git log for details)_
+
+**Previously complete: Slice 30 — Archive Depth Gating — 559 tests passing**
+_(see git log for details)_
 
 **Previously complete: Slice 29 — Spring Security Session-Based Authentication — 551 tests passing**
 _(see git log for details)_

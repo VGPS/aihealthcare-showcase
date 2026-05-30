@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-05-30 | Reflects Slice 30 (30 slices complete, 559 tests passing)
+> Last updated: 2026-05-30 | Reflects Slice 32 (32 slices complete, 573 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -63,6 +63,8 @@ api  ──▶  web   (generated DTOs imported here only)
 | 28 | Tier rename (PREMIUM→MEMBER), usage metering, feature gating | 542 |
 | 29 | Spring Security session-based authentication — login page, user entity | 551 |
 | 30 | Archive Depth Gating — per-tier article date filtering (FREE=7d, MEMBER=unlimited) | 559 |
+| 31 | Member-only semantic search — vector similarity, tier gating, usage metering | 567 |
+| 32 | Role-based access control — ADMIN vs USER page restrictions, 403 page | 573 |
 
 ---
 
@@ -243,4 +245,4 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**559 tests** across 64 test classes — all pass with `mvn test` (no live AI or network calls).
+**573 tests** across 70 test classes — all pass with `mvn test` (no live AI or network calls).

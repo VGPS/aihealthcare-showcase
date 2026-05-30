@@ -229,7 +229,7 @@
 <nav>
     <a href="/dashboard">Dashboard</a>
     <a href="/dashboard/news">News Listing</a>
-    <a href="/newsletter/runs">Newsletter Preview</a>
+    <a sec:authorize="hasRole('ADMIN')" href="/newsletter/runs">Newsletter Preview</a>
     <a href="/research/compare">Research Compare</a>
     <a href="/research/runs">Research Runs</a>
     <a href="/research/vendors">Vendor Compare</a>
