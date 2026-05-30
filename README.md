@@ -13,7 +13,7 @@ AIHealthcare runs multiple automated pipelines:
 5. **Evaluate** — LLM-as-judge prompt evaluation scoring across 5 dimensions with A/B variant comparison
 6. **Deliver** — Generates a daily newsletter draft for review; send manually after editing in the TinyMCE WYSIWYG editor; tier-aware content gating (FREE gets teaser, MEMBER gets full)
 7. **Export** — NotebookLM-compatible article exports with HTML summaries grouped by source
-8. **Gate** — Usage metering and feature gating per subscription tier (FREE vs MEMBER), with Stripe Billing integration
+8. **Gate** — Usage metering and feature gating per subscription tier (FREE vs MEMBER): archive depth (FREE=7 days, MEMBER=unlimited), newsletter teaser vs full content, AI query limits, with Stripe Billing integration
 
 ## Architecture
 
@@ -91,7 +91,7 @@ POST /api/v1/comparisons
 | Email (prod)      | Amazon SES                                         |
 | UI                | Thymeleaf + Spring Security extras                 |
 | Build             | Maven                                              |
-| Testing           | JUnit 5 + AssertJ + Mockito (551 tests)            |
+| Testing           | JUnit 5 + AssertJ + Mockito (559 tests)            |
 
 ## Prerequisites
 
@@ -245,7 +245,7 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 | Feature | Free | Member ($15/mo) |
 |---------|------|-----------------|
 | Newsletter content | Teaser (first section) | Full newsletter |
-| Article archive | 30 days | Unlimited |
+| Article archive | 7 days | Unlimited |
 | AI research queries | 15/month | 200/month |
 | Semantic search | No | Yes |
 
@@ -265,7 +265,7 @@ STRIPE_MEMBER_PRICE_ID=price_...
 
 ## Testing
 
-551 tests across 66 test classes — all pass with no live AI or network calls.
+559 tests across 67 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
