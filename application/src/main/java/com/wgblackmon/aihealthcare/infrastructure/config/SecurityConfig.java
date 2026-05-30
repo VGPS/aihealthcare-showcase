@@ -10,21 +10,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Spring Security configuration for session-based form login.
+ * Spring Security configuration for session-based form login with role-based
+ * access control.
  *
  * <p>Protects all Thymeleaf UI pages behind authentication while leaving
  * REST API endpoints ({@code /api/**}), webhook receivers ({@code /stripe/**}),
  * internal monitoring triggers ({@code /monitoring/**}), and the public
  * pricing page ({@code /pricing}) open.
  *
+ * <p>Admin-only pages ({@code /newsletter/runs/**}) require the {@code ADMIN}
+ * role. All other authenticated pages are accessible to any logged-in user.
+ *
  * <p>CSRF protection is enabled for browser-originated requests (the login form,
  * Thymeleaf pages) but disabled for machine-to-machine paths where no browser
  * session exists ({@code /api/**}, {@code /monitoring/**}, {@code /stripe/**}).
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-28
- * @updated 2026-05-28
+ * @updated 2026-05-30
  */
 @Slf4j
 @Configuration
@@ -49,6 +53,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/**").permitAll()
                 .requestMatchers("/monitoring/**").permitAll()
                 .requestMatchers("/stripe/**").permitAll()
+                .requestMatchers("/newsletter/runs/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -59,6 +64,9 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/access-denied")
             )
             .csrf(csrf -> csrf
                 .ignoringRequestMatchers("/api/**", "/monitoring/**", "/stripe/**")

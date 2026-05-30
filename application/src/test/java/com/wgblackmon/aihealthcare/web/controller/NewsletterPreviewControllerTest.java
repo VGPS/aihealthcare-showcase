@@ -34,14 +34,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc slice tests for {@link NewsletterPreviewController}.
  *
  * <p>All port calls are mocked — no real persistence or delivery occurs.
+ * Newsletter preview pages require the ADMIN role (Slice 32).
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-18
- * @updated 2026-05-18
+ * @updated 2026-05-30
  */
 @Import(SecurityConfig.class)
-@WithMockUser
+@WithMockUser(roles = "ADMIN")
 @WebMvcTest(NewsletterPreviewController.class)
 class NewsletterPreviewControllerTest {
 
@@ -124,5 +125,35 @@ class NewsletterPreviewControllerTest {
 
         mockMvc.perform(post("/newsletter/runs/unknown/send").with(csrf()))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void listRuns_asUser_returns403() throws Exception {
+        mockMvc.perform(get("/newsletter/runs"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void editRun_asUser_returns403() throws Exception {
+        mockMvc.perform(get("/newsletter/runs/run-001/edit"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void saveDraft_asUser_returns403() throws Exception {
+        mockMvc.perform(post("/newsletter/runs/run-001/save")
+                        .with(csrf())
+                        .param("htmlContent", "<h1>Edited</h1>"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void sendNewsletter_asUser_returns403() throws Exception {
+        mockMvc.perform(post("/newsletter/runs/run-001/send").with(csrf()))
+                .andExpect(status().isForbidden());
     }
 }
