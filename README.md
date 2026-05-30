@@ -309,6 +309,46 @@ AIHealthcare/
 
 **Bill Blackmon**
 
-## License
+## License and Use Restrictions
 
-This project is proprietary. All rights reserved.
+This repository is **source-available, not open source**.
+
+AIHealthcare is publicly visible for portfolio, demonstration, evaluation, and
+transparency purposes only. Unless you have received prior written permission
+from the owner, you may not copy, redistribute, sublicense, sell, commercialize,
+host, operate, modify, or create derivative works from this repository or any
+substantial portion of it.
+
+All rights are reserved. See [`LICENSE`](./LICENSE) and [`NOTICE`](./NOTICE) for
+the full terms.
+
+### Commercial Use
+
+Commercial use is not permitted without prior written permission. This includes,
+but is not limited to:
+
+- using this project to operate a newsletter, publication, SaaS product, content
+  automation system, healthcare AI product, or competing service;
+- copying or adapting the prompts, workflows, editorial process, source
+  ingestion logic, summarization logic, or monetization strategy;
+- republishing, reselling, sublicensing, or incorporating this project into a
+  paid product or service.
+
+For licensing, acquisition, partnership, or commercial-use inquiries, contact:
+
+**wgblackmonall@gmail.com**
+
+### Security and Private Configuration
+
+This public repository should not contain production secrets, API keys,
+passwords, private credentials, subscriber data, sponsor data, or confidential
+business information.
+
+Any real deployment should use private configuration files, environment
+variables, GitHub Actions secrets, AWS Secrets Manager, Parameter Store, Vault,
+or a private companion repository.
+
+If you discover a secret or sensitive file in this repository, please report it
+privately to:
+
+**wgblackmonall@gmail.com**

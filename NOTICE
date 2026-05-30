@@ -1,0 +1,35 @@
+AIHealthcare Notice
+
+Copyright © 2026 Bill Blackmon. All rights reserved.
+
+AIHealthcare is a proprietary, source-available project. It is publicly visible
+for demonstration, evaluation, and portfolio purposes only. It is not open
+source and is not licensed for commercial use, redistribution, sublicensing, or
+derivative works without prior written permission.
+
+The following materials are especially proprietary and may not be copied,
+repurposed, or used to create a competing product or service:
+
+- newsletter strategy, structure, positioning, and editorial systems;
+- AI prompts, prompt chains, evaluation logic, and content workflows;
+- source ingestion, ranking, summarization, or curation logic;
+- healthcare AI content models, taxonomies, and publication processes;
+- automation scripts, integrations, and workflow designs;
+- business plans, monetization concepts, sponsor materials, or analytics;
+- branding, names, logos, domains, and project identity.
+
+Any example configuration files, sample environment variables, test data,
+placeholder values, or documentation in this repository are provided for
+illustrative purposes only. They do not grant permission to use the project in
+production or for commercial purposes.
+
+Do not rely on this repository for medical, legal, financial, compliance, or
+security advice. The project may discuss healthcare, artificial intelligence,
+software, automation, or related topics, but it is not a medical device, not a
+clinical decision support system, and not intended for patient care.
+
+If you believe this repository contains material that should not be public,
+including credentials, private information, copyrighted material, or security
+issues, please contact the owner promptly at:
+
+wgblackmonall@gmail.com
