@@ -35,7 +35,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-25
- * @updated 2026-05-02
+ * @updated 2026-05-31
  */
 @Slf4j
 @Component
@@ -81,18 +81,18 @@ public class ArticleContentEnricher {
     }
 
     /**
-     * Checks whether an article has a useful body text (non-null, non-blank,
-     * and at least {@link #MIN_USEFUL_LENGTH} characters).
+     * Always returns {@code false} so that every article gets enriched with
+     * full page content from its URL.  Previously gated by a 50-char
+     * minimum threshold, but now all articles are enriched to capture
+     * complete article text for the vector database archive.
      *
      * @param article The article to check.
-     * @return {@code true} if the body text is considered useful.
+     * @return always {@code false} — all articles are enriched
      */
     public boolean hasUsefulBody(NewsArticle article) {
         log.debug("hasUsefulBody() | articleId={}", article.articleId());
 
-        boolean result = article.bodyText() != null
-                && !article.bodyText().isBlank()
-                && article.bodyText().length() >= MIN_USEFUL_LENGTH;
+        boolean result = false;
 
         log.debug("hasUsefulBody() | return={}", result);
         return result;
