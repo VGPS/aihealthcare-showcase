@@ -190,13 +190,16 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 32 — Role-Based Access Control (ADMIN vs USER) — COMPLETE — 573 tests passing**
-- [x] `SecurityConfig` — `/newsletter/runs/**` restricted to `ROLE_ADMIN`; custom `accessDeniedPage("/access-denied")`
-- [x] `AccessDeniedController` — `GET /access-denied` renders 403 page
-- [x] `access-denied.html` — styled 403 page with "Back to Dashboard" link
-- [x] All 9 nav bars — "Newsletter Preview" link wrapped with `sec:authorize="hasRole('ADMIN')"`; hidden for USER role
-- [x] Tests: `NewsletterPreviewControllerTest` updated to `@WithMockUser(roles = "ADMIN")` + 4 new USER-denied tests
-- [x] Tests: `AccessDeniedControllerTest` (2 tests)
+**Slice 33 — Admin Panel (User Management + System Status) — COMPLETE — 577 tests passing**
+- [x] `AppUserPort` — added `findAll()` method; `AppUserAdapter` implements via `JpaRepository.findAll()`
+- [x] `SecurityConfig` — `/admin/**` restricted to `ROLE_ADMIN`
+- [x] `AdminController` — `GET /admin` renders admin panel with user list, role/status counts, system stats
+- [x] `admin.html` — styled admin page: system status cards (articles, runs, subscribers) + user table (email, name, role badge, active/disabled badge)
+- [x] All 11 nav bars — "Admin" link added with `sec:authorize="hasRole('ADMIN')"`; hidden for USER role
+- [x] Tests: `AdminControllerTest` (4 tests — admin renders, empty users, USER denied, role counting)
+
+**Previously complete: Slice 32 — Role-Based Access Control — 573 tests passing**
+_(see git log for details)_
 
 **Previously complete: Slice 31 — Member-Only Semantic Search — 567 tests passing**
 _(see git log for details)_

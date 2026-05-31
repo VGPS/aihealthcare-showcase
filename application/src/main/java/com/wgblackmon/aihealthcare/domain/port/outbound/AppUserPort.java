@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.domain.port.outbound;
 
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -14,9 +15,9 @@ import java.util.Optional;
  * <p>Email is the natural key for users and serves as the lookup identifier.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-28
- * @updated 2026-05-28
+ * @updated 2026-05-31
  */
 public interface AppUserPort {
 
@@ -27,6 +28,13 @@ public interface AppUserPort {
      * @return An {@link Optional} containing the user, or empty if not found.
      */
     Optional<AppUser> findByEmail(String email);
+
+    /**
+     * Returns all registered users.
+     *
+     * @return A list of all users; empty list if none exist.
+     */
+    List<AppUser> findAll();
 
     /**
      * Persists a new user or overwrites an existing one with the same email.

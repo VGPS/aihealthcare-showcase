@@ -5,6 +5,8 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -15,9 +17,9 @@ import java.util.Optional;
  * delegate to {@link AppUserRepository}; no business logic lives here.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-28
- * @updated 2026-05-28
+ * @updated 2026-05-31
  */
 @Slf4j
 @Component
@@ -38,6 +40,20 @@ public class AppUserAdapter implements AppUserPort {
         Optional<AppUser> result = entity.map(this::toDomain);
 
         log.debug("findByEmail() | return={}", result.isPresent() ? "found" : "empty");
+        return result;
+    }
+
+    @Override
+    public List<AppUser> findAll() {
+        log.debug("findAll() | (no args)");
+
+        List<AppUserEntity> entities = repository.findAll();
+        List<AppUser> result = new ArrayList<>();
+        for (AppUserEntity entity : entities) {
+            result.add(toDomain(entity));
+        }
+
+        log.debug("findAll() | return={} users", result.size());
         return result;
     }
 

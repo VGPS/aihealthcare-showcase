@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-05-30 | Reflects Slice 32 (32 slices complete, 573 tests passing)
+> Last updated: 2026-05-31 | Reflects Slice 33 (33 slices complete, 577 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -65,6 +65,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | 30 | Archive Depth Gating — per-tier article date filtering (FREE=7d, MEMBER=unlimited) | 559 |
 | 31 | Member-only semantic search — vector similarity, tier gating, usage metering | 567 |
 | 32 | Role-based access control — ADMIN vs USER page restrictions, 403 page | 573 |
+| 33 | Admin panel — user management table, system status dashboard | 577 |
 
 ---
 
@@ -169,6 +170,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /dashboard/news` | `DashboardController` | `news-listing.html` — articles grouped by topic |
 | `GET /newsletter/runs` | `NewsletterPreviewController` | `newsletter-runs.html` — run list with edit links |
 | `GET /newsletter/runs/{runId}/edit` | `NewsletterPreviewController` | `newsletter-edit.html` — TinyMCE WYSIWYG editor |
+| `GET /admin` | `AdminController` | `admin.html` — user management + system status (ADMIN only) |
 
 ---
 
@@ -245,4 +247,4 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**573 tests** across 70 test classes — all pass with `mvn test` (no live AI or network calls).
+**577 tests** across 71 test classes — all pass with `mvn test` (no live AI or network calls).
