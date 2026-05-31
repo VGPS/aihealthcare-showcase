@@ -127,21 +127,6 @@
             margin-top: 0.2rem;
         }
 
-        .tier-badge {
-            display: inline-block;
-            padding: 0.15em 0.55em;
-            border-radius: 99px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        .tier-ACADEMIC   { background: #dbeafe; color: #1e40af; }
-        .tier-REGULATORY { background: #fef3c7; color: #92400e; }
-        .tier-INDUSTRY   { background: #d1fae5; color: #065f46; }
-        .tier-COMPETITOR { background: #ede9fe; color: #5b21b6; }
-        .tier-HUGGINGFACE{ background: #fce7f3; color: #9d174d; }
-        .tier-unknown    { background: #f3f4f6; color: #6b7280; }
-
         .date-cell {
             white-space: nowrap;
             color: #666;
@@ -187,7 +172,6 @@
                 <tr>
                     <th>Title / Author</th>
                     <th>Source</th>
-                    <th>Tier</th>
                     <th>Published</th>
                 </tr>
             </thead>
@@ -200,13 +184,6 @@
                              th:text="${article.author}"></div>
                     </td>
                     <td th:text="${article.sourceName != null ? article.sourceName : article.topic}">—</td>
-                    <td>
-                        <span th:if="${article.sourceTier != null}"
-                              th:text="${article.sourceTier}"
-                              th:classappend="'tier-badge tier-' + ${article.sourceTier}">—</span>
-                        <span th:if="${article.sourceTier == null}"
-                              class="tier-badge tier-unknown">—</span>
-                    </td>
                     <td th:if="${article.publishedAt != null}" class="date-cell"
                         th:text="${#strings.replace(#strings.substring(article.publishedAt.toString(), 0, 16), 'T', ' ')} + ' UTC'">—</td>
                     <td th:if="${article.publishedAt == null}" class="date-cell null-date">unknown</td>

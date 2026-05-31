@@ -32,14 +32,15 @@ import java.util.List;
  * <ul>
  *   <li>{@code articleId} — {@code "hf-" + modelId} for stable dedup</li>
  *   <li>{@code url} — the model's HuggingFace page</li>
- *   <li>{@code bodyText} — pipeline tag, download count, and tags</li>
+ *   <li>{@code bodyText} — pipeline tag, download count, tags, card data,
+ *       likes, and library name</li>
  *   <li>{@code sourceTier} — {@code "HUGGINGFACE"}</li>
  * </ul>
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-19
- * @updated 2026-04-19
+ * @updated 2026-05-31
  */
 @Slf4j
 @Component
@@ -199,6 +200,21 @@ public class HuggingFaceHarvester {
                     bodyBuilder.append(", ");
                 }
                 bodyBuilder.append(model.tags().get(i));
+            }
+        }
+        bodyBuilder.append("\nLikes = ").append(model.likes());
+        if (model.library_name() != null) {
+            bodyBuilder.append("\nLibrary = ").append(model.library_name());
+        }
+        if (model.cardData() != null && !model.cardData().isEmpty()) {
+            bodyBuilder.append("\nCard Data = ");
+            boolean first = true;
+            for (java.util.Map.Entry<String, Object> entry : model.cardData().entrySet()) {
+                if (!first) {
+                    bodyBuilder.append("; ");
+                }
+                bodyBuilder.append(entry.getKey()).append(": ").append(entry.getValue());
+                first = false;
             }
         }
 
