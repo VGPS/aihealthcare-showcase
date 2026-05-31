@@ -23,7 +23,7 @@ import static org.mockito.Mockito.spy;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-25
- * @updated 2026-04-25
+ * @updated 2026-05-31
  */
 class ArticleContentEnricherTest {
 
@@ -52,16 +52,9 @@ class ArticleContentEnricherTest {
     // -------------------------------------------------------------------------
 
     @Test
-    void hasUsefulBody_longEnoughText_returnsTrue() {
-        String body = "A".repeat(ArticleContentEnricher.MIN_USEFUL_LENGTH);
-        NewsArticle a = article("a-001", body);
-
-        assertThat(enricher.hasUsefulBody(a)).isTrue();
-    }
-
-    @Test
-    void hasUsefulBody_tooShortText_returnsFalse() {
-        NewsArticle a = article("a-001", "Short");
+    void hasUsefulBody_alwaysReturnsFalse_soAllArticlesGetEnriched() {
+        String longBody = "A".repeat(500);
+        NewsArticle a = article("a-001", longBody);
 
         assertThat(enricher.hasUsefulBody(a)).isFalse();
     }
@@ -75,27 +68,21 @@ class ArticleContentEnricherTest {
         assertThat(enricher.hasUsefulBody(a)).isFalse();
     }
 
-    @Test
-    void hasUsefulBody_blankBody_returnsFalse() {
-        NewsArticle a = article("a-001", "   ");
-
-        assertThat(enricher.hasUsefulBody(a)).isFalse();
-    }
-
     // -------------------------------------------------------------------------
     // enrich() — articles with sufficient body text are passed through
     // -------------------------------------------------------------------------
 
     @Test
-    void enrich_articleWithUsefulBody_passedThrough() {
-        String longBody = "This is a detailed article about AI in healthcare with enough content. " +
-                          "It discusses various applications and findings.";
-        NewsArticle a = article("a-001", longBody);
+    void enrich_articleWithExistingBody_stillEnrichedFromUrl() {
+        String existingBody = "This is a detailed article about AI in healthcare with enough content.";
+        NewsArticle a = article("a-001", existingBody);
+        doReturn("<html><body><main>Full page content scraped from the URL replaces the original body.</main></body></html>")
+                .when(enricher).fetchPageHtml("https://example.com/a-001");
 
         List<NewsArticle> result = enricher.enrich(List.of(a));
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).bodyText()).isEqualTo(longBody);
+        assertThat(result.get(0).bodyText()).contains("Full page content scraped");
     }
 
     // -------------------------------------------------------------------------

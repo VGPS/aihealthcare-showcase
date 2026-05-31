@@ -39,7 +39,7 @@ import static org.mockito.Mockito.spy;
  * @author  Bill Blackmon
  * @version 5.0
  * @since   2026-04-13
- * @updated 2026-05-16
+ * @updated 2026-05-31
  */
 class NotebookLMServiceTest {
 
@@ -263,8 +263,8 @@ class NotebookLMServiceTest {
 
     @Test
     void export_linkOnlyArticle_droppedFromExport() throws IOException {
-        // Article with no useful body and fetch fails
-        NewsArticle linkOnly = article("a-001", "AI", "Link Only Article", "short");
+        // Article with blank body and fetch fails — truly link-only
+        NewsArticle linkOnly = article("a-001", "AI", "Link Only Article", "");
         doReturn("").when(enricher).fetchPageHtml("https://example.com/a-001");
 
         service.export(TITLE, List.of(linkOnly));
@@ -294,13 +294,13 @@ class NotebookLMServiceTest {
     @Test
     void export_mixedArticles_onlyUsefulOnesExported() throws IOException {
         NewsArticle withBody = article("a-001", "AI", "Good Article", USEFUL_BODY);
-        NewsArticle linkOnly = article("a-002", "ML", "Link Article", "tiny");
+        NewsArticle linkOnly = article("a-002", "ML", "Link Article", "");
         doReturn("").when(enricher).fetchPageHtml("https://example.com/a-002");
 
         service.export(TITLE, List.of(withBody, linkOnly));
 
         assertThat(exportDir.resolve("Good Article.txt")).exists();
-        // Link-only should be filtered out — no individual file
+        // Link-only (blank body + failed fetch) should be filtered out
         long txtFileCount = Files.list(exportDir)
                 .filter(p -> p.getFileName().toString().endsWith(".txt"))
                 .count();

@@ -69,7 +69,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 7.0
  * @since   2026-04-13
- * @updated 2026-05-16
+ * @updated 2026-05-31
  */
 @Slf4j
 @Service
@@ -217,11 +217,11 @@ public class NotebookLMService {
         // Step 1: Enrich articles with empty body text by fetching URL content
         List<NewsArticle> enriched = contentEnricher.enrich(articles);
 
-        // Step 2: Drop articles that still have no meaningful body text
+        // Step 2: Drop articles that still have no body text after enrichment
         List<NewsArticle> result = new ArrayList<>();
         int dropped = 0;
         for (NewsArticle article : enriched) {
-            if (contentEnricher.hasUsefulBody(article)) {
+            if (article.bodyText() != null && !article.bodyText().isBlank()) {
                 result.add(article);
             } else {
                 log.debug("filter() | dropping link-only article: '{}' ({})",
