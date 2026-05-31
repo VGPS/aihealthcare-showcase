@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-05-31 | Reflects Slice 33 (33 slices complete, 577 tests passing)
+> Last updated: 2026-05-31 | Reflects Slice 34 (34 slices complete, 577 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -66,6 +66,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | 31 | Member-only semantic search — vector similarity, tier gating, usage metering | 567 |
 | 32 | Role-based access control — ADMIN vs USER page restrictions, 403 page | 573 |
 | 33 | Admin panel — user management table, system status dashboard | 577 |
+| 34 | HuggingFace enrichment (cardData, likes, library) + sourceTier removed from UI | 577 |
 
 ---
 

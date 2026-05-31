@@ -150,7 +150,7 @@ class DashboardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("200")))
                 .andExpect(content().string(containsString("18")))
-                .andExpect(content().string(containsString("ACADEMIC")));
+                .andExpect(content().string(containsString("PubMed AI Healthcare")));
     }
 
     @Test

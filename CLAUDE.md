@@ -190,13 +190,18 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 33 — Admin Panel (User Management + System Status) — COMPLETE — 577 tests passing**
-- [x] `AppUserPort` — added `findAll()` method; `AppUserAdapter` implements via `JpaRepository.findAll()`
-- [x] `SecurityConfig` — `/admin/**` restricted to `ROLE_ADMIN`
-- [x] `AdminController` — `GET /admin` renders admin panel with user list, role/status counts, system stats
-- [x] `admin.html` — styled admin page: system status cards (articles, runs, subscribers) + user table (email, name, role badge, active/disabled badge)
-- [x] All 11 nav bars — "Admin" link added with `sec:authorize="hasRole('ADMIN')"`; hidden for USER role
-- [x] Tests: `AdminControllerTest` (4 tests — admin renders, empty users, USER denied, role counting)
+**Slice 34 — HuggingFace Enrichment + Source Tier Display Cleanup — COMPLETE — 577 tests passing**
+- [x] `HuggingFaceModelResponse` — added `cardData` (Map), `likes` (int), `library_name` (String) fields
+- [x] `HuggingFaceHarvester` — `mapModelToArticle()` bodyText now includes Likes, Library, and Card Data
+- [x] `HuggingFaceHarvesterTest` — SAMPLE_RESPONSE enriched; assertions for new fields
+- [x] `application.yml` — HuggingFace source topic changed to "HuggingFace Healthcare LLMs"; added to `research.harvest.topics` and `news.topics`
+- [x] `dashboard.html` — removed Source Tier table (kept Topic/Feed table only)
+- [x] `articles.html` — removed Tier column and tier-badge CSS
+- [x] `DashboardControllerTest` — assertion updated to check topic name instead of removed tier table
+- [x] Note: `sourceTier` remains in domain model, DTOs, and infrastructure for internal harvester routing — removed from UI only
+
+**Previously complete: Slice 33 — Admin Panel — 577 tests passing**
+_(see git log for details)_
 
 **Previously complete: Slice 32 — Role-Based Access Control — 573 tests passing**
 _(see git log for details)_

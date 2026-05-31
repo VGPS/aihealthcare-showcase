@@ -27,9 +27,9 @@ import static org.mockito.Mockito.when;
  * correct mapping from HuggingFace JSON response to {@link NewsArticle} records.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-19
- * @updated 2026-04-19
+ * @updated 2026-05-31
  */
 @ExtendWith(MockitoExtension.class)
 class HuggingFaceHarvesterTest {
@@ -56,7 +56,10 @@ class HuggingFaceHarvesterTest {
                 "downloads": 50000,
                 "pipeline_tag": "text-generation",
                 "tags": ["medical", "biomedical", "healthcare"],
-                "lastModified": "2025-01-15T10:00:00.000Z"
+                "lastModified": "2025-01-15T10:00:00.000Z",
+                "likes": 142,
+                "library_name": "transformers",
+                "cardData": {"license": "mit", "language": ["en"]}
               },
               {
                 "modelId": "medicalai/ClinicalBERT",
@@ -64,7 +67,9 @@ class HuggingFaceHarvesterTest {
                 "downloads": 30000,
                 "pipeline_tag": "fill-mask",
                 "tags": ["clinical", "ehr", "healthcare"],
-                "lastModified": "2025-02-20T14:30:00.000Z"
+                "lastModified": "2025-02-20T14:30:00.000Z",
+                "likes": 87,
+                "library_name": "transformers"
               }
             ]
             """;
@@ -94,6 +99,10 @@ class HuggingFaceHarvesterTest {
         assertThat(result.get(0).bodyText()).contains("text-generation");
         assertThat(result.get(0).bodyText()).contains("50000");
         assertThat(result.get(0).bodyText()).contains("medical");
+        assertThat(result.get(0).bodyText()).contains("Likes = 142");
+        assertThat(result.get(0).bodyText()).contains("Library = transformers");
+        assertThat(result.get(0).bodyText()).contains("Card Data = ");
+        assertThat(result.get(0).bodyText()).contains("license: mit");
 
         assertThat(result.get(1).articleId()).isEqualTo("hf-medicalai/ClinicalBERT");
         assertThat(result.get(1).title()).isEqualTo("medicalai/ClinicalBERT");
