@@ -133,6 +133,37 @@
         .badge-user   { background: #e0f2fe; color: #0369a1; }
         .badge-active { background: #d4edda; color: #155724; }
         .badge-disabled { background: #f8d7da; color: #721c24; }
+
+        .flash {
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .flash-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flash-error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .btn-sm {
+            display: inline-block;
+            padding: 0.2em 0.6em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: #f8f9fa;
+            color: #333;
+        }
+        .btn-sm:hover { background: #e9ecef; }
+        .btn-disable { border-color: #e74c3c; color: #e74c3c; }
+        .btn-disable:hover { background: #fdecea; }
+        .btn-enable  { border-color: #27ae60; color: #27ae60; }
+        .btn-enable:hover  { background: #eafaf1; }
+        .btn-role    { border-color: #5b21b6; color: #5b21b6; }
+        .btn-role:hover    { background: #f3eefe; }
+
+        .action-forms { display: flex; gap: 0.35rem; }
+        .action-forms form { display: inline; }
     </style>
 </head>
 <body>
@@ -194,6 +225,9 @@
             <h2>User Management</h2>
         </div>
 
+        <div th:if="${successMessage}" class="flash flash-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="flash flash-error" th:text="${errorMessage}"></div>
+
         <div class="stat-grid">
             <div class="stat-card">
                 <div class="value" th:text="${#lists.size(users)}">0</div>
@@ -220,6 +254,7 @@
                     <th>Display Name</th>
                     <th>Role</th>
                     <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -233,6 +268,25 @@
                     <td>
                         <span th:if="${user.enabled}" class="badge badge-active">Active</span>
                         <span th:unless="${user.enabled}" class="badge badge-disabled">Disabled</span>
+                    </td>
+                    <td>
+                        <div th:if="${user.email != currentUserEmail}" class="action-forms">
+                            <form method="post" th:action="@{/admin/users/{email}/toggle-enabled(email=${user.email})}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit"
+                                        th:class="${user.enabled} ? 'btn-sm btn-disable' : 'btn-sm btn-enable'"
+                                        th:text="${user.enabled} ? 'Disable' : 'Enable'">Toggle</button>
+                            </form>
+                            <form method="post" th:action="@{/admin/users/{email}/change-role(email=${user.email})}">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <input type="hidden" name="role"
+                                       th:value="${user.role == 'ADMIN'} ? 'USER' : 'ADMIN'"/>
+                                <button type="submit" class="btn-sm btn-role"
+                                        th:text="${user.role == 'ADMIN'} ? 'Make User' : 'Make Admin'">Toggle Role</button>
+                            </form>
+                        </div>
+                        <span th:if="${user.email == currentUserEmail}"
+                              style="font-size:0.75rem; color:#999;">(you)</span>
                     </td>
                 </tr>
             </tbody>
