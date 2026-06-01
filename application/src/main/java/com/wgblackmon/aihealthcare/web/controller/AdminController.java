@@ -8,9 +8,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Admin panel controller for user management and system status overview.
@@ -20,10 +26,14 @@ import java.util.List;
  * Displays all registered users (role, enabled status) and high-level system
  * statistics (article counts, newsletter runs, subscribers).
  *
+ * <p>Also provides {@code POST} actions for toggling user enabled/disabled
+ * status and changing user roles.  An admin cannot modify their own account
+ * to prevent accidental lock-out.
+ *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-31
- * @updated 2026-05-31
+ * @updated 2026-06-01
  */
 @Slf4j
 @Controller
@@ -49,15 +59,17 @@ public class AdminController {
     /**
      * Renders the admin panel page with user list and system status.
      *
-     * @param model The Thymeleaf model.
+     * @param model     The Thymeleaf model.
+     * @param principal The currently authenticated user.
      * @return View name "admin".
      */
     @GetMapping
-    public String adminPanel(Model model) {
-        log.debug("adminPanel() | (no args)");
+    public String adminPanel(Model model, Principal principal) {
+        log.debug("adminPanel() | principal={}", principal.getName());
 
         List<AppUser> users = appUserPort.findAll();
         model.addAttribute("users", users);
+        model.addAttribute("currentUserEmail", principal.getName());
 
         long adminCount = 0;
         long userCount = 0;
@@ -84,5 +96,94 @@ public class AdminController {
 
         log.debug("adminPanel() | return=admin (users={}, subscribers={})", users.size(), subscriberCount);
         return "admin";
+    }
+
+    /**
+     * Toggles a user's enabled/disabled status.
+     *
+     * <p>An admin cannot toggle their own account to prevent accidental lock-out.
+     *
+     * @param email              The target user's email address.
+     * @param principal          The currently authenticated admin.
+     * @param redirectAttributes Flash attributes for success/error messages.
+     * @return Redirect to the admin panel.
+     */
+    @PostMapping("/users/{email}/toggle-enabled")
+    public String toggleEnabled(@PathVariable String email,
+                                Principal principal,
+                                RedirectAttributes redirectAttributes) {
+        log.debug("toggleEnabled() | email={}, principal={}", email, principal.getName());
+
+        if (email.equals(principal.getName())) {
+            log.warn("toggleEnabled() | admin attempted to toggle own account: {}", email);
+            redirectAttributes.addFlashAttribute("errorMessage", "You cannot enable/disable your own account.");
+            log.debug("toggleEnabled() | return=redirect:/admin (self-action blocked)");
+            return "redirect:/admin";
+        }
+
+        Optional<AppUser> existing = appUserPort.findByEmail(email);
+        if (existing.isEmpty()) {
+            log.warn("toggleEnabled() | user not found: {}", email);
+            redirectAttributes.addFlashAttribute("errorMessage", "User not found: " + email);
+            log.debug("toggleEnabled() | return=redirect:/admin (not found)");
+            return "redirect:/admin";
+        }
+
+        AppUser user = existing.get();
+        AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
+                user.role(), !user.enabled());
+        appUserPort.save(updated);
+
+        String action = updated.enabled() ? "enabled" : "disabled";
+        redirectAttributes.addFlashAttribute("successMessage",
+                "User " + email + " has been " + action + ".");
+
+        log.debug("toggleEnabled() | return=redirect:/admin ({})", action);
+        return "redirect:/admin";
+    }
+
+    /**
+     * Changes a user's role.
+     *
+     * <p>An admin cannot change their own role to prevent accidental lock-out.
+     *
+     * @param email              The target user's email address.
+     * @param role               The new role to assign (e.g. "USER" or "ADMIN").
+     * @param principal          The currently authenticated admin.
+     * @param redirectAttributes Flash attributes for success/error messages.
+     * @return Redirect to the admin panel.
+     */
+    @PostMapping("/users/{email}/change-role")
+    public String changeRole(@PathVariable String email,
+                             @RequestParam String role,
+                             Principal principal,
+                             RedirectAttributes redirectAttributes) {
+        log.debug("changeRole() | email={}, role={}, principal={}", email, role, principal.getName());
+
+        if (email.equals(principal.getName())) {
+            log.warn("changeRole() | admin attempted to change own role: {}", email);
+            redirectAttributes.addFlashAttribute("errorMessage", "You cannot change your own role.");
+            log.debug("changeRole() | return=redirect:/admin (self-action blocked)");
+            return "redirect:/admin";
+        }
+
+        Optional<AppUser> existing = appUserPort.findByEmail(email);
+        if (existing.isEmpty()) {
+            log.warn("changeRole() | user not found: {}", email);
+            redirectAttributes.addFlashAttribute("errorMessage", "User not found: " + email);
+            log.debug("changeRole() | return=redirect:/admin (not found)");
+            return "redirect:/admin";
+        }
+
+        AppUser user = existing.get();
+        AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
+                role, user.enabled());
+        appUserPort.save(updated);
+
+        redirectAttributes.addFlashAttribute("successMessage",
+                "User " + email + " role changed to " + role + ".");
+
+        log.debug("changeRole() | return=redirect:/admin (role={})", role);
+        return "redirect:/admin";
     }
 }

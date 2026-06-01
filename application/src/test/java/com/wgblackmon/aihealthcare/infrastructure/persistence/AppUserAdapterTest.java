@@ -18,9 +18,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * does not component-scan beyond JPA repositories.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-28
- * @updated 2026-05-28
+ * @updated 2026-06-01
  */
 @DataJpaTest
 @Import(AppUserAdapter.class)
@@ -62,5 +62,23 @@ class AppUserAdapterTest {
         assertThat(user.displayName()).isEqualTo("Test User");
         assertThat(user.role()).isEqualTo("USER");
         assertThat(user.enabled()).isTrue();
+    }
+
+    @Test
+    void save_updatesExistingUser() {
+        adapter.save(SAMPLE_USER);
+
+        AppUser updated = new AppUser(
+                "test@gmail.com",
+                "$2b$10$hashedPassword",
+                "Test User",
+                "ADMIN",
+                false
+        );
+        adapter.save(updated);
+
+        AppUser result = adapter.findByEmail("test@gmail.com").orElseThrow();
+        assertThat(result.role()).isEqualTo("ADMIN");
+        assertThat(result.enabled()).isFalse();
     }
 }
