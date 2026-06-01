@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-05-31 | Reflects Slice 34 (34 slices complete, 577 tests passing)
+> Last updated: 2026-06-01 | Reflects Slice 36 (36 slices complete, 610 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -67,6 +67,8 @@ api  ──▶  web   (generated DTOs imported here only)
 | 32 | Role-based access control — ADMIN vs USER page restrictions, 403 page | 573 |
 | 33 | Admin panel — user management table, system status dashboard | 577 |
 | 34 | HuggingFace enrichment (cardData, likes, library) + sourceTier removed from UI | 577 |
+| 35 | Admin user management actions — toggle enable/disable and change role | 585 |
+| 36 | Multi-field article search — criteria-based filtering with JPA Specification | 610 |
 
 ---
 
@@ -171,6 +173,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /dashboard/news` | `DashboardController` | `news-listing.html` — articles grouped by topic |
 | `GET /newsletter/runs` | `NewsletterPreviewController` | `newsletter-runs.html` — run list with edit links |
 | `GET /newsletter/runs/{runId}/edit` | `NewsletterPreviewController` | `newsletter-edit.html` — TinyMCE WYSIWYG editor |
+| `GET /dashboard/search` | `DashboardController` | `search.html` — multi-field article search with filter form |
 | `GET /admin` | `AdminController` | `admin.html` — user management + system status (ADMIN only) |
 
 ---
@@ -180,6 +183,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | Method | Path | Controller |
 |--------|------|-----------|
 | GET | `/api/v1/articles` | `ArticleController` |
+| GET | `/api/v1/articles/search` | `ArticleSearchController` |
 | GET/GET | `/api/v1/runs`, `/api/v1/runs/{runId}` | `NewsletterRunController` |
 | POST | `/api/v1/newsletter/deliver` | `NewsletterDeliveryController` |
 | POST/GET/DELETE | `/api/v1/subscribers` | `SubscriberController` |
@@ -248,4 +252,4 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**577 tests** across 71 test classes — all pass with `mvn test` (no live AI or network calls).
+**610 tests** across 74 test classes — all pass with `mvn test` (no live AI or network calls).

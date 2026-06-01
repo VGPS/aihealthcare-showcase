@@ -7,6 +7,8 @@ import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.SearchArticlesUseCase;
+import com.wgblackmon.aihealthcare.domain.model.ArticleSearchCriteria;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
@@ -23,6 +25,7 @@ import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,19 +72,22 @@ public class DashboardController {
     private final TopicSummaryPort topicSummaryPort;
     private final SubscriberPort subscriberPort;
     private final TierGatingService tierGatingService;
+    private final SearchArticlesUseCase searchUseCase;
 
     public DashboardController(GetAnalyticsUseCase analyticsUseCase,
                                ArticleIngestionPort articleIngestionPort,
                                NewsTopicProperties newsTopicProperties,
                                TopicSummaryPort topicSummaryPort,
                                SubscriberPort subscriberPort,
-                               TierGatingService tierGatingService) {
+                               TierGatingService tierGatingService,
+                               SearchArticlesUseCase searchUseCase) {
         this.analyticsUseCase     = analyticsUseCase;
         this.articleIngestionPort = articleIngestionPort;
         this.newsTopicProperties  = newsTopicProperties;
         this.topicSummaryPort     = topicSummaryPort;
         this.subscriberPort       = subscriberPort;
         this.tierGatingService    = tierGatingService;
+        this.searchUseCase        = searchUseCase;
     }
 
     /**
@@ -227,6 +233,90 @@ public class DashboardController {
         log.debug("newsListing() | return=news-listing (topics={}, totalArticles={})",
                   topicNames.size(), totalArticles);
         return "news-listing";
+    }
+
+    /**
+     * Renders the article search page with optional filter criteria.
+     *
+     * <p>All parameters are optional. When submitted, the form re-renders with
+     * matching results and the criteria echoed back into the form fields.
+     *
+     * @param title         substring match against title
+     * @param topic         substring match against topic
+     * @param author        substring match against author
+     * @param sourceName    substring match against source name
+     * @param sourceTier    exact match against source tier
+     * @param bodyText      substring match against body text
+     * @param publishedFrom lower bound on publishedAt (yyyy-MM-ddTHH:mm format)
+     * @param publishedTo   upper bound on publishedAt
+     * @param createdFrom   lower bound on createdAt
+     * @param createdTo     upper bound on createdAt
+     * @param model         Thymeleaf model
+     * @return Thymeleaf view name "search"
+     */
+    @GetMapping("/search")
+    public String search(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String topic,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String sourceName,
+            @RequestParam(required = false) String sourceTier,
+            @RequestParam(required = false) String bodyText,
+            @RequestParam(required = false) String publishedFrom,
+            @RequestParam(required = false) String publishedTo,
+            @RequestParam(required = false) String createdFrom,
+            @RequestParam(required = false) String createdTo,
+            Model model) {
+        log.debug("search() | title={}, topic={}, author={}, sourceName={}, sourceTier={}, "
+                + "bodyText={}, publishedFrom={}, publishedTo={}, createdFrom={}, createdTo={}",
+                title, topic, author, sourceName, sourceTier, bodyText,
+                publishedFrom, publishedTo, createdFrom, createdTo);
+
+        Instant pubFrom = parseDateTime(publishedFrom);
+        Instant pubTo = parseDateTime(publishedTo);
+        Instant cFrom = parseDateTime(createdFrom);
+        Instant cTo = parseDateTime(createdTo);
+
+        ArticleSearchCriteria criteria = new ArticleSearchCriteria(
+                title, topic, author, sourceName, sourceTier, bodyText,
+                pubFrom, pubTo, cFrom, cTo);
+
+        List<NewsArticle> articles = searchUseCase.search(criteria);
+
+        model.addAttribute("articles", articles);
+        model.addAttribute("resultCount", articles.size());
+        model.addAttribute("searched", !criteria.isEmpty());
+        model.addAttribute("titleParam", title);
+        model.addAttribute("topicParam", topic);
+        model.addAttribute("authorParam", author);
+        model.addAttribute("sourceNameParam", sourceName);
+        model.addAttribute("sourceTierParam", sourceTier);
+        model.addAttribute("bodyTextParam", bodyText);
+        model.addAttribute("publishedFromParam", publishedFrom);
+        model.addAttribute("publishedToParam", publishedTo);
+        model.addAttribute("createdFromParam", createdFrom);
+        model.addAttribute("createdToParam", createdTo);
+
+        log.debug("search() | return=search (resultCount={})", articles.size());
+        return "search";
+    }
+
+    /**
+     * Parses a datetime-local string ({@code yyyy-MM-ddTHH:mm}) to an {@link Instant}
+     * at UTC. Returns {@code null} if the input is null or blank.
+     *
+     * @param dateTimeStr the datetime string from an HTML datetime-local input
+     * @return the corresponding UTC instant, or null
+     */
+    private Instant parseDateTime(String dateTimeStr) {
+        log.debug("parseDateTime() | dateTimeStr={}", dateTimeStr);
+        if (dateTimeStr == null || dateTimeStr.isBlank()) {
+            log.debug("parseDateTime() | return=null");
+            return null;
+        }
+        Instant result = LocalDateTime.parse(dateTimeStr).toInstant(java.time.ZoneOffset.UTC);
+        log.debug("parseDateTime() | return={}", result);
+        return result;
     }
 
     /**
