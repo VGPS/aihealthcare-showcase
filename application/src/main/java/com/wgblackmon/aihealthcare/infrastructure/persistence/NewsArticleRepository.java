@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
@@ -23,7 +24,8 @@ import java.util.List;
  * @since   2026-04-11
  * @updated 2026-04-20
  */
-public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, String> {
+public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, String>,
+                JpaSpecificationExecutor<NewsArticleEntity> {
 
     /**
      * Returns {@code true} if an article with the given URL already exists.

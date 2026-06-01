@@ -8,7 +8,9 @@ import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.VariantScore;
+import com.wgblackmon.aihealthcare.domain.model.ArticleSearchCriteria;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.SearchArticlesUseCase;
 import com.wgblackmon.aihealthcare.domain.model.TopicSummary;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
@@ -77,6 +79,9 @@ class DashboardControllerTest {
 
     @MockitoBean
     private TierGatingService tierGatingService;
+
+    @MockitoBean
+    private SearchArticlesUseCase searchUseCase;
 
     // -------------------------------------------------------------------------
     // Fixtures
@@ -483,5 +488,64 @@ class DashboardControllerTest {
         mockMvc.perform(get("/dashboard/news"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Old Article")));
+    }
+
+    // -------------------------------------------------------------------------
+    // GET /dashboard/search
+    // -------------------------------------------------------------------------
+
+    @Test
+    void search_returns200AndSearchView() throws Exception {
+        mockMvc.perform(get("/dashboard/search"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"));
+    }
+
+    @Test
+    void search_noParams_modelHasSearchedFalse() throws Exception {
+        mockMvc.perform(get("/dashboard/search"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("searched", false))
+                .andExpect(model().attribute("resultCount", 0));
+    }
+
+    @Test
+    void search_withTitleParam_returnsMatchingArticles() throws Exception {
+        NewsArticle article = sampleArticle("AI Radiology Breakthrough", Instant.parse("2026-05-01T09:00:00Z"));
+        when(searchUseCase.search(any(ArticleSearchCriteria.class)))
+                .thenReturn(List.of(article));
+
+        mockMvc.perform(get("/dashboard/search").param("title", "radiology"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("search"))
+                .andExpect(model().attribute("searched", true))
+                .andExpect(model().attribute("resultCount", 1))
+                .andExpect(content().string(containsString("AI Radiology Breakthrough")));
+    }
+
+    @Test
+    void search_echoesCriteriaBackToForm() throws Exception {
+        when(searchUseCase.search(any(ArticleSearchCriteria.class)))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/dashboard/search")
+                        .param("title", "radiology")
+                        .param("topic", "PubMed")
+                        .param("sourceTier", "ACADEMIC"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("titleParam", "radiology"))
+                .andExpect(model().attribute("topicParam", "PubMed"))
+                .andExpect(model().attribute("sourceTierParam", "ACADEMIC"));
+    }
+
+    @Test
+    void search_noResults_rendersEmptyState() throws Exception {
+        when(searchUseCase.search(any(ArticleSearchCriteria.class)))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/dashboard/search").param("title", "nonexistent"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("searched", true))
+                .andExpect(content().string(containsString("No articles matched")));
     }
 }

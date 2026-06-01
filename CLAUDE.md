@@ -190,15 +190,27 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 34 — HuggingFace Enrichment + Source Tier Display Cleanup — COMPLETE — 577 tests passing**
-- [x] `HuggingFaceModelResponse` — added `cardData` (Map), `likes` (int), `library_name` (String) fields
-- [x] `HuggingFaceHarvester` — `mapModelToArticle()` bodyText now includes Likes, Library, and Card Data
-- [x] `HuggingFaceHarvesterTest` — SAMPLE_RESPONSE enriched; assertions for new fields
-- [x] `application.yml` — HuggingFace source topic changed to "HuggingFace Healthcare LLMs"; added to `research.harvest.topics` and `news.topics`
-- [x] `dashboard.html` — removed Source Tier table (kept Topic/Feed table only)
-- [x] `articles.html` — removed Tier column and tier-badge CSS
-- [x] `DashboardControllerTest` — assertion updated to check topic name instead of removed tier table
-- [x] Note: `sourceTier` remains in domain model, DTOs, and infrastructure for internal harvester routing — removed from UI only
+**Slice 36 — Multi-Field Article Search — COMPLETE — 610 tests passing**
+- [x] Domain: `ArticleSearchCriteria` record — 10 optional filter fields + `isEmpty()` guard
+- [x] Domain: `SearchArticlesUseCase` inbound port — accepts criteria, returns matching articles
+- [x] Domain: `ArticleSearchQueryPort` outbound port — criteria-based persistence query
+- [x] Domain: `ArticleSearchService` — empty-criteria short-circuit, delegates to query port
+- [x] Infrastructure: `ArticleSearchQueryAdapter` — `@Component` implementing `ArticleSearchQueryPort` via JPA Specification
+- [x] Infrastructure: `ArticleSpecificationBuilder` — builds dynamic AND-combined `Specification` from criteria (LIKE for text, exact for tier, range for dates)
+- [x] Infrastructure: `NewsArticleRepository` — extended with `JpaSpecificationExecutor<NewsArticleEntity>`
+- [x] Config: `AppConfig.articleSearchService()` — wires domain service bean
+- [x] Web: `ArticleSearchController` — `GET /api/v1/articles/search` REST endpoint with 10 optional query params
+- [x] Web: `DashboardController.search()` — `GET /dashboard/search` Thymeleaf endpoint with form echo-back
+- [x] Template: `search.html` — filter form (2-column grid) + results table with topic badges
+- [x] Nav: "Article Search" link added to all 12 Thymeleaf templates
+- [x] OpenAPI: `/api/v1/articles/search` endpoint with 10 optional parameters documented
+- [x] Tests: `ArticleSearchServiceTest` (5), `ArticleSearchQueryAdapterTest` (10 @DataJpaTest), `ArticleSearchControllerTest` (5 MockMvc), `DashboardControllerTest` search tests (5 added)
+
+**Previously complete: Slice 35 — Admin User Management Actions — 585 tests passing**
+_(see git log for details)_
+
+**Previously complete: Slice 34 — HuggingFace Enrichment + Source Tier Display Cleanup — 577 tests passing**
+_(see git log for details)_
 
 **Previously complete: Slice 33 — Admin Panel — 577 tests passing**
 _(see git log for details)_

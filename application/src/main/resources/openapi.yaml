@@ -80,6 +80,93 @@ paths:
                   $ref: '#/components/schemas/ArticleResponse'
 
   # ---------------------------------------------------------------------------
+  # Article search — multi-field criteria
+  # ---------------------------------------------------------------------------
+  /api/v1/articles/search:
+    get:
+      summary: Search articles by multiple optional criteria
+      description: >
+        Returns articles matching the AND-combined filter criteria. All parameters
+        are optional; text fields use case-insensitive substring matching,
+        sourceTier uses exact match, and date fields define inclusive range bounds.
+      operationId: searchArticles
+      parameters:
+        - name: title
+          in: query
+          required: false
+          description: Substring match against article title (case-insensitive)
+          schema:
+            type: string
+        - name: topic
+          in: query
+          required: false
+          description: Substring match against article topic (case-insensitive)
+          schema:
+            type: string
+        - name: author
+          in: query
+          required: false
+          description: Substring match against article author (case-insensitive)
+          schema:
+            type: string
+        - name: sourceName
+          in: query
+          required: false
+          description: Substring match against source name (case-insensitive)
+          schema:
+            type: string
+        - name: sourceTier
+          in: query
+          required: false
+          description: Exact match against source tier
+          schema:
+            type: string
+            enum: [ACADEMIC, REGULATORY, INDUSTRY, COMPETITOR, HUGGINGFACE]
+        - name: bodyText
+          in: query
+          required: false
+          description: Substring match against body text (case-insensitive)
+          schema:
+            type: string
+        - name: publishedFrom
+          in: query
+          required: false
+          description: Inclusive lower bound on publishedAt (ISO-8601)
+          schema:
+            type: string
+            format: date-time
+        - name: publishedTo
+          in: query
+          required: false
+          description: Inclusive upper bound on publishedAt (ISO-8601)
+          schema:
+            type: string
+            format: date-time
+        - name: createdFrom
+          in: query
+          required: false
+          description: Inclusive lower bound on createdAt (ISO-8601)
+          schema:
+            type: string
+            format: date-time
+        - name: createdTo
+          in: query
+          required: false
+          description: Inclusive upper bound on createdAt (ISO-8601)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: List of matching articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArticleResponse'
+
+  # ---------------------------------------------------------------------------
   # Newsletter draft generation
   # ---------------------------------------------------------------------------
   /api/v1/drafts:

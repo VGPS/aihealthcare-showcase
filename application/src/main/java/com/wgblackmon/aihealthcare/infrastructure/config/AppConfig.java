@@ -9,6 +9,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AnalyticsPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SourceRetrievalPort;
 import com.wgblackmon.aihealthcare.domain.model.TierLimits;
 import com.wgblackmon.aihealthcare.domain.service.AnalyticsService;
+import com.wgblackmon.aihealthcare.domain.service.ArticleSearchService;
 import com.wgblackmon.aihealthcare.domain.service.CitationAssembler;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
@@ -24,6 +25,7 @@ import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchQueryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
@@ -298,6 +300,21 @@ public class AppConfig {
         log.debug("analyticsService() | analyticsPort={}", analyticsPort.getClass().getSimpleName());
         AnalyticsService result = new AnalyticsService(analyticsPort);
         log.debug("analyticsService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link ArticleSearchService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.SearchArticlesUseCase}.
+     *
+     * @param queryPort Adapter implementing criteria-based article search (auto-detected).
+     * @return The wired {@link ArticleSearchService} instance.
+     */
+    @Bean
+    public ArticleSearchService articleSearchService(ArticleSearchQueryPort queryPort) {
+        log.debug("articleSearchService() | queryPort={}", queryPort.getClass().getSimpleName());
+        ArticleSearchService result = new ArticleSearchService(queryPort);
+        log.debug("articleSearchService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 
