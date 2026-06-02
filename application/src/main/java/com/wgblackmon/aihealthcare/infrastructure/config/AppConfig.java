@@ -8,6 +8,8 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.FileParserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalyticsPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SourceRetrievalPort;
 import com.wgblackmon.aihealthcare.domain.model.TierLimits;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
+import com.wgblackmon.aihealthcare.domain.service.AiSearchService;
 import com.wgblackmon.aihealthcare.domain.service.AnalyticsService;
 import com.wgblackmon.aihealthcare.domain.service.ArticleSearchService;
 import com.wgblackmon.aihealthcare.domain.service.CitationAssembler;
@@ -82,7 +84,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-05-26
+ * @updated 2026-06-02
  */
 
 @Slf4j
@@ -399,6 +401,27 @@ public class AppConfig {
         TopicSummaryGenerationService result =
                 new TopicSummaryGenerationService(aiPort, summaryPort, ingestionPort);
         log.debug("topicSummaryGenerationService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link AiSearchService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase}.
+     *
+     * <p>Spring injects all {@link AiSearchPort} {@code @Component} beans as a list
+     * automatically (one per model — Anthropic, OpenAI), enabling multi-model synthesis.
+     *
+     * @param articleSearchPort vector-store search port (auto-detected).
+     * @param aiSearchPorts     all registered AI search adapters (auto-detected).
+     * @return The wired {@link AiSearchService} instance.
+     */
+    @Bean
+    public AiSearchService aiSearchService(ArticleSearchPort articleSearchPort,
+                                           List<AiSearchPort> aiSearchPorts) {
+        log.debug("aiSearchService() | articleSearchPort={}, aiSearchPortCount={}",
+                  articleSearchPort.getClass().getSimpleName(), aiSearchPorts.size());
+        AiSearchService result = new AiSearchService(articleSearchPort, aiSearchPorts);
+        log.debug("aiSearchService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

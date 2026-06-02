@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Semantic Search — AIHealthcare</title>
+    <title>AI Search — AIHealthcare</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -44,7 +44,7 @@
         nav a.active { color: white; border-bottom-color: #4361ee; }
 
         main {
-            max-width: 900px;
+            max-width: 1100px;
             margin: 1.5rem auto;
             padding: 0 1rem;
         }
@@ -162,19 +162,110 @@
         }
         .limit-warning strong { font-weight: 600; }
 
-        /* Results */
-        .results-header {
+        /* Synthesis cards — side by side */
+        .syntheses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 768px) {
+            .syntheses-grid { grid-template-columns: 1fr; }
+        }
+
+        .synthesis-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 1.25rem;
+            transition: box-shadow 0.15s;
+        }
+        .synthesis-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+
+        .synthesis-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .model-badge {
+            display: inline-block;
+            padding: 0.2em 0.7em;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .model-badge.claude {
+            background: #e8d5b7;
+            color: #7c4d1e;
+        }
+        .model-badge.gpt {
+            background: #d4edda;
+            color: #155724;
+        }
+        .model-badge.perplexity {
+            background: #d1e7ff;
+            color: #1a56db;
+        }
+        .synthesis-header h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .synthesis-summary {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #444;
+            margin-bottom: 1rem;
+        }
+
+        .findings-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #888;
+            margin-bottom: 0.5rem;
+        }
+
+        .findings-list {
+            list-style: none;
+            padding: 0;
+        }
+        .findings-list li {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #555;
+            padding: 0.3rem 0 0.3rem 1rem;
+            position: relative;
+        }
+        .findings-list li::before {
+            content: "\2022";
+            color: #4361ee;
+            font-weight: 700;
+            position: absolute;
+            left: 0;
+        }
+
+        /* Source articles section */
+        .sources-section {
+            margin-top: 1.5rem;
+        }
+        .sources-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 1rem;
         }
-        .results-header h2 {
+        .sources-header h2 {
             font-size: 1rem;
             font-weight: 600;
             color: #1a1a2e;
         }
-        .results-header .count-badge {
+        .count-badge {
             font-size: 0.75rem;
             font-weight: 600;
             padding: 0.2em 0.65em;
@@ -183,7 +274,7 @@
             color: #1a73e8;
         }
 
-        .result-card {
+        .source-card {
             background: white;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
@@ -191,27 +282,27 @@
             margin-bottom: 0.75rem;
             transition: box-shadow 0.15s;
         }
-        .result-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+        .source-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
 
-        .result-card .result-title {
+        .source-card .source-title {
             font-weight: 600;
             font-size: 0.95rem;
             margin-bottom: 0.35rem;
         }
-        .result-card .result-title a {
+        .source-card .source-title a {
             color: #1a1a2e;
             text-decoration: none;
         }
-        .result-card .result-title a:hover { color: #4361ee; text-decoration: underline; }
+        .source-card .source-title a:hover { color: #4361ee; text-decoration: underline; }
 
-        .result-meta {
+        .source-meta {
             display: flex;
             gap: 1rem;
             align-items: center;
             margin-bottom: 0.5rem;
             flex-wrap: wrap;
         }
-        .result-meta .topic-badge {
+        .source-meta .topic-badge {
             display: inline-block;
             padding: 0.15em 0.55em;
             border-radius: 99px;
@@ -220,17 +311,17 @@
             background: #e8f0fe;
             color: #1a73e8;
         }
-        .result-meta .source-name {
+        .source-meta .source-name {
             font-size: 0.8rem;
             color: #555;
             font-style: italic;
         }
-        .result-meta .date {
+        .source-meta .date {
             font-size: 0.8rem;
             color: #666;
         }
 
-        .result-snippet {
+        .source-snippet {
             font-size: 0.85rem;
             color: #555;
             line-height: 1.5;
@@ -242,13 +333,24 @@
             color: #bbb;
             font-style: italic;
         }
+
+        .no-syntheses {
+            text-align: center;
+            padding: 1.5rem;
+            color: #999;
+            font-style: italic;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Semantic Search</h1>
-    <p>Vector similarity search across the article archive</p>
+    <h1>AI-Enhanced Search</h1>
+    <p>Multi-model LLM synthesis from your article archive</p>
 </header>
 
 <nav>
@@ -258,8 +360,8 @@
     <a href="/research/compare">Research Compare</a>
     <a href="/research/runs">Research Runs</a>
     <a href="/research/vendors">Vendor Compare</a>
-    <a href="/research/search" class="active">Semantic Search</a>
-    <a href="/research/ai-search">AI Search</a>
+    <a href="/research/search">Semantic Search</a>
+    <a href="/research/ai-search" class="active">AI Search</a>
     <a href="/dashboard/search">Article Search</a>
     <a href="/pricing">Pricing</a>
     <a sec:authorize="hasRole('ADMIN')" href="/admin">Admin</a>
@@ -272,8 +374,8 @@
     <!-- Upgrade banner for FREE-tier users -->
     <div th:if="${accessDenied}" class="upgrade-banner">
         <span class="banner-text">
-            <strong>Semantic Search is a Member feature.</strong><br/>
-            Upgrade to Member to search across the full article archive using AI-powered vector similarity.
+            <strong>AI-Enhanced Search is a Member feature.</strong><br/>
+            Upgrade to Member to search across the full article archive with multi-model AI synthesis from Claude, GPT, and Perplexity.
         </span>
         <a href="/pricing">Upgrade</a>
     </div>
@@ -287,16 +389,16 @@
 
     <!-- Search form — only shown for MEMBER users who are not access-denied -->
     <div th:if="${accessDenied == null and limitReached == null}" class="search-card">
-        <h2>Search Articles</h2>
-        <p class="hint">Enter a natural-language query to find semantically similar articles in the archive.</p>
-        <form class="search-form" method="get" th:action="@{/research/search}">
+        <h2>Search Articles with AI Synthesis</h2>
+        <p class="hint">Enter a query to find relevant articles and get AI-generated insights from Claude, GPT, and Perplexity.</p>
+        <form class="search-form" method="get" th:action="@{/research/ai-search}">
             <div class="field">
                 <label for="q">Search Query</label>
                 <input type="text" id="q" name="q" th:value="${q}"
                        placeholder="e.g. AI diagnostic tools for radiology" required/>
             </div>
             <div>
-                <label for="topK">Max Results</label>
+                <label for="topK">Max Articles</label>
                 <input type="number" id="topK" name="topK" th:value="${topK}" min="1" max="50"
                        placeholder="10"/>
             </div>
@@ -304,31 +406,55 @@
         </form>
     </div>
 
-    <!-- Search results -->
-    <div th:if="${results != null}">
-        <div class="results-header">
-            <h2>Results</h2>
-            <span class="count-badge" th:text="${resultCount} + ' found'">0 found</span>
+    <!-- AI Syntheses — side-by-side model comparison -->
+    <div th:if="${syntheses != null and !syntheses.isEmpty()}" class="syntheses-grid">
+        <div th:each="synthesis : ${syntheses}" class="synthesis-card">
+            <div class="synthesis-header">
+                <span class="model-badge"
+                      th:classappend="${synthesis.modelName() == 'Claude' ? 'claude' : (synthesis.modelName() == 'GPT' ? 'gpt' : 'perplexity')}"
+                      th:text="${synthesis.modelName()}">Model</span>
+                <h3>AI Synthesis</h3>
+            </div>
+            <div class="synthesis-summary" th:text="${synthesis.summary()}">Summary text</div>
+            <div th:if="${!synthesis.keyFindings().isEmpty()}">
+                <div class="findings-label">Key Findings</div>
+                <ul class="findings-list">
+                    <li th:each="finding : ${synthesis.keyFindings()}" th:text="${finding}">Finding</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- No syntheses available -->
+    <div th:if="${syntheses != null and syntheses.isEmpty() and articles != null}" class="no-syntheses">
+        No AI syntheses were generated. The models may be temporarily unavailable.
+    </div>
+
+    <!-- Source Articles -->
+    <div th:if="${articles != null}" class="sources-section">
+        <div class="sources-header">
+            <h2>Source Articles</h2>
+            <span class="count-badge" th:text="${articleCount} + ' retrieved'">0 retrieved</span>
         </div>
 
-        <div th:if="${results.isEmpty()}" class="empty-state">
+        <div th:if="${articles.isEmpty()}" class="empty-state">
             No articles matched your query. Try a broader search term.
         </div>
 
-        <div th:each="article : ${results}" class="result-card">
-            <div class="result-title">
+        <div th:each="article : ${articles}" class="source-card">
+            <div class="source-title">
                 <a th:href="${article.url}" th:text="${article.title}"
                    target="_blank" rel="noopener noreferrer">Title</a>
             </div>
-            <div class="result-meta">
+            <div class="source-meta">
                 <span class="topic-badge" th:text="${article.topic}">Topic</span>
                 <span th:if="${article.sourceName != null}" class="source-name"
                       th:text="${article.sourceName}">Source</span>
-                <span th:if="${resultDates.containsKey(article.articleId())}" class="date"
-                      th:text="${resultDates.get(article.articleId())}">Date</span>
+                <span th:if="${articleDates.containsKey(article.articleId())}" class="date"
+                      th:text="${articleDates.get(article.articleId())}">Date</span>
             </div>
-            <div th:if="${resultSnippets.containsKey(article.articleId())}" class="result-snippet"
-                 th:text="${resultSnippets.get(article.articleId())}">Snippet</div>
+            <div th:if="${articleSnippets.containsKey(article.articleId())}" class="source-snippet"
+                 th:text="${articleSnippets.get(article.articleId())}">Snippet</div>
         </div>
     </div>
 

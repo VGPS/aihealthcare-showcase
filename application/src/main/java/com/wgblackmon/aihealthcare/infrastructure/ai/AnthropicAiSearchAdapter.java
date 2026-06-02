@@ -1,0 +1,155 @@
+package com.wgblackmon.aihealthcare.infrastructure.ai;
+
+import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
+import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Anthropic Claude adapter for AI-enhanced search synthesis.
+ *
+ * <p>Implements {@link AiSearchPort} using the Anthropic {@link ChatModel}
+ * (resolved via {@code @Qualifier("anthropicChatModel")}). Builds a dedicated
+ * {@link ChatClient} for search-synthesis prompts, separate from the shared
+ * client used by {@link AiSummarizationAdapter}.
+ *
+ * <p>Loads the {@code ai-search-synthesis.txt} prompt template via
+ * {@link PromptLoaderService} and parses the model's response into an
+ * {@link AiSearchSynthesis} record with summary and key findings.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-06-02
+ * @updated 2026-06-02
+ */
+@Slf4j
+@Component
+public class AnthropicAiSearchAdapter implements AiSearchPort {
+
+    private static final String MODEL_NAME = "Claude";
+
+    private final ChatClient chatClient;
+    private final PromptLoaderService promptLoaderService;
+
+    /**
+     * Constructs the adapter with the Anthropic-specific chat model.
+     *
+     * @param anthropicChatModel the auto-configured Anthropic chat model
+     * @param promptLoaderService service for loading prompt templates
+     */
+    public AnthropicAiSearchAdapter(
+            @Qualifier("anthropicChatModel") ChatModel anthropicChatModel,
+            PromptLoaderService promptLoaderService) {
+        log.debug("AnthropicAiSearchAdapter() | model={}, promptLoaderService={}",
+                  anthropicChatModel.getClass().getSimpleName(),
+                  promptLoaderService.getClass().getSimpleName());
+        this.chatClient = ChatClient.builder(anthropicChatModel).build();
+        this.promptLoaderService = promptLoaderService;
+        log.debug("AnthropicAiSearchAdapter() | return=void");
+    }
+
+    @Override
+    public AiSearchSynthesis synthesize(String query, List<NewsArticle> articles) {
+        log.debug("synthesize() | query={}, articleCount={}", query, articles.size());
+
+        String prompt = buildPrompt(query, articles);
+        log.info("synthesize() | sending prompt to Claude ({} chars)", prompt.length());
+
+        String response = chatClient.prompt(prompt).call().content();
+        log.info("synthesize() | received Claude response ({} chars)",
+                 response == null ? 0 : response.length());
+
+        AiSearchSynthesis result = parseResponse(response);
+        log.debug("synthesize() | return={}", result);
+        return result;
+    }
+
+    @Override
+    public String modelName() {
+        return MODEL_NAME;
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    private String buildPrompt(String query, List<NewsArticle> articles) {
+        log.debug("buildPrompt() | query={}, articleCount={}", query, articles.size());
+
+        StringBuilder articlesBlock = new StringBuilder();
+        int index = 1;
+        for (NewsArticle article : articles) {
+            articlesBlock.append("[").append(index).append("] Title: ").append(article.title()).append("\n");
+            if (article.author() != null && !article.author().isBlank()) {
+                articlesBlock.append("    Author: ").append(article.author()).append("\n");
+            }
+            if (article.sourceName() != null && !article.sourceName().isBlank()) {
+                articlesBlock.append("    Source: ").append(article.sourceName()).append("\n");
+            }
+            String body = article.bodyText() != null ? article.bodyText() : "";
+            if (body.length() > 500) {
+                body = body.substring(0, 500) + "...";
+            }
+            articlesBlock.append("    Body:   ").append(body).append("\n\n");
+            index++;
+        }
+
+        String template = promptLoaderService.load("ai-search-synthesis.txt");
+        String result = template
+                .replace("{query}", query)
+                .replace("{articleCount}", String.valueOf(articles.size()))
+                .replace("{articles}", articlesBlock.toString().trim());
+
+        log.debug("buildPrompt() | return=prompt[{} chars]", result.length());
+        return result;
+    }
+
+    private AiSearchSynthesis parseResponse(String response) {
+        log.debug("parseResponse() | responseLength={}", response == null ? 0 : response.length());
+
+        if (response == null || response.isBlank()) {
+            log.warn("parseResponse() | empty response from Claude");
+            AiSearchSynthesis result = new AiSearchSynthesis(
+                    MODEL_NAME, "No synthesis available.", new ArrayList<>(), Instant.now());
+            log.debug("parseResponse() | return={}", result);
+            return result;
+        }
+
+        String summary = "";
+        List<String> keyFindings = new ArrayList<>();
+        boolean inFindings = false;
+
+        for (String line : response.split("\n")) {
+            String trimmed = line.trim();
+
+            if (trimmed.startsWith("SUMMARY:")) {
+                summary = trimmed.substring("SUMMARY:".length()).trim();
+                inFindings = false;
+            } else if (trimmed.equals("KEY_FINDINGS:")) {
+                inFindings = true;
+            } else if (inFindings && trimmed.startsWith("- ")) {
+                keyFindings.add(trimmed.substring(2).trim());
+            } else if (inFindings && trimmed.startsWith("* ")) {
+                keyFindings.add(trimmed.substring(2).trim());
+            }
+        }
+
+        if (summary.isEmpty()) {
+            log.warn("parseResponse() | SUMMARY line not found in Claude response; using full response as summary");
+            summary = response.length() > 500 ? response.substring(0, 500) + "..." : response;
+        }
+
+        AiSearchSynthesis result = new AiSearchSynthesis(MODEL_NAME, summary, keyFindings, Instant.now());
+        log.debug("parseResponse() | return=AiSearchSynthesis[findings={}]", keyFindings.size());
+        return result;
+    }
+}

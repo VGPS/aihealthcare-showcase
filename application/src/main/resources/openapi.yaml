@@ -167,6 +167,44 @@ paths:
                   $ref: '#/components/schemas/ArticleResponse'
 
   # ---------------------------------------------------------------------------
+  # AI-Enhanced Search
+  # ---------------------------------------------------------------------------
+  /api/v1/search/ai:
+    get:
+      summary: AI-enhanced search with multi-model LLM synthesis
+      description: >
+        Retrieves articles via vector similarity search, then synthesizes them
+        through multiple LLM models (Claude, GPT, and Perplexity Sonar) for
+        side-by-side comparison. Returns the search metadata, retrieved article
+        count, and one synthesis entry per model.
+      operationId: aiSearch
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Natural-language search query
+          schema:
+            type: string
+        - name: topK
+          in: query
+          required: false
+          description: Maximum number of articles to retrieve (default 10, max 50)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: AI search results with multi-model syntheses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiSearchResponse'
+        '400':
+          description: Missing or blank query parameter
+
+  # ---------------------------------------------------------------------------
   # Newsletter draft generation
   # ---------------------------------------------------------------------------
   /api/v1/drafts:
@@ -1570,6 +1608,43 @@ components:
           type: string
           format: date-time
           description: Timestamp when the research was conducted.
+
+    AiSearchResponse:
+      type: object
+      properties:
+        searchId:
+          type: string
+          description: Unique identifier for this search
+        query:
+          type: string
+          description: The original search query
+        articleCount:
+          type: integer
+          description: Number of articles retrieved from the vector store
+        syntheses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiSearchSynthesisDto'
+          description: AI syntheses, one per model
+        searchedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the search was executed
+
+    AiSearchSynthesisDto:
+      type: object
+      properties:
+        modelName:
+          type: string
+          description: Human-readable model name (e.g. Claude, GPT)
+        summary:
+          type: string
+          description: AI-generated synthesis paragraph
+        keyFindings:
+          type: array
+          items:
+            type: string
+          description: Extracted key findings as bullet points
 
     ErrorResponse:
       type: object

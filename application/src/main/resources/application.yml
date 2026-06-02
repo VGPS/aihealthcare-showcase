@@ -25,6 +25,8 @@ spring:
           model: claude-sonnet-4-6
     openai:
       api-key: ${OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
+    perplexity:
+      api-key: ${PERPLEXITY_API_KEY:placeholder-set-PERPLEXITY_API_KEY}
     vectorstore:
       pgvector:
         initialize-schema: true
