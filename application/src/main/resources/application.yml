@@ -25,12 +25,18 @@ spring:
           model: claude-sonnet-4-6
     openai:
       api-key: ${OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
+      embedding:
+        enabled: false
     perplexity:
       api-key: ${PERPLEXITY_API_KEY:placeholder-set-PERPLEXITY_API_KEY}
+    ollama:
+      base-url: http://localhost:11434
+      embedding:
+        model: nomic-embed-text
     vectorstore:
       pgvector:
         initialize-schema: true
-        dimensions: 1536
+        dimensions: 768
 
   # ---------------------------------------------------------------------------
   # PostgreSQL datasource
@@ -95,7 +101,7 @@ aihealthcare:
   # Set to 0 for no date restriction.  Change freely for experimentation.
   # ---------------------------------------------------------------------------
   articles:
-    days-back: 3
+    days-back: 7
 
   # ---------------------------------------------------------------------------
   # Harvest scheduling — consolidated daily pipeline (all times UTC).

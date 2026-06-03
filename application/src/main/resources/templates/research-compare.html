@@ -345,21 +345,13 @@
                     </div>
                 </div>
 
-                <!-- Article list from legacy section bodies -->
-                <div th:each="section : ${legacyAnswer.sections()}" class="research-section">
-                    <h4 th:text="${section.heading()}">Section</h4>
-                    <p th:text="${section.body()}">Body text.</p>
-                </div>
-
-                <!-- Citation / source list -->
-                <div class="citations" th:if="${!legacyAnswer.allCitations().isEmpty()}">
-                    <h5>Sources</h5>
-                    <div th:each="cite : ${legacyAnswer.allCitations()}" class="citation-item">
-                        <span class="citation-num" th:text="'[' + ${cite.citationNumber()} + ']'">[1]</span>
+                <!-- Article list — clickable titles linking to source URLs -->
+                <ul class="article-list" th:if="${!legacyAnswer.allCitations().isEmpty()}">
+                    <li th:each="cite : ${legacyAnswer.allCitations()}">
                         <a th:href="${cite.url()}" th:text="${cite.title()}"
                            target="_blank" rel="noopener">Title</a>
-                    </div>
-                </div>
+                    </li>
+                </ul>
                 <p class="empty" th:if="${legacyAnswer.allCitations().isEmpty()}">
                     No sources found for this query.
                 </p>
@@ -402,7 +394,6 @@
                 <div class="citations" th:if="${!stagedAnswer.allCitations().isEmpty()}">
                     <h5>Sources</h5>
                     <div th:each="cite : ${stagedAnswer.allCitations()}" class="citation-item">
-                        <span class="citation-num" th:text="'[' + ${cite.citationNumber()} + ']'">[1]</span>
                         <a th:href="${cite.url()}" th:text="${cite.title()}"
                            target="_blank" rel="noopener">Title</a>
                     </div>
