@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
+import com.wgblackmon.aihealthcare.infrastructure.ai.EmbeddingScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
@@ -64,6 +65,9 @@ class WebMonitoringControllerTest {
 
     @MockBean
     private NewsTopicProperties newsTopicProperties;
+
+    @MockBean
+    private EmbeddingScheduler embeddingScheduler;
 
     @Test
     void triggerCompetitorHarvest_withChanges_returns200() throws Exception {
@@ -173,5 +177,13 @@ class WebMonitoringControllerTest {
                 .andExpect(jsonPath("$.changesDetected").value(0));
 
         verify(articleStoragePort, never()).save(anyList());
+    }
+
+    @Test
+    void triggerEmbedding_returns200() throws Exception {
+        mockMvc.perform(post("/api/v1/monitoring/embeddings"))
+                .andExpect(status().isOk());
+
+        verify(embeddingScheduler).embedArticles();
     }
 }
