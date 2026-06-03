@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -36,28 +36,33 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-17
+ * @updated 2026-06-02
  */
 @Slf4j
 @Component
-@ConditionalOnBean(VectorStore.class)
 public class VectorStoreArticleSearchAdapter implements ArticleSearchPort {
 
     private final VectorStore            vectorStore;
     private final NewsArticleRepository  repository;
 
-    public VectorStoreArticleSearchAdapter(VectorStore vectorStore,
+    public VectorStoreArticleSearchAdapter(ObjectProvider<VectorStore> vectorStoreProvider,
                                            NewsArticleRepository repository) {
-        log.debug("VectorStoreArticleSearchAdapter() | vectorStore={}, repository={}",
-                  vectorStore.getClass().getSimpleName(),
-                  repository.getClass().getSimpleName());
-        this.vectorStore = vectorStore;
+        this.vectorStore = vectorStoreProvider.getIfAvailable();
         this.repository  = repository;
+        log.debug("VectorStoreArticleSearchAdapter() | vectorStore={}, repository={}",
+                  vectorStore != null ? vectorStore.getClass().getSimpleName() : "NULL (not configured)",
+                  repository.getClass().getSimpleName());
     }
 
     @Override
     public List<NewsArticle> findSimilar(String query, int topK) {
         log.debug("findSimilar() | query={}, topK={}", query, topK);
+
+        if (vectorStore == null) {
+            log.warn("findSimilar() | VectorStore not available — returning empty list");
+            log.debug("findSimilar() | return=0 articles (no vector store)");
+            return List.of();
+        }
 
         List<Document> docs;
         try {

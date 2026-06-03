@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.List;
 
@@ -59,7 +60,12 @@ class EmbeddingSchedulerTest {
 
     @BeforeEach
     void setUp() {
-        scheduler = new EmbeddingScheduler(repository, vectorStore);
+        ObjectProvider<VectorStore> provider = new ObjectProvider<>() {
+            @Override public VectorStore getObject()          { return vectorStore; }
+            @Override public VectorStore getIfAvailable()     { return vectorStore; }
+            @Override public VectorStore getIfUnique()        { return vectorStore; }
+        };
+        scheduler = new EmbeddingScheduler(repository, provider);
     }
 
     // -------------------------------------------------------------------------

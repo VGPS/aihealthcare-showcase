@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+
 import java.security.Principal;
 import java.time.YearMonth;
 import java.time.ZoneId;
@@ -47,6 +50,7 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/research/ai-search")
 public class AiSearchController {
+
 
     private static final int DEFAULT_TOP_K = 10;
     private static final int MAX_TOP_K = 50;
@@ -96,28 +100,32 @@ public class AiSearchController {
         log.debug("search() | q={}, topK={}, principal={}", q, topK,
                   principal != null ? principal.getName() : "anonymous");
 
-        SubscriptionTier tier = resolveTier(principal);
+        boolean admin = isAdmin(principal);
 
-        // FREE tier — show upgrade banner, no search
-        if (tier != SubscriptionTier.MEMBER) {
-            model.addAttribute("accessDenied", true);
-            log.debug("search() | return=ai-search (accessDenied)");
-            return "ai-search";
-        }
+        if (!admin) {
+            SubscriptionTier tier = resolveTier(principal);
 
-        // MEMBER tier — check usage limit
-        String email = principal.getName();
-        String currentMonth = YearMonth.now().toString();
-        UsageRecord usage = usageTrackingPort.getOrCreateUsage(email, currentMonth);
+            // FREE tier — show upgrade banner, no search
+            if (tier != SubscriptionTier.MEMBER) {
+                model.addAttribute("accessDenied", true);
+                log.debug("search() | return=ai-search (accessDenied)");
+                return "ai-search";
+            }
 
-        if (!tierGatingService.canQuery(usage)) {
-            log.warn("search() | Monthly query limit reached: email={}, used={}, limit={}",
-                     email, usage.queryCount(), usage.queryLimit());
-            model.addAttribute("limitReached", true);
-            model.addAttribute("used", usage.queryCount());
-            model.addAttribute("limit", usage.queryLimit());
-            log.debug("search() | return=ai-search (limitReached)");
-            return "ai-search";
+            // MEMBER tier — check usage limit
+            String email = principal.getName();
+            String currentMonth = YearMonth.now().toString();
+            UsageRecord usage = usageTrackingPort.getOrCreateUsage(email, currentMonth);
+
+            if (!tierGatingService.canQuery(usage)) {
+                log.warn("search() | Monthly query limit reached: email={}, used={}, limit={}",
+                         email, usage.queryCount(), usage.queryLimit());
+                model.addAttribute("limitReached", true);
+                model.addAttribute("used", usage.queryCount());
+                model.addAttribute("limit", usage.queryLimit());
+                log.debug("search() | return=ai-search (limitReached)");
+                return "ai-search";
+            }
         }
 
         // Execute search if query is provided
@@ -127,8 +135,12 @@ public class AiSearchController {
 
             AiSearchResult result = aiSearchUseCase.search(q.trim(), resolvedTopK);
 
-            // Increment usage after successful search
-            usageTrackingPort.incrementAndGet(email, currentMonth);
+            // Increment usage after successful search (admins are unmetered)
+            if (!admin && principal != null) {
+                String email = principal.getName();
+                String currentMonth = YearMonth.now().toString();
+                usageTrackingPort.incrementAndGet(email, currentMonth);
+            }
 
             // Build date display map for source articles
             Map<String, String> articleDates = new HashMap<>();
@@ -164,6 +176,28 @@ public class AiSearchController {
 
         log.debug("search() | return=ai-search");
         return "ai-search";
+    }
+
+    /**
+     * Returns {@code true} if the authenticated user has the {@code ROLE_ADMIN} authority.
+     *
+     * @param principal the Spring Security principal; may be {@code null}
+     * @return whether the user is an admin
+     */
+    private boolean isAdmin(Principal principal) {
+        log.debug("isAdmin() | principal={}", principal != null ? principal.getName() : "null");
+
+        if (principal instanceof Authentication auth) {
+            for (GrantedAuthority authority : auth.getAuthorities()) {
+                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
+                    log.debug("isAdmin() | return=true");
+                    return true;
+                }
+            }
+        }
+
+        log.debug("isAdmin() | return=false");
+        return false;
     }
 
     /**

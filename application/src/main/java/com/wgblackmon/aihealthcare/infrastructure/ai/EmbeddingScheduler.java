@@ -5,7 +5,7 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleReposit
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -36,22 +36,22 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-17
+ * @updated 2026-06-02
  */
 @Slf4j
 @Component
-@ConditionalOnBean(VectorStore.class)
 public class EmbeddingScheduler {
 
     private final NewsArticleRepository repository;
     private final VectorStore           vectorStore;
 
-    public EmbeddingScheduler(NewsArticleRepository repository, VectorStore vectorStore) {
+    public EmbeddingScheduler(NewsArticleRepository repository,
+                              ObjectProvider<VectorStore> vectorStoreProvider) {
+        this.repository  = repository;
+        this.vectorStore = vectorStoreProvider.getIfAvailable();
         log.debug("EmbeddingScheduler() | repository={}, vectorStore={}",
                   repository.getClass().getSimpleName(),
-                  vectorStore.getClass().getSimpleName());
-        this.repository  = repository;
-        this.vectorStore = vectorStore;
+                  vectorStore != null ? vectorStore.getClass().getSimpleName() : "NULL (not configured)");
     }
 
     /**
@@ -64,6 +64,12 @@ public class EmbeddingScheduler {
     @Scheduled(cron = "${aihealthcare.embedding.schedule}")
     public void embedArticles() {
         log.debug("embedArticles() | starting embedding run");
+
+        if (vectorStore == null) {
+            log.warn("embedArticles() | VectorStore not available — skipping");
+            log.debug("embedArticles() | return=void (no vector store)");
+            return;
+        }
 
         List<NewsArticleEntity> entities = repository.findAll();
         log.info("embedArticles() | Found {} articles to embed", entities.size());

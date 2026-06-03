@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
+import com.wgblackmon.aihealthcare.infrastructure.ai.EmbeddingScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashEntity;
@@ -32,7 +33,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-19
- * @updated 2026-05-22
+ * @updated 2026-06-02
  */
 @Slf4j
 @RestController
@@ -46,6 +47,7 @@ public class WebMonitoringController {
     private final ArticleHarvestingPort articleHarvestingPort;
     private final TopicSummaryGenerationService topicSummaryService;
     private final NewsTopicProperties newsTopicProperties;
+    private final EmbeddingScheduler embeddingScheduler;
 
     public WebMonitoringController(WebPageHarvester webPageHarvester,
                                    HuggingFaceHarvester huggingFaceHarvester,
@@ -53,7 +55,8 @@ public class WebMonitoringController {
                                    PageContentHashRepository hashRepository,
                                    ArticleHarvestingPort articleHarvestingPort,
                                    TopicSummaryGenerationService topicSummaryService,
-                                   NewsTopicProperties newsTopicProperties) {
+                                   NewsTopicProperties newsTopicProperties,
+                                   EmbeddingScheduler embeddingScheduler) {
         log.debug("WebMonitoringController() | webPageHarvester={}, huggingFaceHarvester={}, " +
                   "articleStoragePort={}, hashRepository={}",
                   webPageHarvester.getClass().getSimpleName(),
@@ -67,6 +70,7 @@ public class WebMonitoringController {
         this.articleHarvestingPort = articleHarvestingPort;
         this.topicSummaryService = topicSummaryService;
         this.newsTopicProperties = newsTopicProperties;
+        this.embeddingScheduler = embeddingScheduler;
     }
 
     /**
@@ -149,6 +153,27 @@ public class WebMonitoringController {
         String result = "Generated summaries for " + topics.size() + " topics";
         log.info("triggerTopicSummaries() | {}", result);
         log.debug("triggerTopicSummaries() | return={}", result);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Manually triggers article embedding into the vector store.
+     *
+     * <p>Delegates to {@link EmbeddingScheduler#embedArticles()} to embed all
+     * persisted articles.  Useful for populating the vector store on-demand
+     * without waiting for the scheduled cron.
+     *
+     * @return simple text confirmation with the result
+     */
+    @PostMapping("/embeddings")
+    public ResponseEntity<String> triggerEmbedding() {
+        log.debug("triggerEmbedding() | (no args)");
+
+        embeddingScheduler.embedArticles();
+
+        String result = "Embedding run completed";
+        log.info("triggerEmbedding() | {}", result);
+        log.debug("triggerEmbedding() | return={}", result);
         return ResponseEntity.ok(result);
     }
 

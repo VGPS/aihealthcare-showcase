@@ -21,6 +21,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+
 import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -333,6 +336,16 @@ public class DashboardController {
         if (principal == null) {
             log.debug("resolveTier() | return={}", SubscriptionTier.FREE);
             return SubscriptionTier.FREE;
+        }
+
+        // ADMIN users get full access — bypass subscriber lookup
+        if (principal instanceof Authentication auth) {
+            for (GrantedAuthority authority : auth.getAuthorities()) {
+                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
+                    log.debug("resolveTier() | ADMIN role detected, return={}", SubscriptionTier.MEMBER);
+                    return SubscriptionTier.MEMBER;
+                }
+            }
         }
 
         Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
