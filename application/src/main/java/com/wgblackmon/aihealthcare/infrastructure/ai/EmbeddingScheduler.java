@@ -36,11 +36,14 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-06-02
+ * @updated 2026-06-03
  */
 @Slf4j
 @Component
 public class EmbeddingScheduler {
+
+    private static final int BATCH_SIZE = 10;
+    private static final long BATCH_DELAY_MS = 5000;
 
     private final NewsArticleRepository repository;
     private final VectorStore           vectorStore;
@@ -90,13 +93,31 @@ public class EmbeddingScheduler {
             documents.add(doc);
         }
 
-        try {
-            vectorStore.add(documents);
-            log.info("embedArticles() | Successfully embedded {} articles", documents.size());
-        } catch (Exception ex) {
-            log.error("embedArticles() | Embedding failed — check API key configuration: {}",
-                      ex.getMessage());
+        int totalEmbedded = 0;
+        for (int i = 0; i < documents.size(); i += BATCH_SIZE) {
+            int end = Math.min(i + BATCH_SIZE, documents.size());
+            List<Document> batch = documents.subList(i, end);
+            try {
+                vectorStore.add(batch);
+                totalEmbedded += batch.size();
+                log.info("embedArticles() | Embedded batch {}-{} of {} articles",
+                         i + 1, end, documents.size());
+            } catch (Exception ex) {
+                log.error("embedArticles() | Batch {}-{} failed: {}",
+                          i + 1, end, ex.getMessage());
+            }
+            if (end < documents.size()) {
+                try {
+                    Thread.sleep(BATCH_DELAY_MS);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    log.warn("embedArticles() | interrupted during batch delay");
+                    break;
+                }
+            }
         }
+        log.info("embedArticles() | Completed — {} of {} articles embedded",
+                 totalEmbedded, documents.size());
 
         log.debug("embedArticles() | return=void");
     }

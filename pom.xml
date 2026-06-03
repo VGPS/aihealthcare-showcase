@@ -59,6 +59,12 @@
             <artifactId>spring-ai-starter-model-openai</artifactId>
         </dependency>
 
+        <!-- Spring AI — Ollama (local embedding model, no API key required) -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-ollama</artifactId>
+        </dependency>
+
         <!-- Spring Boot Mail (JavaMailSender / SMTP) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
