@@ -100,7 +100,9 @@ class EmbeddingSchedulerTest {
         verify(vectorStore).add(captor.capture());
 
         Document doc = captor.getValue().get(0);
-        assertThat(doc.getId()).isEqualTo("a-001");
+        String expectedId = java.util.UUID.nameUUIDFromBytes(
+                "a-001".getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
+        assertThat(doc.getId()).isEqualTo(expectedId);
     }
 
     @Test

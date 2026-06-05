@@ -11,6 +11,10 @@ spring:
   profiles:
     active: demo
 
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration
+
   # ---------------------------------------------------------------------------
   # Spring AI — provider keys
   # Set ANTHROPIC_API_KEY / OPENAI_API_KEY as environment variables (or .env).

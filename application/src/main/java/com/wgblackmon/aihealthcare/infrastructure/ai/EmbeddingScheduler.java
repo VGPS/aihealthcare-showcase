@@ -9,10 +9,12 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Scheduled job that embeds persisted articles into the in-memory vector store.
@@ -36,7 +38,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-06-03
+ * @updated 2026-06-05
  */
 @Slf4j
 @Component
@@ -89,7 +91,9 @@ public class EmbeddingScheduler {
             metadata.put("articleId", entity.getArticleId());
             metadata.put("topic",     entity.getTopic());
             metadata.put("url",       entity.getUrl() != null ? entity.getUrl() : "");
-            Document doc = new Document(entity.getArticleId(), content, metadata);
+            String docId = UUID.nameUUIDFromBytes(
+                    entity.getArticleId().getBytes(StandardCharsets.UTF_8)).toString();
+            Document doc = new Document(docId, content, metadata);
             documents.add(doc);
         }
 
