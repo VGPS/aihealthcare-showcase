@@ -1,9 +1,12 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
+import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
+import com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
@@ -22,6 +25,7 @@ import java.security.Principal;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +46,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-30
- * @updated 2026-06-02
+ * @updated 2026-06-05
  */
 @Slf4j
 @Controller
@@ -55,15 +59,18 @@ public class SemanticSearchController {
     private static final DateTimeFormatter RESULT_DATE_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z").withZone(ZoneId.of("America/New_York"));
 
-    private final ArticleSearchPort  articleSearchPort;
-    private final SubscriberPort     subscriberPort;
-    private final TierGatingService  tierGatingService;
-    private final UsageTrackingPort  usageTrackingPort;
+    private final ConductAiSearchUseCase aiSearchUseCase;
+    private final ArticleSearchPort     articleSearchPort;
+    private final SubscriberPort        subscriberPort;
+    private final TierGatingService     tierGatingService;
+    private final UsageTrackingPort     usageTrackingPort;
 
-    public SemanticSearchController(ArticleSearchPort articleSearchPort,
+    public SemanticSearchController(ConductAiSearchUseCase aiSearchUseCase,
+                                    ArticleSearchPort articleSearchPort,
                                     SubscriberPort subscriberPort,
                                     TierGatingService tierGatingService,
                                     UsageTrackingPort usageTrackingPort) {
+        this.aiSearchUseCase   = aiSearchUseCase;
         this.articleSearchPort = articleSearchPort;
         this.subscriberPort   = subscriberPort;
         this.tierGatingService = tierGatingService;
@@ -125,7 +132,21 @@ public class SemanticSearchController {
             int resolvedTopK = resolveTopK(topK);
             log.info("search() | executing semantic search: q='{}', topK={}", q, resolvedTopK);
 
-            List<NewsArticle> results = articleSearchPort.findSimilar(q.trim(), resolvedTopK);
+            List<NewsArticle> results;
+            List<AiSearchSynthesis> syntheses = Collections.emptyList();
+
+            // Try AI-enhanced search (vector + synthesis); fall back to vector-only
+            try {
+                AiSearchResult aiResult = aiSearchUseCase.search(q.trim(), resolvedTopK);
+                results = aiResult.articles();
+                syntheses = aiResult.syntheses();
+                log.info("search() | AI search returned {} articles, {} syntheses",
+                         results.size(), syntheses.size());
+            } catch (Exception ex) {
+                log.warn("search() | AI synthesis failed, falling back to vector-only: {}",
+                         ex.getMessage());
+                results = articleSearchPort.findSimilar(q.trim(), resolvedTopK);
+            }
 
             // Increment usage after successful search (admins are unmetered)
             if (!admin && principal != null) {
@@ -142,21 +163,10 @@ public class SemanticSearchController {
                 }
             }
 
-            // Build snippet map (first 200 chars of bodyText)
-            Map<String, String> resultSnippets = new HashMap<>();
-            for (NewsArticle article : results) {
-                if (article.bodyText() != null && !article.bodyText().isBlank()) {
-                    String snippet = article.bodyText().length() > 200
-                            ? article.bodyText().substring(0, 200) + "..."
-                            : article.bodyText();
-                    resultSnippets.put(article.articleId(), snippet);
-                }
-            }
-
             model.addAttribute("results", results);
             model.addAttribute("resultDates", resultDates);
-            model.addAttribute("resultSnippets", resultSnippets);
             model.addAttribute("resultCount", results.size());
+            model.addAttribute("syntheses", syntheses);
             model.addAttribute("q", q);
             model.addAttribute("topK", resolvedTopK);
 
