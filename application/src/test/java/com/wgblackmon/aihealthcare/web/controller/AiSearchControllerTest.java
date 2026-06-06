@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
@@ -46,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * multi-model AI synthesis rendering, and usage tracking increments.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-06-02
  * @updated 2026-06-06
  */
@@ -59,6 +60,9 @@ class AiSearchControllerTest {
 
     @MockitoBean
     private ConductAiSearchUseCase aiSearchUseCase;
+
+    @MockitoBean
+    private ArticleSearchPort articleSearchPort;
 
     @MockitoBean
     private SubscriberPort subscriberPort;
@@ -211,5 +215,25 @@ class AiSearchControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("articleCount", 0))
                 .andExpect(content().string(containsString("No articles matched")));
+    }
+
+    // -------------------------------------------------------------------------
+    // AI synthesis failure — graceful fallback to vector-only
+    // -------------------------------------------------------------------------
+
+    @Test
+    @WithMockUser(username = "member@example.com")
+    void search_memberTier_synthesisFailure_fallsBackToVectorOnly() throws Exception {
+        stubMemberTier("member@example.com");
+        NewsArticle a1 = sampleArticle("id-1", "Fallback Article");
+        when(aiSearchUseCase.search(anyString(), anyInt()))
+                .thenThrow(new RuntimeException("API timeout"));
+        when(articleSearchPort.findSimilar(eq("fallback query"), eq(20)))
+                .thenReturn(List.of(a1));
+
+        mockMvc.perform(get("/research/ai-search").param("q", "fallback query"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("articleCount", 1))
+                .andExpect(content().string(containsString("Fallback Article")));
     }
 }

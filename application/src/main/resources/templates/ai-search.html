@@ -321,6 +321,10 @@
             background: #e8f0fe;
             color: #1a73e8;
         }
+        .source-meta .date {
+            font-size: 0.8rem;
+            color: #666;
+        }
 
         .empty-state {
             text-align: center;
@@ -355,7 +359,6 @@
     <a href="/research/compare">Research Compare</a>
     <a href="/research/runs">Research Runs</a>
     <a href="/research/vendors">Vendor Compare</a>
-    <a href="/research/search">Semantic Search</a>
     <a href="/research/ai-search" class="active">AI Search</a>
     <a href="/dashboard/search">Article Search</a>
     <a href="/pricing">Pricing</a>
@@ -444,6 +447,8 @@
             </div>
             <div class="source-meta">
                 <span class="topic-badge" th:text="${article.topic}">Topic</span>
+                <span th:if="${articleDates != null and articleDates.containsKey(article.articleId())}"
+                      class="date" th:text="${articleDates.get(article.articleId())}">Date</span>
             </div>
         </div>
     </div>
