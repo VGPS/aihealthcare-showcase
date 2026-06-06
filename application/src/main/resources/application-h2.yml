@@ -41,4 +41,3 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
-      - org.springframework.ai.ollama.autoconfigure.OllamaAutoConfiguration

@@ -197,6 +197,15 @@
             font-weight: 600;
             font-size: 0.95rem;
             margin-bottom: 0.35rem;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+        .result-card .citation-number {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #4361ee;
+            flex-shrink: 0;
         }
         .result-card .result-title a {
             color: #1a1a2e;
@@ -205,35 +214,59 @@
         .result-card .result-title a:hover { color: #4361ee; text-decoration: underline; }
 
         .result-meta {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .result-meta .topic-badge {
-            display: inline-block;
-            padding: 0.15em 0.55em;
-            border-radius: 99px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            background: #e8f0fe;
-            color: #1a73e8;
-        }
-        .result-meta .source-name {
-            font-size: 0.8rem;
-            color: #555;
-            font-style: italic;
+            margin-top: 0.25rem;
         }
         .result-meta .date {
             font-size: 0.8rem;
             color: #666;
         }
 
-        .result-snippet {
+        /* AI Synthesis */
+        .synthesis-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #4361ee;
+        }
+        .synthesis-card h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 0.75rem;
+        }
+        .synthesis-card .model-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #4361ee;
+            margin-bottom: 0.5rem;
+        }
+        .synthesis-card .summary-text {
+            font-size: 0.9rem;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+        .synthesis-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .synthesis-card ul li {
             font-size: 0.85rem;
-            color: #555;
+            color: #444;
+            padding: 0.3rem 0 0.3rem 1.25rem;
+            position: relative;
             line-height: 1.5;
+        }
+        .synthesis-card ul li::before {
+            content: "\2022";
+            color: #4361ee;
+            font-weight: bold;
+            position: absolute;
+            left: 0.25rem;
         }
 
         .empty-state {
@@ -304,10 +337,22 @@
         </form>
     </div>
 
+    <!-- AI Synthesis -->
+    <div th:if="${syntheses != null and !syntheses.isEmpty()}">
+        <div th:each="synthesis : ${syntheses}" class="synthesis-card">
+            <div class="model-label" th:text="${synthesis.modelName()}">Model</div>
+            <h3>AI Summary</h3>
+            <div class="summary-text" th:text="${synthesis.summary()}">Summary</div>
+            <ul th:if="${synthesis.keyFindings() != null and !synthesis.keyFindings().isEmpty()}">
+                <li th:each="finding : ${synthesis.keyFindings()}" th:text="${finding}">Finding</li>
+            </ul>
+        </div>
+    </div>
+
     <!-- Search results -->
     <div th:if="${results != null}">
         <div class="results-header">
-            <h2>Results</h2>
+            <h2>Sources</h2>
             <span class="count-badge" th:text="${resultCount} + ' found'">0 found</span>
         </div>
 
@@ -315,20 +360,15 @@
             No articles matched your query. Try a broader search term.
         </div>
 
-        <div th:each="article : ${results}" class="result-card">
+        <div th:each="article, iterStat : ${results}" class="result-card">
             <div class="result-title">
+                <span class="citation-number" th:text="'[' + ${iterStat.count} + ']'">[1]</span>
                 <a th:href="${article.url}" th:text="${article.title}"
                    target="_blank" rel="noopener noreferrer">Title</a>
             </div>
-            <div class="result-meta">
-                <span class="topic-badge" th:text="${article.topic}">Topic</span>
-                <span th:if="${article.sourceName != null}" class="source-name"
-                      th:text="${article.sourceName}">Source</span>
-                <span th:if="${resultDates.containsKey(article.articleId())}" class="date"
-                      th:text="${resultDates.get(article.articleId())}">Date</span>
+            <div th:if="${resultDates.containsKey(article.articleId())}" class="result-meta">
+                <span class="date" th:text="${resultDates.get(article.articleId())}">Date</span>
             </div>
-            <div th:if="${resultSnippets.containsKey(article.articleId())}" class="result-snippet"
-                 th:text="${resultSnippets.get(article.articleId())}">Snippet</div>
         </div>
     </div>
 

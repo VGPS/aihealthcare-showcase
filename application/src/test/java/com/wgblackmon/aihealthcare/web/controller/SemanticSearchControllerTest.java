@@ -1,9 +1,12 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
+import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
+import com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
@@ -19,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,7 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-30
- * @updated 2026-05-30
+ * @updated 2026-06-05
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(SemanticSearchController.class)
@@ -55,6 +59,9 @@ class SemanticSearchControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private ConductAiSearchUseCase aiSearchUseCase;
 
     @MockitoBean
     private ArticleSearchPort articleSearchPort;
@@ -147,22 +154,28 @@ class SemanticSearchControllerTest {
         stubMemberTier("member@example.com");
         NewsArticle a1 = sampleArticle("id-1", "AI Diagnostics in Radiology");
         NewsArticle a2 = sampleArticle("id-2", "Machine Learning in Pathology");
-        when(articleSearchPort.findSimilar(eq("AI diagnostics"), eq(10)))
-                .thenReturn(List.of(a1, a2));
+        AiSearchSynthesis synthesis = new AiSearchSynthesis(
+                "Claude", "AI is transforming diagnostics.", List.of("Finding 1"), Instant.now());
+        AiSearchResult aiResult = new AiSearchResult(
+                "s-1", "AI diagnostics", List.of(a1, a2), List.of(synthesis), Instant.now());
+        when(aiSearchUseCase.search(eq("AI diagnostics"), eq(10))).thenReturn(aiResult);
 
         mockMvc.perform(get("/research/search").param("q", "AI diagnostics"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("results", "resultDates", "resultSnippets"))
+                .andExpect(model().attributeExists("results", "resultDates", "syntheses"))
                 .andExpect(model().attribute("resultCount", 2))
                 .andExpect(content().string(containsString("AI Diagnostics in Radiology")))
-                .andExpect(content().string(containsString("Machine Learning in Pathology")));
+                .andExpect(content().string(containsString("Machine Learning in Pathology")))
+                .andExpect(content().string(containsString("AI is transforming diagnostics.")));
     }
 
     @Test
     @WithMockUser(username = "member@example.com")
     void search_memberTier_withQuery_incrementsUsage() throws Exception {
         stubMemberTier("member@example.com");
-        when(articleSearchPort.findSimilar(anyString(), anyInt())).thenReturn(List.of());
+        AiSearchResult emptyResult = new AiSearchResult(
+                "s-2", "test query", List.of(), Collections.emptyList(), Instant.now());
+        when(aiSearchUseCase.search(anyString(), anyInt())).thenReturn(emptyResult);
 
         mockMvc.perform(get("/research/search").param("q", "test query"))
                 .andExpect(status().isOk());
@@ -199,7 +212,9 @@ class SemanticSearchControllerTest {
     @WithMockUser(username = "member@example.com")
     void search_memberTier_emptyResults_showsEmptyState() throws Exception {
         stubMemberTier("member@example.com");
-        when(articleSearchPort.findSimilar(anyString(), anyInt())).thenReturn(List.of());
+        AiSearchResult emptyResult = new AiSearchResult(
+                "s-3", "obscure topic", List.of(), Collections.emptyList(), Instant.now());
+        when(aiSearchUseCase.search(anyString(), anyInt())).thenReturn(emptyResult);
 
         mockMvc.perform(get("/research/search").param("q", "obscure topic"))
                 .andExpect(status().isOk())
@@ -215,13 +230,35 @@ class SemanticSearchControllerTest {
     @WithMockUser(username = "member@example.com")
     void search_memberTier_customTopK_respectsParam() throws Exception {
         stubMemberTier("member@example.com");
-        when(articleSearchPort.findSimilar(eq("AI in surgery"), eq(25))).thenReturn(List.of());
+        AiSearchResult emptyResult = new AiSearchResult(
+                "s-4", "AI in surgery", List.of(), Collections.emptyList(), Instant.now());
+        when(aiSearchUseCase.search(eq("AI in surgery"), eq(25))).thenReturn(emptyResult);
 
         mockMvc.perform(get("/research/search")
                         .param("q", "AI in surgery")
                         .param("topK", "25"))
                 .andExpect(status().isOk());
 
-        verify(articleSearchPort).findSimilar(eq("AI in surgery"), eq(25));
+        verify(aiSearchUseCase).search(eq("AI in surgery"), eq(25));
+    }
+
+    // -------------------------------------------------------------------------
+    // AI synthesis failure — graceful fallback
+    // -------------------------------------------------------------------------
+
+    @Test
+    @WithMockUser(username = "member@example.com")
+    void search_memberTier_synthesisFailure_fallsBackToVectorOnly() throws Exception {
+        stubMemberTier("member@example.com");
+        NewsArticle a1 = sampleArticle("id-1", "Fallback Article");
+        when(aiSearchUseCase.search(anyString(), anyInt()))
+                .thenThrow(new RuntimeException("API timeout"));
+        when(articleSearchPort.findSimilar(eq("fallback query"), eq(10)))
+                .thenReturn(List.of(a1));
+
+        mockMvc.perform(get("/research/search").param("q", "fallback query"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("resultCount", 1))
+                .andExpect(content().string(containsString("Fallback Article")));
     }
 }

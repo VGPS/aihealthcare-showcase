@@ -14,11 +14,6 @@ spring:
       api-key: test-placeholder
     openai:
       api-key: test-placeholder
-      embedding:
-        enabled: false
-    ollama:
-      init:
-        pull-model-strategy: never
     vectorstore:
       pgvector:
         enabled: false
@@ -46,7 +41,6 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
-      - org.springframework.ai.ollama.autoconfigure.OllamaAutoConfiguration
 
   mail:
     host: localhost

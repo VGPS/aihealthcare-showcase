@@ -29,18 +29,12 @@ spring:
           model: claude-sonnet-4-6
     openai:
       api-key: ${OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
-      embedding:
-        enabled: false
     perplexity:
       api-key: ${PERPLEXITY_API_KEY:placeholder-set-PERPLEXITY_API_KEY}
-    ollama:
-      base-url: http://localhost:11434
-      embedding:
-        model: nomic-embed-text
     vectorstore:
       pgvector:
         initialize-schema: true
-        dimensions: 768
+        dimensions: 1536
 
   # ---------------------------------------------------------------------------
   # PostgreSQL datasource
