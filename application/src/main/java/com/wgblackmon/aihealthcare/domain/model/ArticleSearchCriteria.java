@@ -7,8 +7,7 @@ import java.time.Instant;
  *
  * <p>All fields are optional (nullable). When a field is non-null it becomes
  * an AND-combined predicate in the search query. Text fields use
- * case-insensitive substring matching; {@code sourceTier} uses exact match;
- * date fields define inclusive range bounds.
+ * case-insensitive substring matching; date fields define inclusive range bounds.
  *
  * <p>The {@link #isEmpty()} convenience method returns {@code true} when every
  * field is null, allowing callers to short-circuit and avoid full-table scans.
@@ -17,29 +16,23 @@ import java.time.Instant;
  * @param topic         Substring match against article topic (case-insensitive).
  * @param author        Substring match against article author (case-insensitive).
  * @param sourceName    Substring match against feed source label (case-insensitive).
- * @param sourceTier    Exact match against harvest tier (e.g. "ACADEMIC", "INDUSTRY").
  * @param bodyText      Substring match against article body text (case-insensitive).
  * @param publishedFrom Inclusive lower bound on {@code publishedAt}.
  * @param publishedTo   Inclusive upper bound on {@code publishedAt}.
- * @param createdFrom   Inclusive lower bound on {@code createdAt}.
- * @param createdTo     Inclusive upper bound on {@code createdAt}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-06-01
- * @updated 2026-06-01
+ * @updated 2026-06-06
  */
 public record ArticleSearchCriteria(
         String title,
         String topic,
         String author,
         String sourceName,
-        String sourceTier,
         String bodyText,
         Instant publishedFrom,
-        Instant publishedTo,
-        Instant createdFrom,
-        Instant createdTo
+        Instant publishedTo
 ) {
 
     /**
@@ -53,11 +46,8 @@ public record ArticleSearchCriteria(
                 && topic == null
                 && author == null
                 && sourceName == null
-                && sourceTier == null
                 && bodyText == null
                 && publishedFrom == null
-                && publishedTo == null
-                && createdFrom == null
-                && createdTo == null;
+                && publishedTo == null;
     }
 }

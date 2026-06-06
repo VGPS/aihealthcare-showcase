@@ -531,11 +531,11 @@ class DashboardControllerTest {
         mockMvc.perform(get("/dashboard/search")
                         .param("title", "radiology")
                         .param("topic", "PubMed")
-                        .param("sourceTier", "ACADEMIC"))
+                        .param("sourceName", "PubMed"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("titleParam", "radiology"))
                 .andExpect(model().attribute("topicParam", "PubMed"))
-                .andExpect(model().attribute("sourceTierParam", "ACADEMIC"));
+                .andExpect(model().attribute("sourceNameParam", "PubMed"));
     }
 
     @Test

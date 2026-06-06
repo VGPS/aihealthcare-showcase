@@ -61,7 +61,7 @@ class ArticleSearchServiceTest {
     @Test
     void search_emptyCriteria_returnsEmptyListWithoutQueryingPort() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null);
 
         List<NewsArticle> result = service.search(criteria);
 
@@ -72,7 +72,7 @@ class ArticleSearchServiceTest {
     @Test
     void search_withTitleCriteria_delegatesToPort() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                "radiology", null, null, null, null, null, null, null, null, null);
+                "radiology", null, null, null, null, null, null);
         NewsArticle article = sampleArticle("AI in Radiology");
         when(queryPort.findByCriteria(criteria)).thenReturn(List.of(article));
 
@@ -86,7 +86,7 @@ class ArticleSearchServiceTest {
     @Test
     void search_withMultipleCriteria_delegatesToPort() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                "radiology", "PubMed", null, null, "ACADEMIC", null, null, null, null, null);
+                "radiology", "PubMed", null, null, null, null, null);
         when(queryPort.findByCriteria(criteria)).thenReturn(List.of());
 
         List<NewsArticle> result = service.search(criteria);
@@ -98,7 +98,7 @@ class ArticleSearchServiceTest {
     @Test
     void search_portReturnsMultipleResults_allReturned() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                null, "PubMed", null, null, null, null, null, null, null, null);
+                null, "PubMed", null, null, null, null, null);
         NewsArticle a1 = sampleArticle("Article One");
         NewsArticle a2 = sampleArticle("Article Two");
         when(queryPort.findByCriteria(criteria)).thenReturn(List.of(a1, a2));

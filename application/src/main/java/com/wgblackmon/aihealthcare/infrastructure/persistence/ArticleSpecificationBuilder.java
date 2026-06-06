@@ -12,16 +12,15 @@ import java.util.List;
  *
  * <p>Each non-null, non-blank field in the criteria becomes an AND-combined
  * predicate. Text fields use case-insensitive {@code LIKE '%value%'};
- * {@code sourceTier} uses exact match; date fields use {@code >=} / {@code <=}
- * range bounds.
+ * date fields use {@code >=} / {@code <=} range bounds.
  *
  * <p>This is a static utility class — not a Spring component. Called directly
  * by {@link ArticleSearchQueryAdapter}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-06-01
- * @updated 2026-06-01
+ * @updated 2026-06-06
  */
 @Slf4j
 public final class ArticleSpecificationBuilder {
@@ -65,10 +64,6 @@ public final class ArticleSpecificationBuilder {
             specs.add((root, query, cb) -> cb.like(cb.lower(root.get("sourceName")), pattern));
         }
 
-        if (criteria.sourceTier() != null && !criteria.sourceTier().isBlank()) {
-            specs.add((root, query, cb) -> cb.equal(root.get("sourceTier"), criteria.sourceTier()));
-        }
-
         if (criteria.bodyText() != null && !criteria.bodyText().isBlank()) {
             String pattern = "%" + criteria.bodyText().toLowerCase() + "%";
             specs.add((root, query, cb) -> cb.like(cb.lower(root.get("bodyText")), pattern));
@@ -82,16 +77,6 @@ public final class ArticleSpecificationBuilder {
         if (criteria.publishedTo() != null) {
             specs.add((root, query, cb) ->
                     cb.lessThanOrEqualTo(root.get("publishedAt"), criteria.publishedTo()));
-        }
-
-        if (criteria.createdFrom() != null) {
-            specs.add((root, query, cb) ->
-                    cb.greaterThanOrEqualTo(root.get("createdAt"), criteria.createdFrom()));
-        }
-
-        if (criteria.createdTo() != null) {
-            specs.add((root, query, cb) ->
-                    cb.lessThanOrEqualTo(root.get("createdAt"), criteria.createdTo()));
         }
 
         Specification<NewsArticleEntity> combined = Specification.where(null);

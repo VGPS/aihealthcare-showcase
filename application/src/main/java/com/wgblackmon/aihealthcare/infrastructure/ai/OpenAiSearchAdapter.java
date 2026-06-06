@@ -144,7 +144,7 @@ public class OpenAiSearchAdapter implements AiSearchPort {
 
         if (summary.isEmpty()) {
             log.warn("parseResponse() | SUMMARY line not found in GPT response; using full response as summary");
-            summary = response.length() > 500 ? response.substring(0, 500) + "..." : response;
+            summary = response.length() > 4000 ? response.substring(0, 4000) + "..." : response;
         }
 
         AiSearchSynthesis result = new AiSearchSynthesis(MODEL_NAME, summary, keyFindings, Instant.now());
