@@ -288,6 +288,15 @@
             font-weight: 600;
             font-size: 0.95rem;
             margin-bottom: 0.35rem;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+        .source-card .citation-number {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #4361ee;
+            flex-shrink: 0;
         }
         .source-card .source-title a {
             color: #1a1a2e;
@@ -301,6 +310,7 @@
             align-items: center;
             margin-bottom: 0.5rem;
             flex-wrap: wrap;
+            padding-left: 2rem;
         }
         .source-meta .topic-badge {
             display: inline-block;
@@ -310,21 +320,6 @@
             font-weight: 600;
             background: #e8f0fe;
             color: #1a73e8;
-        }
-        .source-meta .source-name {
-            font-size: 0.8rem;
-            color: #555;
-            font-style: italic;
-        }
-        .source-meta .date {
-            font-size: 0.8rem;
-            color: #666;
-        }
-
-        .source-snippet {
-            font-size: 0.85rem;
-            color: #555;
-            line-height: 1.5;
         }
 
         .empty-state {
@@ -400,7 +395,7 @@
             <div>
                 <label for="topK">Max Articles</label>
                 <input type="number" id="topK" name="topK" th:value="${topK}" min="1" max="50"
-                       placeholder="10"/>
+                       placeholder="20"/>
             </div>
             <button type="submit">Search</button>
         </form>
@@ -441,20 +436,15 @@
             No articles matched your query. Try a broader search term.
         </div>
 
-        <div th:each="article : ${articles}" class="source-card">
+        <div th:each="article, iterStat : ${articles}" class="source-card">
             <div class="source-title">
+                <span class="citation-number" th:text="'[' + ${iterStat.count} + ']'">[1]</span>
                 <a th:href="${article.url}" th:text="${article.title}"
                    target="_blank" rel="noopener noreferrer">Title</a>
             </div>
             <div class="source-meta">
                 <span class="topic-badge" th:text="${article.topic}">Topic</span>
-                <span th:if="${article.sourceName != null}" class="source-name"
-                      th:text="${article.sourceName}">Source</span>
-                <span th:if="${articleDates.containsKey(article.articleId())}" class="date"
-                      th:text="${articleDates.get(article.articleId())}">Date</span>
             </div>
-            <div th:if="${articleSnippets.containsKey(article.articleId())}" class="source-snippet"
-                 th:text="${articleSnippets.get(article.articleId())}">Snippet</div>
         </div>
     </div>
 

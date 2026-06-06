@@ -48,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-06-02
+ * @updated 2026-06-06
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(AiSearchController.class)
@@ -147,7 +147,7 @@ class AiSearchControllerTest {
     void search_memberTier_withQuery_rendersSyntheses() throws Exception {
         stubMemberTier("member@example.com");
         AiSearchResult result = buildSampleResult("AI diagnostics");
-        when(aiSearchUseCase.search(eq("AI diagnostics"), eq(10))).thenReturn(result);
+        when(aiSearchUseCase.search(eq("AI diagnostics"), eq(20))).thenReturn(result);
 
         mockMvc.perform(get("/research/ai-search").param("q", "AI diagnostics"))
                 .andExpect(status().isOk())

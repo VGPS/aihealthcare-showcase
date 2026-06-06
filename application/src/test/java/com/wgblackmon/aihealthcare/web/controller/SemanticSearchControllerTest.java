@@ -158,7 +158,7 @@ class SemanticSearchControllerTest {
                 "Claude", "AI is transforming diagnostics.", List.of("Finding 1"), Instant.now());
         AiSearchResult aiResult = new AiSearchResult(
                 "s-1", "AI diagnostics", List.of(a1, a2), List.of(synthesis), Instant.now());
-        when(aiSearchUseCase.search(eq("AI diagnostics"), eq(10))).thenReturn(aiResult);
+        when(aiSearchUseCase.search(eq("AI diagnostics"), eq(20))).thenReturn(aiResult);
 
         mockMvc.perform(get("/research/search").param("q", "AI diagnostics"))
                 .andExpect(status().isOk())
@@ -253,7 +253,7 @@ class SemanticSearchControllerTest {
         NewsArticle a1 = sampleArticle("id-1", "Fallback Article");
         when(aiSearchUseCase.search(anyString(), anyInt()))
                 .thenThrow(new RuntimeException("API timeout"));
-        when(articleSearchPort.findSimilar(eq("fallback query"), eq(10)))
+        when(articleSearchPort.findSimilar(eq("fallback query"), eq(20)))
                 .thenReturn(List.of(a1));
 
         mockMvc.perform(get("/research/search").param("q", "fallback query"))
