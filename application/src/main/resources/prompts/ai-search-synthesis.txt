@@ -8,9 +8,9 @@ Retrieved articles ({articleCount} total):
 {articles}
 
 Instructions:
-- Write a 3-5 sentence SUMMARY that synthesizes the key themes across the articles
+- Write a comprehensive 8-12 sentence SUMMARY that synthesizes the key themes across the articles
 - Reference specific articles using their bracket numbers [1], [2], etc. in both the summary and findings
-- Extract 3-5 KEY FINDINGS — each should be a single, specific, actionable insight
+- Extract 5-10 KEY FINDINGS — each should be a single, specific, actionable insight
 - Each finding MUST cite the source article(s) using bracket numbers, e.g. "AI improves diagnostic accuracy by 23% [1][3]"
 - Ground every claim in the provided articles — do not introduce outside knowledge
 - If articles are contradictory, note the disagreement

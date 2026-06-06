@@ -33,9 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * parameters mapped to {@link ArticleSearchCriteria}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-06-01
- * @updated 2026-06-01
+ * @updated 2026-06-06
  */
 @Import(SecurityConfig.class)
 @WithMockUser
@@ -91,7 +91,7 @@ class ArticleSearchControllerTest {
         mockMvc.perform(get("/api/v1/articles/search")
                         .param("title", "AI")
                         .param("topic", "PubMed")
-                        .param("sourceTier", "ACADEMIC"))
+                        .param("sourceName", "PubMed"))
                 .andExpect(status().isOk());
 
         ArgumentCaptor<ArticleSearchCriteria> captor =
@@ -99,7 +99,7 @@ class ArticleSearchControllerTest {
         verify(searchUseCase).search(captor.capture());
         assertThat(captor.getValue().title()).isEqualTo("AI");
         assertThat(captor.getValue().topic()).isEqualTo("PubMed");
-        assertThat(captor.getValue().sourceTier()).isEqualTo("ACADEMIC");
+        assertThat(captor.getValue().sourceName()).isEqualTo("PubMed");
     }
 
     @Test
@@ -114,8 +114,7 @@ class ArticleSearchControllerTest {
                 .andExpect(jsonPath("$[0].title").value("AI Radiology Breakthrough"))
                 .andExpect(jsonPath("$[0].topic").value("PubMed AI Healthcare"))
                 .andExpect(jsonPath("$[0].author").value("Dr. Smith"))
-                .andExpect(jsonPath("$[0].sourceName").value("PubMed"))
-                .andExpect(jsonPath("$[0].sourceTier").value("ACADEMIC"));
+                .andExpect(jsonPath("$[0].sourceName").value("PubMed"));
     }
 
     @Test

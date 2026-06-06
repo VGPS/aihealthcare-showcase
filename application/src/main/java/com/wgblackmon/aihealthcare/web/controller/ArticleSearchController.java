@@ -28,9 +28,9 @@ import java.util.List;
  * port — it never references infrastructure or persistence classes directly.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-06-01
- * @updated 2026-06-01
+ * @updated 2026-06-06
  */
 @Slf4j
 @RestController
@@ -51,12 +51,9 @@ public class ArticleSearchController {
      * @param topic         substring match against topic (case-insensitive)
      * @param author        substring match against author (case-insensitive)
      * @param sourceName    substring match against source name (case-insensitive)
-     * @param sourceTier    exact match against source tier
      * @param bodyText      substring match against body text (case-insensitive)
      * @param publishedFrom inclusive lower bound on publishedAt (ISO-8601)
      * @param publishedTo   inclusive upper bound on publishedAt (ISO-8601)
-     * @param createdFrom   inclusive lower bound on createdAt (ISO-8601)
-     * @param createdTo     inclusive upper bound on createdAt (ISO-8601)
      * @return 200 OK with a list of matching {@link ArticleResponse} DTOs
      */
     @GetMapping("/articles/search")
@@ -65,20 +62,17 @@ public class ArticleSearchController {
             @RequestParam(required = false) String topic,
             @RequestParam(required = false) String author,
             @RequestParam(required = false) String sourceName,
-            @RequestParam(required = false) String sourceTier,
             @RequestParam(required = false) String bodyText,
             @RequestParam(required = false) Instant publishedFrom,
-            @RequestParam(required = false) Instant publishedTo,
-            @RequestParam(required = false) Instant createdFrom,
-            @RequestParam(required = false) Instant createdTo) {
-        log.debug("searchArticles() | title={}, topic={}, author={}, sourceName={}, sourceTier={}, "
-                + "bodyText={}, publishedFrom={}, publishedTo={}, createdFrom={}, createdTo={}",
-                title, topic, author, sourceName, sourceTier, bodyText,
-                publishedFrom, publishedTo, createdFrom, createdTo);
+            @RequestParam(required = false) Instant publishedTo) {
+        log.debug("searchArticles() | title={}, topic={}, author={}, sourceName={}, "
+                + "bodyText={}, publishedFrom={}, publishedTo={}",
+                title, topic, author, sourceName, bodyText,
+                publishedFrom, publishedTo);
 
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                title, topic, author, sourceName, sourceTier, bodyText,
-                publishedFrom, publishedTo, createdFrom, createdTo);
+                title, topic, author, sourceName, bodyText,
+                publishedFrom, publishedTo);
 
         List<NewsArticle> articles = searchUseCase.search(criteria);
 

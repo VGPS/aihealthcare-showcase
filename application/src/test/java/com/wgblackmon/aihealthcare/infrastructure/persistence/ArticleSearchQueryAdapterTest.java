@@ -22,9 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * then asserts that each filter field narrows results correctly.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-06-01
- * @updated 2026-06-01
+ * @updated 2026-06-06
  */
 @DataJpaTest
 class ArticleSearchQueryAdapterTest {
@@ -74,7 +74,7 @@ class ArticleSearchQueryAdapterTest {
     @Test
     void findByCriteria_titleFilter_caseInsensitiveSubstring() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                "radiology", null, null, null, null, null, null, null, null, null);
+                "radiology", null, null, null, null, null, null);
 
         List<NewsArticle> result = adapter.findByCriteria(criteria);
 
@@ -85,7 +85,7 @@ class ArticleSearchQueryAdapterTest {
     @Test
     void findByCriteria_topicFilter_caseInsensitiveSubstring() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                null, "google", null, null, null, null, null, null, null, null);
+                null, "google", null, null, null, null, null);
 
         List<NewsArticle> result = adapter.findByCriteria(criteria);
 
@@ -94,20 +94,9 @@ class ArticleSearchQueryAdapterTest {
     }
 
     @Test
-    void findByCriteria_sourceTierFilter_exactMatch() {
-        ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                null, null, null, null, "ACADEMIC", null, null, null, null, null);
-
-        List<NewsArticle> result = adapter.findByCriteria(criteria);
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).sourceTier()).isEqualTo("ACADEMIC");
-    }
-
-    @Test
     void findByCriteria_authorFilter() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                null, null, "smith", null, null, null, null, null, null, null);
+                null, null, "smith", null, null, null, null);
 
         List<NewsArticle> result = adapter.findByCriteria(criteria);
 
@@ -118,7 +107,7 @@ class ArticleSearchQueryAdapterTest {
     @Test
     void findByCriteria_bodyTextFilter() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                null, null, null, null, null, "clinical trial", null, null, null, null);
+                null, null, null, null, "clinical trial", null, null);
 
         List<NewsArticle> result = adapter.findByCriteria(criteria);
 
@@ -129,10 +118,9 @@ class ArticleSearchQueryAdapterTest {
     @Test
     void findByCriteria_publishedDateRange() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                null, null, null, null, null, null,
+                null, null, null, null, null,
                 Instant.parse("2026-05-10T00:00:00Z"),
-                Instant.parse("2026-05-20T00:00:00Z"),
-                null, null);
+                Instant.parse("2026-05-20T00:00:00Z"));
 
         List<NewsArticle> result = adapter.findByCriteria(criteria);
 
@@ -141,26 +129,13 @@ class ArticleSearchQueryAdapterTest {
     }
 
     @Test
-    void findByCriteria_createdDateRange() {
-        ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                null, null, null, null, null, null, null, null,
-                Instant.parse("2026-05-01T00:00:00Z"),
-                Instant.parse("2026-05-01T23:59:59Z"));
-
-        List<NewsArticle> result = adapter.findByCriteria(criteria);
-
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).articleId()).isEqualTo("academic-001");
-    }
-
-    @Test
     void findByCriteria_multipleCriteria_andCombined() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                "AI", null, null, null, "ACADEMIC", null, null, null, null, null);
+                "AI", null, null, "PubMed", null, null, null);
 
         List<NewsArticle> result = adapter.findByCriteria(criteria);
 
-        // Both have "AI" in title, but only one is ACADEMIC
+        // Both have "AI" in title, but only one has sourceName "PubMed"
         assertThat(result).hasSize(1);
         assertThat(result.get(0).articleId()).isEqualTo("academic-001");
     }
@@ -168,7 +143,7 @@ class ArticleSearchQueryAdapterTest {
     @Test
     void findByCriteria_noMatch_returnsEmptyList() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                "nonexistent-query", null, null, null, null, null, null, null, null, null);
+                "nonexistent-query", null, null, null, null, null, null);
 
         List<NewsArticle> result = adapter.findByCriteria(criteria);
 
@@ -178,7 +153,7 @@ class ArticleSearchQueryAdapterTest {
     @Test
     void findByCriteria_sourceNameFilter() {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                null, null, null, "pubmed", null, null, null, null, null, null);
+                null, null, null, "pubmed", null, null, null);
 
         List<NewsArticle> result = adapter.findByCriteria(criteria);
 

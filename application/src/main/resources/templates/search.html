@@ -264,17 +264,6 @@
                            placeholder="e.g. PubMed"/>
                 </div>
                 <div class="field">
-                    <label for="sourceTier">Source Tier</label>
-                    <select id="sourceTier" name="sourceTier">
-                        <option value="">Any</option>
-                        <option value="ACADEMIC" th:selected="${sourceTierParam == 'ACADEMIC'}">Academic</option>
-                        <option value="REGULATORY" th:selected="${sourceTierParam == 'REGULATORY'}">Regulatory</option>
-                        <option value="INDUSTRY" th:selected="${sourceTierParam == 'INDUSTRY'}">Industry</option>
-                        <option value="COMPETITOR" th:selected="${sourceTierParam == 'COMPETITOR'}">Competitor</option>
-                        <option value="HUGGINGFACE" th:selected="${sourceTierParam == 'HUGGINGFACE'}">HuggingFace</option>
-                    </select>
-                </div>
-                <div class="field">
                     <label for="bodyText">Body Text</label>
                     <input type="text" id="bodyText" name="bodyText" th:value="${bodyTextParam}"
                            placeholder="e.g. clinical trial"/>
@@ -288,16 +277,6 @@
                     <label for="publishedTo">Published To</label>
                     <input type="datetime-local" id="publishedTo" name="publishedTo"
                            th:value="${publishedToParam}"/>
-                </div>
-                <div class="field">
-                    <label for="createdFrom">Ingested From</label>
-                    <input type="datetime-local" id="createdFrom" name="createdFrom"
-                           th:value="${createdFromParam}"/>
-                </div>
-                <div class="field">
-                    <label for="createdTo">Ingested To</label>
-                    <input type="datetime-local" id="createdTo" name="createdTo"
-                           th:value="${createdToParam}"/>
                 </div>
             </div>
             <div class="filter-actions">

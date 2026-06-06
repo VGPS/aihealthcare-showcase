@@ -95,7 +95,7 @@ aihealthcare:
   # Set to 0 for no date restriction.  Change freely for experimentation.
   # ---------------------------------------------------------------------------
   articles:
-    days-back: 7
+    days-back: 60
 
   # ---------------------------------------------------------------------------
   # Harvest scheduling — consolidated daily pipeline (all times UTC).
@@ -214,6 +214,18 @@ aihealthcare:
         tier: INDUSTRY
         base-weight: 0.6
         max-items: 25
+      - topic-id: 1
+        name: Healthcare Dive AI
+        topic: General AI Healthcare News
+        url: https://www.healthcaredive.com/feeds/news/
+        tier: INDUSTRY
+        base-weight: 0.7
+        max-items: 20
+        keywords:
+          - artificial intelligence
+          - AI
+          - machine learning
+          - digital health
       # -----------------------------------------------------------------
       # AI Healthcare Software Development
       # -----------------------------------------------------------------

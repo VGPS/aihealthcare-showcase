@@ -248,12 +248,9 @@ public class DashboardController {
      * @param topic         substring match against topic
      * @param author        substring match against author
      * @param sourceName    substring match against source name
-     * @param sourceTier    exact match against source tier
      * @param bodyText      substring match against body text
      * @param publishedFrom lower bound on publishedAt (yyyy-MM-ddTHH:mm format)
      * @param publishedTo   upper bound on publishedAt
-     * @param createdFrom   lower bound on createdAt
-     * @param createdTo     upper bound on createdAt
      * @param model         Thymeleaf model
      * @return Thymeleaf view name "search"
      */
@@ -263,26 +260,21 @@ public class DashboardController {
             @RequestParam(required = false) String topic,
             @RequestParam(required = false) String author,
             @RequestParam(required = false) String sourceName,
-            @RequestParam(required = false) String sourceTier,
             @RequestParam(required = false) String bodyText,
             @RequestParam(required = false) String publishedFrom,
             @RequestParam(required = false) String publishedTo,
-            @RequestParam(required = false) String createdFrom,
-            @RequestParam(required = false) String createdTo,
             Model model) {
-        log.debug("search() | title={}, topic={}, author={}, sourceName={}, sourceTier={}, "
-                + "bodyText={}, publishedFrom={}, publishedTo={}, createdFrom={}, createdTo={}",
-                title, topic, author, sourceName, sourceTier, bodyText,
-                publishedFrom, publishedTo, createdFrom, createdTo);
+        log.debug("search() | title={}, topic={}, author={}, sourceName={}, "
+                + "bodyText={}, publishedFrom={}, publishedTo={}",
+                title, topic, author, sourceName, bodyText,
+                publishedFrom, publishedTo);
 
         Instant pubFrom = parseDateTime(publishedFrom);
         Instant pubTo = parseDateTime(publishedTo);
-        Instant cFrom = parseDateTime(createdFrom);
-        Instant cTo = parseDateTime(createdTo);
 
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                title, topic, author, sourceName, sourceTier, bodyText,
-                pubFrom, pubTo, cFrom, cTo);
+                title, topic, author, sourceName, bodyText,
+                pubFrom, pubTo);
 
         List<NewsArticle> articles = searchUseCase.search(criteria);
 
@@ -293,12 +285,9 @@ public class DashboardController {
         model.addAttribute("topicParam", topic);
         model.addAttribute("authorParam", author);
         model.addAttribute("sourceNameParam", sourceName);
-        model.addAttribute("sourceTierParam", sourceTier);
         model.addAttribute("bodyTextParam", bodyText);
         model.addAttribute("publishedFromParam", publishedFrom);
         model.addAttribute("publishedToParam", publishedTo);
-        model.addAttribute("createdFromParam", createdFrom);
-        model.addAttribute("createdToParam", createdTo);
 
         log.debug("search() | return=search (resultCount={})", articles.size());
         return "search";
