@@ -1,11 +1,13 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
+import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
@@ -23,25 +25,30 @@ import java.security.Principal;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 /**
- * Thymeleaf controller for the AI-Enhanced Search page.
+ * Unified Thymeleaf controller for AI-Enhanced Search (Slice 40 merge).
  *
- * <p>Serves {@code GET /research/ai-search} — allows authenticated MEMBER-tier
- * subscribers to perform AI-enhanced searches that retrieve articles via vector
- * similarity and synthesize them through multiple LLM models (Claude and GPT)
- * for side-by-side comparison.
+ * <p>Serves {@code GET /research/ai-search} — the single search page that
+ * retrieves articles via vector similarity and synthesizes them through
+ * multiple LLM models (Claude, GPT, Perplexity) for side-by-side comparison.
+ * Replaces the former separate Semantic Search and AI Search pages.
  *
  * <p>FREE-tier users see an upgrade banner instead of the search form.
  * MEMBER-tier users who have exhausted their monthly query limit see a
  * limit-reached warning.  Each successful search increments the subscriber's
  * monthly usage counter via {@link UsageTrackingPort}.
  *
+ * <p>If AI synthesis fails, the controller falls back to vector-only results
+ * via {@link ArticleSearchPort#findSimilar(String, int)}.
+ *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-06-02
  * @updated 2026-06-06
  */
@@ -57,21 +64,25 @@ public class AiSearchController {
             DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z").withZone(ZoneId.of("America/New_York"));
 
     private final ConductAiSearchUseCase aiSearchUseCase;
+    private final ArticleSearchPort      articleSearchPort;
     private final SubscriberPort         subscriberPort;
     private final TierGatingService      tierGatingService;
     private final UsageTrackingPort      usageTrackingPort;
 
     public AiSearchController(ConductAiSearchUseCase aiSearchUseCase,
+                               ArticleSearchPort articleSearchPort,
                                SubscriberPort subscriberPort,
                                TierGatingService tierGatingService,
                                UsageTrackingPort usageTrackingPort) {
-        log.debug("AiSearchController() | aiSearchUseCase={}, subscriberPort={}, tierGatingService={}, usageTrackingPort={}",
+        log.debug("AiSearchController() | aiSearchUseCase={}, articleSearchPort={}, subscriberPort={}, tierGatingService={}, usageTrackingPort={}",
                   aiSearchUseCase.getClass().getSimpleName(),
+                  articleSearchPort.getClass().getSimpleName(),
                   subscriberPort.getClass().getSimpleName(),
                   tierGatingService.getClass().getSimpleName(),
                   usageTrackingPort.getClass().getSimpleName());
-        this.aiSearchUseCase  = aiSearchUseCase;
-        this.subscriberPort   = subscriberPort;
+        this.aiSearchUseCase   = aiSearchUseCase;
+        this.articleSearchPort = articleSearchPort;
+        this.subscriberPort    = subscriberPort;
         this.tierGatingService = tierGatingService;
         this.usageTrackingPort = usageTrackingPort;
     }
@@ -131,7 +142,21 @@ public class AiSearchController {
             int resolvedTopK = resolveTopK(topK);
             log.info("search() | executing AI-enhanced search: q='{}', topK={}", q, resolvedTopK);
 
-            AiSearchResult result = aiSearchUseCase.search(q.trim(), resolvedTopK);
+            List<NewsArticle> articles;
+            List<AiSearchSynthesis> syntheses = Collections.emptyList();
+
+            // Try AI-enhanced search (vector + synthesis); fall back to vector-only
+            try {
+                AiSearchResult result = aiSearchUseCase.search(q.trim(), resolvedTopK);
+                articles = result.articles();
+                syntheses = result.syntheses();
+                log.info("search() | AI search returned {} articles, {} syntheses",
+                         articles.size(), syntheses.size());
+            } catch (Exception ex) {
+                log.warn("search() | AI synthesis failed, falling back to vector-only: {}",
+                         ex.getMessage());
+                articles = articleSearchPort.findSimilar(q.trim(), resolvedTopK);
+            }
 
             // Increment usage after successful search (admins are unmetered)
             if (!admin && principal != null) {
@@ -142,22 +167,21 @@ public class AiSearchController {
 
             // Build date display map for source articles
             Map<String, String> articleDates = new HashMap<>();
-            for (NewsArticle article : result.articles()) {
+            for (NewsArticle article : articles) {
                 if (article.publishedAt() != null) {
                     articleDates.put(article.articleId(), RESULT_DATE_FMT.format(article.publishedAt()));
                 }
             }
 
-            model.addAttribute("searchResult", result);
-            model.addAttribute("syntheses", result.syntheses());
-            model.addAttribute("articles", result.articles());
+            model.addAttribute("syntheses", syntheses);
+            model.addAttribute("articles", articles);
             model.addAttribute("articleDates", articleDates);
-            model.addAttribute("articleCount", result.articles().size());
+            model.addAttribute("articleCount", articles.size());
             model.addAttribute("q", q);
             model.addAttribute("topK", resolvedTopK);
 
             log.info("search() | found {} articles, {} syntheses for query '{}'",
-                     result.articles().size(), result.syntheses().size(), q);
+                     articles.size(), syntheses.size(), q);
         }
 
         log.debug("search() | return=ai-search");
