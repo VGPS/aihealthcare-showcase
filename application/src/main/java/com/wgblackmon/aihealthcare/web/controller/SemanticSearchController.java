@@ -53,7 +53,7 @@ import java.util.Optional;
 @RequestMapping("/research/search")
 public class SemanticSearchController {
 
-    private static final int DEFAULT_TOP_K = 10;
+    private static final int DEFAULT_TOP_K = 20;
     private static final int MAX_TOP_K = 50;
 
     private static final DateTimeFormatter RESULT_DATE_FMT =

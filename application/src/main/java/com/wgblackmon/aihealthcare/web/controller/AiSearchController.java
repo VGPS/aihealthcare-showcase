@@ -1,7 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
-import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
@@ -44,15 +43,14 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-06-02
+ * @updated 2026-06-06
  */
 @Slf4j
 @Controller
 @RequestMapping("/research/ai-search")
 public class AiSearchController {
 
-
-    private static final int DEFAULT_TOP_K = 10;
+    private static final int DEFAULT_TOP_K = 20;
     private static final int MAX_TOP_K = 50;
 
     private static final DateTimeFormatter RESULT_DATE_FMT =
@@ -150,22 +148,10 @@ public class AiSearchController {
                 }
             }
 
-            // Build snippet map (first 200 chars of bodyText)
-            Map<String, String> articleSnippets = new HashMap<>();
-            for (NewsArticle article : result.articles()) {
-                if (article.bodyText() != null && !article.bodyText().isBlank()) {
-                    String snippet = article.bodyText().length() > 200
-                            ? article.bodyText().substring(0, 200) + "..."
-                            : article.bodyText();
-                    articleSnippets.put(article.articleId(), snippet);
-                }
-            }
-
             model.addAttribute("searchResult", result);
             model.addAttribute("syntheses", result.syntheses());
             model.addAttribute("articles", result.articles());
             model.addAttribute("articleDates", articleDates);
-            model.addAttribute("articleSnippets", articleSnippets);
             model.addAttribute("articleCount", result.articles().size());
             model.addAttribute("q", q);
             model.addAttribute("topK", resolvedTopK);
