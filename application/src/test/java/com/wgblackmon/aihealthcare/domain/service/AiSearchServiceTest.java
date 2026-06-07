@@ -145,6 +145,63 @@ class AiSearchServiceTest {
         assertThat(result.syntheses().get(1).modelName()).isEqualTo("Perplexity");
     }
 
+    @Test
+    void search_withModelNames_filtersToRequestedModels() {
+        NewsArticle a1 = sampleArticle("a1", "AI in Cardiology");
+        when(vectorSearch.findSimilar(eq("cardiology"), eq(10))).thenReturn(List.of(a1));
+
+        AiSearchSynthesis claudeSynthesis = new AiSearchSynthesis(
+                "Claude", "Claude summary", List.of("Finding"), Instant.now());
+        when(claudePort.synthesize(eq("cardiology"), eq(List.of(a1)))).thenReturn(claudeSynthesis);
+
+        AiSearchResult result = service.search("cardiology", 10, List.of("Claude"));
+
+        assertThat(result.syntheses()).hasSize(1);
+        assertThat(result.syntheses().get(0).modelName()).isEqualTo("Claude");
+        verify(gptPort, never()).synthesize(anyString(), anyList());
+        verify(perplexityPort, never()).synthesize(anyString(), anyList());
+    }
+
+    @Test
+    void search_withNullModelNames_usesAllModels() {
+        NewsArticle a1 = sampleArticle("a1", "AI in Oncology");
+        when(vectorSearch.findSimilar(eq("oncology"), eq(10))).thenReturn(List.of(a1));
+
+        AiSearchSynthesis claudeSynthesis = new AiSearchSynthesis(
+                "Claude", "Claude summary", List.of("Finding"), Instant.now());
+        AiSearchSynthesis gptSynthesis = new AiSearchSynthesis(
+                "GPT", "GPT summary", List.of("Finding"), Instant.now());
+        AiSearchSynthesis perplexitySynthesis = new AiSearchSynthesis(
+                "Perplexity", "Perplexity summary", List.of("Finding"), Instant.now());
+        when(claudePort.synthesize(eq("oncology"), eq(List.of(a1)))).thenReturn(claudeSynthesis);
+        when(gptPort.synthesize(eq("oncology"), eq(List.of(a1)))).thenReturn(gptSynthesis);
+        when(perplexityPort.synthesize(eq("oncology"), eq(List.of(a1)))).thenReturn(perplexitySynthesis);
+
+        AiSearchResult result = service.search("oncology", 10, null);
+
+        assertThat(result.syntheses()).hasSize(3);
+    }
+
+    @Test
+    void search_withEmptyModelNames_usesAllModels() {
+        NewsArticle a1 = sampleArticle("a1", "AI in Neurology");
+        when(vectorSearch.findSimilar(eq("neurology"), eq(10))).thenReturn(List.of(a1));
+
+        AiSearchSynthesis claudeSynthesis = new AiSearchSynthesis(
+                "Claude", "Claude summary", List.of("Finding"), Instant.now());
+        AiSearchSynthesis gptSynthesis = new AiSearchSynthesis(
+                "GPT", "GPT summary", List.of("Finding"), Instant.now());
+        AiSearchSynthesis perplexitySynthesis = new AiSearchSynthesis(
+                "Perplexity", "Perplexity summary", List.of("Finding"), Instant.now());
+        when(claudePort.synthesize(eq("neurology"), eq(List.of(a1)))).thenReturn(claudeSynthesis);
+        when(gptPort.synthesize(eq("neurology"), eq(List.of(a1)))).thenReturn(gptSynthesis);
+        when(perplexityPort.synthesize(eq("neurology"), eq(List.of(a1)))).thenReturn(perplexitySynthesis);
+
+        AiSearchResult result = service.search("neurology", 10, List.of());
+
+        assertThat(result.syntheses()).hasSize(3);
+    }
+
     // Helper to avoid Mockito import issues
     private static <T> List<T> anyList() {
         return org.mockito.ArgumentMatchers.anyList();

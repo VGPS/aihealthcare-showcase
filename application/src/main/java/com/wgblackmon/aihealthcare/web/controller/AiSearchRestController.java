@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,9 +24,9 @@ import java.util.List;
  * returning a JSON response with side-by-side model comparisons.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-06-02
- * @updated 2026-06-02
+ * @updated 2026-06-06
  */
 @Slf4j
 @RestController
@@ -52,8 +53,9 @@ public class AiSearchRestController {
     @GetMapping("/ai")
     public ResponseEntity<AiSearchResponse> aiSearch(
             @RequestParam(required = false) String q,
-            @RequestParam(required = false) Integer topK) {
-        log.debug("aiSearch() | q={}, topK={}", q, topK);
+            @RequestParam(required = false) Integer topK,
+            @RequestParam(required = false) List<String> models) {
+        log.debug("aiSearch() | q={}, topK={}, models={}", q, topK, models);
 
         if (q == null || q.isBlank()) {
             log.warn("aiSearch() | missing or blank query parameter");
@@ -61,7 +63,7 @@ public class AiSearchRestController {
         }
 
         int resolvedTopK = resolveTopK(topK);
-        AiSearchResult result = aiSearchUseCase.search(q.trim(), resolvedTopK);
+        AiSearchResult result = aiSearchUseCase.search(q.trim(), resolvedTopK, models);
 
         List<AiSearchSynthesisDto> synthesisDtos = new ArrayList<>();
         for (AiSearchSynthesis synthesis : result.syntheses()) {

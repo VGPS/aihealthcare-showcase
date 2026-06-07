@@ -139,7 +139,7 @@ class AiSearchControllerTest {
                 .andExpect(model().attribute("accessDenied", true))
                 .andExpect(content().string(containsString("Upgrade")));
 
-        verify(aiSearchUseCase, never()).search(anyString(), anyInt());
+        verify(aiSearchUseCase, never()).search(anyString(), anyInt(), any());
     }
 
     // -------------------------------------------------------------------------
@@ -151,7 +151,7 @@ class AiSearchControllerTest {
     void search_memberTier_withQuery_rendersSyntheses() throws Exception {
         stubMemberTier("member@example.com");
         AiSearchResult result = buildSampleResult("AI diagnostics");
-        when(aiSearchUseCase.search(eq("AI diagnostics"), eq(20))).thenReturn(result);
+        when(aiSearchUseCase.search(eq("AI diagnostics"), eq(20), any())).thenReturn(result);
 
         mockMvc.perform(get("/research/ai-search").param("q", "AI diagnostics"))
                 .andExpect(status().isOk())
@@ -170,7 +170,7 @@ class AiSearchControllerTest {
         stubMemberTier("member@example.com");
         AiSearchResult emptyResult = new AiSearchResult(
                 "s1", "test", List.of(), List.of(), Instant.now());
-        when(aiSearchUseCase.search(anyString(), anyInt())).thenReturn(emptyResult);
+        when(aiSearchUseCase.search(anyString(), anyInt(), any())).thenReturn(emptyResult);
 
         mockMvc.perform(get("/research/ai-search").param("q", "test query"))
                 .andExpect(status().isOk());
@@ -196,7 +196,7 @@ class AiSearchControllerTest {
                 .andExpect(model().attribute("limitReached", true))
                 .andExpect(content().string(containsString("Monthly query limit reached")));
 
-        verify(aiSearchUseCase, never()).search(anyString(), anyInt());
+        verify(aiSearchUseCase, never()).search(anyString(), anyInt(), any());
     }
 
     // -------------------------------------------------------------------------
@@ -209,12 +209,12 @@ class AiSearchControllerTest {
         stubMemberTier("member@example.com");
         AiSearchResult emptyResult = new AiSearchResult(
                 "s1", "obscure topic", List.of(), List.of(), Instant.now());
-        when(aiSearchUseCase.search(anyString(), anyInt())).thenReturn(emptyResult);
+        when(aiSearchUseCase.search(anyString(), anyInt(), any())).thenReturn(emptyResult);
 
         mockMvc.perform(get("/research/ai-search").param("q", "obscure topic"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("articleCount", 0))
-                .andExpect(content().string(containsString("No articles matched")));
+                .andExpect(content().string(containsString("No articles exactly matching")));
     }
 
     // -------------------------------------------------------------------------
@@ -226,7 +226,7 @@ class AiSearchControllerTest {
     void search_memberTier_synthesisFailure_fallsBackToVectorOnly() throws Exception {
         stubMemberTier("member@example.com");
         NewsArticle a1 = sampleArticle("id-1", "Fallback Article");
-        when(aiSearchUseCase.search(anyString(), anyInt()))
+        when(aiSearchUseCase.search(anyString(), anyInt(), any()))
                 .thenThrow(new RuntimeException("API timeout"));
         when(articleSearchPort.findSimilar(eq("fallback query"), eq(20)))
                 .thenReturn(List.of(a1));
@@ -234,6 +234,6 @@ class AiSearchControllerTest {
         mockMvc.perform(get("/research/ai-search").param("q", "fallback query"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("articleCount", 1))
-                .andExpect(content().string(containsString("Fallback Article")));
+                .andExpect(content().string(containsString("No articles exactly matching")));
     }
 }

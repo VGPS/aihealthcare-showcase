@@ -104,9 +104,10 @@ public class AiSearchController {
     public String search(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) Integer topK,
+            @RequestParam(required = false) List<String> models,
             Principal principal,
             Model model) {
-        log.debug("search() | q={}, topK={}, principal={}", q, topK,
+        log.debug("search() | q={}, topK={}, models={}, principal={}", q, topK, models,
                   principal != null ? principal.getName() : "anonymous");
 
         boolean admin = isAdmin(principal);
@@ -147,7 +148,7 @@ public class AiSearchController {
 
             // Try AI-enhanced search (vector + synthesis); fall back to vector-only
             try {
-                AiSearchResult result = aiSearchUseCase.search(q.trim(), resolvedTopK);
+                AiSearchResult result = aiSearchUseCase.search(q.trim(), resolvedTopK, models);
                 articles = result.articles();
                 syntheses = result.syntheses();
                 log.info("search() | AI search returned {} articles, {} syntheses",
@@ -179,6 +180,7 @@ public class AiSearchController {
             model.addAttribute("articleCount", articles.size());
             model.addAttribute("q", q);
             model.addAttribute("topK", resolvedTopK);
+            model.addAttribute("selectedModels", models != null ? models : List.of("Claude"));
 
             log.info("search() | found {} articles, {} syntheses for query '{}'",
                      articles.size(), syntheses.size(), q);

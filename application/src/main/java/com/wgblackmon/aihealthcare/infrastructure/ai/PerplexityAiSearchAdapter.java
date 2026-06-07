@@ -203,6 +203,12 @@ public class PerplexityAiSearchAdapter implements AiSearchPort {
             return result;
         }
 
+        if (response.trim().startsWith("NO_MATCH")) {
+            log.info("parseResponse() | Perplexity reported NO_MATCH — articles not relevant to query");
+            log.debug("parseResponse() | return=null");
+            return null;
+        }
+
         String summary = "";
         List<String> keyFindings = new ArrayList<>();
         boolean inFindings = false;

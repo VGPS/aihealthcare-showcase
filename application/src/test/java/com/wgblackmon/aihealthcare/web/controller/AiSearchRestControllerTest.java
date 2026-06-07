@@ -20,7 +20,9 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -75,7 +77,7 @@ class AiSearchRestControllerTest {
         AiSearchResult result = new AiSearchResult(
                 "search-1", "AI diagnostics", List.of(a1), List.of(claude, gpt, perplexity), Instant.now());
 
-        when(aiSearchUseCase.search(eq("AI diagnostics"), eq(10))).thenReturn(result);
+        when(aiSearchUseCase.search(eq("AI diagnostics"), eq(10), isNull())).thenReturn(result);
 
         mockMvc.perform(get("/api/v1/search/ai").param("q", "AI diagnostics"))
                 .andExpect(status().isOk())
@@ -100,7 +102,7 @@ class AiSearchRestControllerTest {
     void aiSearch_noArticlesFound_returns200WithEmptySyntheses() throws Exception {
         AiSearchResult empty = new AiSearchResult(
                 "search-2", "obscure", List.of(), List.of(), Instant.now());
-        when(aiSearchUseCase.search(eq("obscure"), eq(10))).thenReturn(empty);
+        when(aiSearchUseCase.search(eq("obscure"), eq(10), isNull())).thenReturn(empty);
 
         mockMvc.perform(get("/api/v1/search/ai").param("q", "obscure"))
                 .andExpect(status().isOk())
@@ -127,7 +129,7 @@ class AiSearchRestControllerTest {
     void aiSearch_noAuth_stillPermitted() throws Exception {
         AiSearchResult result = new AiSearchResult(
                 "s3", "test", List.of(), List.of(), Instant.now());
-        when(aiSearchUseCase.search(eq("test"), eq(10))).thenReturn(result);
+        when(aiSearchUseCase.search(eq("test"), eq(10), isNull())).thenReturn(result);
 
         mockMvc.perform(get("/api/v1/search/ai").param("q", "test"))
                 .andExpect(status().isOk())
