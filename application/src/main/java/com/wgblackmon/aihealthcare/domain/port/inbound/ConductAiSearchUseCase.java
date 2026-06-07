@@ -2,6 +2,8 @@ package com.wgblackmon.aihealthcare.domain.port.inbound;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
 
+import java.util.List;
+
 /**
  * Inbound port — drive an AI-enhanced search that retrieves articles via
  * vector similarity, then synthesizes them through multiple LLM models
@@ -11,19 +13,29 @@ import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
  * schedulers depend on this interface only — never on the concrete service.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.2
  * @since   2026-06-02
- * @updated 2026-06-02
+ * @updated 2026-06-06
  */
 public interface ConductAiSearchUseCase {
 
     /**
-     * Executes an AI-enhanced search: retrieves relevant articles and
-     * produces AI syntheses from each configured model.
+     * Executes an AI-enhanced search using all configured models.
      *
      * @param query the natural-language search query; must not be blank
      * @param topK  maximum number of articles to retrieve from the vector store
      * @return search result containing articles and model syntheses; never null
      */
     AiSearchResult search(String query, int topK);
+
+    /**
+     * Executes an AI-enhanced search using only the specified models.
+     *
+     * @param query      the natural-language search query; must not be blank
+     * @param topK       maximum number of articles to retrieve from the vector store
+     * @param modelNames model names to include (e.g. "Claude", "GPT", "Perplexity");
+     *                   if null or empty, all models are used
+     * @return search result containing articles and model syntheses; never null
+     */
+    AiSearchResult search(String query, int topK, List<String> modelNames);
 }

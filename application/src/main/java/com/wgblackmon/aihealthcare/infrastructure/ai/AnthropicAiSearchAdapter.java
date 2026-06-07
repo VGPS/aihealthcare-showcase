@@ -124,6 +124,12 @@ public class AnthropicAiSearchAdapter implements AiSearchPort {
             return result;
         }
 
+        if (response.trim().startsWith("NO_MATCH")) {
+            log.info("parseResponse() | Claude reported NO_MATCH — articles not relevant to query");
+            log.debug("parseResponse() | return=null");
+            return null;
+        }
+
         StringBuilder summaryBuilder = new StringBuilder();
         List<String> keyFindings = new ArrayList<>();
         boolean inSummary = false;

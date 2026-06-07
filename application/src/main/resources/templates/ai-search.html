@@ -119,6 +119,31 @@
         }
         .search-form button:hover { background: #3a56d4; }
 
+        .model-select label:first-child {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.35rem;
+        }
+        .model-checkboxes {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .checkbox-label input[type="checkbox"] {
+            cursor: pointer;
+        }
+
         /* Upgrade banner */
         .upgrade-banner {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -400,6 +425,26 @@
                 <input type="number" id="topK" name="topK" th:value="${topK}" min="1" max="50"
                        placeholder="20"/>
             </div>
+            <div class="model-select">
+                <label>AI Models</label>
+                <div class="model-checkboxes">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="models" value="Claude"
+                               th:checked="${selectedModels == null or selectedModels.contains('Claude')}"/>
+                        <span class="model-badge claude">Claude</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="models" value="GPT"
+                               th:checked="${selectedModels != null and selectedModels.contains('GPT')}"/>
+                        <span class="model-badge gpt">GPT</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="models" value="Perplexity"
+                               th:checked="${selectedModels != null and selectedModels.contains('Perplexity')}"/>
+                        <span class="model-badge perplexity">Perplexity</span>
+                    </label>
+                </div>
+            </div>
             <button type="submit">Search</button>
         </form>
     </div>
@@ -423,20 +468,24 @@
         </div>
     </div>
 
-    <!-- No syntheses available -->
-    <div th:if="${syntheses != null and syntheses.isEmpty() and articles != null}" class="no-syntheses">
-        No AI syntheses were generated. The models may be temporarily unavailable.
+    <!-- No syntheses available — either no match or models unavailable -->
+    <div th:if="${syntheses != null and syntheses.isEmpty() and articles != null and !articles.isEmpty()}" class="no-syntheses">
+        No articles exactly matching "<span th:text="${q}">query</span>". Please edit your prompt.
     </div>
 
-    <!-- Source Articles -->
-    <div th:if="${articles != null}" class="sources-section">
+    <div th:if="${syntheses != null and syntheses.isEmpty() and articles != null and articles.isEmpty()}" class="no-syntheses">
+        No articles exactly matching "<span th:text="${q}">query</span>". Please edit your prompt.
+    </div>
+
+    <!-- Source Articles — only shown when syntheses exist (articles are relevant) -->
+    <div th:if="${articles != null and syntheses != null and !syntheses.isEmpty()}" class="sources-section">
         <div class="sources-header">
             <h2>Source Articles</h2>
             <span class="count-badge" th:text="${articleCount} + ' retrieved'">0 retrieved</span>
         </div>
 
         <div th:if="${articles.isEmpty()}" class="empty-state">
-            No articles matched your query. Try a broader search term.
+            No articles exactly matching "<span th:text="${q}">query</span>". Please edit your prompt.
         </div>
 
         <div th:each="article, iterStat : ${articles}" class="source-card">

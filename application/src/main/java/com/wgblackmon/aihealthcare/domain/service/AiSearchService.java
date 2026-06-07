@@ -26,9 +26,9 @@ import java.util.UUID;
  * {@link com.wgblackmon.aihealthcare.infrastructure.config.AppConfig}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-06-02
- * @updated 2026-06-02
+ * @updated 2026-06-06
  */
 @Slf4j
 public class AiSearchService implements ConductAiSearchUseCase {
@@ -47,6 +47,15 @@ public class AiSearchService implements ConductAiSearchUseCase {
     @Override
     public AiSearchResult search(String query, int topK) {
         log.debug("search() | query={}, topK={}", query, topK);
+        AiSearchResult result = search(query, topK, null);
+        log.debug("search() | return=AiSearchResult[articles={}, syntheses={}]",
+                  result.articles().size(), result.syntheses().size());
+        return result;
+    }
+
+    @Override
+    public AiSearchResult search(String query, int topK, List<String> modelNames) {
+        log.debug("search() | query={}, topK={}, modelNames={}", query, topK, modelNames);
 
         if (query == null || query.isBlank()) {
             log.warn("search() | blank query — returning empty result");
@@ -68,14 +77,35 @@ public class AiSearchService implements ConductAiSearchUseCase {
             return result;
         }
 
+        // Filter ports by requested model names (null/empty = all models)
+        List<AiSearchPort> selectedPorts = new ArrayList<>();
+        if (modelNames == null || modelNames.isEmpty()) {
+            selectedPorts.addAll(aiSearchPorts);
+        } else {
+            for (AiSearchPort port : aiSearchPorts) {
+                for (String requested : modelNames) {
+                    if (port.modelName().equalsIgnoreCase(requested)) {
+                        selectedPorts.add(port);
+                        break;
+                    }
+                }
+            }
+            log.info("search() | filtered to {} of {} models: {}",
+                     selectedPorts.size(), aiSearchPorts.size(), modelNames);
+        }
+
         List<AiSearchSynthesis> syntheses = new ArrayList<>();
-        for (AiSearchPort port : aiSearchPorts) {
+        for (AiSearchPort port : selectedPorts) {
             try {
                 log.info("search() | synthesizing with model '{}'", port.modelName());
                 AiSearchSynthesis synthesis = port.synthesize(query, articles);
-                syntheses.add(synthesis);
-                log.info("search() | synthesis complete from '{}': {} key findings",
-                         port.modelName(), synthesis.keyFindings().size());
+                if (synthesis != null) {
+                    syntheses.add(synthesis);
+                    log.info("search() | synthesis complete from '{}': {} key findings",
+                             port.modelName(), synthesis.keyFindings().size());
+                } else {
+                    log.info("search() | model '{}' reported NO_MATCH — articles not relevant", port.modelName());
+                }
             } catch (Exception e) {
                 log.error("search() | synthesis failed for model '{}': {}",
                           port.modelName(), e.getMessage(), e);
