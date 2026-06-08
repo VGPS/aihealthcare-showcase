@@ -162,8 +162,16 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="empty" th:if="${#lists.isEmpty(articles)}">
+    <div class="card" th:if="${accessDenied}">
+        <div class="empty" style="padding: 2rem;">
+            <strong>This topic is a Member feature.</strong><br/>
+            Upgrade to a Member subscription to access New AI Healthcare Companies.<br/><br/>
+            <a href="/pricing" style="color: #4361ee; text-decoration: none; font-weight: 600;">View Plans &rarr;</a>
+        </div>
+    </div>
+
+    <div class="card" th:unless="${accessDenied}">
+        <div class="empty" th:if="${articles == null or #lists.isEmpty(articles)}">
             No articles found for this topic in the current date window.
         </div>
 
@@ -171,7 +179,6 @@
             <thead>
                 <tr>
                     <th>Title / Author</th>
-                    <th>Source</th>
                     <th>Published</th>
                 </tr>
             </thead>
@@ -182,8 +189,9 @@
                            rel="noopener noreferrer">—</a>
                         <div class="meta" th:if="${article.author != null}"
                              th:text="${article.author}"></div>
+                        <div class="meta" th:if="${article.bodyText != null and !article.bodyText.isEmpty()}"
+                             th:text="${article.bodyText}"></div>
                     </td>
-                    <td th:text="${article.sourceName != null ? article.sourceName : article.topic}">—</td>
                     <td th:if="${article.publishedAt != null}" class="date-cell"
                         th:text="${#strings.replace(#strings.substring(article.publishedAt.toString(), 0, 16), 'T', ' ')} + ' UTC'">—</td>
                     <td th:if="${article.publishedAt == null}" class="date-cell null-date">unknown</td>

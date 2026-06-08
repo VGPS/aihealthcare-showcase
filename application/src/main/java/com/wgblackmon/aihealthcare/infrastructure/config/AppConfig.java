@@ -13,6 +13,11 @@ import com.wgblackmon.aihealthcare.domain.service.AiSearchService;
 import com.wgblackmon.aihealthcare.domain.service.AnalyticsService;
 import com.wgblackmon.aihealthcare.domain.service.ArticleSearchService;
 import com.wgblackmon.aihealthcare.domain.service.CitationAssembler;
+import com.wgblackmon.aihealthcare.domain.service.CompanyClassifier;
+import com.wgblackmon.aihealthcare.domain.service.CompanyDeduplicator;
+import com.wgblackmon.aihealthcare.domain.service.CompanyDiscoveryService;
+import com.wgblackmon.aihealthcare.domain.service.CompanyNewsletterRenderer;
+import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyScrapingPort;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
@@ -84,7 +89,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-06-02
+ * @updated 2026-06-07
  */
 
 @Slf4j
@@ -438,6 +443,30 @@ public class AppConfig {
      * @param anthropicChatModel the auto-configured Anthropic chat model
      * @return the same instance, now marked as primary
      */
+    /**
+     * Creates the {@link CompanyDiscoveryService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.DiscoverCompaniesUseCase}.
+     *
+     * @param scrapingPort  Adapter implementing startup directory scraping (auto-detected).
+     * @param storagePort   Adapter implementing article persistence (auto-detected).
+     * @return The wired {@link CompanyDiscoveryService} instance.
+     */
+    @Bean
+    public CompanyDiscoveryService companyDiscoveryService(
+            CompanyScrapingPort scrapingPort,
+            ArticleStoragePort storagePort) {
+        log.debug("companyDiscoveryService() | scrapingPort={}, storagePort={}",
+                  scrapingPort.getClass().getSimpleName(),
+                  storagePort.getClass().getSimpleName());
+        CompanyDiscoveryService result = new CompanyDiscoveryService(
+                scrapingPort, storagePort,
+                new CompanyClassifier(),
+                new CompanyDeduplicator(),
+                new CompanyNewsletterRenderer());
+        log.debug("companyDiscoveryService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
     @Bean
     @Primary
     public ChatModel primaryChatModel(

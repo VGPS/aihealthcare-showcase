@@ -491,6 +491,49 @@ class DashboardControllerTest {
     }
 
     // -------------------------------------------------------------------------
+    // GET /dashboard/articles — tier gating for New AI Healthcare Companies
+    // -------------------------------------------------------------------------
+
+    @Test
+    void articles_companiesTopic_freeUser_showsAccessDenied() throws Exception {
+        when(subscriberPort.findByEmail("user")).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/dashboard/articles")
+                        .param("topic", "New AI Healthcare Companies"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("articles"))
+                .andExpect(model().attribute("accessDenied", true))
+                .andExpect(content().string(containsString("Member feature")));
+    }
+
+    @Test
+    void articles_companiesTopic_memberUser_showsArticles() throws Exception {
+        Subscriber member = new Subscriber("user", "Member User", true, Instant.now(), SubscriptionTier.MEMBER);
+        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(member));
+        when(articleIngestionPort.fetchAllByTopic(eq("New AI Healthcare Companies")))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/dashboard/articles")
+                        .param("topic", "New AI Healthcare Companies"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("articles"))
+                .andExpect(model().attributeDoesNotExist("accessDenied"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void articles_companiesTopic_adminUser_bypassesGating() throws Exception {
+        when(articleIngestionPort.fetchAllByTopic(eq("New AI Healthcare Companies")))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/dashboard/articles")
+                        .param("topic", "New AI Healthcare Companies"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("articles"))
+                .andExpect(model().attributeDoesNotExist("accessDenied"));
+    }
+
+    // -------------------------------------------------------------------------
     // GET /dashboard/search
     // -------------------------------------------------------------------------
 

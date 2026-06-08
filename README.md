@@ -205,6 +205,7 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | POST/GET/DELETE | `/api/v1/variants` | Manage prompt variants |
 | POST/GET | `/api/v1/evaluations` | Run/view prompt evaluations |
 | POST | `/api/v1/comparisons` | Compare two prompt variants |
+| POST | `/api/v1/companies/discover` | Trigger AI healthcare company discovery pipeline **(Member only)** |
 | POST | `/stripe/create-checkout-session` | Create Stripe Checkout session for upgrade |
 | POST | `/stripe/webhook` | Stripe webhook receiver (tier updates) |
 
@@ -240,6 +241,7 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 - Perplexity Healthcare
 - Google Healthcare
 - Beckers Hospital Review
+- New AI Healthcare Companies **(Member only)**
 
 ### Subscription Tiers
 
@@ -249,6 +251,18 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 | Article archive | 7 days | Unlimited |
 | AI research queries | 15/month | 200/month |
 | Semantic search | No | Yes |
+| New AI Healthcare Companies | No | Yes |
+
+### New AI Healthcare Companies (Member Only)
+
+A discovery pipeline that scrapes startup directories (YC, TopStartups.io), classifies companies by AI healthcare subcategory, mixes with anchor incumbents, deduplicates, and generates newsletter markdown.
+
+**Pipeline:** scrape → classify (scribe, agent, imaging, rcm, infra) → deduplicate → filter (AI + Health) → persist as articles → render markdown
+
+**Access:**
+- **UI** — The "New AI Healthcare Companies" topic on `/dashboard/articles` requires MEMBER tier. FREE users see an upgrade prompt.
+- **REST API** — `POST /api/v1/companies/discover` requires an `X-Subscriber-Email` header for a MEMBER-tier subscriber. Returns HTTP 403 for FREE or anonymous callers.
+- **Admin** — Users with ROLE_ADMIN bypass tier gating on the UI.
 
 Tier upgrades are handled via Stripe Billing webhooks. Configure Stripe keys in `.env`:
 ```
