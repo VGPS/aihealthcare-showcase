@@ -11,6 +11,7 @@ import com.wgblackmon.aihealthcare.domain.model.RetrievalQuery;
 import com.wgblackmon.aihealthcare.domain.model.RetrievedSource;
 import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
 import com.wgblackmon.aihealthcare.domain.model.VendorAssessment;
+import com.wgblackmon.aihealthcare.domain.model.VendorCompareResult;
 import com.wgblackmon.aihealthcare.domain.port.inbound.CompareVendorsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
@@ -184,8 +185,8 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
      * No {@link ResearchRun} record is persisted — vendor comparisons are transient.
      */
     @Override
-    public List<VendorAssessment> compare(String query, int maxSources) {
-        log.debug("compare() | query={}, maxSources={}", query, maxSources);
+    public VendorCompareResult compare(String query, int maxSources, int minVendors, String scoring) {
+        log.debug("compare() | query={}, maxSources={}, minVendors={}, scoring={}", query, maxSources, minVendors, scoring);
 
         if (query == null || query.isBlank()) {
             throw new IllegalArgumentException("query must not be blank");
@@ -227,10 +228,11 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
         log.info("compare() | {} citations after dedup", citations.size());
 
         // Vendor-structured synthesis
-        List<VendorAssessment> result = vendorAssessmentService.assess(query, allSources, citations);
+        List<VendorAssessment> vendors = vendorAssessmentService.assess(query, allSources, citations, minVendors, scoring);
 
-        log.info("compare() | vendor assessment complete: vendorCount={}", result.size());
-        log.debug("compare() | return={} vendors", result.size());
+        log.info("compare() | vendor assessment complete: vendorCount={}", vendors.size());
+        VendorCompareResult result = new VendorCompareResult(vendors, citations);
+        log.debug("compare() | return={} vendors, {} citations", vendors.size(), citations.size());
         return result;
     }
 

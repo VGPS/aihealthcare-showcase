@@ -23,15 +23,26 @@ import java.util.logging.Logger;
  * <p>This is a pure domain service — no Spring or Lombok imports are used.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.2
  * @since   2026-05-14
- * @updated 2026-05-14
+ * @updated 2026-06-08
  */
 public class VendorAssessmentService {
 
     private static final Logger log = Logger.getLogger(VendorAssessmentService.class.getName());
 
-    private static final double DEFAULT_RELEVANCE = 0.5;
+    private static final double DEFAULT_RELEVANCE     = 0.5;
+    private static final int    DEFAULT_MENTION_COUNT = 1;
+
+    /** Scoring algorithm constant: document frequency (mentionCount / totalSources). */
+    public static final String SCORING_DOC_FREQUENCY = "DOC_FREQUENCY";
+
+    /** Scoring algorithm constant: TF-IDF (term frequency * inverse document frequency). */
+    public static final String SCORING_TF_IDF = "TF_IDF";
+
+    /** Intermediate parsed vendor data before scoring is applied. */
+    private record ParsedVendor(String vendorName, List<String> strengths,
+                                List<String> weaknesses, int mentionCount) {}
 
     private final AiReportPort aiReportPort;
     private final String       vendorCompareTemplate;
@@ -54,17 +65,22 @@ public class VendorAssessmentService {
     /**
      * Assess vendors mentioned in the retrieved sources for the given query.
      *
-     * @param query     The original research question.
-     * @param sources   Retrieved source documents; may be empty.
-     * @param citations Pre-assembled, deduplicated citation list.
-     * @return Ordered list of {@link VendorAssessment} records; empty if sources are empty
-     *         or no vendor sections are produced by the AI.
+     * @param query      The original research question.
+     * @param sources    Retrieved source documents; may be empty.
+     * @param citations  Pre-assembled, deduplicated citation list.
+     * @param minVendors Minimum number of vendor sections to request from the AI.
+     * @param scoring    Scoring algorithm: {@code "TF_IDF"} or {@code "DOC_FREQUENCY"} (default).
+     * @return List of {@link VendorAssessment} records sorted by relevance descending;
+     *         empty if sources are empty or no vendor sections are produced by the AI.
      */
     public List<VendorAssessment> assess(String query,
                                          List<RetrievedSource> sources,
-                                         List<SourceCitation> citations) {
+                                         List<SourceCitation> citations,
+                                         int minVendors,
+                                         String scoring) {
         log.fine("assess() | query=" + query + ", sourceCount="
-                 + (sources == null ? 0 : sources.size()));
+                 + (sources == null ? 0 : sources.size()) + ", minVendors=" + minVendors
+                 + ", scoring=" + scoring);
 
         if (sources == null || sources.isEmpty()) {
             log.warning("assess() | No sources available — returning empty list");
@@ -72,18 +88,29 @@ public class VendorAssessmentService {
             return Collections.emptyList();
         }
 
+        int totalSources = sources.size();
         String sourceListing = buildSourceListing(sources, citations);
         String prompt = vendorCompareTemplate
                 .replace("{query}", query)
-                .replace("{sources}", sourceListing);
+                .replace("{sources}", sourceListing)
+                .replace("{minVendors}", String.valueOf(minVendors))
+                .replace("{totalSources}", String.valueOf(totalSources));
 
         log.info("assess() | sending vendor-compare prompt to AI (" + prompt.length() + " chars)");
         String aiResponse = aiReportPort.generate(prompt);
         log.info("assess() | AI vendor-compare response received (" + aiResponse.length() + " chars)");
 
-        List<VendorAssessment> result = parseVendors(aiResponse);
+        List<ParsedVendor> parsed = parseVendorData(aiResponse, totalSources);
 
-        log.fine("assess() | return=" + result.size() + " vendors");
+        boolean useTfIdf = SCORING_TF_IDF.equalsIgnoreCase(scoring);
+        List<VendorAssessment> result = useTfIdf
+                ? applyTfIdfScoring(parsed, totalSources)
+                : applyDocFrequencyScoring(parsed, totalSources);
+
+        // Sort by relevance score descending
+        sortByRelevanceDescending(result);
+
+        log.fine("assess() | return=" + result.size() + " vendors (scoring=" + scoring + ")");
         return result;
     }
 
@@ -135,16 +162,20 @@ public class VendorAssessmentService {
     }
 
     /**
-     * Parse the AI response into {@link VendorAssessment} records by splitting on
+     * Parse the AI response into intermediate {@link ParsedVendor} records by splitting on
      * {@code ##} Markdown headings and reading the structured field lines.
+     *
+     * @param response     Raw AI response text.
+     * @param totalSources Total number of source documents evaluated.
      */
-    private List<VendorAssessment> parseVendors(String response) {
-        log.fine("parseVendors() | responseLength=" + (response == null ? 0 : response.length()));
+    private List<ParsedVendor> parseVendorData(String response, int totalSources) {
+        log.fine("parseVendorData() | responseLength=" + (response == null ? 0 : response.length())
+                 + ", totalSources=" + totalSources);
 
-        List<VendorAssessment> result = new ArrayList<>();
+        List<ParsedVendor> result = new ArrayList<>();
 
         if (response == null || response.isBlank()) {
-            log.fine("parseVendors() | return=[] (empty response)");
+            log.fine("parseVendorData() | return=[] (empty response)");
             return result;
         }
 
@@ -171,9 +202,9 @@ public class VendorAssessmentService {
             String body = part.substring(firstNewline).trim();
             String[] lines = body.split("\n");
 
-            List<String> strengths  = new ArrayList<>();
-            List<String> weaknesses = new ArrayList<>();
-            double relevanceScore   = DEFAULT_RELEVANCE;
+            List<String> strengths    = new ArrayList<>();
+            List<String> weaknesses   = new ArrayList<>();
+            int          mentionCount = DEFAULT_MENTION_COUNT;
 
             for (String line : lines) {
                 String trimmed = line.trim();
@@ -194,25 +225,105 @@ public class VendorAssessmentService {
                             weaknesses.add(item);
                         }
                     }
-                } else if (trimmed.startsWith("RELEVANCE:")) {
-                    String raw = trimmed.substring("RELEVANCE:".length()).trim();
+                } else if (trimmed.startsWith("MENTIONS:")) {
+                    String raw = trimmed.substring("MENTIONS:".length()).trim();
                     try {
-                        double parsed = Double.parseDouble(raw);
-                        if (parsed >= 0.0 && parsed <= 1.0) {
-                            relevanceScore = parsed;
+                        int parsed = Integer.parseInt(raw);
+                        if (parsed >= 0) {
+                            mentionCount = Math.min(parsed, totalSources);
                         }
                     } catch (NumberFormatException e) {
-                        log.warning("parseVendors() | Could not parse RELEVANCE value '" + raw
-                                    + "' for vendor '" + vendorName + "' — using default 0.5");
+                        log.warning("parseVendorData() | Could not parse MENTIONS value '" + raw
+                                    + "' for vendor '" + vendorName + "' — using default 1");
                     }
                 }
                 // ANALYSIS line is intentionally not stored in VendorAssessment
             }
 
-            result.add(new VendorAssessment(vendorName, strengths, weaknesses, relevanceScore));
+            result.add(new ParsedVendor(vendorName, strengths, weaknesses, mentionCount));
         }
 
-        log.fine("parseVendors() | return=" + result.size() + " vendors");
+        log.fine("parseVendorData() | return=" + result.size() + " vendors");
         return result;
+    }
+
+    /**
+     * Document Frequency scoring: {@code relevanceScore = mentionCount / totalSources}.
+     */
+    private List<VendorAssessment> applyDocFrequencyScoring(List<ParsedVendor> parsed,
+                                                            int totalSources) {
+        log.fine("applyDocFrequencyScoring() | vendors=" + parsed.size()
+                 + ", totalSources=" + totalSources);
+
+        List<VendorAssessment> result = new ArrayList<>();
+        for (ParsedVendor pv : parsed) {
+            double score = totalSources > 0
+                    ? (double) pv.mentionCount() / totalSources
+                    : DEFAULT_RELEVANCE;
+            result.add(new VendorAssessment(pv.vendorName(), pv.strengths(), pv.weaknesses(),
+                    score, pv.mentionCount(), totalSources));
+        }
+
+        log.fine("applyDocFrequencyScoring() | return=" + result.size() + " vendors");
+        return result;
+    }
+
+    /**
+     * TF-IDF scoring: {@code score = tf(v) * idf(v)}, normalized to [0.0, 1.0].
+     *
+     * <p>Term Frequency: {@code mentionCount / totalSources}<br>
+     * Inverse Document Frequency: {@code log(1 + totalSources / mentionCount)}<br>
+     * Final score is normalized by dividing by the maximum raw TF-IDF value across
+     * all vendors, ensuring the top vendor scores 1.0.
+     */
+    private List<VendorAssessment> applyTfIdfScoring(List<ParsedVendor> parsed,
+                                                     int totalSources) {
+        log.fine("applyTfIdfScoring() | vendors=" + parsed.size()
+                 + ", totalSources=" + totalSources);
+
+        // Step 1: compute raw TF-IDF for each vendor
+        double[] rawScores = new double[parsed.size()];
+        double maxRaw = 0.0;
+        for (int i = 0; i < parsed.size(); i++) {
+            int mentions = parsed.get(i).mentionCount();
+            double tf  = totalSources > 0 ? (double) mentions / totalSources : 0.0;
+            double idf = mentions > 0 ? Math.log(1.0 + (double) totalSources / mentions) : 0.0;
+            rawScores[i] = tf * idf;
+            if (rawScores[i] > maxRaw) {
+                maxRaw = rawScores[i];
+            }
+        }
+
+        // Step 2: normalize to [0.0, 1.0]
+        List<VendorAssessment> result = new ArrayList<>();
+        for (int i = 0; i < parsed.size(); i++) {
+            ParsedVendor pv = parsed.get(i);
+            double normalized = maxRaw > 0.0 ? rawScores[i] / maxRaw : DEFAULT_RELEVANCE;
+            result.add(new VendorAssessment(pv.vendorName(), pv.strengths(), pv.weaknesses(),
+                    normalized, pv.mentionCount(), totalSources));
+        }
+
+        log.fine("applyTfIdfScoring() | return=" + result.size() + " vendors");
+        return result;
+    }
+
+    /**
+     * Sorts the list in-place by {@code relevanceScore} in descending order (highest first).
+     */
+    private void sortByRelevanceDescending(List<VendorAssessment> vendors) {
+        log.fine("sortByRelevanceDescending() | size=" + vendors.size());
+
+        int n = vendors.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - 1 - i; j++) {
+                if (vendors.get(j).relevanceScore() < vendors.get(j + 1).relevanceScore()) {
+                    VendorAssessment temp = vendors.get(j);
+                    vendors.set(j, vendors.get(j + 1));
+                    vendors.set(j + 1, temp);
+                }
+            }
+        }
+
+        log.fine("sortByRelevanceDescending() | return=void");
     }
 }

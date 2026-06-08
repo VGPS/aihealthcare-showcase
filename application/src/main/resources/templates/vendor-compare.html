@@ -86,6 +86,13 @@
             color: #666;
             white-space: nowrap;
         }
+        .scoring-select {
+            padding: 0.5rem 0.5rem;
+            border: 1px solid #dde;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background: white;
+        }
         .btn-primary {
             background: #4361ee;
             color: white;
@@ -209,6 +216,86 @@
             font-style: italic;
         }
 
+        /* Source references table */
+        .sources-section {
+            margin-top: 2rem;
+        }
+        .sources-section h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 0.75rem;
+        }
+        .sources-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            font-size: 0.82rem;
+        }
+        .sources-table thead {
+            background: #1a1a2e;
+            color: white;
+        }
+        .sources-table th {
+            padding: 0.6rem 0.9rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .sources-table td {
+            padding: 0.5rem 0.9rem;
+            border-bottom: 1px solid #eee;
+            color: #444;
+            vertical-align: top;
+        }
+        .sources-table tr:last-child td {
+            border-bottom: none;
+        }
+        .sources-table tr:hover {
+            background: #f8f9ff;
+        }
+        .sources-table .ref-num {
+            font-weight: 700;
+            color: #4361ee;
+            white-space: nowrap;
+            width: 40px;
+        }
+        .sources-table .ref-title a {
+            color: #4361ee;
+            text-decoration: none;
+        }
+        .sources-table .ref-title a:hover {
+            text-decoration: underline;
+        }
+        .sources-table .ref-source {
+            white-space: nowrap;
+            color: #888;
+        }
+        .sources-table .ref-date {
+            white-space: nowrap;
+            color: #888;
+        }
+
+        /* Methodology note */
+        .methodology-note {
+            margin-top: 1.5rem;
+            padding: 1rem 1.25rem;
+            background: #f8f9fa;
+            border-left: 3px solid #4361ee;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #555;
+            line-height: 1.5;
+        }
+        .methodology-note strong {
+            color: #333;
+        }
+
         /* Error + empty states */
         .alert-error {
             background: #fef2f2;
@@ -263,6 +350,14 @@
                 <label>Sources:</label>
                 <input type="number" name="maxSources" th:value="${maxSources}"
                        min="1" max="100"/>
+                <label>Min Vendors:</label>
+                <input type="number" name="minVendors" th:value="${minVendors}"
+                       min="1" max="20"/>
+                <label>Scoring:</label>
+                <select name="scoring" class="scoring-select">
+                    <option value="DOC_FREQUENCY" th:selected="${scoring == 'DOC_FREQUENCY'}">Doc Frequency</option>
+                    <option value="TF_IDF" th:selected="${scoring == 'TF_IDF'}">TF-IDF</option>
+                </select>
                 <button type="submit" class="btn-primary">Compare Vendors</button>
             </div>
         </form>
@@ -285,14 +380,14 @@
                     <span class="relevance-badge"
                           th:classappend="${vendor.relevanceScore() >= 0.7 ? 'relevance-high' :
                                           (vendor.relevanceScore() >= 0.4 ? 'relevance-medium' : 'relevance-low')}"
-                          th:text="${#numbers.formatDecimal(vendor.relevanceScore(), 1, 2)}">0.00</span>
+                          th:text="${#numbers.formatDecimal(vendor.relevanceScore(), 1, 2) + '*'}">0.00*</span>
                 </div>
 
                 <div class="vendor-card-body">
 
                     <!-- Relevance progress bar -->
                     <div class="relevance-bar-wrap">
-                        <label>Relevance Score</label>
+                        <label th:text="'Relevance Score* — ' + ${vendor.mentionCount()} + ' of ' + ${vendor.totalSources()} + ' sources'">Relevance Score</label>
                         <div class="relevance-bar-track">
                             <div class="relevance-bar-fill"
                                  th:style="'width: ' + ${vendor.relevanceScore() * 100} + '%'"></div>
@@ -319,6 +414,52 @@
 
                 </div>
             </div>
+        </div>
+
+        <!-- Source References -->
+        <div class="sources-section" th:if="${!citations.isEmpty()}">
+            <h3 th:text="'Source Documents (' + ${citations.size()} + ')'">Source Documents</h3>
+            <table class="sources-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Article / Title</th>
+                        <th>Source</th>
+                        <th>Date (UTC)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="c : ${citations}">
+                        <td class="ref-num" th:text="'[' + ${c.citationNumber()} + ']'">[1]</td>
+                        <td class="ref-title">
+                            <a th:href="${c.url()}" th:text="${c.title()}" target="_blank"
+                               rel="noopener noreferrer">Title</a>
+                        </td>
+                        <td class="ref-source" th:text="${#strings.abbreviate(c.url(), 40)}">source</td>
+                        <td class="ref-date" th:text="${citationDates[c.citationNumber()]}">—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Methodology note -->
+        <div class="methodology-note" th:if="${scoring == 'DOC_FREQUENCY'}">
+            <p>* <strong>Document Frequency Scoring</strong> — Each vendor's relevance score is
+            calculated as the number of retrieved source documents that explicitly mention the
+            vendor divided by the total number of source documents evaluated. For example, a
+            score of 0.40 means that 40% of the retrieved sources reference that vendor by name
+            or product. This approach provides an objective, evidence-based measure of vendor
+            presence in the literature.</p>
+        </div>
+        <div class="methodology-note" th:if="${scoring == 'TF_IDF'}">
+            <p>* <strong>TF-IDF Scoring</strong> — Each vendor's relevance score uses
+            Term Frequency-Inverse Document Frequency, a classic information retrieval algorithm.
+            <strong>TF</strong> (mentions / total sources) measures how frequently a vendor
+            appears. <strong>IDF</strong> (log(1 + total sources / mentions)) downweights vendors
+            that appear in nearly every document (generic mentions) and upweights vendors
+            concentrated in a subset of highly specific sources. The raw TF-IDF value is
+            normalized so the top-scoring vendor receives 1.0. This approach rewards
+            specificity over raw frequency.</p>
         </div>
     </div>
 
