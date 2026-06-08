@@ -152,6 +152,7 @@ aihealthcare:
         - "Google Healthcare"
         - "Beckers Hospital Review"
         - "HuggingFace Healthcare LLMs"
+        - "New AI Healthcare Companies"
 
   # ---------------------------------------------------------------------------
   # News listing — ordered topic headers shown on GET /dashboard/news.
@@ -171,6 +172,7 @@ aihealthcare:
       - "Google Healthcare"
       - "Beckers Hospital Review"
       - "HuggingFace Healthcare LLMs"
+      - "New AI Healthcare Companies"
 
   feeds:
     sources:

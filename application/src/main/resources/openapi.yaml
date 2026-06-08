@@ -699,6 +699,26 @@ paths:
                   $ref: '#/components/schemas/PageHashResponse'
 
   # ---------------------------------------------------------------------------
+  # Company discovery — AI-healthcare startups from YC + TopStartups.io
+  # ---------------------------------------------------------------------------
+  /api/v1/companies/discover:
+    post:
+      summary: Trigger AI-healthcare startup company discovery
+      description: >
+        Scrapes Y Combinator and TopStartups.io startup directories, classifies
+        companies into AI-healthcare subcategories (scribe, agent, imaging, RCM,
+        infra), mixes in anchor incumbents, deduplicates, persists as articles,
+        and returns the categorized company list with newsletter markdown.
+      operationId: discoverCompanies
+      responses:
+        '200':
+          description: Discovery pipeline completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyDiscoveryResponse'
+
+  # ---------------------------------------------------------------------------
   # Market intelligence report
   # ---------------------------------------------------------------------------
   /api/v1/market-intelligence/refresh:
@@ -1624,6 +1644,62 @@ components:
           items:
             type: string
           description: Extracted key findings as bullet points
+
+    CompanyDiscoveryResponse:
+      type: object
+      properties:
+        companies:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompanyResponse'
+        markdown:
+          type: string
+          description: Newsletter-ready markdown grouped by AI-healthcare subcategory
+        totalScraped:
+          type: integer
+          description: Total companies scraped from all sources before processing
+        afterDedup:
+          type: integer
+          description: Companies remaining after deduplication
+        aiHealthFiltered:
+          type: integer
+          description: Companies matching both AI and health flags
+
+    CompanyResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        source:
+          type: string
+          description: Source directory (e.g. "YC Health Tech", "TopStartups Healthcare", "anchor")
+        url:
+          type: string
+          description: Profile URL on source directory
+        companySite:
+          type: string
+          description: Company's own website URL (may be null)
+        description:
+          type: string
+        scribe:
+          type: boolean
+          description: AI Scribes / Ambient Documentation tag
+        agent:
+          type: boolean
+          description: AI Agents / Virtual Care tag
+        imaging:
+          type: boolean
+          description: Imaging / Diagnostics / Pathology tag
+        rcm:
+          type: boolean
+          description: RCM / Coding / Billing tag
+        infra:
+          type: boolean
+          description: Infrastructure / Data / Platforms tag
+        isAI:
+          type: boolean
+        isHealth:
+          type: boolean
 
     ErrorResponse:
       type: object

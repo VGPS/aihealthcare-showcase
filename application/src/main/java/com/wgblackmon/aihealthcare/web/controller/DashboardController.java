@@ -136,8 +136,22 @@ public class DashboardController {
     public String articles(
             @RequestParam String topic,
             @RequestParam(defaultValue = "desc") String sort,
+            Principal principal,
             Model model) {
         log.debug("articles() | topic={}, sort={}", topic, sort);
+
+        // Gate "New AI Healthcare Companies" topic to MEMBER tier
+        if ("New AI Healthcare Companies".equals(topic) && !isAdmin(principal)) {
+            SubscriptionTier tier = resolveTier(principal);
+            if (tier != SubscriptionTier.MEMBER) {
+                log.debug("articles() | access denied for FREE tier user on topic={}", topic);
+                model.addAttribute("topic", topic);
+                model.addAttribute("accessDenied", true);
+                model.addAttribute("articles", List.of());
+                model.addAttribute("sort", sort);
+                return "articles";
+            }
+        }
 
         List<NewsArticle> articles = new ArrayList<>(
                 articleIngestionPort.fetchAllByTopic(topic));
@@ -319,6 +333,22 @@ public class DashboardController {
      * @param principal the Spring Security principal; may be {@code null} for anonymous access
      * @return the subscriber's tier, defaulting to FREE
      */
+    private boolean isAdmin(Principal principal) {
+        log.debug("isAdmin() | principal={}", principal != null ? principal.getName() : "null");
+
+        if (principal instanceof Authentication auth) {
+            for (GrantedAuthority authority : auth.getAuthorities()) {
+                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
+                    log.debug("isAdmin() | return=true");
+                    return true;
+                }
+            }
+        }
+
+        log.debug("isAdmin() | return=false");
+        return false;
+    }
+
     private SubscriptionTier resolveTier(Principal principal) {
         log.debug("resolveTier() | principal={}", principal != null ? principal.getName() : "null");
 
