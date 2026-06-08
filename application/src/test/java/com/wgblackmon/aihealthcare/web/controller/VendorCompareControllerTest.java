@@ -1,6 +1,8 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
 import com.wgblackmon.aihealthcare.domain.model.VendorAssessment;
+import com.wgblackmon.aihealthcare.domain.model.VendorCompareResult;
 import com.wgblackmon.aihealthcare.domain.port.inbound.CompareVendorsUseCase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,9 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>All pipeline calls are mocked — no real AI or retrieval calls are made.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-14
- * @updated 2026-05-14
+ * @updated 2026-06-08
  */
 @Import(SecurityConfig.class)
 @WithMockUser
@@ -52,34 +55,43 @@ class VendorCompareControllerTest {
                 .andExpect(view().name("vendor-compare"))
                 .andExpect(model().attribute("hasResults", false));
 
-        verify(compareVendorsUseCase, never()).compare(anyString(), anyInt());
+        verify(compareVendorsUseCase, never()).compare(anyString(), anyInt(), anyInt(), anyString());
     }
 
     @Test
-    void getVendors_withQuery_returnsVendorList() throws Exception {
+    void getVendors_withQuery_returnsVendorListAndCitations() throws Exception {
         List<VendorAssessment> vendors = List.of(
                 new VendorAssessment("Anthropic",
                         List.of("Strong reasoning", "Privacy controls"),
                         List.of("High cost"),
-                        0.9),
+                        0.9, 9, 10),
                 new VendorAssessment("OpenAI",
                         List.of("GPT-4 vision"),
                         List.of("Data retention concerns"),
-                        0.7));
+                        0.7, 7, 10));
 
-        when(compareVendorsUseCase.compare(anyString(), anyInt())).thenReturn(vendors);
+        List<SourceCitation> citations = List.of(
+                new SourceCitation(1, "AI in Healthcare", "https://ex.com/1", Instant.now()),
+                new SourceCitation(2, "ML for Diagnosis", "https://ex.com/2", Instant.now()));
+
+        VendorCompareResult result = new VendorCompareResult(vendors, citations);
+        when(compareVendorsUseCase.compare(anyString(), anyInt(), anyInt(), anyString()))
+                .thenReturn(result);
 
         mockMvc.perform(get("/research/vendors").param("query", "AI diagnostics"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("vendor-compare"))
                 .andExpect(model().attribute("vendors", vendors))
+                .andExpect(model().attribute("citations", citations))
                 .andExpect(model().attribute("hasResults", true));
     }
 
     @Test
     void getVendors_withQuery_emptyResultShowsNoResults() throws Exception {
-        when(compareVendorsUseCase.compare(anyString(), anyInt()))
-                .thenReturn(Collections.emptyList());
+        VendorCompareResult emptyResult = new VendorCompareResult(
+                Collections.emptyList(), Collections.emptyList());
+        when(compareVendorsUseCase.compare(anyString(), anyInt(), anyInt(), anyString()))
+                .thenReturn(emptyResult);
 
         mockMvc.perform(get("/research/vendors").param("query", "obscure topic"))
                 .andExpect(status().isOk())
@@ -89,7 +101,7 @@ class VendorCompareControllerTest {
 
     @Test
     void getVendors_pipelineThrows_displaysErrorMessageAndEmptyList() throws Exception {
-        when(compareVendorsUseCase.compare(anyString(), anyInt()))
+        when(compareVendorsUseCase.compare(anyString(), anyInt(), anyInt(), anyString()))
                 .thenThrow(new RuntimeException("AI service unavailable"));
 
         mockMvc.perform(get("/research/vendors").param("query", "AI in surgery"))
@@ -101,13 +113,42 @@ class VendorCompareControllerTest {
 
     @Test
     void getVendors_maxSourcesParamIsCappedAt100() throws Exception {
-        when(compareVendorsUseCase.compare(anyString(), anyInt()))
-                .thenReturn(Collections.emptyList());
+        VendorCompareResult emptyResult = new VendorCompareResult(
+                Collections.emptyList(), Collections.emptyList());
+        when(compareVendorsUseCase.compare(anyString(), anyInt(), anyInt(), anyString()))
+                .thenReturn(emptyResult);
 
         mockMvc.perform(get("/research/vendors")
                         .param("query", "AI diagnostics")
                         .param("maxSources", "999"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("maxSources", 100));
+    }
+
+    @Test
+    void getVendors_defaultMinVendorsIs5() throws Exception {
+        VendorCompareResult emptyResult = new VendorCompareResult(
+                Collections.emptyList(), Collections.emptyList());
+        when(compareVendorsUseCase.compare(anyString(), anyInt(), anyInt(), anyString()))
+                .thenReturn(emptyResult);
+
+        mockMvc.perform(get("/research/vendors")
+                        .param("query", "AI diagnostics"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("minVendors", 5));
+    }
+
+    @Test
+    void getVendors_minVendorsParamIsCappedAt20() throws Exception {
+        VendorCompareResult emptyResult = new VendorCompareResult(
+                Collections.emptyList(), Collections.emptyList());
+        when(compareVendorsUseCase.compare(anyString(), anyInt(), anyInt(), anyString()))
+                .thenReturn(emptyResult);
+
+        mockMvc.perform(get("/research/vendors")
+                        .param("query", "AI diagnostics")
+                        .param("minVendors", "50"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("minVendors", 20));
     }
 }

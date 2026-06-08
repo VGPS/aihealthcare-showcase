@@ -11,22 +11,27 @@ import java.util.List;
  * to a specific healthcare AI use case).  It is not currently populated by the default
  * synthesis path but serves as the domain type for future structured-output prompts.
  *
- * <p>{@code relevanceScore} is a normalised value in [0.0, 1.0] representing how
- * closely the vendor's capabilities match the query context.
+ * <p>{@code relevanceScore} is a grounded value in [0.0, 1.0] computed as
+ * {@code mentionCount / totalSources}, representing the fraction of retrieved source
+ * documents that explicitly mention this vendor.
  *
  * @param vendorName     Name of the vendor or product (e.g., "Anthropic Claude").
  * @param strengths      Non-null list of strength descriptors; may be empty.
  * @param weaknesses     Non-null list of weakness descriptors; may be empty.
- * @param relevanceScore Relevance to the query context; in [0.0, 1.0].
+ * @param relevanceScore Grounded relevance: mentionCount / totalSources; in [0.0, 1.0].
+ * @param mentionCount   Number of source documents that explicitly mention this vendor.
+ * @param totalSources   Total number of source documents evaluated.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-04
- * @updated 2026-05-04
+ * @updated 2026-06-08
  */
 public record VendorAssessment(
         String vendorName,
         List<String> strengths,
         List<String> weaknesses,
-        double relevanceScore
+        double relevanceScore,
+        int mentionCount,
+        int totalSources
 ) {}
