@@ -272,10 +272,6 @@
         .sources-table .ref-title a:hover {
             text-decoration: underline;
         }
-        .sources-table .ref-source {
-            white-space: nowrap;
-            color: #888;
-        }
         .sources-table .ref-date {
             white-space: nowrap;
             color: #888;
@@ -294,6 +290,32 @@
         }
         .methodology-note strong {
             color: #333;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.4rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-primary.loading .spinner { display: inline-block; }
+        .btn-primary.loading { opacity: 0.7; pointer-events: none; }
+
+        /* Vendor name link */
+        .vendor-name a {
+            color: white;
+            text-decoration: none;
+        }
+        .vendor-name a:hover {
+            text-decoration: underline;
+            opacity: 0.9;
         }
 
         /* Error + empty states */
@@ -358,7 +380,8 @@
                     <option value="DOC_FREQUENCY" th:selected="${scoring == 'DOC_FREQUENCY'}">Doc Frequency</option>
                     <option value="TF_IDF" th:selected="${scoring == 'TF_IDF'}">TF-IDF</option>
                 </select>
-                <button type="submit" class="btn-primary">Compare Vendors</button>
+                <button type="submit" class="btn-primary" id="searchBtn">
+                    <span class="spinner"></span>Compare Vendors</button>
             </div>
         </form>
     </div>
@@ -376,7 +399,10 @@
 
                 <!-- Card header: vendor name + relevance badge -->
                 <div class="vendor-card-header">
-                    <span class="vendor-name" th:text="${vendor.vendorName()}">Vendor</span>
+                    <span class="vendor-name">
+                        <a th:href="'https://www.google.com/search?q=' + ${vendor.vendorName()} + ' healthcare AI'"
+                           th:text="${vendor.vendorName()}" target="_blank" rel="noopener noreferrer">Vendor</a>
+                    </span>
                     <span class="relevance-badge"
                           th:classappend="${vendor.relevanceScore() >= 0.7 ? 'relevance-high' :
                                           (vendor.relevanceScore() >= 0.4 ? 'relevance-medium' : 'relevance-low')}"
@@ -422,20 +448,17 @@
             <table class="sources-table">
                 <thead>
                     <tr>
-                        <th>#</th>
                         <th>Article / Title</th>
-                        <th>Source</th>
-                        <th>Date (UTC)</th>
+                        <th>Publication Date</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="c : ${citations}">
-                        <td class="ref-num" th:text="'[' + ${c.citationNumber()} + ']'">[1]</td>
                         <td class="ref-title">
-                            <a th:href="${c.url()}" th:text="${c.title()}" target="_blank"
+                            <span class="ref-num" th:text="'[' + ${c.citationNumber()} + '] '"></span>
+                            <a th:href="${c.url()}" th:text="${citationTitles[c.citationNumber()]}" target="_blank"
                                rel="noopener noreferrer">Title</a>
                         </td>
-                        <td class="ref-source" th:text="${#strings.abbreviate(c.url(), 40)}">source</td>
                         <td class="ref-date" th:text="${citationDates[c.citationNumber()]}">—</td>
                     </tr>
                 </tbody>
@@ -470,5 +493,12 @@
     </div>
 
 </main>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function() {
+        var btn = document.getElementById('searchBtn');
+        if (btn) btn.classList.add('loading');
+    });
+</script>
 </body>
 </html>

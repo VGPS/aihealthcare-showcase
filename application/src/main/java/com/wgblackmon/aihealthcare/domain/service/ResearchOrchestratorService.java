@@ -217,10 +217,15 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
         List<RetrievedSource> legacySources = legacyAdapter.retrieve(legacyQuery);
         log.info("compare() | legacy retrieved {} sources", legacySources.size());
 
+        // Filter legacy sources to only those whose title or snippet mentions the query
+        List<RetrievedSource> relevantLegacy = filterByQueryRelevance(legacySources, query);
+        log.info("compare() | {} legacy sources relevant to query (filtered from {})",
+                 relevantLegacy.size(), legacySources.size());
+
         // Merge — Perplexity first (higher relevance weight)
         List<RetrievedSource> allSources = new ArrayList<>();
         allSources.addAll(perplexitySources);
-        allSources.addAll(legacySources);
+        allSources.addAll(relevantLegacy);
         log.info("compare() | merged {} total sources before dedup", allSources.size());
 
         // Assemble citations — CitationAssembler deduplicates by URL
@@ -404,6 +409,42 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
 
         String result = sb.toString().trim();
         log.debug("buildLegacySectionBody() | return={} chars", result.length());
+        return result;
+    }
+
+    /**
+     * Filters a list of retrieved sources to only those whose title or snippet
+     * contains any word from the query (case-insensitive).  This prevents the
+     * legacy fallback (which fetches all DB articles when no topic matches) from
+     * injecting irrelevant articles into the vendor-compare prompt.
+     */
+    private List<RetrievedSource> filterByQueryRelevance(List<RetrievedSource> sources,
+                                                          String query) {
+        log.debug("filterByQueryRelevance() | sources={}, query={}", sources.size(), query);
+
+        String[] queryWords = query.toLowerCase().split("\\s+");
+        List<RetrievedSource> result = new ArrayList<>();
+
+        for (RetrievedSource source : sources) {
+            String title   = source.title()   != null ? source.title().toLowerCase()   : "";
+            String snippet = source.snippet() != null ? source.snippet().toLowerCase() : "";
+
+            boolean relevant = false;
+            for (String word : queryWords) {
+                if (word.length() < 3) {
+                    continue; // skip short words like "AI", "in", "of"
+                }
+                if (title.contains(word) || snippet.contains(word)) {
+                    relevant = true;
+                    break;
+                }
+            }
+            if (relevant) {
+                result.add(source);
+            }
+        }
+
+        log.debug("filterByQueryRelevance() | return={} relevant sources", result.size());
         return result;
     }
 
