@@ -107,6 +107,22 @@
         }
         .btn-primary:hover { background: #3451de; }
 
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.4rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-primary.loading .spinner { display: inline-block; }
+        .btn-primary.loading { opacity: 0.7; pointer-events: none; }
+
         /* Panel info bar */
         .info-bar {
             font-size: 0.75rem;
@@ -314,7 +330,8 @@
                     <input type="number" id="maxSources" name="maxSources"
                            th:value="${maxSources}" min="1" max="100"/>
                 </div>
-                <button type="submit" class="btn-primary">Compare</button>
+                <button type="submit" class="btn-primary" id="searchBtn">
+                    <span class="spinner"></span>Compare</button>
             </div>
             <p class="hint" th:if="${legacyAnswer == null and query != null and !#strings.isEmpty(query)}">
                 Running both pipelines&hellip; this may take 10&ndash;20 seconds.
@@ -417,5 +434,12 @@
     </div>
 
 </main>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function() {
+        var btn = document.getElementById('searchBtn');
+        if (btn) btn.classList.add('loading');
+    });
+</script>
 </body>
 </html>

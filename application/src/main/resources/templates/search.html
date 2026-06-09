@@ -119,6 +119,22 @@
             color: white;
         }
         .btn-search:hover { background: #3a56d4; }
+
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.4rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-search.loading .spinner { display: inline-block; }
+        .btn-search.loading { opacity: 0.7; pointer-events: none; }
         .btn-clear {
             background: #e8e8e8;
             color: #555;
@@ -204,6 +220,15 @@
         }
         .date-cell.null-date { color: #ccc; font-style: italic; }
 
+        .sort-arrow {
+            color: #999;
+            text-decoration: none;
+            font-size: 0.75rem;
+            margin-left: 0.1rem;
+        }
+        .sort-arrow:hover { color: #4361ee; }
+        .sort-arrow.active { color: #4361ee; font-weight: 700; }
+
         .empty-state {
             text-align: center;
             padding: 3rem 1rem;
@@ -279,7 +304,8 @@
                 </div>
             </div>
             <div class="filter-actions">
-                <button type="submit" class="btn-search">Search</button>
+                <button type="submit" class="btn-search" id="searchBtn">
+                    <span class="spinner"></span>Search</button>
                 <a href="/dashboard/search"><button type="button" class="btn-clear">Clear</button></a>
             </div>
         </form>
@@ -299,10 +325,15 @@
         <table th:unless="${#lists.isEmpty(articles)}" class="result-table">
             <thead>
                 <tr>
-                    <th>Title / Author</th>
+                    <th>Title</th>
                     <th>Topic</th>
                     <th>Source</th>
-                    <th>Published</th>
+                    <th>Published
+                        <a th:href="@{/dashboard/search(title=${titleParam},topic=${topicParam},author=${authorParam},sourceName=${sourceNameParam},bodyText=${bodyTextParam},publishedFrom=${publishedFromParam},publishedTo=${publishedToParam},sortDate='asc')}"
+                           class="sort-arrow" th:classappend="${sortDate == 'asc' ? 'active' : ''}" title="Oldest first">&uarr;</a>
+                        <a th:href="@{/dashboard/search(title=${titleParam},topic=${topicParam},author=${authorParam},sourceName=${sourceNameParam},bodyText=${bodyTextParam},publishedFrom=${publishedFromParam},publishedTo=${publishedToParam},sortDate='desc')}"
+                           class="sort-arrow" th:classappend="${sortDate != 'asc' ? 'active' : ''}" title="Newest first">&darr;</a>
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -324,5 +355,12 @@
     </div>
 
 </main>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function() {
+        var btn = document.getElementById('searchBtn');
+        if (btn) btn.classList.add('loading');
+    });
+</script>
 </body>
 </html>

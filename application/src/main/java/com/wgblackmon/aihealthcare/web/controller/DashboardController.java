@@ -277,23 +277,50 @@ public class DashboardController {
             @RequestParam(required = false) String bodyText,
             @RequestParam(required = false) String publishedFrom,
             @RequestParam(required = false) String publishedTo,
+            @RequestParam(defaultValue = "desc") String sortDate,
             Model model) {
         log.debug("search() | title={}, topic={}, author={}, sourceName={}, "
-                + "bodyText={}, publishedFrom={}, publishedTo={}",
+                + "bodyText={}, publishedFrom={}, publishedTo={}, sortDate={}",
                 title, topic, author, sourceName, bodyText,
-                publishedFrom, publishedTo);
+                publishedFrom, publishedTo, sortDate);
 
         Instant pubFrom = parseDateTime(publishedFrom);
         Instant pubTo = parseDateTime(publishedTo);
 
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                title, topic, author, sourceName, bodyText,
+                blankToNull(title), blankToNull(topic), blankToNull(author),
+                blankToNull(sourceName), blankToNull(bodyText),
                 pubFrom, pubTo);
 
         List<NewsArticle> articles = searchUseCase.search(criteria);
 
-        model.addAttribute("articles", articles);
-        model.addAttribute("resultCount", articles.size());
+        // Sort by publishedAt — nulls last regardless of direction
+        boolean ascending = "asc".equalsIgnoreCase(sortDate);
+        List<NewsArticle> sorted = new ArrayList<>(articles);
+        for (int i = 0; i < sorted.size() - 1; i++) {
+            for (int j = 0; j < sorted.size() - 1 - i; j++) {
+                Instant a = sorted.get(j).publishedAt();
+                Instant b = sorted.get(j + 1).publishedAt();
+                boolean swap;
+                if (a == null && b == null) {
+                    swap = false;
+                } else if (a == null) {
+                    swap = true; // nulls last
+                } else if (b == null) {
+                    swap = false;
+                } else {
+                    swap = ascending ? a.isAfter(b) : a.isBefore(b);
+                }
+                if (swap) {
+                    NewsArticle temp = sorted.get(j);
+                    sorted.set(j, sorted.get(j + 1));
+                    sorted.set(j + 1, temp);
+                }
+            }
+        }
+
+        model.addAttribute("articles", sorted);
+        model.addAttribute("resultCount", sorted.size());
         model.addAttribute("searched", !criteria.isEmpty());
         model.addAttribute("titleParam", title);
         model.addAttribute("topicParam", topic);
@@ -302,8 +329,9 @@ public class DashboardController {
         model.addAttribute("bodyTextParam", bodyText);
         model.addAttribute("publishedFromParam", publishedFrom);
         model.addAttribute("publishedToParam", publishedTo);
+        model.addAttribute("sortDate", sortDate);
 
-        log.debug("search() | return=search (resultCount={})", articles.size());
+        log.debug("search() | return=search (resultCount={})", sorted.size());
         return "search";
     }
 
@@ -314,6 +342,11 @@ public class DashboardController {
      * @param dateTimeStr the datetime string from an HTML datetime-local input
      * @return the corresponding UTC instant, or null
      */
+    /** Returns null when the input is null or blank, otherwise returns the trimmed string. */
+    private String blankToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value.trim();
+    }
+
     private Instant parseDateTime(String dateTimeStr) {
         log.debug("parseDateTime() | dateTimeStr={}", dateTimeStr);
         if (dateTimeStr == null || dateTimeStr.isBlank()) {

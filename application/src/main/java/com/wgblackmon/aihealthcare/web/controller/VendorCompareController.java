@@ -125,23 +125,58 @@ public class VendorCompareController {
                            + ex.getMessage();
         }
 
-        // Format citation timestamps server-side (Instant is not supported by #temporals)
-        Map<Integer, String> citationDates = new HashMap<>();
+        // Format citation timestamps and titles server-side
+        Map<Integer, String> citationDates  = new HashMap<>();
+        Map<Integer, String> citationTitles = new HashMap<>();
         for (SourceCitation c : citations) {
             if (c.retrievedAt() != null) {
                 citationDates.put(c.citationNumber(), DISPLAY_FMT.format(c.retrievedAt()));
             } else {
                 citationDates.put(c.citationNumber(), "—");
             }
+            citationTitles.put(c.citationNumber(), formatTitle(c.title()));
         }
 
-        model.addAttribute("vendors",       vendors);
-        model.addAttribute("citations",     citations);
-        model.addAttribute("citationDates", citationDates);
+        model.addAttribute("vendors",        vendors);
+        model.addAttribute("citations",      citations);
+        model.addAttribute("citationDates",  citationDates);
+        model.addAttribute("citationTitles", citationTitles);
         model.addAttribute("hasResults",    !vendors.isEmpty());
         model.addAttribute("errorMessage",  errorMessage);
 
         log.debug("compare() | return=vendor-compare");
         return "vendor-compare";
+    }
+
+    /**
+     * Reverses "domain.com — Article Title" to "Article Title - domain.com".
+     * Handles both em-dash (—) and en-dash (–) separators.
+     * Titles without a dash separator are returned unchanged.
+     */
+    private String formatTitle(String title) {
+        log.debug("formatTitle() | title={}", title);
+        if (title == null || title.isBlank()) {
+            log.debug("formatTitle() | return=(empty)");
+            return title;
+        }
+
+        // Try em-dash first, then en-dash, then " - "
+        String[] separators = {" — ", " – ", " - "};
+        for (String sep : separators) {
+            int idx = title.indexOf(sep);
+            if (idx > 0 && idx < title.length() - sep.length()) {
+                String left  = title.substring(0, idx).trim();
+                String right = title.substring(idx + sep.length()).trim();
+                // Only reverse if the left part looks like a domain (contains a dot, no spaces)
+                if (left.contains(".") && !left.contains(" ")) {
+                    String result = right + " - " + left;
+                    log.debug("formatTitle() | return={}", result);
+                    return result;
+                }
+            }
+        }
+
+        log.debug("formatTitle() | return={} (unchanged)", title);
+        return title;
     }
 }
