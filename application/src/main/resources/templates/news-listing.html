@@ -49,41 +49,21 @@
             padding: 0 1rem;
         }
 
-        /* Toolbar */
-        .toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 0.75rem 1rem;
-            margin-bottom: 1.5rem;
+        /* Sort arrows */
+        .sort-arrow {
+            color: #999;
+            text-decoration: none;
+            font-size: 0.75rem;
+            margin-left: 0.1rem;
         }
-        .toolbar .label {
+        .sort-arrow:hover { color: #4361ee; }
+        .sort-arrow.active { color: #4361ee; font-weight: 700; }
+
+        .article-count {
             font-size: 0.85rem;
             color: #555;
             font-weight: 500;
-        }
-        .sort-links {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            font-size: 0.8rem;
-        }
-        .sort-links span { color: #aaa; }
-        .sort-links a {
-            color: #4361ee;
-            text-decoration: none;
-            padding: 0.3rem 0.65rem;
-            border-radius: 4px;
-            border: 1px solid #d0d8ff;
-        }
-        .sort-links a:hover { background: #eef1ff; }
-        .sort-links a.active {
-            background: #4361ee;
-            color: white;
-            border-color: #4361ee;
+            margin-bottom: 1rem;
         }
 
         /* Topic section */
@@ -257,17 +237,7 @@
 
 <main>
 
-    <!-- Toolbar with sort controls -->
-    <div class="toolbar">
-        <span class="label" th:text="${totalArticles} + ' total articles'">0 total articles</span>
-        <div class="sort-links">
-            <span>Sort:</span>
-            <a th:href="@{/dashboard/news(sort='desc')}"
-               th:classappend="${sort == 'desc'} ? ' active' : ''">Newest first</a>
-            <a th:href="@{/dashboard/news(sort='asc')}"
-               th:classappend="${sort == 'asc'} ? ' active' : ''">Oldest first</a>
-        </div>
-    </div>
+    <div class="article-count" th:text="${totalArticles} + ' total articles'">0 total articles</div>
 
     <!-- Archive depth banner for FREE tier users -->
     <div th:if="${archiveLimited}" class="archive-banner">
@@ -291,7 +261,12 @@
                 <tr>
                     <th>Title</th>
                     <th>Publication</th>
-                    <th>Publication Date</th>
+                    <th>Publication Date
+                        <a th:href="@{/dashboard/news(sort='asc')}"
+                           class="sort-arrow" th:classappend="${sort == 'asc' ? 'active' : ''}" title="Oldest first">&uarr;</a>
+                        <a th:href="@{/dashboard/news(sort='desc')}"
+                           class="sort-arrow" th:classappend="${sort != 'asc' ? 'active' : ''}" title="Newest first">&darr;</a>
+                    </th>
                 </tr>
             </thead>
             <tbody>
