@@ -292,6 +292,17 @@
             color: #333;
         }
 
+        /* Sort arrows */
+        .sort-arrow {
+            color: #999;
+            text-decoration: none;
+            font-size: 0.75rem;
+            margin-left: 0.1rem;
+            cursor: pointer;
+        }
+        .sort-arrow:hover { color: #4361ee; }
+        .sort-arrow.active { color: #4361ee; font-weight: 700; }
+
         /* Loading spinner */
         .spinner {
             display: none;
@@ -449,7 +460,10 @@
                 <thead>
                     <tr>
                         <th>Article / Title</th>
-                        <th>Publication Date</th>
+                        <th>Publication Date
+                            <a href="#" class="sort-arrow" id="sortAsc" title="Oldest first" onclick="sortCitations('asc'); return false;">&uarr;</a>
+                            <a href="#" class="sort-arrow active" id="sortDesc" title="Newest first" onclick="sortCitations('desc'); return false;">&darr;</a>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -499,6 +513,26 @@
         var btn = document.getElementById('searchBtn');
         if (btn) btn.classList.add('loading');
     });
+
+    function sortCitations(dir) {
+        var tbody = document.querySelector('.sources-table tbody');
+        if (!tbody) return;
+        var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        rows.sort(function(a, b) {
+            var da = a.querySelector('.ref-date').textContent.trim();
+            var db = b.querySelector('.ref-date').textContent.trim();
+            if (da === '\u2014') return 1;
+            if (db === '\u2014') return -1;
+            var ta = new Date(da).getTime();
+            var tb = new Date(db).getTime();
+            return dir === 'asc' ? ta - tb : tb - ta;
+        });
+        for (var i = 0; i < rows.length; i++) {
+            tbody.appendChild(rows[i]);
+        }
+        document.getElementById('sortAsc').className = 'sort-arrow' + (dir === 'asc' ? ' active' : '');
+        document.getElementById('sortDesc').className = 'sort-arrow' + (dir === 'desc' ? ' active' : '');
+    }
 </script>
 </body>
 </html>

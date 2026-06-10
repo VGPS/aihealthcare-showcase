@@ -153,16 +153,49 @@ public class DashboardController {
             }
         }
 
-        List<NewsArticle> articles = new ArrayList<>(
+        List<NewsArticle> fetched = new ArrayList<>(
                 articleIngestionPort.fetchAllByTopic(topic));
 
-        sortByPublishedAt(articles, "asc".equalsIgnoreCase(sort));
+        // Sort newest-first so dedup keeps the most recent
+        sortByPublishedAt(fetched, false);
 
-        model.addAttribute("articles", articles);
+        // Deduplicate by title — keep only the first (most recent) occurrence
+        List<NewsArticle> deduped = new ArrayList<>();
+        java.util.Set<String> seenTitles = new java.util.HashSet<>();
+        for (NewsArticle article : fetched) {
+            String normalizedTitle = article.title() != null ? article.title().toLowerCase().trim() : "";
+            if (!normalizedTitle.isEmpty() && seenTitles.add(normalizedTitle)) {
+                deduped.add(article);
+            }
+        }
+        log.debug("articles() | deduped from {} to {} articles", fetched.size(), deduped.size());
+
+        // Re-sort in the user's requested direction
+        sortByPublishedAt(deduped, "asc".equalsIgnoreCase(sort));
+
+        // Format body text: strip HTML, collapse whitespace, truncate to ~200 chars
+        Map<String, String> articleSummaries = new HashMap<>();
+        for (NewsArticle article : deduped) {
+            if (article.bodyText() != null && !article.bodyText().isBlank()) {
+                String clean = article.bodyText()
+                        .replaceAll("<[^>]+>", " ")
+                        .replaceAll("&nbsp;", " ")
+                        .replaceAll("&amp;", "&")
+                        .replaceAll("\\s+", " ")
+                        .trim();
+                if (clean.length() > 200) {
+                    clean = clean.substring(0, 200) + "...";
+                }
+                articleSummaries.put(article.articleId(), clean);
+            }
+        }
+
+        model.addAttribute("articles", deduped);
+        model.addAttribute("articleSummaries", articleSummaries);
         model.addAttribute("topic", topic);
         model.addAttribute("sort", sort);
 
-        log.debug("articles() | return=articles (count={})", articles.size());
+        log.debug("articles() | return=articles (count={})", deduped.size());
         return "articles";
     }
 
@@ -294,30 +327,8 @@ public class DashboardController {
 
         List<NewsArticle> articles = searchUseCase.search(criteria);
 
-        // Sort by publishedAt — nulls last regardless of direction
-        boolean ascending = "asc".equalsIgnoreCase(sortDate);
         List<NewsArticle> sorted = new ArrayList<>(articles);
-        for (int i = 0; i < sorted.size() - 1; i++) {
-            for (int j = 0; j < sorted.size() - 1 - i; j++) {
-                Instant a = sorted.get(j).publishedAt();
-                Instant b = sorted.get(j + 1).publishedAt();
-                boolean swap;
-                if (a == null && b == null) {
-                    swap = false;
-                } else if (a == null) {
-                    swap = true; // nulls last
-                } else if (b == null) {
-                    swap = false;
-                } else {
-                    swap = ascending ? a.isAfter(b) : a.isBefore(b);
-                }
-                if (swap) {
-                    NewsArticle temp = sorted.get(j);
-                    sorted.set(j, sorted.get(j + 1));
-                    sorted.set(j + 1, temp);
-                }
-            }
-        }
+        sortByPublishedAt(sorted, "asc".equalsIgnoreCase(sortDate));
 
         model.addAttribute("articles", sorted);
         model.addAttribute("resultCount", sorted.size());
