@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-06-01 | Reflects Slice 36 (36 slices complete, 610 tests passing)
+> Last updated: 2026-07-03 | Reflects Slice 41 (41 slices complete, 681 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -69,6 +69,11 @@ api  ──▶  web   (generated DTOs imported here only)
 | 34 | HuggingFace enrichment (cardData, likes, library) + sourceTier removed from UI | 577 |
 | 35 | Admin user management actions — toggle enable/disable and change role | 585 |
 | 36 | Multi-field article search — criteria-based filtering with JPA Specification | 610 |
+| 37 | AI-Enhanced Search — multi-model LLM synthesis (Claude, GPT, Perplexity) | 631 |
+| 38 | AI Search UI cleanup — numbered article references, default topK=20 | 633 |
+| 39 | Simplify search criteria, expand AI synthesis, Healthcare Dive feed | 631 |
+| 40 | Merge Semantic Search into AI Search — unified page + NO_MATCH gating | 627 |
+| 41 | New AI Healthcare Companies — company discovery pipeline + MEMBER gating | 681 |
 
 ---
 
@@ -107,6 +112,9 @@ Spring AI `ChatClient` is wrapped by three AI adapters, all in `infrastructure.a
 | `AiSummarizationAdapter` | `AiSummarizationPort` | Newsletter section summarization (standard + RAG) + topic summaries |
 | `AiEvaluationAdapter` | `AiEvaluationPort` | LLM-as-judge prompt evaluation scoring |
 | `AiReportAdapter` | `AiReportPort` | Monthly market intelligence report generation |
+| `AnthropicAiSearchAdapter` | `AiSearchPort` | Claude synthesis for AI-enhanced search |
+| `OpenAiSearchAdapter` | `AiSearchPort` | GPT synthesis for AI-enhanced search |
+| `PerplexityAiSearchAdapter` | `AiSearchPort` | Perplexity Sonar synthesis via RestClient |
 
 Unit tests inject mock ports — no real AI calls outside `@Profile("ai-integration")`.
 
@@ -117,8 +125,9 @@ Prompt templates (`application/src/main/resources/prompts/`):
 - `generate-introduction.txt` — newsletter intro generation
 - `research-plan.txt` — research query decomposition
 - `research-synthesis.txt` — research answer synthesis
-- `vendor-compare.txt` — vendor assessment (strengths/weaknesses/relevance)
+- `vendor-compare.txt` — vendor assessment (strengths/weaknesses/relevance + Doc Frequency/TF-IDF)
 - `topic-summary.txt` — 3-sentence topic summary from article titles
+- `ai-search-synthesis.txt` — multi-model AI search synthesis with `[N]` citations
 
 ---
 
@@ -175,6 +184,9 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /newsletter/runs/{runId}/edit` | `NewsletterPreviewController` | `newsletter-edit.html` — TinyMCE WYSIWYG editor |
 | `GET /dashboard/search` | `DashboardController` | `search.html` — multi-field article search with filter form |
 | `GET /admin` | `AdminController` | `admin.html` — user management + system status (ADMIN only) |
+| `GET /research/ai-search` | `AiSearchController` | `ai-search.html` — unified AI search with multi-model synthesis |
+| `GET /pricing` | `PricingController` | `pricing.html` — tier comparison with Stripe checkout |
+| `GET /login` | `LoginController` | `login.html` — Spring Security login form |
 
 ---
 
@@ -197,6 +209,10 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | GET | `/api/v1/analytics/ingestion`, `/api/v1/analytics/runs`, `/api/v1/analytics/evaluations` | `AnalyticsController` |
 | POST | `/api/v1/research` | `ResearchController` |
 | GET/GET | `/api/v1/research/runs`, `/api/v1/research/runs/{runId}` | `ResearchRunController` |
+| GET | `/api/v1/search/ai` | `AiSearchRestController` |
+| POST | `/api/v1/stripe/checkout` | `StripeCheckoutController` |
+| POST | `/api/v1/stripe/webhook` | `StripeWebhookController` |
+| POST | `/api/v1/companies/discover` | `CompanyDiscoveryController` |
 
 ---
 
@@ -252,4 +268,4 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**610 tests** across 74 test classes — all pass with `mvn test` (no live AI or network calls).
+**681 tests** across 90 test classes — all pass with `mvn test` (no live AI or network calls).

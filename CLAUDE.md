@@ -71,6 +71,13 @@ AIHealthcare/
 | `AiSummarizationPort`       | `domain.port.outbound`               | Summarize articles via AI                                  |
 | `IngestArticlesUseCase`     | `domain.port.inbound`                | Inbound port — drive ingestion                             |
 | `GenerateNewsletterUseCase` | `domain.port.inbound`                | Inbound port — drive generation                            |
+| `AiSearchResult`            | `domain.model`                       | Wraps query + topK + selected model names                  |
+| `AiSearchSynthesis`         | `domain.model`                       | Single model's synthesis (summary + key findings)          |
+| `Company`                   | `domain.model`                       | AI healthcare company (name, url, categories, description) |
+| `CompanyDiscoveryResult`    | `domain.model`                       | Company discovery pipeline result                          |
+| `ConductAiSearchUseCase`    | `domain.port.inbound`                | Inbound port — multi-model AI search                       |
+| `DiscoverCompaniesUseCase`  | `domain.port.inbound`                | Inbound port — company discovery pipeline                  |
+| `AiSearchPort`              | `domain.port.outbound`               | AI model synthesis adapter interface                       |
 
 ### `NewsArticle` field inventory (11 fields)
 ```
@@ -190,21 +197,46 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 36 — Multi-Field Article Search — COMPLETE — 610 tests passing**
-- [x] Domain: `ArticleSearchCriteria` record — 10 optional filter fields + `isEmpty()` guard
-- [x] Domain: `SearchArticlesUseCase` inbound port — accepts criteria, returns matching articles
-- [x] Domain: `ArticleSearchQueryPort` outbound port — criteria-based persistence query
-- [x] Domain: `ArticleSearchService` — empty-criteria short-circuit, delegates to query port
-- [x] Infrastructure: `ArticleSearchQueryAdapter` — `@Component` implementing `ArticleSearchQueryPort` via JPA Specification
-- [x] Infrastructure: `ArticleSpecificationBuilder` — builds dynamic AND-combined `Specification` from criteria (LIKE for text, exact for tier, range for dates)
-- [x] Infrastructure: `NewsArticleRepository` — extended with `JpaSpecificationExecutor<NewsArticleEntity>`
-- [x] Config: `AppConfig.articleSearchService()` — wires domain service bean
-- [x] Web: `ArticleSearchController` — `GET /api/v1/articles/search` REST endpoint with 10 optional query params
-- [x] Web: `DashboardController.search()` — `GET /dashboard/search` Thymeleaf endpoint with form echo-back
-- [x] Template: `search.html` — filter form (2-column grid) + results table with topic badges
-- [x] Nav: "Article Search" link added to all 12 Thymeleaf templates
-- [x] OpenAPI: `/api/v1/articles/search` endpoint with 10 optional parameters documented
-- [x] Tests: `ArticleSearchServiceTest` (5), `ArticleSearchQueryAdapterTest` (10 @DataJpaTest), `ArticleSearchControllerTest` (5 MockMvc), `DashboardControllerTest` search tests (5 added)
+**Slice 41 — New AI Healthcare Companies — COMPLETE — 681 tests passing**
+- [x] Domain: `Company`, `CompanyDiscoveryResult`, `CompanyTags` records
+- [x] Domain: `DiscoverCompaniesUseCase` inbound port; `CompanyScrapingPort` outbound port
+- [x] Domain services: `CompanyClassifier` (8 subcategories), `CompanyDeduplicator` (fuzzy name matching), `CompanyDiscoveryService`, `CompanyNewsletterRenderer`
+- [x] Infrastructure: `StartupDirectoryHarvester` — scrapes YC, TopStartups, anchors incumbents
+- [x] Web: `CompanyDiscoveryController` — `POST /api/v1/companies/discover` (REST, MEMBER-only)
+- [x] Grounded vendor scoring: Doc Frequency + TF-IDF algorithms with source reference table
+- [x] UI polish: inline sort arrows, article dedup by title, body text previews, loading spinners
+- [x] Tests: `CompanyClassifierTest` (8), `CompanyDeduplicatorTest` (6), `CompanyDiscoveryServiceTest` (7), `CompanyNewsletterRendererTest` (9), `StartupDirectoryHarvesterTest` (8), `CompanyDiscoveryControllerTest` (6)
+
+**Previously complete: Slice 40 — Merge Semantic Search into AI Search — 627 tests passing**
+- [x] Unified search at `/research/ai-search` — merged Semantic Search + AI Search into single page
+- [x] `SemanticSearchController` converted to 302 redirect → `/research/ai-search`
+- [x] NO_MATCH relevance gating — LLMs return null when articles are irrelevant to query
+- [x] Model selection checkboxes (default Claude only) for cost optimization
+- [x] Tests: `AiSearchControllerTest` (7), `SemanticSearchControllerTest` (4)
+
+**Previously complete: Slice 39 — Simplify Search Criteria + Expand AI Synthesis — 631 tests passing**
+- [x] `ArticleSearchCriteria` reduced from 10 to 7 fields (removed `sourceTier`, `createdFrom`, `createdTo`)
+- [x] AI synthesis depth expanded: 8-12 sentences + 5-10 key findings
+- [x] Healthcare Dive AI feed added (INDUSTRY tier, keyword-filtered)
+- [x] Articles search window widened: 7 → 60 days
+
+**Previously complete: Slice 38 — AI Search UI Cleanup — 633 tests passing**
+- [x] Numbered `[N]` article references with citation styling
+- [x] Default topK: 10 → 20 for more comprehensive synthesis
+- [x] Article cards simplified to topic badge only
+
+**Previously complete: Slice 37 — AI-Enhanced Search with Multi-Model LLM Synthesis — 631 tests passing**
+- [x] Domain: `AiSearchResult`, `AiSearchSynthesis` records
+- [x] Domain: `ConductAiSearchUseCase` inbound port; `AiSearchPort` outbound port
+- [x] Domain service: `AiSearchService` — vector search + parallel fan-out to AI adapters
+- [x] Infrastructure: `AnthropicAiSearchAdapter` (Claude), `OpenAiSearchAdapter` (GPT), `PerplexityAiSearchAdapter` (Perplexity Sonar)
+- [x] Web: `AiSearchController` at `/research/ai-search` — Thymeleaf with tier gating + usage metering
+- [x] Web: `AiSearchRestController` — `GET /api/v1/search/ai` REST endpoint
+- [x] Prompt: `ai-search-synthesis.txt` — shared multi-model synthesis template
+- [x] Tests: `AiSearchServiceTest` (5), `AiSearchControllerTest` (6), `AiSearchRestControllerTest` (4), `PerplexityAiSearchAdapterTest` (6)
+
+**Previously complete: Slice 36 — Multi-Field Article Search — 610 tests passing**
+_(see git log for details)_
 
 **Previously complete: Slice 35 — Admin User Management Actions — 585 tests passing**
 _(see git log for details)_

@@ -214,7 +214,7 @@ class AiSearchControllerTest {
         mockMvc.perform(get("/research/ai-search").param("q", "obscure topic"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("articleCount", 0))
-                .andExpect(content().string(containsString("No articles exactly matching")));
+                .andExpect(content().string(containsString("No articles found matching")));
     }
 
     // -------------------------------------------------------------------------
@@ -234,6 +234,6 @@ class AiSearchControllerTest {
         mockMvc.perform(get("/research/ai-search").param("q", "fallback query"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("articleCount", 1))
-                .andExpect(content().string(containsString("No articles exactly matching")));
+                .andExpect(content().string(containsString("AI models found no relevant match")));
     }
 }
