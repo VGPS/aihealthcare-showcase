@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.security.Principal;
+
 /**
  * Thymeleaf controller that renders the public pricing page at {@code GET /pricing}.
  *
@@ -17,7 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-26
- * @updated 2026-05-26
+ * @updated 2026-07-03
  */
 @Slf4j
 @Controller
@@ -42,8 +44,8 @@ public class PricingController {
      * @return Thymeleaf view name "pricing".
      */
     @GetMapping("/pricing")
-    public String pricing(Model model) {
-        log.debug("pricing() | (no args)");
+    public String pricing(Model model, Principal principal) {
+        log.debug("pricing() | principal={}", principal != null ? principal.getName() : "anonymous");
 
         TierLimitProperties.TierConfig free   = tierLimitProperties.getFree();
         TierLimitProperties.TierConfig member = tierLimitProperties.getMember();
@@ -55,6 +57,7 @@ public class PricingController {
         model.addAttribute("stripeEnabled", stripeProperties.isEnabled());
         model.addAttribute("stripePublishableKey", stripeProperties.getPublishableKey());
         model.addAttribute("memberPriceId", stripeProperties.getMemberPriceId());
+        model.addAttribute("userEmail", principal != null ? principal.getName() : "");
 
         log.debug("pricing() | return=pricing");
         return "pricing";

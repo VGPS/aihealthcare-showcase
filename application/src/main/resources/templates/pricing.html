@@ -5,6 +5,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>AIHealthcare — Pricing</title>
+    <meta name="user-email" th:if="${userEmail != null and !userEmail.isEmpty()}" th:content="${userEmail}"/>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -296,7 +297,12 @@
                 <li><span class="check">&#10003;</span> LLM model choice</li>
                 <li><span class="check">&#10003;</span> Vendor comparisons &amp; reports</li>
             </ul>
-            <a class="tier-button member" href="#upgrade">Upgrade to Member</a>
+            <button class="tier-button member" id="upgradeBtn"
+                    th:if="${stripeEnabled}"
+                    th:data-price-id="${memberPriceId}"
+                    onclick="handleUpgrade()">Upgrade to Member</button>
+            <a class="tier-button member" th:if="${!stripeEnabled}" href="#upgrade"
+               style="opacity:0.5; pointer-events:none;">Upgrade (coming soon)</a>
         </div>
     </div>
 
@@ -361,6 +367,59 @@
         </table>
     </div>
 </main>
+
+<script th:if="${stripeEnabled}">
+    async function handleUpgrade() {
+        var btn = document.getElementById('upgradeBtn');
+        var originalText = btn.textContent;
+        btn.textContent = 'Redirecting...';
+        btn.style.opacity = '0.7';
+        btn.style.pointerEvents = 'none';
+
+        var email = '';
+        var authMeta = document.querySelector('meta[name="user-email"]');
+        if (authMeta) {
+            email = authMeta.getAttribute('content');
+        }
+        if (!email) {
+            email = prompt('Enter your email address to continue:');
+        }
+        if (!email) {
+            btn.textContent = originalText;
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+            return;
+        }
+
+        try {
+            var response = await fetch('/api/v1/stripe/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    priceId: btn.getAttribute('data-price-id')
+                })
+            });
+
+            if (!response.ok) {
+                var errorText = await response.text();
+                alert('Checkout error: ' + errorText);
+                btn.textContent = originalText;
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+                return;
+            }
+
+            var data = await response.json();
+            window.location.href = data.checkoutUrl;
+        } catch (err) {
+            alert('Unable to start checkout. Please try again.');
+            btn.textContent = originalText;
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+        }
+    }
+</script>
 
 </body>
 </html>

@@ -485,13 +485,15 @@
         </div>
     </div>
 
-    <!-- No syntheses available — either no match or models unavailable -->
+    <!-- No syntheses — articles found but AI deemed them irrelevant -->
     <div th:if="${syntheses != null and syntheses.isEmpty() and articles != null and !articles.isEmpty()}" class="no-syntheses">
-        No articles exactly matching "<span th:text="${q}">query</span>". Please edit your prompt.
+        AI models found no relevant match for "<span th:text="${q}">query</span>" among
+        <span th:text="${articleCount}">0</span> retrieved articles. Try broadening your query.
     </div>
 
+    <!-- No articles in vector store matching query at all -->
     <div th:if="${syntheses != null and syntheses.isEmpty() and articles != null and articles.isEmpty()}" class="no-syntheses">
-        No articles exactly matching "<span th:text="${q}">query</span>". Please edit your prompt.
+        No articles found matching "<span th:text="${q}">query</span>". The article archive may not cover this topic yet.
     </div>
 
     <!-- Source Articles — only shown when syntheses exist (articles are relevant) -->
@@ -502,7 +504,7 @@
         </div>
 
         <div th:if="${articles.isEmpty()}" class="empty-state">
-            No articles exactly matching "<span th:text="${q}">query</span>". Please edit your prompt.
+            No source articles available.
         </div>
 
         <div th:each="article, iterStat : ${articles}" class="source-card">
