@@ -184,7 +184,6 @@
 </header>
 
 <nav>
-    <a href="#ingestion">Ingestion</a>
     <a href="#runs">Newsletter Runs</a>
     <a href="#evaluations">Evaluations</a>
     <a href="/dashboard/news">News Listing</a>
@@ -205,48 +204,7 @@
 <main>
 
     <!-- ================================================================
-         SECTION 1 — Article Ingestion
-         ================================================================ -->
-    <section id="ingestion">
-        <div class="section-header">
-            <h2>Article Ingestion</h2>
-            <a class="api-link" href="/api/v1/analytics/ingestion" target="_blank">JSON &rarr;</a>
-        </div>
-
-        <div class="stat-grid">
-            <div class="stat-card">
-                <div class="value" th:text="${ingestion.totalArticles}">0</div>
-                <div class="label">Total Articles</div>
-            </div>
-            <div class="stat-card green">
-                <div class="value" th:text="${ingestion.last7DaysCount}">0</div>
-                <div class="label">Last 7 Days</div>
-            </div>
-            <div class="stat-card amber">
-                <div class="value" th:text="${ingestion.last30DaysCount}">0</div>
-                <div class="label">Last 30 Days</div>
-            </div>
-        </div>
-
-        <table>
-            <thead>
-                <tr><th>Topic / Feed</th><th style="text-align:right">Articles</th></tr>
-            </thead>
-            <tbody>
-                <tr th:if="${#lists.isEmpty(ingestion.byTopic)}">
-                    <td colspan="2" class="empty">No data yet</td>
-                </tr>
-                <tr th:each="entry : ${ingestion.byTopic}">
-                    <td><a th:href="@{/dashboard/articles(topic=${entry.label})}"
-                           th:text="${entry.label}">—</a></td>
-                    <td style="text-align:right" th:text="${entry.count}">0</td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
-
-    <!-- ================================================================
-         SECTION 2 — Newsletter Runs
+         SECTION 1 — Newsletter Runs
          ================================================================ -->
     <section id="runs">
         <div class="section-header">
@@ -283,7 +241,7 @@
     </section>
 
     <!-- ================================================================
-         SECTION 3 — Prompt Evaluations
+         SECTION 2 — Prompt Evaluations
          ================================================================ -->
     <section id="evaluations">
         <div class="section-header">

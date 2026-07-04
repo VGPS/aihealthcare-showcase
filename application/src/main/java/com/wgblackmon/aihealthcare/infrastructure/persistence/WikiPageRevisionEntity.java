@@ -34,7 +34,7 @@ public class WikiPageRevisionEntity {
     @Column(nullable = false)
     private int revision;
 
-    @Column(name = "content_markdown", columnDefinition = "CLOB")
+    @Column(name = "content_markdown", columnDefinition = "TEXT")
     private String contentMarkdown;
 
     @Column(name = "compiled_at", nullable = false)

@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -39,4 +40,35 @@ public interface WikiPageRepository extends JpaRepository<WikiPageEntity, String
      * @return matching pages
      */
     List<WikiPageEntity> findByPageType(String pageType);
+
+    /**
+     * Finds wiki pages matching both a keyword search and a page type filter.
+     *
+     * @param keyword  search term (case-insensitive, matched against title/tags/content)
+     * @param pageType the page type string (e.g. "ENTITY", "CONCEPT")
+     * @return matching pages ordered by title
+     */
+    @Query("SELECT w FROM WikiPageEntity w WHERE w.pageType = :pageType AND " +
+           "(LOWER(w.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(w.tags) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(w.contentMarkdown) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "ORDER BY w.title")
+    List<WikiPageEntity> searchByKeywordAndPageType(String keyword, String pageType);
+
+    /**
+     * Finds wiki pages created after the given instant (newest first).
+     *
+     * @param since lower bound (exclusive) for creation time
+     * @return recently created pages
+     */
+    List<WikiPageEntity> findByCreatedAtAfterOrderByCreatedAtDesc(Instant since);
+
+    /**
+     * Finds wiki pages updated after the given instant (newest first).
+     * Excludes pages that were only created (not subsequently updated).
+     *
+     * @param since lower bound (exclusive) for update time
+     * @return recently updated pages
+     */
+    List<WikiPageEntity> findByUpdatedAtAfterAndRevisionGreaterThanOrderByUpdatedAtDesc(Instant since, int minRevision);
 }

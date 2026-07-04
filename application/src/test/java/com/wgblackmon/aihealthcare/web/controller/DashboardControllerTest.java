@@ -162,16 +162,16 @@ class DashboardControllerTest {
     }
 
     @Test
-    void dashboard_rendersIngestionTotals() throws Exception {
+    void dashboard_rendersRunStats() throws Exception {
         when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
         when(analyticsUseCase.getRunAnalytics()).thenReturn(sampleRuns());
         when(analyticsUseCase.getEvaluationAnalytics()).thenReturn(sampleEvaluations());
 
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("200")))
-                .andExpect(content().string(containsString("18")))
-                .andExpect(content().string(containsString("PubMed AI Healthcare")));
+                .andExpect(content().string(containsString("Newsletter Runs")))
+                .andExpect(content().string(containsString("Total Runs")))
+                .andExpect(content().string(containsString("Draft")));
     }
 
     @Test

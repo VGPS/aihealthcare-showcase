@@ -33,7 +33,7 @@ public class WikiSourceRefEntity {
     @Column(name = "page_slug", length = 255, nullable = false)
     private String pageSlug;
 
-    @Column(name = "article_id", length = 255, nullable = false)
+    @Column(name = "article_id", length = 512, nullable = false)
     private String articleId;
 
     @Column(name = "source_name", length = 255, nullable = false)

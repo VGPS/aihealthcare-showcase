@@ -245,7 +245,7 @@
 
     <!-- Filter bar -->
     <form class="filter-bar" method="get" action="/wiki">
-        <input type="text" name="query" placeholder="Search wiki pages..."
+        <input type="text" name="query" placeholder="e.g. AI Legal Liability in Healthcare"
                th:value="${query}"/>
         <select name="pageType">
             <option value="">All Types</option>
@@ -256,6 +256,8 @@
         </select>
         <button type="submit">Search</button>
         <a class="clear-btn" href="/wiki">Clear</a>
+        <a class="clear-btn" href="/wiki/digest"
+           style="color:#4361ee;">What Changed</a>
         <a class="clear-btn" href="/wiki/contradictions"
            style="color:#e57373;">Contradictions</a>
     </form>
@@ -277,7 +279,10 @@
                 <h3 th:text="${page.title()}">Page Title</h3>
             </a>
             <div class="tag-list" th:if="${!page.tags().isEmpty()}">
-                <span class="tag" th:each="tag : ${page.tags()}" th:text="${tag}">tag</span>
+                <a class="tag" th:each="tag : ${page.tags()}"
+                   th:href="@{/wiki(query=${tag})}"
+                   th:text="${tag}"
+                   style="text-decoration:none; cursor:pointer;">tag</a>
             </div>
             <div class="card-meta">
                 <span th:text="'Rev ' + ${page.revision()}">Rev 1</span>

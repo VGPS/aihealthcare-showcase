@@ -1,19 +1,68 @@
 # AIHealthcare
 
-An automated AI-powered newsletter and research platform that discovers, summarizes, and delivers the latest artificial intelligence in healthcare news — built with Spring Boot and Spring AI.
+An automated AI-powered newsletter, research, and knowledge platform that discovers, summarizes, and delivers the latest artificial intelligence in healthcare news — built with Spring Boot and Spring AI.
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| **Multi-Source Article Harvesting** | Automated ingestion from 50+ RSS feeds, web scrapers, and APIs across academic, regulatory, and industry tiers |
+| **LLM-Compiled Knowledge Wiki** | AI synthesizes harvested articles into a persistent, searchable wiki with revision history and cross-references |
+| **Source Provenance Tracking** | Every wiki claim links to its original PubMed, FDA, or industry source for verifiable trust |
+| **Contradiction Detection** | Automatically flags when new evidence contradicts prior wiki claims — a "Reversal Watch" for healthcare AI |
+| **PubMed Historical Backfill** | E-utilities API integration retrieves years of academic articles to build longitudinal knowledge depth |
+| **Multi-Model AI Search** | Fan-out synthesis across Claude, GPT, Perplexity Sonar, and Gemini with numbered citation references |
+| **Staged Research Pipeline** | AI-planned query decomposition, multi-source retrieval, citation assembly, and synthesized research answers |
+| **AI Newsletter Generation** | Daily automated newsletter drafts with topic-grouped sections, attributed sources, and WYSIWYG editing |
+| **Prompt Evaluation Framework** | LLM-as-judge scoring across 5 quality dimensions with A/B variant comparison for prompt optimization |
+| **Vendor Competitive Analysis** | AI-driven strengths/weaknesses assessment with Doc Frequency and TF-IDF relevance scoring |
+| **Company Discovery Pipeline** | Scrapes YC and startup directories, classifies by healthcare AI subcategory, deduplicates, and renders reports |
+| **Vector Semantic Search** | PGVector-powered similarity search across the full article archive for contextual retrieval |
+| **RAG-Enhanced Summarization** | Retrieval-augmented generation enriches newsletter sections with relevant archived context |
+| **Subscription Tier Gating** | FREE vs MEMBER content access with Stripe Billing, usage metering, and feature-level gating |
+| **Role-Based Access Control** | Spring Security with ADMIN/USER roles, session-based auth, and per-page authorization |
+| **Hexagonal Architecture** | Framework-free domain layer with pluggable adapters — swap AI providers or databases with zero domain changes |
+| **What Changed Digest** | Weekly activity dashboard showing new pages, updated pages, and detected contradictions with configurable time windows |
+| **Evidence Grade Classification** | Automatic source credibility badges (Peer-Reviewed, Regulatory, Industry, Vendor, News) with color-coded provenance |
+| **17-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, and vendor comparison pages |
+| **822 Automated Tests** | Comprehensive test suite across domain, web, persistence, and infrastructure layers — no live AI calls |
+
+### Resume / LinkedIn Feature Bullets
+
+- **Multi-Source Article Harvesting** — Automated ingestion pipeline scraping 50+ RSS, web, and API sources across academic, regulatory, and industry tiers
+- **LLM-Compiled Knowledge Wiki** — AI synthesizes articles into a persistent, versioned wiki with provenance tracking and cross-references
+- **Source Provenance Tracking** — Every wiki claim links to its PubMed, FDA, or industry origin for verifiable healthcare trust
+- **Contradiction Detection** — Automated "Reversal Watch" flags when new evidence contradicts prior wiki claims with side-by-side comparison
+- **PubMed Historical Backfill** — E-utilities API integration retrieves years of academic articles for longitudinal knowledge depth
+- **Multi-Model AI Search** — Fan-out synthesis across Claude, GPT, Perplexity Sonar, and Gemini with numbered citation references
+- **Staged Research Pipeline** — AI-planned query decomposition with multi-source retrieval, citation assembly, and synthesized answers
+- **AI Newsletter Generation** — Daily automated drafts with topic-grouped sections, attributed sources, and TinyMCE WYSIWYG editing
+- **Prompt Evaluation Framework** — LLM-as-judge scoring across 5 quality dimensions with A/B variant comparison for prompt optimization
+- **Vendor Competitive Analysis** — AI-driven strengths/weaknesses assessment using Doc Frequency and TF-IDF relevance scoring algorithms
+- **Company Discovery Pipeline** — Scrapes YC and startup directories, classifies by healthcare AI subcategory, deduplicates, and renders reports
+- **Vector Semantic Search** — PGVector-powered similarity search across the full article archive for contextual retrieval
+- **RAG-Enhanced Summarization** — Retrieval-augmented generation enriches newsletter sections with relevant archived context
+- **What Changed Digest** — Weekly activity dashboard showing new pages, updates, and contradictions with configurable time windows
+- **Evidence Grade Classification** — Automatic source credibility badges (Peer-Reviewed, Regulatory, Industry) with color-coded provenance
+- **Subscription Tier Gating** — FREE vs MEMBER content access with Stripe Billing, usage metering, and feature-level gating
+- **Role-Based Access Control** — Spring Security with ADMIN/USER roles, session-based authentication, and per-page authorization
+- **Hexagonal Architecture** — Framework-free domain with pluggable adapters; swap AI providers or databases with zero domain changes
+- **822 Automated Tests** — Comprehensive test suite across domain, web, persistence, and infrastructure layers with no live AI calls
 
 ## What It Does
 
 AIHealthcare runs multiple automated pipelines:
 
-1. **Harvest** — Scrapes articles from RSS feeds (PubMed, Beckers, Google News), competitor web pages (Anthropic, OpenAI, Amazon, Perplexity, Google), and the HuggingFace model API
+1. **Harvest** — Scrapes articles from 50+ RSS feeds (PubMed, Beckers, Google News), competitor web pages (Anthropic, OpenAI, Amazon, Perplexity, Google), and the HuggingFace model API
 2. **Store** — Persists articles in PostgreSQL and indexes them as vector embeddings (PGVector) for semantic search
 3. **Summarize** — Uses Spring AI (Claude or OpenAI) to generate concise, topic-grouped newsletter sections with attributed sources
-4. **Research** — Staged research pipeline combining Perplexity API + DB articles, with planning, retrieval, citation assembly, and AI synthesis
-5. **Evaluate** — LLM-as-judge prompt evaluation scoring across 5 dimensions with A/B variant comparison
-6. **Deliver** — Generates a daily newsletter draft for review; send manually after editing in the TinyMCE WYSIWYG editor; tier-aware content gating (FREE gets teaser, MEMBER gets full)
-7. **Export** — NotebookLM-compatible article exports with HTML summaries grouped by source
-8. **Gate** — Usage metering and feature gating per subscription tier (FREE vs MEMBER): archive depth (FREE=7 days, MEMBER=unlimited), newsletter teaser vs full content, AI query limits, with Stripe Billing integration
+4. **Compile Wiki** — LLM synthesizes harvested articles into a persistent knowledge wiki with provenance, contradiction detection, and revision tracking
+5. **Backfill** — PubMed E-utilities API retrieves historical academic articles (2022-2025) across 10 configurable query topics
+6. **Research** — Staged research pipeline combining Perplexity API + DB articles, with planning, retrieval, citation assembly, and AI synthesis
+7. **Evaluate** — LLM-as-judge prompt evaluation scoring across 5 dimensions with A/B variant comparison
+8. **Deliver** — Generates a daily newsletter draft for review; send manually after editing in the TinyMCE WYSIWYG editor; tier-aware content gating (FREE gets teaser, MEMBER gets full)
+9. **Export** — NotebookLM-compatible article exports with HTML summaries grouped by source
+10. **Gate** — Usage metering and feature gating per subscription tier (FREE vs MEMBER): archive depth (FREE=7 days, MEMBER=unlimited), newsletter teaser vs full content, AI query limits, with Stripe Billing integration
 
 ## Architecture
 
@@ -91,7 +140,8 @@ POST /api/v1/comparisons
 | Email (prod)      | Amazon SES                                         |
 | UI                | Thymeleaf + Spring Security extras                 |
 | Build             | Maven                                              |
-| Testing           | JUnit 5 + AssertJ + Mockito (567 tests)            |
+| Markdown Render   | CommonMark 0.24.0 (wiki content)                   |
+| Testing           | JUnit 5 + AssertJ + Mockito (822 tests)            |
 
 ## Prerequisites
 
@@ -164,17 +214,23 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 
 | URL | Description |
 |-----|-------------|
-| `/dashboard` | Analytics overview — ingestion stats, run history |
+| `/dashboard` | Analytics overview — newsletter runs, evaluations, Chart.js trend + topic charts |
 | `/dashboard/articles` | Article list with topic filter and sort |
-| `/dashboard/news` | Articles grouped by 11 configurable topic sections with AI summaries |
+| `/dashboard/news` | Articles grouped by 13 configurable topic sections with AI summaries |
+| `/dashboard/search` | Multi-field article search with criteria-based filtering |
+| `/wiki` | Searchable wiki page grid with type filter (Entity/Concept/Comparison/Overview) |
+| `/wiki/{slug}` | Wiki page detail — rendered markdown, provenance table, contradictions, revisions |
+| `/wiki/contradictions` | Reversal Watch — contradiction feed with date filter |
 | `/research/compare` | Side-by-side LEGACY_GOOGLE vs STAGED_RESEARCH results |
 | `/research/runs` | Research run history table |
 | `/research/runs/{runId}` | Research run detail |
 | `/research/vendors` | Vendor comparison card grid with strengths/weaknesses |
-| `/research/search` | Member-only semantic vector search across article archive |
-| `/newsletter/runs` | Newsletter run list with status badges and edit links |
+| `/research/ai-search` | Multi-model AI search — Claude, GPT, Perplexity, Gemini synthesis |
+| `/newsletter/runs` | Newsletter run list with status badges and edit links (Admin only) |
 | `/newsletter/runs/{runId}/edit` | TinyMCE WYSIWYG editor — edit and send newsletter drafts |
-| `/pricing` | Two-tier comparison (Free vs Member) with feature limits |
+| `/pricing` | Two-tier comparison (Free vs Member) with Stripe Checkout |
+| `/profile` | Subscriber self-service — tier badge, usage meter, Stripe portal link |
+| `/admin` | User management table and system status dashboard (Admin only) |
 | `/login` | Session-based form login |
 
 ## REST API Endpoints
@@ -182,6 +238,7 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/v1/articles?topic=&limit=` | List harvested articles |
+| GET | `/api/v1/articles/search` | Multi-field article search with criteria filtering |
 | GET | `/api/v1/runs` | List all newsletter runs |
 | GET | `/api/v1/runs/{runId}` | Get a specific newsletter run |
 | POST | `/api/v1/subscribers` | Subscribe an email address |
@@ -191,23 +248,29 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | POST | `/api/v1/research` | Execute staged research query |
 | GET | `/api/v1/research/runs` | List research run history |
 | GET | `/api/v1/research/runs/{runId}` | Get research run detail |
+| GET | `/api/v1/search/ai` | Multi-model AI search with synthesis |
 | POST | `/api/v1/documents/ingest` | Ingest documents for RAG |
 | POST | `/api/v1/market-intelligence/refresh` | Trigger market intelligence report |
+| POST | `/api/v1/companies/discover` | AI healthcare company discovery pipeline **(Member only)** |
 | GET | `/api/v1/analytics/ingestion` | Ingestion analytics |
 | GET | `/api/v1/analytics/runs` | Newsletter run analytics |
 | GET | `/api/v1/analytics/evaluations` | Evaluation analytics |
-| POST | `/monitoring/harvest` | Trigger RSS feed harvest |
-| POST | `/monitoring/competitor` | Trigger competitor page harvest |
-| POST | `/monitoring/huggingface` | Trigger HuggingFace model discovery |
-| POST | `/monitoring/summaries` | Trigger AI topic summary generation |
-| GET | `/monitoring/hashes` | List page content hashes |
 | GET/PUT | `/api/v1/search-prompts/{engine}` | View/update search prompt templates |
 | POST/GET/DELETE | `/api/v1/variants` | Manage prompt variants |
 | POST/GET | `/api/v1/evaluations` | Run/view prompt evaluations |
 | POST | `/api/v1/comparisons` | Compare two prompt variants |
-| POST | `/api/v1/companies/discover` | Trigger AI healthcare company discovery pipeline **(Member only)** |
-| POST | `/stripe/create-checkout-session` | Create Stripe Checkout session for upgrade |
-| POST | `/stripe/webhook` | Stripe webhook receiver (tier updates) |
+| POST | `/monitoring/harvest` | Trigger RSS feed harvest |
+| POST | `/monitoring/feeds` | Trigger full RSS feed harvest across all tiers |
+| POST | `/monitoring/competitor` | Trigger competitor page harvest |
+| POST | `/monitoring/huggingface` | Trigger HuggingFace model discovery |
+| POST | `/monitoring/summaries` | Trigger AI topic summary generation |
+| POST | `/monitoring/embeddings` | Trigger article embedding into vector store |
+| POST | `/monitoring/wiki/compile` | Trigger LLM wiki compilation from recent articles |
+| POST | `/monitoring/backfill` | Trigger PubMed historical backfill (10 queries, 2022-2025) |
+| POST | `/monitoring/backfill/custom?query=` | Run custom PubMed backfill query |
+| GET | `/monitoring/hashes` | List page content hashes |
+| POST | `/api/v1/stripe/checkout` | Create Stripe Checkout session for upgrade |
+| POST | `/api/v1/stripe/webhook` | Stripe webhook receiver (tier updates) |
 
 ## Scheduled Jobs
 
@@ -228,7 +291,7 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 
 ### News Topics
 
-11 topic sections are configured in `application.yml`, each with multiple feed sources:
+13 topic sections are configured in `application.yml`, each with multiple feed sources:
 
 - General AI Healthcare News
 - AI Healthcare Software Development
@@ -280,7 +343,7 @@ STRIPE_MEMBER_PRICE_ID=price_...
 
 ## Testing
 
-567 tests across 68 test classes — all pass with no live AI or network calls.
+822 tests across 105 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
@@ -296,25 +359,25 @@ mvn test -Dspring.profiles.active=ai-integration
 AIHealthcare/
 ├── application/src/main/java/com/wgblackmon/aihealthcare/
 │   ├── domain/
-│   │   ├── model/           # NewsArticle, Topic, NewsletterDraft, AppUser, SubscriptionTier...
+│   │   ├── model/           # NewsArticle, WikiPage, Topic, NewsletterDraft, AppUser...
 │   │   ├── port/inbound/    # Use-case interfaces (inbound ports)
 │   │   ├── port/outbound/   # Port interfaces (outbound ports)
-│   │   ├── service/         # Domain services (Newsletter, Research, Evaluation, TopicSummary)
+│   │   ├── service/         # Domain services (Newsletter, Research, Evaluation, Wiki...)
 │   │   └── exception/       # Domain exceptions
 │   ├── infrastructure/
-│   │   ├── ai/              # Spring AI adapters (summarize, evaluate, embed, report)
+│   │   ├── ai/              # Spring AI adapters (summarize, evaluate, embed, wiki, search)
 │   │   ├── config/          # AppConfig, SecurityConfig, bean wiring, properties
 │   │   ├── delivery/        # EmailDeliveryAdapter, NotebookLMService
-│   │   ├── ingestion/       # RSS, web scraping, HuggingFace, Perplexity, document parsing
-│   │   ├── persistence/     # JPA entities, repositories, storage adapters (12 tables)
+│   │   ├── ingestion/       # RSS, web scraping, HuggingFace, Perplexity, PubMed backfill
+│   │   ├── persistence/     # JPA entities, repositories, storage adapters (16 tables)
 │   │   ├── research/        # Perplexity + legacy Google research adapters
 │   │   └── scheduler/       # NewsletterGenerationScheduler
 │   └── web/
-│       ├── controller/      # REST + Thymeleaf controllers
+│       ├── controller/      # REST + Thymeleaf controllers (20+ controllers)
 │       └── dto/             # Request/response records
 ├── application/src/main/resources/
-│   ├── prompts/             # AI prompt templates (8 templates)
-│   └── templates/           # Thymeleaf HTML templates (11 pages)
+│   ├── prompts/             # AI prompt templates (10 templates)
+│   └── templates/           # Thymeleaf HTML templates (17 pages)
 ├── docs/                    # Architecture and conventions documentation
 ├── pom.xml
 └── CLAUDE.md                # AI assistant project context

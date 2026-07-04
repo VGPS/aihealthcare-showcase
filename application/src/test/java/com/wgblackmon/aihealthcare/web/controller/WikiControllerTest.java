@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -117,7 +118,13 @@ class WikiControllerTest {
     @Test
     void wikiIndex_withQuery_filtersPages() throws Exception {
         WikiPage page = buildTestPage("fda-ai-guidance", "FDA AI Guidance", WikiPageType.ENTITY);
-        when(wikiQueryPort.findRelevantPages(eq("FDA"), anyInt())).thenReturn(List.of(page));
+        WikiPageEntity entity = new WikiPageEntity();
+        entity.setSlug("fda-ai-guidance");
+        entity.setTitle("FDA AI Guidance");
+        entity.setPageType("ENTITY");
+        entity.setCreatedAt(NOW);
+        when(pageRepository.searchByKeyword("FDA")).thenReturn(List.of(entity));
+        when(wikiQueryPort.getPage("fda-ai-guidance")).thenReturn(page);
 
         mockMvc.perform(get("/wiki").param("query", "FDA"))
                 .andExpect(status().isOk())
@@ -209,5 +216,79 @@ class WikiControllerTest {
                 .andExpect(view().name("wiki-contradictions"))
                 .andExpect(model().attributeExists("contradictions",
                         "contradictionTimestamps", "pageSlugTitles"));
+    }
+
+    @Test
+    void digest_rendersWithDefaults() throws Exception {
+        when(pageRepository.findByCreatedAtAfterOrderByCreatedAtDesc(any(Instant.class)))
+                .thenReturn(List.of());
+        when(pageRepository.findByUpdatedAtAfterAndRevisionGreaterThanOrderByUpdatedAtDesc(
+                any(Instant.class), anyInt()))
+                .thenReturn(List.of());
+        when(wikiQueryPort.recentContradictions(any(Instant.class)))
+                .thenReturn(List.of());
+        when(pageRepository.count()).thenReturn(23L);
+
+        mockMvc.perform(get("/wiki/digest"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-digest"))
+                .andExpect(model().attributeExists("newPages", "updatedPages",
+                        "contradictions", "days", "totalPages"))
+                .andExpect(model().attribute("days", 7))
+                .andExpect(model().attribute("totalPages", 23L));
+    }
+
+    @Test
+    void digest_withNewAndUpdatedPages_rendersAll() throws Exception {
+        WikiPageEntity newPage = new WikiPageEntity();
+        newPage.setSlug("new-page");
+        newPage.setTitle("New Page");
+        newPage.setPageType("CONCEPT");
+        newPage.setCreatedAt(NOW);
+        newPage.setRevision(1);
+
+        WikiPageEntity updatedPage = new WikiPageEntity();
+        updatedPage.setSlug("updated-page");
+        updatedPage.setTitle("Updated Page");
+        updatedPage.setPageType("ENTITY");
+        updatedPage.setCreatedAt(NOW);
+        updatedPage.setUpdatedAt(NOW);
+        updatedPage.setRevision(2);
+
+        when(pageRepository.findByCreatedAtAfterOrderByCreatedAtDesc(any(Instant.class)))
+                .thenReturn(List.of(newPage));
+        when(pageRepository.findByUpdatedAtAfterAndRevisionGreaterThanOrderByUpdatedAtDesc(
+                any(Instant.class), anyInt()))
+                .thenReturn(List.of(updatedPage));
+        when(wikiQueryPort.recentContradictions(any(Instant.class)))
+                .thenReturn(List.of());
+        when(pageRepository.count()).thenReturn(23L);
+
+        mockMvc.perform(get("/wiki/digest").param("days", "30"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-digest"))
+                .andExpect(model().attribute("days", 30));
+    }
+
+    @Test
+    void wikiPage_rendersEvidenceGrades() throws Exception {
+        WikiPage page = buildTestPage("fda-ai-guidance", "FDA AI Guidance", WikiPageType.ENTITY);
+        when(wikiQueryPort.getPage("fda-ai-guidance")).thenReturn(page);
+        when(revisionRepository.findByPageSlugOrderByRevisionDesc("fda-ai-guidance"))
+                .thenReturn(List.of());
+        when(contradictionRepository.findByPageSlug("fda-ai-guidance"))
+                .thenReturn(List.of());
+
+        NewsArticleEntity article = new NewsArticleEntity();
+        article.setArticleId("art-001");
+        article.setTitle("FDA Approves AI Device");
+        article.setUrl("https://fda.gov/ai-device");
+        when(articleRepository.findByArticleIdIn(List.of("art-001")))
+                .thenReturn(List.of(article));
+
+        mockMvc.perform(get("/wiki/fda-ai-guidance"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-detail"))
+                .andExpect(model().attributeExists("evidenceGrades", "evidenceColors"));
     }
 }

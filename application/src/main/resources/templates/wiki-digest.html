@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>What Changed This Week — AIHealthcare Wiki</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            font-size: 14px;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+        }
+        header h1 { font-size: 1.25rem; font-weight: 600; }
+        header p  { font-size: 0.8rem; opacity: 0.6; }
+
+        nav {
+            background: #16213e;
+            padding: 0 2rem;
+            display: flex;
+            gap: 1.5rem;
+        }
+        nav a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 0.6rem 0;
+            border-bottom: 2px solid transparent;
+            display: inline-block;
+        }
+        nav a:hover { color: white; }
+        nav a.active { color: white; border-bottom-color: #4361ee; }
+
+        main {
+            max-width: 900px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .breadcrumb {
+            font-size: 0.78rem;
+            color: #888;
+            margin-bottom: 1rem;
+        }
+        .breadcrumb a { color: #4361ee; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        .digest-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+        .digest-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        .digest-header .subtitle {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Filter bar */
+        .filter-bar {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            font-size: 0.82rem;
+        }
+        .filter-bar label { color: #666; }
+        .filter-bar select {
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            background: white;
+        }
+
+        /* Summary stats */
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-box {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 1rem 1.25rem;
+            text-align: center;
+        }
+        .stat-box .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .stat-box .label {
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.25rem;
+        }
+        .stat-box.green { border-left: 4px solid #27ae60; }
+        .stat-box.blue  { border-left: 4px solid #4361ee; }
+        .stat-box.amber { border-left: 4px solid #f39c12; }
+        .stat-box.slate { border-left: 4px solid #95a5a6; }
+
+        /* Section card */
+        .section-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .section-card h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .section-card h3 .count {
+            font-weight: 400;
+            color: #888;
+            font-size: 0.82rem;
+        }
+
+        /* Page list items */
+        .page-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .page-item:last-child { border-bottom: none; }
+        .page-item a {
+            color: #1a1a2e;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.88rem;
+        }
+        .page-item a:hover { color: #4361ee; }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2em 0.6em;
+            border-radius: 99px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .badge-entity     { background: #d4edda; color: #155724; }
+        .badge-concept    { background: #cce5ff; color: #004085; }
+        .badge-comparison { background: #fff3cd; color: #856404; }
+        .badge-overview   { background: #e2e3e5; color: #495057; }
+
+        .page-date {
+            font-size: 0.72rem;
+            color: #999;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        .page-rev {
+            font-size: 0.7rem;
+            color: #4361ee;
+            font-weight: 500;
+        }
+
+        /* Contradiction items */
+        .contradiction-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .contradiction-item:last-child { border-bottom: none; }
+        .contradiction-item .page-link {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #4361ee;
+            text-decoration: none;
+        }
+        .contradiction-item .page-link:hover { text-decoration: underline; }
+        .claim-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        .claim {
+            padding: 0.6rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+        .claim.prior {
+            background: #fff5f5;
+            border-left: 3px solid #e74c3c;
+        }
+        .claim.new-claim {
+            background: #f0fff8;
+            border-left: 3px solid #27ae60;
+        }
+        .claim-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #888;
+            margin-bottom: 0.25rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #888;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AIHealthcare Analytics</h1>
+    <p>Knowledge Wiki</p>
+</header>
+
+<nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/dashboard/articles">Articles</a>
+    <a sec:authorize="hasRole('ADMIN')" href="/newsletter/runs">Newsletter Preview</a>
+    <a href="/research/compare">Research Compare</a>
+    <a href="/research/runs">Research Runs</a>
+    <a href="/research/vendors">Vendor Compare</a>
+    <a href="/research/ai-search">AI Search</a>
+    <a href="/wiki" class="active">Wiki</a>
+    <a href="/dashboard/search">Article Search</a>
+    <a href="/pricing">Pricing</a>
+    <a sec:authorize="isAuthenticated()" href="/profile">Profile</a>
+    <a sec:authorize="hasRole('ADMIN')" href="/admin">Admin</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
+       style="margin-left:auto; color:#e57373;">Logout</a>
+</nav>
+
+<main>
+
+    <div class="breadcrumb">
+        <a href="/wiki">Wiki</a> &rsaquo; What Changed
+    </div>
+
+    <div class="digest-header">
+        <div>
+            <h2>What Changed This Week</h2>
+            <span class="subtitle">Wiki knowledge base activity digest</span>
+        </div>
+    </div>
+
+    <!-- Time filter -->
+    <form class="filter-bar" method="get" action="/wiki/digest">
+        <label>Show last</label>
+        <select name="days" onchange="this.form.submit()">
+            <option value="7" th:selected="${days == 7}">7 days</option>
+            <option value="14" th:selected="${days == 14}">14 days</option>
+            <option value="30" th:selected="${days == 30}">30 days</option>
+            <option value="90" th:selected="${days == 90}">90 days</option>
+        </select>
+    </form>
+
+    <!-- Summary stats -->
+    <div class="stat-row">
+        <div class="stat-box green">
+            <div class="value" th:text="${#lists.size(newPages)}">0</div>
+            <div class="label">New Pages</div>
+        </div>
+        <div class="stat-box blue">
+            <div class="value" th:text="${#lists.size(updatedPages)}">0</div>
+            <div class="label">Updated</div>
+        </div>
+        <div class="stat-box amber">
+            <div class="value" th:text="${#lists.size(contradictions)}">0</div>
+            <div class="label">Contradictions</div>
+        </div>
+        <div class="stat-box slate">
+            <div class="value" th:text="${totalPages}">0</div>
+            <div class="label">Total Pages</div>
+        </div>
+    </div>
+
+    <!-- New pages -->
+    <div class="section-card">
+        <h3>New Pages <span class="count" th:text="'(' + ${#lists.size(newPages)} + ')'"></span></h3>
+        <div th:if="${#lists.isEmpty(newPages)}" class="empty-state">
+            No new pages created in the last <span th:text="${days}">7</span> days.
+        </div>
+        <div th:unless="${#lists.isEmpty(newPages)}">
+            <div class="page-item" th:each="p : ${newPages}">
+                <span class="badge"
+                      th:classappend="${p['pageType'] == 'ENTITY'} ? 'badge-entity'
+                                   : (${p['pageType'] == 'CONCEPT'} ? 'badge-concept'
+                                   : (${p['pageType'] == 'COMPARISON'} ? 'badge-comparison'
+                                   : 'badge-overview'))"
+                      th:text="${p['pageType']}">ENTITY</span>
+                <a th:href="@{/wiki/{slug}(slug=${p['slug']})}" th:text="${p['title']}">Page Title</a>
+                <span class="page-date" th:text="${p['date']}">Jul 4, 2026</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Updated pages -->
+    <div class="section-card">
+        <h3>Updated Pages <span class="count" th:text="'(' + ${#lists.size(updatedPages)} + ')'"></span></h3>
+        <div th:if="${#lists.isEmpty(updatedPages)}" class="empty-state">
+            No pages updated in the last <span th:text="${days}">7</span> days.
+        </div>
+        <div th:unless="${#lists.isEmpty(updatedPages)}">
+            <div class="page-item" th:each="p : ${updatedPages}">
+                <span class="badge"
+                      th:classappend="${p['pageType'] == 'ENTITY'} ? 'badge-entity'
+                                   : (${p['pageType'] == 'CONCEPT'} ? 'badge-concept'
+                                   : (${p['pageType'] == 'COMPARISON'} ? 'badge-comparison'
+                                   : 'badge-overview'))"
+                      th:text="${p['pageType']}">ENTITY</span>
+                <a th:href="@{/wiki/{slug}(slug=${p['slug']})}" th:text="${p['title']}">Page Title</a>
+                <span class="page-rev" th:text="'Rev ' + ${p['revision']}">Rev 2</span>
+                <span class="page-date" th:text="${p['date']}">Jul 4, 2026</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contradictions -->
+    <div class="section-card">
+        <h3>Contradictions Detected <span class="count" th:text="'(' + ${#lists.size(contradictions)} + ')'"></span></h3>
+        <div th:if="${#lists.isEmpty(contradictions)}" class="empty-state">
+            No contradictions detected in the last <span th:text="${days}">7</span> days.
+        </div>
+        <div th:unless="${#lists.isEmpty(contradictions)}">
+            <div class="contradiction-item" th:each="c : ${contradictions}">
+                <a class="page-link" th:href="@{/wiki/{slug}(slug=${c['pageSlug']})}"
+                   th:text="${c['pageTitle']}">Page Title</a>
+                <span class="page-date" th:text="${c['date']}" style="margin-left:0.5rem;">Jul 4</span>
+                <div class="claim-box">
+                    <div class="claim prior">
+                        <div class="claim-label">Prior Claim</div>
+                        <span th:text="${c['priorClaim']}">Old claim text</span>
+                    </div>
+                    <div class="claim new-claim">
+                        <div class="claim-label">New Evidence</div>
+                        <span th:text="${c['newClaim']}">New claim text</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+</body>
+</html>
