@@ -195,6 +195,7 @@
     <a href="/research/ai-search">AI Search</a>
     <a href="/dashboard/search">Article Search</a>
     <a href="/pricing">Pricing</a>
+    <a sec:authorize="isAuthenticated()" href="/profile">Profile</a>
     <a sec:authorize="hasRole('ADMIN')" href="/admin">Admin</a>
     <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
        style="margin-left:auto; color:#e57373;">Logout</a>
@@ -351,6 +352,86 @@
         </table>
     </section>
 
+    <!-- ================================================================
+         SECTION 4 — Analytics Charts
+         ================================================================ -->
+    <section id="charts">
+        <div class="section-header">
+            <h2>Analytics Charts</h2>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+                <h3 style="font-size: 0.85rem; color: #666; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Articles Ingested — Last 30 Days</h3>
+                <canvas id="articleTrendChart" height="200"></canvas>
+            </div>
+            <div>
+                <h3 style="font-size: 0.85rem; color: #666; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Articles by Topic — Top 10</h3>
+                <canvas id="topicDistChart" height="200"></canvas>
+            </div>
+        </div>
+    </section>
+
 </main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    var chartLabels = /*[[${chartLabels}]]*/ [];
+    var chartData = /*[[${chartData}]]*/ [];
+    var topicLabels = /*[[${topicChartLabels}]]*/ [];
+    var topicData = /*[[${topicChartData}]]*/ [];
+
+    // Article trend line chart
+    new Chart(document.getElementById('articleTrendChart'), {
+        type: 'line',
+        data: {
+            labels: chartLabels.map(function(d) { return d.substring(5); }),
+            datasets: [{
+                label: 'Articles',
+                data: chartData,
+                borderColor: '#4361ee',
+                backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 2,
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0 } },
+                x: { ticks: { maxTicksLimit: 10, font: { size: 10 } } }
+            }
+        }
+    });
+
+    // Topic distribution doughnut chart
+    var topicColors = [
+        '#4361ee', '#27ae60', '#f39c12', '#e74c3c', '#9b59b6',
+        '#1abc9c', '#3498db', '#e67e22', '#2c3e50', '#95a5a6'
+    ];
+    new Chart(document.getElementById('topicDistChart'), {
+        type: 'doughnut',
+        data: {
+            labels: topicLabels,
+            datasets: [{
+                data: topicData,
+                backgroundColor: topicColors.slice(0, topicLabels.length),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { font: { size: 10 }, boxWidth: 12 }
+                }
+            }
+        }
+    });
+</script>
 </body>
 </html>

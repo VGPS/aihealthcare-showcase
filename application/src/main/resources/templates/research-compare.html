@@ -304,6 +304,7 @@
     <a href="/research/ai-search">AI Search</a>
     <a href="/dashboard/search">Article Search</a>
     <a href="/pricing">Pricing</a>
+    <a sec:authorize="isAuthenticated()" href="/profile">Profile</a>
     <a sec:authorize="hasRole('ADMIN')" href="/admin">Admin</a>
     <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
        style="margin-left:auto; color:#e57373;">Logout</a>

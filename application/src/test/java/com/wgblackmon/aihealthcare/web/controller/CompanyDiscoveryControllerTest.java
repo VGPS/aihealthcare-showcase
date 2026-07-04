@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DiscoverCompaniesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,8 @@ class CompanyDiscoveryControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @MockBean
+    private ApiKeyPort apiKeyPort;
 
     @MockBean
     private DiscoverCompaniesUseCase discoverCompaniesUseCase;

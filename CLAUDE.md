@@ -197,7 +197,20 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 41 — New AI Healthcare Companies — COMPLETE — 681 tests passing**
+**Slice 47 — AI Search Enhancements (Fix + Gemini + UI) — COMPLETE — 719 tests passing**
+- [x] Fix: Claude output bug — aligned all adapters to use multi-line SUMMARY parsing (`OpenAiSearchAdapter`, `PerplexityAiSearchAdapter` now use `StringBuilder` + `inSummary` flag, matching `AnthropicAiSearchAdapter`)
+- [x] Infrastructure: `GeminiAiSearchAdapter` — raw `RestClient` to Gemini REST API (`gemini-2.0-flash`), graceful fallback when API key absent
+- [x] Infrastructure: `GeminiApiResponse` — deserialization record (nested `GeminiCandidate`/`GeminiContent`/`GeminiPart`)
+- [x] Config: `aihealthcare.gemini.api-key` in `application.yml` (from `GEMINI_API_KEY` env var)
+- [x] UI: Gemini checkbox added to model selection, `.model-badge.gemini` indigo styling
+- [x] UI: Synthesis cards now stacked (full-width) with colored left borders and subtle background tints per model
+- [x] UI: Each card shows "[Model] Synthesis" heading for clear differentiation
+- [x] Tests: `GeminiAiSearchAdapterTest` (6 tests)
+
+**Previously complete: Slices 42-46 — COMPLETE — 713 tests passing**
+_(see git log for details — Search Result Caching, Profile Page, Email Template, API Key Management, Dashboard Charts)_
+
+**Previously complete: Slice 41 — New AI Healthcare Companies — COMPLETE — 681 tests passing**
 - [x] Domain: `Company`, `CompanyDiscoveryResult`, `CompanyTags` records
 - [x] Domain: `DiscoverCompaniesUseCase` inbound port; `CompanyScrapingPort` outbound port
 - [x] Domain services: `CompanyClassifier` (8 subcategories), `CompanyDeduplicator` (fuzzy name matching), `CompanyDiscoveryService`, `CompanyNewsletterRenderer`

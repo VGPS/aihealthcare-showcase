@@ -28,7 +28,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-06-02
+ * @updated 2026-07-03
  */
 @Slf4j
 @Component
@@ -129,18 +129,23 @@ public class OpenAiSearchAdapter implements AiSearchPort {
             return null;
         }
 
-        String summary = "";
+        StringBuilder summaryBuilder = new StringBuilder();
         List<String> keyFindings = new ArrayList<>();
+        boolean inSummary = false;
         boolean inFindings = false;
 
         for (String line : response.split("\n")) {
             String trimmed = line.trim();
 
             if (trimmed.startsWith("SUMMARY:")) {
-                summary = trimmed.substring("SUMMARY:".length()).trim();
+                summaryBuilder.append(trimmed.substring("SUMMARY:".length()).trim());
+                inSummary = true;
                 inFindings = false;
             } else if (trimmed.equals("KEY_FINDINGS:")) {
+                inSummary = false;
                 inFindings = true;
+            } else if (inSummary && !trimmed.isEmpty()) {
+                summaryBuilder.append(" ").append(trimmed);
             } else if (inFindings && trimmed.startsWith("- ")) {
                 keyFindings.add(trimmed.substring(2).trim());
             } else if (inFindings && trimmed.startsWith("* ")) {
@@ -148,6 +153,7 @@ public class OpenAiSearchAdapter implements AiSearchPort {
             }
         }
 
+        String summary = summaryBuilder.toString().trim();
         if (summary.isEmpty()) {
             log.warn("parseResponse() | SUMMARY line not found in GPT response; using full response as summary");
             summary = response.length() > 4000 ? response.substring(0, 4000) + "..." : response;

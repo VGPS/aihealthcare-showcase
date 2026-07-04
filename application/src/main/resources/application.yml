@@ -39,6 +39,16 @@ spring:
   #            -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=1454 \
   #            -e POSTGRES_DB=aihealthcaredb -p 5432:5432 pgvector/pgvector:pg16
   # ---------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
+  # Caffeine cache — TTL-based in-memory cache for AI search results
+  # Entries expire after 10 minutes; max 500 cached queries
+  # ---------------------------------------------------------------------------
+  cache:
+    type: caffeine
+    cache-names: ai-search
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=10m
+
   datasource:
     url: jdbc:postgresql://localhost:5432/aihealthcaredb
     driver-class-name: org.postgresql.Driver
@@ -95,7 +105,7 @@ aihealthcare:
   # Set to 0 for no date restriction.  Change freely for experimentation.
   # ---------------------------------------------------------------------------
   articles:
-    days-back: 60
+    days-back: 30
 
   # ---------------------------------------------------------------------------
   # Harvest scheduling — consolidated daily pipeline (all times UTC).
@@ -655,6 +665,14 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   perplexity:
     api-key: ${PERPLEXITY_API_KEY:}
+
+  # ---------------------------------------------------------------------------
+  # Google Gemini API — used by GeminiAiSearchAdapter for AI-enhanced search.
+  # Set GEMINI_API_KEY as an environment variable to enable Gemini synthesis.
+  # When the key is absent the adapter logs a warning and returns a fallback.
+  # ---------------------------------------------------------------------------
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
 
   # ---------------------------------------------------------------------------
   # Embedding scheduler — cron expression for the EmbeddingScheduler job.

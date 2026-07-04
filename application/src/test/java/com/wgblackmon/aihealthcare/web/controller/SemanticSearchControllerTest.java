@@ -1,6 +1,8 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -31,6 +33,8 @@ class SemanticSearchControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @MockitoBean
+    private ApiKeyPort apiKeyPort;
 
     // -------------------------------------------------------------------------
     // Authentication

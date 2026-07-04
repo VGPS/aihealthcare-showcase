@@ -8,6 +8,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.ManageSubscribersUseCase;
 import com.wgblackmon.aihealthcare.web.dto.SubscriberRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -48,6 +49,8 @@ class SubscriberControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @MockitoBean
+    private ApiKeyPort apiKeyPort;
 
     @Autowired
     private ObjectMapper objectMapper;

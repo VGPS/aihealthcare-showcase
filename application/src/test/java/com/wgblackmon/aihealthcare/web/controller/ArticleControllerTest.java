@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,8 @@ class ArticleControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @MockitoBean
+    private ApiKeyPort apiKeyPort;
 
     @MockitoBean
     private ArticleIngestionPort ingestionPort;

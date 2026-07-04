@@ -140,9 +140,11 @@ class AiSearchServiceTest {
         AiSearchResult result = service.search("surgery AI", 5);
 
         assertThat(result.articles()).hasSize(1);
-        assertThat(result.syntheses()).hasSize(2);
+        assertThat(result.syntheses()).hasSize(3);
         assertThat(result.syntheses().get(0).modelName()).isEqualTo("Claude");
-        assertThat(result.syntheses().get(1).modelName()).isEqualTo("Perplexity");
+        assertThat(result.syntheses().get(1).modelName()).isEqualTo("GPT");
+        assertThat(result.syntheses().get(1).summary()).contains("Synthesis unavailable");
+        assertThat(result.syntheses().get(2).modelName()).isEqualTo("Perplexity");
     }
 
     @Test

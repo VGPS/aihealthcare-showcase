@@ -14,6 +14,8 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -54,9 +56,9 @@ import java.util.Optional;
  * map for the {@code news-listing} template.
  *
  * @author  Bill Blackmon
- * @version 1.3
+ * @version 1.4
  * @since   2026-05-04
- * @updated 2026-05-30
+ * @updated 2026-07-03
  */
 @Slf4j
 @Controller
@@ -69,6 +71,9 @@ public class DashboardController {
     private static final DateTimeFormatter NEWS_DATE_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z").withZone(ZoneId.of("America/New_York"));
 
+    private static final DateTimeFormatter DATE_KEY_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC);
+
     private final GetAnalyticsUseCase analyticsUseCase;
     private final ArticleIngestionPort articleIngestionPort;
     private final NewsTopicProperties newsTopicProperties;
@@ -76,6 +81,7 @@ public class DashboardController {
     private final SubscriberPort subscriberPort;
     private final TierGatingService tierGatingService;
     private final SearchArticlesUseCase searchUseCase;
+    private final NewsArticleRepository newsArticleRepository;
 
     public DashboardController(GetAnalyticsUseCase analyticsUseCase,
                                ArticleIngestionPort articleIngestionPort,
@@ -83,14 +89,16 @@ public class DashboardController {
                                TopicSummaryPort topicSummaryPort,
                                SubscriberPort subscriberPort,
                                TierGatingService tierGatingService,
-                               SearchArticlesUseCase searchUseCase) {
-        this.analyticsUseCase     = analyticsUseCase;
-        this.articleIngestionPort = articleIngestionPort;
-        this.newsTopicProperties  = newsTopicProperties;
-        this.topicSummaryPort     = topicSummaryPort;
-        this.subscriberPort       = subscriberPort;
-        this.tierGatingService    = tierGatingService;
-        this.searchUseCase        = searchUseCase;
+                               SearchArticlesUseCase searchUseCase,
+                               NewsArticleRepository newsArticleRepository) {
+        this.analyticsUseCase        = analyticsUseCase;
+        this.articleIngestionPort    = articleIngestionPort;
+        this.newsTopicProperties     = newsTopicProperties;
+        this.topicSummaryPort        = topicSummaryPort;
+        this.subscriberPort          = subscriberPort;
+        this.tierGatingService       = tierGatingService;
+        this.searchUseCase           = searchUseCase;
+        this.newsArticleRepository   = newsArticleRepository;
     }
 
     /**
@@ -115,6 +123,47 @@ public class DashboardController {
         model.addAttribute("runs", runs);
         model.addAttribute("evaluations", evaluations);
         model.addAttribute("mostRecentRunDisplay", mostRecentRunDisplay);
+
+        // Chart data: articles per day (last 30 days)
+        Instant thirtyDaysAgo = Instant.now().minus(java.time.Duration.ofDays(30));
+        List<NewsArticleEntity> recentArticles =
+                newsArticleRepository.findByCreatedAtAfterOrderByCreatedAtAsc(thirtyDaysAgo);
+
+        // Build date → count map
+        Map<String, Integer> dailyCounts = new LinkedHashMap<>();
+        for (int i = 29; i >= 0; i--) {
+            String dateKey = DATE_KEY_FMT.format(Instant.now().minus(java.time.Duration.ofDays(i)));
+            dailyCounts.put(dateKey, 0);
+        }
+        for (NewsArticleEntity entity : recentArticles) {
+            if (entity.getCreatedAt() != null) {
+                String dateKey = DATE_KEY_FMT.format(entity.getCreatedAt());
+                dailyCounts.computeIfPresent(dateKey, (k, v) -> v + 1);
+            }
+        }
+
+        List<String> chartLabels = new ArrayList<>(dailyCounts.keySet());
+        List<Integer> chartData = new ArrayList<>(dailyCounts.values());
+        model.addAttribute("chartLabels", chartLabels);
+        model.addAttribute("chartData", chartData);
+
+        // Chart data: topic distribution (top 10)
+        List<Object[]> topicCounts = newsArticleRepository.countByTopicGrouped();
+        List<String> topicLabels = new ArrayList<>();
+        List<Long> topicData = new ArrayList<>();
+        int topicLimit = Math.min(topicCounts.size(), 10);
+        for (int i = 0; i < topicLimit; i++) {
+            Object[] row = topicCounts.get(i);
+            String topicName = (String) row[0];
+            // Shorten long topic names for chart readability
+            if (topicName != null && topicName.length() > 25) {
+                topicName = topicName.substring(0, 22) + "...";
+            }
+            topicLabels.add(topicName != null ? topicName : "Unknown");
+            topicData.add((Long) row[1]);
+        }
+        model.addAttribute("topicChartLabels", topicLabels);
+        model.addAttribute("topicChartData", topicData);
 
         log.debug("dashboard() | return=dashboard");
         return "dashboard";

@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.infrastructure.config;
 
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +9,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * Spring Security configuration for session-based form login with role-based
@@ -27,17 +30,28 @@ import org.springframework.security.web.SecurityFilterChain;
  * session exists ({@code /api/**}, {@code /monitoring/**}, {@code /stripe/**}).
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-05-28
- * @updated 2026-05-31
+ * @updated 2026-07-03
  */
 @Slf4j
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final ApiKeyPort apiKeyPort;
+
+    public SecurityConfig(ApiKeyPort apiKeyPort) {
+        log.debug("SecurityConfig() | apiKeyPort={}", apiKeyPort.getClass().getSimpleName());
+        this.apiKeyPort = apiKeyPort;
+    }
+
     /**
      * Defines the HTTP security filter chain.
+     *
+     * <p>Registers the {@link ApiKeyAuthenticationFilter} before Spring's
+     * username/password filter so that {@code X-API-Key} header authentication
+     * is attempted first on {@code /api/**} paths.
      *
      * @param http The {@link HttpSecurity} builder provided by Spring Security.
      * @return The built {@link SecurityFilterChain}.
@@ -48,6 +62,8 @@ public class SecurityConfig {
         log.debug("filterChain() | configuring security filter chain");
 
         http
+            .addFilterBefore(new ApiKeyAuthenticationFilter(apiKeyPort),
+                             UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/css/**", "/js/**", "/webjars/**",
                                  "/pricing", "/error").permitAll()
@@ -64,6 +80,7 @@ public class SecurityConfig {
                 .permitAll()
             )
             .logout(logout -> logout
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
             )
