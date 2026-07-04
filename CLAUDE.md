@@ -197,7 +197,17 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice 47 — AI Search Enhancements (Fix + Gemini + UI) — COMPLETE — 719 tests passing**
+**Slice W1 — LLM Wiki Domain Records, Ports & Tests — COMPLETE — 759 tests passing**
+- [x] Domain: `WikiPageType` enum (ENTITY, CONCEPT, COMPARISON, OVERVIEW)
+- [x] Domain: `SourceRef` record — provenance link (articleId, sourceName, harvestedOn, excerpt)
+- [x] Domain: `WikiPage` record — compiled wiki page with slug, tags, markdown, sources, cross-refs, revision
+- [x] Domain: `Contradiction` record — prior/new claim with source lists on both sides
+- [x] Domain: `CompilationReport` record — run summary (pages created/updated, contradictions, warnings)
+- [x] Port: `KnowledgeCompilationPort` outbound — `compileNewSources(List<NewsArticle>)` → `CompilationReport`
+- [x] Port: `WikiQueryPort` outbound — `findRelevantPages`, `getPage`, `recentContradictions`
+- [x] Tests: `WikiPageTest` (13), `SourceRefTest` (7), `ContradictionTest` (9), `CompilationReportTest` (10), `KnowledgeCompilationPortTest` (1)
+
+**Previously complete: Slice 47 — AI Search Enhancements (Fix + Gemini + UI) — COMPLETE — 719 tests passing**
 - [x] Fix: Claude output bug — aligned all adapters to use multi-line SUMMARY parsing (`OpenAiSearchAdapter`, `PerplexityAiSearchAdapter` now use `StringBuilder` + `inSummary` flag, matching `AnthropicAiSearchAdapter`)
 - [x] Infrastructure: `GeminiAiSearchAdapter` — raw `RestClient` to Gemini REST API (`gemini-2.0-flash`), graceful fallback when API key absent
 - [x] Infrastructure: `GeminiApiResponse` — deserialization record (nested `GeminiCandidate`/`GeminiContent`/`GeminiPart`)
@@ -485,6 +495,36 @@ _(see git log for details)_
 - [x] `application.yml` + `data.sql` (topics seed)
 - [x] OpenAPI spec updated with all 6 endpoints
 - [x] Tests: `NewsletterRendererTest` (12), `ArticleStorageAdapterTest` (5 @DataJpaTest), `NewsletterServiceGenerateTest` (4 Mockito/ArgumentCaptor)
+
+---
+
+## LLM Wiki Layer (Slice W1)
+
+The wiki is a persistent, LLM-compiled knowledge base that gives the newsletter longitudinal
+context ("this reverses the FDA's March guidance").  Three ownership layers:
+
+1. **Immutable sources** — `NewsArticle` records harvested by the existing pipeline.  Never mutated by the wiki layer.
+2. **LLM-owned wiki** — `WikiPage` records compiled from sources by the `KnowledgeCompilationPort`.  Pages carry first-class provenance (`SourceRef`) and structured contradiction tracking (`Contradiction`).  Every compilation run produces an observable `CompilationReport`.
+3. **Query layer** — `WikiQueryPort` decouples newsletter drafting from compilation.  Consumers search by semantic similarity, retrieve pages by slug, or query recent contradictions.
+
+### Domain records (Slice W1)
+| Record | Package | Purpose |
+|--------|---------|---------|
+| `WikiPageType` | `domain.model` | Enum: `ENTITY`, `CONCEPT`, `COMPARISON`, `OVERVIEW` |
+| `SourceRef` | `domain.model` | Provenance link: articleId + sourceName + harvestedOn + excerpt |
+| `WikiPage` | `domain.model` | Compiled wiki page with slug, tags, markdown, sources, cross-refs |
+| `Contradiction` | `domain.model` | Prior claim vs new claim with source lists on both sides |
+| `CompilationReport` | `domain.model` | Run summary: pages created/updated, contradictions, warnings |
+
+### Port interfaces (Slice W1)
+| Port | Package | Methods |
+|------|---------|---------|
+| `KnowledgeCompilationPort` | `domain.port.outbound` | `compileNewSources(List<NewsArticle>)` → `CompilationReport` |
+| `WikiQueryPort` | `domain.port.outbound` | `findRelevantPages(query, maxResults)`, `getPage(slug)`, `recentContradictions(since)` |
+
+Compilation will run after harvest via the existing `@Scheduled` trigger (wiring deferred to Slice W2).
+
+See `docs/ROADMAP.md` for wiki slice roadmap (W2–W8).
 
 ---
 
