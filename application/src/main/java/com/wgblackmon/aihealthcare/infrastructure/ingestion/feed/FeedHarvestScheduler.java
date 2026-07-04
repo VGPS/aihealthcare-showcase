@@ -1,13 +1,15 @@
 package com.wgblackmon.aihealthcare.infrastructure.ingestion.feed;
 
+import com.wgblackmon.aihealthcare.domain.model.CompilationReport;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +38,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-10
- * @updated 2026-05-22
+ * @updated 2026-07-04
  */
 @Slf4j
 @Component
@@ -46,20 +48,24 @@ public class FeedHarvestScheduler {
     private final ArticleStoragePort    articleStoragePort;
     private final TopicSummaryGenerationService topicSummaryService;
     private final NewsTopicProperties newsTopicProperties;
+    private final KnowledgeCompilationPort knowledgeCompilationPort;
 
     public FeedHarvestScheduler(ArticleHarvestingPort harvestingPort,
                                 ArticleStoragePort articleStoragePort,
                                 TopicSummaryGenerationService topicSummaryService,
-                                NewsTopicProperties newsTopicProperties) {
-        log.debug("FeedHarvestScheduler() | harvestingPort={}, articleStoragePort={}, topicSummaryService={}, newsTopicProperties={}",
+                                NewsTopicProperties newsTopicProperties,
+                                @Autowired(required = false) KnowledgeCompilationPort knowledgeCompilationPort) {
+        log.debug("FeedHarvestScheduler() | harvestingPort={}, articleStoragePort={}, topicSummaryService={}, newsTopicProperties={}, knowledgeCompilationPort={}",
                   harvestingPort.getClass().getSimpleName(),
                   articleStoragePort.getClass().getSimpleName(),
                   topicSummaryService.getClass().getSimpleName(),
-                  newsTopicProperties.getClass().getSimpleName());
+                  newsTopicProperties.getClass().getSimpleName(),
+                  knowledgeCompilationPort != null ? knowledgeCompilationPort.getClass().getSimpleName() : "null");
         this.harvestingPort     = harvestingPort;
         this.articleStoragePort = articleStoragePort;
         this.topicSummaryService = topicSummaryService;
         this.newsTopicProperties = newsTopicProperties;
+        this.knowledgeCompilationPort = knowledgeCompilationPort;
     }
 
     /**
@@ -76,6 +82,7 @@ public class FeedHarvestScheduler {
             }
             log.info("harvestOnStartup() | {} articles harvested and saved", all.size());
             generateTopicSummaries();
+            compileWikiPages(all);
         } catch (Exception e) {
             log.warn("harvestOnStartup() | startup harvest failed — app continues normally", e);
         }
@@ -102,6 +109,7 @@ public class FeedHarvestScheduler {
         log.info("harvestDailyFeeds() | {} ACADEMIC/REGULATORY articles harvested", dailyArticles.size());
         routeForProcessing(dailyArticles);
         generateTopicSummaries();
+        compileWikiPages(dailyArticles);
         log.debug("harvestDailyFeeds() | return=void");
     }
 
@@ -124,6 +132,7 @@ public class FeedHarvestScheduler {
         log.info("harvestIndustryFeeds() | {} INDUSTRY articles harvested", industryArticles.size());
         routeForProcessing(industryArticles);
         generateTopicSummaries();
+        compileWikiPages(industryArticles);
         log.debug("harvestIndustryFeeds() | return=void");
     }
 
@@ -141,6 +150,31 @@ public class FeedHarvestScheduler {
             log.warn("generateTopicSummaries() | topic summary generation failed — harvest continues", e);
         }
         log.debug("generateTopicSummaries() | return=void");
+    }
+
+    /**
+     * Triggers wiki compilation for the given articles.
+     * Failures are caught so the harvest pipeline is never interrupted.
+     * No-ops gracefully if the compilation port is not configured.
+     *
+     * @param articles articles to compile into the wiki knowledge base
+     */
+    private void compileWikiPages(List<NewsArticle> articles) {
+        log.debug("compileWikiPages() | articles={}", articles.size());
+        if (knowledgeCompilationPort == null) {
+            log.debug("compileWikiPages() | knowledgeCompilationPort is null — skipping");
+            log.debug("compileWikiPages() | return=void");
+            return;
+        }
+        try {
+            CompilationReport report = knowledgeCompilationPort.compileNewSources(articles);
+            log.info("compileWikiPages() | created={}, updated={}, contradictions={}",
+                    report.pagesCreated().size(), report.pagesUpdated().size(),
+                    report.contradictionsFlagged().size());
+        } catch (Exception e) {
+            log.warn("compileWikiPages() | wiki compilation failed — harvest continues", e);
+        }
+        log.debug("compileWikiPages() | return=void");
     }
 
     /**

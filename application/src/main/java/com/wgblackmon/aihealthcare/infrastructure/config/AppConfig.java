@@ -47,9 +47,17 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SearchPromptPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
+import com.wgblackmon.aihealthcare.infrastructure.ai.WikiCompilationAdapter;
+import com.wgblackmon.aihealthcare.infrastructure.ai.WikiResponseParser;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiContradictionRepository;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionRepository;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiSourceRefRepository;
 import com.wgblackmon.aihealthcare.infrastructure.research.LegacyGoogleResearchAdapter;
 import com.wgblackmon.aihealthcare.infrastructure.research.PerplexityResearchAdapter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,7 +98,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-07-03
+ * @updated 2026-07-04
  */
 
 @Slf4j
@@ -482,6 +490,41 @@ public class AppConfig {
                 new CompanyDeduplicator(),
                 new CompanyNewsletterRenderer());
         log.debug("companyDiscoveryService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link WikiCompilationAdapter} bean that implements
+     * {@link KnowledgeCompilationPort} — the LLM-powered wiki compilation pipeline.
+     *
+     * <p>Loads the {@code wiki-compile.txt} prompt template at startup.
+     * The adapter receives the auto-configured {@link ChatClient.Builder}
+     * and all wiki repository beans via constructor injection.
+     *
+     * @param chatClientBuilder       Auto-configured ChatClient builder.
+     * @param promptLoaderService     Template loader for prompt files.
+     * @param pageRepository          Wiki page persistence.
+     * @param sourceRefRepository     Source ref persistence.
+     * @param contradictionRepository Contradiction persistence.
+     * @param revisionRepository      Revision audit trail persistence.
+     * @return The wired {@link WikiCompilationAdapter} instance.
+     */
+    @Bean
+    public WikiCompilationAdapter wikiCompilationAdapter(
+            ChatClient.Builder chatClientBuilder,
+            PromptLoaderService promptLoaderService,
+            WikiPageRepository pageRepository,
+            WikiSourceRefRepository sourceRefRepository,
+            WikiContradictionRepository contradictionRepository,
+            WikiPageRevisionRepository revisionRepository) {
+        log.debug("wikiCompilationAdapter() | wiring wiki compilation pipeline");
+        String wikiCompilePrompt = promptLoaderService.load("wiki-compile.txt");
+        WikiResponseParser responseParser = new WikiResponseParser();
+        WikiCompilationAdapter result = new WikiCompilationAdapter(
+                chatClientBuilder, pageRepository, sourceRefRepository,
+                contradictionRepository, revisionRepository,
+                responseParser, wikiCompilePrompt);
+        log.debug("wikiCompilationAdapter() | return={}", result.getClass().getSimpleName());
         return result;
     }
 
