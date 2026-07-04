@@ -1,9 +1,12 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.Contradiction;
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.SourceRef;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.model.WikiPageType;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
@@ -23,11 +26,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.net.URI;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +71,7 @@ public class WikiController {
     private final WikiPageRevisionRepository revisionRepository;
     private final WikiContradictionRepository contradictionRepository;
     private final NewsArticleRepository articleRepository;
+    private final List<AiSearchPort> aiSearchPorts;
     private final Parser markdownParser;
     private final HtmlRenderer htmlRenderer;
 
@@ -73,19 +79,22 @@ public class WikiController {
                            WikiPageRepository pageRepository,
                            WikiPageRevisionRepository revisionRepository,
                            WikiContradictionRepository contradictionRepository,
-                           NewsArticleRepository articleRepository) {
+                           NewsArticleRepository articleRepository,
+                           List<AiSearchPort> aiSearchPorts) {
         log.debug("WikiController() | wikiQueryPort={}, pageRepository={}, revisionRepository={}, "
-                + "contradictionRepository={}, articleRepository={}",
+                + "contradictionRepository={}, articleRepository={}, aiSearchPortCount={}",
                 wikiQueryPort.getClass().getSimpleName(),
                 pageRepository.getClass().getSimpleName(),
                 revisionRepository.getClass().getSimpleName(),
                 contradictionRepository.getClass().getSimpleName(),
-                articleRepository.getClass().getSimpleName());
+                articleRepository.getClass().getSimpleName(),
+                aiSearchPorts.size());
         this.wikiQueryPort = wikiQueryPort;
         this.pageRepository = pageRepository;
         this.revisionRepository = revisionRepository;
         this.contradictionRepository = contradictionRepository;
         this.articleRepository = articleRepository;
+        this.aiSearchPorts = aiSearchPorts;
         this.markdownParser = Parser.builder().build();
         this.htmlRenderer = HtmlRenderer.builder().build();
     }
@@ -378,6 +387,111 @@ public class WikiController {
         log.debug("digest() | return=wiki-digest (new={}, updated={}, contradictions={})",
                 newPages.size(), updatedPages.size(), contradictionList.size());
         return "wiki-digest";
+    }
+
+    /**
+     * Renders the "Ask the Wiki" conversational search page. Retrieves
+     * relevant wiki pages for the query, converts them to pseudo-articles,
+     * and synthesizes an AI answer grounded in wiki knowledge.
+     *
+     * @param q      optional search query
+     * @param maxPages maximum wiki pages to include (default 5)
+     * @param models optional list of AI model names to use
+     * @param model  Thymeleaf model
+     * @return view name "wiki-ask"
+     */
+    @GetMapping("/ask")
+    public String askWiki(@RequestParam(required = false) String q,
+                           @RequestParam(required = false, defaultValue = "5") int maxPages,
+                           @RequestParam(required = false) List<String> models,
+                           Model model) {
+        log.debug("askWiki() | q={}, maxPages={}, models={}", q, maxPages, models);
+
+        if (q != null && !q.isBlank()) {
+            int resolvedMax = Math.max(1, Math.min(maxPages, 20));
+            List<WikiPage> pages = wikiQueryPort.findRelevantPages(q.trim(), resolvedMax);
+            log.info("askWiki() | found {} wiki pages for query '{}'", pages.size(), q);
+
+            List<AiSearchSynthesis> syntheses = new ArrayList<>();
+            if (!pages.isEmpty()) {
+                // Convert wiki pages to pseudo-articles for synthesis
+                List<NewsArticle> pseudoArticles = new ArrayList<>();
+                for (WikiPage page : pages) {
+                    String body = page.contentMarkdown() != null ? page.contentMarkdown() : "";
+                    // Truncate to 3000 chars to avoid token limits
+                    if (body.length() > 3000) {
+                        body = body.substring(0, 3000) + "...";
+                    }
+                    pseudoArticles.add(new NewsArticle(
+                            page.slug(), page.title(),
+                            URI.create("http://localhost:8080/wiki/" + page.slug()),
+                            body, "Wiki — " + page.pageType().name(),
+                            null, null, "AIHealthcare Wiki",
+                            "ACADEMIC", 1.0, page.createdAt()));
+                }
+
+                // Filter ports by requested model names
+                List<AiSearchPort> selectedPorts = new ArrayList<>();
+                if (models == null || models.isEmpty()) {
+                    // Default to first available port (cheapest)
+                    if (!aiSearchPorts.isEmpty()) {
+                        selectedPorts.add(aiSearchPorts.get(0));
+                    }
+                } else {
+                    for (AiSearchPort port : aiSearchPorts) {
+                        for (String requested : models) {
+                            if (port.modelName().equalsIgnoreCase(requested)) {
+                                selectedPorts.add(port);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Synthesize
+                for (AiSearchPort port : selectedPorts) {
+                    try {
+                        log.info("askWiki() | synthesizing with model '{}'", port.modelName());
+                        AiSearchSynthesis synthesis = port.synthesize(q.trim(), pseudoArticles);
+                        if (synthesis != null) {
+                            syntheses.add(synthesis);
+                        }
+                    } catch (Exception e) {
+                        log.error("askWiki() | synthesis failed for model '{}': {}",
+                                port.modelName(), e.getMessage());
+                        syntheses.add(new AiSearchSynthesis(
+                                port.modelName(),
+                                "Synthesis unavailable — " + e.getMessage(),
+                                Collections.emptyList(), Instant.now()));
+                    }
+                }
+            }
+
+            // Build page display data
+            Map<String, String> pageTimestamps = new HashMap<>();
+            for (WikiPage page : pages) {
+                Instant displayTime = page.updatedAt() != null ? page.updatedAt() : page.createdAt();
+                pageTimestamps.put(page.slug(), DISPLAY_FMT.format(displayTime) + " UTC");
+            }
+
+            model.addAttribute("syntheses", syntheses);
+            model.addAttribute("pages", pages);
+            model.addAttribute("pageTimestamps", pageTimestamps);
+            model.addAttribute("pageCount", pages.size());
+            model.addAttribute("q", q);
+            model.addAttribute("maxPages", resolvedMax);
+            model.addAttribute("selectedModels", models != null ? models : List.of());
+        }
+
+        // Available model names for checkboxes
+        List<String> availableModels = new ArrayList<>();
+        for (AiSearchPort port : aiSearchPorts) {
+            availableModels.add(port.modelName());
+        }
+        model.addAttribute("availableModels", availableModels);
+
+        log.debug("askWiki() | return=wiki-ask");
+        return "wiki-ask";
     }
 
     /**

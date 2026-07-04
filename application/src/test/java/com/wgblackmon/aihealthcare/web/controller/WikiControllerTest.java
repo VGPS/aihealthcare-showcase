@@ -1,9 +1,11 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.Contradiction;
 import com.wgblackmon.aihealthcare.domain.model.SourceRef;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.model.WikiPageType;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
@@ -74,6 +76,9 @@ class WikiControllerTest {
 
     @MockBean
     private NewsArticleRepository articleRepository;
+
+    @MockBean
+    private AiSearchPort aiSearchPort;
 
     private static final Instant NOW = Instant.parse("2026-07-04T10:00:00Z");
 
@@ -268,6 +273,44 @@ class WikiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("wiki-digest"))
                 .andExpect(model().attribute("days", 30));
+    }
+
+    @Test
+    void askWiki_noQuery_rendersEmptyForm() throws Exception {
+        when(aiSearchPort.modelName()).thenReturn("Claude");
+
+        mockMvc.perform(get("/wiki/ask"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-ask"))
+                .andExpect(model().attributeExists("availableModels"));
+    }
+
+    @Test
+    void askWiki_withQuery_noPages_rendersEmptyState() throws Exception {
+        when(aiSearchPort.modelName()).thenReturn("Claude");
+        when(wikiQueryPort.findRelevantPages(anyString(), anyInt())).thenReturn(List.of());
+
+        mockMvc.perform(get("/wiki/ask").param("q", "FDA AI regulation"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-ask"))
+                .andExpect(model().attribute("q", "FDA AI regulation"))
+                .andExpect(model().attribute("pageCount", 0));
+    }
+
+    @Test
+    void askWiki_withQuery_andPages_rendersSynthesis() throws Exception {
+        WikiPage page = buildTestPage("fda-ai-guidance", "FDA AI Guidance", WikiPageType.ENTITY);
+        when(wikiQueryPort.findRelevantPages(anyString(), anyInt())).thenReturn(List.of(page));
+        when(aiSearchPort.modelName()).thenReturn("Claude");
+        when(aiSearchPort.synthesize(anyString(), any())).thenReturn(
+                new AiSearchSynthesis("Claude", "Summary of wiki content.",
+                        List.of("Finding 1", "Finding 2"), NOW));
+
+        mockMvc.perform(get("/wiki/ask").param("q", "FDA AI regulation")
+                        .param("models", "Claude"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-ask"))
+                .andExpect(model().attributeExists("syntheses", "pages", "pageTimestamps"));
     }
 
     @Test
