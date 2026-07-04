@@ -41,7 +41,7 @@ public class WikiPageEntity {
     @Column(columnDefinition = "TEXT")
     private String tags;
 
-    @Column(name = "content_markdown", columnDefinition = "CLOB")
+    @Column(name = "content_markdown", columnDefinition = "TEXT")
     private String contentMarkdown;
 
     @Column(name = "related_slugs", columnDefinition = "TEXT")

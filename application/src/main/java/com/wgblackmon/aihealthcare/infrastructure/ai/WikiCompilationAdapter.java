@@ -15,7 +15,9 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionRe
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiSourceRefEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiSourceRefRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -75,6 +77,7 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
     }
 
     @Override
+    @Transactional
     public CompilationReport compileNewSources(List<NewsArticle> newArticles) {
         log.debug("compileNewSources() | articles={}", newArticles.size());
 
@@ -88,8 +91,11 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
         String prompt = buildPrompt(newArticles, existingPages);
         log.debug("compileNewSources() | promptLength={}", prompt.length());
 
-        // 2c. Call Claude
-        String response = chatClient.prompt().user(prompt).call().content();
+        // 2c. Call Claude with high token limit for multi-page output
+        String response = chatClient.prompt()
+                .user(prompt)
+                .options(AnthropicChatOptions.builder().maxTokens(16000).build())
+                .call().content();
         log.debug("compileNewSources() | responseLength={}", response != null ? response.length() : 0);
 
         // 2d. Parse response

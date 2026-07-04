@@ -82,7 +82,9 @@ public class FeedHarvestScheduler {
             }
             log.info("harvestOnStartup() | {} articles harvested and saved", all.size());
             generateTopicSummaries();
-            compileWikiPages(all);
+            // Wiki compilation skipped on startup — existing pages are persisted in DB;
+            // scheduled cron jobs handle incremental compilation going forward.
+            // Use POST /monitoring/wiki/compile for manual compilation.
         } catch (Exception e) {
             log.warn("harvestOnStartup() | startup harvest failed — app continues normally", e);
         }

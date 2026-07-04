@@ -104,26 +104,25 @@ public class WikiController {
                              Model model) {
         log.debug("wikiIndex() | query={}, pageType={}", query, pageType);
 
-        List<WikiPage> pages;
-        if (query != null && !query.isBlank()) {
-            pages = wikiQueryPort.findRelevantPages(query.trim(), 100);
-        } else if (pageType != null && !pageType.isBlank()) {
-            List<WikiPageEntity> entities = pageRepository.findByPageType(pageType);
-            pages = new ArrayList<>();
-            for (WikiPageEntity entity : entities) {
-                WikiPage page = wikiQueryPort.getPage(entity.getSlug());
-                if (page != null) {
-                    pages.add(page);
-                }
-            }
+        boolean hasQuery = query != null && !query.isBlank();
+        boolean hasType = pageType != null && !pageType.isBlank();
+
+        List<WikiPageEntity> entities;
+        if (hasQuery && hasType) {
+            entities = pageRepository.searchByKeywordAndPageType(query.trim(), pageType);
+        } else if (hasQuery) {
+            entities = pageRepository.searchByKeyword(query.trim());
+        } else if (hasType) {
+            entities = pageRepository.findByPageType(pageType);
         } else {
-            List<WikiPageEntity> entities = pageRepository.findAll();
-            pages = new ArrayList<>();
-            for (WikiPageEntity entity : entities) {
-                WikiPage page = wikiQueryPort.getPage(entity.getSlug());
-                if (page != null) {
-                    pages.add(page);
-                }
+            entities = pageRepository.findAll();
+        }
+
+        List<WikiPage> pages = new ArrayList<>();
+        for (WikiPageEntity entity : entities) {
+            WikiPage page = wikiQueryPort.getPage(entity.getSlug());
+            if (page != null) {
+                pages.add(page);
             }
         }
 
@@ -166,9 +165,18 @@ public class WikiController {
         String renderedContent = htmlRenderer.render(markdownParser.parse(
                 page.contentMarkdown() != null ? page.contentMarkdown() : ""));
 
+        // Filter out sources with opaque/base64 article IDs (e.g. Google News encoded IDs)
+        List<SourceRef> displaySources = new ArrayList<>();
+        for (SourceRef source : page.sources()) {
+            if (source.articleId() != null && source.articleId().length() <= 200
+                    && !source.articleId().startsWith("CBM")) {
+                displaySources.add(source);
+            }
+        }
+
         // Resolve provenance URLs
         List<String> articleIds = new ArrayList<>();
-        for (SourceRef source : page.sources()) {
+        for (SourceRef source : displaySources) {
             articleIds.add(source.articleId());
         }
         Map<String, String> articleUrlMap = new HashMap<>();
@@ -180,6 +188,25 @@ public class WikiController {
                 articleTitleMap.put(entity.getArticleId(), entity.getTitle());
             }
         }
+
+        // Auto-construct URLs for PubMed IDs not found in the DB
+        for (SourceRef source : displaySources) {
+            String aid = source.articleId();
+            if (aid != null && aid.startsWith("pubmed-") && !articleUrlMap.containsKey(aid)) {
+                String pmid = aid.substring("pubmed-".length());
+                articleUrlMap.put(aid, "https://pubmed.ncbi.nlm.nih.gov/" + pmid + "/");
+                articleTitleMap.put(aid, "PubMed " + pmid);
+            }
+        }
+
+        // Filter out sources with no resolvable URL (non-clickable entries)
+        List<SourceRef> linkableSources = new ArrayList<>();
+        for (SourceRef source : displaySources) {
+            if (articleUrlMap.containsKey(source.articleId())) {
+                linkableSources.add(source);
+            }
+        }
+        displaySources = linkableSources;
 
         // Load contradictions for this page
         List<WikiContradictionEntity> contradictionEntities =
@@ -217,10 +244,22 @@ public class WikiController {
         Instant displayTime = page.updatedAt() != null ? page.updatedAt() : page.createdAt();
         String pageTimestamp = DISPLAY_FMT.format(displayTime) + " UTC";
 
+        // Compute evidence grades for each source
+        Map<String, String> evidenceGrades = new HashMap<>();
+        Map<String, String> evidenceColors = new HashMap<>();
+        for (SourceRef source : displaySources) {
+            String grade = classifyEvidence(source, articleUrlMap.get(source.articleId()));
+            evidenceGrades.put(source.articleId(), grade);
+            evidenceColors.put(source.articleId(), evidenceGradeColor(grade));
+        }
+
         model.addAttribute("page", page);
+        model.addAttribute("displaySources", displaySources);
         model.addAttribute("renderedContent", renderedContent);
         model.addAttribute("articleUrlMap", articleUrlMap);
         model.addAttribute("articleTitleMap", articleTitleMap);
+        model.addAttribute("evidenceGrades", evidenceGrades);
+        model.addAttribute("evidenceColors", evidenceColors);
         model.addAttribute("contradictions", contradictions);
         model.addAttribute("relatedPages", relatedPages);
         model.addAttribute("revisions", revisions);
@@ -270,5 +309,138 @@ public class WikiController {
 
         log.debug("contradictions() | return=wiki-contradictions (count={})", contradictions.size());
         return "wiki-contradictions";
+    }
+
+    /**
+     * Renders the "What Changed This Week" digest page showing newly created
+     * pages, updated pages, and recent contradictions within a configurable
+     * time window.
+     *
+     * @param days  number of days to look back (default 7)
+     * @param model Thymeleaf model
+     * @return view name "wiki-digest"
+     */
+    @GetMapping("/digest")
+    public String digest(@RequestParam(defaultValue = "7") int days, Model model) {
+        log.debug("digest() | days={}", days);
+
+        Instant since = Instant.now().minus(days, ChronoUnit.DAYS);
+
+        // New pages created in the period
+        List<WikiPageEntity> createdEntities = pageRepository.findByCreatedAtAfterOrderByCreatedAtDesc(since);
+        List<Map<String, String>> newPages = new ArrayList<>();
+        for (WikiPageEntity entity : createdEntities) {
+            Map<String, String> entry = new HashMap<>();
+            entry.put("slug", entity.getSlug());
+            entry.put("title", entity.getTitle());
+            entry.put("pageType", entity.getPageType());
+            entry.put("date", DISPLAY_FMT.format(entity.getCreatedAt()) + " UTC");
+            newPages.add(entry);
+        }
+
+        // Updated pages (revision > 1, updated in the period)
+        List<WikiPageEntity> updatedEntities =
+                pageRepository.findByUpdatedAtAfterAndRevisionGreaterThanOrderByUpdatedAtDesc(since, 1);
+        List<Map<String, String>> updatedPages = new ArrayList<>();
+        for (WikiPageEntity entity : updatedEntities) {
+            Map<String, String> entry = new HashMap<>();
+            entry.put("slug", entity.getSlug());
+            entry.put("title", entity.getTitle());
+            entry.put("pageType", entity.getPageType());
+            entry.put("revision", String.valueOf(entity.getRevision()));
+            entry.put("date", DISPLAY_FMT.format(entity.getUpdatedAt()) + " UTC");
+            updatedPages.add(entry);
+        }
+
+        // Contradictions in the period
+        List<Contradiction> contradictions = wikiQueryPort.recentContradictions(since);
+        List<Map<String, String>> contradictionList = new ArrayList<>();
+        for (Contradiction c : contradictions) {
+            Map<String, String> entry = new HashMap<>();
+            entry.put("pageSlug", c.pageSlug());
+            WikiPage page = wikiQueryPort.getPage(c.pageSlug());
+            entry.put("pageTitle", page != null ? page.title() : c.pageSlug());
+            entry.put("priorClaim", c.priorClaim());
+            entry.put("newClaim", c.newClaim());
+            entry.put("date", DISPLAY_FMT.format(c.detectedAt()) + " UTC");
+            contradictionList.add(entry);
+        }
+
+        // Total wiki page count
+        long totalPages = pageRepository.count();
+
+        model.addAttribute("newPages", newPages);
+        model.addAttribute("updatedPages", updatedPages);
+        model.addAttribute("contradictions", contradictionList);
+        model.addAttribute("days", days);
+        model.addAttribute("totalPages", totalPages);
+
+        log.debug("digest() | return=wiki-digest (new={}, updated={}, contradictions={})",
+                newPages.size(), updatedPages.size(), contradictionList.size());
+        return "wiki-digest";
+    }
+
+    /**
+     * Classifies a source reference into an evidence grade based on the source
+     * name and article ID patterns.
+     *
+     * @param source the source reference
+     * @param url    resolved URL (may be null)
+     * @return evidence grade label
+     */
+    private String classifyEvidence(SourceRef source, String url) {
+        String name = source.sourceName() != null ? source.sourceName().toLowerCase() : "";
+        String aid = source.articleId() != null ? source.articleId().toLowerCase() : "";
+
+        // Academic / peer-reviewed
+        if (aid.startsWith("pubmed-") || name.contains("pubmed") || name.contains("arxiv")
+                || name.contains("npj") || name.contains("lancet") || name.contains("jama")
+                || name.contains("nejm") || name.contains("bmj")) {
+            return "Peer-Reviewed";
+        }
+
+        // Regulatory
+        if (name.contains("fda") || name.contains("who") || name.contains("nih")
+                || name.contains("clinicaltrials") || name.contains("regulatory")
+                || name.contains("ema")) {
+            return "Regulatory";
+        }
+
+        // Industry analysis
+        if (name.contains("beckers") || name.contains("healthcare it")
+                || name.contains("healthcare dive") || name.contains("fierce")
+                || name.contains("medcity") || name.contains("stat news")
+                || name.contains("mit technology")) {
+            return "Industry Analysis";
+        }
+
+        // Vendor / company sources
+        if (name.contains("anthropic") || name.contains("openai") || name.contains("google")
+                || name.contains("amazon") || name.contains("perplexity")
+                || name.contains("competitor") || name.contains("huggingface")) {
+            return "Vendor";
+        }
+
+        // News / general
+        if (name.contains("google news") || name.contains("news")) {
+            return "News Report";
+        }
+
+        return "Other";
+    }
+
+    /**
+     * Returns a CSS color for the given evidence grade.
+     *
+     * @param grade the evidence grade label
+     * @return hex color string
+     */
+    private String evidenceGradeColor(String grade) {
+        if ("Peer-Reviewed".equals(grade)) return "#155724";
+        if ("Regulatory".equals(grade)) return "#004085";
+        if ("Industry Analysis".equals(grade)) return "#856404";
+        if ("Vendor".equals(grade)) return "#6c757d";
+        if ("News Report".equals(grade)) return "#495057";
+        return "#888";
     }
 }

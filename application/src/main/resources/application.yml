@@ -675,6 +675,28 @@ aihealthcare:
     api-key: ${GEMINI_API_KEY:}
 
   # ---------------------------------------------------------------------------
+  # PubMed Backfill — historical article harvesting via E-utilities API.
+  # No API key needed (rate-limited to 3 req/sec).
+  # Trigger manually: POST /monitoring/backfill
+  # Custom query:     POST /monitoring/backfill/custom?query=...
+  # ---------------------------------------------------------------------------
+  backfill:
+    from-year: 2022
+    to-year: 2025
+    max-per-query: 50
+    queries:
+      - "\"artificial intelligence\" AND \"healthcare\" AND \"legal liability\""
+      - "\"artificial intelligence\" AND \"medical device\" AND \"regulation\""
+      - "\"AI\" AND \"healthcare\" AND \"malpractice\""
+      - "\"machine learning\" AND \"clinical decision\" AND \"liability\""
+      - "\"artificial intelligence\" AND \"HIPAA\" AND \"compliance\""
+      - "\"AI\" AND \"healthcare\" AND \"FDA\" AND \"approval\""
+      - "\"artificial intelligence\" AND \"drug discovery\""
+      - "\"AI\" AND \"healthcare\" AND \"bias\" AND \"fairness\""
+      - "\"large language model\" AND \"healthcare\""
+      - "\"artificial intelligence\" AND \"radiology\" AND \"diagnosis\""
+
+  # ---------------------------------------------------------------------------
   # Embedding scheduler — cron expression for the EmbeddingScheduler job.
   # Default: 07:00 UTC daily — runs AFTER all harvesters complete (04:00-06:00).
   # Examples:

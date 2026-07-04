@@ -317,12 +317,15 @@
                   th:text="${page.pageType().name()}">ENTITY</span>
         </div>
         <div class="tag-list" th:if="${!page.tags().isEmpty()}">
-            <span class="tag" th:each="tag : ${page.tags()}" th:text="${tag}">tag</span>
+            <a class="tag" th:each="tag : ${page.tags()}"
+               th:href="@{/wiki(query=${tag})}"
+               th:text="${tag}"
+               style="text-decoration:none; cursor:pointer;">tag</a>
         </div>
         <div class="page-meta">
             <span th:text="'Rev ' + ${page.revision()}">Rev 1</span>
             <span th:text="${pageTimestamp}">Jul 4, 2026 10:00 UTC</span>
-            <span th:text="${page.sources().size()} + ' sources'">0 sources</span>
+            <span th:text="${displaySources.size()} + ' sources'">0 sources</span>
         </div>
     </div>
 
@@ -335,18 +338,19 @@
     </div>
 
     <!-- Provenance table -->
-    <div class="card" th:if="${!page.sources().isEmpty()}">
+    <div class="card" th:if="${!displaySources.isEmpty()}">
         <h2>Sources &amp; Provenance</h2>
         <table class="provenance-table">
             <thead>
                 <tr>
                     <th>Source</th>
                     <th>Article</th>
+                    <th>Evidence</th>
                     <th>Harvested</th>
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="source : ${page.sources()}">
+                <tr th:each="source : ${displaySources}">
                     <td th:text="${source.sourceName()}">FDA</td>
                     <td>
                         <a th:if="${articleUrlMap.containsKey(source.articleId())}"
@@ -364,6 +368,11 @@
                              th:text="${source.excerpt()}">
                             Supporting excerpt text...
                         </div>
+                    </td>
+                    <td>
+                        <span style="display:inline-block; padding:0.15em 0.5em; border-radius:99px; font-size:0.65rem; font-weight:600; letter-spacing:0.03em;"
+                              th:style="'background:' + ${evidenceColors.get(source.articleId())} + '1a; color:' + ${evidenceColors.get(source.articleId())}"
+                              th:text="${evidenceGrades.get(source.articleId())}">Peer-Reviewed</span>
                     </td>
                     <td th:text="${source.harvestedOn()}">2026-07-04</td>
                 </tr>

@@ -123,11 +123,13 @@ class WikiCompilationAdapterTest {
     private void mockChatResponse(String response) {
         ChatClient.ChatClientRequestSpec requestSpec = mock(ChatClient.ChatClientRequestSpec.class);
         ChatClient.ChatClientRequestSpec userSpec = mock(ChatClient.ChatClientRequestSpec.class);
+        ChatClient.ChatClientRequestSpec optionsSpec = mock(ChatClient.ChatClientRequestSpec.class);
         ChatClient.CallResponseSpec callSpec = mock(ChatClient.CallResponseSpec.class);
 
         when(chatClient.prompt()).thenReturn(requestSpec);
         when(requestSpec.user(anyString())).thenReturn(userSpec);
-        when(userSpec.call()).thenReturn(callSpec);
+        when(userSpec.options(any())).thenReturn(optionsSpec);
+        when(optionsSpec.call()).thenReturn(callSpec);
         when(callSpec.content()).thenReturn(response);
     }
 
