@@ -115,6 +115,13 @@
             <version>2.1.0</version>
         </dependency>
 
+        <!-- commonmark — Markdown to HTML rendering for wiki pages (Slice W5) -->
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>0.24.0</version>
+        </dependency>
+
         <!-- jsoup HTML parser — used for web page scraping in Slice 5 -->
         <dependency>
             <groupId>org.jsoup</groupId>

@@ -26,4 +26,12 @@ public interface WikiContradictionRepository extends JpaRepository<WikiContradic
      * @return contradictions ordered by detectedAt descending
      */
     List<WikiContradictionEntity> findByDetectedAtAfterOrderByDetectedAtDesc(Instant since);
+
+    /**
+     * Finds all contradictions for the given wiki page.
+     *
+     * @param pageSlug the slug of the wiki page
+     * @return contradictions for that page; empty if none
+     */
+    List<WikiContradictionEntity> findByPageSlug(String pageSlug);
 }

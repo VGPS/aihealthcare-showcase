@@ -197,20 +197,17 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice W2 — Wiki Persistence + Compilation Adapter — COMPLETE — 800 tests passing**
-- [x] Persistence: `WikiPageEntity`, `WikiSourceRefEntity`, `WikiContradictionEntity`, `WikiPageRevisionEntity`, `CompilationReportEntity` — JPA entities with `ddl-auto: update`
-- [x] Repositories: `WikiPageRepository` (LIKE search + pageType filter), `WikiSourceRefRepository`, `WikiContradictionRepository`, `WikiPageRevisionRepository`, `CompilationReportRepository`
-- [x] Port: `CompilationReportPort` outbound — `save(CompilationReport)`, `findAll()`
-- [x] Adapter: `WikiQueryAdapter` — implements `WikiQueryPort`; entity→domain mapping, source ref loading, contradiction expansion
-- [x] Adapter: `CompilationReportAdapter` — implements `CompilationReportPort`; pipe-delimited slug serialization
-- [x] AI: `WikiCompilationAdapter` — implements `KnowledgeCompilationPort`; ChatClient→Claude, prompt building, response parsing, page/revision/contradiction persistence
-- [x] AI: `WikiResponseParser` — structured LLM response parser (PAGE/CONTRADICTION/WARNING sections)
-- [x] Prompt: `prompts/wiki-compile.txt` — structured output format for wiki compilation
-- [x] Web: `WikiCompilationController` — `POST /monitoring/wiki/compile` (manual trigger, fetches last 7 days)
-- [x] Web: `CompilationReportResponse` DTO
-- [x] Config: `AppConfig` — `wikiCompilationAdapter` bean wiring
-- [x] Scheduler: `FeedHarvestScheduler` — `compileWikiPages()` called after harvest (optional, null-safe)
-- [x] Tests: `WikiPageRepositoryTest` (6), `WikiContradictionRepositoryTest` (4), `WikiQueryAdapterTest` (7), `CompilationReportAdapterTest` (4), `WikiResponseParserTest` (11), `WikiCompilationAdapterTest` (6), `WikiCompilationControllerTest` (3)
+**Slice W5 — Reader-Facing Wiki Provenance UI — COMPLETE — 808 tests passing**
+- [x] Web: `WikiController` — `GET /wiki` (index), `GET /wiki/{slug}` (detail), `GET /wiki/contradictions` (reversal watch)
+- [x] Templates: `wiki-index.html` (searchable page grid with type filter), `wiki-detail.html` (rendered markdown + provenance table + contradictions + related pages + revision history), `wiki-contradictions.html` (side-by-side claims with date filter)
+- [x] Dependency: `commonmark:0.24.0` — markdown→HTML rendering for wiki content
+- [x] Security: `/wiki`, `/wiki/**` added to `permitAll()` (public read-only)
+- [x] Repository: `WikiContradictionRepository.findByPageSlug()` — per-page contradiction lookup
+- [x] Nav: "Wiki" link added to all 14 existing Thymeleaf templates
+- [x] Tests: `WikiControllerTest` (8 MockMvc tests)
+
+**Previously complete: Slice W2 — Wiki Persistence + Compilation Adapter — COMPLETE — 800 tests passing**
+_(see git log for details — JPA entities, repositories, WikiCompilationAdapter, WikiResponseParser, REST trigger, scheduler wiring)_
 
 **Previously complete: Slice W1 — LLM Wiki Domain Records, Ports & Tests — COMPLETE — 759 tests passing**
 - [x] Domain: `WikiPageType` enum, `SourceRef`, `WikiPage`, `Contradiction`, `CompilationReport` records

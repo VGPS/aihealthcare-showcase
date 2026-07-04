@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Contradictions — AIHealthcare Wiki</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            font-size: 14px;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+        }
+        header h1 { font-size: 1.25rem; font-weight: 600; }
+        header p  { font-size: 0.8rem; opacity: 0.6; }
+
+        nav {
+            background: #16213e;
+            padding: 0 2rem;
+            display: flex;
+            gap: 1.5rem;
+        }
+        nav a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 0.6rem 0;
+            border-bottom: 2px solid transparent;
+            display: inline-block;
+        }
+        nav a:hover { color: white; }
+        nav a.active { color: white; border-bottom-color: #4361ee; }
+
+        main {
+            max-width: 900px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            font-size: 0.78rem;
+            color: #888;
+            margin-bottom: 1rem;
+        }
+        .breadcrumb a { color: #4361ee; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        /* Page header */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+        .page-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        /* Days filter */
+        .filter-bar {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .filter-bar label {
+            font-size: 0.82rem;
+            color: #666;
+        }
+        .filter-bar select {
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            background: white;
+        }
+        .filter-bar button {
+            padding: 0.4rem 1rem;
+            background: #4361ee;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+        .filter-bar button:hover { background: #3651d4; }
+
+        /* Contradiction cards */
+        .contradiction-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-left: 4px solid #e57373;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .contradiction-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .contradiction-header a {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: #4361ee;
+            text-decoration: none;
+        }
+        .contradiction-header a:hover { text-decoration: underline; }
+        .contradiction-date {
+            font-size: 0.72rem;
+            color: #999;
+            margin-left: auto;
+        }
+
+        .claims {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .claim-box {
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        .claim-prior-box {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+        }
+        .claim-new-box {
+            background: #fff5f5;
+            border: 1px solid #ffcdd2;
+        }
+        .claim-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.35rem;
+        }
+        .claim-prior-label { color: #888; }
+        .claim-new-label { color: #c62828; }
+        .arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-size: 1.2rem;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #888;
+        }
+        .empty-state h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+        .empty-state p {
+            font-size: 0.85rem;
+        }
+
+        /* Back link */
+        .back-link {
+            display: inline-block;
+            margin-top: 0.5rem;
+            color: #4361ee;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        @media (max-width: 640px) {
+            .claims { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AIHealthcare Analytics</h1>
+    <p>Reversal Watch</p>
+</header>
+
+<nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/dashboard/articles">Articles</a>
+    <a sec:authorize="hasRole('ADMIN')" href="/newsletter/runs">Newsletter Preview</a>
+    <a href="/research/compare">Research Compare</a>
+    <a href="/research/runs">Research Runs</a>
+    <a href="/research/vendors">Vendor Compare</a>
+    <a href="/research/ai-search">AI Search</a>
+    <a href="/wiki" class="active">Wiki</a>
+    <a href="/dashboard/search">Article Search</a>
+    <a href="/pricing">Pricing</a>
+    <a sec:authorize="isAuthenticated()" href="/profile">Profile</a>
+    <a sec:authorize="hasRole('ADMIN')" href="/admin">Admin</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
+       style="margin-left:auto; color:#e57373;">Logout</a>
+</nav>
+
+<main>
+
+    <div class="breadcrumb">
+        <a href="/wiki">Wiki</a> &rsaquo; Contradictions
+    </div>
+
+    <div class="page-header">
+        <h2>Reversal Watch — Contradictions</h2>
+    </div>
+
+    <!-- Days filter -->
+    <form class="filter-bar" method="get" action="/wiki/contradictions">
+        <label for="days">Show last</label>
+        <select name="days" id="days">
+            <option value="30" th:selected="${days == 30}">30 days</option>
+            <option value="60" th:selected="${days == 60}">60 days</option>
+            <option value="90" th:selected="${days == 90}">90 days</option>
+            <option value="180" th:selected="${days == 180}">180 days</option>
+            <option value="365" th:selected="${days == 365}">1 year</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
+    <!-- Contradiction cards -->
+    <div th:if="${!contradictions.isEmpty()}">
+        <div class="contradiction-card" th:each="c, iter : ${contradictions}">
+            <div class="contradiction-header">
+                <a th:href="@{/wiki/{slug}(slug=${c.pageSlug()})}"
+                   th:text="${pageSlugTitles.getOrDefault(c.pageSlug(), c.pageSlug())}">
+                    Page Title
+                </a>
+                <span class="contradiction-date"
+                      th:text="${contradictionTimestamps.get('' + iter.index)}">
+                    Jul 4, 2026
+                </span>
+            </div>
+            <div class="claims">
+                <div class="claim-box claim-prior-box">
+                    <div class="claim-label claim-prior-label">Prior Claim</div>
+                    <div th:text="${c.priorClaim()}">Previous assertion text...</div>
+                </div>
+                <div class="claim-box claim-new-box">
+                    <div class="claim-label claim-new-label">New Claim</div>
+                    <div th:text="${c.newClaim()}">Contradicting assertion text...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" th:if="${contradictions.isEmpty()}">
+        <h3>No contradictions detected</h3>
+        <p th:text="'No contradictions found in the last ' + ${days} + ' days. ' +
+           'Contradictions are flagged automatically when new articles contradict existing wiki claims.'">
+            No contradictions found.
+        </p>
+    </div>
+
+    <a class="back-link" href="/wiki">&larr; Back to Wiki Index</a>
+
+</main>
+</body>
+</html>

@@ -54,7 +54,7 @@ public class WikiCompilationController {
     }
 
     /**
-     * Triggers a manual wiki compilation using articles from the last 7 days.
+     * Triggers a manual wiki compilation using articles from the last 1 day.
      *
      * @return compilation report with created/updated pages and contradiction count
      */
@@ -62,14 +62,14 @@ public class WikiCompilationController {
     public ResponseEntity<CompilationReportResponse> triggerCompilation() {
         log.debug("triggerCompilation() | (no args)");
 
-        Instant since = Instant.now().minus(7, ChronoUnit.DAYS);
+        Instant since = Instant.now().minus(1, ChronoUnit.DAYS);
         List<NewsArticleEntity> entities = articleRepository.findByCreatedAtAfterOrderByCreatedAtAsc(since);
         List<NewsArticle> articles = new ArrayList<>();
         for (NewsArticleEntity entity : entities) {
             articles.add(mapToDomain(entity));
         }
 
-        log.info("triggerCompilation() | found {} articles from last 7 days", articles.size());
+        log.info("triggerCompilation() | found {} articles from last 1 day", articles.size());
 
         CompilationReport report = compilationPort.compileNewSources(articles);
         CompilationReportResponse response = CompilationReportResponse.from(report);

@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-07-04 | Reflects Slice W2 (49 slices complete, 800 tests passing)
+> Last updated: 2026-07-04 | Reflects Slice W5 (50 slices complete, 808 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -82,6 +82,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | 47 | AI Search Enhancements — Claude fix + Gemini adapter + UI differentiation | 719 |
 | W1 | LLM Wiki — domain records, port interfaces, unit tests | 759 |
 | W2 | LLM Wiki — persistence, compilation adapter, REST trigger, scheduler wiring | 800 |
+| W5 | Reader-Facing Wiki Provenance UI — wiki index, detail, contradictions pages | 808 |
 
 ---
 
@@ -198,6 +199,9 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /research/ai-search` | `AiSearchController` | `ai-search.html` — unified AI search with multi-model synthesis |
 | `GET /pricing` | `PricingController` | `pricing.html` — tier comparison with Stripe checkout |
 | `GET /login` | `LoginController` | `login.html` — Spring Security login form |
+| `GET /wiki` | `WikiController` | `wiki-index.html` — searchable wiki page grid with type filter |
+| `GET /wiki/{slug}` | `WikiController` | `wiki-detail.html` — rendered markdown + provenance table + contradictions |
+| `GET /wiki/contradictions` | `WikiController` | `wiki-contradictions.html` — reversal watch contradiction feed |
 
 ---
 
@@ -285,7 +289,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**800 tests** across 101 test classes — all pass with `mvn test` (no live AI or network calls).
+**808 tests** across 102 test classes — all pass with `mvn test` (no live AI or network calls).
 
 ---
 

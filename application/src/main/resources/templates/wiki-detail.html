@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${page.title()} + ' — AIHealthcare Wiki'">Wiki Page — AIHealthcare</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            font-size: 14px;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+        }
+        header h1 { font-size: 1.25rem; font-weight: 600; }
+        header p  { font-size: 0.8rem; opacity: 0.6; }
+
+        nav {
+            background: #16213e;
+            padding: 0 2rem;
+            display: flex;
+            gap: 1.5rem;
+        }
+        nav a {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 0.6rem 0;
+            border-bottom: 2px solid transparent;
+            display: inline-block;
+        }
+        nav a:hover { color: white; }
+        nav a.active { color: white; border-bottom-color: #4361ee; }
+
+        main {
+            max-width: 900px;
+            margin: 1.5rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            font-size: 0.78rem;
+            color: #888;
+            margin-bottom: 1rem;
+        }
+        .breadcrumb a { color: #4361ee; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        /* Section cards */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .card h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Page title area */
+        .page-title-area {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .page-title-area h2 {
+            font-size: 1.3rem;
+            border: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 0.25em 0.7em;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+        .badge-entity     { background: #d4edda; color: #155724; }
+        .badge-concept    { background: #cce5ff; color: #004085; }
+        .badge-comparison { background: #fff3cd; color: #856404; }
+        .badge-overview   { background: #e2e3e5; color: #495057; }
+
+        /* Tags */
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-bottom: 0.5rem;
+        }
+        .tag {
+            display: inline-block;
+            background: #f0f1f5;
+            color: #555;
+            padding: 0.15em 0.5em;
+            border-radius: 4px;
+            font-size: 0.72rem;
+        }
+
+        /* Page meta */
+        .page-meta {
+            font-size: 0.78rem;
+            color: #999;
+        }
+        .page-meta span { margin-right: 1rem; }
+
+        /* Markdown content */
+        .wiki-content {
+            line-height: 1.7;
+            font-size: 0.92rem;
+            color: #2c2c2c;
+        }
+        .wiki-content h1 { font-size: 1.2rem; font-weight: 600; margin: 1.25rem 0 0.5rem; color: #1a1a2e; }
+        .wiki-content h2 { font-size: 1.05rem; font-weight: 600; margin: 1rem 0 0.5rem; color: #1a1a2e; }
+        .wiki-content h3 { font-size: 0.95rem; font-weight: 600; margin: 0.75rem 0 0.4rem; color: #1a1a2e; }
+        .wiki-content p { margin-bottom: 0.75rem; }
+        .wiki-content ul, .wiki-content ol { margin: 0.5rem 0 0.75rem 1.5rem; }
+        .wiki-content li { margin-bottom: 0.25rem; }
+        .wiki-content code {
+            background: #f0f1f5;
+            padding: 0.15em 0.4em;
+            border-radius: 3px;
+            font-size: 0.85em;
+        }
+        .wiki-content blockquote {
+            border-left: 3px solid #4361ee;
+            padding: 0.5rem 1rem;
+            margin: 0.75rem 0;
+            background: #f8f9ff;
+            color: #555;
+        }
+        .wiki-content a { color: #4361ee; }
+
+        /* Provenance table */
+        .provenance-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+        .provenance-table th {
+            text-align: left;
+            padding: 0.5rem 0.75rem;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            border-bottom: 2px solid #eee;
+        }
+        .provenance-table td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        .provenance-table tr:last-child td { border-bottom: none; }
+        .provenance-table a { color: #4361ee; text-decoration: none; }
+        .provenance-table a:hover { text-decoration: underline; }
+        .excerpt {
+            font-size: 0.78rem;
+            color: #888;
+            font-style: italic;
+            margin-top: 0.25rem;
+        }
+
+        /* Contradiction cards */
+        .contradiction-card {
+            border-left: 4px solid #e57373;
+            background: #fff5f5;
+            border-radius: 0 6px 6px 0;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .contradiction-card .claim-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        .claim-prior { color: #888; }
+        .claim-new { color: #c62828; }
+        .contradiction-card .claim-text {
+            font-size: 0.88rem;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+        .contradiction-meta {
+            font-size: 0.72rem;
+            color: #999;
+        }
+
+        /* Related pages */
+        .related-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .related-link {
+            display: inline-block;
+            background: #f0f4ff;
+            color: #4361ee;
+            padding: 0.35em 0.75em;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.82rem;
+        }
+        .related-link:hover { background: #dde4ff; }
+
+        /* Revision history */
+        .revision-list {
+            font-size: 0.82rem;
+        }
+        .revision-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .revision-item:last-child { border-bottom: none; }
+        .revision-num {
+            font-weight: 600;
+            color: #4361ee;
+            min-width: 3rem;
+        }
+        .revision-date {
+            color: #888;
+        }
+
+        /* Back link */
+        .back-link {
+            display: inline-block;
+            margin-top: 0.5rem;
+            color: #4361ee;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* Collapsible */
+        details summary {
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            padding: 0.5rem 0;
+        }
+        details summary:hover { color: #4361ee; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AIHealthcare Analytics</h1>
+    <p>Knowledge Wiki</p>
+</header>
+
+<nav>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/dashboard/articles">Articles</a>
+    <a sec:authorize="hasRole('ADMIN')" href="/newsletter/runs">Newsletter Preview</a>
+    <a href="/research/compare">Research Compare</a>
+    <a href="/research/runs">Research Runs</a>
+    <a href="/research/vendors">Vendor Compare</a>
+    <a href="/research/ai-search">AI Search</a>
+    <a href="/wiki" class="active">Wiki</a>
+    <a href="/dashboard/search">Article Search</a>
+    <a href="/pricing">Pricing</a>
+    <a sec:authorize="isAuthenticated()" href="/profile">Profile</a>
+    <a sec:authorize="hasRole('ADMIN')" href="/admin">Admin</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
+       style="margin-left:auto; color:#e57373;">Logout</a>
+</nav>
+
+<main>
+
+    <div class="breadcrumb">
+        <a href="/wiki">Wiki</a> &rsaquo;
+        <span th:text="${page.title()}">Page Title</span>
+    </div>
+
+    <!-- Title + metadata card -->
+    <div class="card">
+        <div class="page-title-area">
+            <h2 th:text="${page.title()}">Page Title</h2>
+            <span class="badge"
+                  th:classappend="${page.pageType().name() == 'ENTITY'} ? 'badge-entity'
+                               : (${page.pageType().name() == 'CONCEPT'} ? 'badge-concept'
+                               : (${page.pageType().name() == 'COMPARISON'} ? 'badge-comparison'
+                               : 'badge-overview'))"
+                  th:text="${page.pageType().name()}">ENTITY</span>
+        </div>
+        <div class="tag-list" th:if="${!page.tags().isEmpty()}">
+            <span class="tag" th:each="tag : ${page.tags()}" th:text="${tag}">tag</span>
+        </div>
+        <div class="page-meta">
+            <span th:text="'Rev ' + ${page.revision()}">Rev 1</span>
+            <span th:text="${pageTimestamp}">Jul 4, 2026 10:00 UTC</span>
+            <span th:text="${page.sources().size()} + ' sources'">0 sources</span>
+        </div>
+    </div>
+
+    <!-- Rendered content -->
+    <div class="card">
+        <h2>Content</h2>
+        <div class="wiki-content" th:utext="${renderedContent}">
+            <p>Wiki content renders here.</p>
+        </div>
+    </div>
+
+    <!-- Provenance table -->
+    <div class="card" th:if="${!page.sources().isEmpty()}">
+        <h2>Sources &amp; Provenance</h2>
+        <table class="provenance-table">
+            <thead>
+                <tr>
+                    <th>Source</th>
+                    <th>Article</th>
+                    <th>Harvested</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="source : ${page.sources()}">
+                    <td th:text="${source.sourceName()}">FDA</td>
+                    <td>
+                        <a th:if="${articleUrlMap.containsKey(source.articleId())}"
+                           th:href="${articleUrlMap.get(source.articleId())}"
+                           th:text="${articleTitleMap.getOrDefault(source.articleId(), source.articleId())}"
+                           target="_blank" rel="noopener">
+                            Article Title
+                        </a>
+                        <span th:unless="${articleUrlMap.containsKey(source.articleId())}"
+                              th:text="${source.articleId()}"
+                              style="color:#888; font-size:0.78rem;">
+                            article-id
+                        </span>
+                        <div class="excerpt" th:if="${source.excerpt() != null}"
+                             th:text="${source.excerpt()}">
+                            Supporting excerpt text...
+                        </div>
+                    </td>
+                    <td th:text="${source.harvestedOn()}">2026-07-04</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Contradictions -->
+    <div class="card" th:if="${!contradictions.isEmpty()}">
+        <h2>Contradictions</h2>
+        <div class="contradiction-card" th:each="c : ${contradictions}">
+            <div class="claim-label claim-prior">Prior Claim</div>
+            <div class="claim-text" th:text="${c.get('priorClaim')}">Previous assertion...</div>
+            <div class="claim-label claim-new">New Claim</div>
+            <div class="claim-text" th:text="${c.get('newClaim')}">Contradicting assertion...</div>
+            <div class="contradiction-meta" th:text="'Detected ' + ${c.get('detectedAt')}">
+                Detected Jul 4, 2026
+            </div>
+        </div>
+    </div>
+
+    <!-- Related pages -->
+    <div class="card" th:if="${!relatedPages.isEmpty()}">
+        <h2>Related Pages</h2>
+        <div class="related-list">
+            <a class="related-link"
+               th:each="entry : ${relatedPages}"
+               th:href="@{/wiki/{slug}(slug=${entry.key})}"
+               th:text="${entry.value}">
+                Related Page
+            </a>
+        </div>
+    </div>
+
+    <!-- Revision history -->
+    <div class="card" th:if="${!revisions.isEmpty()}">
+        <details>
+            <summary th:text="'Revision History (' + ${revisions.size()} + ' revisions)'">
+                Revision History
+            </summary>
+            <div class="revision-list">
+                <div class="revision-item" th:each="rev : ${revisions}">
+                    <span class="revision-num" th:text="'Rev ' + ${rev.getRevision()}">Rev 1</span>
+                    <span class="revision-date"
+                          th:text="${revisionTimestamps.get(rev.getRevision())}">
+                        Jul 4, 2026
+                    </span>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <a class="back-link" href="/wiki">&larr; Back to Wiki Index</a>
+
+</main>
+</body>
+</html>
