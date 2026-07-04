@@ -400,6 +400,19 @@ public class WikiController {
      * @param model  Thymeleaf model
      * @return view name "wiki-ask"
      */
+    private static final java.util.Set<String> STOP_WORDS = java.util.Set.of(
+            "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
+            "have", "has", "had", "do", "does", "did", "will", "would", "shall",
+            "should", "may", "might", "must", "can", "could", "am", "i", "me",
+            "my", "we", "our", "you", "your", "he", "she", "it", "they", "them",
+            "this", "that", "these", "those", "what", "which", "who", "whom",
+            "how", "when", "where", "why", "if", "or", "and", "but", "not", "no",
+            "so", "to", "of", "in", "on", "at", "by", "for", "with", "about",
+            "from", "into", "any", "all", "some", "there", "than", "then",
+            "just", "also", "very", "too", "much", "many", "most", "more",
+            "only", "other", "such", "each", "every", "both", "few", "own",
+            "same", "tell", "give", "know", "get", "got", "please", "information");
+
     @GetMapping("/ask")
     public String askWiki(@RequestParam(required = false) String q,
                            @RequestParam(required = false, defaultValue = "5") int maxPages,
@@ -409,7 +422,9 @@ public class WikiController {
 
         if (q != null && !q.isBlank()) {
             int resolvedMax = Math.max(1, Math.min(maxPages, 20));
-            List<WikiPage> pages = wikiQueryPort.findRelevantPages(q.trim(), resolvedMax);
+
+            // Extract meaningful keywords from the query (strip stop words)
+            List<WikiPage> pages = searchWikiByKeywords(q.trim(), resolvedMax);
             log.info("askWiki() | found {} wiki pages for query '{}'", pages.size(), q);
 
             List<AiSearchSynthesis> syntheses = new ArrayList<>();
@@ -492,6 +507,70 @@ public class WikiController {
 
         log.debug("askWiki() | return=wiki-ask");
         return "wiki-ask";
+    }
+
+    /**
+     * Searches wiki pages by extracting meaningful keywords from a natural-language
+     * query, trying each keyword individually, and deduplicating results. Falls back
+     * to returning all pages if no keywords produce matches.
+     *
+     * @param query      the natural-language search query
+     * @param maxResults maximum pages to return
+     * @return matching wiki pages, deduplicated by slug
+     */
+    private List<WikiPage> searchWikiByKeywords(String query, int maxResults) {
+        log.debug("searchWikiByKeywords() | query={}, maxResults={}", query, maxResults);
+
+        // First try the full query as-is
+        List<WikiPage> pages = wikiQueryPort.findRelevantPages(query, maxResults);
+        if (!pages.isEmpty()) {
+            log.debug("searchWikiByKeywords() | return={} pages (full query match)", pages.size());
+            return pages;
+        }
+
+        // Extract keywords by removing stop words and short tokens
+        String cleaned = query.replaceAll("[^a-zA-Z0-9\\s]", " ").toLowerCase();
+        String[] tokens = cleaned.split("\\s+");
+        List<String> keywords = new ArrayList<>();
+        for (String token : tokens) {
+            if (token.length() >= 3 && !STOP_WORDS.contains(token)) {
+                keywords.add(token);
+            }
+        }
+        log.debug("searchWikiByKeywords() | extracted keywords={}", keywords);
+
+        // Search for each keyword and collect unique pages
+        Map<String, WikiPage> seen = new java.util.LinkedHashMap<>();
+        for (String keyword : keywords) {
+            if (seen.size() >= maxResults) {
+                break;
+            }
+            List<WikiPage> matches = wikiQueryPort.findRelevantPages(keyword, maxResults);
+            for (WikiPage match : matches) {
+                if (!seen.containsKey(match.slug()) && seen.size() < maxResults) {
+                    seen.put(match.slug(), match);
+                }
+            }
+        }
+
+        // If still no results, return all wiki pages (broad fallback)
+        if (seen.isEmpty()) {
+            log.info("searchWikiByKeywords() | no keyword matches, falling back to all pages");
+            List<WikiPageEntity> allEntities = pageRepository.findAll();
+            int count = 0;
+            for (WikiPageEntity entity : allEntities) {
+                if (count >= maxResults) break;
+                WikiPage page = wikiQueryPort.getPage(entity.getSlug());
+                if (page != null) {
+                    seen.put(page.slug(), page);
+                    count++;
+                }
+            }
+        }
+
+        List<WikiPage> result = new ArrayList<>(seen.values());
+        log.debug("searchWikiByKeywords() | return={} pages", result.size());
+        return result;
     }
 
     /**
