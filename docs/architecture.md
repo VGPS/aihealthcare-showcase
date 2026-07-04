@@ -80,6 +80,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | 45 | API Key Management — X-API-Key header auth for REST endpoints | ~710 |
 | 46 | Dashboard Analytics Charts — Chart.js trend + doughnut charts | 713 |
 | 47 | AI Search Enhancements — Claude fix + Gemini adapter + UI differentiation | 719 |
+| W1 | LLM Wiki — domain records, port interfaces, unit tests | 759 |
 
 ---
 
@@ -275,4 +276,52 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**719 tests** across 91 test classes — all pass with `mvn test` (no live AI or network calls).
+**759 tests** across 96 test classes — all pass with `mvn test` (no live AI or network calls).
+
+---
+
+## LLM Wiki Layer
+
+The wiki is a persistent, LLM-compiled knowledge base providing longitudinal context
+to the newsletter.  Three ownership layers:
+
+```
+Immutable sources (NewsArticle)
+        ↓ read-only
+LLM-owned wiki (WikiPage, Contradiction, CompilationReport)
+        ↓ query
+Newsletter drafting (WikiQueryPort)
+```
+
+- **Compilation:** `KnowledgeCompilationPort.compileNewSources()` reads new articles,
+  creates/updates wiki pages, detects contradictions, returns a `CompilationReport`.
+  Raw sources are never mutated.
+- **Query:** `WikiQueryPort` decouples consumers from compilation — semantic search
+  via `findRelevantPages()`, direct lookup via `getPage()`, and contradiction feed
+  via `recentContradictions()`.
+- **Provenance:** Every wiki claim traces to `SourceRef` records linking back to
+  `NewsArticle.articleId()`.
+
+Domain records (`domain.model`): `WikiPageType`, `SourceRef`, `WikiPage`, `Contradiction`, `CompilationReport`.
+Ports (`domain.port.outbound`): `KnowledgeCompilationPort`, `WikiQueryPort`.
+
+Adapter implementations deferred to Slice W2.  See `docs/ROADMAP.md` for the full wiki roadmap.
+
+---
+
+## Deployment Shape
+
+**Phase 1 (current plan):** Always-on Spring Boot app on a single small AWS instance
+(EC2 or Lightsail).  The nightly pipeline is triggered internally by Spring `@Scheduled`
+cron, which requires the JVM to be running at trigger time.  Chosen for operational
+simplicity (one moving part, no AWS orchestration to learn) and because the planned
+public wiki view (Slice W5) needs an always-on web app anyway.
+
+**Phase 2 (optional later migration):** External trigger via Amazon EventBridge
+Scheduler launching a run-and-exit ECS Fargate task (`ApplicationRunner` behind a
+`batch` profile, exits after pipeline completes) to cut idle compute cost.  The
+migration touches only the trigger mechanism, never the pipeline ports, so it can
+be deferred safely.
+
+**Note:** Postgres/pgvector (RDS) runs 24/7 in either shape and will dominate early
+hosting cost, not the app.

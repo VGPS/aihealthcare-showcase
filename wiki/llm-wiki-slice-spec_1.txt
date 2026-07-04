@@ -1,0 +1,121 @@
+# Claude Code Prompt — AIHealthcare: LLM Wiki Slice (Spec-Driven Development)
+
+You are working in the AIHealthcare project at `C:\workspaces\SpringAIClaude\AIHealthcare`. Read `CLAUDE.md` and `docs/CONVENTIONS.md` before writing any code. This slice implements Karpathy's LLM Wiki pattern as a compounding knowledge layer for the newsletter. Follow the SDD workflow: small increments, each documented and tested before moving on.
+
+## Context and intent
+
+The newsletter currently summarizes each harvest cycle's articles in isolation. This slice adds a persistent, LLM-maintained wiki so drafting can use longitudinal context ("this reverses the FDA's March guidance"). Design goals, in priority order:
+
+1. **Provenance is first-class.** Every wiki claim traces back to harvested `NewsArticle` records.
+2. **Contradiction tracking is first-class.** Reversals and conflicts are structured data, not prose.
+3. **Compilation is observable.** Every run produces a `CompilationReport` suitable for demos and logging.
+4. **Raw sources are immutable.** The wiki layer never mutates `NewsArticle` records.
+
+## Scope boundaries
+
+- Do NOT modify Slice 1 code (ingestion endpoint, existing domain records, existing ports) except where explicitly listed below.
+- This slice covers domain records, port interfaces, and unit tests only. No adapter implementations, no persistence, no Spring AI calls yet — those are the next slice.
+- No new Maven modules. Domain records go in `domain`, port interfaces in `application` (or wherever existing ports live — match the current layout).
+
+## Increment 1 — Domain records
+
+Create the following Java records in the domain module, following all conventions in `docs/CONVENTIONS.md` (class-level Javadoc with `@author Bill Blackmon`, `@version`, `@since`, `@updated`; records for immutable data).
+
+**`WikiPageType`** — enum: `ENTITY`, `CONCEPT`, `COMPARISON`, `OVERVIEW`.
+
+**`SourceRef`** — record linking a wiki claim to its origin:
+- `String articleId` (references `NewsArticle`)
+- `String sourceName` (e.g. "FDA", "PubMed")
+- `LocalDate harvestedOn`
+- `String excerpt` (short supporting snippet, nullable)
+
+**`WikiPage`** — record:
+- `String slug` (kebab-case, unique)
+- `String title`
+- `WikiPageType pageType`
+- `List<String> tags`
+- `String contentMarkdown`
+- `List<SourceRef> sources`
+- `List<String> relatedSlugs` (cross-references)
+- `Instant createdAt`, `Instant updatedAt`
+- `int revision`
+
+**`Contradiction`** — record:
+- `String pageSlug`
+- `String priorClaim`
+- `String newClaim`
+- `List<SourceRef> priorSources`, `List<SourceRef> newSources`
+- `Instant detectedAt`
+
+**`CompilationReport`** — record:
+- `Instant runStartedAt`, `Instant runCompletedAt`
+- `int articlesProcessed`
+- `List<String> pagesCreated`, `List<String> pagesUpdated` (slugs)
+- `List<Contradiction> contradictionsFlagged`
+- `List<String> warnings`
+
+Add compact validation in canonical constructors where cheap (non-null, slug format). Use traditional `for` loops for any iteration — no Streams.
+
+## Increment 2 — Port interfaces
+
+Create two ports, matching the style of the existing four ports (`ArticleHarvestingPort`, etc.):
+
+**`KnowledgeCompilationPort`**
+```java
+CompilationReport compileNewSources(List<NewsArticle> newArticles);
+```
+Javadoc must state the ownership contract: reads articles, never mutates them; owns the wiki layer entirely.
+
+**`WikiQueryPort`**
+```java
+List<WikiPage> findRelevantPages(String query, int maxResults);
+WikiPage getPage(String slug);
+List<Contradiction> recentContradictions(Instant since);
+```
+Javadoc must note this port exists so newsletter drafting is decoupled from compilation.
+
+## Increment 3 — Unit tests
+
+Following the established mock-AI testing pattern (no live API calls; AI smoke tests stay behind the existing profile flag):
+
+1. A test that constructs a `WikiPage` and asserts canonical-constructor validation (rejects null slug, malformed slug).
+2. A test with a mocked `KnowledgeCompilationPort` returning a fixed `CompilationReport`, asserting a caller can read pagesCreated/contradictionsFlagged.
+3. A test demonstrating `Contradiction` round-tripping with two `SourceRef` lists.
+
+Use JUnit 5 and Mockito consistent with existing tests. Every method starts with `log.debug()` per conventions (test classes included where logging is present).
+
+## Increment 4 — Documentation
+
+- Add a section to `CLAUDE.md` (or the appropriate architecture doc) titled "LLM Wiki layer" summarizing: three-layer ownership model (immutable sources → LLM-owned wiki → query layer), the two new ports, and the rule that compilation runs after harvest via the existing `@Scheduled` trigger (wiring deferred to next slice).
+- Add a short "Deployment shape" note to the architecture docs recording this decision: **Phase 1 (current plan):** always-on Spring Boot app on a single small AWS instance (EC2 or Lightsail); the nightly pipeline is triggered internally by Spring `@Scheduled` cron, which requires the JVM to be running at trigger time. Chosen for operational simplicity (one moving part, no AWS orchestration to learn) and because the planned public wiki view (Slice W5) needs an always-on web app anyway. **Phase 2 (optional later migration):** external trigger via Amazon EventBridge Scheduler launching a run-and-exit ECS Fargate task (`ApplicationRunner` behind a `batch` profile, exits after pipeline completes) to cut idle compute cost. The migration touches only the trigger mechanism, never the pipeline ports, so it can be deferred safely. Note also: Postgres/pgvector (RDS) runs 24/7 in either shape and will dominate early hosting cost, not the app.
+- Update `docs/CONVENTIONS.md` only if a new convention emerges; otherwise leave it untouched.
+
+## Working agreement
+
+- Work one increment at a time. After each increment: show me the diff summary, run the tests, and stop for my review before continuing.
+- If anything in the existing codebase conflicts with this spec (naming, module layout, existing records), stop and ask rather than improvising.
+- Deferred to the next slice (do not start): pgvector persistence adapter, Spring AI `McpClient`/Claude compilation adapter, embedding generation, openapi.yaml additions, scheduler wiring.
+
+## Product thesis (context for all design decisions)
+
+Long-term, the compiled wiki — the reference asset — matters more than "today's news." The newsletter is the weekly delivery vehicle, but the durable value (and eventual paying traction) is the accumulated, verified, structured knowledge base. Timeline expectation is a year or more before real traction; design for compounding, not for launch-week polish. When a design tradeoff arises between "faster weekly output" and "richer, better-provenanced wiki," prefer the wiki. This thesis should be reflected in Javadoc and architecture docs where relevant.
+
+## Roadmap — future slices (record in docs, do NOT implement now)
+
+Add this roadmap to the architecture documentation (e.g. `docs/ROADMAP.md`, referenced from `CLAUDE.md`) so each future slice can be spec'd individually later. Order is provisional.
+
+**Slice W2 — Wiki persistence and compilation adapter.** pgvector-backed `WikiPage` store (markdown content + embeddings in Postgres, revision history via audit table), Spring AI/Claude adapter implementing `KnowledgeCompilationPort`, scheduler wiring after harvest. The already-deferred work.
+
+**Slice W3 — Reversal Watch.** A recurring newsletter section generated from `Contradiction` records: regulatory U-turns, walked-back vendor claims, failed replications. Requires a query in `WikiQueryPort` (already present as `recentContradictions`) plus a `NewsletterSection` producer. This is the moat made visible to readers — no stateless competitor can produce it.
+
+**Slice W4 — Topic timelines.** Auto-generated "story so far" wiki pages per `Topic` (the record is already first-class and config-driven). Each newsletter links to the compiled history; over time these become standalone reference assets. Likely a new `WikiPageType.TIMELINE`.
+
+**Slice W5 — Reader-facing provenance.** Surface `SourceRef` links in the rendered newsletter (Thymeleaf templates): every claim links to its FDA/PubMed/ClinicalTrials origin. Trust differentiator specific to healthcare. Also consider a public read-only wiki view as a future web-module feature.
+
+**Slice W6 — Wiki linter.** A scheduled agent pass that checks: orphaned pages, broken `relatedSlugs` cross-references, stale pages (no update since threshold), missing provenance, and (deep mode) factual conflicts between tag-overlapping pages. Output is a lint report persisted alongside `CompilationReport`. Doubles as a strong teaching chapter.
+
+**Slice W7 — Evaluation harness.** RAGAS-style faithfulness/relevance evals run against wiki-grounded summaries, behind the existing AI-profile flag to control cost. Persist scores over time; eventually publish headline numbers ("summaries verified against sources") as a credibility claim.
+
+**Slice W8 — Domain-pack extraction (multi-vertical readiness).** Enforce and formalize the separation between the domain-agnostic engine and vertical-specific content so the platform can be replicated for other verticals (e.g. AI Finance, AI Education) with minimal code changes. Deliverables: (1) an architecture test or review checklist asserting no healthcare-specific strings, sources, or prompts exist in `domain`, `application`, or core `infrastructure` code; (2) a per-vertical configuration profile (YAML) holding topics, feed URLs, and API endpoints; (3) a `domain-pack/` Skills folder externalizing the editorial intelligence as prose — compilation prompt (entity-page style, per-domain contradiction criteria), editorial voice, domain glossary, linter rules, and provenance/citation standards; (4) documentation of the replication recipe: new vertical = skill folder + YAML profile + 1–2 harvesting adapters + Thymeleaf theme. Note: the compiled wiki itself intentionally does not transfer — each vertical accumulates its own knowledge asset, making replication a product line rather than dilution. This slice is ongoing in spirit: from W2 onward, prefer designs that keep healthcare specifics out of core modules so W8 is an extraction, not a rewrite.
+
+**Ongoing — documented construction as a class asset.** Keep SDD specs, `CompilationReport` logs, and session transcripts organized so the course can show the system being built decision-by-decision. The codebase can be cloned; the documented process cannot.
