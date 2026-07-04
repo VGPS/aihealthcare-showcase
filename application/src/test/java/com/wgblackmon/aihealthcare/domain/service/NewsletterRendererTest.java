@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-11
+ * @updated 2026-07-03
  */
 class NewsletterRendererTest {
 
@@ -168,5 +168,56 @@ class NewsletterRendererTest {
     void renderPlainText_containsSourcesHeading() {
         String text = renderer.renderPlainText(draft);
         assertThat(text).contains("SOURCES");
+    }
+
+    // -------------------------------------------------------------------------
+    // Email template structure (Slice 44)
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("renderHtml() uses table-based layout for email compatibility")
+    void renderHtml_usesTableLayout() {
+        String html = renderer.renderHtml(draft);
+        assertThat(html).contains("role=\"presentation\"");
+        assertThat(html).contains("max-width: 600px");
+    }
+
+    @Test
+    @DisplayName("renderHtml() contains branded header banner")
+    void renderHtml_containsHeaderBanner() {
+        String html = renderer.renderHtml(draft);
+        assertThat(html).contains("background-color: #1a1a2e");
+    }
+
+    @Test
+    @DisplayName("renderHtml() contains unsubscribe link in footer")
+    void renderHtml_containsUnsubscribeFooter() {
+        String html = renderer.renderHtml(draft);
+        assertThat(html).contains("{{unsubscribe_url}}");
+        assertThat(html).contains("Unsubscribe");
+    }
+
+    @Test
+    @DisplayName("renderHtml() contains manage preferences link in footer")
+    void renderHtml_containsPreferencesFooter() {
+        String html = renderer.renderHtml(draft);
+        assertThat(html).contains("{{preferences_url}}");
+        assertThat(html).contains("Manage preferences");
+    }
+
+    @Test
+    @DisplayName("renderHtml() contains platform branding in footer")
+    void renderHtml_containsPlatformBranding() {
+        String html = renderer.renderHtml(draft);
+        assertThat(html).contains("AIHealthcare");
+        assertThat(html).contains("AI-in-Healthcare Intelligence Platform");
+    }
+
+    @Test
+    @DisplayName("renderPlainText() contains unsubscribe footer")
+    void renderPlainText_containsUnsubscribeFooter() {
+        String text = renderer.renderPlainText(draft);
+        assertThat(text).contains("Unsubscribe: {{unsubscribe_url}}");
+        assertThat(text).contains("Manage preferences: {{preferences_url}}");
     }
 }

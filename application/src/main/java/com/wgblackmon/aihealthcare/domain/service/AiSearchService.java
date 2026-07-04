@@ -28,7 +28,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-06-02
- * @updated 2026-06-06
+ * @updated 2026-07-03
  */
 @Slf4j
 public class AiSearchService implements ConductAiSearchUseCase {
@@ -109,6 +109,10 @@ public class AiSearchService implements ConductAiSearchUseCase {
             } catch (Exception e) {
                 log.error("search() | synthesis failed for model '{}': {}",
                           port.modelName(), e.getMessage(), e);
+                String errorSummary = "Synthesis unavailable — " + extractErrorReason(e);
+                syntheses.add(new AiSearchSynthesis(
+                        port.modelName(), errorSummary,
+                        Collections.emptyList(), Instant.now()));
             }
         }
 
@@ -117,6 +121,33 @@ public class AiSearchService implements ConductAiSearchUseCase {
                 articles, syntheses, Instant.now());
         log.debug("search() | return=AiSearchResult[articles={}, syntheses={}]",
                   articles.size(), syntheses.size());
+        return result;
+    }
+
+    /**
+     * Extracts a concise, user-friendly error reason from an exception message.
+     *
+     * @param e the caught exception
+     * @return a short error description
+     */
+    private String extractErrorReason(Exception e) {
+        log.debug("extractErrorReason() | exception={}", e.getClass().getSimpleName());
+        String msg = e.getMessage();
+        String result;
+        if (msg == null) {
+            result = e.getClass().getSimpleName();
+        } else if (msg.contains("401")) {
+            result = "API key is invalid or expired.";
+        } else if (msg.contains("429")) {
+            result = "API rate limit or quota exceeded. Please try again later.";
+        } else if (msg.contains("403")) {
+            result = "API access forbidden. Check API key permissions.";
+        } else if (msg.contains("timeout") || msg.contains("Timeout")) {
+            result = "Request timed out. The model may be under heavy load.";
+        } else {
+            result = msg.length() > 150 ? msg.substring(0, 150) + "..." : msg;
+        }
+        log.debug("extractErrorReason() | return={}", result);
         return result;
     }
 }

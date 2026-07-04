@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.SearchPromptConfig;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SearchPromptPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -35,6 +36,8 @@ class SearchPromptControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @MockitoBean
+    private ApiKeyPort apiKeyPort;
 
     @MockitoBean
     private SearchPromptPort searchPromptPort;

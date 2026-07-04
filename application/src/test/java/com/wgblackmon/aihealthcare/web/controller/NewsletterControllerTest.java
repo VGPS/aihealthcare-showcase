@@ -16,6 +16,7 @@ import com.wgblackmon.aihealthcare.web.dto.GenerateRequest;
 import com.wgblackmon.aihealthcare.web.dto.IngestRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -64,6 +65,9 @@ class NewsletterControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private ApiKeyPort apiKeyPort;
 
     @MockBean
     private IngestArticlesUseCase ingestUseCase;

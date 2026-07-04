@@ -22,7 +22,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-20
+ * @updated 2026-07-03
  */
 public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, String>,
                 JpaSpecificationExecutor<NewsArticleEntity> {
@@ -101,4 +101,13 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, 
      * @return count of matching articles
      */
     long countByCreatedAtAfter(Instant since);
+
+    /**
+     * Returns articles created on or after the given instant, ordered by creation
+     * time ascending. Used for building time-series chart data.
+     *
+     * @param since the lower-bound instant (inclusive via "after or equal")
+     * @return list of matching entities, oldest first
+     */
+    List<NewsArticleEntity> findByCreatedAtAfterOrderByCreatedAtAsc(Instant since);
 }

@@ -58,6 +58,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Collections;
@@ -89,11 +90,12 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-06-07
+ * @updated 2026-07-03
  */
 
 @Slf4j
 @Configuration
+@EnableCaching
 @EnableScheduling
 public class AppConfig {
 
@@ -427,6 +429,22 @@ public class AppConfig {
                   articleSearchPort.getClass().getSimpleName(), aiSearchPorts.size());
         AiSearchService result = new AiSearchService(articleSearchPort, aiSearchPorts);
         log.debug("aiSearchService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Wraps the {@link AiSearchService} with a Caffeine TTL cache to reduce
+     * redundant AI API calls for repeated queries.
+     *
+     * @param aiSearchService the raw domain search service.
+     * @return a caching decorator implementing {@link ConductAiSearchUseCase}.
+     */
+    @Bean
+    @Primary
+    public CachingAiSearchDecorator cachingAiSearchDecorator(AiSearchService aiSearchService) {
+        log.debug("cachingAiSearchDecorator() | wrapping AiSearchService");
+        CachingAiSearchDecorator result = new CachingAiSearchDecorator(aiSearchService);
+        log.debug("cachingAiSearchDecorator() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

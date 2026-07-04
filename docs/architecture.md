@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-07-03 | Reflects Slice 41 (41 slices complete, 681 tests passing)
+> Last updated: 2026-07-03 | Reflects Slice 47 (47 slices complete, 719 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -74,6 +74,12 @@ api  ──▶  web   (generated DTOs imported here only)
 | 39 | Simplify search criteria, expand AI synthesis, Healthcare Dive feed | 631 |
 | 40 | Merge Semantic Search into AI Search — unified page + NO_MATCH gating | 627 |
 | 41 | New AI Healthcare Companies — company discovery pipeline + MEMBER gating | 681 |
+| 42 | Search Result Caching — Caffeine TTL-based cache for AI search | ~685 |
+| 43 | Subscriber Self-Service Profile Page — tier badge, usage meter, Stripe portal | ~690 |
+| 44 | Email Newsletter Template — professional HTML email with inline CSS | ~700 |
+| 45 | API Key Management — X-API-Key header auth for REST endpoints | ~710 |
+| 46 | Dashboard Analytics Charts — Chart.js trend + doughnut charts | 713 |
+| 47 | AI Search Enhancements — Claude fix + Gemini adapter + UI differentiation | 719 |
 
 ---
 
@@ -105,7 +111,7 @@ com.wgblackmon.aihealthcare.web.dto
 
 ## AI Integration Pattern
 
-Spring AI `ChatClient` is wrapped by three AI adapters, all in `infrastructure.ai`:
+Spring AI `ChatClient` is wrapped by AI adapters, all in `infrastructure.ai`:
 
 | Adapter | Port implemented | Purpose |
 |---------|-----------------|---------|
@@ -115,6 +121,7 @@ Spring AI `ChatClient` is wrapped by three AI adapters, all in `infrastructure.a
 | `AnthropicAiSearchAdapter` | `AiSearchPort` | Claude synthesis for AI-enhanced search |
 | `OpenAiSearchAdapter` | `AiSearchPort` | GPT synthesis for AI-enhanced search |
 | `PerplexityAiSearchAdapter` | `AiSearchPort` | Perplexity Sonar synthesis via RestClient |
+| `GeminiAiSearchAdapter` | `AiSearchPort` | Google Gemini synthesis via RestClient |
 
 Unit tests inject mock ports — no real AI calls outside `@Profile("ai-integration")`.
 
@@ -268,4 +275,4 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**681 tests** across 90 test classes — all pass with `mvn test` (no live AI or network calls).
+**719 tests** across 91 test classes — all pass with `mvn test` (no live AI or network calls).

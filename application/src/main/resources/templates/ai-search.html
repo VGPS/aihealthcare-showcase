@@ -203,25 +203,27 @@
         }
         .limit-warning strong { font-weight: 600; }
 
-        /* Synthesis cards — side by side */
+        /* Synthesis cards — stacked for readability */
         .syntheses-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 1.25rem;
             margin-bottom: 1.5rem;
-        }
-        @media (max-width: 768px) {
-            .syntheses-grid { grid-template-columns: 1fr; }
         }
 
         .synthesis-card {
             background: white;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1.25rem;
+            padding: 1.25rem 1.25rem 1.25rem 1.5rem;
+            border-left: 4px solid #ccc;
             transition: box-shadow 0.15s;
         }
         .synthesis-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+        .synthesis-card.card-claude     { border-left-color: #c4a56e; background: #fdfbf7; }
+        .synthesis-card.card-gpt        { border-left-color: #27ae60; background: #f7fdf9; }
+        .synthesis-card.card-perplexity { border-left-color: #1a56db; background: #f7faff; }
+        .synthesis-card.card-gemini     { border-left-color: #283593; background: #f7f8fe; }
 
         .synthesis-header {
             display: flex;
@@ -249,6 +251,10 @@
         .model-badge.perplexity {
             background: #d1e7ff;
             color: #1a56db;
+        }
+        .model-badge.gemini {
+            background: #e8eaf6;
+            color: #283593;
         }
         .synthesis-header h3 {
             font-size: 0.95rem;
@@ -403,6 +409,7 @@
     <a href="/research/ai-search" class="active">AI Search</a>
     <a href="/dashboard/search">Article Search</a>
     <a href="/pricing">Pricing</a>
+    <a sec:authorize="isAuthenticated()" href="/profile">Profile</a>
     <a sec:authorize="hasRole('ADMIN')" href="/admin">Admin</a>
     <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
        style="margin-left:auto; color:#e57373;">Logout</a>
@@ -414,7 +421,7 @@
     <div th:if="${accessDenied}" class="upgrade-banner">
         <span class="banner-text">
             <strong>AI-Enhanced Search is a Member feature.</strong><br/>
-            Upgrade to Member to search across the full article archive with multi-model AI synthesis from Claude, GPT, and Perplexity.
+            Upgrade to Member to search across the full article archive with multi-model AI synthesis from Claude, GPT, Gemini, and Perplexity.
         </span>
         <a href="/pricing">Upgrade</a>
     </div>
@@ -429,7 +436,7 @@
     <!-- Search form — only shown for MEMBER users who are not access-denied -->
     <div th:if="${accessDenied == null and limitReached == null}" class="search-card">
         <h2>Search Articles with AI Synthesis</h2>
-        <p class="hint">Enter a query to find relevant articles and get AI-generated insights from Claude, GPT, and Perplexity.</p>
+        <p class="hint">Enter a query to find relevant articles and get AI-generated insights from Claude, GPT, Gemini, and Perplexity.</p>
         <form class="search-form" method="get" th:action="@{/research/ai-search}">
             <div class="field">
                 <label for="q">Search Query</label>
@@ -459,6 +466,11 @@
                                th:checked="${selectedModels != null and selectedModels.contains('Perplexity')}"/>
                         <span class="model-badge perplexity">Perplexity</span>
                     </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="models" value="Gemini"
+                               th:checked="${selectedModels != null and selectedModels.contains('Gemini')}"/>
+                        <span class="model-badge gemini">Gemini</span>
+                    </label>
                 </div>
             </div>
             <button type="submit" id="searchBtn">
@@ -468,12 +480,13 @@
 
     <!-- AI Syntheses — side-by-side model comparison -->
     <div th:if="${syntheses != null and !syntheses.isEmpty()}" class="syntheses-grid">
-        <div th:each="synthesis : ${syntheses}" class="synthesis-card">
+        <div th:each="synthesis : ${syntheses}" class="synthesis-card"
+             th:classappend="${synthesis.modelName() == 'Claude' ? 'card-claude' : (synthesis.modelName() == 'GPT' ? 'card-gpt' : (synthesis.modelName() == 'Perplexity' ? 'card-perplexity' : 'card-gemini'))}">
             <div class="synthesis-header">
                 <span class="model-badge"
-                      th:classappend="${synthesis.modelName() == 'Claude' ? 'claude' : (synthesis.modelName() == 'GPT' ? 'gpt' : 'perplexity')}"
+                      th:classappend="${synthesis.modelName() == 'Claude' ? 'claude' : (synthesis.modelName() == 'GPT' ? 'gpt' : (synthesis.modelName() == 'Perplexity' ? 'perplexity' : 'gemini'))}"
                       th:text="${synthesis.modelName()}">Model</span>
-                <h3>AI Synthesis</h3>
+                <h3 th:text="${synthesis.modelName() + ' Synthesis'}">AI Synthesis</h3>
             </div>
             <div class="synthesis-summary" th:text="${synthesis.summary()}">Summary text</div>
             <div th:if="${!synthesis.keyFindings().isEmpty()}">

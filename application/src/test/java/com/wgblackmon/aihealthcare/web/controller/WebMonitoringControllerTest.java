@@ -12,6 +12,7 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashEnt
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -44,6 +45,8 @@ class WebMonitoringControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @MockBean
+    private ApiKeyPort apiKeyPort;
 
     @MockBean
     private WebPageHarvester webPageHarvester;

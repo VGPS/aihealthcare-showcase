@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,8 @@ class AiSearchRestControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @MockitoBean
+    private ApiKeyPort apiKeyPort;
 
     @MockitoBean
     private ConductAiSearchUseCase aiSearchUseCase;

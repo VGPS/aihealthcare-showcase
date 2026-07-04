@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-11
+ * @updated 2026-07-03
  */
 @Slf4j
 public class NewsletterRenderer {
@@ -50,49 +50,98 @@ public class NewsletterRenderer {
             .append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">")
             .append("<title>").append(escapeHtml(draft.title())).append("</title>")
             .append("</head>")
-            .append("<body style=\"font-family: Arial, sans-serif; max-width: 800px; ")
-            .append("margin: 40px auto; padding: 0 20px; color: #333;\">")
-            .append("<h1 style=\"color: #0066cc; border-bottom: 2px solid #0066cc; ")
-            .append("padding-bottom: 10px;\">")
+            .append("<body style=\"margin: 0; padding: 0; background-color: #f5f6fa; ")
+            .append("font-family: Arial, Helvetica, sans-serif; color: #333;\">");
+
+        // Outer wrapper table for email client compatibility
+        html.append("<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" ")
+            .append("style=\"background-color: #f5f6fa;\"><tr><td align=\"center\" ")
+            .append("style=\"padding: 24px 16px;\">");
+
+        // Inner content table
+        html.append("<table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" ")
+            .append("style=\"max-width: 600px; width: 100%; background-color: #ffffff; ")
+            .append("border-radius: 8px; overflow: hidden; ")
+            .append("box-shadow: 0 2px 8px rgba(0,0,0,0.08);\">");
+
+        // Header banner
+        html.append("<tr><td style=\"background-color: #1a1a2e; padding: 28px 32px; ")
+            .append("text-align: center;\">")
+            .append("<h1 style=\"margin: 0; font-size: 22px; font-weight: 700; color: #ffffff; ")
+            .append("letter-spacing: 0.5px;\">")
             .append(escapeHtml(draft.title()))
             .append("</h1>")
-            .append("<p style=\"color: #666; font-size: 0.9em;\">")
+            .append("<p style=\"margin: 8px 0 0; font-size: 13px; color: #a0a0b8;\">")
             .append("Week of ").append(draft.weekOf())
-            .append("</p>");
+            .append("</p>")
+            .append("</td></tr>");
 
+        // Introduction
         if (draft.introduction() != null && !draft.introduction().isBlank()) {
-            html.append("<p style=\"font-size: 1.05em; line-height: 1.6;\">")
+            html.append("<tr><td style=\"padding: 24px 32px 8px;\">")
+                .append("<p style=\"margin: 0; font-size: 15px; line-height: 1.7; color: #444;\">")
                 .append(escapeHtml(draft.introduction()))
-                .append("</p>");
+                .append("</p>")
+                .append("</td></tr>");
         }
 
+        // Sections
         for (NewsletterSection section : draft.sections()) {
-            html.append("<div style=\"border-left: 4px solid #0066cc; padding: 10px 20px; ")
-                .append("margin: 24px 0; background: #f9f9f9;\">")
-                .append("<h2 style=\"margin-top: 0; color: #0066cc;\">")
+            html.append("<tr><td style=\"padding: 16px 32px;\">")
+                .append("<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" ")
+                .append("style=\"border-left: 4px solid #0066cc; background-color: #f8f9fc; ")
+                .append("border-radius: 0 6px 6px 0;\">")
+                .append("<tr><td style=\"padding: 16px 20px;\">")
+                .append("<h2 style=\"margin: 0 0 8px; font-size: 17px; color: #0066cc;\">")
                 .append(escapeHtml(section.headline()))
                 .append("</h2>")
-                .append("<p style=\"line-height: 1.6;\">")
+                .append("<p style=\"margin: 0; font-size: 14px; line-height: 1.7; color: #444;\">")
                 .append(escapeHtml(section.summary()))
                 .append("</p>")
-                .append("</div>");
+                .append("</td></tr></table>")
+                .append("</td></tr>");
         }
 
+        // Sources
         if (!draft.sourceArticles().isEmpty()) {
-            html.append("<hr style=\"border: none; border-top: 1px solid #ddd; margin: 32px 0;\">")
-                .append("<h3 style=\"color: #555;\">Sources</h3>")
-                .append("<ul style=\"line-height: 1.8;\">");
+            html.append("<tr><td style=\"padding: 8px 32px 0;\">")
+                .append("<hr style=\"border: none; border-top: 1px solid #e8e8e8; margin: 0;\">")
+                .append("</td></tr>")
+                .append("<tr><td style=\"padding: 16px 32px;\">")
+                .append("<h3 style=\"margin: 0 0 12px; font-size: 15px; color: #555; ")
+                .append("text-transform: uppercase; letter-spacing: 0.5px;\">Sources</h3>")
+                .append("<ul style=\"margin: 0; padding: 0 0 0 18px; line-height: 1.9;\">");
             for (NewsArticle article : draft.sourceArticles()) {
-                html.append("<li><a href=\"")
+                html.append("<li style=\"font-size: 13px; color: #555;\"><a href=\"")
                     .append(article.url())
-                    .append("\" style=\"color: #0066cc;\">")
+                    .append("\" style=\"color: #0066cc; text-decoration: none;\">")
                     .append(escapeHtml(article.title()))
                     .append("</a></li>");
             }
-            html.append("</ul>");
+            html.append("</ul>")
+                .append("</td></tr>");
         }
 
-        html.append("</body></html>");
+        // Close inner content table
+        html.append("</table>");
+
+        // Footer
+        html.append("<table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" ")
+            .append("style=\"max-width: 600px; width: 100%; margin-top: 16px;\">")
+            .append("<tr><td style=\"padding: 16px 32px; text-align: center; ")
+            .append("font-size: 12px; color: #999;\">")
+            .append("<p style=\"margin: 0 0 8px;\">AIHealthcare &mdash; AI-in-Healthcare Intelligence Platform</p>")
+            .append("<p style=\"margin: 0;\">")
+            .append("<a href=\"{{unsubscribe_url}}\" style=\"color: #999; text-decoration: underline;\">")
+            .append("Unsubscribe</a> &middot; ")
+            .append("<a href=\"{{preferences_url}}\" style=\"color: #999; text-decoration: underline;\">")
+            .append("Manage preferences</a>")
+            .append("</p>")
+            .append("</td></tr></table>");
+
+        // Close outer wrapper
+        html.append("</td></tr></table>")
+            .append("</body></html>");
 
         String result = html.toString();
         log.debug("renderHtml() | return=html[{} chars]", result.length());
@@ -134,6 +183,11 @@ public class NewsletterRenderer {
                     .append(": ").append(article.url()).append("\n");
             }
         }
+
+        text.append("\n---\n");
+        text.append("AIHealthcare - AI-in-Healthcare Intelligence Platform\n");
+        text.append("Unsubscribe: {{unsubscribe_url}}\n");
+        text.append("Manage preferences: {{preferences_url}}\n");
 
         String result = text.toString();
         log.debug("renderPlainText() | return=text[{} chars]", result.length());

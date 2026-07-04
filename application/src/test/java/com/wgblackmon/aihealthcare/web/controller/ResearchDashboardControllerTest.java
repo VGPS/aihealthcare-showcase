@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.ResearchRun;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchRunPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -40,6 +41,8 @@ class ResearchDashboardControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @MockitoBean
+    private ApiKeyPort apiKeyPort;
 
     @MockitoBean
     private ResearchRunPort researchRunPort;

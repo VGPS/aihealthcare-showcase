@@ -17,8 +17,11 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -61,6 +64,8 @@ class DashboardControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+    @MockitoBean
+    private ApiKeyPort apiKeyPort;
 
     @MockitoBean
     private GetAnalyticsUseCase analyticsUseCase;
@@ -82,6 +87,9 @@ class DashboardControllerTest {
 
     @MockitoBean
     private SearchArticlesUseCase searchUseCase;
+
+    @MockitoBean
+    private NewsArticleRepository newsArticleRepository;
 
     // -------------------------------------------------------------------------
     // Fixtures
@@ -122,6 +130,14 @@ class DashboardControllerTest {
     // -------------------------------------------------------------------------
     // GET /dashboard
     // -------------------------------------------------------------------------
+
+    @BeforeEach
+    void stubChartDefaults() {
+        when(newsArticleRepository.findByCreatedAtAfterOrderByCreatedAtAsc(any()))
+                .thenReturn(List.of());
+        when(newsArticleRepository.countByTopicGrouped())
+                .thenReturn(List.of());
+    }
 
     @Test
     void dashboard_returns200AndDashboardView() throws Exception {
@@ -201,6 +217,18 @@ class DashboardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Best")))
                 .andExpect(content().string(containsString("Baseline")));
+    }
+
+    @Test
+    void dashboard_populatesChartDataAttributes() throws Exception {
+        when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
+        when(analyticsUseCase.getRunAnalytics()).thenReturn(sampleRuns());
+        when(analyticsUseCase.getEvaluationAnalytics()).thenReturn(sampleEvaluations());
+
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("chartLabels", "chartData",
+                        "topicChartLabels", "topicChartData"));
     }
 
     // -------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.exception.ApiKeyNotFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.DuplicateSubscriberException;
 import com.wgblackmon.aihealthcare.domain.exception.EvaluationNotFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.NoArticlesFoundException;
@@ -38,7 +39,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-18
+ * @updated 2026-07-03
  */
 @Slf4j
 @RestControllerAdvice
@@ -119,6 +120,19 @@ public class GlobalExceptionHandler {
         log.warn("handleEvaluationNotFound() | Evaluation not found: evaluationId={}", ex.getEvaluationId());
         ErrorResponse body = new ErrorResponse("NOT_FOUND", ex.getMessage());
         log.debug("handleEvaluationNotFound() | return=404");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    /**
+     * Handles API key lookup failures.
+     * Maps to HTTP 404 Not Found.
+     */
+    @ExceptionHandler(ApiKeyNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleApiKeyNotFound(ApiKeyNotFoundException ex) {
+        log.debug("handleApiKeyNotFound() | ex={}", ex.getMessage());
+        log.warn("handleApiKeyNotFound() | API key not found: keyId={}", ex.getKeyId());
+        ErrorResponse body = new ErrorResponse("NOT_FOUND", ex.getMessage());
+        log.debug("handleApiKeyNotFound() | return=404");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
 
