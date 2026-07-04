@@ -13,11 +13,13 @@ No adapters, no persistence, no Spring AI.
 
 ---
 
-## Slice W2 — Wiki Persistence and Compilation Adapter
+## Slice W2 — Wiki Persistence and Compilation Adapter (COMPLETE)
 
-pgvector-backed `WikiPage` store (markdown content + embeddings in Postgres, revision history
-via audit table), Spring AI/Claude adapter implementing `KnowledgeCompilationPort`, scheduler
-wiring after harvest.
+JPA entities (`WikiPageEntity`, `WikiSourceRefEntity`, `WikiContradictionEntity`,
+`WikiPageRevisionEntity`, `CompilationReportEntity`), port adapters (`WikiQueryAdapter`,
+`CompilationReportAdapter`), Spring AI/Claude adapter (`WikiCompilationAdapter` implementing
+`KnowledgeCompilationPort`), `WikiResponseParser`, prompt template, REST trigger at
+`POST /monitoring/wiki/compile`, `FeedHarvestScheduler` wiring, 800 tests.
 
 ---
 

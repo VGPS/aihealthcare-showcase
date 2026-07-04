@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-07-03 | Reflects Slice 47 (47 slices complete, 719 tests passing)
+> Last updated: 2026-07-04 | Reflects Slice W2 (49 slices complete, 800 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -81,6 +81,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | 46 | Dashboard Analytics Charts — Chart.js trend + doughnut charts | 713 |
 | 47 | AI Search Enhancements — Claude fix + Gemini adapter + UI differentiation | 719 |
 | W1 | LLM Wiki — domain records, port interfaces, unit tests | 759 |
+| W2 | LLM Wiki — persistence, compilation adapter, REST trigger, scheduler wiring | 800 |
 
 ---
 
@@ -123,6 +124,7 @@ Spring AI `ChatClient` is wrapped by AI adapters, all in `infrastructure.ai`:
 | `OpenAiSearchAdapter` | `AiSearchPort` | GPT synthesis for AI-enhanced search |
 | `PerplexityAiSearchAdapter` | `AiSearchPort` | Perplexity Sonar synthesis via RestClient |
 | `GeminiAiSearchAdapter` | `AiSearchPort` | Google Gemini synthesis via RestClient |
+| `WikiCompilationAdapter` | `KnowledgeCompilationPort` | LLM wiki compilation — articles → pages/contradictions |
 
 Unit tests inject mock ports — no real AI calls outside `@Profile("ai-integration")`.
 
@@ -136,6 +138,7 @@ Prompt templates (`application/src/main/resources/prompts/`):
 - `vendor-compare.txt` — vendor assessment (strengths/weaknesses/relevance + Doc Frequency/TF-IDF)
 - `topic-summary.txt` — 3-sentence topic summary from article titles
 - `ai-search-synthesis.txt` — multi-model AI search synthesis with `[N]` citations
+- `wiki-compile.txt` — structured wiki compilation (PAGE/CONTRADICTION/WARNING sections)
 
 ---
 
@@ -221,6 +224,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | POST | `/api/v1/stripe/checkout` | `StripeCheckoutController` |
 | POST | `/api/v1/stripe/webhook` | `StripeWebhookController` |
 | POST | `/api/v1/companies/discover` | `CompanyDiscoveryController` |
+| POST | `/monitoring/wiki/compile` | `WikiCompilationController` |
 
 ---
 
@@ -239,6 +243,11 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `search_prompts` | `SearchPromptEntity` | engine, templateText, active |
 | `research_runs` | `ResearchRunEntity` | runId, query, mode, citationCount, researchedAt |
 | `topic_summaries` | `TopicSummaryEntity` | topic PK, summaryText TEXT, generatedAt; upsert by topic |
+| `wiki_pages` | `WikiPageEntity` | slug PK (natural key), pageType, tags/relatedSlugs pipe-delimited |
+| `wiki_source_refs` | `WikiSourceRefEntity` | pageSlug FK, articleId, provenance link |
+| `wiki_contradictions` | `WikiContradictionEntity` | pageSlug, prior/new claims, pipe-delimited sourceIds |
+| `wiki_page_revisions` | `WikiPageRevisionEntity` | pageSlug, revision, contentMarkdown CLOB |
+| `compilation_reports` | `CompilationReportEntity` | run timestamps, articlesProcessed, pipe-delimited slugs |
 
 ---
 
@@ -248,7 +257,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 
 | Scheduler | Trigger (UTC) | Config key | Action |
 |-----------|---------------|------------|--------|
-| `FeedHarvestScheduler` | 04:00 daily (ACAD/REG) + every 4h (INDUSTRY) | `aihealthcare.harvest.daily-cron`, `industry-rate-ms` | RSS harvest → DB → topic summary generation |
+| `FeedHarvestScheduler` | 04:00 daily (ACAD/REG) + every 4h (INDUSTRY) | `aihealthcare.harvest.daily-cron`, `industry-rate-ms` | RSS harvest → DB → topic summary generation → wiki compilation |
 | `ResearchHarvestScheduler` | 04:00 daily | `aihealthcare.research.harvest.cron` | COMBINED pipeline → ResearchRun records |
 | `WebMonitoringScheduler` | 05:00 daily (competitors) + 05:30 (HuggingFace) | `aihealthcare.harvest.competitor-cron`, `huggingface-cron` | Web scrape + HF discovery → DB |
 | `EmbeddingScheduler` | 07:00 daily | `aihealthcare.embedding.schedule` | Embed all articles into vector store |
@@ -276,7 +285,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**759 tests** across 96 test classes — all pass with `mvn test` (no live AI or network calls).
+**800 tests** across 101 test classes — all pass with `mvn test` (no live AI or network calls).
 
 ---
 

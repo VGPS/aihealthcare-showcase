@@ -197,15 +197,25 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice W1 — LLM Wiki Domain Records, Ports & Tests — COMPLETE — 759 tests passing**
-- [x] Domain: `WikiPageType` enum (ENTITY, CONCEPT, COMPARISON, OVERVIEW)
-- [x] Domain: `SourceRef` record — provenance link (articleId, sourceName, harvestedOn, excerpt)
-- [x] Domain: `WikiPage` record — compiled wiki page with slug, tags, markdown, sources, cross-refs, revision
-- [x] Domain: `Contradiction` record — prior/new claim with source lists on both sides
-- [x] Domain: `CompilationReport` record — run summary (pages created/updated, contradictions, warnings)
-- [x] Port: `KnowledgeCompilationPort` outbound — `compileNewSources(List<NewsArticle>)` → `CompilationReport`
-- [x] Port: `WikiQueryPort` outbound — `findRelevantPages`, `getPage`, `recentContradictions`
-- [x] Tests: `WikiPageTest` (13), `SourceRefTest` (7), `ContradictionTest` (9), `CompilationReportTest` (10), `KnowledgeCompilationPortTest` (1)
+**Slice W2 — Wiki Persistence + Compilation Adapter — COMPLETE — 800 tests passing**
+- [x] Persistence: `WikiPageEntity`, `WikiSourceRefEntity`, `WikiContradictionEntity`, `WikiPageRevisionEntity`, `CompilationReportEntity` — JPA entities with `ddl-auto: update`
+- [x] Repositories: `WikiPageRepository` (LIKE search + pageType filter), `WikiSourceRefRepository`, `WikiContradictionRepository`, `WikiPageRevisionRepository`, `CompilationReportRepository`
+- [x] Port: `CompilationReportPort` outbound — `save(CompilationReport)`, `findAll()`
+- [x] Adapter: `WikiQueryAdapter` — implements `WikiQueryPort`; entity→domain mapping, source ref loading, contradiction expansion
+- [x] Adapter: `CompilationReportAdapter` — implements `CompilationReportPort`; pipe-delimited slug serialization
+- [x] AI: `WikiCompilationAdapter` — implements `KnowledgeCompilationPort`; ChatClient→Claude, prompt building, response parsing, page/revision/contradiction persistence
+- [x] AI: `WikiResponseParser` — structured LLM response parser (PAGE/CONTRADICTION/WARNING sections)
+- [x] Prompt: `prompts/wiki-compile.txt` — structured output format for wiki compilation
+- [x] Web: `WikiCompilationController` — `POST /monitoring/wiki/compile` (manual trigger, fetches last 7 days)
+- [x] Web: `CompilationReportResponse` DTO
+- [x] Config: `AppConfig` — `wikiCompilationAdapter` bean wiring
+- [x] Scheduler: `FeedHarvestScheduler` — `compileWikiPages()` called after harvest (optional, null-safe)
+- [x] Tests: `WikiPageRepositoryTest` (6), `WikiContradictionRepositoryTest` (4), `WikiQueryAdapterTest` (7), `CompilationReportAdapterTest` (4), `WikiResponseParserTest` (11), `WikiCompilationAdapterTest` (6), `WikiCompilationControllerTest` (3)
+
+**Previously complete: Slice W1 — LLM Wiki Domain Records, Ports & Tests — COMPLETE — 759 tests passing**
+- [x] Domain: `WikiPageType` enum, `SourceRef`, `WikiPage`, `Contradiction`, `CompilationReport` records
+- [x] Port: `KnowledgeCompilationPort`, `WikiQueryPort` outbound ports
+- [x] Tests: 40 domain unit tests
 
 **Previously complete: Slice 47 — AI Search Enhancements (Fix + Gemini + UI) — COMPLETE — 719 tests passing**
 - [x] Fix: Claude output bug — aligned all adapters to use multi-line SUMMARY parsing (`OpenAiSearchAdapter`, `PerplexityAiSearchAdapter` now use `StringBuilder` + `inSummary` flag, matching `AnthropicAiSearchAdapter`)

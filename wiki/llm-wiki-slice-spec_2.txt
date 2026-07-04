@@ -1,0 +1,365 @@
+# Claude Code Prompt — AIHealthcare: LLM Wiki Slice W2 (Persistence + Compilation Adapter)
+
+You are working in the AIHealthcare project at `C:\workspaces\SpringAIClaude\AIHealthcare`. Read `CLAUDE.md` and `docs/CONVENTIONS.md` before writing any code. This slice implements the runnable wiki compilation pipeline — JPA persistence, Spring AI compilation adapter, manual REST trigger, and scheduler wiring. Follow the SDD workflow: small increments, each documented and tested before moving on.
+
+## Context and intent
+
+Slice W1 established domain records (`WikiPageType`, `SourceRef`, `WikiPage`, `Contradiction`, `CompilationReport`) and port interfaces (`KnowledgeCompilationPort`, `WikiQueryPort`). This slice makes the pipeline runnable end-to-end so it can be triggered manually and stepped through in IntelliJ's debugger.
+
+Design goals, in priority order:
+
+1. **Debuggability first.** A manual REST endpoint (`POST /monitoring/wiki/compile`) must exist so the pipeline can be triggered from Postman/browser and breakpointed in IntelliJ.
+2. **Provenance is persisted.** Every `SourceRef` is stored in a join table linking wiki claims to `NewsArticle` records.
+3. **Revision audit trail.** Every wiki page update creates a revision record so history is never lost.
+4. **Compilation reports are durable.** Each run's `CompilationReport` is persisted for dashboard display and audit.
+5. **Raw sources remain immutable.** The wiki layer never mutates `NewsArticle` or any existing table.
+
+## Scope boundaries
+
+- This slice covers: JPA entities, repositories, adapters, prompt template, REST trigger, scheduler wiring, and tests.
+- Do NOT modify any Slice W1 domain records or port interfaces.
+- Do NOT modify `openapi.yaml` — the manual trigger is an internal monitoring endpoint, not a public API.
+- Do NOT create new Maven modules.
+
+---
+
+## Architecture — End-to-End Flow
+
+### STEP 1: TRIGGER
+
+Three trigger paths, all converging on `KnowledgeCompilationPort.compileNewSources()`:
+
+```
+A. App startup    → FeedHarvestScheduler.harvestOnStartup()     [@PostConstruct]
+B. Daily cron     → FeedHarvestScheduler.harvestDailyFeeds()    [04:00 UTC]
+C. Manual REST    → POST /monitoring/wiki/compile               [new endpoint]
+```
+
+For paths A and B, add a `compileWikiPages(articles)` call in `FeedHarvestScheduler` after `routeForProcessing()` and `generateTopicSummaries()`:
+
+```java
+private void compileWikiPages(List<NewsArticle> articles) {
+    log.debug("compileWikiPages() | articles={}", articles.size());
+    try {
+        CompilationReport report = knowledgeCompilationPort.compileNewSources(articles);
+        log.info("compileWikiPages() | created={}, updated={}, contradictions={}",
+                 report.pagesCreated().size(), report.pagesUpdated().size(),
+                 report.contradictionsFlagged().size());
+        // persist report via CompilationReportPort
+    } catch (Exception e) {
+        log.warn("compileWikiPages() | wiki compilation failed — harvest continues", e);
+    }
+    log.debug("compileWikiPages() | return=void");
+}
+```
+
+For path C, create `WikiCompilationController` with `POST /monitoring/wiki/compile` that:
+1. Fetches recent articles from `NewsArticleRepository` (last 7 days, configurable)
+2. Calls `knowledgeCompilationPort.compileNewSources(articles)`
+3. Returns the `CompilationReport` as JSON
+
+### STEP 2: COMPILATION ADAPTER
+
+`WikiCompilationAdapter implements KnowledgeCompilationPort` in `infrastructure.ai`:
+
+```
+compileNewSources(List<NewsArticle> newArticles):
+  2a. Load existing wiki pages from DB (WikiPageRepository)
+  2b. Build prompt: articles + existing page summaries (prompts/wiki-compile.txt)
+  2c. Call ChatClient (Claude) → raw LLM response (structured text)
+  2d. Parse LLM response into domain records (WikiPage, Contradiction)
+  2e. Persist to DB (WikiPageRepository, WikiRevisionRepository)
+  2f. Build and return CompilationReport
+```
+
+### STEP 3: REPORT PERSISTENCE
+
+`CompilationReportAdapter implements CompilationReportPort` in `infrastructure.persistence`:
+- Persists each run to `compilation_reports` table
+- Stores slugs as pipe-delimited strings (matching existing `EvaluationResultAdapter` pattern)
+
+---
+
+## Increment 1 — JPA Entities and Repositories
+
+### Entities (all in `infrastructure.persistence`)
+
+**`WikiPageEntity`**
+- Table: `wiki_pages`
+- Fields: `slug` (PK, VARCHAR 255), `title` (VARCHAR 500), `pageType` (VARCHAR 50), `tags` (TEXT, comma-separated), `contentMarkdown` (CLOB/TEXT), `createdAt` (TIMESTAMP), `updatedAt` (TIMESTAMP nullable), `revision` (INT default 1)
+- No `@GeneratedValue` — slug is the natural key
+
+**`WikiSourceRefEntity`**
+- Table: `wiki_source_refs`
+- Fields: `id` (BIGINT auto-generated PK), `pageSlug` (VARCHAR 255, FK to wiki_pages), `articleId` (VARCHAR 255), `sourceName` (VARCHAR 255), `harvestedOn` (DATE), `excerpt` (TEXT nullable)
+
+**`WikiRelatedSlugEntity`** (or embedded collection)
+- Table: `wiki_related_slugs`
+- Composite PK: `pageSlug` + `relatedSlug`
+
+**`WikiContradictionEntity`**
+- Table: `wiki_contradictions`
+- Fields: `id` (BIGINT auto PK), `pageSlug` (VARCHAR 255), `priorClaim` (TEXT), `newClaim` (TEXT), `detectedAt` (TIMESTAMP)
+- Prior/new source refs: stored as pipe-delimited articleIds (simple, matches existing patterns) or via join tables
+
+**`WikiPageRevisionEntity`**
+- Table: `wiki_page_revisions`
+- Fields: `id` (BIGINT auto PK), `pageSlug` (VARCHAR 255), `revision` (INT), `contentMarkdown` (CLOB/TEXT), `compiledAt` (TIMESTAMP)
+
+**`CompilationReportEntity`**
+- Table: `compilation_reports`
+- Fields: `id` (BIGINT auto PK), `runStartedAt` (TIMESTAMP), `runCompletedAt` (TIMESTAMP), `articlesProcessed` (INT), `pagesCreated` (TEXT, pipe-delimited), `pagesUpdated` (TEXT, pipe-delimited), `warnings` (TEXT, pipe-delimited)
+
+### Repositories (all in `infrastructure.persistence`)
+
+- `WikiPageRepository extends JpaRepository<WikiPageEntity, String>` — `findByPageType(String)`, `findAll()`
+- `WikiSourceRefRepository extends JpaRepository<WikiSourceRefEntity, Long>` — `findByPageSlug(String)`
+- `WikiContradictionRepository extends JpaRepository<WikiContradictionEntity, Long>` — `findByDetectedAtAfterOrderByDetectedAtDesc(Instant)`
+- `WikiPageRevisionRepository extends JpaRepository<WikiPageRevisionEntity, Long>` — `findByPageSlugOrderByRevisionDesc(String)`
+- `CompilationReportRepository extends JpaRepository<CompilationReportEntity, Long>`
+
+### DDL in `data.sql`
+
+Add `CREATE TABLE IF NOT EXISTS` statements for all 6 tables (matching existing `data.sql` pattern with H2-compatible syntax). No seed data needed.
+
+### Tests
+
+- `WikiPageAdapterTest` (@DataJpaTest) — save, findBySlug, update revision
+- `WikiContradictionAdapterTest` (@DataJpaTest) — save, findRecent
+
+---
+
+## Increment 2 — Port Adapters
+
+### `WikiQueryAdapter implements WikiQueryPort` (in `infrastructure.persistence`)
+
+```java
+findRelevantPages(String query, int maxResults)
+  → For Phase 1: simple LIKE query on title + tags + contentMarkdown
+  → Phase 2 (future): pgvector semantic similarity
+  → Returns List<WikiPage> (domain records, not entities)
+
+getPage(String slug)
+  → WikiPageRepository.findById(slug)
+  → Maps entity → domain record (with source refs and related slugs)
+  → Returns null if not found
+
+recentContradictions(Instant since)
+  → WikiContradictionRepository.findByDetectedAtAfterOrderByDetectedAtDesc(since)
+  → Maps entities → domain records (with source ref lists)
+```
+
+### `CompilationReportPort` (new outbound port in `domain.port.outbound`)
+
+```java
+void save(CompilationReport report);
+List<CompilationReport> findAll();
+```
+
+### `CompilationReportAdapter implements CompilationReportPort` (in `infrastructure.persistence`)
+
+- `save()` — maps domain record → entity, persists, pipe-delimits slug lists
+- `findAll()` — returns all reports ordered by runStartedAt desc
+
+### Tests
+
+- `WikiQueryAdapterTest` (@DataJpaTest) — findRelevantPages returns matches, getPage returns null for missing
+- `CompilationReportAdapterTest` (@DataJpaTest) — save and retrieve round-trip
+
+---
+
+## Increment 3 — Compilation Adapter (Spring AI / Claude)
+
+### `WikiCompilationAdapter implements KnowledgeCompilationPort` (in `infrastructure.ai`)
+
+Constructor-injected dependencies:
+- `ChatClient chatClient`
+- `WikiPageRepository wikiPageRepository`
+- `WikiSourceRefRepository sourceRefRepository`
+- `WikiContradictionRepository contradictionRepository`
+- `WikiPageRevisionRepository revisionRepository`
+- `String wikiCompilePrompt` (loaded from `prompts/wiki-compile.txt`)
+
+```java
+public CompilationReport compileNewSources(List<NewsArticle> newArticles) {
+    Instant started = Instant.now();
+
+    // 2a. Load existing pages
+    List<WikiPageEntity> existingPages = wikiPageRepository.findAll();
+
+    // 2b. Build prompt
+    String prompt = buildPrompt(newArticles, existingPages);
+
+    // 2c. Call Claude
+    String response = chatClient.prompt().user(prompt).call().content();
+
+    // 2d. Parse response
+    List<WikiPage> pages = parsePages(response);
+    List<Contradiction> contradictions = parseContradictions(response);
+    List<String> warnings = parseWarnings(response);
+
+    // 2e. Persist
+    List<String> createdSlugs = new ArrayList<>();
+    List<String> updatedSlugs = new ArrayList<>();
+    for (WikiPage page : pages) {
+        boolean exists = wikiPageRepository.existsById(page.slug());
+        if (exists) {
+            updatedSlugs.add(page.slug());
+        } else {
+            createdSlugs.add(page.slug());
+        }
+        persistPage(page);
+    }
+    for (Contradiction c : contradictions) {
+        persistContradiction(c);
+    }
+
+    // 2f. Build report
+    Instant completed = Instant.now();
+    return new CompilationReport(started, completed, newArticles.size(),
+            createdSlugs, updatedSlugs, contradictions, warnings);
+}
+```
+
+### Prompt Template: `prompts/wiki-compile.txt`
+
+```
+You are a knowledge-base compiler for an AI-in-Healthcare intelligence service.
+
+## Your task
+Given {articleCount} newly harvested articles and {existingPageCount} existing wiki pages,
+produce structured output that:
+1. Creates new wiki pages for entities, concepts, or comparisons not yet covered
+2. Updates existing pages with new information from the articles
+3. Flags contradictions where new information conflicts with prior claims
+
+## Input articles
+{articleList}
+
+## Existing wiki pages
+{existingPageSummaries}
+
+## Output format
+Respond with structured sections using these exact headers:
+
+### PAGE: {slug}
+TITLE: {title}
+TYPE: {ENTITY|CONCEPT|COMPARISON|OVERVIEW}
+TAGS: {comma-separated tags}
+STATUS: {CREATED|UPDATED}
+SOURCES: {pipe-separated articleIds that support this page}
+RELATED: {pipe-separated slugs of related pages}
+CONTENT:
+{markdown content}
+
+### CONTRADICTION: {pageSlug}
+PRIOR_CLAIM: {text of the prior claim}
+NEW_CLAIM: {text of the new contradicting claim}
+PRIOR_SOURCES: {pipe-separated articleIds}
+NEW_SOURCES: {pipe-separated articleIds}
+
+### WARNING: {message}
+```
+
+### Response Parser
+
+A dedicated `WikiResponseParser` class (in `infrastructure.ai`) that:
+- Splits the raw response by `### PAGE:`, `### CONTRADICTION:`, `### WARNING:` headers
+- Parses each section into the corresponding domain record
+- Handles malformed sections gracefully (log warning, skip)
+- Uses traditional `for` loops — no streams
+
+### Tests
+
+- `WikiCompilationAdapterTest` (Mockito) — mock ChatClient, verify prompt building, response parsing, DB persistence calls
+- `WikiResponseParserTest` (pure unit) — parse valid response, handle missing fields, handle empty response, handle malformed sections
+
+---
+
+## Increment 4 — REST Trigger and Scheduler Wiring
+
+### `WikiCompilationController` (in `web.controller`)
+
+```java
+@Slf4j
+@Controller
+public class WikiCompilationController {
+
+    private final KnowledgeCompilationPort compilationPort;
+    private final NewsArticleRepository articleRepository;
+
+    // constructor injection
+
+    @PostMapping("/monitoring/wiki/compile")
+    @ResponseBody
+    public CompilationReportResponse triggerCompilation() {
+        // Fetch articles from last 7 days
+        Instant since = Instant.now().minus(7, ChronoUnit.DAYS);
+        List<NewsArticleEntity> entities = articleRepository.findByCreatedAtAfter(since);
+        List<NewsArticle> articles = mapToDomain(entities);
+
+        CompilationReport report = compilationPort.compileNewSources(articles);
+        return CompilationReportResponse.from(report);
+    }
+}
+```
+
+### `CompilationReportResponse` (in `web.dto`)
+
+Record with: `runStartedAt`, `runCompletedAt`, `articlesProcessed`, `pagesCreated`, `pagesUpdated`, `contradictionCount`, `warnings`
+
+### `FeedHarvestScheduler` modification
+
+Add `KnowledgeCompilationPort` as a constructor dependency (optional — `@Autowired(required = false)` pattern or null-check, so the app still starts without a wiki adapter). Add `compileWikiPages()` private method called after `generateTopicSummaries()` in all three harvest methods.
+
+### `SecurityConfig` modification
+
+Add `/monitoring/wiki/**` to the ADMIN-only matcher list (matching existing `/monitoring/**` pattern).
+
+### `AppConfig` modification
+
+Wire `WikiCompilationAdapter` bean with ChatClient and repositories. Add `@ConditionalOnBean` or null-fallback so the app runs without AI keys configured.
+
+### Tests
+
+- `WikiCompilationControllerTest` (MockMvc, @WebMvcTest) — trigger returns report JSON, empty articles returns zero-count report, non-admin gets 403
+- `FeedHarvestSchedulerTest` — verify `compileWikiPages()` is called after harvest (update existing test)
+
+---
+
+## Increment 5 — Documentation
+
+- Update `CLAUDE.md` Current Slice section for W2
+- Update `docs/architecture.md` — add wiki tables to Persistence Schema, add `WikiCompilationAdapter` to AI Integration Pattern table, add `/monitoring/wiki/compile` to REST API Surface
+- Update `docs/ROADMAP.md` — mark W2 as COMPLETE
+
+---
+
+## IntelliJ Debug Guide
+
+To step through the full pipeline:
+
+1. Start app: Run `AiHealthcareApplication` with breakpoints set
+2. Key breakpoint locations:
+   - `WikiCompilationAdapter.compileNewSources()` line 1 — see input articles
+   - `buildPrompt()` return — inspect the full prompt string
+   - `chatClient.prompt().user(prompt).call()` — see the raw LLM request/response
+   - `parsePages()` / `parseContradictions()` — see structured output being built
+   - `persistPage()` — see DB write
+   - `CompilationReport` constructor — see the final report
+3. Trigger: `POST http://localhost:8080/monitoring/wiki/compile` (requires ADMIN session)
+4. Watch variables: `newArticles`, `prompt`, `response` (raw LLM text), `pages`, `contradictions`, `report`
+
+---
+
+## Working agreement
+
+- Work one increment at a time. After each increment: show diff summary, run tests, stop for review.
+- If anything in the existing codebase conflicts with this spec, stop and ask.
+- The compilation adapter (Increment 3) requires a live AI key to test end-to-end. Unit tests mock the ChatClient. A smoke test behind `@Profile("ai-integration")` is optional.
+
+## Verification
+
+- `mvn test` passes after each increment
+- Manual test: start app, POST to `/monitoring/wiki/compile`, verify JSON response with created/updated page slugs
+- IntelliJ debug: set breakpoint at `compileNewSources()`, trigger via REST, step through full flow
