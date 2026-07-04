@@ -32,7 +32,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * @author  Bill Blackmon
  * @version 1.3
  * @since   2026-05-28
- * @updated 2026-07-03
+ * @updated 2026-07-04
  */
 @Slf4j
 @Configuration
@@ -69,6 +69,7 @@ public class SecurityConfig {
                                  "/pricing", "/error").permitAll()
                 .requestMatchers("/api/**").permitAll()
                 .requestMatchers("/monitoring/**").permitAll()
+                .requestMatchers("/wiki", "/wiki/**").permitAll()
                 .requestMatchers("/stripe/**").permitAll()
                 .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 .requestMatchers("/newsletter/runs/**").hasRole("ADMIN")

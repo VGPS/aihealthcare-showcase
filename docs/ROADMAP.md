@@ -40,11 +40,13 @@ reference assets.  Likely a new `WikiPageType.TIMELINE`.
 
 ---
 
-## Slice W5 — Reader-Facing Provenance
+## Slice W5 — Reader-Facing Provenance (COMPLETE)
 
-Surface `SourceRef` links in the rendered newsletter (Thymeleaf templates): every claim links
-to its FDA/PubMed/ClinicalTrials origin.  Trust differentiator specific to healthcare.  Also
-consider a public read-only wiki view as a future web-module feature.
+Public read-only wiki view: `WikiController` with 3 Thymeleaf pages (`wiki-index.html`,
+`wiki-detail.html`, `wiki-contradictions.html`). Wiki detail page surfaces `SourceRef` links
+in a provenance table — every claim links to its FDA/PubMed/ClinicalTrials origin. CommonMark
+Java library renders markdown content. Reversal Watch contradiction feed at `/wiki/contradictions`.
+808 tests.
 
 ---
 
