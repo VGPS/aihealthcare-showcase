@@ -1,3 +1,11 @@
+-- ---------------------------------------------------------------------------
+-- Schema fixups — widen columns that were created too narrow before the
+-- entity was updated to TEXT.  ALTER TYPE is idempotent on Postgres.
+-- H2 uses a slightly different syntax but supports ALTER COLUMN ... TYPE.
+-- ---------------------------------------------------------------------------
+ALTER TABLE wiki_source_refs ALTER COLUMN excerpt TYPE TEXT;
+ALTER TABLE wiki_source_refs ALTER COLUMN article_id TYPE TEXT;
+
 -- Seed the AI Healthcare topic.
 -- WHERE NOT EXISTS guard prevents duplicate insertion on context restarts.
 INSERT INTO topics (id, name, slug, prompt_context, tone, active)

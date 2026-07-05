@@ -20,7 +20,7 @@ import java.time.LocalDate;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-07-05
  */
 @Entity
 @Table(name = "wiki_source_refs")
@@ -33,7 +33,7 @@ public class WikiSourceRefEntity {
     @Column(name = "page_slug", length = 255, nullable = false)
     private String pageSlug;
 
-    @Column(name = "article_id", length = 512, nullable = false)
+    @Column(name = "article_id", columnDefinition = "TEXT", nullable = false)
     private String articleId;
 
     @Column(name = "source_name", length = 255, nullable = false)
