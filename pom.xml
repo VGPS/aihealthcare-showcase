@@ -41,13 +41,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Dotenv — loads .env file into Spring Environment properties -->
-        <dependency>
-            <groupId>me.paulschwarz</groupId>
-            <artifactId>spring-dotenv</artifactId>
-            <version>4.0.0</version>
-        </dependency>
-
         <!-- Spring Cache + Caffeine — TTL-based in-memory caching for AI search results -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

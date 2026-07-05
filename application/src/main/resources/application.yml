@@ -19,14 +19,14 @@ spring:
   # ---------------------------------------------------------------------------
   ai:
     anthropic:
-      api-key: ${env.ANTHROPIC_API_KEY:placeholder-set-ANTHROPIC_API_KEY}
+      api-key: ${ANTHROPIC_API_KEY:placeholder-set-ANTHROPIC_API_KEY}
       chat:
         options:
           model: claude-sonnet-4-6
     openai:
-      api-key: ${env.OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
+      api-key: ${OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
     perplexity:
-      api-key: ${env.PERPLEXITY_API_KEY:placeholder-set-PERPLEXITY_API_KEY}
+      api-key: ${PERPLEXITY_API_KEY:placeholder-set-PERPLEXITY_API_KEY}
     vectorstore:
       pgvector:
         initialize-schema: true
@@ -683,7 +683,7 @@ aihealthcare:
   # When the key is absent the adapter logs a warning and returns a fallback.
   # ---------------------------------------------------------------------------
   gemini:
-    api-key: ${env.GEMINI_API_KEY:}
+    api-key: ${GEMINI_API_KEY:}
 
   # ---------------------------------------------------------------------------
   # PubMed Backfill — historical article harvesting via E-utilities API.
@@ -764,8 +764,8 @@ aihealthcare:
   # Stripe CLI: stripe listen --forward-to localhost:8080/api/v1/stripe/webhook
   # ---------------------------------------------------------------------------
   stripe:
-    api-key: ${env.STRIPE_API_KEY:}
-    publishable-key: ${env.STRIPE_PUBLISHABLE_KEY:}
+    api-key: ${STRIPE_API_KEY:}
+    publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
     webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
     member-price-id: ${STRIPE_MEMBER_PRICE_ID:}
 
