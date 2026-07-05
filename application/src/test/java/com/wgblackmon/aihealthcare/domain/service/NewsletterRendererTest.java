@@ -220,4 +220,56 @@ class NewsletterRendererTest {
         assertThat(text).contains("Unsubscribe: {{unsubscribe_url}}");
         assertThat(text).contains("Manage preferences: {{preferences_url}}");
     }
+
+    // -------------------------------------------------------------------------
+    // Reversal Watch section rendering
+    // -------------------------------------------------------------------------
+
+    private NewsletterDraft draftWithReversalWatch() {
+        NewsArticle article = new NewsArticle(
+                "article-001", "Test Article",
+                URI.create("https://example.com/article-001"),
+                "Body text.", "AI diagnostics", null,
+                1L, "PubMed", "ACADEMIC", 0.9, null
+        );
+        NewsletterSection reversalSection = new NewsletterSection(
+                "section-rw",
+                SectionType.REVERSAL_WATCH,
+                "Reversal Watch",
+                "Reversal Watch: 1 Contradiction Detected",
+                "FDA reversed its prior guidance on AI diagnostics.",
+                List.of("article-001")
+        );
+        return new NewsletterDraft(
+                "draft-rw", "run-rw", "AI Weekly",
+                LocalDate.of(2026, 7, 5),
+                "Welcome to the newsletter.",
+                List.of(reversalSection),
+                List.of(article),
+                Instant.now()
+        );
+    }
+
+    @Test
+    @DisplayName("renderHtml() uses warning color for REVERSAL_WATCH section")
+    void renderHtml_reversalWatchSection_usesWarningColor() {
+        String html = renderer.renderHtml(draftWithReversalWatch());
+        assertThat(html).contains("#cc3300");
+        assertThat(html).contains("#fff5f5");
+    }
+
+    @Test
+    @DisplayName("renderHtml() prepends warning indicator to REVERSAL_WATCH headline")
+    void renderHtml_reversalWatchSection_prependsWarningIndicator() {
+        String html = renderer.renderHtml(draftWithReversalWatch());
+        assertThat(html).contains("\u26A0");
+    }
+
+    @Test
+    @DisplayName("renderPlainText() uses distinct separator for REVERSAL_WATCH section")
+    void renderPlainText_reversalWatchSection_usesDistinctSeparator() {
+        String text = renderer.renderPlainText(draftWithReversalWatch());
+        assertThat(text).contains("=== REVERSAL WATCH ===");
+        assertThat(text).doesNotContain("---\nReversal Watch");
+    }
 }

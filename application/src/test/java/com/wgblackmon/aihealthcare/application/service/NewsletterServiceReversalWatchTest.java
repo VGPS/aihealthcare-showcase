@@ -1,11 +1,12 @@
 package com.wgblackmon.aihealthcare.application.service;
 
+import com.wgblackmon.aihealthcare.domain.model.Contradiction;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
-import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
-import com.wgblackmon.aihealthcare.domain.model.NewsletterRunStatus;
+import com.wgblackmon.aihealthcare.domain.model.NewsletterDraft;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
+import com.wgblackmon.aihealthcare.domain.model.SourceRef;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
@@ -18,12 +19,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,25 +33,23 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests verifying that {@link NewsletterService#generate} persists a
- * {@link NewsletterRun} via {@link NewsletterRunPort} with the correct content.
+ * Unit tests verifying that {@link NewsletterService#generate} integrates
+ * the Reversal Watch section from wiki contradictions.
  *
- * <p>A real {@link NewsletterRenderer} is used (it is pure Java with no
- * dependencies) so that {@code htmlContent} and {@code plainTextContent}
- * assertions reflect actual rendered output.  All ports are Mockito mocks —
- * no Spring context or database is involved.
+ * <p>When recent contradictions exist, a {@link SectionType#REVERSAL_WATCH}
+ * section is appended as the last section.  When no contradictions exist,
+ * no section is added.
  *
  * @author  Bill Blackmon
  * @version 1.0
- * @since   2026-04-11
- * @updated 2026-04-11
+ * @since   2026-07-05
+ * @updated 2026-07-05
  */
 @ExtendWith(MockitoExtension.class)
-class NewsletterServiceGenerateTest {
+class NewsletterServiceReversalWatchTest {
 
     @Mock
     private ArticleIngestionPort ingestionPort;
@@ -68,9 +68,9 @@ class NewsletterServiceGenerateTest {
 
     private NewsletterService service;
 
-    private static final String RUN_ID   = "run-001";
-    private static final String DRAFT_ID = "draft-001";
-    private static final String TOPIC    = "PubMed AI Healthcare";
+    private static final String RUN_ID   = "run-rw-001";
+    private static final String DRAFT_ID = "draft-rw-001";
+    private static final String TOPIC    = "AI diagnostics";
 
     private static final NewsArticle ARTICLE = new NewsArticle(
             "article-001",
@@ -78,7 +78,7 @@ class NewsletterServiceGenerateTest {
             URI.create("https://example.com/article-001"),
             "Researchers found that AI models outperform radiologists.",
             TOPIC,
-            null, 1L, "PubMed AI Healthcare", "ACADEMIC", 0.9, null
+            null, null, "PubMed", "ACADEMIC", 0.9, null
     );
 
     private static final NewsletterSection SECTION = new NewsletterSection(
@@ -90,85 +90,83 @@ class NewsletterServiceGenerateTest {
             List.of("article-001")
     );
 
+    private static final Contradiction CONTRADICTION = new Contradiction(
+            "fda-ai-guidance",
+            "AI tools require full premarket review",
+            "AI tools may use predetermined change control plans",
+            List.of(new SourceRef("art-prior", "FDA", LocalDate.of(2026, 6, 1), "Original text")),
+            List.of(new SourceRef("art-new", "FDA", LocalDate.of(2026, 7, 1), "Updated text")),
+            Instant.now()
+    );
+
     @BeforeEach
     void setUp() {
         service = new NewsletterService(ingestionPort, summarizationPort,
-                                        new NewsletterRenderer(), newsletterRunPort, searchPort,
-                                        wikiQueryPort, new ReversalWatchSectionBuilder());
+                new NewsletterRenderer(), newsletterRunPort, searchPort,
+                wikiQueryPort, new ReversalWatchSectionBuilder());
     }
 
     @Test
-    @DisplayName("generate() calls NewsletterRunPort.save() exactly once")
-    void generate_savesNewsletterRun() {
+    @DisplayName("generate() with contradictions appends REVERSAL_WATCH as last section")
+    void generate_withContradictions_appendsReversalWatchSection() {
         when(ingestionPort.fetchArticles(anyString(), anyInt())).thenReturn(List.of(ARTICLE));
         when(summarizationPort.summarize(anyList(), anyString(), any(NewsletterTone.class), anyString()))
                 .thenReturn(SECTION);
         when(summarizationPort.generateIntroduction(anyList(), any(NewsletterTone.class)))
                 .thenReturn("Welcome to the newsletter.");
+        when(wikiQueryPort.recentContradictions(any(Instant.class)))
+                .thenReturn(List.of(CONTRADICTION));
 
         service.ingest(RUN_ID, LocalDate.now(), List.of(TOPIC), 5);
-        service.generate(RUN_ID, DRAFT_ID, "AI in Healthcare Weekly",
-                         NewsletterTone.PROFESSIONAL, 3, false, 3);
+        NewsletterDraft draft = service.generate(RUN_ID, DRAFT_ID, "AI Weekly",
+                NewsletterTone.PROFESSIONAL, 3, false, 3);
 
-        verify(newsletterRunPort).save(any(NewsletterRun.class));
+        List<NewsletterSection> sections = draft.sections();
+        assertThat(sections).hasSizeGreaterThan(1);
+
+        NewsletterSection lastSection = sections.get(sections.size() - 1);
+        assertThat(lastSection.sectionType()).isEqualTo(SectionType.REVERSAL_WATCH);
+        assertThat(lastSection.headline()).contains("Contradiction");
     }
 
     @Test
-    @DisplayName("generate() saves a run with status DRAFT")
-    void generate_runHasStatusDraft() {
+    @DisplayName("generate() with no contradictions omits REVERSAL_WATCH section")
+    void generate_withNoContradictions_omitsReversalWatchSection() {
         when(ingestionPort.fetchArticles(anyString(), anyInt())).thenReturn(List.of(ARTICLE));
         when(summarizationPort.summarize(anyList(), anyString(), any(NewsletterTone.class), anyString()))
                 .thenReturn(SECTION);
         when(summarizationPort.generateIntroduction(anyList(), any(NewsletterTone.class)))
                 .thenReturn("Welcome to the newsletter.");
+        when(wikiQueryPort.recentContradictions(any(Instant.class)))
+                .thenReturn(Collections.emptyList());
 
         service.ingest(RUN_ID, LocalDate.now(), List.of(TOPIC), 5);
-        service.generate(RUN_ID, DRAFT_ID, "AI in Healthcare Weekly",
-                         NewsletterTone.PROFESSIONAL, 3, false, 3);
+        NewsletterDraft draft = service.generate(RUN_ID, DRAFT_ID, "AI Weekly",
+                NewsletterTone.PROFESSIONAL, 3, false, 3);
 
-        ArgumentCaptor<NewsletterRun> captor = ArgumentCaptor.forClass(NewsletterRun.class);
-        verify(newsletterRunPort).save(captor.capture());
-
-        assertThat(captor.getValue().status()).isEqualTo(NewsletterRunStatus.DRAFT);
+        for (NewsletterSection section : draft.sections()) {
+            assertThat(section.sectionType()).isNotEqualTo(SectionType.REVERSAL_WATCH);
+        }
     }
 
     @Test
-    @DisplayName("generate() saves a run with non-blank HTML and plain-text content")
-    void generate_runHasNonBlankRenderedContent() {
+    @DisplayName("generate() places REVERSAL_WATCH section last in the list")
+    void generate_reversalWatchSectionAppearsLast() {
         when(ingestionPort.fetchArticles(anyString(), anyInt())).thenReturn(List.of(ARTICLE));
         when(summarizationPort.summarize(anyList(), anyString(), any(NewsletterTone.class), anyString()))
                 .thenReturn(SECTION);
         when(summarizationPort.generateIntroduction(anyList(), any(NewsletterTone.class)))
                 .thenReturn("Welcome to the newsletter.");
+        when(wikiQueryPort.recentContradictions(any(Instant.class)))
+                .thenReturn(List.of(CONTRADICTION));
 
         service.ingest(RUN_ID, LocalDate.now(), List.of(TOPIC), 5);
-        service.generate(RUN_ID, DRAFT_ID, "AI in Healthcare Weekly",
-                         NewsletterTone.PROFESSIONAL, 3, false, 3);
+        NewsletterDraft draft = service.generate(RUN_ID, DRAFT_ID, "AI Weekly",
+                NewsletterTone.PROFESSIONAL, 3, false, 3);
 
-        ArgumentCaptor<NewsletterRun> captor = ArgumentCaptor.forClass(NewsletterRun.class);
-        verify(newsletterRunPort).save(captor.capture());
-
-        assertThat(captor.getValue().htmlContent()).isNotBlank();
-        assertThat(captor.getValue().plainTextContent()).isNotBlank();
-    }
-
-    @Test
-    @DisplayName("generate() saves a run whose HTML contains the newsletter title")
-    void generate_htmlContentContainsTitle() {
-        when(ingestionPort.fetchArticles(anyString(), anyInt())).thenReturn(List.of(ARTICLE));
-        when(summarizationPort.summarize(anyList(), anyString(), any(NewsletterTone.class), anyString()))
-                .thenReturn(SECTION);
-        when(summarizationPort.generateIntroduction(anyList(), any(NewsletterTone.class)))
-                .thenReturn("Welcome to the newsletter.");
-
-        service.ingest(RUN_ID, LocalDate.now(), List.of(TOPIC), 5);
-        service.generate(RUN_ID, DRAFT_ID, "AI in Healthcare Weekly",
-                         NewsletterTone.PROFESSIONAL, 3, false, 3);
-
-        ArgumentCaptor<NewsletterRun> captor = ArgumentCaptor.forClass(NewsletterRun.class);
-        verify(newsletterRunPort).save(captor.capture());
-
-        assertThat(captor.getValue().htmlContent()).contains("AI in Healthcare Weekly");
-        assertThat(captor.getValue().plainTextContent()).contains("AI in Healthcare Weekly");
+        List<NewsletterSection> sections = draft.sections();
+        // First section is the topic section, last is Reversal Watch
+        assertThat(sections.get(0).sectionType()).isNotEqualTo(SectionType.REVERSAL_WATCH);
+        assertThat(sections.get(sections.size() - 1).sectionType()).isEqualTo(SectionType.REVERSAL_WATCH);
     }
 }

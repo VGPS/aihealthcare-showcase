@@ -17,7 +17,7 @@ package com.wgblackmon.aihealthcare.domain.model;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-04-04
+ * @updated 2026-07-05
  */
 public enum SectionType {
 
@@ -53,5 +53,12 @@ public enum SectionType {
      * Typical subjects: new model weights, public datasets, evaluation frameworks,
      * developer SDKs.
      */
-    TOOL_PICK
+    TOOL_PICK,
+
+    /**
+     * A regulatory U-turn, walked-back vendor claim, or failed replication
+     * detected by the wiki's contradiction tracking system.  Typical subjects:
+     * reversed FDA guidance, retracted efficacy claims, contradicted study results.
+     */
+    REVERSAL_WATCH
 }
