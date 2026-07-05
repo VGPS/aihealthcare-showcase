@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.domain.service;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterDraft;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
+import com.wgblackmon.aihealthcare.domain.model.SectionType;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -28,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-07-03
+ * @updated 2026-07-05
  */
 @Slf4j
 public class NewsletterRenderer {
@@ -87,12 +88,19 @@ public class NewsletterRenderer {
 
         // Sections
         for (NewsletterSection section : draft.sections()) {
+            boolean isReversal = section.sectionType() == SectionType.REVERSAL_WATCH;
+            String borderColor = isReversal ? "#cc3300" : "#0066cc";
+            String bgColor = isReversal ? "#fff5f5" : "#f8f9fc";
+            String headlineColor = isReversal ? "#cc3300" : "#0066cc";
+
             html.append("<tr><td style=\"padding: 16px 32px;\">")
                 .append("<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" ")
-                .append("style=\"border-left: 4px solid #0066cc; background-color: #f8f9fc; ")
-                .append("border-radius: 0 6px 6px 0;\">")
+                .append("style=\"border-left: 4px solid ").append(borderColor)
+                .append("; background-color: ").append(bgColor)
+                .append("; border-radius: 0 6px 6px 0;\">")
                 .append("<tr><td style=\"padding: 16px 20px;\">")
-                .append("<h2 style=\"margin: 0 0 8px; font-size: 17px; color: #0066cc;\">")
+                .append("<h2 style=\"margin: 0 0 8px; font-size: 17px; color: ").append(headlineColor).append(";\">")
+                .append(isReversal ? "\u26A0 " : "")
                 .append(escapeHtml(section.headline()))
                 .append("</h2>")
                 .append("<p style=\"margin: 0; font-size: 14px; line-height: 1.7; color: #444;\">")
@@ -171,7 +179,11 @@ public class NewsletterRenderer {
         }
 
         for (NewsletterSection section : draft.sections()) {
-            text.append("---\n");
+            if (section.sectionType() == SectionType.REVERSAL_WATCH) {
+                text.append("=== REVERSAL WATCH ===\n");
+            } else {
+                text.append("---\n");
+            }
             text.append(section.headline()).append("\n\n");
             text.append(section.summary()).append("\n\n");
         }

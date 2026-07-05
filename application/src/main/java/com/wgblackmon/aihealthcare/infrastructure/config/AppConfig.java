@@ -25,6 +25,8 @@ import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
 import com.wgblackmon.aihealthcare.domain.service.MarketIntelligenceService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
+import com.wgblackmon.aihealthcare.domain.service.ReversalWatchSectionBuilder;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.PromptEvaluationService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchOrchestratorService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchPlanningService;
@@ -204,15 +206,19 @@ public class AppConfig {
     public NewsletterService newsletterService(ArticleIngestionPort ingestionPort,
                                                AiSummarizationPort summarizationPort,
                                                NewsletterRunPort newsletterRunPort,
-                                               ArticleSearchPort searchPort) {
-        log.debug("newsletterService() | ingestionPort={}, summarizationPort={}, newsletterRunPort={}, searchPort={}",
+                                               ArticleSearchPort searchPort,
+                                               WikiQueryPort wikiQueryPort) {
+        log.debug("newsletterService() | ingestionPort={}, summarizationPort={}, newsletterRunPort={}, searchPort={}, wikiQueryPort={}",
                   ingestionPort.getClass().getSimpleName(),
                   summarizationPort.getClass().getSimpleName(),
                   newsletterRunPort.getClass().getSimpleName(),
-                  searchPort.getClass().getSimpleName());
+                  searchPort.getClass().getSimpleName(),
+                  wikiQueryPort.getClass().getSimpleName());
         NewsletterRenderer renderer = new NewsletterRenderer();
+        ReversalWatchSectionBuilder reversalWatchBuilder = new ReversalWatchSectionBuilder();
         NewsletterService result = new NewsletterService(
-                ingestionPort, summarizationPort, renderer, newsletterRunPort, searchPort);
+                ingestionPort, summarizationPort, renderer, newsletterRunPort, searchPort,
+                wikiQueryPort, reversalWatchBuilder);
         log.debug("newsletterService() | return={}", result.getClass().getSimpleName());
         return result;
     }

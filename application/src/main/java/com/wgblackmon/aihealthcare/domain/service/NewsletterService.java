@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.domain.service;
 
+import com.wgblackmon.aihealthcare.domain.model.Contradiction;
 import com.wgblackmon.aihealthcare.domain.exception.NoArticlesFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.RunNotFoundException;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
@@ -14,10 +15,12 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,16 +51,18 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2025-01-27
- * @updated 2026-04-27
+ * @updated 2026-07-05
  */
 @Slf4j
 public class NewsletterService implements IngestArticlesUseCase, GenerateNewsletterUseCase {
 
-    private final ArticleIngestionPort  ingestionPort;
-    private final AiSummarizationPort   summarizationPort;
-    private final NewsletterRenderer    renderer;
-    private final NewsletterRunPort     newsletterRunPort;
-    private final ArticleSearchPort     searchPort;
+    private final ArticleIngestionPort         ingestionPort;
+    private final AiSummarizationPort          summarizationPort;
+    private final NewsletterRenderer           renderer;
+    private final NewsletterRunPort            newsletterRunPort;
+    private final ArticleSearchPort            searchPort;
+    private final WikiQueryPort                wikiQueryPort;
+    private final ReversalWatchSectionBuilder  reversalWatchBuilder;
 
     // In-memory stores — articles map supports ingest→generate handoff;
     // draftByDraftId supports getDraft() in the same session.
@@ -70,14 +75,18 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
                              AiSummarizationPort summarizationPort,
                              NewsletterRenderer renderer,
                              NewsletterRunPort newsletterRunPort,
-                             ArticleSearchPort searchPort) {
-        log.debug("NewsletterService() | ingestionPort={}, summarizationPort={}, renderer={}, newsletterRunPort={}, searchPort={}",
-                  ingestionPort, summarizationPort, renderer, newsletterRunPort, searchPort);
-        this.ingestionPort      = ingestionPort;
-        this.summarizationPort  = summarizationPort;
-        this.renderer           = renderer;
-        this.newsletterRunPort  = newsletterRunPort;
-        this.searchPort         = searchPort;
+                             ArticleSearchPort searchPort,
+                             WikiQueryPort wikiQueryPort,
+                             ReversalWatchSectionBuilder reversalWatchBuilder) {
+        log.debug("NewsletterService() | ingestionPort={}, summarizationPort={}, renderer={}, newsletterRunPort={}, searchPort={}, wikiQueryPort={}, reversalWatchBuilder={}",
+                  ingestionPort, summarizationPort, renderer, newsletterRunPort, searchPort, wikiQueryPort, reversalWatchBuilder);
+        this.ingestionPort         = ingestionPort;
+        this.summarizationPort     = summarizationPort;
+        this.renderer              = renderer;
+        this.newsletterRunPort     = newsletterRunPort;
+        this.searchPort            = searchPort;
+        this.wikiQueryPort         = wikiQueryPort;
+        this.reversalWatchBuilder  = reversalWatchBuilder;
     }
 
     // -------------------------------------------------------------------------
@@ -178,6 +187,17 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
                 section = summarizationPort.summarize(freshSlice, entry.getKey(), tone, sectionId);
             }
             sections.add(section);
+        }
+
+        // Append Reversal Watch section from recent wiki contradictions (last 7 days)
+        Instant since = Instant.now().minus(7, ChronoUnit.DAYS);
+        List<Contradiction> contradictions = wikiQueryPort.recentContradictions(since);
+        String reversalSectionId = "section-%03d".formatted(sectionCounter.incrementAndGet());
+        NewsletterSection reversalSection = reversalWatchBuilder.build(contradictions, reversalSectionId);
+        if (reversalSection != null) {
+            sections.add(reversalSection);
+            log.info("generate() | Reversal Watch section appended with {} contradiction(s)",
+                    contradictions.size());
         }
 
         String introduction = summarizationPort.generateIntroduction(sections, tone);

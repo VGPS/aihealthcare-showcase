@@ -8,8 +8,10 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
+import com.wgblackmon.aihealthcare.domain.service.ReversalWatchSectionBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,6 +68,9 @@ class NewsletterServiceRagTest {
     @Mock
     private ArticleSearchPort searchPort;
 
+    @Mock
+    private WikiQueryPort wikiQueryPort;
+
     private NewsletterService service;
 
     private static final String RUN_ID   = "run-rag-001";
@@ -102,7 +107,8 @@ class NewsletterServiceRagTest {
     @BeforeEach
     void setUp() {
         service = new NewsletterService(ingestionPort, summarizationPort,
-                                        new NewsletterRenderer(), newsletterRunPort, searchPort);
+                                        new NewsletterRenderer(), newsletterRunPort, searchPort,
+                                        wikiQueryPort, new ReversalWatchSectionBuilder());
     }
 
     // -------------------------------------------------------------------------

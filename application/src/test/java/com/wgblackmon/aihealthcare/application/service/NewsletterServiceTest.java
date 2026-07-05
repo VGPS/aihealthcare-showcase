@@ -11,8 +11,10 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
+import com.wgblackmon.aihealthcare.domain.service.ReversalWatchSectionBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,6 +66,9 @@ class NewsletterServiceTest {
     @Mock
     private ArticleSearchPort searchPort;
 
+    @Mock
+    private WikiQueryPort wikiQueryPort;
+
     private NewsletterService service;
 
     // --- shared fixtures ---
@@ -98,7 +103,8 @@ class NewsletterServiceTest {
     @BeforeEach
     void setUp() {
         service = new NewsletterService(ingestionPort, summarizationPort,
-                                        new NewsletterRenderer(), newsletterRunPort, searchPort);
+                                        new NewsletterRenderer(), newsletterRunPort, searchPort,
+                                        wikiQueryPort, new ReversalWatchSectionBuilder());
     }
 
     // -------------------------------------------------------------------------
