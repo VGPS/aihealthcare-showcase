@@ -19,14 +19,14 @@ spring:
   # ---------------------------------------------------------------------------
   ai:
     anthropic:
-      api-key: ${ANTHROPIC_API_KEY:placeholder-set-ANTHROPIC_API_KEY}
+      api-key: ${env.ANTHROPIC_API_KEY:placeholder-set-ANTHROPIC_API_KEY}
       chat:
         options:
           model: claude-sonnet-4-6
     openai:
-      api-key: ${OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
+      api-key: ${env.OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
     perplexity:
-      api-key: ${PERPLEXITY_API_KEY:placeholder-set-PERPLEXITY_API_KEY}
+      api-key: ${env.PERPLEXITY_API_KEY:placeholder-set-PERPLEXITY_API_KEY}
     vectorstore:
       pgvector:
         initialize-schema: true
@@ -84,6 +84,9 @@ spring:
 
 server:
   port: 8080
+  error:
+    include-message: always
+    include-exception: true
 
 # -----------------------------------------------------------------------------
 # Logging
@@ -126,6 +129,14 @@ aihealthcare:
     industry-rate-ms: "14400000"
     competitor-cron: "0 0 5 * * *"
     huggingface-cron: "0 30 5 * * *"
+
+  # ---------------------------------------------------------------------------
+  # Wiki linter — automated quality checks on the knowledge base.
+  # Runs after compilation to detect orphans, broken refs, stale pages, etc.
+  # ---------------------------------------------------------------------------
+  wiki:
+    lint-cron: "0 0 8 * * *"
+    staleness-threshold-days: 30
 
   # ---------------------------------------------------------------------------
   # Research pipeline — controls which pipeline branch POST /api/v1/research uses.
@@ -672,7 +683,7 @@ aihealthcare:
   # When the key is absent the adapter logs a warning and returns a fallback.
   # ---------------------------------------------------------------------------
   gemini:
-    api-key: ${GEMINI_API_KEY:}
+    api-key: ${env.GEMINI_API_KEY:}
 
   # ---------------------------------------------------------------------------
   # PubMed Backfill — historical article harvesting via E-utilities API.
@@ -753,8 +764,8 @@ aihealthcare:
   # Stripe CLI: stripe listen --forward-to localhost:8080/api/v1/stripe/webhook
   # ---------------------------------------------------------------------------
   stripe:
-    api-key: ${STRIPE_API_KEY:}
-    publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
+    api-key: ${env.STRIPE_API_KEY:}
+    publishable-key: ${env.STRIPE_PUBLISHABLE_KEY:}
     webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
     member-price-id: ${STRIPE_MEMBER_PRICE_ID:}
 

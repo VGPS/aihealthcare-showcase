@@ -31,6 +31,7 @@ import com.wgblackmon.aihealthcare.domain.service.ResearchPlanningService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
+import com.wgblackmon.aihealthcare.domain.service.WikiLintService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchQueryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiReportPort;
@@ -98,7 +99,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-07-04
+ * @updated 2026-07-05
  */
 
 @Slf4j
@@ -490,6 +491,20 @@ public class AppConfig {
                 new CompanyDeduplicator(),
                 new CompanyNewsletterRenderer());
         log.debug("companyDiscoveryService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link WikiLintService} bean — a stateless, pure-Java domain
+     * service that performs automated quality checks on the wiki knowledge base.
+     *
+     * @return The wired {@link WikiLintService} instance.
+     */
+    @Bean
+    public WikiLintService wikiLintService() {
+        log.debug("wikiLintService() | creating stateless lint service");
+        WikiLintService result = new WikiLintService();
+        log.debug("wikiLintService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 
