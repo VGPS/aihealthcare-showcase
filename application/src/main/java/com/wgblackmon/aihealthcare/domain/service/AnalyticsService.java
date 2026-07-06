@@ -1,11 +1,14 @@
 package com.wgblackmon.aihealthcare.domain.service;
 
+import com.wgblackmon.aihealthcare.domain.model.CountByLabel;
 import com.wgblackmon.aihealthcare.domain.model.EvaluationAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.IngestionAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.VariantScore;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalyticsPort;
+
+import java.util.List;
 
 /**
  * Application-layer service implementing the analytics dashboard use case.
@@ -23,7 +26,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AnalyticsPort;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-03
- * @updated 2026-05-03
+ * @updated 2026-07-05
  */
 public class AnalyticsService implements GetAnalyticsUseCase {
 
@@ -76,6 +79,24 @@ public class AnalyticsService implements GetAnalyticsUseCase {
                 raw.totalComparisons(),
                 raw.variantScores(),
                 bestVariantId);
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<CountByLabel> getDailyArticleCounts(int days) {
+        List<CountByLabel> result = analyticsPort.getDailyArticleCounts(days);
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<CountByLabel> getTopicDistribution(int limit) {
+        List<CountByLabel> result = analyticsPort.getTopicDistribution(limit);
         return result;
     }
 }

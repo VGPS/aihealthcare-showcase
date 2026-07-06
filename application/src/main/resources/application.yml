@@ -217,6 +217,13 @@ aihealthcare:
         base-weight: 0.9
         max-items: 15
       - topic-id: 1
+        name: PubMed Generative AI MeSH
+        topic: General AI Healthcare News
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1VWjLaVyNn71oZEHNDVvefLFuAUg8p8v_hRNsnL3B6ZlYRUMYA/?limit=15&utm_campaign=pubmed-2&fc=20260705205933
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
         name: Healthcare IT News
         topic: General AI Healthcare News
         url: https://www.healthcareitnews.com/feed
@@ -693,7 +700,7 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   backfill:
     from-year: 2022
-    to-year: 2025
+    to-year: 2026
     max-per-query: 50
     queries:
       - "\"artificial intelligence\" AND \"healthcare\" AND \"legal liability\""
@@ -706,6 +713,7 @@ aihealthcare:
       - "\"AI\" AND \"healthcare\" AND \"bias\" AND \"fairness\""
       - "\"large language model\" AND \"healthcare\""
       - "\"artificial intelligence\" AND \"radiology\" AND \"diagnosis\""
+      - "\"Generative Artificial Intelligence\"[MeSH]"
 
   # ---------------------------------------------------------------------------
   # Embedding scheduler — cron expression for the EmbeddingScheduler job.

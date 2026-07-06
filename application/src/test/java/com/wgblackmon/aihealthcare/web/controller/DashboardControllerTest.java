@@ -1,13 +1,10 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.CountByLabel;
-import com.wgblackmon.aihealthcare.domain.model.EvaluationAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.IngestionAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
-import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
-import com.wgblackmon.aihealthcare.domain.model.VariantScore;
 import com.wgblackmon.aihealthcare.domain.model.ArticleSearchCriteria;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.SearchArticlesUseCase;
@@ -17,7 +14,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
-import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.3
  * @since   2026-05-04
- * @updated 2026-05-30
+ * @updated 2026-07-05
  */
 @Import(SecurityConfig.class)
 @WithMockUser
@@ -88,9 +84,6 @@ class DashboardControllerTest {
     @MockitoBean
     private SearchArticlesUseCase searchUseCase;
 
-    @MockitoBean
-    private NewsArticleRepository newsArticleRepository;
-
     // -------------------------------------------------------------------------
     // Fixtures
     // -------------------------------------------------------------------------
@@ -101,23 +94,6 @@ class DashboardControllerTest {
                 List.of(new CountByLabel("ACADEMIC", 120L), new CountByLabel("INDUSTRY", 80L)),
                 List.of(new CountByLabel("PubMed AI Healthcare", 120L)),
                 18L, 65L);
-    }
-
-    private RunAnalytics sampleRuns() {
-        return new RunAnalytics(10L, 3L, 6L, 1L, Instant.parse("2026-04-30T10:00:00Z"));
-    }
-
-    private RunAnalytics emptyRuns() {
-        return new RunAnalytics(0L, 0L, 0L, 0L, null);
-    }
-
-    private EvaluationAnalytics sampleEvaluations() {
-        VariantScore vs = new VariantScore("v1", "Baseline", 8L, 0.85, 0.80, 0.88, 0.82, 0.86, 0.87);
-        return new EvaluationAnalytics(8L, 3L, List.of(vs), "v1");
-    }
-
-    private EvaluationAnalytics emptyEvaluations() {
-        return new EvaluationAnalytics(0L, 0L, List.of(), null);
     }
 
     private NewsArticle sampleArticle(String title, Instant publishedAt) {
@@ -133,17 +109,15 @@ class DashboardControllerTest {
 
     @BeforeEach
     void stubChartDefaults() {
-        when(newsArticleRepository.findByCreatedAtAfterOrderByCreatedAtAsc(any()))
+        when(analyticsUseCase.getDailyArticleCounts(anyInt()))
                 .thenReturn(List.of());
-        when(newsArticleRepository.countByTopicGrouped())
+        when(analyticsUseCase.getTopicDistribution(anyInt()))
                 .thenReturn(List.of());
     }
 
     @Test
     void dashboard_returns200AndDashboardView() throws Exception {
         when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
-        when(analyticsUseCase.getRunAnalytics()).thenReturn(sampleRuns());
-        when(analyticsUseCase.getEvaluationAnalytics()).thenReturn(sampleEvaluations());
 
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
@@ -151,83 +125,13 @@ class DashboardControllerTest {
     }
 
     @Test
-    void dashboard_modelContainsAllThreeAnalyticsAttributes() throws Exception {
+    void dashboard_modelContainsIngestionAndChartAttributes() throws Exception {
         when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
-        when(analyticsUseCase.getRunAnalytics()).thenReturn(sampleRuns());
-        when(analyticsUseCase.getEvaluationAnalytics()).thenReturn(sampleEvaluations());
 
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("ingestion", "runs", "evaluations", "mostRecentRunDisplay"));
-    }
-
-    @Test
-    void dashboard_rendersRunStats() throws Exception {
-        when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
-        when(analyticsUseCase.getRunAnalytics()).thenReturn(sampleRuns());
-        when(analyticsUseCase.getEvaluationAnalytics()).thenReturn(sampleEvaluations());
-
-        mockMvc.perform(get("/dashboard"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Newsletter Runs")))
-                .andExpect(content().string(containsString("Total Runs")))
-                .andExpect(content().string(containsString("Draft")));
-    }
-
-    @Test
-    void dashboard_rendersRunTimestamp() throws Exception {
-        when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
-        when(analyticsUseCase.getRunAnalytics()).thenReturn(sampleRuns());
-        when(analyticsUseCase.getEvaluationAnalytics()).thenReturn(sampleEvaluations());
-
-        mockMvc.perform(get("/dashboard"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("2026-04-30 10:00 UTC")));
-    }
-
-    @Test
-    void dashboard_nullMostRecentRun_displaysEmptyDash() throws Exception {
-        when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
-        when(analyticsUseCase.getRunAnalytics()).thenReturn(emptyRuns());
-        when(analyticsUseCase.getEvaluationAnalytics()).thenReturn(emptyEvaluations());
-
-        mockMvc.perform(get("/dashboard"))
-                .andExpect(status().isOk())
-                .andExpect(model().attribute("mostRecentRunDisplay", (Object) null));
-    }
-
-    @Test
-    void dashboard_noEvaluations_rendersEmptyState() throws Exception {
-        when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
-        when(analyticsUseCase.getRunAnalytics()).thenReturn(emptyRuns());
-        when(analyticsUseCase.getEvaluationAnalytics()).thenReturn(emptyEvaluations());
-
-        mockMvc.perform(get("/dashboard"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("No evaluation data yet")));
-    }
-
-    @Test
-    void dashboard_withEvaluations_rendersBestVariantBadge() throws Exception {
-        when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
-        when(analyticsUseCase.getRunAnalytics()).thenReturn(sampleRuns());
-        when(analyticsUseCase.getEvaluationAnalytics()).thenReturn(sampleEvaluations());
-
-        mockMvc.perform(get("/dashboard"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Best")))
-                .andExpect(content().string(containsString("Baseline")));
-    }
-
-    @Test
-    void dashboard_populatesChartDataAttributes() throws Exception {
-        when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
-        when(analyticsUseCase.getRunAnalytics()).thenReturn(sampleRuns());
-        when(analyticsUseCase.getEvaluationAnalytics()).thenReturn(sampleEvaluations());
-
-        mockMvc.perform(get("/dashboard"))
-                .andExpect(status().isOk())
-                .andExpect(model().attributeExists("chartLabels", "chartData",
+                .andExpect(model().attributeExists("ingestion",
+                        "chartLabels", "chartData",
                         "topicChartLabels", "topicChartData"));
     }
 

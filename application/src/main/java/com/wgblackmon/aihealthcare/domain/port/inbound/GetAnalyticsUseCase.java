@@ -1,8 +1,11 @@
 package com.wgblackmon.aihealthcare.domain.port.inbound;
 
+import com.wgblackmon.aihealthcare.domain.model.CountByLabel;
 import com.wgblackmon.aihealthcare.domain.model.EvaluationAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.IngestionAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
+
+import java.util.List;
 
 /**
  * Inbound port for the analytics dashboard use case.
@@ -18,7 +21,7 @@ import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-03
- * @updated 2026-05-03
+ * @updated 2026-07-05
  */
 public interface GetAnalyticsUseCase {
 
@@ -43,4 +46,22 @@ public interface GetAnalyticsUseCase {
      * @return evaluation analytics
      */
     EvaluationAnalytics getEvaluationAnalytics();
+
+    /**
+     * Returns daily article counts for the last {@code days} days,
+     * with zero-count days included.
+     *
+     * @param days number of days to look back
+     * @return list of [date, count] entries ordered chronologically
+     */
+    List<CountByLabel> getDailyArticleCounts(int days);
+
+    /**
+     * Returns article counts grouped by topic, limited to the top
+     * {@code limit} topics.
+     *
+     * @param limit maximum number of topics to return
+     * @return list of [topic, count] entries ordered by count descending
+     */
+    List<CountByLabel> getTopicDistribution(int limit);
 }

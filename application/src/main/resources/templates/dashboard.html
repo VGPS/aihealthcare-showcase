@@ -184,8 +184,7 @@
 </header>
 
 <nav>
-    <a href="#runs">Newsletter Runs</a>
-    <a href="#evaluations">Evaluations</a>
+    <a href="#analytics">Analytics</a>
     <a href="/dashboard/news">News Listing</a>
     <a sec:authorize="hasRole('ADMIN')" href="/newsletter/runs">Newsletter Preview</a>
     <a href="/research/compare">Research Compare</a>
@@ -204,117 +203,9 @@
 <main>
 
     <!-- ================================================================
-         SECTION 1 — Newsletter Runs
+         Analytics Charts
          ================================================================ -->
-    <section id="runs">
-        <div class="section-header">
-            <h2>Newsletter Runs</h2>
-            <a class="api-link" href="/api/v1/analytics/runs" target="_blank">JSON &rarr;</a>
-        </div>
-
-        <div class="stat-grid">
-            <div class="stat-card">
-                <div class="value" th:text="${runs.totalRuns}">0</div>
-                <div class="label">Total Runs</div>
-            </div>
-            <div class="stat-card amber">
-                <div class="value" th:text="${runs.draftCount}">0</div>
-                <div class="label">Draft</div>
-            </div>
-            <div class="stat-card green">
-                <div class="value" th:text="${runs.sentCount}">0</div>
-                <div class="label">Sent</div>
-            </div>
-            <div class="stat-card slate">
-                <div class="value" th:text="${runs.archivedCount}">0</div>
-                <div class="label">Archived</div>
-            </div>
-            <div class="stat-card slate" th:if="${mostRecentRunDisplay != null}">
-                <div class="value sm" th:text="${mostRecentRunDisplay}">—</div>
-                <div class="label">Most Recent Run</div>
-            </div>
-            <div class="stat-card slate" th:if="${mostRecentRunDisplay == null}">
-                <div class="value sm">—</div>
-                <div class="label">Most Recent Run</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ================================================================
-         SECTION 2 — Prompt Evaluations
-         ================================================================ -->
-    <section id="evaluations">
-        <div class="section-header">
-            <h2>Prompt Evaluations</h2>
-            <a class="api-link" href="/api/v1/analytics/evaluations" target="_blank">JSON &rarr;</a>
-        </div>
-
-        <div class="stat-grid">
-            <div class="stat-card">
-                <div class="value" th:text="${evaluations.totalEvaluations}">0</div>
-                <div class="label">Total Evaluations</div>
-            </div>
-            <div class="stat-card">
-                <div class="value" th:text="${evaluations.totalComparisons}">0</div>
-                <div class="label">Comparisons</div>
-            </div>
-            <div class="stat-card green" th:if="${evaluations.bestVariantId != null}">
-                <div class="value sm" th:text="${evaluations.bestVariantId}">—</div>
-                <div class="label">Best Variant</div>
-            </div>
-            <div class="stat-card slate" th:if="${evaluations.bestVariantId == null}">
-                <div class="value sm">—</div>
-                <div class="label">Best Variant</div>
-            </div>
-        </div>
-
-        <p class="empty" th:if="${#lists.isEmpty(evaluations.variantScores)}">No evaluation data yet.</p>
-
-        <table th:unless="${#lists.isEmpty(evaluations.variantScores)}">
-            <thead>
-                <tr>
-                    <th>Variant</th>
-                    <th style="text-align:right">Evals</th>
-                    <th>Overall</th>
-                    <th>Relevance</th>
-                    <th>Conciseness</th>
-                    <th>Completeness</th>
-                    <th>Tone</th>
-                    <th>Attribution</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="vs : ${evaluations.variantScores}"
-                    th:classappend="${vs.variantId == evaluations.bestVariantId} ? 'highlight' : ''">
-                    <td>
-                        <span th:text="${vs.variantName}">—</span>
-                        <span th:if="${vs.variantId == evaluations.bestVariantId}"
-                              class="badge badge-best">Best</span>
-                    </td>
-                    <td style="text-align:right" th:text="${vs.evaluationCount}">0</td>
-                    <td>
-                        <div class="score-bar">
-                            <div class="bar-bg">
-                                <div class="bar-fill green"
-                                     th:style="'width:' + ${vs.avgOverall * 100} + '%'"></div>
-                            </div>
-                            <span th:text="${#numbers.formatDecimal(vs.avgOverall, 1, 2)}">0.00</span>
-                        </div>
-                    </td>
-                    <td th:text="${#numbers.formatDecimal(vs.avgRelevance, 1, 2)}">0.00</td>
-                    <td th:text="${#numbers.formatDecimal(vs.avgConciseness, 1, 2)}">0.00</td>
-                    <td th:text="${#numbers.formatDecimal(vs.avgCompleteness, 1, 2)}">0.00</td>
-                    <td th:text="${#numbers.formatDecimal(vs.avgToneMatch, 1, 2)}">0.00</td>
-                    <td th:text="${#numbers.formatDecimal(vs.avgAttributionQuality, 1, 2)}">0.00</td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
-
-    <!-- ================================================================
-         SECTION 4 — Analytics Charts
-         ================================================================ -->
-    <section id="charts">
+    <section id="analytics">
         <div class="section-header">
             <h2>Analytics Charts</h2>
         </div>
