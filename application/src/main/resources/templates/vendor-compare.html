@@ -461,7 +461,8 @@
             <table class="sources-table">
                 <thead>
                     <tr>
-                        <th>Article / Title</th>
+                        <th>#</th>
+                        <th>Article Title</th>
                         <th>Publication Date
                             <a href="#" class="sort-arrow" id="sortAsc" title="Oldest first" onclick="sortCitations('asc'); return false;">&uarr;</a>
                             <a href="#" class="sort-arrow active" id="sortDesc" title="Newest first" onclick="sortCitations('desc'); return false;">&darr;</a>
@@ -470,8 +471,8 @@
                 </thead>
                 <tbody>
                     <tr th:each="c : ${citations}">
+                        <td class="ref-num" th:text="${c.citationNumber()}">1</td>
                         <td class="ref-title">
-                            <span class="ref-num" th:text="'[' + ${c.citationNumber()} + '] '"></span>
                             <a th:href="${c.url()}" th:text="${citationTitles[c.citationNumber()]}" target="_blank"
                                rel="noopener noreferrer">Title</a>
                         </td>
