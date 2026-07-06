@@ -34,7 +34,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.3
  * @since   2026-05-14
- * @updated 2026-06-08
+ * @updated 2026-07-06
  */
 @Slf4j
 @Controller
@@ -47,7 +47,7 @@ public class VendorCompareController {
     private static final int MAX_VENDORS_CAP     = 20;
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneOffset.UTC);
+            DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneOffset.UTC);
 
     private final CompareVendorsUseCase compareVendorsUseCase;
 
