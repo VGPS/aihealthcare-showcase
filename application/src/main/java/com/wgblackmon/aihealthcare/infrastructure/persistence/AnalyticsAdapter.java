@@ -10,10 +10,16 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AnalyticsPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * JPA-backed adapter implementing {@link AnalyticsPort}.
@@ -30,11 +36,14 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-03
- * @updated 2026-05-03
+ * @updated 2026-07-05
  */
 @Slf4j
 @Component
 public class AnalyticsAdapter implements AnalyticsPort {
+
+    private static final DateTimeFormatter DATE_KEY_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC);
 
     private final NewsArticleRepository articleRepository;
     private final NewsletterRunRepository runRepository;
@@ -143,6 +152,65 @@ public class AnalyticsAdapter implements AnalyticsPort {
         // bestVariantId is intentionally null here — AnalyticsService computes it
         EvaluationAnalytics result = new EvaluationAnalytics(total, comparisons, variantScores, null);
         log.debug("getEvaluationAnalytics() | return={}", result);
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<CountByLabel> getDailyArticleCounts(int days) {
+        log.debug("getDailyArticleCounts() | days={}", days);
+
+        Instant now = Instant.now();
+        Instant since = now.minus(Duration.ofDays(days));
+
+        // Pre-fill all days with zero counts
+        Map<String, Long> dailyCounts = new LinkedHashMap<>();
+        for (int i = days - 1; i >= 0; i--) {
+            String dateKey = DATE_KEY_FMT.format(now.minus(Duration.ofDays(i)));
+            dailyCounts.put(dateKey, 0L);
+        }
+
+        // Overlay actual counts from the database
+        List<Object[]> rows = articleRepository.countByDayGrouped(since);
+        for (Object[] row : rows) {
+            String dateKey = row[0].toString();
+            // Normalize to yyyy-MM-dd in case DB returns datetime format
+            if (dateKey.length() > 10) {
+                dateKey = dateKey.substring(0, 10);
+            }
+            long count = ((Number) row[1]).longValue();
+            dailyCounts.put(dateKey, count);
+        }
+
+        List<CountByLabel> result = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : dailyCounts.entrySet()) {
+            result.add(new CountByLabel(entry.getKey(), entry.getValue()));
+        }
+
+        log.debug("getDailyArticleCounts() | return={} entries", result.size());
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<CountByLabel> getTopicDistribution(int limit) {
+        log.debug("getTopicDistribution() | limit={}", limit);
+
+        List<Object[]> topicRows = articleRepository.countByTopicGrouped();
+        List<CountByLabel> result = new ArrayList<>();
+        int cap = Math.min(topicRows.size(), limit);
+        for (int i = 0; i < cap; i++) {
+            Object[] row = topicRows.get(i);
+            String label = row[0] != null ? String.valueOf(row[0]) : "Unknown";
+            long count = ((Number) row[1]).longValue();
+            result.add(new CountByLabel(label.isBlank() ? "Unknown" : label, count));
+        }
+
+        log.debug("getTopicDistribution() | return={} entries", result.size());
         return result;
     }
 

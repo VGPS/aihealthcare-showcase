@@ -1,8 +1,11 @@
 package com.wgblackmon.aihealthcare.domain.port.outbound;
 
+import com.wgblackmon.aihealthcare.domain.model.CountByLabel;
 import com.wgblackmon.aihealthcare.domain.model.EvaluationAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.IngestionAnalytics;
 import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
+
+import java.util.List;
 
 /**
  * Outbound port for querying aggregate analytics data from the persistence layer.
@@ -19,7 +22,7 @@ import com.wgblackmon.aihealthcare.domain.model.RunAnalytics;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-03
- * @updated 2026-05-03
+ * @updated 2026-07-05
  */
 public interface AnalyticsPort {
 
@@ -45,4 +48,24 @@ public interface AnalyticsPort {
      * @return evaluation counts and per-variant score averages
      */
     EvaluationAnalytics getEvaluationAnalytics();
+
+    /**
+     * Returns daily article counts for the last {@code days} days.
+     * Each entry's label is a date string (yyyy-MM-dd) and count is the
+     * number of articles created on that date. Days with zero articles
+     * are included with count 0.
+     *
+     * @param days number of days to look back
+     * @return list of [date, count] entries ordered chronologically
+     */
+    List<CountByLabel> getDailyArticleCounts(int days);
+
+    /**
+     * Returns article counts grouped by topic, limited to the top {@code limit}
+     * topics by count descending.
+     *
+     * @param limit maximum number of topics to return
+     * @return list of [topic, count] entries ordered by count descending
+     */
+    List<CountByLabel> getTopicDistribution(int limit);
 }

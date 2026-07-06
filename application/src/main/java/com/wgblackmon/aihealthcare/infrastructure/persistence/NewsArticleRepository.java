@@ -110,4 +110,17 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, 
      * @return list of matching entities, oldest first
      */
     List<NewsArticleEntity> findByCreatedAtAfterOrderByCreatedAtAsc(Instant since);
+
+    /**
+     * Returns article counts grouped by date (cast to DATE), for articles created
+     * after the given instant. Each element is a two-element {@code Object[]} where
+     * index 0 is the date ({@code java.sql.Date}) and index 1 is the {@code Long} count.
+     *
+     * @param since the lower-bound instant (exclusive)
+     * @return list of [date, count] pairs ordered by date ascending
+     */
+    @Query("SELECT CAST(n.createdAt AS date), COUNT(n) FROM NewsArticleEntity n "
+         + "WHERE n.createdAt > :since GROUP BY CAST(n.createdAt AS date) "
+         + "ORDER BY CAST(n.createdAt AS date) ASC")
+    List<Object[]> countByDayGrouped(Instant since);
 }
