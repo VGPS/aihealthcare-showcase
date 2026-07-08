@@ -4,6 +4,8 @@ import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
 import com.wgblackmon.aihealthcare.domain.model.VendorAssessment;
 import com.wgblackmon.aihealthcare.domain.model.VendorCompareResult;
 import com.wgblackmon.aihealthcare.domain.port.inbound.CompareVendorsUseCase;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceConfig;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,27 +16,32 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Thymeleaf controller that renders the vendor comparison UI at {@code GET /research/vendors}.
  *
- * <p>When no query parameter is present the page renders an empty search form.
- * When {@code query} is present the COMBINED research pipeline is executed via
- * {@link CompareVendorsUseCase} and the resulting {@link VendorAssessment} list is
- * displayed in a per-vendor comparison table showing strengths, weaknesses, and a
- * relevance score.  The source citations used by the AI are displayed in a numbered
- * reference table between the vendor cards and the methodology note.
+ * <p>Supports two modes:
+ * <ul>
+ *   <li><b>Vendor-select mode</b> — checkboxes select known competitors (derived from
+ *       feed sources with tier {@code COMPETITOR}); articles are fetched directly per
+ *       vendor topic, ensuring all selected vendors appear in results.</li>
+ *   <li><b>Free-form mode</b> — a text query drives the COMBINED research pipeline
+ *       (legacy behavior, retained for backward compatibility).</li>
+ * </ul>
  *
  * <p>Vendor comparison runs are transient — no {@code ResearchRun} record is persisted.
  *
  * @author  Bill Blackmon
- * @version 1.3
+ * @version 2.0
  * @since   2026-05-14
- * @updated 2026-07-06
+ * @updated 2026-07-07
  */
 @Slf4j
 @Controller
@@ -50,27 +57,37 @@ public class VendorCompareController {
             DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneOffset.UTC);
 
     private final CompareVendorsUseCase compareVendorsUseCase;
+    private final List<VendorOption> availableVendors;
 
     /**
-     * Constructs the controller with its vendor-comparison use-case dependency.
+     * Constructs the controller and derives the available vendor checkbox options
+     * from feed sources configured with tier {@code COMPETITOR}.
      *
      * @param compareVendorsUseCase Inbound port driving the vendor comparison pipeline.
+     * @param feedSourceProperties  Feed configuration used to derive vendor checkbox options.
      */
-    public VendorCompareController(CompareVendorsUseCase compareVendorsUseCase) {
-        log.debug("VendorCompareController() | compareVendorsUseCase={}",
-                  compareVendorsUseCase.getClass().getSimpleName());
+    public VendorCompareController(CompareVendorsUseCase compareVendorsUseCase,
+                                    FeedSourceProperties feedSourceProperties) {
+        log.debug("VendorCompareController() | compareVendorsUseCase={}, feedSourceProperties={}",
+                  compareVendorsUseCase.getClass().getSimpleName(),
+                  feedSourceProperties.getClass().getSimpleName());
         this.compareVendorsUseCase = compareVendorsUseCase;
+        this.availableVendors = buildVendorOptions(feedSourceProperties);
+        log.debug("VendorCompareController() | availableVendors={}", availableVendors.size());
         log.debug("VendorCompareController() | return=void");
     }
 
     /**
      * Renders the vendor comparison page.
      *
-     * <p>When {@code query} is blank the page shows only the search form.
-     * When {@code query} is present the COMBINED pipeline runs and results are
-     * displayed as a per-vendor comparison table with a source reference listing.
+     * <p>When no vendors are selected and no query is present, the page shows only the
+     * form with checkboxes.  When vendors are selected via checkboxes, the vendor-select
+     * pipeline runs.  When only a free-form query is entered (no checkboxes), the legacy
+     * COMBINED pipeline runs.
      *
-     * @param query      Research question entered by the user; optional.
+     * @param vendors    Selected vendor topic names from checkboxes; optional.
+     * @param query      Free-form research question; optional (used when no vendors selected).
+     * @param focusArea  Healthcare focus area to narrow the vendor comparison; optional.
      * @param maxSources Maximum sources per pipeline run; defaults to 20, capped at 100.
      * @param minVendors Minimum vendor sections to request; defaults to 5, capped at 20.
      * @param scoring    Scoring algorithm: {@code "TF_IDF"} or {@code "DOC_FREQUENCY"} (default).
@@ -79,48 +96,66 @@ public class VendorCompareController {
      */
     @GetMapping
     public String compare(
+            @RequestParam(required = false) List<String> vendors,
             @RequestParam(required = false) String query,
+            @RequestParam(required = false) String focusArea,
             @RequestParam(defaultValue = "20") int maxSources,
             @RequestParam(defaultValue = "5") int minVendors,
             @RequestParam(defaultValue = "DOC_FREQUENCY") String scoring,
             Model model) {
 
-        log.debug("compare() | query={}, maxSources={}, minVendors={}, scoring={}",
-                  query, maxSources, minVendors, scoring);
+        log.debug("compare() | vendors={}, query={}, focusArea={}, maxSources={}, minVendors={}, scoring={}",
+                  vendors, query, focusArea, maxSources, minVendors, scoring);
 
         int cappedMax = Math.min(Math.max(maxSources, 1), MAX_SOURCES_CAP);
         int cappedVendors = Math.min(Math.max(minVendors, 1), MAX_VENDORS_CAP);
-        model.addAttribute("query",      query != null ? query : "");
-        model.addAttribute("maxSources", cappedMax);
-        model.addAttribute("minVendors", cappedVendors);
-        model.addAttribute("scoring",    scoring);
+        model.addAttribute("query",            query != null ? query : "");
+        model.addAttribute("focusArea",        focusArea != null ? focusArea : "");
+        model.addAttribute("maxSources",       cappedMax);
+        model.addAttribute("minVendors",       cappedVendors);
+        model.addAttribute("scoring",          scoring);
+        model.addAttribute("availableVendors", availableVendors);
+        model.addAttribute("selectedVendors",  vendors != null ? vendors : Collections.emptyList());
 
-        if (query == null || query.isBlank()) {
+        boolean hasVendorSelection = vendors != null && !vendors.isEmpty();
+        boolean hasQuery = query != null && !query.isBlank();
+
+        if (!hasVendorSelection && !hasQuery) {
             model.addAttribute("vendors",    Collections.emptyList());
             model.addAttribute("citations",  Collections.emptyList());
             model.addAttribute("hasResults", false);
-            log.debug("compare() | no query — rendering empty form");
+            log.debug("compare() | no vendors or query — rendering empty form");
             log.debug("compare() | return=vendor-compare");
             return "vendor-compare";
         }
 
-        String trimmed = query.trim();
-        List<VendorAssessment> vendors;
+        List<VendorAssessment> vendorResults;
         List<SourceCitation> citations = Collections.emptyList();
         String errorMessage = null;
 
         try {
-            log.info("compare() | running vendor comparison pipeline for query='{}', scoring={}",
-                     trimmed, scoring);
-            VendorCompareResult result = compareVendorsUseCase.compare(
-                    trimmed, cappedMax, cappedVendors, scoring);
-            vendors   = result.vendors();
-            citations = result.citations();
+            if (hasVendorSelection) {
+                // Vendor-select mode: fetch articles per vendor topic directly
+                log.info("compare() | vendor-select mode: vendors={}, focusArea={}, scoring={}",
+                         vendors, focusArea, scoring);
+                VendorCompareResult result = compareVendorsUseCase.compareSelected(
+                        vendors, focusArea, cappedMax, scoring);
+                vendorResults = result.vendors();
+                citations = result.citations();
+            } else {
+                // Free-form query mode: legacy COMBINED pipeline
+                String trimmed = query.trim();
+                log.info("compare() | free-form mode: query='{}', scoring={}", trimmed, scoring);
+                VendorCompareResult result = compareVendorsUseCase.compare(
+                        trimmed, cappedMax, cappedVendors, scoring);
+                vendorResults = result.vendors();
+                citations = result.citations();
+            }
             log.info("compare() | vendor compare complete: vendorCount={}, citationCount={}",
-                     vendors.size(), citations.size());
+                     vendorResults.size(), citations.size());
         } catch (Exception ex) {
             log.error("compare() | vendor comparison pipeline failed: {}", ex.getMessage());
-            vendors      = Collections.emptyList();
+            vendorResults = Collections.emptyList();
             errorMessage = "Vendor comparison pipeline error — check that ANTHROPIC_API_KEY is set. Detail: "
                            + ex.getMessage();
         }
@@ -137,11 +172,11 @@ public class VendorCompareController {
             citationTitles.put(c.citationNumber(), formatTitle(c.title()));
         }
 
-        model.addAttribute("vendors",        vendors);
+        model.addAttribute("vendors",        vendorResults);
         model.addAttribute("citations",      citations);
         model.addAttribute("citationDates",  citationDates);
         model.addAttribute("citationTitles", citationTitles);
-        model.addAttribute("hasResults",    !vendors.isEmpty());
+        model.addAttribute("hasResults",    !vendorResults.isEmpty());
         model.addAttribute("errorMessage",  errorMessage);
 
         log.debug("compare() | return=vendor-compare");
@@ -179,4 +214,51 @@ public class VendorCompareController {
         log.debug("formatTitle() | return={} (unchanged)", title);
         return title;
     }
+
+    /**
+     * Derives distinct vendor checkbox options from feed sources with tier COMPETITOR.
+     * Each unique topic becomes a checkbox option with a display label extracted from the topic name.
+     */
+    private List<VendorOption> buildVendorOptions(FeedSourceProperties feedSourceProperties) {
+        log.debug("buildVendorOptions() |");
+        Set<String> seenTopics = new LinkedHashSet<>();
+        List<VendorOption> options = new ArrayList<>();
+
+        for (FeedSourceConfig config : feedSourceProperties.toFeedSourceConfigs()) {
+            if (config.tier() == FeedSourceConfig.FeedTier.COMPETITOR) {
+                String topic = config.effectiveTopic();
+                if (seenTopics.add(topic)) {
+                    String label = extractLabel(topic);
+                    options.add(new VendorOption(topic, label));
+                }
+            }
+        }
+
+        log.debug("buildVendorOptions() | return={} vendor options", options.size());
+        return List.copyOf(options);
+    }
+
+    /**
+     * Extracts a user-friendly label from a feed topic name.
+     * E.g. "Anthropic Healthcare" → "Anthropic", "Amazon Connect Health" → "Amazon/AWS".
+     */
+    private String extractLabel(String topicName) {
+        log.debug("extractLabel() | topicName={}", topicName);
+        String result = topicName;
+        if (topicName.endsWith(" Healthcare")) {
+            result = topicName.substring(0, topicName.length() - " Healthcare".length());
+        } else if (topicName.startsWith("Amazon Connect")) {
+            result = "Amazon/AWS";
+        }
+        log.debug("extractLabel() | return={}", result);
+        return result;
+    }
+
+    /**
+     * Immutable record representing a vendor checkbox option on the form.
+     *
+     * @param topicName Feed topic name used as the checkbox value.
+     * @param label     User-friendly display label for the checkbox.
+     */
+    public record VendorOption(String topicName, String label) {}
 }

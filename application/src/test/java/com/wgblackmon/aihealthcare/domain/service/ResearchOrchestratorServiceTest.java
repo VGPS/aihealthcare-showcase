@@ -23,6 +23,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -37,9 +38,9 @@ import static org.mockito.Mockito.when;
  * <p>All AI, retrieval, and persistence ports are mocked — no real calls.
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 2.1
  * @since   2026-05-04
- * @updated 2026-05-06
+ * @updated 2026-07-07
  */
 @ExtendWith(MockitoExtension.class)
 class ResearchOrchestratorServiceTest {
@@ -287,6 +288,78 @@ class ResearchOrchestratorServiceTest {
         verify(legacyAdapter, atLeastOnce()).retrieve(any());
         verify(articleStoragePort, never()).save(anyList());
         verify(researchRunPort).save(any());
+    }
+
+    // -------------------------------------------------------------------------
+    // compareSelected — vendor-select mode
+    // -------------------------------------------------------------------------
+
+    @Test
+    void compareSelected_fetchesArticlesPerVendorTopic() {
+        when(legacyAdapter.retrieve(any())).thenReturn(List.of(
+                source("a1", "Anthropic Article", "https://ex.com/a1")));
+        when(vendorAssessmentService.assess(anyString(), anyList(), anyList(), anyInt(), anyString(), anyList()))
+                .thenReturn(Collections.emptyList());
+
+        orchestrator.compareSelected(
+                List.of("Anthropic Healthcare", "OpenAI Healthcare"),
+                null, 20, "DOC_FREQUENCY");
+
+        // Should call legacyAdapter.retrieve() once per vendor topic
+        verify(legacyAdapter, org.mockito.Mockito.times(2)).retrieve(any(RetrievalQuery.class));
+    }
+
+    @Test
+    void compareSelected_passesVendorNamesToAssessment() {
+        when(legacyAdapter.retrieve(any())).thenReturn(List.of(
+                source("a1", "Article", "https://ex.com/a1")));
+        when(vendorAssessmentService.assess(anyString(), anyList(), anyList(), anyInt(), anyString(), anyList()))
+                .thenReturn(Collections.emptyList());
+
+        orchestrator.compareSelected(
+                List.of("Anthropic Healthcare", "Google Healthcare"),
+                "radiology", 20, "TF_IDF");
+
+        org.mockito.ArgumentCaptor<List<String>> vendorCaptor =
+                org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(vendorAssessmentService).assess(
+                anyString(), anyList(), anyList(), anyInt(), anyString(), vendorCaptor.capture());
+
+        List<String> capturedVendors = vendorCaptor.getValue();
+        assertThat(capturedVendors).containsExactly("Anthropic", "Google");
+    }
+
+    @Test
+    void compareSelected_withFocusArea_includesFocusInQuery() {
+        when(legacyAdapter.retrieve(any())).thenReturn(List.of(
+                source("a1", "Article", "https://ex.com/a1")));
+        when(vendorAssessmentService.assess(anyString(), anyList(), anyList(), anyInt(), anyString(), anyList()))
+                .thenReturn(Collections.emptyList());
+
+        orchestrator.compareSelected(
+                List.of("Anthropic Healthcare"),
+                "radiology", 20, "DOC_FREQUENCY");
+
+        org.mockito.ArgumentCaptor<String> queryCaptor =
+                org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(vendorAssessmentService).assess(
+                queryCaptor.capture(), anyList(), anyList(), anyInt(), anyString(), anyList());
+
+        assertThat(queryCaptor.getValue()).contains("radiology");
+    }
+
+    @Test
+    void compareSelected_doesNotCallPlanningService() {
+        when(legacyAdapter.retrieve(any())).thenReturn(List.of(
+                source("a1", "Article", "https://ex.com/a1")));
+        when(vendorAssessmentService.assess(anyString(), anyList(), anyList(), anyInt(), anyString(), anyList()))
+                .thenReturn(Collections.emptyList());
+
+        orchestrator.compareSelected(
+                List.of("Anthropic Healthcare"), null, 10, "DOC_FREQUENCY");
+
+        verify(planningService, never()).plan(anyString(), anyString());
+        verify(perplexityAdapter, never()).retrieve(any());
     }
 
     // -------------------------------------------------------------------------

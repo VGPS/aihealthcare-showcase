@@ -243,6 +243,28 @@
         <span class="count" th:text="${totalPages} + ' pages'">0 pages</span>
     </div>
 
+    <!-- Purpose -->
+    <div style="background:#f0fdf4; border-left:3px solid #22c55e; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
+        <strong style="color:#222; font-size:0.85rem;">Purpose</strong>
+        <p style="margin-top:0.3rem;">
+            The Knowledge Wiki is an AI-compiled reference library built from hundreds of
+            harvested articles. Each wiki page synthesizes information across multiple sources
+            into a single, provenance-tracked entry — giving you longitudinal context that
+            individual articles can't provide.
+        </p>
+    </div>
+
+    <!-- How It Works -->
+    <div style="background:#eff6ff; border-left:3px solid #4361ee; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
+        <strong style="color:#222; font-size:0.85rem;">How It Works</strong>
+        <ol style="margin:0.4rem 0 0 1.2rem; padding:0;">
+            <li style="margin-bottom:0.15rem;">Articles are harvested daily from RSS feeds, competitor pages, and research APIs.</li>
+            <li style="margin-bottom:0.15rem;">An AI compilation step groups related articles and synthesizes them into wiki pages with full source provenance.</li>
+            <li style="margin-bottom:0.15rem;">Search by keyword or filter by page type (Entity, Concept, Comparison, Overview) to find topics of interest.</li>
+            <li style="margin-bottom:0.15rem;">Each page links back to its original sources and tracks contradictions when new evidence reverses prior claims.</li>
+        </ol>
+    </div>
+
     <!-- Filter bar -->
     <form class="filter-bar" method="get" action="/wiki">
         <input type="text" name="query" placeholder="e.g. AI Legal Liability in Healthcare"
@@ -261,7 +283,7 @@
         <a class="clear-btn" href="/wiki/contradictions"
            style="color:#e57373;">Contradictions</a>
         <a class="clear-btn" href="/wiki/ask"
-           style="color:#4361ee; font-weight:500;">Ask the Wiki</a>
+           style="color:#4361ee; font-weight:500;">Prompt the Wiki</a>
     </form>
 
     <!-- Page cards -->
