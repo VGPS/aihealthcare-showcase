@@ -62,26 +62,89 @@
             margin-bottom: 0.75rem;
             color: #222;
         }
-        .search-row {
+
+        /* How It Works callout */
+        .how-it-works {
+            background: #eff6ff;
+            border-left: 3px solid #4361ee;
+            border-radius: 4px;
+            padding: 0.85rem 1.1rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.82rem;
+            color: #444;
+            line-height: 1.6;
+        }
+        .how-it-works strong {
+            color: #222;
+            font-size: 0.85rem;
+        }
+        .how-it-works ol {
+            margin: 0.4rem 0 0 1.2rem;
+            padding: 0;
+        }
+        .how-it-works li {
+            margin-bottom: 0.15rem;
+        }
+
+        /* Vendor checkbox grid */
+        .vendor-checkboxes {
+            margin-bottom: 1rem;
+        }
+        .vendor-checkboxes label.section-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #555;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .checkbox-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.5rem;
+        }
+        .checkbox-grid label {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.85rem;
+            color: #333;
+            cursor: pointer;
+            padding: 0.3rem 0.6rem;
+            border: 1px solid #dde;
+            border-radius: 6px;
+            background: #fafbfc;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .checkbox-grid label:hover {
+            background: #eff6ff;
+            border-color: #4361ee;
+        }
+        .checkbox-grid input[type="checkbox"] {
+            accent-color: #4361ee;
+        }
+
+        /* Form rows */
+        .form-row {
             display: flex;
             gap: 0.75rem;
             align-items: center;
+            margin-bottom: 0.75rem;
         }
-        .search-row input[type="text"] {
+        .form-row input[type="text"] {
             flex: 1;
             padding: 0.5rem 0.75rem;
             border: 1px solid #dde;
             border-radius: 6px;
             font-size: 0.9rem;
         }
-        .search-row input[type="number"] {
+        .form-row input[type="number"] {
             width: 90px;
             padding: 0.5rem 0.5rem;
             border: 1px solid #dde;
             border-radius: 6px;
             font-size: 0.9rem;
         }
-        .search-row label {
+        .form-row label {
             font-size: 0.8rem;
             color: #666;
             white-space: nowrap;
@@ -104,6 +167,14 @@
             white-space: nowrap;
         }
         .btn-primary:hover { background: #3451d1; }
+
+        .or-divider {
+            font-size: 0.75rem;
+            color: #999;
+            text-align: center;
+            margin: 0.5rem 0;
+            font-style: italic;
+        }
 
         /* Vendor cards */
         .results-header {
@@ -376,18 +447,65 @@
 
     <!-- Search Form -->
     <div class="search-card">
-        <h2>Compare AI Vendors for a Healthcare Query</h2>
+        <h2>Compare AI Healthcare Vendors Frameworks</h2>
+
+        <!-- Purpose -->
+        <div class="how-it-works" style="border-left-color: #22c55e; background: #f0fdf4;">
+            <strong>Purpose</strong>
+            <p style="margin-top: 0.3rem;">
+                This tool helps you quickly compare how major AI vendors are positioned in
+                healthcare. Select the companies you care about, and we'll scan hundreds of
+                recent articles, press releases, and research papers to surface each vendor's
+                strengths, weaknesses, and overall presence in the healthcare AI landscape.
+            </p>
+        </div>
+
+        <!-- How It Works -->
+        <div class="how-it-works">
+            <strong>How It Works</strong>
+            <ol>
+                <li>Select the vendors you want to compare using the checkboxes below.</li>
+                <li>Optionally narrow the comparison to a specific healthcare focus area (e.g., radiology, clinical trials).</li>
+                <li>The system retrieves relevant articles for each vendor from the ingestion database (RSS feeds, competitor web pages, and the Perplexity Sonar API).</li>
+                <li>An AI model analyzes the retrieved sources and produces a structured strengths/weaknesses assessment per vendor, scored by how frequently each vendor appears in the literature.</li>
+            </ol>
+        </div>
+
         <form method="get" action="/research/vendors">
-            <div class="search-row">
+
+            <!-- Vendor Checkboxes -->
+            <div class="vendor-checkboxes">
+                <label class="section-label">Select vendors to compare (at least 2):</label>
+                <div class="checkbox-grid">
+                    <label th:each="v : ${availableVendors}">
+                        <input type="checkbox" name="vendors" th:value="${v.topicName()}"
+                               th:checked="${selectedVendors.contains(v.topicName())}"
+                               th:text="${v.label()}"/>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Focus Area -->
+            <div class="form-row">
+                <label>Healthcare focus (optional):</label>
+                <input type="text" name="focusArea" th:value="${focusArea}"
+                       placeholder="e.g., radiology, clinical trials, EHR integration"/>
+            </div>
+
+            <div class="or-divider">— or enter a free-form research question instead —</div>
+
+            <!-- Free-form query (legacy fallback) -->
+            <div class="form-row">
+                <label>Research question:</label>
                 <input type="text" name="query" th:value="${query}"
-                       placeholder="e.g. AI diagnostics tools in radiology"
-                       required/>
+                       placeholder="e.g., AI diagnostics tools in radiology"/>
+            </div>
+
+            <!-- Options row -->
+            <div class="form-row">
                 <label>Sources:</label>
                 <input type="number" name="maxSources" th:value="${maxSources}"
                        min="1" max="100"/>
-                <label>Min Vendors:</label>
-                <input type="number" name="minVendors" th:value="${minVendors}"
-                       min="1" max="20"/>
                 <label>Scoring:</label>
                 <select name="scoring" class="scoring-select">
                     <option value="DOC_FREQUENCY" th:selected="${scoring == 'DOC_FREQUENCY'}">Doc Frequency</option>
@@ -405,7 +523,7 @@
     <!-- Results -->
     <div th:if="${hasResults}">
         <p class="results-header"
-           th:text="'Found ' + ${vendors.size()} + ' vendor(s) for query: ' + ${query}"></p>
+           th:text="'Found ' + ${vendors.size()} + ' vendor(s) assessed from ' + ${citations.size()} + ' source documents'"></p>
 
         <div class="vendor-grid">
             <div class="vendor-card" th:each="vendor : ${vendors}">
@@ -505,8 +623,8 @@
 
     <!-- Empty state after a query -->
     <div class="empty-state"
-         th:if="${!hasResults and query != null and !#strings.isEmpty(query) and errorMessage == null}">
-        No vendor assessments were produced for this query. Try a more specific healthcare AI question.
+         th:if="${!hasResults and ((query != null and !#strings.isEmpty(query)) or !selectedVendors.isEmpty()) and errorMessage == null}">
+        No vendor assessments were produced. Try selecting different vendors or adjusting the healthcare focus area.
     </div>
 
 </main>

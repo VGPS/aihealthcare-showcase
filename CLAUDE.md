@@ -197,7 +197,20 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Slice W5 — Reader-Facing Wiki Provenance UI — COMPLETE — 808 tests passing**
+**Vendor Compare UX Overhaul — COMPLETE — 862 tests passing**
+- [x] UX: Replaced confusing free-form text input with vendor checkbox grid (derived from COMPETITOR-tier feed sources)
+- [x] UX: Added "How It Works" callout explaining the 4-step comparison pipeline
+- [x] UX: Added optional "Healthcare focus" field to narrow comparisons by domain
+- [x] UX: Retained free-form query as fallback (backward compatible)
+- [x] Domain: `CompareVendorsUseCase.compareSelected()` — new inbound port method for vendor-select mode
+- [x] Service: `ResearchOrchestratorService.compareSelected()` — direct per-topic article fetch, bypasses query decomposition and lossy `filterByQueryRelevance`
+- [x] Service: `VendorAssessmentService.assess()` — overloaded with `vendorNames` param; injects explicit vendor list into AI prompt so all selected vendors appear in results
+- [x] Prompt: `vendor-compare.txt` — `{vendorList}` placeholder for explicit vendor enumeration
+- [x] Controller: `VendorCompareController` — injects `FeedSourceProperties`, builds checkbox options from COMPETITOR feeds, routes to `compareSelected()` or legacy `compare()`
+- [x] Template: `vendor-compare.html` — checkbox grid, "How It Works" box, focus area field, updated empty state
+- [x] Tests: 8 new tests (`VendorCompareControllerTest` +2, `VendorAssessmentServiceTest` +2, `ResearchOrchestratorServiceTest` +4)
+
+**Previously complete: Slice W5 — Reader-Facing Wiki Provenance UI — COMPLETE — 808 tests passing**
 - [x] Web: `WikiController` — `GET /wiki` (index), `GET /wiki/{slug}` (detail), `GET /wiki/contradictions` (reversal watch)
 - [x] Templates: `wiki-index.html` (searchable page grid with type filter), `wiki-detail.html` (rendered markdown + provenance table + contradictions + related pages + revision history), `wiki-contradictions.html` (side-by-side claims with date filter)
 - [x] Dependency: `commonmark:0.24.0` — markdown→HTML rendering for wiki content

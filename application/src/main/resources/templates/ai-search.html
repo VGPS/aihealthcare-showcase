@@ -437,7 +437,29 @@
     <!-- Search form — only shown for MEMBER users who are not access-denied -->
     <div th:if="${accessDenied == null and limitReached == null}" class="search-card">
         <h2>Search Articles with AI Synthesis</h2>
-        <p class="hint">Enter a query to find relevant articles and get AI-generated insights from Claude, GPT, Gemini, and Perplexity.</p>
+
+        <!-- Purpose -->
+        <div style="background:#f0fdf4; border-left:3px solid #22c55e; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
+            <strong style="color:#222; font-size:0.85rem;">Purpose</strong>
+            <p style="margin-top:0.3rem;">
+                Search the full article database using natural language and get AI-synthesized
+                insights from up to four leading models. Each model independently analyzes the
+                matching articles and produces a summary with key findings, letting you compare
+                perspectives side by side.
+            </p>
+        </div>
+
+        <!-- How It Works -->
+        <div style="background:#eff6ff; border-left:3px solid #4361ee; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
+            <strong style="color:#222; font-size:0.85rem;">How It Works</strong>
+            <ol style="margin:0.4rem 0 0 1.2rem; padding:0;">
+                <li style="margin-bottom:0.15rem;">Enter a natural-language query and choose which AI models to use.</li>
+                <li style="margin-bottom:0.15rem;">The system finds the most relevant articles from the ingestion database using vector similarity search.</li>
+                <li style="margin-bottom:0.15rem;">Each selected AI model receives the matched articles and produces an independent synthesis with key findings and inline citations.</li>
+                <li style="margin-bottom:0.15rem;">Results are displayed side by side so you can compare how each model interprets the evidence.</li>
+            </ol>
+        </div>
+
         <form class="search-form" method="get" th:action="@{/research/ai-search}">
             <div class="field">
                 <label for="q">Search Query</label>

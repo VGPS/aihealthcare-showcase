@@ -23,6 +23,7 @@ relevant sources. Omit vendors not mentioned in any relevant source.
 You MUST produce at least {minVendors} vendor sections. If fewer than {minVendors} vendors
 appear explicitly in the sources, infer the most relevant vendors for the query topic and
 include them with whatever information can be reasonably derived from the sources.
+{vendorList}
 
 Output format — use EXACTLY this structure for each vendor:
 

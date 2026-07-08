@@ -266,7 +266,28 @@
     <!-- Search filter form -->
     <div class="filter-card">
         <h2>Search Filters</h2>
-        <p class="hint">All fields are optional. Non-empty fields are AND-combined. Text fields use case-insensitive substring matching.</p>
+
+        <!-- Purpose -->
+        <div style="background:#f0fdf4; border-left:3px solid #22c55e; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
+            <strong style="color:#222; font-size:0.85rem;">Purpose</strong>
+            <p style="margin-top:0.3rem;">
+                Search the full article database by title, topic, author, source, or body text.
+                Use this to find specific articles you've seen before, explore what's been
+                harvested from a particular feed, or narrow down articles by date range.
+            </p>
+        </div>
+
+        <!-- How It Works -->
+        <div style="background:#eff6ff; border-left:3px solid #4361ee; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
+            <strong style="color:#222; font-size:0.85rem;">How It Works</strong>
+            <ol style="margin:0.4rem 0 0 1.2rem; padding:0;">
+                <li style="margin-bottom:0.15rem;">Fill in one or more filter fields below — all fields are optional.</li>
+                <li style="margin-bottom:0.15rem;">Non-empty fields are AND-combined: results must match every filter you specify.</li>
+                <li style="margin-bottom:0.15rem;">Text fields use case-insensitive substring matching, so partial terms work.</li>
+                <li style="margin-bottom:0.15rem;">Results are returned with title, source, topic, and publication date for quick scanning.</li>
+            </ol>
+        </div>
+
         <form method="get" th:action="@{/dashboard/search}">
             <div class="filter-grid">
                 <div class="field">

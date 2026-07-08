@@ -318,6 +318,29 @@
          ================================================================ -->
     <div class="search-card">
         <h2>Compare Research Pipelines</h2>
+
+        <!-- Purpose -->
+        <div style="background:#f0fdf4; border-left:3px solid #22c55e; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
+            <strong style="color:#222; font-size:0.85rem;">Purpose</strong>
+            <p style="margin-top:0.3rem;">
+                Run the same research question through two different retrieval pipelines and
+                compare results side by side. This helps you evaluate whether the legacy
+                database-only pipeline or the live Perplexity-augmented pipeline produces
+                more comprehensive and relevant findings for your query.
+            </p>
+        </div>
+
+        <!-- How It Works -->
+        <div style="background:#eff6ff; border-left:3px solid #4361ee; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
+            <strong style="color:#222; font-size:0.85rem;">How It Works</strong>
+            <ol style="margin:0.4rem 0 0 1.2rem; padding:0;">
+                <li style="margin-bottom:0.15rem;">Enter a healthcare AI research question.</li>
+                <li style="margin-bottom:0.15rem;">The system runs your query through both the Legacy (database articles) and Staged Research (Perplexity Sonar API) pipelines simultaneously.</li>
+                <li style="margin-bottom:0.15rem;">Each pipeline retrieves relevant sources, assembles citations, and produces an AI-synthesized research answer.</li>
+                <li style="margin-bottom:0.15rem;">Results are displayed in side-by-side panels so you can compare source coverage, citation quality, and synthesis depth.</li>
+            </ol>
+        </div>
+
         <form method="get" action="/research/compare">
             <div class="search-row">
                 <div class="field">

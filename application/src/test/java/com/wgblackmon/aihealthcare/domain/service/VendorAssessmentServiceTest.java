@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,9 +27,9 @@ import static org.mockito.Mockito.when;
  * <p>All AI calls are mocked — no real API calls are made.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-14
- * @updated 2026-05-14
+ * @updated 2026-07-07
  */
 @ExtendWith(MockitoExtension.class)
 class VendorAssessmentServiceTest {
@@ -37,7 +38,7 @@ class VendorAssessmentServiceTest {
     private AiReportPort aiReportPort;
 
     private static final String TEMPLATE =
-            "Research: {query}\nSources: {sources}\nTotal: {totalSources}\nMin: {minVendors}";
+            "Research: {query}\nSources: {sources}\nTotal: {totalSources}\nMin: {minVendors}\n{vendorList}";
 
     private VendorAssessmentService service;
 
@@ -256,6 +257,117 @@ class VendorAssessmentServiceTest {
         // Both should have non-trivial scores (TF-IDF normalizes top to 1.0)
         assertThat(result.get(0).relevanceScore()).isEqualTo(1.0);
         assertThat(result.get(1).relevanceScore()).isGreaterThan(0.7); // much closer than 0.5 with doc-freq
+    }
+
+    // -------------------------------------------------------------------------
+    // Pre-specified vendor names
+    // -------------------------------------------------------------------------
+
+    @Test
+    void assess_withPreSpecifiedVendorNames_includesVendorListInPrompt() {
+        List<RetrievedSource> sources = List.of(
+                source("src-1", "Anthropic Claude in Radiology", "https://ex.com/1"),
+                source("src-2", "OpenAI in Healthcare", "https://ex.com/2"));
+
+        String aiResponse = "## Anthropic\n"
+                + "STRENGTHS: Strong reasoning\n"
+                + "WEAKNESSES: High cost\n"
+                + "MENTIONS: 1\n"
+                + "ANALYSIS: Claude is strong [1].\n"
+                + "\n"
+                + "## OpenAI\n"
+                + "STRENGTHS: GPT ecosystem\n"
+                + "WEAKNESSES: Privacy concerns\n"
+                + "MENTIONS: 1\n"
+                + "ANALYSIS: OpenAI has broad reach [2].\n"
+                + "\n"
+                + "## Google\n"
+                + "STRENGTHS: MedPaLM expertise\n"
+                + "WEAKNESSES: Limited availability\n"
+                + "MENTIONS: 0\n"
+                + "ANALYSIS: Google leads medical LLMs.\n";
+
+        when(aiReportPort.generate(anyString())).thenReturn(aiResponse);
+
+        List<String> vendorNames = List.of("Anthropic", "OpenAI", "Google");
+        List<VendorAssessment> result = service.assess(
+                "Compare vendors", sources, Collections.emptyList(), 3, "DOC_FREQUENCY", vendorNames);
+
+        assertThat(result).hasSize(3);
+
+        // Verify the prompt included vendor list instruction
+        org.mockito.ArgumentCaptor<String> promptCaptor =
+                org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(aiReportPort).generate(promptCaptor.capture());
+        String sentPrompt = promptCaptor.getValue();
+        assertThat(sentPrompt).contains("Anthropic");
+        assertThat(sentPrompt).contains("OpenAI");
+        assertThat(sentPrompt).contains("Google");
+        assertThat(sentPrompt).contains("MUST produce a section for EACH");
+    }
+
+    @Test
+    void assess_withEmptyVendorNames_fallsBackToDiscoveryMode() {
+        List<RetrievedSource> sources = List.of(
+                source("src-1", "AI in Healthcare", "https://ex.com/1"));
+
+        String aiResponse = "## Anthropic\n"
+                + "STRENGTHS: Reasoning\n"
+                + "WEAKNESSES: Cost\n"
+                + "MENTIONS: 1\n"
+                + "ANALYSIS: Anthropic leads [1].\n";
+
+        when(aiReportPort.generate(anyString())).thenReturn(aiResponse);
+
+        // Empty vendor names list — should work like the original assess()
+        List<VendorAssessment> result = service.assess(
+                "AI in healthcare", sources, Collections.emptyList(), 5, "DOC_FREQUENCY", Collections.emptyList());
+
+        assertThat(result).hasSize(1);
+
+        org.mockito.ArgumentCaptor<String> promptCaptor =
+                org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(aiReportPort).generate(promptCaptor.capture());
+        // No vendor list instruction should be present
+        assertThat(promptCaptor.getValue()).doesNotContain("MUST produce a section for EACH");
+    }
+
+    // -------------------------------------------------------------------------
+    // Excerpt scaling
+    // -------------------------------------------------------------------------
+
+    @Test
+    void assess_manySources_scalesExcerptLengthInPrompt() {
+        // Build 60 sources, each with a long snippet (600 chars)
+        String longSnippet = "A".repeat(600);
+        List<RetrievedSource> sources = new ArrayList<>();
+        for (int i = 0; i < 60; i++) {
+            sources.add(new RetrievedSource("src-" + i, "Article " + i,
+                    "https://ex.com/" + i, longSnippet, "GOOGLE", Instant.now()));
+        }
+
+        String aiResponse = "## Anthropic\n"
+                + "STRENGTHS: Reasoning\n"
+                + "WEAKNESSES: Cost\n"
+                + "MENTIONS: 10\n"
+                + "ANALYSIS: Strong [1].\n";
+
+        when(aiReportPort.generate(anyString())).thenReturn(aiResponse);
+
+        service.assess("AI compare", sources, Collections.emptyList(), 3, "DOC_FREQUENCY");
+
+        org.mockito.ArgumentCaptor<String> promptCaptor =
+                org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(aiReportPort).generate(promptCaptor.capture());
+        String sentPrompt = promptCaptor.getValue();
+
+        // With 60 sources and 600-char snippets, unscaled prompt would contain
+        // 60 * 500 = 30,000 chars of excerpt.  Scaled to 150 chars each = 9,000 chars.
+        // Verify the prompt is under 20,000 chars total (scaled excerpts + metadata).
+        assertThat(sentPrompt.length()).isLessThan(20_000);
+
+        // Verify excerpts are truncated — none of the 600-char snippets appear in full
+        assertThat(sentPrompt).doesNotContain(longSnippet);
     }
 
     // -------------------------------------------------------------------------

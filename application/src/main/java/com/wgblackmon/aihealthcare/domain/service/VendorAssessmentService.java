@@ -23,9 +23,9 @@ import java.util.logging.Logger;
  * <p>This is a pure domain service — no Spring or Lombok imports are used.
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.4
  * @since   2026-05-14
- * @updated 2026-06-08
+ * @updated 2026-07-07
  */
 public class VendorAssessmentService {
 
@@ -64,6 +64,7 @@ public class VendorAssessmentService {
 
     /**
      * Assess vendors mentioned in the retrieved sources for the given query.
+     * Vendor discovery is left to the AI (free-form mode).
      *
      * @param query      The original research question.
      * @param sources    Retrieved source documents; may be empty.
@@ -78,9 +79,34 @@ public class VendorAssessmentService {
                                          List<SourceCitation> citations,
                                          int minVendors,
                                          String scoring) {
+        return assess(query, sources, citations, minVendors, scoring, Collections.emptyList());
+    }
+
+    /**
+     * Assess vendors with optional pre-specified vendor names.
+     *
+     * <p>When {@code vendorNames} is non-empty, the AI prompt explicitly lists those vendors
+     * and instructs the model to produce a section for each one, even if a vendor has limited
+     * evidence in the sources.  This eliminates the vendor-discovery failure mode where
+     * the AI omits vendors not prominently featured in retrieved articles.
+     *
+     * @param query       The original research question.
+     * @param sources     Retrieved source documents; may be empty.
+     * @param citations   Pre-assembled, deduplicated citation list.
+     * @param minVendors  Minimum number of vendor sections to request from the AI.
+     * @param scoring     Scoring algorithm: {@code "TF_IDF"} or {@code "DOC_FREQUENCY"}.
+     * @param vendorNames Pre-specified vendor names; empty list falls back to AI discovery.
+     * @return List of {@link VendorAssessment} records sorted by relevance descending.
+     */
+    public List<VendorAssessment> assess(String query,
+                                         List<RetrievedSource> sources,
+                                         List<SourceCitation> citations,
+                                         int minVendors,
+                                         String scoring,
+                                         List<String> vendorNames) {
         log.fine("assess() | query=" + query + ", sourceCount="
                  + (sources == null ? 0 : sources.size()) + ", minVendors=" + minVendors
-                 + ", scoring=" + scoring);
+                 + ", scoring=" + scoring + ", vendorNames=" + vendorNames);
 
         if (sources == null || sources.isEmpty()) {
             log.warning("assess() | No sources available — returning empty list");
@@ -90,17 +116,41 @@ public class VendorAssessmentService {
 
         int totalSources = sources.size();
         String sourceListing = buildSourceListing(sources, citations);
+
+        // Build vendor list instruction for the prompt
+        String vendorListInstruction = "";
+        if (vendorNames != null && !vendorNames.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("\nYou MUST produce a section for EACH of these vendors: ");
+            for (int i = 0; i < vendorNames.size(); i++) {
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                sb.append(vendorNames.get(i));
+            }
+            sb.append(".\nEven if a vendor has limited evidence in the sources, include it with ");
+            sb.append("whatever information is available. Do NOT omit any of these vendors.");
+            vendorListInstruction = sb.toString();
+        }
+
         String prompt = vendorCompareTemplate
                 .replace("{query}", query)
                 .replace("{sources}", sourceListing)
                 .replace("{minVendors}", String.valueOf(minVendors))
-                .replace("{totalSources}", String.valueOf(totalSources));
+                .replace("{totalSources}", String.valueOf(totalSources))
+                .replace("{vendorList}", vendorListInstruction);
 
         log.info("assess() | sending vendor-compare prompt to AI (" + prompt.length() + " chars)");
         String aiResponse = aiReportPort.generate(prompt);
         log.info("assess() | AI vendor-compare response received (" + aiResponse.length() + " chars)");
 
         List<ParsedVendor> parsed = parseVendorData(aiResponse, totalSources);
+
+        if (vendorNames != null && !vendorNames.isEmpty() && parsed.size() < vendorNames.size()) {
+            log.warning("assess() | AI response produced " + parsed.size()
+                        + " of " + vendorNames.size()
+                        + " requested vendors — response may have been truncated");
+        }
 
         boolean useTfIdf = SCORING_TF_IDF.equalsIgnoreCase(scoring);
         List<VendorAssessment> result = useTfIdf
@@ -123,6 +173,10 @@ public class VendorAssessmentService {
                                       List<SourceCitation> citations) {
         log.fine("buildSourceListing() | sourceCount=" + sources.size());
 
+        // Scale excerpt length by source count to keep prompt size manageable
+        int maxExcerpt = excerptLengthForSourceCount(sources.size());
+        log.fine("buildSourceListing() | maxExcerpt=" + maxExcerpt + " chars (sourceCount=" + sources.size() + ")");
+
         StringBuilder sb = new StringBuilder();
         if (citations != null && !citations.isEmpty()) {
             for (SourceCitation citation : citations) {
@@ -139,7 +193,7 @@ public class VendorAssessmentService {
                   .append(citation.title()).append("\n")
                   .append("URL: ").append(citation.url()).append("\n")
                   .append("Excerpt: ")
-                  .append(snippet, 0, Math.min(snippet.length(), 500))
+                  .append(snippet, 0, Math.min(snippet.length(), maxExcerpt))
                   .append("\n\n");
             }
         } else {
@@ -150,7 +204,7 @@ public class VendorAssessmentService {
                   .append("URL: ").append(source.url() != null ? source.url() : "").append("\n")
                   .append("Excerpt: ")
                   .append(source.snippet() != null
-                          ? source.snippet().substring(0, Math.min(source.snippet().length(), 500))
+                          ? source.snippet().substring(0, Math.min(source.snippet().length(), maxExcerpt))
                           : "")
                   .append("\n\n");
             }
@@ -305,6 +359,27 @@ public class VendorAssessmentService {
 
         log.fine("applyTfIdfScoring() | return=" + result.size() + " vendors");
         return result;
+    }
+
+    /**
+     * Returns the maximum excerpt length (in characters) based on the total number of
+     * source documents.  When many sources are present, shorter excerpts keep the prompt
+     * size manageable and leave room for the AI to produce all vendor sections.
+     *
+     * <ul>
+     *   <li>&le; 20 sources &rarr; 500 chars</li>
+     *   <li>21–50 sources &rarr; 300 chars</li>
+     *   <li>&gt; 50 sources &rarr; 150 chars</li>
+     * </ul>
+     */
+    private int excerptLengthForSourceCount(int sourceCount) {
+        if (sourceCount <= 20) {
+            return 500;
+        } else if (sourceCount <= 50) {
+            return 300;
+        } else {
+            return 150;
+        }
     }
 
     /**

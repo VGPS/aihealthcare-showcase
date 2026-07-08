@@ -2,11 +2,13 @@ spring:
   application:
     name: ai-healthcare
 
-  # Load .env file from project root (KEY=VALUE format) so API keys are available
-  # as Spring properties without requiring shell env vars.  'optional:' means the
-  # app still starts when .env is absent (CI / prod set real env vars instead).
+  # Load .env file (KEY=VALUE format) so API keys are available as Spring
+  # properties without requiring shell env vars.  'optional:' means the app
+  # still starts when .env is absent (CI / prod set real env vars instead).
+  # Multiple locations are tried: project root (mvn spring-boot:run) and
+  # application/ subdirectory (IDE working-dir edge case).
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:.env[.properties],optional:file:application/.env[.properties]
 
   profiles:
     active: demo
@@ -23,6 +25,7 @@ spring:
       chat:
         options:
           model: claude-sonnet-4-6
+          max-tokens: 16384
     openai:
       api-key: ${OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
     perplexity:

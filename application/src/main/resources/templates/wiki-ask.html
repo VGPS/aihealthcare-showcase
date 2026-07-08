@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Ask the Wiki — AIHealthcare</title>
+    <title>Prompt the Wiki — AIHealthcare</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -109,6 +109,22 @@
             font-weight: 500;
         }
         .search-card button:hover { background: #3651d4; }
+
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.4rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .search-card button.loading .spinner { display: inline-block; }
+        .search-card button.loading { opacity: 0.7; pointer-events: none; }
 
         .model-row {
             display: flex;
@@ -317,12 +333,33 @@
 <main>
 
     <div class="breadcrumb">
-        <a href="/wiki">Wiki</a> &rsaquo; Ask the Wiki
+        <a href="/wiki">Wiki</a> &rsaquo; Prompt the Wiki
     </div>
 
     <div class="page-header">
-        <h2>Ask the Wiki</h2>
+        <h2>Prompt the Wiki</h2>
         <div class="subtitle">Get AI-synthesized answers grounded in the knowledge wiki's compiled research</div>
+    </div>
+
+    <!-- Purpose -->
+    <div style="background:#f0fdf4; border-left:3px solid #22c55e; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
+        <strong style="color:#222; font-size:0.85rem;">Purpose</strong>
+        <p style="margin-top:0.3rem;">
+            Prompt any healthcare AI question and get an answer grounded in the wiki's compiled
+            knowledge base. Unlike a web search, answers draw on curated, source-tracked
+            wiki pages — providing deeper longitudinal context that goes beyond individual articles.
+        </p>
+    </div>
+
+    <!-- How It Works -->
+    <div style="background:#eff6ff; border-left:3px solid #4361ee; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
+        <strong style="color:#222; font-size:0.85rem;">How It Works</strong>
+        <ol style="margin:0.4rem 0 0 1.2rem; padding:0;">
+            <li style="margin-bottom:0.15rem;">Type a natural-language question and optionally select which AI models to use.</li>
+            <li style="margin-bottom:0.15rem;">The system searches the wiki for pages most relevant to your question.</li>
+            <li style="margin-bottom:0.15rem;">Each selected AI model synthesizes an answer from the matched wiki content, citing specific pages as evidence.</li>
+            <li style="margin-bottom:0.15rem;">Answers include links to the source wiki pages so you can verify claims and explore further.</li>
+        </ol>
     </div>
 
     <!-- Search form -->
@@ -332,7 +369,8 @@
                 <input type="text" name="q"
                        placeholder="e.g. What are the legal risks of AI diagnostic tools in healthcare?"
                        th:value="${q}"/>
-                <button type="submit">Ask</button>
+                <button type="submit" id="promptBtn">
+                    <span class="spinner"></span>Prompt</button>
             </div>
             <div class="model-row" th:if="${availableModels != null && !availableModels.isEmpty()}">
                 <span>Models:</span>
@@ -347,7 +385,7 @@
 
     <!-- Hint when no query -->
     <div class="hint-box" th:if="${q == null}">
-        <strong>Ask a question</strong> and the wiki's compiled knowledge will be searched
+        <strong>Enter a prompt</strong> and the wiki's compiled knowledge will be searched
         for relevant pages. An AI model then synthesizes an answer grounded in the wiki content
         — providing deeper, longitudinal context that goes beyond individual articles.
         <br/><br/>
@@ -415,5 +453,12 @@
     </div>
 
 </main>
+
+<script>
+    document.querySelector('.search-card form').addEventListener('submit', function() {
+        var btn = document.getElementById('promptBtn');
+        if (btn) btn.classList.add('loading');
+    });
+</script>
 </body>
 </html>

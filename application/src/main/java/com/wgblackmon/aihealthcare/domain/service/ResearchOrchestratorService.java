@@ -60,9 +60,9 @@ import java.util.UUID;
  * in {@link com.wgblackmon.aihealthcare.infrastructure.config.AppConfig}.
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 2.1
  * @since   2026-05-04
- * @updated 2026-05-14
+ * @updated 2026-07-07
  */
 @Slf4j
 public class ResearchOrchestratorService implements ConductResearchUseCase, CompareVendorsUseCase {
@@ -238,6 +238,103 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
         log.info("compare() | vendor assessment complete: vendorCount={}", vendors.size());
         VendorCompareResult result = new VendorCompareResult(vendors, citations);
         log.debug("compare() | return={} vendors, {} citations", vendors.size(), citations.size());
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Fetches articles directly per vendor topic name, bypassing query decomposition
+     * and the lossy {@code filterByQueryRelevance} step.  Each vendor topic maps to a
+     * feed topic in {@code application.yml} (e.g. "Anthropic Healthcare").
+     */
+    @Override
+    public VendorCompareResult compareSelected(List<String> vendorTopics, String focusArea,
+                                                int maxSources, String scoring) {
+        log.debug("compareSelected() | vendorTopics={}, focusArea={}, maxSources={}, scoring={}",
+                  vendorTopics, focusArea, maxSources, scoring);
+
+        if (vendorTopics == null || vendorTopics.isEmpty()) {
+            throw new IllegalArgumentException("vendorTopics must not be empty");
+        }
+        if (maxSources < 1) {
+            throw new IllegalArgumentException("maxSources must be >= 1");
+        }
+
+        // Fetch articles directly per vendor topic — no query decomposition needed
+        int perVendorLimit = Math.max(1, maxSources / vendorTopics.size());
+        List<RetrievedSource> allSources = new ArrayList<>();
+
+        for (String vendorTopic : vendorTopics) {
+            RetrievalQuery rq = new RetrievalQuery(vendorTopic, "GOOGLE", perVendorLimit);
+            List<RetrievedSource> vendorSources = legacyAdapter.retrieve(rq);
+            log.info("compareSelected() | topic='{}' → {} sources", vendorTopic, vendorSources.size());
+            allSources.addAll(vendorSources);
+        }
+
+        log.info("compareSelected() | total sources from DB: {}", allSources.size());
+
+        // Build the query string for the AI prompt
+        String query = buildVendorQuery(vendorTopics, focusArea);
+
+        // Assemble citations
+        List<SourceCitation> citations = citationAssembler.assemble(allSources);
+        log.info("compareSelected() | {} citations after dedup", citations.size());
+
+        // Extract short vendor names from topic names for the prompt
+        List<String> vendorNames = new ArrayList<>();
+        for (String topic : vendorTopics) {
+            vendorNames.add(extractVendorName(topic));
+        }
+
+        // Vendor-structured synthesis with pre-specified vendor names
+        List<VendorAssessment> vendors = vendorAssessmentService.assess(
+                query, allSources, citations, vendorNames.size(), scoring, vendorNames);
+
+        log.info("compareSelected() | vendor assessment complete: vendorCount={}", vendors.size());
+        VendorCompareResult result = new VendorCompareResult(vendors, citations);
+        log.debug("compareSelected() | return={} vendors, {} citations", vendors.size(), citations.size());
+        return result;
+    }
+
+    /**
+     * Builds a query string from vendor topics and an optional focus area.
+     */
+    private String buildVendorQuery(List<String> vendorTopics, String focusArea) {
+        log.debug("buildVendorQuery() | vendorTopics={}, focusArea={}", vendorTopics, focusArea);
+
+        StringBuilder sb = new StringBuilder("Compare ");
+        for (int i = 0; i < vendorTopics.size(); i++) {
+            if (i > 0 && i == vendorTopics.size() - 1) {
+                sb.append(" and ");
+            } else if (i > 0) {
+                sb.append(", ");
+            }
+            sb.append(extractVendorName(vendorTopics.get(i)));
+        }
+        sb.append(" in healthcare AI");
+        if (focusArea != null && !focusArea.isBlank()) {
+            sb.append(", focusing on ").append(focusArea.trim());
+        }
+
+        String result = sb.toString();
+        log.debug("buildVendorQuery() | return={}", result);
+        return result;
+    }
+
+    /**
+     * Extracts a short vendor name from a feed topic name.
+     * E.g. "Anthropic Healthcare" → "Anthropic", "Amazon Connect Health" → "Amazon/AWS".
+     */
+    private String extractVendorName(String topicName) {
+        log.debug("extractVendorName() | topicName={}", topicName);
+        String result = topicName;
+        if (topicName.endsWith(" Healthcare")) {
+            result = topicName.substring(0, topicName.length() - " Healthcare".length());
+        } else if (topicName.startsWith("Amazon Connect")) {
+            result = "Amazon/AWS";
+        }
+        log.debug("extractVendorName() | return={}", result);
         return result;
     }
 
