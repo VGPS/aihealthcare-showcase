@@ -21,7 +21,7 @@ import java.util.Map;
  * Google Gemini adapter for AI-enhanced search synthesis.
  *
  * <p>Implements {@link AiSearchPort} using the Google Gemini REST API
- * ({@code POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent})
+ * ({@code POST https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent})
  * via {@link RestClient}.  Like the Perplexity adapter, Gemini does not have
  * a Spring AI starter — so this adapter calls the REST API directly.
  *
@@ -43,7 +43,7 @@ public class GeminiAiSearchAdapter implements AiSearchPort {
 
     private static final String MODEL_NAME = "Gemini";
     private static final String BASE_URL   = "https://generativelanguage.googleapis.com";
-    private static final String MODEL_ID   = "gemini-2.5-flash";
+    private static final String MODEL_ID   = "gemini-flash-latest";
 
     private final PromptLoaderService promptLoaderService;
     private final String              apiKey;

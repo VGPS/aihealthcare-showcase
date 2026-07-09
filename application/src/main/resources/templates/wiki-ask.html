@@ -154,6 +154,7 @@
         .synthesis-card.gpt { border-left-color: #10a37f; background: #f7fdfb; }
         .synthesis-card.perplexity { border-left-color: #207bdf; background: #f7faff; }
         .synthesis-card.gemini { border-left-color: #5c6bc0; background: #f8f8ff; }
+        .synthesis-card.aws { border-left-color: #ff9900; background: #fffbf2; }
 
         .synthesis-header {
             display: flex;
@@ -175,6 +176,7 @@
         .model-badge.gpt { background: #10a37f; }
         .model-badge.perplexity { background: #207bdf; }
         .model-badge.gemini { background: #5c6bc0; }
+        .model-badge.aws { background: #ff9900; }
 
         .synthesis-title {
             font-size: 0.92rem;
@@ -362,6 +364,18 @@
         </ol>
     </div>
 
+    <!-- Hint when no query -->
+    <div class="hint-box" th:if="${q == null}">
+        <strong>Enter a prompt</strong> and the wiki's compiled knowledge will be searched
+        for relevant pages. An AI model then synthesizes an answer grounded in the wiki content
+        — providing deeper, longitudinal context that goes beyond individual articles.
+        <br/><br/>
+        <strong>Example questions:</strong><br/>
+        &bull; What is the current state of FDA regulation for AI diagnostic tools?<br/>
+        &bull; How has bias in healthcare AI algorithms been addressed?<br/>
+        &bull; What are the key legal considerations for LLMs in clinical settings?
+    </div>
+
     <!-- Search form -->
     <div class="search-card">
         <form method="get" action="/wiki/ask">
@@ -383,18 +397,6 @@
         </form>
     </div>
 
-    <!-- Hint when no query -->
-    <div class="hint-box" th:if="${q == null}">
-        <strong>Enter a prompt</strong> and the wiki's compiled knowledge will be searched
-        for relevant pages. An AI model then synthesizes an answer grounded in the wiki content
-        — providing deeper, longitudinal context that goes beyond individual articles.
-        <br/><br/>
-        <strong>Example questions:</strong><br/>
-        &bull; What is the current state of FDA regulation for AI diagnostic tools?<br/>
-        &bull; How has bias in healthcare AI algorithms been addressed?<br/>
-        &bull; What are the key legal considerations for LLMs in clinical settings?
-    </div>
-
     <!-- AI Syntheses -->
     <div th:if="${syntheses != null && !syntheses.isEmpty()}">
         <div th:each="synthesis : ${syntheses}"
@@ -402,13 +404,15 @@
              th:classappend="${#strings.toLowerCase(synthesis.modelName()) == 'claude'} ? 'claude'
                           : (${#strings.toLowerCase(synthesis.modelName()) == 'gpt'} ? 'gpt'
                           : (${#strings.toLowerCase(synthesis.modelName()) == 'perplexity'} ? 'perplexity'
-                          : (${#strings.toLowerCase(synthesis.modelName()) == 'gemini'} ? 'gemini' : '')))">
+                          : (${#strings.toLowerCase(synthesis.modelName()) == 'gemini'} ? 'gemini'
+                          : (${#strings.toLowerCase(synthesis.modelName()) == 'amazon/aws'} ? 'aws' : ''))))">
             <div class="synthesis-header">
                 <span class="model-badge"
                       th:classappend="${#strings.toLowerCase(synthesis.modelName()) == 'claude'} ? 'claude'
                                    : (${#strings.toLowerCase(synthesis.modelName()) == 'gpt'} ? 'gpt'
                                    : (${#strings.toLowerCase(synthesis.modelName()) == 'perplexity'} ? 'perplexity'
-                                   : (${#strings.toLowerCase(synthesis.modelName()) == 'gemini'} ? 'gemini' : '')))"
+                                   : (${#strings.toLowerCase(synthesis.modelName()) == 'gemini'} ? 'gemini'
+                                   : (${#strings.toLowerCase(synthesis.modelName()) == 'amazon/aws'} ? 'aws' : ''))))"
                       th:text="${synthesis.modelName()}">Claude</span>
                 <span class="synthesis-title">Wiki Synthesis</span>
             </div>

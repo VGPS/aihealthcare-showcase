@@ -224,6 +224,7 @@
         .synthesis-card.card-gpt        { border-left-color: #27ae60; background: #f7fdf9; }
         .synthesis-card.card-perplexity { border-left-color: #1a56db; background: #f7faff; }
         .synthesis-card.card-gemini     { border-left-color: #283593; background: #f7f8fe; }
+        .synthesis-card.card-aws        { border-left-color: #ff9900; background: #fffbf2; }
 
         .synthesis-header {
             display: flex;
@@ -255,6 +256,10 @@
         .model-badge.gemini {
             background: #e8eaf6;
             color: #283593;
+        }
+        .model-badge.aws {
+            background: #fff0d4;
+            color: #b35c00;
         }
         .synthesis-header h3 {
             font-size: 0.95rem;
@@ -443,7 +448,7 @@
             <strong style="color:#222; font-size:0.85rem;">Purpose</strong>
             <p style="margin-top:0.3rem;">
                 Search the full article database using natural language and get AI-synthesized
-                insights from up to four leading models. Each model independently analyzes the
+                insights from up to five leading models. Each model independently analyzes the
                 matching articles and produces a summary with key findings, letting you compare
                 perspectives side by side.
             </p>
@@ -494,20 +499,25 @@
                                th:checked="${selectedModels != null and selectedModels.contains('Gemini')}"/>
                         <span class="model-badge gemini">Gemini</span>
                     </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="models" value="Amazon/AWS"
+                               th:checked="${selectedModels != null and selectedModels.contains('Amazon/AWS')}"/>
+                        <span class="model-badge aws">Amazon/AWS</span>
+                    </label>
                 </div>
             </div>
             <button type="submit" id="searchBtn">
-                <span class="spinner"></span>Search</button>
+                <span class="spinner"></span>Prompt</button>
         </form>
     </div>
 
     <!-- AI Syntheses — side-by-side model comparison -->
     <div th:if="${syntheses != null and !syntheses.isEmpty()}" class="syntheses-grid">
         <div th:each="synthesis : ${syntheses}" class="synthesis-card"
-             th:classappend="${synthesis.modelName() == 'Claude' ? 'card-claude' : (synthesis.modelName() == 'GPT' ? 'card-gpt' : (synthesis.modelName() == 'Perplexity' ? 'card-perplexity' : 'card-gemini'))}">
+             th:classappend="${synthesis.modelName() == 'Claude' ? 'card-claude' : (synthesis.modelName() == 'GPT' ? 'card-gpt' : (synthesis.modelName() == 'Perplexity' ? 'card-perplexity' : (synthesis.modelName() == 'Gemini' ? 'card-gemini' : (synthesis.modelName() == 'Amazon/AWS' ? 'card-aws' : ''))))}">
             <div class="synthesis-header">
                 <span class="model-badge"
-                      th:classappend="${synthesis.modelName() == 'Claude' ? 'claude' : (synthesis.modelName() == 'GPT' ? 'gpt' : (synthesis.modelName() == 'Perplexity' ? 'perplexity' : 'gemini'))}"
+                      th:classappend="${synthesis.modelName() == 'Claude' ? 'claude' : (synthesis.modelName() == 'GPT' ? 'gpt' : (synthesis.modelName() == 'Perplexity' ? 'perplexity' : (synthesis.modelName() == 'Gemini' ? 'gemini' : (synthesis.modelName() == 'Amazon/AWS' ? 'aws' : ''))))}"
                       th:text="${synthesis.modelName()}">Model</span>
                 <h3 th:text="${synthesis.modelName() + ' Synthesis'}">AI Synthesis</h3>
             </div>
