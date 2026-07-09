@@ -69,6 +69,12 @@
             <artifactId>spring-ai-starter-model-openai</artifactId>
         </dependency>
 
+        <!-- Spring AI — AWS Bedrock Converse (Nova / Titan models) -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-bedrock-converse</artifactId>
+        </dependency>
+
         <!-- Spring Boot Mail (JavaMailSender / SMTP) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

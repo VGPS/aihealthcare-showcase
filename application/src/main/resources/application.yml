@@ -30,6 +30,16 @@ spring:
       api-key: ${OPENAI_API_KEY:placeholder-set-OPENAI_API_KEY}
     perplexity:
       api-key: ${PERPLEXITY_API_KEY:placeholder-set-PERPLEXITY_API_KEY}
+    bedrock:
+      aws:
+        region: ${AWS_BEDROCK_REGION:us-east-1}
+        access-key: ${AWS_ACCESS_KEY_ID:}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:}
+      converse:
+        chat:
+          enabled: ${BEDROCK_CHAT_ENABLED:true}
+          options:
+            model: ${BEDROCK_MODEL_ID:amazon.nova-lite-v1:0}
     vectorstore:
       pgvector:
         initialize-schema: true
@@ -694,6 +704,15 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   gemini:
     api-key: ${GEMINI_API_KEY:}
+
+  # ---------------------------------------------------------------------------
+  # AWS Bedrock — used by AwsBedrockAiSearchAdapter for AI-enhanced search.
+  # Uses standard AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY env vars.
+  # Set BEDROCK_CHAT_ENABLED=false to disable Bedrock synthesis.
+  # ---------------------------------------------------------------------------
+  aws:
+    bedrock:
+      enabled: ${BEDROCK_CHAT_ENABLED:true}
 
   # ---------------------------------------------------------------------------
   # PubMed Backfill — historical article harvesting via E-utilities API.
