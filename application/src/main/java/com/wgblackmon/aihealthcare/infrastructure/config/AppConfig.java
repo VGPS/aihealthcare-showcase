@@ -8,6 +8,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.FileParserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalyticsPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SourceRetrievalPort;
 import com.wgblackmon.aihealthcare.domain.model.TierLimits;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AdminNotificationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
 import com.wgblackmon.aihealthcare.domain.service.AiSearchService;
 import com.wgblackmon.aihealthcare.domain.service.AnalyticsService;
@@ -431,18 +432,23 @@ public class AppConfig {
      * {@link com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase}.
      *
      * <p>Spring injects all {@link AiSearchPort} {@code @Component} beans as a list
-     * automatically (one per model — Anthropic, OpenAI), enabling multi-model synthesis.
+     * automatically (one per model — Anthropic, OpenAI, Perplexity, Gemini, AWS),
+     * enabling multi-model synthesis. The {@link AdminNotificationPort} receives
+     * alerts when a model synthesis call fails.
      *
-     * @param articleSearchPort vector-store search port (auto-detected).
-     * @param aiSearchPorts     all registered AI search adapters (auto-detected).
+     * @param articleSearchPort      vector-store search port (auto-detected).
+     * @param aiSearchPorts          all registered AI search adapters (auto-detected).
+     * @param adminNotificationPort  admin notification port for model failure alerts.
      * @return The wired {@link AiSearchService} instance.
      */
     @Bean
     public AiSearchService aiSearchService(ArticleSearchPort articleSearchPort,
-                                           List<AiSearchPort> aiSearchPorts) {
-        log.debug("aiSearchService() | articleSearchPort={}, aiSearchPortCount={}",
-                  articleSearchPort.getClass().getSimpleName(), aiSearchPorts.size());
-        AiSearchService result = new AiSearchService(articleSearchPort, aiSearchPorts);
+                                           List<AiSearchPort> aiSearchPorts,
+                                           AdminNotificationPort adminNotificationPort) {
+        log.debug("aiSearchService() | articleSearchPort={}, aiSearchPortCount={}, adminNotifier={}",
+                  articleSearchPort.getClass().getSimpleName(), aiSearchPorts.size(),
+                  adminNotificationPort.getClass().getSimpleName());
+        AiSearchService result = new AiSearchService(articleSearchPort, aiSearchPorts, adminNotificationPort);
         log.debug("aiSearchService() | return={}", result.getClass().getSimpleName());
         return result;
     }

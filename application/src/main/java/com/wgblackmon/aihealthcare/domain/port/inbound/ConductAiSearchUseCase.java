@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.domain.port.inbound;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
+import com.wgblackmon.aihealthcare.domain.model.ModelInfo;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-06-02
- * @updated 2026-06-06
+ * @updated 2026-07-10
  */
 public interface ConductAiSearchUseCase {
 
@@ -38,4 +39,12 @@ public interface ConductAiSearchUseCase {
      * @return search result containing articles and model syntheses; never null
      */
     AiSearchResult search(String query, int topK, List<String> modelNames);
+
+    /**
+     * Returns the list of currently registered AI model providers and their
+     * configured model identifiers.
+     *
+     * @return list of available models; never null, may be empty
+     */
+    List<ModelInfo> availableModels();
 }

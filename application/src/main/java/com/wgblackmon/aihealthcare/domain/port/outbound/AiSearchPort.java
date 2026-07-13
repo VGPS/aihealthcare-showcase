@@ -21,7 +21,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-06-02
+ * @updated 2026-07-10
  */
 public interface AiSearchPort {
 
@@ -41,4 +41,12 @@ public interface AiSearchPort {
      * @return model name; never null or blank
      */
     String modelName();
+
+    /**
+     * Returns the specific model identifier configured for this adapter
+     * (e.g. "claude-sonnet-4-6", "sonar", "gemini-2.0-flash").
+     *
+     * @return model ID as configured in application.yml; never null or blank
+     */
+    String modelId();
 }

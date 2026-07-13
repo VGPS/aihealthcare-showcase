@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -28,7 +29,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-07-03
+ * @updated 2026-07-10
  */
 @Slf4j
 @Component
@@ -38,21 +39,25 @@ public class OpenAiSearchAdapter implements AiSearchPort {
 
     private final ChatClient chatClient;
     private final PromptLoaderService promptLoaderService;
+    private final String modelId;
 
     /**
      * Constructs the adapter with the OpenAI-specific chat model.
      *
      * @param openaiChatModel     the auto-configured OpenAI chat model
      * @param promptLoaderService service for loading prompt templates
+     * @param modelId             the configured OpenAI model ID (from application.yml)
      */
     public OpenAiSearchAdapter(
             @Qualifier("openAiChatModel") ChatModel openaiChatModel,
-            PromptLoaderService promptLoaderService) {
-        log.debug("OpenAiSearchAdapter() | model={}, promptLoaderService={}",
+            PromptLoaderService promptLoaderService,
+            @Value("${spring.ai.openai.chat.options.model:gpt-4o}") String modelId) {
+        log.debug("OpenAiSearchAdapter() | model={}, promptLoaderService={}, modelId={}",
                   openaiChatModel.getClass().getSimpleName(),
-                  promptLoaderService.getClass().getSimpleName());
+                  promptLoaderService.getClass().getSimpleName(), modelId);
         this.chatClient = ChatClient.builder(openaiChatModel).build();
         this.promptLoaderService = promptLoaderService;
+        this.modelId = modelId;
         log.debug("OpenAiSearchAdapter() | return=void");
     }
 
@@ -75,6 +80,11 @@ public class OpenAiSearchAdapter implements AiSearchPort {
     @Override
     public String modelName() {
         return MODEL_NAME;
+    }
+
+    @Override
+    public String modelId() {
+        return modelId;
     }
 
     // -------------------------------------------------------------------------

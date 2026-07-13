@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
+import com.wgblackmon.aihealthcare.domain.model.ModelInfo;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
@@ -13,6 +14,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -48,9 +50,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * multi-model AI synthesis rendering, and usage tracking increments.
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 2.1
  * @since   2026-06-02
- * @updated 2026-06-06
+ * @updated 2026-07-10
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(AiSearchController.class)
@@ -75,6 +77,16 @@ class AiSearchControllerTest {
 
     @MockitoBean
     private UsageTrackingPort usageTrackingPort;
+
+    private static final List<ModelInfo> DEFAULT_MODELS = List.of(
+            new ModelInfo("Claude", "claude-sonnet-4-6"),
+            new ModelInfo("GPT", "gpt-4o"),
+            new ModelInfo("Perplexity", "sonar"));
+
+    @BeforeEach
+    void setUp() {
+        when(aiSearchUseCase.availableModels()).thenReturn(DEFAULT_MODELS);
+    }
 
     // -------------------------------------------------------------------------
     // Fixtures
@@ -238,5 +250,21 @@ class AiSearchControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("articleCount", 1))
                 .andExpect(content().string(containsString("AI models found no relevant match")));
+    }
+
+    // -------------------------------------------------------------------------
+    // Available models — dynamic checkbox rendering
+    // -------------------------------------------------------------------------
+
+    @Test
+    @WithMockUser(username = "member@example.com")
+    void search_memberTier_passesAvailableModelsToTemplate() throws Exception {
+        stubMemberTier("member@example.com");
+
+        mockMvc.perform(get("/research/ai-search"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("availableModels"))
+                .andExpect(model().attribute("availableModels",
+                        List.of("Claude", "GPT", "Perplexity")));
     }
 }

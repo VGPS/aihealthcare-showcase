@@ -72,7 +72,7 @@ class AwsBedrockAiSearchAdapterTest {
      */
     private AwsBedrockAiSearchAdapter createAdapter() {
         AwsBedrockAiSearchAdapter adapter =
-                new AwsBedrockAiSearchAdapter(chatModel, promptLoaderService);
+                new AwsBedrockAiSearchAdapter(chatModel, promptLoaderService, "amazon.nova-lite-v1:0");
         // Replace the chatClient field with our mock via reflection
         try {
             java.lang.reflect.Field field = AwsBedrockAiSearchAdapter.class.getDeclaredField("chatClient");
