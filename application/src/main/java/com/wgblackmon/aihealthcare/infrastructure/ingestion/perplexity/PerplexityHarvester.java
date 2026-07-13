@@ -53,17 +53,17 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-04-28
- * @updated 2026-05-06
+ * @updated 2026-07-10
  */
 @Slf4j
 @Component
 public class PerplexityHarvester {
 
     private static final String BASE_URL    = "https://api.perplexity.ai";
-    private static final String SONAR_MODEL = "sonar";
 
     private final SearchPromptPort searchPromptPort;
     private final String           apiKey;
+    private final String           modelId;
     private final RestClient       restClient;
 
     /**
@@ -78,8 +78,9 @@ public class PerplexityHarvester {
     @Autowired
     public PerplexityHarvester(
             SearchPromptPort searchPromptPort,
-            @Value("${aihealthcare.perplexity.api-key:}") String apiKey) {
-        this(searchPromptPort, apiKey, RestClient.builder().baseUrl(BASE_URL).build());
+            @Value("${aihealthcare.perplexity.api-key:}") String apiKey,
+            @Value("${aihealthcare.perplexity.model:sonar}") String modelId) {
+        this(searchPromptPort, apiKey, modelId, RestClient.builder().baseUrl(BASE_URL).build());
     }
 
     /**
@@ -90,16 +91,17 @@ public class PerplexityHarvester {
      * @param apiKey           Perplexity API key (may be blank to test guard path).
      * @param restClient       Pre-configured RestClient (injected by tests).
      */
-    PerplexityHarvester(SearchPromptPort searchPromptPort, String apiKey, RestClient restClient) {
-        log.debug("PerplexityHarvester() | searchPromptPort={}, apiKeyPresent={}",
-                  searchPromptPort.getClass().getSimpleName(), !apiKey.isBlank());
+    PerplexityHarvester(SearchPromptPort searchPromptPort, String apiKey, String modelId, RestClient restClient) {
+        log.debug("PerplexityHarvester() | searchPromptPort={}, apiKeyPresent={}, modelId={}",
+                  searchPromptPort.getClass().getSimpleName(), !apiKey.isBlank(), modelId);
         this.searchPromptPort = searchPromptPort;
         this.apiKey           = apiKey;
+        this.modelId          = modelId;
         this.restClient       = restClient;
         if (apiKey.isBlank()) {
             log.info("PerplexityHarvester() | PERPLEXITY_API_KEY not set — harvester will return empty list");
         } else {
-            log.info("PerplexityHarvester() | Perplexity Sonar API integration active (model={})", SONAR_MODEL);
+            log.info("PerplexityHarvester() | Perplexity Sonar API integration active (model={})", modelId);
         }
         log.debug("PerplexityHarvester() | return=void");
     }
@@ -160,7 +162,7 @@ public class PerplexityHarvester {
         messages.add(userMessage);
 
         Map<String, Object> requestBody = new LinkedHashMap<>();
-        requestBody.put("model", SONAR_MODEL);
+        requestBody.put("model", modelId);
         requestBody.put("messages", messages);
 
         PerplexityApiResponse response = restClient.post()

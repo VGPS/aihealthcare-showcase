@@ -2,18 +2,20 @@ package com.wgblackmon.aihealthcare.domain.service;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
+import com.wgblackmon.aihealthcare.domain.model.ModelInfo;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AdminNotificationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,9 +31,9 @@ import static org.mockito.Mockito.when;
  * empty/null query handling, and graceful degradation when a model fails.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-06-02
- * @updated 2026-06-02
+ * @updated 2026-07-10
  */
 class AiSearchServiceTest {
 
@@ -39,6 +41,7 @@ class AiSearchServiceTest {
     private AiSearchPort claudePort;
     private AiSearchPort gptPort;
     private AiSearchPort perplexityPort;
+    private AdminNotificationPort adminNotifier;
     private AiSearchService service;
 
     @BeforeEach
@@ -47,12 +50,16 @@ class AiSearchServiceTest {
         claudePort = mock(AiSearchPort.class);
         gptPort = mock(AiSearchPort.class);
         perplexityPort = mock(AiSearchPort.class);
+        adminNotifier = mock(AdminNotificationPort.class);
 
         when(claudePort.modelName()).thenReturn("Claude");
+        when(claudePort.modelId()).thenReturn("claude-sonnet-4-6");
         when(gptPort.modelName()).thenReturn("GPT");
+        when(gptPort.modelId()).thenReturn("gpt-4o");
         when(perplexityPort.modelName()).thenReturn("Perplexity");
+        when(perplexityPort.modelId()).thenReturn("sonar");
 
-        service = new AiSearchService(vectorSearch, List.of(claudePort, gptPort, perplexityPort));
+        service = new AiSearchService(vectorSearch, List.of(claudePort, gptPort, perplexityPort), adminNotifier);
     }
 
     private NewsArticle sampleArticle(String id, String title) {
@@ -125,7 +132,7 @@ class AiSearchServiceTest {
     }
 
     @Test
-    void search_whenOneModelFails_returnsPartialSyntheses() {
+    void search_whenOneModelFails_returnsPartialSynthesesAndNotifiesAdmin() {
         NewsArticle a1 = sampleArticle("a1", "AI in Surgery");
         when(vectorSearch.findSimilar(eq("surgery AI"), eq(5))).thenReturn(List.of(a1));
 
@@ -143,8 +150,9 @@ class AiSearchServiceTest {
         assertThat(result.syntheses()).hasSize(3);
         assertThat(result.syntheses().get(0).modelName()).isEqualTo("Claude");
         assertThat(result.syntheses().get(1).modelName()).isEqualTo("GPT");
-        assertThat(result.syntheses().get(1).summary()).contains("Synthesis unavailable");
+        assertThat(result.syntheses().get(1).summary()).isEqualTo("Model not currently available.");
         assertThat(result.syntheses().get(2).modelName()).isEqualTo("Perplexity");
+        verify(adminNotifier).notifyModelFailure(eq("GPT"), eq("gpt-4o"), eq("surgery AI"), any(RuntimeException.class));
     }
 
     @Test
@@ -202,6 +210,33 @@ class AiSearchServiceTest {
         AiSearchResult result = service.search("neurology", 10, List.of());
 
         assertThat(result.syntheses()).hasSize(3);
+    }
+
+    @Test
+    void availableModels_returnsAllRegisteredPorts() {
+        List<ModelInfo> models = service.availableModels();
+
+        assertThat(models).hasSize(3);
+        assertThat(models.get(0).providerName()).isEqualTo("Claude");
+        assertThat(models.get(0).modelId()).isEqualTo("claude-sonnet-4-6");
+        assertThat(models.get(1).providerName()).isEqualTo("GPT");
+        assertThat(models.get(1).modelId()).isEqualTo("gpt-4o");
+        assertThat(models.get(2).providerName()).isEqualTo("Perplexity");
+        assertThat(models.get(2).modelId()).isEqualTo("sonar");
+    }
+
+    @Test
+    void search_whenModelSucceeds_doesNotNotifyAdmin() {
+        NewsArticle a1 = sampleArticle("a1", "AI in Dermatology");
+        when(vectorSearch.findSimilar(eq("dermatology"), eq(10))).thenReturn(List.of(a1));
+
+        AiSearchSynthesis claudeSynthesis = new AiSearchSynthesis(
+                "Claude", "Claude summary", List.of("Finding"), Instant.now());
+        when(claudePort.synthesize(eq("dermatology"), eq(List.of(a1)))).thenReturn(claudeSynthesis);
+
+        service.search("dermatology", 10, List.of("Claude"));
+
+        verify(adminNotifier, never()).notifyModelFailure(anyString(), anyString(), anyString(), any(Exception.class));
     }
 
     // Helper to avoid Mockito import issues

@@ -71,7 +71,7 @@ class GeminiAiSearchAdapterTest {
     @Test
     void modelName_returnsGemini() {
         GeminiAiSearchAdapter adapter =
-                new GeminiAiSearchAdapter(promptLoaderService, "test-key", restClient);
+                new GeminiAiSearchAdapter(promptLoaderService, "test-key", "gemini-2.0-flash", restClient);
 
         assertThat(adapter.modelName()).isEqualTo("Gemini");
     }
@@ -87,7 +87,7 @@ class GeminiAiSearchAdapterTest {
         stubRestClientChain(apiResponse);
 
         GeminiAiSearchAdapter adapter =
-                new GeminiAiSearchAdapter(promptLoaderService, "test-key", restClient);
+                new GeminiAiSearchAdapter(promptLoaderService, "test-key", "gemini-2.0-flash", restClient);
         AiSearchSynthesis result = adapter.synthesize("AI diagnostics",
                 List.of(sampleArticle("a1", "AI in Radiology")));
 
@@ -106,7 +106,7 @@ class GeminiAiSearchAdapterTest {
         stubRestClientChain(apiResponse);
 
         GeminiAiSearchAdapter adapter =
-                new GeminiAiSearchAdapter(promptLoaderService, "test-key", restClient);
+                new GeminiAiSearchAdapter(promptLoaderService, "test-key", "gemini-2.0-flash", restClient);
         AiSearchSynthesis result = adapter.synthesize("test query",
                 List.of(sampleArticle("a1", "Test Article")));
 
@@ -118,7 +118,7 @@ class GeminiAiSearchAdapterTest {
     @Test
     void synthesize_whenApiKeyBlank_returnsFallbackSynthesis() {
         GeminiAiSearchAdapter adapter =
-                new GeminiAiSearchAdapter(promptLoaderService, "", restClient);
+                new GeminiAiSearchAdapter(promptLoaderService, "", "gemini-2.0-flash", restClient);
         AiSearchSynthesis result = adapter.synthesize("AI diagnostics",
                 List.of(sampleArticle("a1", "Test")));
 
@@ -138,7 +138,7 @@ class GeminiAiSearchAdapterTest {
                 .thenThrow(new RuntimeException("Connection refused"));
 
         GeminiAiSearchAdapter adapter =
-                new GeminiAiSearchAdapter(promptLoaderService, "test-key", restClient);
+                new GeminiAiSearchAdapter(promptLoaderService, "test-key", "gemini-2.0-flash", restClient);
 
         assertThatThrownBy(() -> adapter.synthesize("AI diagnostics",
                 List.of(sampleArticle("a1", "Test"))))
@@ -157,7 +157,7 @@ class GeminiAiSearchAdapterTest {
         stubRestClientChain(apiResponse);
 
         GeminiAiSearchAdapter adapter =
-                new GeminiAiSearchAdapter(promptLoaderService, "test-key", restClient);
+                new GeminiAiSearchAdapter(promptLoaderService, "test-key", "gemini-2.0-flash", restClient);
         AiSearchSynthesis result = adapter.synthesize("test",
                 List.of(sampleArticle("a1", "Test")));
 

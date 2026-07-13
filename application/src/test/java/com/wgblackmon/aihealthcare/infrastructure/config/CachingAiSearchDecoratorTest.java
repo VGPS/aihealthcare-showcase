@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.config;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
+import com.wgblackmon.aihealthcare.domain.model.ModelInfo;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.service.AiSearchService;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,9 +30,9 @@ import static org.mockito.Mockito.when;
  * validate delegation and result passthrough.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-03
- * @updated 2026-07-03
+ * @updated 2026-07-10
  */
 class CachingAiSearchDecoratorTest {
 
@@ -102,5 +103,18 @@ class CachingAiSearchDecoratorTest {
         assertThat(result2.query()).isEqualTo("query2");
         verify(delegate).search("query1", 20);
         verify(delegate).search("query2", 20);
+    }
+
+    @Test
+    void availableModels_delegatesToUnderlyingService() {
+        List<ModelInfo> expected = List.of(
+                new ModelInfo("Claude", "claude-sonnet-4-6"),
+                new ModelInfo("GPT", "gpt-4o"));
+        when(delegate.availableModels()).thenReturn(expected);
+
+        List<ModelInfo> result = decorator.availableModels();
+
+        assertThat(result).isEqualTo(expected);
+        verify(delegate).availableModels();
     }
 }

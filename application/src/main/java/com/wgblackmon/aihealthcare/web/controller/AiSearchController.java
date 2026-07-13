@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
+import com.wgblackmon.aihealthcare.domain.model.ModelInfo;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
@@ -22,6 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -50,7 +52,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-06-02
- * @updated 2026-06-06
+ * @updated 2026-07-10
  */
 @Slf4j
 @Controller
@@ -185,6 +187,13 @@ public class AiSearchController {
             log.info("search() | found {} articles, {} syntheses for query '{}'",
                      articles.size(), syntheses.size(), q);
         }
+
+        // Populate available models for dynamic checkbox rendering
+        List<String> availableModelNames = new ArrayList<>();
+        for (ModelInfo mi : aiSearchUseCase.availableModels()) {
+            availableModelNames.add(mi.providerName());
+        }
+        model.addAttribute("availableModels", availableModelNames);
 
         log.debug("search() | return=ai-search");
         return "ai-search";

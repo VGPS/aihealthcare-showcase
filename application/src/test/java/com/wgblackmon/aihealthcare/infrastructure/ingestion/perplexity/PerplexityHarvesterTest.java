@@ -57,7 +57,7 @@ class PerplexityHarvesterTest {
 
     @Test
     void harvestArticles_noApiKey_returnsEmpty() {
-        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "", restClient);
+        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "", "sonar", restClient);
 
         List<NewsArticle> result = harvester.harvestArticles("AI diagnostics");
 
@@ -68,7 +68,7 @@ class PerplexityHarvesterTest {
     @Test
     void harvestArticles_noActivePrompt_returnsEmpty() {
         when(searchPromptPort.findByEngine("PERPLEXITY")).thenReturn(Optional.empty());
-        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", restClient);
+        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", "sonar", restClient);
 
         List<NewsArticle> result = harvester.harvestArticles("AI diagnostics");
 
@@ -78,7 +78,7 @@ class PerplexityHarvesterTest {
     @Test
     void harvestArticles_inactivePrompt_returnsEmpty() {
         when(searchPromptPort.findByEngine("PERPLEXITY")).thenReturn(Optional.of(INACTIVE_PROMPT));
-        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", restClient);
+        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", "sonar", restClient);
 
         List<NewsArticle> result = harvester.harvestArticles("AI diagnostics");
 
@@ -87,7 +87,7 @@ class PerplexityHarvesterTest {
 
     @Test
     void harvestArticles_nullTopic_noApiKey_returnsEmpty() {
-        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "", restClient);
+        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "", "sonar", restClient);
 
         List<NewsArticle> result = harvester.harvestArticles(null);
 
@@ -96,7 +96,7 @@ class PerplexityHarvesterTest {
 
     @Test
     void harvestArticles_blankTopic_noApiKey_returnsEmpty() {
-        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "", restClient);
+        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "", "sonar", restClient);
 
         List<NewsArticle> result = harvester.harvestArticles("   ");
 
@@ -133,7 +133,7 @@ class PerplexityHarvesterTest {
                         "https://www.fda.gov/medical-devices/news"));
         stubRestClientChain(fakeResponse);
 
-        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", restClient);
+        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", "sonar", restClient);
         List<NewsArticle> result = harvester.harvestArticles("clinical AI");
 
         assertThat(result).hasSize(2);
@@ -157,7 +157,7 @@ class PerplexityHarvesterTest {
                 List.of());
         stubRestClientChain(emptyResponse);
 
-        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", restClient);
+        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", "sonar", restClient);
         List<NewsArticle> result = harvester.harvestArticles("clinical AI");
 
         assertThat(result).isEmpty();
@@ -176,7 +176,7 @@ class PerplexityHarvesterTest {
         when(responseSpec.body(PerplexityApiResponse.class))
                 .thenThrow(new RuntimeException("connection refused"));
 
-        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", restClient);
+        PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", "sonar", restClient);
         List<NewsArticle> result = harvester.harvestArticles("clinical AI");
 
         assertThat(result).isEmpty();

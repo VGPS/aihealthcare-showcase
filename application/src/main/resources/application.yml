@@ -696,6 +696,7 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   perplexity:
     api-key: ${PERPLEXITY_API_KEY:}
+    model: ${PERPLEXITY_MODEL_ID:sonar}
 
   # ---------------------------------------------------------------------------
   # Google Gemini API — used by GeminiAiSearchAdapter for AI-enhanced search.
@@ -704,6 +705,13 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   gemini:
     api-key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL_ID:gemini-2.0-flash}
+
+  # ---------------------------------------------------------------------------
+  # Admin notification — email address for system alerts (model failures, etc.).
+  # ---------------------------------------------------------------------------
+  admin:
+    email: ${ADMIN_EMAIL:admin@aihealthcare.local}
 
   # ---------------------------------------------------------------------------
   # AWS Bedrock — used by AwsBedrockAiSearchAdapter for AI-enhanced search.

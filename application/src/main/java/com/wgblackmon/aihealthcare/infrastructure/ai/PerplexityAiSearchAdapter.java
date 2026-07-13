@@ -38,7 +38,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-07-03
+ * @updated 2026-07-10
  */
 @Slf4j
 @Component
@@ -46,10 +46,10 @@ public class PerplexityAiSearchAdapter implements AiSearchPort {
 
     private static final String MODEL_NAME  = "Perplexity";
     private static final String BASE_URL    = "https://api.perplexity.ai";
-    private static final String SONAR_MODEL = "sonar";
 
     private final PromptLoaderService promptLoaderService;
     private final String              apiKey;
+    private final String              modelId;
     private final RestClient          restClient;
 
     /**
@@ -64,8 +64,9 @@ public class PerplexityAiSearchAdapter implements AiSearchPort {
     @Autowired
     public PerplexityAiSearchAdapter(
             PromptLoaderService promptLoaderService,
-            @Value("${aihealthcare.perplexity.api-key:}") String apiKey) {
-        this(promptLoaderService, apiKey, RestClient.builder().baseUrl(BASE_URL).build());
+            @Value("${aihealthcare.perplexity.api-key:}") String apiKey,
+            @Value("${aihealthcare.perplexity.model:sonar}") String modelId) {
+        this(promptLoaderService, apiKey, modelId, RestClient.builder().baseUrl(BASE_URL).build());
     }
 
     /**
@@ -78,16 +79,18 @@ public class PerplexityAiSearchAdapter implements AiSearchPort {
      */
     PerplexityAiSearchAdapter(PromptLoaderService promptLoaderService,
                               String apiKey,
+                              String modelId,
                               RestClient restClient) {
-        log.debug("PerplexityAiSearchAdapter() | promptLoaderService={}, apiKeyPresent={}",
-                  promptLoaderService.getClass().getSimpleName(), apiKey != null && !apiKey.isBlank());
+        log.debug("PerplexityAiSearchAdapter() | promptLoaderService={}, apiKeyPresent={}, modelId={}",
+                  promptLoaderService.getClass().getSimpleName(), apiKey != null && !apiKey.isBlank(), modelId);
         this.promptLoaderService = promptLoaderService;
         this.apiKey              = apiKey;
+        this.modelId             = modelId;
         this.restClient          = restClient;
         if (apiKey == null || apiKey.isBlank()) {
             log.info("PerplexityAiSearchAdapter() | PERPLEXITY_API_KEY not set — adapter will return fallback synthesis");
         } else {
-            log.info("PerplexityAiSearchAdapter() | Perplexity Sonar API active for AI search (model={})", SONAR_MODEL);
+            log.info("PerplexityAiSearchAdapter() | Perplexity Sonar API active for AI search (model={})", modelId);
         }
         log.debug("PerplexityAiSearchAdapter() | return=void");
     }
@@ -121,6 +124,11 @@ public class PerplexityAiSearchAdapter implements AiSearchPort {
         return MODEL_NAME;
     }
 
+    @Override
+    public String modelId() {
+        return modelId;
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
@@ -136,7 +144,7 @@ public class PerplexityAiSearchAdapter implements AiSearchPort {
         messages.add(userMessage);
 
         Map<String, Object> requestBody = new LinkedHashMap<>();
-        requestBody.put("model", SONAR_MODEL);
+        requestBody.put("model", modelId);
         requestBody.put("messages", messages);
 
         PerplexityApiResponse response = restClient.post()

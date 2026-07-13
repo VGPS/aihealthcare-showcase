@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +35,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-07
- * @updated 2026-07-07
+ * @updated 2026-07-10
  */
 @Slf4j
 @Component
@@ -45,6 +46,7 @@ public class AwsBedrockAiSearchAdapter implements AiSearchPort {
 
     private final ChatClient chatClient;
     private final PromptLoaderService promptLoaderService;
+    private final String modelId;
 
     /**
      * Constructs the adapter with the Bedrock Converse chat model
@@ -52,16 +54,19 @@ public class AwsBedrockAiSearchAdapter implements AiSearchPort {
      *
      * @param bedrockChatModel    the auto-configured Bedrock Converse chat model
      * @param promptLoaderService service for loading prompt templates
+     * @param modelId             the configured Bedrock model ID (from application.yml)
      */
     public AwsBedrockAiSearchAdapter(
             @Qualifier("bedrockProxyChatModel") ChatModel bedrockChatModel,
-            PromptLoaderService promptLoaderService) {
-        log.debug("AwsBedrockAiSearchAdapter() | model={}, promptLoaderService={}",
+            PromptLoaderService promptLoaderService,
+            @Value("${spring.ai.bedrock.converse.chat.options.model:amazon.nova-lite-v1:0}") String modelId) {
+        log.debug("AwsBedrockAiSearchAdapter() | model={}, promptLoaderService={}, modelId={}",
                   bedrockChatModel.getClass().getSimpleName(),
-                  promptLoaderService.getClass().getSimpleName());
+                  promptLoaderService.getClass().getSimpleName(), modelId);
         this.chatClient = ChatClient.builder(bedrockChatModel).build();
         this.promptLoaderService = promptLoaderService;
-        log.info("AwsBedrockAiSearchAdapter() | AWS Bedrock active for AI search");
+        this.modelId = modelId;
+        log.info("AwsBedrockAiSearchAdapter() | AWS Bedrock active for AI search (model={})", modelId);
         log.debug("AwsBedrockAiSearchAdapter() | return=void");
     }
 
@@ -84,6 +89,11 @@ public class AwsBedrockAiSearchAdapter implements AiSearchPort {
     @Override
     public String modelName() {
         return MODEL_NAME;
+    }
+
+    @Override
+    public String modelId() {
+        return modelId;
     }
 
     // -------------------------------------------------------------------------

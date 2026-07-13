@@ -2,8 +2,10 @@ package com.wgblackmon.aihealthcare.domain.service;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
+import com.wgblackmon.aihealthcare.domain.model.ModelInfo;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AdminNotificationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import lombok.extern.slf4j.Slf4j;
@@ -28,19 +30,24 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-06-02
- * @updated 2026-07-03
+ * @updated 2026-07-10
  */
 @Slf4j
 public class AiSearchService implements ConductAiSearchUseCase {
 
     private final ArticleSearchPort vectorSearch;
     private final List<AiSearchPort> aiSearchPorts;
+    private final AdminNotificationPort adminNotifier;
 
-    public AiSearchService(ArticleSearchPort vectorSearch, List<AiSearchPort> aiSearchPorts) {
-        log.debug("AiSearchService() | vectorSearch={}, aiSearchPortCount={}",
-                  vectorSearch.getClass().getSimpleName(), aiSearchPorts.size());
+    public AiSearchService(ArticleSearchPort vectorSearch,
+                           List<AiSearchPort> aiSearchPorts,
+                           AdminNotificationPort adminNotifier) {
+        log.debug("AiSearchService() | vectorSearch={}, aiSearchPortCount={}, adminNotifier={}",
+                  vectorSearch.getClass().getSimpleName(), aiSearchPorts.size(),
+                  adminNotifier.getClass().getSimpleName());
         this.vectorSearch = vectorSearch;
         this.aiSearchPorts = aiSearchPorts;
+        this.adminNotifier = adminNotifier;
         log.debug("AiSearchService() | return=void");
     }
 
@@ -109,9 +116,9 @@ public class AiSearchService implements ConductAiSearchUseCase {
             } catch (Exception e) {
                 log.error("search() | synthesis failed for model '{}': {}",
                           port.modelName(), e.getMessage(), e);
-                String errorSummary = "Synthesis unavailable — " + extractErrorReason(e);
+                adminNotifier.notifyModelFailure(port.modelName(), port.modelId(), query, e);
                 syntheses.add(new AiSearchSynthesis(
-                        port.modelName(), errorSummary,
+                        port.modelName(), "Model not currently available.",
                         Collections.emptyList(), Instant.now()));
             }
         }
@@ -124,30 +131,14 @@ public class AiSearchService implements ConductAiSearchUseCase {
         return result;
     }
 
-    /**
-     * Extracts a concise, user-friendly error reason from an exception message.
-     *
-     * @param e the caught exception
-     * @return a short error description
-     */
-    private String extractErrorReason(Exception e) {
-        log.debug("extractErrorReason() | exception={}", e.getClass().getSimpleName());
-        String msg = e.getMessage();
-        String result;
-        if (msg == null) {
-            result = e.getClass().getSimpleName();
-        } else if (msg.contains("401")) {
-            result = "API key is invalid or expired.";
-        } else if (msg.contains("429")) {
-            result = "API rate limit or quota exceeded. Please try again later.";
-        } else if (msg.contains("403")) {
-            result = "API access forbidden. Check API key permissions.";
-        } else if (msg.contains("timeout") || msg.contains("Timeout")) {
-            result = "Request timed out. The model may be under heavy load.";
-        } else {
-            result = msg.length() > 150 ? msg.substring(0, 150) + "..." : msg;
+    @Override
+    public List<ModelInfo> availableModels() {
+        log.debug("availableModels() | aiSearchPortCount={}", aiSearchPorts.size());
+        List<ModelInfo> result = new ArrayList<>();
+        for (AiSearchPort port : aiSearchPorts) {
+            result.add(new ModelInfo(port.modelName(), port.modelId()));
         }
-        log.debug("extractErrorReason() | return={}", result);
+        log.debug("availableModels() | return={}", result);
         return result;
     }
 }

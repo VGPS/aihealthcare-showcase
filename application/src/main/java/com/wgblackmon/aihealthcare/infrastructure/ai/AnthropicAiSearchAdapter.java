@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -29,7 +30,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-06-02
+ * @updated 2026-07-10
  */
 @Slf4j
 @Component
@@ -39,21 +40,25 @@ public class AnthropicAiSearchAdapter implements AiSearchPort {
 
     private final ChatClient chatClient;
     private final PromptLoaderService promptLoaderService;
+    private final String modelId;
 
     /**
      * Constructs the adapter with the Anthropic-specific chat model.
      *
      * @param anthropicChatModel the auto-configured Anthropic chat model
      * @param promptLoaderService service for loading prompt templates
+     * @param modelId             the configured Anthropic model ID (from application.yml)
      */
     public AnthropicAiSearchAdapter(
             @Qualifier("anthropicChatModel") ChatModel anthropicChatModel,
-            PromptLoaderService promptLoaderService) {
-        log.debug("AnthropicAiSearchAdapter() | model={}, promptLoaderService={}",
+            PromptLoaderService promptLoaderService,
+            @Value("${spring.ai.anthropic.chat.options.model:claude-sonnet-4-6}") String modelId) {
+        log.debug("AnthropicAiSearchAdapter() | model={}, promptLoaderService={}, modelId={}",
                   anthropicChatModel.getClass().getSimpleName(),
-                  promptLoaderService.getClass().getSimpleName());
+                  promptLoaderService.getClass().getSimpleName(), modelId);
         this.chatClient = ChatClient.builder(anthropicChatModel).build();
         this.promptLoaderService = promptLoaderService;
+        this.modelId = modelId;
         log.debug("AnthropicAiSearchAdapter() | return=void");
     }
 
@@ -76,6 +81,11 @@ public class AnthropicAiSearchAdapter implements AiSearchPort {
     @Override
     public String modelName() {
         return MODEL_NAME;
+    }
+
+    @Override
+    public String modelId() {
+        return modelId;
     }
 
     // -------------------------------------------------------------------------

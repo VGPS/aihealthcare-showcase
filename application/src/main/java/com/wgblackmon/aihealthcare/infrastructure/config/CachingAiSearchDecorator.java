@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.config;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
+import com.wgblackmon.aihealthcare.domain.model.ModelInfo;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase;
 import com.wgblackmon.aihealthcare.domain.service.AiSearchService;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +21,9 @@ import java.util.List;
  * lives in the domain layer and cannot carry Spring annotations.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-03
- * @updated 2026-07-03
+ * @updated 2026-07-10
  */
 @Slf4j
 public class CachingAiSearchDecorator implements ConductAiSearchUseCase {
@@ -51,6 +52,14 @@ public class CachingAiSearchDecorator implements ConductAiSearchUseCase {
         AiSearchResult result = delegate.search(query, topK, modelNames);
         log.debug("search() | return=AiSearchResult[articles={}, syntheses={}]",
                   result.articles().size(), result.syntheses().size());
+        return result;
+    }
+
+    @Override
+    public List<ModelInfo> availableModels() {
+        log.debug("availableModels() | delegating to AiSearchService");
+        List<ModelInfo> result = delegate.availableModels();
+        log.debug("availableModels() | return={}", result);
         return result;
     }
 }

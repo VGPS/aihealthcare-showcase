@@ -476,33 +476,15 @@
                 <input type="number" id="topK" name="topK" th:value="${topK}" min="1" max="50"
                        placeholder="20"/>
             </div>
-            <div class="model-select">
+            <div class="model-select" th:if="${availableModels != null and !availableModels.isEmpty()}">
                 <label>AI Models</label>
                 <div class="model-checkboxes">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="models" value="Claude"
-                               th:checked="${selectedModels == null or selectedModels.contains('Claude')}"/>
-                        <span class="model-badge claude">Claude</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="models" value="GPT"
-                               th:checked="${selectedModels != null and selectedModels.contains('GPT')}"/>
-                        <span class="model-badge gpt">GPT</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="models" value="Perplexity"
-                               th:checked="${selectedModels != null and selectedModels.contains('Perplexity')}"/>
-                        <span class="model-badge perplexity">Perplexity</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="models" value="Gemini"
-                               th:checked="${selectedModels != null and selectedModels.contains('Gemini')}"/>
-                        <span class="model-badge gemini">Gemini</span>
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="models" value="Amazon/AWS"
-                               th:checked="${selectedModels != null and selectedModels.contains('Amazon/AWS')}"/>
-                        <span class="model-badge aws">Amazon/AWS</span>
+                    <label class="checkbox-label" th:each="m : ${availableModels}">
+                        <input type="checkbox" name="models" th:value="${m}"
+                               th:checked="${selectedModels != null and selectedModels.contains(m)}"/>
+                        <span class="model-badge"
+                              th:classappend="${m == 'Amazon/AWS' ? 'aws' : #strings.toLowerCase(m)}"
+                              th:text="${m}">Model</span>
                     </label>
                 </div>
             </div>

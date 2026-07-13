@@ -75,7 +75,7 @@ class PerplexityAiSearchAdapterTest {
     @Test
     void modelName_returnsPerplexity() {
         PerplexityAiSearchAdapter adapter =
-                new PerplexityAiSearchAdapter(promptLoaderService, "test-key", restClient);
+                new PerplexityAiSearchAdapter(promptLoaderService, "test-key", "sonar", restClient);
 
         assertThat(adapter.modelName()).isEqualTo("Perplexity");
     }
@@ -94,7 +94,7 @@ class PerplexityAiSearchAdapterTest {
         stubRestClientChain(apiResponse);
 
         PerplexityAiSearchAdapter adapter =
-                new PerplexityAiSearchAdapter(promptLoaderService, "test-key", restClient);
+                new PerplexityAiSearchAdapter(promptLoaderService, "test-key", "sonar", restClient);
         AiSearchSynthesis result = adapter.synthesize("AI diagnostics",
                 List.of(sampleArticle("a1", "AI in Radiology")));
 
@@ -114,7 +114,7 @@ class PerplexityAiSearchAdapterTest {
         stubRestClientChain(apiResponse);
 
         PerplexityAiSearchAdapter adapter =
-                new PerplexityAiSearchAdapter(promptLoaderService, "test-key", restClient);
+                new PerplexityAiSearchAdapter(promptLoaderService, "test-key", "sonar", restClient);
         AiSearchSynthesis result = adapter.synthesize("test query",
                 List.of(sampleArticle("a1", "Test Article")));
 
@@ -126,7 +126,7 @@ class PerplexityAiSearchAdapterTest {
     @Test
     void synthesize_whenApiKeyBlank_returnsFallbackSynthesis() {
         PerplexityAiSearchAdapter adapter =
-                new PerplexityAiSearchAdapter(promptLoaderService, "", restClient);
+                new PerplexityAiSearchAdapter(promptLoaderService, "", "sonar", restClient);
         AiSearchSynthesis result = adapter.synthesize("AI diagnostics",
                 List.of(sampleArticle("a1", "Test")));
 
@@ -147,7 +147,7 @@ class PerplexityAiSearchAdapterTest {
                 .thenThrow(new RuntimeException("Connection refused"));
 
         PerplexityAiSearchAdapter adapter =
-                new PerplexityAiSearchAdapter(promptLoaderService, "test-key", restClient);
+                new PerplexityAiSearchAdapter(promptLoaderService, "test-key", "sonar", restClient);
 
         assertThatThrownBy(() -> adapter.synthesize("AI diagnostics",
                 List.of(sampleArticle("a1", "Test"))))
@@ -169,7 +169,7 @@ class PerplexityAiSearchAdapterTest {
         stubRestClientChain(apiResponse);
 
         PerplexityAiSearchAdapter adapter =
-                new PerplexityAiSearchAdapter(promptLoaderService, "test-key", restClient);
+                new PerplexityAiSearchAdapter(promptLoaderService, "test-key", "sonar", restClient);
         AiSearchSynthesis result = adapter.synthesize("test",
                 List.of(sampleArticle("a1", "Test")));
 
