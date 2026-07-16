@@ -44,7 +44,7 @@ public interface AiSearchPort {
 
     /**
      * Returns the specific model identifier configured for this adapter
-     * (e.g. "claude-sonnet-4-6", "sonar", "gemini-2.0-flash").
+     * (e.g. "claude-sonnet-4-6", "sonar", "gemini-3.5-flash").
      *
      * @return model ID as configured in application.yml; never null or blank
      */

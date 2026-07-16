@@ -56,7 +56,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-07-14
  */
 @Slf4j
 @Controller
@@ -476,7 +476,7 @@ public class WikiController {
                                 port.modelName(), e.getMessage());
                         syntheses.add(new AiSearchSynthesis(
                                 port.modelName(),
-                                "Synthesis unavailable — " + e.getMessage(),
+                                "Model not currently available.",
                                 Collections.emptyList(), Instant.now()));
                     }
                 }

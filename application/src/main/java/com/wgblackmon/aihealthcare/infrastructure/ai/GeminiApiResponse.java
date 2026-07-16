@@ -6,7 +6,7 @@ import java.util.List;
  * Deserialization record for the Google Gemini REST API response.
  *
  * <p>Maps the JSON structure returned by
- * {@code POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent}.
+ * {@code POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent}.
  * Only the fields needed for text extraction are modelled; other response
  * metadata (usage stats, safety ratings) is ignored.
  *
@@ -16,7 +16,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-03
- * @updated 2026-07-03
+ * @updated 2026-07-14
  */
 public record GeminiApiResponse(List<GeminiCandidate> candidates) {
 

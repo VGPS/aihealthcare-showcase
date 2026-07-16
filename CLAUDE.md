@@ -229,7 +229,7 @@ _(see git log for details — JPA entities, repositories, WikiCompilationAdapter
 
 **Previously complete: Slice 47 — AI Search Enhancements (Fix + Gemini + UI) — COMPLETE — 719 tests passing**
 - [x] Fix: Claude output bug — aligned all adapters to use multi-line SUMMARY parsing (`OpenAiSearchAdapter`, `PerplexityAiSearchAdapter` now use `StringBuilder` + `inSummary` flag, matching `AnthropicAiSearchAdapter`)
-- [x] Infrastructure: `GeminiAiSearchAdapter` — raw `RestClient` to Gemini REST API (`gemini-2.0-flash`), graceful fallback when API key absent
+- [x] Infrastructure: `GeminiAiSearchAdapter` — raw `RestClient` to Gemini REST API (`gemini-3.5-flash`), graceful fallback when API key absent
 - [x] Infrastructure: `GeminiApiResponse` — deserialization record (nested `GeminiCandidate`/`GeminiContent`/`GeminiPart`)
 - [x] Config: `aihealthcare.gemini.api-key` in `application.yml` (from `GEMINI_API_KEY` env var)
 - [x] UI: Gemini checkbox added to model selection, `.model-badge.gemini` indigo styling
