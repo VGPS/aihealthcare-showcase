@@ -21,7 +21,7 @@ import java.util.Map;
  * Google Gemini adapter for AI-enhanced search synthesis.
  *
  * <p>Implements {@link AiSearchPort} using the Google Gemini REST API
- * ({@code POST https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent})
+ * ({@code POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent})
  * via {@link RestClient}.  Like the Perplexity adapter, Gemini does not have
  * a Spring AI starter — so this adapter calls the REST API directly.
  *
@@ -35,7 +35,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-03
- * @updated 2026-07-10
+ * @updated 2026-07-14
  */
 @Slf4j
 @Component
@@ -62,7 +62,7 @@ public class GeminiAiSearchAdapter implements AiSearchPort {
     public GeminiAiSearchAdapter(
             PromptLoaderService promptLoaderService,
             @Value("${aihealthcare.gemini.api-key:}") String apiKey,
-            @Value("${aihealthcare.gemini.model:gemini-2.0-flash}") String modelId) {
+            @Value("${aihealthcare.gemini.model:gemini-3.5-flash}") String modelId) {
         this(promptLoaderService, apiKey, modelId, RestClient.builder().baseUrl(BASE_URL).build());
     }
 

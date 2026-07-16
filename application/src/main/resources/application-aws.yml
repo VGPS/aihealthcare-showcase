@@ -1,0 +1,40 @@
+# ---------------------------------------------------------------------------
+# AWS production profile — overrides datasource, mail, and logging.
+#
+# Activated via: --spring.profiles.active=aws
+#
+# All other config (feeds, schedulers, API keys, Stripe, tier limits) is
+# inherited from the base application.yml + environment variables loaded
+# from /opt/aihealthcare/.env via spring.config.import.
+#
+# The 'demo' profile's StartupDemoRunner (full harvest on every boot) is
+# NOT activated — the aws profile relies on cron-based schedulers instead.
+# ---------------------------------------------------------------------------
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:5432/aihealthcaredb
+    username: ${DB_USERNAME:admin}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  ai:
+    vectorstore:
+      pgvector:
+        initialize-schema: false
+
+  mail:
+    host: email-smtp.us-east-1.amazonaws.com
+    port: 587
+    username: ${SES_USERNAME}
+    password: ${SES_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+
+logging:
+  level:
+    com.wgblackmon: INFO
