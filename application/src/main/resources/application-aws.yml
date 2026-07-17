@@ -35,6 +35,10 @@ spring:
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
 
+server:
+  servlet:
+    context-path: /aihealthcare
+
 logging:
   level:
     com.wgblackmon: INFO

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigSkyLabs - AI Healthcare Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1a1a2e;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e8ecf1 100%);
+            min-height: 100vh;
+        }
+        .header {
+            background: #1a1a2e;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .header h1 span { color: #4da6ff; }
+        .header a {
+            color: #4da6ff;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1.2rem;
+            border: 1px solid #4da6ff;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .header a:hover { background: #4da6ff; color: white; }
+
+        .hero {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 5rem 2rem 3rem;
+            text-align: center;
+        }
+        .hero h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            color: #1a1a2e;
+        }
+        .hero p {
+            font-size: 1.15rem;
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 2.5rem;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto 3rem;
+            padding: 0 2rem;
+        }
+        .feature {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .feature h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #1a1a2e;
+        }
+        .feature p { font-size: 0.9rem; color: #666; line-height: 1.5; }
+
+        .signup {
+            max-width: 500px;
+            margin: 0 auto 4rem;
+            padding: 2.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .signup h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+        .signup p {
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 1.5rem;
+        }
+        .signup form {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .signup input[type="email"] {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+        }
+        .signup input[type="email"]:focus { border-color: #4da6ff; }
+        .signup button {
+            padding: 0.75rem 1.5rem;
+            background: #1a1a2e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .signup button:hover { background: #2a2a4e; }
+        .signup .msg {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .signup .msg.success { color: #28a745; display: block; }
+        .signup .msg.error { color: #dc3545; display: block; }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 600px) {
+            .hero h2 { font-size: 1.8rem; }
+            .signup form { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Big<span>Sky</span>Labs</h1>
+        <a href="/aihealthcare/login">Sign In</a>
+    </div>
+
+    <div class="hero">
+        <h2>AI Healthcare Intelligence, Delivered Weekly</h2>
+        <p>
+            We track the fast-moving intersection of artificial intelligence and healthcare
+            so you don't have to. Our platform aggregates news from 40+ sources, synthesizes
+            it with multiple AI models, and delivers curated intelligence to your inbox.
+        </p>
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <h3>Multi-Source Aggregation</h3>
+            <p>PubMed, FDA, WHO, Google News, trade press, and competitor pages — all in one place.</p>
+        </div>
+        <div class="feature">
+            <h3>AI-Powered Synthesis</h3>
+            <p>Claude, GPT, Gemini, and Perplexity analyze and summarize findings from multiple angles.</p>
+        </div>
+        <div class="feature">
+            <h3>LLM Knowledge Wiki</h3>
+            <p>A living knowledge base that tracks contradictions and evolving claims over time.</p>
+        </div>
+        <div class="feature">
+            <h3>Vendor Intelligence</h3>
+            <p>Side-by-side comparisons of AI healthcare vendors with grounded scoring and citations.</p>
+        </div>
+    </div>
+
+    <div class="signup" id="signup">
+        <h3>Get the Newsletter</h3>
+        <p>Weekly AI healthcare intelligence — free, no spam, unsubscribe anytime.</p>
+        <form id="subscribeForm" onsubmit="return subscribe(event)">
+            <input type="email" id="emailInput" placeholder="you@example.com" required />
+            <button type="submit">Subscribe</button>
+        </form>
+        <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="footer">
+        &copy; 2026 BigSkyLabs. All rights reserved.
+    </div>
+
+    <script>
+        async function subscribe(e) {
+            e.preventDefault();
+            var email = document.getElementById('emailInput').value;
+            var msg = document.getElementById('msg');
+            msg.className = 'msg';
+            msg.style.display = 'none';
+            try {
+                var res = await fetch('/aihealthcare/api/v1/subscribers', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email: email})
+                });
+                if (res.ok) {
+                    msg.textContent = 'You\'re subscribed! Check your inbox soon.';
+                    msg.className = 'msg success';
+                    document.getElementById('emailInput').value = '';
+                } else if (res.status === 409) {
+                    msg.textContent = 'You\'re already subscribed!';
+                    msg.className = 'msg error';
+                } else {
+                    msg.textContent = 'Something went wrong. Please try again.';
+                    msg.className = 'msg error';
+                }
+            } catch (err) {
+                msg.textContent = 'Could not connect. Please try again later.';
+                msg.className = 'msg error';
+            }
+        }
+    </script>
+</body>
+</html>
