@@ -38,7 +38,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-07-10
+ * @updated 2026-07-19
  */
 @Slf4j
 @Component
@@ -127,6 +127,11 @@ public class PerplexityAiSearchAdapter implements AiSearchPort {
     @Override
     public String modelId() {
         return modelId;
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return apiKey != null && !apiKey.isBlank() && !apiKey.startsWith("placeholder-set-");
     }
 
     // -------------------------------------------------------------------------

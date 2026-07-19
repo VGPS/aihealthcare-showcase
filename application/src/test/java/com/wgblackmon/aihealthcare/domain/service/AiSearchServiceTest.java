@@ -54,10 +54,13 @@ class AiSearchServiceTest {
 
         when(claudePort.modelName()).thenReturn("Claude");
         when(claudePort.modelId()).thenReturn("claude-sonnet-4-6");
+        when(claudePort.isAvailable()).thenReturn(true);
         when(gptPort.modelName()).thenReturn("GPT");
         when(gptPort.modelId()).thenReturn("gpt-4o");
+        when(gptPort.isAvailable()).thenReturn(true);
         when(perplexityPort.modelName()).thenReturn("Perplexity");
         when(perplexityPort.modelId()).thenReturn("sonar");
+        when(perplexityPort.isAvailable()).thenReturn(true);
 
         service = new AiSearchService(vectorSearch, List.of(claudePort, gptPort, perplexityPort), adminNotifier);
     }

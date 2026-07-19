@@ -450,15 +450,21 @@ public class WikiController {
                             "ACADEMIC", 1.0, page.createdAt()));
                 }
 
-                // Filter ports by requested model names
+                // Filter ports by requested model names — skip unavailable models
                 List<AiSearchPort> selectedPorts = new ArrayList<>();
                 if (models == null || models.isEmpty()) {
                     // Default to first available port (cheapest)
-                    if (!aiSearchPorts.isEmpty()) {
-                        selectedPorts.add(aiSearchPorts.get(0));
+                    for (AiSearchPort port : aiSearchPorts) {
+                        if (port.isAvailable()) {
+                            selectedPorts.add(port);
+                            break;
+                        }
                     }
                 } else {
                     for (AiSearchPort port : aiSearchPorts) {
+                        if (!port.isAvailable()) {
+                            continue;
+                        }
                         for (String requested : models) {
                             if (port.modelName().equalsIgnoreCase(requested)) {
                                 selectedPorts.add(port);
@@ -503,10 +509,12 @@ public class WikiController {
             model.addAttribute("selectedModels", models != null ? models : List.of());
         }
 
-        // Available model names for checkboxes
+        // Available model names for checkboxes — only show models with valid API keys
         List<String> availableModels = new ArrayList<>();
         for (AiSearchPort port : aiSearchPorts) {
-            availableModels.add(port.modelName());
+            if (port.isAvailable()) {
+                availableModels.add(port.modelName());
+            }
         }
         model.addAttribute("availableModels", availableModels);
 

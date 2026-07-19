@@ -84,12 +84,19 @@ public class AiSearchService implements ConductAiSearchUseCase {
             return result;
         }
 
-        // Filter ports by requested model names (null/empty = all models)
+        // Filter ports by requested model names (null/empty = all available models)
         List<AiSearchPort> selectedPorts = new ArrayList<>();
         if (modelNames == null || modelNames.isEmpty()) {
-            selectedPorts.addAll(aiSearchPorts);
+            for (AiSearchPort port : aiSearchPorts) {
+                if (port.isAvailable()) {
+                    selectedPorts.add(port);
+                }
+            }
         } else {
             for (AiSearchPort port : aiSearchPorts) {
+                if (!port.isAvailable()) {
+                    continue;
+                }
                 for (String requested : modelNames) {
                     if (port.modelName().equalsIgnoreCase(requested)) {
                         selectedPorts.add(port);
@@ -136,7 +143,9 @@ public class AiSearchService implements ConductAiSearchUseCase {
         log.debug("availableModels() | aiSearchPortCount={}", aiSearchPorts.size());
         List<ModelInfo> result = new ArrayList<>();
         for (AiSearchPort port : aiSearchPorts) {
-            result.add(new ModelInfo(port.modelName(), port.modelId()));
+            if (port.isAvailable()) {
+                result.add(new ModelInfo(port.modelName(), port.modelId()));
+            }
         }
         log.debug("availableModels() | return={}", result);
         return result;

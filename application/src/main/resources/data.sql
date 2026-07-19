@@ -182,7 +182,7 @@ WHERE NOT EXISTS (SELECT 1 FROM prompt_variants WHERE variant_id = 'summarize-v3
 -- Seed newsletter subscribers for local development and testing.
 -- ---------------------------------------------------------------------------
 INSERT INTO subscribers (email, name, active, subscribed_at, tier)
-SELECT 'wgblackmonall@gmail.com', 'Bill Blackmon', true, CURRENT_TIMESTAMP, 'FREE'
+SELECT 'wgblackmonall@gmail.com', 'Bill Blackmon', true, CURRENT_TIMESTAMP, 'MEMBER'
 WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'wgblackmonall@gmail.com');
 
 INSERT INTO subscribers (email, name, active, subscribed_at, tier)

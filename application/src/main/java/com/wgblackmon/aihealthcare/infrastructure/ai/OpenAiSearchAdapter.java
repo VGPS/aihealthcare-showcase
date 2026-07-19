@@ -29,7 +29,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-07-10
+ * @updated 2026-07-19
  */
 @Slf4j
 @Component
@@ -40,6 +40,7 @@ public class OpenAiSearchAdapter implements AiSearchPort {
     private final ChatClient chatClient;
     private final PromptLoaderService promptLoaderService;
     private final String modelId;
+    private final String apiKey;
 
     /**
      * Constructs the adapter with the OpenAI-specific chat model.
@@ -51,13 +52,16 @@ public class OpenAiSearchAdapter implements AiSearchPort {
     public OpenAiSearchAdapter(
             @Qualifier("openAiChatModel") ChatModel openaiChatModel,
             PromptLoaderService promptLoaderService,
-            @Value("${spring.ai.openai.chat.options.model:gpt-4o}") String modelId) {
-        log.debug("OpenAiSearchAdapter() | model={}, promptLoaderService={}, modelId={}",
+            @Value("${spring.ai.openai.chat.options.model:gpt-4o}") String modelId,
+            @Value("${spring.ai.openai.api-key:}") String apiKey) {
+        log.debug("OpenAiSearchAdapter() | model={}, promptLoaderService={}, modelId={}, apiKeyPresent={}",
                   openaiChatModel.getClass().getSimpleName(),
-                  promptLoaderService.getClass().getSimpleName(), modelId);
+                  promptLoaderService.getClass().getSimpleName(), modelId,
+                  apiKey != null && !apiKey.isBlank() && !apiKey.startsWith("placeholder-set-"));
         this.chatClient = ChatClient.builder(openaiChatModel).build();
         this.promptLoaderService = promptLoaderService;
         this.modelId = modelId;
+        this.apiKey = apiKey;
         log.debug("OpenAiSearchAdapter() | return=void");
     }
 
@@ -85,6 +89,11 @@ public class OpenAiSearchAdapter implements AiSearchPort {
     @Override
     public String modelId() {
         return modelId;
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return apiKey != null && !apiKey.isBlank() && !apiKey.startsWith("placeholder-set-");
     }
 
     // -------------------------------------------------------------------------
