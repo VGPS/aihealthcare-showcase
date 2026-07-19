@@ -205,3 +205,9 @@ SELECT 'demo@gmail.com',
        '$2b$10$jEQkdOFoE4afcbjkMm2DY.8b.RSpLYZdE6qHYPGSAB1SWP3aV1v7e',
        'Demo User', 'USER', true
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'demo@gmail.com');
+
+INSERT INTO app_users (email, password_hash, display_name, role, enabled)
+SELECT 'wgblackmonall@gmail.com',
+       '$2a$10$taZijieeow/bAdqr8xZI1exW78O00ns2G0eR3S9PfbgE/HIIMJXgG',
+       'Bill Blackmon', 'ADMIN', true
+WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'wgblackmonall@gmail.com');

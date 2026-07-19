@@ -254,7 +254,7 @@
     </div>
 
     <!-- Days filter -->
-    <form class="filter-bar" method="get" action="/wiki/contradictions">
+    <form class="filter-bar" method="get" th:action="@{/wiki/contradictions}">
         <label for="days">Show last</label>
         <select name="days" id="days">
             <option value="30" th:selected="${days == 30}">30 days</option>

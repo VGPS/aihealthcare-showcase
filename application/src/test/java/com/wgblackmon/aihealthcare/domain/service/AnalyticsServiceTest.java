@@ -54,7 +54,7 @@ class AnalyticsServiceTest {
                 100L,
                 List.of(new CountByLabel("ACADEMIC", 60L), new CountByLabel("INDUSTRY", 40L)),
                 List.of(new CountByLabel("PubMed AI Healthcare", 60L)),
-                10L, 30L);
+                10L, 30L, null);
         when(analyticsPort.getIngestionAnalytics()).thenReturn(expected);
 
         IngestionAnalytics result = service.getIngestionAnalytics();

@@ -278,7 +278,7 @@
     </div>
 
     <!-- Time filter -->
-    <form class="filter-bar" method="get" action="/wiki/digest">
+    <form class="filter-bar" method="get" th:action="@{/wiki/digest}">
         <label>Show last</label>
         <select name="days" onchange="this.form.submit()">
             <option value="7" th:selected="${days == 7}">7 days</option>

@@ -123,4 +123,13 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, 
          + "WHERE n.createdAt > :since GROUP BY CAST(n.createdAt AS date) "
          + "ORDER BY CAST(n.createdAt AS date) ASC")
     List<Object[]> countByDayGrouped(Instant since);
+
+    /**
+     * Returns the earliest {@code createdAt} timestamp across all articles.
+     * Used to display the ingestion start date on the analytics dashboard.
+     *
+     * @return the earliest creation instant, or empty if no articles exist
+     */
+    @Query("SELECT MIN(n.createdAt) FROM NewsArticleEntity n")
+    java.util.Optional<Instant> findEarliestCreatedAt();
 }

@@ -72,7 +72,7 @@ class AdminControllerTest {
         AppUser user = new AppUser("demo@gmail.com", "hash", "Demo", "USER", true);
         when(appUserPort.findAll()).thenReturn(List.of(admin, user));
 
-        IngestionAnalytics ingestion = new IngestionAnalytics(42, List.of(), List.of(), 10, 30);
+        IngestionAnalytics ingestion = new IngestionAnalytics(42, List.of(), List.of(), 10, 30, null);
         when(analyticsUseCase.getIngestionAnalytics()).thenReturn(ingestion);
 
         RunAnalytics runs = new RunAnalytics(5, 2, 3, 0, Instant.now());
@@ -97,7 +97,7 @@ class AdminControllerTest {
     void adminPanel_noUsers_rendersEmptyList() throws Exception {
         when(appUserPort.findAll()).thenReturn(List.of());
 
-        IngestionAnalytics ingestion = new IngestionAnalytics(0, List.of(), List.of(), 0, 0);
+        IngestionAnalytics ingestion = new IngestionAnalytics(0, List.of(), List.of(), 0, 0, null);
         when(analyticsUseCase.getIngestionAnalytics()).thenReturn(ingestion);
 
         RunAnalytics runs = new RunAnalytics(0, 0, 0, 0, null);
@@ -127,7 +127,7 @@ class AdminControllerTest {
         AppUser disabled = new AppUser("disabled@test.com", "hash", "Disabled", "USER", false);
         when(appUserPort.findAll()).thenReturn(List.of(admin1, admin2, user1, disabled));
 
-        IngestionAnalytics ingestion = new IngestionAnalytics(0, List.of(), List.of(), 0, 0);
+        IngestionAnalytics ingestion = new IngestionAnalytics(0, List.of(), List.of(), 0, 0, null);
         when(analyticsUseCase.getIngestionAnalytics()).thenReturn(ingestion);
 
         RunAnalytics runs = new RunAnalytics(0, 0, 0, 0, null);
