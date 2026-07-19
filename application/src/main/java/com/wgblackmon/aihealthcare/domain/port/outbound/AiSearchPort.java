@@ -21,7 +21,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-07-10
+ * @updated 2026-07-19
  */
 public interface AiSearchPort {
 
@@ -49,4 +49,17 @@ public interface AiSearchPort {
      * @return model ID as configured in application.yml; never null or blank
      */
     String modelId();
+
+    /**
+     * Returns whether this adapter's backing model is available for synthesis.
+     *
+     * <p>Adapters that require API keys should override this method to return
+     * {@code false} when the key is missing or set to a placeholder value.
+     * The default implementation returns {@code true} for backward compatibility.
+     *
+     * @return {@code true} if the model can accept synthesis requests
+     */
+    default boolean isAvailable() {
+        return true;
+    }
 }

@@ -30,7 +30,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-07-10
+ * @updated 2026-07-19
  */
 @Slf4j
 @Component
@@ -41,6 +41,7 @@ public class AnthropicAiSearchAdapter implements AiSearchPort {
     private final ChatClient chatClient;
     private final PromptLoaderService promptLoaderService;
     private final String modelId;
+    private final String apiKey;
 
     /**
      * Constructs the adapter with the Anthropic-specific chat model.
@@ -52,13 +53,16 @@ public class AnthropicAiSearchAdapter implements AiSearchPort {
     public AnthropicAiSearchAdapter(
             @Qualifier("anthropicChatModel") ChatModel anthropicChatModel,
             PromptLoaderService promptLoaderService,
-            @Value("${spring.ai.anthropic.chat.options.model:claude-sonnet-4-6}") String modelId) {
-        log.debug("AnthropicAiSearchAdapter() | model={}, promptLoaderService={}, modelId={}",
+            @Value("${spring.ai.anthropic.chat.options.model:claude-sonnet-4-6}") String modelId,
+            @Value("${spring.ai.anthropic.api-key:}") String apiKey) {
+        log.debug("AnthropicAiSearchAdapter() | model={}, promptLoaderService={}, modelId={}, apiKeyPresent={}",
                   anthropicChatModel.getClass().getSimpleName(),
-                  promptLoaderService.getClass().getSimpleName(), modelId);
+                  promptLoaderService.getClass().getSimpleName(), modelId,
+                  apiKey != null && !apiKey.isBlank() && !apiKey.startsWith("placeholder-set-"));
         this.chatClient = ChatClient.builder(anthropicChatModel).build();
         this.promptLoaderService = promptLoaderService;
         this.modelId = modelId;
+        this.apiKey = apiKey;
         log.debug("AnthropicAiSearchAdapter() | return=void");
     }
 
@@ -86,6 +90,11 @@ public class AnthropicAiSearchAdapter implements AiSearchPort {
     @Override
     public String modelId() {
         return modelId;
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return apiKey != null && !apiKey.isBlank() && !apiKey.startsWith("placeholder-set-");
     }
 
     // -------------------------------------------------------------------------

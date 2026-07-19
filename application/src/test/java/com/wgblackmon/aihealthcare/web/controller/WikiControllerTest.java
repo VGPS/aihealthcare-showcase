@@ -278,6 +278,7 @@ class WikiControllerTest {
     @Test
     void askWiki_noQuery_rendersEmptyForm() throws Exception {
         when(aiSearchPort.modelName()).thenReturn("Claude");
+        when(aiSearchPort.isAvailable()).thenReturn(true);
 
         mockMvc.perform(get("/wiki/ask"))
                 .andExpect(status().isOk())
@@ -288,6 +289,7 @@ class WikiControllerTest {
     @Test
     void askWiki_withQuery_noPages_rendersEmptyState() throws Exception {
         when(aiSearchPort.modelName()).thenReturn("Claude");
+        when(aiSearchPort.isAvailable()).thenReturn(true);
         when(wikiQueryPort.findRelevantPages(anyString(), anyInt())).thenReturn(List.of());
 
         mockMvc.perform(get("/wiki/ask").param("q", "FDA AI regulation"))
@@ -302,6 +304,7 @@ class WikiControllerTest {
         WikiPage page = buildTestPage("fda-ai-guidance", "FDA AI Guidance", WikiPageType.ENTITY);
         when(wikiQueryPort.findRelevantPages(anyString(), anyInt())).thenReturn(List.of(page));
         when(aiSearchPort.modelName()).thenReturn("Claude");
+        when(aiSearchPort.isAvailable()).thenReturn(true);
         when(aiSearchPort.synthesize(anyString(), any())).thenReturn(
                 new AiSearchSynthesis("Claude", "Summary of wiki content.",
                         List.of("Finding 1", "Finding 2"), NOW));
