@@ -212,7 +212,7 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             <div>
-                <h3 style="font-size: 0.85rem; color: #666; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Articles Ingested — Last 30 Days</h3>
+                <h3 style="font-size: 0.85rem; color: #666; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Articles Ingested &mdash; Last 30 Days: <span th:text="${last30DaysCount}">0</span>, Total articles since <span th:text="${earliestDate}">N/A</span>: <span th:text="${totalArticles}">0</span></h3>
                 <canvas id="articleTrendChart" height="200"></canvas>
             </div>
             <div>

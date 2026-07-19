@@ -29,6 +29,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -64,6 +65,9 @@ public class DashboardController {
 
     private static final DateTimeFormatter NEWS_DATE_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z").withZone(ZoneId.of("America/New_York"));
+
+    private static final DateTimeFormatter SHORT_DATE_FMT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneId.of("America/New_York"));
 
     private final GetAnalyticsUseCase analyticsUseCase;
     private final ArticleIngestionPort articleIngestionPort;
@@ -101,6 +105,12 @@ public class DashboardController {
 
         IngestionAnalytics ingestion = analyticsUseCase.getIngestionAnalytics();
         model.addAttribute("ingestion", ingestion);
+        model.addAttribute("last30DaysCount", ingestion.last30DaysCount());
+        model.addAttribute("totalArticles", ingestion.totalArticles());
+        String earliestDate = ingestion.earliestArticleDate() != null
+                ? SHORT_DATE_FMT.format(ingestion.earliestArticleDate())
+                : "N/A";
+        model.addAttribute("earliestDate", earliestDate);
 
         // Chart data: articles per day (last 30 days)
         List<CountByLabel> dailyCounts = analyticsUseCase.getDailyArticleCounts(30);

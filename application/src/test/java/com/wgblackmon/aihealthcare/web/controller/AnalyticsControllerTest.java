@@ -57,7 +57,7 @@ class AnalyticsControllerTest {
                 150L,
                 List.of(new CountByLabel("ACADEMIC", 90L), new CountByLabel("INDUSTRY", 60L)),
                 List.of(new CountByLabel("PubMed AI Healthcare", 90L)),
-                12L, 45L);
+                12L, 45L, null);
         when(analyticsUseCase.getIngestionAnalytics()).thenReturn(analytics);
 
         mockMvc.perform(get("/api/v1/analytics/ingestion"))

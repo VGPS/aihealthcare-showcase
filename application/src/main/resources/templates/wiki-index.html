@@ -266,7 +266,7 @@
     </div>
 
     <!-- Filter bar -->
-    <form class="filter-bar" method="get" action="/wiki">
+    <form class="filter-bar" method="get" th:action="@{/wiki}">
         <input type="text" name="query" placeholder="e.g. AI Legal Liability in Healthcare"
                th:value="${query}"/>
         <select name="pageType">

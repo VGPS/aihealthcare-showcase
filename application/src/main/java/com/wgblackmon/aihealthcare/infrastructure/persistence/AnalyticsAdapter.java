@@ -90,7 +90,9 @@ public class AnalyticsAdapter implements AnalyticsPort {
         long last7Days  = articleRepository.countByCreatedAtAfter(sevenDaysAgo);
         long last30Days = articleRepository.countByCreatedAtAfter(thirtyDaysAgo);
 
-        IngestionAnalytics result = new IngestionAnalytics(total, byTier, byTopic, last7Days, last30Days);
+        Instant earliest = articleRepository.findEarliestCreatedAt().orElse(null);
+
+        IngestionAnalytics result = new IngestionAnalytics(total, byTier, byTopic, last7Days, last30Days, earliest);
         log.debug("getIngestionAnalytics() | return={}", result);
         return result;
     }

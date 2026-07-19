@@ -93,7 +93,7 @@ class DashboardControllerTest {
                 200L,
                 List.of(new CountByLabel("ACADEMIC", 120L), new CountByLabel("INDUSTRY", 80L)),
                 List.of(new CountByLabel("PubMed AI Healthcare", 120L)),
-                18L, 65L);
+                18L, 65L, Instant.parse("2026-01-15T00:00:00Z"));
     }
 
     private NewsArticle sampleArticle(String title, Instant publishedAt) {
