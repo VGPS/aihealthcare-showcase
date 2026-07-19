@@ -187,18 +187,18 @@
 </header>
 
 <nav>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/dashboard/articles">Articles</a>
-    <a sec:authorize="hasRole('ADMIN')" href="/newsletter/runs">Newsletter Preview</a>
-    <a href="/research/compare">Research Compare</a>
-    <a href="/research/runs" class="active">Research Runs</a>
-    <a href="/research/vendors">Vendor Compare</a>
-    <a href="/research/ai-search">AI Search</a>
-    <a href="/wiki">Wiki</a>
-    <a href="/dashboard/search">Article Search</a>
-    <a href="/pricing">Pricing</a>
-    <a sec:authorize="isAuthenticated()" href="/profile">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" href="/admin">Admin</a>
+    <a th:href="@{/dashboard}">Dashboard</a>
+    <a th:href="@{/dashboard/articles}">Articles</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
+    <a th:href="@{/research/compare}">Research Compare</a>
+    <a th:href="@{/research/runs}" class="active">Research Runs</a>
+    <a th:href="@{/research/vendors}">Vendor Compare</a>
+    <a th:href="@{/research/ai-search}">AI Search</a>
+    <a th:href="@{/wiki}">Wiki</a>
+    <a th:href="@{/dashboard/search}">Article Search</a>
+    <a th:href="@{/pricing}">Pricing</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
     <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
        style="margin-left:auto; color:#e57373;">Logout</a>
 </nav>
@@ -208,7 +208,7 @@
     <section>
         <div class="section-header">
             <h2>Research Run History</h2>
-            <a class="api-link" href="/api/v1/research/runs" target="_blank">JSON &rarr;</a>
+            <a class="api-link" th:href="@{/api/v1/research/runs}" target="_blank">JSON &rarr;</a>
         </div>
 
         <!-- Purpose -->
@@ -245,7 +245,7 @@
 
         <!-- Run table -->
         <p class="empty" th:if="${runs.isEmpty()}">
-            No research runs yet. Use <a href="/research/compare">Research Compare</a> or
+            No research runs yet. Use <a th:href="@{/research/compare}">Research Compare</a> or
             wait for the scheduled harvest to populate run history.
         </p>
 

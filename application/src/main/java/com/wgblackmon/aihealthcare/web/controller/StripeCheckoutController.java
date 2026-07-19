@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.infrastructure.config.StripeProperties;
 import com.wgblackmon.aihealthcare.web.dto.CheckoutRequest;
 import com.wgblackmon.aihealthcare.web.dto.CheckoutResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,7 +36,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-23
- * @updated 2026-05-23
+ * @updated 2026-07-18
  */
 @Slf4j
 @RestController
@@ -43,10 +44,13 @@ import java.util.Map;
 public class StripeCheckoutController {
 
     private final StripeProperties stripeProperties;
+    private final String baseUrl;
 
-    public StripeCheckoutController(StripeProperties stripeProperties) {
-        log.debug("StripeCheckoutController() | stripeEnabled={}", stripeProperties.isEnabled());
+    public StripeCheckoutController(StripeProperties stripeProperties,
+                                    @Value("${aihealthcare.base-url}") String baseUrl) {
+        log.debug("StripeCheckoutController() | stripeEnabled={}, baseUrl={}", stripeProperties.isEnabled(), baseUrl);
         this.stripeProperties = stripeProperties;
+        this.baseUrl = baseUrl;
     }
 
     /**
@@ -85,8 +89,8 @@ public class StripeCheckoutController {
             SessionCreateParams params = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
                     .setCustomerEmail(request.email())
-                    .setSuccessUrl("http://localhost:8080/dashboard?checkout=success")
-                    .setCancelUrl("http://localhost:8080/dashboard?checkout=cancelled")
+                    .setSuccessUrl(baseUrl + "/dashboard?checkout=success")
+                    .setCancelUrl(baseUrl + "/dashboard?checkout=cancelled")
                     .putAllMetadata(metadata)
                     .addLineItem(SessionCreateParams.LineItem.builder()
                             .setPrice(request.priceId())

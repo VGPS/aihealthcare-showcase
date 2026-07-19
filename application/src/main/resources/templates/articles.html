@@ -129,7 +129,7 @@
 <body>
 
 <header>
-    <a class="back" href="/dashboard">&larr; Dashboard</a>
+    <a class="back" th:href="@{/dashboard}">&larr; Dashboard</a>
     <h1 th:text="${topic}">Topic</h1>
     <span class="count" th:text="${#lists.size(articles)} + ' articles'">0 articles</span>
 </header>
@@ -140,7 +140,7 @@
         <div class="empty" style="padding: 2rem;">
             <strong>This topic is a Member feature.</strong><br/>
             Upgrade to a Member subscription to access New AI Healthcare Companies.<br/><br/>
-            <a href="/pricing" style="color: #4361ee; text-decoration: none; font-weight: 600;">View Plans &rarr;</a>
+            <a th:href="@{/pricing}" style="color: #4361ee; text-decoration: none; font-weight: 600;">View Plans &rarr;</a>
         </div>
     </div>
 
