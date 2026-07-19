@@ -35,6 +35,11 @@ spring:
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
 
+aihealthcare:
+  base-url: https://bigskylabs.ai/aihealthcare
+  newsletter:
+    from-address: wgblackmonall@gmail.com
+
 server:
   servlet:
     context-path: /aihealthcare

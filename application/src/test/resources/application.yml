@@ -60,6 +60,7 @@ logging:
     org.springframework.web: INFO
 
 aihealthcare:
+  base-url: http://localhost:8080
   prompts:
     directory: ""
   feeds:

@@ -17,6 +17,7 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 import org.springframework.stereotype.Controller;
@@ -56,7 +57,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-14
+ * @updated 2026-07-18
  */
 @Slf4j
 @Controller
@@ -72,6 +73,7 @@ public class WikiController {
     private final WikiContradictionRepository contradictionRepository;
     private final NewsArticleRepository articleRepository;
     private final List<AiSearchPort> aiSearchPorts;
+    private final String baseUrl;
     private final Parser markdownParser;
     private final HtmlRenderer htmlRenderer;
 
@@ -80,21 +82,24 @@ public class WikiController {
                            WikiPageRevisionRepository revisionRepository,
                            WikiContradictionRepository contradictionRepository,
                            NewsArticleRepository articleRepository,
-                           List<AiSearchPort> aiSearchPorts) {
+                           List<AiSearchPort> aiSearchPorts,
+                           @Value("${aihealthcare.base-url}") String baseUrl) {
         log.debug("WikiController() | wikiQueryPort={}, pageRepository={}, revisionRepository={}, "
-                + "contradictionRepository={}, articleRepository={}, aiSearchPortCount={}",
+                + "contradictionRepository={}, articleRepository={}, aiSearchPortCount={}, baseUrl={}",
                 wikiQueryPort.getClass().getSimpleName(),
                 pageRepository.getClass().getSimpleName(),
                 revisionRepository.getClass().getSimpleName(),
                 contradictionRepository.getClass().getSimpleName(),
                 articleRepository.getClass().getSimpleName(),
-                aiSearchPorts.size());
+                aiSearchPorts.size(),
+                baseUrl);
         this.wikiQueryPort = wikiQueryPort;
         this.pageRepository = pageRepository;
         this.revisionRepository = revisionRepository;
         this.contradictionRepository = contradictionRepository;
         this.articleRepository = articleRepository;
         this.aiSearchPorts = aiSearchPorts;
+        this.baseUrl = baseUrl;
         this.markdownParser = Parser.builder().build();
         this.htmlRenderer = HtmlRenderer.builder().build();
     }
@@ -439,7 +444,7 @@ public class WikiController {
                     }
                     pseudoArticles.add(new NewsArticle(
                             page.slug(), page.title(),
-                            URI.create("http://localhost:8080/wiki/" + page.slug()),
+                            URI.create(baseUrl + "/wiki/" + page.slug()),
                             body, "Wiki — " + page.pageType().name(),
                             null, null, "AIHealthcare Wiki",
                             "ACADEMIC", 1.0, page.createdAt()));

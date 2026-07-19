@@ -301,19 +301,19 @@
 </header>
 
 <nav>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/dashboard/news">News Listing</a>
-    <a sec:authorize="hasRole('ADMIN')" href="/newsletter/runs">Newsletter Preview</a>
-    <a href="/research/compare">Research Compare</a>
-    <a href="/research/runs">Research Runs</a>
-    <a href="/research/vendors">Vendor Compare</a>
-    <a href="/research/search" class="active">Semantic Search</a>
-    <a href="/research/ai-search">AI Search</a>
-    <a href="/wiki">Wiki</a>
-    <a href="/dashboard/search">Article Search</a>
-    <a href="/pricing">Pricing</a>
-    <a sec:authorize="isAuthenticated()" href="/profile">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" href="/admin">Admin</a>
+    <a th:href="@{/dashboard}">Dashboard</a>
+    <a th:href="@{/dashboard/news}">News Listing</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
+    <a th:href="@{/research/compare}">Research Compare</a>
+    <a th:href="@{/research/runs}">Research Runs</a>
+    <a th:href="@{/research/vendors}">Vendor Compare</a>
+    <a th:href="@{/research/search}" class="active">Semantic Search</a>
+    <a th:href="@{/research/ai-search}">AI Search</a>
+    <a th:href="@{/wiki}">Wiki</a>
+    <a th:href="@{/dashboard/search}">Article Search</a>
+    <a th:href="@{/pricing}">Pricing</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
     <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
        style="margin-left:auto; color:#e57373;">Logout</a>
 </nav>
@@ -326,7 +326,7 @@
             <strong>Semantic Search is a Member feature.</strong><br/>
             Upgrade to Member to search across the full article archive using AI-powered vector similarity.
         </span>
-        <a href="/pricing">Upgrade</a>
+        <a th:href="@{/pricing}">Upgrade</a>
     </div>
 
     <!-- Limit reached warning for MEMBER users -->

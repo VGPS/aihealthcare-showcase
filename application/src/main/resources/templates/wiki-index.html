@@ -220,18 +220,18 @@
 </header>
 
 <nav>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/dashboard/articles">Articles</a>
-    <a sec:authorize="hasRole('ADMIN')" href="/newsletter/runs">Newsletter Preview</a>
-    <a href="/research/compare">Research Compare</a>
-    <a href="/research/runs">Research Runs</a>
-    <a href="/research/vendors">Vendor Compare</a>
-    <a href="/research/ai-search">AI Search</a>
-    <a href="/wiki" class="active">Wiki</a>
-    <a href="/dashboard/search">Article Search</a>
-    <a href="/pricing">Pricing</a>
-    <a sec:authorize="isAuthenticated()" href="/profile">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" href="/admin">Admin</a>
+    <a th:href="@{/dashboard}">Dashboard</a>
+    <a th:href="@{/dashboard/articles}">Articles</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
+    <a th:href="@{/research/compare}">Research Compare</a>
+    <a th:href="@{/research/runs}">Research Runs</a>
+    <a th:href="@{/research/vendors}">Vendor Compare</a>
+    <a th:href="@{/research/ai-search}">AI Search</a>
+    <a th:href="@{/wiki}" class="active">Wiki</a>
+    <a th:href="@{/dashboard/search}">Article Search</a>
+    <a th:href="@{/pricing}">Pricing</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
     <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
        style="margin-left:auto; color:#e57373;">Logout</a>
 </nav>
@@ -277,12 +277,12 @@
                     th:selected="${pt.name() == selectedType}">TYPE</option>
         </select>
         <button type="submit">Search</button>
-        <a class="clear-btn" href="/wiki">Clear</a>
-        <a class="clear-btn" href="/wiki/digest"
+        <a class="clear-btn" th:href="@{/wiki}">Clear</a>
+        <a class="clear-btn" th:href="@{/wiki/digest}"
            style="color:#4361ee;">What Changed</a>
-        <a class="clear-btn" href="/wiki/contradictions"
+        <a class="clear-btn" th:href="@{/wiki/contradictions}"
            style="color:#e57373;">Contradictions</a>
-        <a class="clear-btn" href="/wiki/ask"
+        <a class="clear-btn" th:href="@{/wiki/ask}"
            style="color:#4361ee; font-weight:500;">Prompt the Wiki</a>
     </form>
 
@@ -320,7 +320,7 @@
         <h3>No wiki pages compiled yet</h3>
         <p th:if="${query != null}">
             No pages match your search. Try a different query or
-            <a href="/wiki">clear filters</a>.
+            <a th:href="@{/wiki}">clear filters</a>.
         </p>
         <p th:if="${query == null}">
             The wiki compiles knowledge from harvested articles.<br/>

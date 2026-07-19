@@ -206,18 +206,18 @@
 </header>
 
 <nav>
-    <a href="/dashboard">Dashboard</a>
-    <a href="/dashboard/articles">Articles</a>
-    <a sec:authorize="hasRole('ADMIN')" href="/newsletter/runs">Newsletter Preview</a>
-    <a href="/research/compare">Research Compare</a>
-    <a href="/research/runs">Research Runs</a>
-    <a href="/research/vendors">Vendor Compare</a>
-    <a href="/research/ai-search">AI Search</a>
-    <a href="/wiki" class="active">Wiki</a>
-    <a href="/dashboard/search">Article Search</a>
-    <a href="/pricing">Pricing</a>
-    <a sec:authorize="isAuthenticated()" href="/profile">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" href="/admin">Admin</a>
+    <a th:href="@{/dashboard}">Dashboard</a>
+    <a th:href="@{/dashboard/articles}">Articles</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
+    <a th:href="@{/research/compare}">Research Compare</a>
+    <a th:href="@{/research/runs}">Research Runs</a>
+    <a th:href="@{/research/vendors}">Vendor Compare</a>
+    <a th:href="@{/research/ai-search}">AI Search</a>
+    <a th:href="@{/wiki}" class="active">Wiki</a>
+    <a th:href="@{/dashboard/search}">Article Search</a>
+    <a th:href="@{/pricing}">Pricing</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
     <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
        style="margin-left:auto; color:#e57373;">Logout</a>
 </nav>
@@ -225,7 +225,7 @@
 <main>
 
     <div class="breadcrumb">
-        <a href="/wiki">Wiki</a> &rsaquo; Contradictions
+        <a th:href="@{/wiki}">Wiki</a> &rsaquo; Contradictions
     </div>
 
     <div class="page-header">
@@ -301,7 +301,7 @@
         </p>
     </div>
 
-    <a class="back-link" href="/wiki">&larr; Back to Wiki Index</a>
+    <a class="back-link" th:href="@{/wiki}">&larr; Back to Wiki Index</a>
 
 </main>
 </body>
