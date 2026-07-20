@@ -145,7 +145,7 @@
 <body>
     <div class="header">
         <h1>Big<span>Sky</span>Labs</h1>
-        <a href="/aihealthcare/login">Sign In</a>
+        <a href="https://app.bigskylabs.ai/login">Sign In</a>
     </div>
 
     <div class="hero">
@@ -198,7 +198,7 @@
             msg.className = 'msg';
             msg.style.display = 'none';
             try {
-                var res = await fetch('/aihealthcare/api/v1/subscribers', {
+                var res = await fetch('https://app.bigskylabs.ai/api/v1/subscribers', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({email: email})

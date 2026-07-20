@@ -64,7 +64,7 @@ Expected — FierceHealthcare blocks EC2 server IPs. The harvester logs an error
 ### Step 6 — Upload static landing page (if changed)
 
 ```bash
-scp -i "$KEY" -o StrictHostKeyChecking=no deploy/static/index.html "ec2-user@${IP}:${REMOTE_DIR}/static/"
+scp -i "$KEY" -o StrictHostKeyChecking=no deploy/static/index.html "ec2-user@${IP}:/opt/bigskylabs/static/"
 ```
 
 ## Verify success
@@ -73,8 +73,8 @@ scp -i "$KEY" -o StrictHostKeyChecking=no deploy/static/index.html "ec2-user@${I
 - Spring Boot banner and `Starting AiHealthcareApplication` visible in logs
 - No `FAILURE` or `exited` lines after the restart timestamp
 - Schedulers firing (feed harvest logs visible)
-- Landing page: `https://bigskylabs.ai/` shows static page
-- App: `https://bigskylabs.ai/aihealthcare/login` shows login form
+- Landing page: `https://bigskylabs.ai/` shows static corporate homepage
+- App: `https://app.bigskylabs.ai/login` shows login form
 
 ## Live log stream (optional)
 
