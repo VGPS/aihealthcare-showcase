@@ -190,7 +190,6 @@
     <a th:href="@{/dashboard}">Dashboard</a>
     <a th:href="@{/dashboard/articles}">Articles</a>
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/compare}">Research Compare</a>
     <a th:href="@{/research/runs}" class="active">Research Runs</a>
     <a th:href="@{/research/vendors}">Vendor Compare</a>
     <a th:href="@{/research/ai-search}">AI Search</a>
@@ -245,8 +244,7 @@
 
         <!-- Run table -->
         <p class="empty" th:if="${runs.isEmpty()}">
-            No research runs yet. Use <a th:href="@{/research/compare}">Research Compare</a> or
-            wait for the scheduled harvest to populate run history.
+            No research runs yet. Wait for the scheduled harvest to populate run history.
         </p>
 
         <table th:unless="${runs.isEmpty()}">
