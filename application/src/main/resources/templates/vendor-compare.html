@@ -343,6 +343,11 @@
         .sources-table .ref-title a:hover {
             text-decoration: underline;
         }
+        .sources-table .ref-pub {
+            white-space: nowrap;
+            color: #666;
+            font-size: 0.8rem;
+        }
         .sources-table .ref-date {
             white-space: nowrap;
             color: #888;
@@ -579,10 +584,17 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Article Title</th>
+                        <th>Article Title
+                            <a href="#" class="sort-arrow" id="sortTitleAsc" title="Title A-Z" onclick="sortByColumn('ref-title', 'asc'); return false;">&uarr;</a>
+                            <a href="#" class="sort-arrow" id="sortTitleDesc" title="Title Z-A" onclick="sortByColumn('ref-title', 'desc'); return false;">&darr;</a>
+                        </th>
+                        <th>Publication
+                            <a href="#" class="sort-arrow" id="sortPubAsc" title="Publication A-Z" onclick="sortByColumn('ref-pub', 'asc'); return false;">&uarr;</a>
+                            <a href="#" class="sort-arrow" id="sortPubDesc" title="Publication Z-A" onclick="sortByColumn('ref-pub', 'desc'); return false;">&darr;</a>
+                        </th>
                         <th>Publication Date
-                            <a href="#" class="sort-arrow" id="sortAsc" title="Oldest first" onclick="sortCitations('asc'); return false;">&uarr;</a>
-                            <a href="#" class="sort-arrow active" id="sortDesc" title="Newest first" onclick="sortCitations('desc'); return false;">&darr;</a>
+                            <a href="#" class="sort-arrow" id="sortDateAsc" title="Oldest first" onclick="sortByColumn('ref-date', 'asc'); return false;">&uarr;</a>
+                            <a href="#" class="sort-arrow active" id="sortDateDesc" title="Newest first" onclick="sortByColumn('ref-date', 'desc'); return false;">&darr;</a>
                         </th>
                     </tr>
                 </thead>
@@ -593,6 +605,7 @@
                             <a th:href="${c.url()}" th:text="${citationTitles[c.citationNumber()]}" target="_blank"
                                rel="noopener noreferrer">Title</a>
                         </td>
+                        <td class="ref-pub" th:text="${citationPubs[c.citationNumber()]}">—</td>
                         <td class="ref-date" th:text="${citationDates[c.citationNumber()]}">—</td>
                     </tr>
                 </tbody>
@@ -634,24 +647,40 @@
         if (btn) btn.classList.add('loading');
     });
 
-    function sortCitations(dir) {
+    function sortByColumn(colClass, dir) {
         var tbody = document.querySelector('.sources-table tbody');
         if (!tbody) return;
         var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        var isDate = (colClass === 'ref-date');
         rows.sort(function(a, b) {
-            var da = a.querySelector('.ref-date').textContent.trim();
-            var db = b.querySelector('.ref-date').textContent.trim();
-            if (da === '\u2014') return 1;
-            if (db === '\u2014') return -1;
-            var ta = new Date(da).getTime();
-            var tb = new Date(db).getTime();
-            return dir === 'asc' ? ta - tb : tb - ta;
+            var va = a.querySelector('.' + colClass).textContent.trim();
+            var vb = b.querySelector('.' + colClass).textContent.trim();
+            if (colClass === 'ref-title') {
+                va = a.querySelector('.' + colClass + ' a') ? a.querySelector('.' + colClass + ' a').textContent.trim() : va;
+                vb = b.querySelector('.' + colClass + ' a') ? b.querySelector('.' + colClass + ' a').textContent.trim() : vb;
+            }
+            if (va === '\u2014') return 1;
+            if (vb === '\u2014') return -1;
+            if (isDate) {
+                var ta = new Date(va).getTime();
+                var tb = new Date(vb).getTime();
+                return dir === 'asc' ? ta - tb : tb - ta;
+            }
+            var cmp = va.toLowerCase().localeCompare(vb.toLowerCase());
+            return dir === 'asc' ? cmp : -cmp;
         });
         for (var i = 0; i < rows.length; i++) {
             tbody.appendChild(rows[i]);
         }
-        document.getElementById('sortAsc').className = 'sort-arrow' + (dir === 'asc' ? ' active' : '');
-        document.getElementById('sortDesc').className = 'sort-arrow' + (dir === 'desc' ? ' active' : '');
+        // Reset all sort arrows, then activate the selected one
+        var arrows = document.querySelectorAll('.sort-arrow');
+        for (var j = 0; j < arrows.length; j++) {
+            arrows[j].className = 'sort-arrow';
+        }
+        var colMap = {'ref-title': 'Title', 'ref-pub': 'Pub', 'ref-date': 'Date'};
+        var activeId = 'sort' + colMap[colClass] + (dir === 'asc' ? 'Asc' : 'Desc');
+        var activeEl = document.getElementById(activeId);
+        if (activeEl) activeEl.className = 'sort-arrow active';
     }
 </script>
 </body>

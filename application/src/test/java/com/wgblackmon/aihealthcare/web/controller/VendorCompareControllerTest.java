@@ -101,8 +101,8 @@ class VendorCompareControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("vendor-compare"))
                 .andExpect(model().attribute("vendors", vendors))
-                .andExpect(model().attribute("citations", citations))
-                .andExpect(model().attribute("hasResults", true));
+                .andExpect(model().attribute("hasResults", true))
+                .andExpect(model().attributeExists("citations", "citationPubs"));
 
         verify(compareVendorsUseCase).compare(eq("AI diagnostics"), anyInt(), anyInt(), anyString());
     }
