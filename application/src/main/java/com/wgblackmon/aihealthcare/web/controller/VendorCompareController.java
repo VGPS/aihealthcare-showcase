@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.net.URI;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -41,7 +42,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-05-14
- * @updated 2026-07-07
+ * @updated 2026-07-19
  */
 @Slf4j
 @Controller
@@ -160,9 +161,10 @@ public class VendorCompareController {
                            + ex.getMessage();
         }
 
-        // Format citation timestamps and titles server-side
+        // Format citation timestamps, titles, and publications server-side
         Map<Integer, String> citationDates  = new HashMap<>();
         Map<Integer, String> citationTitles = new HashMap<>();
+        Map<Integer, String> citationPubs   = new HashMap<>();
         for (SourceCitation c : citations) {
             if (c.retrievedAt() != null) {
                 citationDates.put(c.citationNumber(), DISPLAY_FMT.format(c.retrievedAt()));
@@ -170,12 +172,23 @@ public class VendorCompareController {
                 citationDates.put(c.citationNumber(), "—");
             }
             citationTitles.put(c.citationNumber(), formatTitle(c.title()));
+            citationPubs.put(c.citationNumber(), extractPublication(c.url()));
         }
 
+        // Sort citations newest-first by default
+        List<SourceCitation> sortedCitations = new ArrayList<>(citations);
+        sortedCitations.sort((a, b) -> {
+            if (a.retrievedAt() == null && b.retrievedAt() == null) return 0;
+            if (a.retrievedAt() == null) return 1;
+            if (b.retrievedAt() == null) return -1;
+            return b.retrievedAt().compareTo(a.retrievedAt());
+        });
+
         model.addAttribute("vendors",        vendorResults);
-        model.addAttribute("citations",      citations);
+        model.addAttribute("citations",      sortedCitations);
         model.addAttribute("citationDates",  citationDates);
         model.addAttribute("citationTitles", citationTitles);
+        model.addAttribute("citationPubs",   citationPubs);
         model.addAttribute("hasResults",    !vendorResults.isEmpty());
         model.addAttribute("errorMessage",  errorMessage);
 
@@ -213,6 +226,30 @@ public class VendorCompareController {
 
         log.debug("formatTitle() | return={} (unchanged)", title);
         return title;
+    }
+
+    /**
+     * Extracts a human-readable publication name from a URL by cleaning the host domain.
+     * E.g. "https://www.fiercehealthcare.com/article/123" → "fiercehealthcare.com".
+     */
+    private String extractPublication(String url) {
+        log.debug("extractPublication() | url={}", url);
+        if (url == null || url.isBlank()) {
+            log.debug("extractPublication() | return=—");
+            return "—";
+        }
+        try {
+            String host = URI.create(url).getHost();
+            if (host != null && host.startsWith("www.")) {
+                host = host.substring(4);
+            }
+            String result = host != null ? host : "—";
+            log.debug("extractPublication() | return={}", result);
+            return result;
+        } catch (Exception e) {
+            log.debug("extractPublication() | return=— (parse error)");
+            return "—";
+        }
     }
 
     /**
