@@ -16,6 +16,7 @@
 #   - Maven installed locally
 #   - SSH key with access to the EC2 instance
 #   - EC2 already set up via setup-ec2.sh
+#   - Nginx configured for subdomain routing (setup-nginx-subdomain.sh)
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
@@ -24,8 +25,9 @@ KEY="${2:-C:/workspaces/SpringAIClaude/N_VaKeyPair.pem}"
 JAR="target/ai-healthcare-1.0-SNAPSHOT.jar"
 AWS_YML="application/src/main/resources/application-aws.yml"
 REMOTE_DIR="/opt/aihealthcare"
+STATIC_DIR="/opt/bigskylabs/static"
 
-echo "=== [1/4] Building JAR ==="
+echo "=== [1/5] Building JAR ==="
 mvn clean package -DskipTests
 
 if [ ! -f "$JAR" ]; then
@@ -33,16 +35,22 @@ if [ ! -f "$JAR" ]; then
     exit 1
 fi
 
-echo "=== [2/4] Uploading JAR to $IP ==="
+echo "=== [2/5] Uploading JAR to $IP ==="
 scp -i "$KEY" "$JAR" "ec2-user@${IP}:${REMOTE_DIR}/app.jar"
 
-echo "=== [3/4] Uploading application-aws.yml ==="
+echo "=== [3/5] Uploading application-aws.yml ==="
 scp -i "$KEY" "$AWS_YML" "ec2-user@${IP}:${REMOTE_DIR}/"
 
-echo "=== [4/4] Restarting service ==="
+echo "=== [4/5] Uploading static landing page ==="
+scp -i "$KEY" deploy/static/index.html "ec2-user@${IP}:${STATIC_DIR}/"
+
+echo "=== [5/5] Restarting service ==="
 ssh -i "$KEY" "ec2-user@${IP}" 'sudo systemctl restart aihealthcare'
 
 echo ""
 echo "Deploy complete. Tailing logs (Ctrl+C to stop)..."
+echo ""
+echo "  Corporate homepage:  https://bigskylabs.ai/"
+echo "  AIHealthcare app:    https://app.bigskylabs.ai/"
 echo ""
 ssh -i "$KEY" "ec2-user@${IP}" 'sudo journalctl -u aihealthcare -f --no-pager -n 30'

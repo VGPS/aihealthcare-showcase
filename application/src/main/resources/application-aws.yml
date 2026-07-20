@@ -36,13 +36,9 @@ spring:
       mail.smtp.starttls.required: true
 
 aihealthcare:
-  base-url: https://bigskylabs.ai/aihealthcare
+  base-url: https://app.bigskylabs.ai
   newsletter:
-    from-address: wgblackmonall@gmail.com
-
-server:
-  servlet:
-    context-path: /aihealthcare
+    from-address: ${NEWSLETTER_FROM_ADDRESS:noreply@health.bigskylabs.ai}
 
 logging:
   level:
