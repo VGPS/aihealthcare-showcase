@@ -228,16 +228,18 @@ public class DashboardController {
      * fetches all articles for each topic, sorts them newest-first, and builds an
      * ordered map of topic → articles for the template.
      *
-     * @param sort  "asc" for oldest-first, "desc" (default) for newest-first
-     * @param model Thymeleaf model
+     * @param sort   "asc" for oldest-first, "desc" (default) for newest-first
+     * @param sortBy "date" (default), "title", or "publication"
+     * @param model  Thymeleaf model
      * @return Thymeleaf view name "news-listing"
      */
     @GetMapping("/news")
     public String newsListing(
             @RequestParam(defaultValue = "desc") String sort,
+            @RequestParam(defaultValue = "date") String sortBy,
             Principal principal,
             Model model) {
-        log.debug("newsListing() | sort={}, principal={}", sort, principal != null ? principal.getName() : "anonymous");
+        log.debug("newsListing() | sort={}, sortBy={}, principal={}", sort, sortBy, principal != null ? principal.getName() : "anonymous");
 
         SubscriptionTier tier = resolveTier(principal);
         int archiveDays = tierGatingService.archiveDaysFor(tier);
@@ -260,23 +262,24 @@ public class DashboardController {
                     articles.add(a);
                 }
             }
-            sortByPublishedAt(articles, ascending);
-            topicArticles.put(topic, articles);
-            totalArticles += articles.size();
-
+            // Extract titles, publications, and dates before sorting
             for (NewsArticle article : articles) {
                 if (article.publishedAt() != null) {
                     articleDates.put(article.articleId(), NEWS_DATE_FMT.format(article.publishedAt()));
                 }
-                String title = article.title();
-                int dashIndex = title.lastIndexOf(" - ");
+                String t = article.title();
+                int dashIndex = t.lastIndexOf(" - ");
                 if (dashIndex > 0) {
-                    articleTitles.put(article.articleId(), title.substring(0, dashIndex).trim());
-                    articlePublications.put(article.articleId(), title.substring(dashIndex + 3).trim());
+                    articleTitles.put(article.articleId(), t.substring(0, dashIndex).trim());
+                    articlePublications.put(article.articleId(), t.substring(dashIndex + 3).trim());
                 } else {
-                    articleTitles.put(article.articleId(), title);
+                    articleTitles.put(article.articleId(), t);
                 }
             }
+
+            sortArticles(articles, sortBy, ascending, articleTitles, articlePublications);
+            topicArticles.put(topic, articles);
+            totalArticles += articles.size();
         }
 
         Map<String, String> topicSummaries = new HashMap<>();
@@ -298,6 +301,7 @@ public class DashboardController {
         model.addAttribute("articlePublications", articlePublications);
         model.addAttribute("topicSummaries", topicSummaries);
         model.addAttribute("sort", sort);
+        model.addAttribute("sortBy", sortBy);
         model.addAttribute("totalArticles", totalArticles);
         model.addAttribute("archiveLimited", archiveDays > 0);
         model.addAttribute("archiveDays", archiveDays);
@@ -478,5 +482,55 @@ public class DashboardController {
         }
 
         log.debug("sortByPublishedAt() | return=void");
+    }
+
+    /**
+     * Sorts articles in-place by the given field.
+     *
+     * @param articles      mutable list to sort
+     * @param sortBy        "date", "title", or "publication"
+     * @param ascending     true for A-Z / oldest-first, false for Z-A / newest-first
+     * @param titles        pre-computed display titles (without publication suffix)
+     * @param publications  pre-computed publication names
+     */
+    private void sortArticles(List<NewsArticle> articles, String sortBy, boolean ascending,
+                              Map<String, String> titles, Map<String, String> publications) {
+        log.debug("sortArticles() | size={}, sortBy={}, ascending={}", articles.size(), sortBy, ascending);
+
+        if ("title".equalsIgnoreCase(sortBy)) {
+            int n = articles.size();
+            for (int i = 0; i < n - 1; i++) {
+                for (int j = 0; j < n - 1 - i; j++) {
+                    String ta = titles.getOrDefault(articles.get(j).articleId(), "");
+                    String tb = titles.getOrDefault(articles.get(j + 1).articleId(), "");
+                    int cmp = ta.compareToIgnoreCase(tb);
+                    boolean swap = ascending ? cmp > 0 : cmp < 0;
+                    if (swap) {
+                        NewsArticle tmp = articles.get(j);
+                        articles.set(j, articles.get(j + 1));
+                        articles.set(j + 1, tmp);
+                    }
+                }
+            }
+        } else if ("publication".equalsIgnoreCase(sortBy)) {
+            int n = articles.size();
+            for (int i = 0; i < n - 1; i++) {
+                for (int j = 0; j < n - 1 - i; j++) {
+                    String pa = publications.getOrDefault(articles.get(j).articleId(), "");
+                    String pb = publications.getOrDefault(articles.get(j + 1).articleId(), "");
+                    int cmp = pa.compareToIgnoreCase(pb);
+                    boolean swap = ascending ? cmp > 0 : cmp < 0;
+                    if (swap) {
+                        NewsArticle tmp = articles.get(j);
+                        articles.set(j, articles.get(j + 1));
+                        articles.set(j + 1, tmp);
+                    }
+                }
+            }
+        } else {
+            sortByPublishedAt(articles, ascending);
+        }
+
+        log.debug("sortArticles() | return=void");
     }
 }
