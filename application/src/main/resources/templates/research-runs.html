@@ -97,6 +97,10 @@
             color: #1a1a2e;
             line-height: 1;
         }
+        .stat-card .value.sm {
+            font-size: 1rem;
+            margin-top: 0.25rem;
+        }
         .stat-card .label {
             font-size: 0.7rem;
             color: #888;
@@ -139,7 +143,7 @@
             white-space: nowrap;
         }
         .badge-combined { background: #d4edda; color: #155724; }
-        .badge-staged   { background: #fff3cd; color: #856404; }
+        .badge-staged   { background: #d0e8ec; color: #004b56; }
         .badge-legacy   { background: #e2e3e5; color: #495057; }
 
         /* Query cell */
@@ -237,7 +241,9 @@
                 <div class="label">Total Runs</div>
             </div>
             <div class="stat-card green" th:if="${!runs.isEmpty()}">
-                <div class="value" th:text="${runs[0].mode()}">—</div>
+                <div class="value sm" th:text="${runs[0].mode() == 'STAGED_RESEARCH'} ? 'Staged Research'
+                                            : (${runs[0].mode() == 'LEGACY_GOOGLE'} ? 'Legacy Google'
+                                            : ${runs[0].mode()})">—</div>
                 <div class="label">Last Mode</div>
             </div>
         </div>
@@ -277,7 +283,9 @@
                               th:classappend="${run.mode() == 'COMBINED'} ? 'badge-combined'
                                            : (${run.mode() == 'STAGED_RESEARCH'} ? 'badge-staged'
                                            : 'badge-legacy')"
-                              th:text="${run.mode()}">
+                              th:text="${run.mode() == 'STAGED_RESEARCH'} ? 'Staged Research'
+                                     : (${run.mode() == 'LEGACY_GOOGLE'} ? 'Legacy Google'
+                                     : ${run.mode()})">
                             COMBINED
                         </span>
                     </td>
