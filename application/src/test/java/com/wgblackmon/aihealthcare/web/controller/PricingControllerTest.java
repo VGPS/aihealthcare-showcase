@@ -47,15 +47,15 @@ class PricingControllerTest {
         free.setArchiveDays(30);
         free.setMonthlyQueryLimit(15);
 
-        TierLimitProperties.TierConfig member = new TierLimitProperties.TierConfig();
-        member.setArchiveDays(0);
-        member.setMonthlyQueryLimit(200);
+        TierLimitProperties.TierConfig subscriber = new TierLimitProperties.TierConfig();
+        subscriber.setArchiveDays(0);
+        subscriber.setMonthlyQueryLimit(200);
 
         when(tierLimitProperties.getFree()).thenReturn(free);
-        when(tierLimitProperties.getMember()).thenReturn(member);
+        when(tierLimitProperties.getSubscriber()).thenReturn(subscriber);
         when(stripeProperties.isEnabled()).thenReturn(true);
         when(stripeProperties.getPublishableKey()).thenReturn("pk_test_123");
-        when(stripeProperties.getMemberPriceId()).thenReturn("price_member_123");
+        when(stripeProperties.getSubscriberPriceId()).thenReturn("price_subscriber_123");
     }
 
     @Test
@@ -75,8 +75,8 @@ class PricingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("freeArchiveDays", 30))
                 .andExpect(model().attribute("freeQueryLimit", 15))
-                .andExpect(model().attribute("memberArchiveDays", 0))
-                .andExpect(model().attribute("memberQueryLimit", 200));
+                .andExpect(model().attribute("subscriberArchiveDays", 0))
+                .andExpect(model().attribute("subscriberQueryLimit", 200));
     }
 
     @Test
@@ -87,6 +87,6 @@ class PricingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("stripeEnabled", true))
                 .andExpect(model().attribute("stripePublishableKey", "pk_test_123"))
-                .andExpect(model().attribute("memberPriceId", "price_member_123"));
+                .andExpect(model().attribute("subscriberPriceId", "price_subscriber_123"));
     }
 }

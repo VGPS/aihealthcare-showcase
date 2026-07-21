@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.config;
 import com.wgblackmon.aihealthcare.domain.model.DocumentIngestionResult;
 import com.wgblackmon.aihealthcare.domain.model.ResearchMode;
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestDocumentsUseCase;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentVectorPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FileParserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalyticsPort;
@@ -20,7 +21,12 @@ import com.wgblackmon.aihealthcare.domain.service.CompanyDiscoveryService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyNewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyScrapingPort;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
+import com.wgblackmon.aihealthcare.domain.service.DigestNewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
+import com.wgblackmon.aihealthcare.domain.service.RegistrationService;
+import com.wgblackmon.aihealthcare.domain.port.outbound.DailySummaryPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.PasswordHashingPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
 import com.wgblackmon.aihealthcare.domain.service.MarketIntelligenceService;
@@ -102,7 +108,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-07-05
+ * @updated 2026-07-20
  */
 
 @Slf4j
@@ -137,39 +143,116 @@ public class AppConfig {
      */
     @Bean
     public TierGatingService tierGatingService(TierLimitProperties props) {
-        log.debug("tierGatingService() | freeLimits=[archive={}, queries={}], memberLimits=[archive={}, queries={}]",
+        log.debug("tierGatingService() | freeLimits=[archive={}, queries={}], subscriberLimits=[archive={}, queries={}], "
+                  + "demoLimits=[archive={}, queries={}], freePendingLimits=[archive={}, queries={}]",
                   props.getFree().getArchiveDays(), props.getFree().getMonthlyQueryLimit(),
-                  props.getMember().getArchiveDays(), props.getMember().getMonthlyQueryLimit());
+                  props.getSubscriber().getArchiveDays(), props.getSubscriber().getMonthlyQueryLimit(),
+                  props.getDemo().getArchiveDays(), props.getDemo().getMonthlyQueryLimit(),
+                  props.getFreePending().getArchiveDays(), props.getFreePending().getMonthlyQueryLimit());
         TierLimits freeLimits = new TierLimits(
                 props.getFree().getArchiveDays(),
                 props.getFree().getMonthlyQueryLimit());
-        TierLimits memberLimits = new TierLimits(
-                props.getMember().getArchiveDays(),
-                props.getMember().getMonthlyQueryLimit());
-        TierGatingService result = new TierGatingService(freeLimits, memberLimits);
+        TierLimits subscriberLimits = new TierLimits(
+                props.getSubscriber().getArchiveDays(),
+                props.getSubscriber().getMonthlyQueryLimit());
+        TierLimits demoLimits = new TierLimits(
+                props.getDemo().getArchiveDays(),
+                props.getDemo().getMonthlyQueryLimit());
+        TierLimits freePendingLimits = new TierLimits(
+                props.getFreePending().getArchiveDays(),
+                props.getFreePending().getMonthlyQueryLimit());
+        TierGatingService result = new TierGatingService(freeLimits, subscriberLimits, demoLimits, freePendingLimits);
         log.debug("tierGatingService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 
     /**
-     * Creates the {@link DeliveryService} instance that implements subscriber management
-     * and tier-aware newsletter delivery.
+     * Creates the {@link RegistrationService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.RegisterUserUseCase}.
      *
+     * @param appUserPort         Adapter implementing app user persistence (auto-detected).
+     * @param subscriberPort      Adapter implementing subscriber persistence (auto-detected).
+     * @param passwordHashingPort Adapter implementing password hashing (auto-detected).
+     * @return The wired {@link RegistrationService} instance.
+     */
+    @Bean
+    public RegistrationService registrationService(AppUserPort appUserPort,
+                                                   SubscriberPort subscriberPort,
+                                                   PasswordHashingPort passwordHashingPort) {
+        log.debug("registrationService() | appUserPort={}, subscriberPort={}, passwordHashingPort={}",
+                  appUserPort.getClass().getSimpleName(),
+                  subscriberPort.getClass().getSimpleName(),
+                  passwordHashingPort.getClass().getSimpleName());
+        RegistrationService result = new RegistrationService(appUserPort, subscriberPort, passwordHashingPort);
+        log.debug("registrationService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Registers the {@link DemoExpirationFilter} as a servlet filter that runs
+     * after the Spring Security filter chain.
+     *
+     * <p>This filter checks DEMO users on each request and transitions expired
+     * demos to FREE_PENDING.  Registered via {@link FilterRegistrationBean}
+     * rather than in {@link SecurityConfig} to avoid adding port dependencies
+     * to the security configuration (which would impact all 35+ WebMvcTest classes).
+     *
+     * @param appUserPort    Adapter implementing app user persistence (auto-detected).
      * @param subscriberPort Adapter implementing subscriber persistence (auto-detected).
-     * @param teaserBuilder  Builder for FREE-tier teaser content.
+     * @return The filter registration bean.
+     */
+    @Bean
+    public FilterRegistrationBean<DemoExpirationFilter> demoExpirationFilter(
+            AppUserPort appUserPort,
+            SubscriberPort subscriberPort) {
+        log.debug("demoExpirationFilter() | appUserPort={}, subscriberPort={}",
+                  appUserPort.getClass().getSimpleName(), subscriberPort.getClass().getSimpleName());
+
+        DemoExpirationFilter filter = new DemoExpirationFilter(appUserPort, subscriberPort);
+        FilterRegistrationBean<DemoExpirationFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setOrder(org.springframework.boot.autoconfigure.security.SecurityProperties.DEFAULT_FILTER_ORDER + 1);
+
+        log.debug("demoExpirationFilter() | return=FilterRegistrationBean");
+        return registration;
+    }
+
+    /**
+     * Creates the {@link DigestNewsletterRenderer} that builds the FREE-tier
+     * daily article digest by wrapping NotebookLM summary files in an email layout.
+     *
+     * @param dailySummaryPort Adapter that reads daily summary files (auto-detected).
+     * @return The wired {@link DigestNewsletterRenderer} instance.
+     */
+    @Bean
+    public DigestNewsletterRenderer digestNewsletterRenderer(DailySummaryPort dailySummaryPort) {
+        log.debug("digestNewsletterRenderer() | dailySummaryPort={}", dailySummaryPort.getClass().getSimpleName());
+        DigestNewsletterRenderer result = new DigestNewsletterRenderer(dailySummaryPort);
+        log.debug("digestNewsletterRenderer() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link DeliveryService} instance that implements subscriber management
+     * and 4-tier newsletter delivery (SUBSCRIBER/DEMO=full, FREE=digest, FREE_PENDING=skip).
+     *
+     * @param subscriberPort  Adapter implementing subscriber persistence (auto-detected).
+     * @param teaserBuilder   Builder for legacy teaser content.
+     * @param digestRenderer  Renderer for FREE-tier daily digest.
      * @return The wired {@link DeliveryService} instance.
      */
     @Bean
     public DeliveryService deliveryService(SubscriberPort subscriberPort,
                                            NewsletterRunPort newsletterRunPort,
                                            NewsletterDeliveryPort newsletterDeliveryPort,
-                                           NewsletterTeaserBuilder teaserBuilder) {
-        log.debug("deliveryService() | subscriberPort={}, newsletterRunPort={}, newsletterDeliveryPort={}, teaserBuilder={}",
+                                           NewsletterTeaserBuilder teaserBuilder,
+                                           DigestNewsletterRenderer digestRenderer) {
+        log.debug("deliveryService() | subscriberPort={}, newsletterRunPort={}, newsletterDeliveryPort={}, teaserBuilder={}, digestRenderer={}",
                   subscriberPort.getClass().getSimpleName(),
                   newsletterRunPort.getClass().getSimpleName(),
                   newsletterDeliveryPort.getClass().getSimpleName(),
-                  teaserBuilder.getClass().getSimpleName());
-        DeliveryService result = new DeliveryService(subscriberPort, newsletterRunPort, newsletterDeliveryPort, teaserBuilder);
+                  teaserBuilder.getClass().getSimpleName(),
+                  digestRenderer.getClass().getSimpleName());
+        DeliveryService result = new DeliveryService(subscriberPort, newsletterRunPort, newsletterDeliveryPort, teaserBuilder, digestRenderer);
         log.debug("deliveryService() | return={}", result.getClass().getSimpleName());
         return result;
     }

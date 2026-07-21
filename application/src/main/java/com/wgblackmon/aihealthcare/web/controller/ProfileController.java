@@ -1,8 +1,10 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.AppUser;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.StripeProperties;
@@ -18,6 +20,7 @@ import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 /**
@@ -31,7 +34,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-03
- * @updated 2026-07-03
+ * @updated 2026-07-20
  */
 @Slf4j
 @Controller
@@ -43,18 +46,22 @@ public class ProfileController {
     private final UsageTrackingPort usageTrackingPort;
     private final TierLimitProperties tierLimitProperties;
     private final StripeProperties stripeProperties;
+    private final AppUserPort appUserPort;
 
     public ProfileController(SubscriberPort subscriberPort,
                              UsageTrackingPort usageTrackingPort,
                              TierLimitProperties tierLimitProperties,
-                             StripeProperties stripeProperties) {
-        log.debug("ProfileController() | subscriberPort={}, usageTrackingPort={}",
+                             StripeProperties stripeProperties,
+                             AppUserPort appUserPort) {
+        log.debug("ProfileController() | subscriberPort={}, usageTrackingPort={}, appUserPort={}",
                   subscriberPort.getClass().getSimpleName(),
-                  usageTrackingPort.getClass().getSimpleName());
+                  usageTrackingPort.getClass().getSimpleName(),
+                  appUserPort.getClass().getSimpleName());
         this.subscriberPort = subscriberPort;
         this.usageTrackingPort = usageTrackingPort;
         this.tierLimitProperties = tierLimitProperties;
         this.stripeProperties = stripeProperties;
+        this.appUserPort = appUserPort;
     }
 
     /**
@@ -71,16 +78,22 @@ public class ProfileController {
         String email = principal != null ? principal.getName() : "";
         model.addAttribute("email", email);
 
-        // Resolve subscription tier
+        // Resolve subscription tier — prefer AppUser tier if present
+        Optional<AppUser> appUserOpt = appUserPort.findByEmail(email);
         Optional<Subscriber> subscriberOpt = subscriberPort.findByEmail(email);
-        SubscriptionTier tier = subscriberOpt
-                .map(Subscriber::tier)
-                .orElse(SubscriptionTier.FREE);
+        SubscriptionTier tier = appUserOpt
+                .map(AppUser::tier)
+                .orElse(subscriberOpt
+                        .map(Subscriber::tier)
+                        .orElse(SubscriptionTier.FREE));
+        if (tier == null) {
+            tier = SubscriptionTier.FREE;
+        }
 
         boolean isAdmin = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
         if (isAdmin) {
-            tier = SubscriptionTier.MEMBER;
+            tier = SubscriptionTier.SUBSCRIBER;
         }
 
         model.addAttribute("tier", tier.name());
@@ -90,6 +103,22 @@ public class ProfileController {
                 .map(s -> DateTimeFormatter.ISO_LOCAL_DATE.format(
                         s.subscribedAt().atZone(ZoneOffset.UTC)))
                 .orElse("N/A"));
+
+        // DEMO expiration countdown
+        boolean isDemo = tier == SubscriptionTier.DEMO;
+        model.addAttribute("isDemo", isDemo);
+        if (isDemo && appUserOpt.isPresent() && appUserOpt.get().demoExpiresAt() != null) {
+            long daysLeft = ChronoUnit.DAYS.between(Instant.now(), appUserOpt.get().demoExpiresAt());
+            if (daysLeft < 0) {
+                daysLeft = 0;
+            }
+            model.addAttribute("demoDaysLeft", daysLeft);
+            model.addAttribute("demoExpiresAt", DateTimeFormatter.ISO_LOCAL_DATE.format(
+                    appUserOpt.get().demoExpiresAt().atZone(ZoneOffset.UTC)));
+        } else {
+            model.addAttribute("demoDaysLeft", 0);
+            model.addAttribute("demoExpiresAt", "N/A");
+        }
 
         // Usage stats for current month
         String yearMonth = MONTH_FMT.format(Instant.now().atZone(ZoneOffset.UTC));
@@ -102,14 +131,17 @@ public class ProfileController {
         model.addAttribute("usagePct", Math.min(pct, 100));
 
         // Tier limits for display
-        TierLimitProperties.TierConfig limits = tier == SubscriptionTier.MEMBER
-                ? tierLimitProperties.getMember()
-                : tierLimitProperties.getFree();
+        TierLimitProperties.TierConfig limits;
+        if (tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO) {
+            limits = tierLimitProperties.getSubscriber();
+        } else {
+            limits = tierLimitProperties.getFree();
+        }
         model.addAttribute("archiveDays", limits.getArchiveDays());
 
         // Stripe config
         model.addAttribute("stripeEnabled", stripeProperties.isEnabled());
-        model.addAttribute("memberPriceId", stripeProperties.getMemberPriceId());
+        model.addAttribute("subscriberPriceId", stripeProperties.getSubscriberPriceId());
 
         log.debug("profile() | return=profile");
         return "profile";

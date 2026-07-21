@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
  * Builds a truncated "teaser" version of a full {@link NewsletterRun} for FREE-tier subscribers.
  *
  * <p>The teaser retains the newsletter title, week-of date, and the first section of content,
- * then appends a styled call-to-action (CTA) block inviting the reader to upgrade to Member
+ * then appends a styled call-to-action (CTA) block inviting the reader to upgrade to Subscriber
  * for the full newsletter.  This encourages conversion while still providing value to free
  * subscribers.
  *
@@ -54,7 +54,7 @@ public class NewsletterTeaserBuilder {
                 "Want the full newsletter?</h2>" +
                 "<p style=\"margin: 0 0 16px 0; font-size: 1.05em; line-height: 1.5;\">" +
                 "This is a preview of " + timeframe + " AI in Healthcare newsletter. " +
-                "Upgrade to <strong>Member</strong> for full coverage including deep-dive analysis, " +
+                "Upgrade to <strong>Subscriber</strong> for full coverage including deep-dive analysis, " +
                 "vendor comparisons, and research summaries.</p>" +
                 "<p style=\"margin: 0; font-size: 0.9em; opacity: 0.85;\">" +
                 "Contact us to upgrade your subscription.</p>" +
@@ -64,7 +64,7 @@ public class NewsletterTeaserBuilder {
                 "\n---\n" +
                 "WANT THE FULL NEWSLETTER?\n\n" +
                 "This is a preview of " + timeframe + " AI in Healthcare newsletter. " +
-                "Upgrade to Member for full coverage including deep-dive analysis, " +
+                "Upgrade to Subscriber for full coverage including deep-dive analysis, " +
                 "vendor comparisons, and research summaries.\n\n" +
                 "Contact us to upgrade your subscription.\n";
 

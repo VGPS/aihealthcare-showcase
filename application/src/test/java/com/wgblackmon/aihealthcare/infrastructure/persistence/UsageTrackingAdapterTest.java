@@ -76,10 +76,10 @@ class UsageTrackingAdapterTest {
     }
 
     @Test
-    void getOrCreateUsage_memberTier_useMemberLimit() {
-        Subscriber memberSub = new Subscriber(EMAIL, "Test", true, Instant.now(), SubscriptionTier.MEMBER);
-        when(subscriberPort.findByEmail(EMAIL)).thenReturn(Optional.of(memberSub));
-        when(tierGatingService.monthlyQueryLimitFor(SubscriptionTier.MEMBER)).thenReturn(200);
+    void getOrCreateUsage_subscriberTier_useSubscriberLimit() {
+        Subscriber subscriberSub = new Subscriber(EMAIL, "Test", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        when(subscriberPort.findByEmail(EMAIL)).thenReturn(Optional.of(subscriberSub));
+        when(tierGatingService.monthlyQueryLimitFor(SubscriptionTier.SUBSCRIBER)).thenReturn(200);
 
         UsageRecord result = adapter.getOrCreateUsage(EMAIL, YEAR_MONTH);
 

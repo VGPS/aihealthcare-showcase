@@ -9,6 +9,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
+import com.wgblackmon.aihealthcare.domain.service.DigestNewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,14 +34,14 @@ import static org.mockito.Mockito.when;
 /**
  * Unit tests for {@link DeliveryService#deliver(String)}.
  *
- * <p>Verifies the tier-aware deliver pipeline: run lookup → split subscribers by tier →
- * full content to MEMBER → teaser to FREE → status update to SENT.
+ * <p>Verifies the 4-tier deliver pipeline: run lookup → split subscribers by tier →
+ * full content to SUBSCRIBER/DEMO → digest to FREE → skip FREE_PENDING → status update to SENT.
  * Also covers the no-subscribers guard and the run-not-found error path.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-04-13
- * @updated 2026-05-26
+ * @updated 2026-07-20
  */
 @ExtendWith(MockitoExtension.class)
 class DeliveryServiceDeliverTest {
@@ -53,6 +54,8 @@ class DeliveryServiceDeliverTest {
     private NewsletterDeliveryPort newsletterDeliveryPort;
     @Mock
     private NewsletterTeaserBuilder teaserBuilder;
+    @Mock
+    private DigestNewsletterRenderer digestRenderer;
 
     private DeliveryService service;
 
@@ -78,15 +81,28 @@ class DeliveryServiceDeliverTest {
             Instant.parse("2026-04-13T08:00:00Z")
     );
 
-    private static final Subscriber MEMBER_SUB = new Subscriber(
-            "member@example.com", "Member User", true, Instant.parse("2026-04-13T10:00:00Z"), SubscriptionTier.MEMBER);
+    private static final NewsletterRun DIGEST_RUN = new NewsletterRun(
+            "digest-2026-04-13",
+            "AI Healthcare Daily Digest",
+            LocalDate.of(2026, 4, 13),
+            "<html><body>Digest</body></html>",
+            "Digest text",
+            NewsletterRunStatus.DRAFT,
+            Instant.parse("2026-04-13T08:00:00Z")
+    );
+
+    private static final Subscriber SUBSCRIBER_SUB = new Subscriber(
+            "subscriber@example.com", "Subscriber User", true, Instant.parse("2026-04-13T10:00:00Z"), SubscriptionTier.SUBSCRIBER);
+
+    private static final Subscriber DEMO_SUB = new Subscriber(
+            "demo@example.com", "Demo User", true, Instant.parse("2026-04-13T10:00:00Z"), SubscriptionTier.DEMO);
 
     private static final Subscriber FREE_SUB = new Subscriber(
             "free@example.com", "Free User", true, Instant.parse("2026-04-13T10:00:00Z"), SubscriptionTier.FREE);
 
     @BeforeEach
     void setUp() {
-        service = new DeliveryService(subscriberPort, newsletterRunPort, newsletterDeliveryPort, teaserBuilder);
+        service = new DeliveryService(subscriberPort, newsletterRunPort, newsletterDeliveryPort, teaserBuilder, digestRenderer);
     }
 
     // -------------------------------------------------------------------------
@@ -94,9 +110,10 @@ class DeliveryServiceDeliverTest {
     // -------------------------------------------------------------------------
 
     @Test
-    void deliver_sendsFullContentToMemberSubscribers() {
+    void deliver_sendsFullContentToSubscriberTierSubscribers() {
         when(newsletterRunPort.findByRunId(RUN_ID)).thenReturn(DRAFT_RUN);
-        when(subscriberPort.findAllActiveByTier(SubscriptionTier.MEMBER)).thenReturn(List.of(MEMBER_SUB));
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER)).thenReturn(List.of(SUBSCRIBER_SUB));
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO)).thenReturn(List.of());
         when(subscriberPort.findAllActiveByTier(SubscriptionTier.FREE)).thenReturn(List.of());
 
         service.deliver(RUN_ID);
@@ -104,43 +121,46 @@ class DeliveryServiceDeliverTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<Subscriber>> captor = ArgumentCaptor.forClass(List.class);
         verify(newsletterDeliveryPort).deliver(any(NewsletterRun.class), captor.capture());
-        List<Subscriber> memberRecipients = captor.getValue();
-        assertThat(memberRecipients).hasSize(1);
-        assertThat(memberRecipients).extracting(Subscriber::email)
-                .containsExactly("member@example.com");
+        List<Subscriber> subscriberRecipients = captor.getValue();
+        assertThat(subscriberRecipients).hasSize(1);
+        assertThat(subscriberRecipients).extracting(Subscriber::email)
+                .containsExactly("subscriber@example.com");
     }
 
     @Test
-    void deliver_sendsTeaserToFreeSubscribers() {
+    void deliver_sendsDigestToFreeSubscribers() {
         when(newsletterRunPort.findByRunId(RUN_ID)).thenReturn(DRAFT_RUN);
-        when(subscriberPort.findAllActiveByTier(SubscriptionTier.MEMBER)).thenReturn(List.of());
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER)).thenReturn(List.of());
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO)).thenReturn(List.of());
         when(subscriberPort.findAllActiveByTier(SubscriptionTier.FREE)).thenReturn(List.of(FREE_SUB));
-        when(teaserBuilder.buildTeaser(DRAFT_RUN)).thenReturn(TEASER_RUN);
+        when(digestRenderer.buildDigest()).thenReturn(DIGEST_RUN);
 
         service.deliver(RUN_ID);
 
-        verify(teaserBuilder).buildTeaser(DRAFT_RUN);
-        verify(newsletterDeliveryPort).deliver(TEASER_RUN, List.of(FREE_SUB));
+        verify(digestRenderer).buildDigest();
+        verify(newsletterDeliveryPort).deliver(DIGEST_RUN, List.of(FREE_SUB));
     }
 
     @Test
-    void deliver_mixedTiers_sendsBothFullAndTeaser() {
+    void deliver_mixedTiers_sendsBothFullAndDigest() {
         when(newsletterRunPort.findByRunId(RUN_ID)).thenReturn(DRAFT_RUN);
-        when(subscriberPort.findAllActiveByTier(SubscriptionTier.MEMBER)).thenReturn(List.of(MEMBER_SUB));
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER)).thenReturn(List.of(SUBSCRIBER_SUB));
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO)).thenReturn(List.of());
         when(subscriberPort.findAllActiveByTier(SubscriptionTier.FREE)).thenReturn(List.of(FREE_SUB));
-        when(teaserBuilder.buildTeaser(DRAFT_RUN)).thenReturn(TEASER_RUN);
+        when(digestRenderer.buildDigest()).thenReturn(DIGEST_RUN);
 
         service.deliver(RUN_ID);
 
-        // Two deliver calls: one for member, one for free
+        // Two deliver calls: one for subscriber, one for free digest
         verify(newsletterDeliveryPort, times(2)).deliver(any(NewsletterRun.class), anyList());
-        verify(teaserBuilder).buildTeaser(DRAFT_RUN);
+        verify(digestRenderer).buildDigest();
     }
 
     @Test
     void deliver_savesRunWithSentStatus() {
         when(newsletterRunPort.findByRunId(RUN_ID)).thenReturn(DRAFT_RUN);
-        when(subscriberPort.findAllActiveByTier(SubscriptionTier.MEMBER)).thenReturn(List.of(MEMBER_SUB));
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER)).thenReturn(List.of(SUBSCRIBER_SUB));
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO)).thenReturn(List.of());
         when(subscriberPort.findAllActiveByTier(SubscriptionTier.FREE)).thenReturn(List.of());
 
         service.deliver(RUN_ID);
@@ -158,7 +178,8 @@ class DeliveryServiceDeliverTest {
     @Test
     void deliver_noActiveSubscribers_skipsDeliveryAndStatusUpdate() {
         when(newsletterRunPort.findByRunId(RUN_ID)).thenReturn(DRAFT_RUN);
-        when(subscriberPort.findAllActiveByTier(SubscriptionTier.MEMBER)).thenReturn(List.of());
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER)).thenReturn(List.of());
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO)).thenReturn(List.of());
         when(subscriberPort.findAllActiveByTier(SubscriptionTier.FREE)).thenReturn(List.of());
 
         service.deliver(RUN_ID);
@@ -180,5 +201,27 @@ class DeliveryServiceDeliverTest {
                 .isInstanceOf(RunNotFoundException.class);
 
         verify(newsletterDeliveryPort, never()).deliver(any(), anyList());
+    }
+
+    // -------------------------------------------------------------------------
+    // deliver() — DEMO tier gets full newsletter
+    // -------------------------------------------------------------------------
+
+    @Test
+    void deliver_sendsFullContentToDemoTierSubscribers() {
+        when(newsletterRunPort.findByRunId(RUN_ID)).thenReturn(DRAFT_RUN);
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER)).thenReturn(List.of());
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO)).thenReturn(List.of(DEMO_SUB));
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.FREE)).thenReturn(List.of());
+
+        service.deliver(RUN_ID);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Subscriber>> captor = ArgumentCaptor.forClass(List.class);
+        verify(newsletterDeliveryPort).deliver(any(NewsletterRun.class), captor.capture());
+        List<Subscriber> demoRecipients = captor.getValue();
+        assertThat(demoRecipients).hasSize(1);
+        assertThat(demoRecipients).extracting(Subscriber::email)
+                .containsExactly("demo@example.com");
     }
 }

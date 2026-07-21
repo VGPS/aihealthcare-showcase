@@ -1,7 +1,9 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.AppUser;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.StripeProperties;
 import org.junit.jupiter.api.Test;
@@ -37,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-23
- * @updated 2026-05-23
+ * @updated 2026-07-20
  */
 @Import(SecurityConfig.class)
 @WithMockUser
@@ -54,6 +56,9 @@ class StripeWebhookControllerTest {
 
     @MockitoBean
     private SubscriberPort subscriberPort;
+
+    @MockitoBean
+    private AppUserPort appUserPort;
 
     // -------------------------------------------------------------------------
     // Stripe not configured
@@ -150,6 +155,41 @@ class StripeWebhookControllerTest {
                   "data": {
                     "object": {
                       "id": "cs_test_123",
+                      "object": "checkout.session",
+                      "customer_email": "buyer@example.com"
+                    }
+                  }
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/stripe/webhook")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Received"));
+    }
+
+    // -------------------------------------------------------------------------
+    // checkout.session.completed — re-enables disabled AppUser
+    // Note: Stripe SDK deserializer does not fully parse hand-crafted JSON,
+    // so the re-enable logic cannot be verified end-to-end in a MockMvc test.
+    // The wiring of AppUserPort into the controller is verified by the
+    // constructor injection (Spring context would fail if missing).
+    // -------------------------------------------------------------------------
+
+    @Test
+    void webhook_checkoutCompleted_withAppUser_returns200() throws Exception {
+        when(stripeProperties.isEnabled()).thenReturn(true);
+        when(stripeProperties.getWebhookSecret()).thenReturn("");
+
+        String payload = """
+                {
+                  "id": "evt_test_reenable",
+                  "type": "checkout.session.completed",
+                  "api_version": "2025-04-30.basil",
+                  "data": {
+                    "object": {
+                      "id": "cs_test_456",
                       "object": "checkout.session",
                       "customer_email": "buyer@example.com"
                     }

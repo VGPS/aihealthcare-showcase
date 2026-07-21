@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.exception.ApiKeyNotFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.DuplicateSubscriberException;
+import com.wgblackmon.aihealthcare.domain.exception.DuplicateUserException;
 import com.wgblackmon.aihealthcare.domain.exception.EvaluationNotFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.NoArticlesFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.PromptVariantNotFoundException;
@@ -134,6 +135,19 @@ public class GlobalExceptionHandler {
         ErrorResponse body = new ErrorResponse("NOT_FOUND", ex.getMessage());
         log.debug("handleApiKeyNotFound() | return=404");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    /**
+     * Handles attempts to register a user whose email is already in use.
+     * Maps to HTTP 409 Conflict.
+     */
+    @ExceptionHandler(DuplicateUserException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateUser(DuplicateUserException ex) {
+        log.debug("handleDuplicateUser() | ex={}", ex.getMessage());
+        log.warn("handleDuplicateUser() | Duplicate user: email={}", ex.getEmail());
+        ErrorResponse body = new ErrorResponse("CONFLICT", ex.getMessage());
+        log.debug("handleDuplicateUser() | return=409");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
     /**

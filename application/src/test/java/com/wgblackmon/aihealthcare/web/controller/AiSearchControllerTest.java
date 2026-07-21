@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * MockMvc slice tests for {@link AiSearchController}.
  *
- * <p>Covers tier-based access control (FREE vs MEMBER), usage limit enforcement,
+ * <p>Covers tier-based access control (FREE vs SUBSCRIBER), usage limit enforcement,
  * multi-model AI synthesis rendering, and usage tracking increments.
  *
  * @author  Bill Blackmon
@@ -99,9 +99,9 @@ class AiSearchControllerTest {
                 1L, "PubMed", "ACADEMIC", 0.9, Instant.parse("2026-05-15T10:00:00Z"));
     }
 
-    private void stubMemberTier(String email) {
-        Subscriber member = new Subscriber(email, "Member User", true, Instant.now(), SubscriptionTier.MEMBER);
-        when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(member));
+    private void stubSubscriberTier(String email) {
+        Subscriber subscriber = new Subscriber(email, "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(subscriber));
         UsageRecord usage = new UsageRecord(email, "2026-06", 5, 200);
         when(usageTrackingPort.getOrCreateUsage(eq(email), anyString())).thenReturn(usage);
         when(tierGatingService.canQuery(any(UsageRecord.class))).thenReturn(true);
@@ -158,13 +158,13 @@ class AiSearchControllerTest {
     }
 
     // -------------------------------------------------------------------------
-    // MEMBER tier — search execution
+    // SUBSCRIBER tier — search execution
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "member@example.com")
-    void search_memberTier_withQuery_rendersSyntheses() throws Exception {
-        stubMemberTier("member@example.com");
+    @WithMockUser(username = "subscriber@example.com")
+    void search_subscriberTier_withQuery_rendersSyntheses() throws Exception {
+        stubSubscriberTier("subscriber@example.com");
         AiSearchResult result = buildSampleResult("AI diagnostics");
         when(aiSearchUseCase.search(eq("AI diagnostics"), eq(20), any())).thenReturn(result);
 
@@ -180,9 +180,9 @@ class AiSearchControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "member@example.com")
-    void search_memberTier_withQuery_incrementsUsage() throws Exception {
-        stubMemberTier("member@example.com");
+    @WithMockUser(username = "subscriber@example.com")
+    void search_subscriberTier_withQuery_incrementsUsage() throws Exception {
+        stubSubscriberTier("subscriber@example.com");
         AiSearchResult emptyResult = new AiSearchResult(
                 "s1", "test", List.of(), List.of(), Instant.now());
         when(aiSearchUseCase.search(anyString(), anyInt(), any())).thenReturn(emptyResult);
@@ -190,20 +190,20 @@ class AiSearchControllerTest {
         mockMvc.perform(get("/research/ai-search").param("q", "test query"))
                 .andExpect(status().isOk());
 
-        verify(usageTrackingPort).incrementAndGet(eq("member@example.com"), anyString());
+        verify(usageTrackingPort).incrementAndGet(eq("subscriber@example.com"), anyString());
     }
 
     // -------------------------------------------------------------------------
-    // MEMBER tier — limit reached
+    // SUBSCRIBER tier — limit reached
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "member@example.com")
-    void search_memberTier_limitReached_showsWarning() throws Exception {
-        Subscriber member = new Subscriber("member@example.com", "Member User", true, Instant.now(), SubscriptionTier.MEMBER);
-        when(subscriberPort.findByEmail("member@example.com")).thenReturn(Optional.of(member));
-        UsageRecord exhausted = new UsageRecord("member@example.com", "2026-06", 200, 200);
-        when(usageTrackingPort.getOrCreateUsage(eq("member@example.com"), anyString())).thenReturn(exhausted);
+    @WithMockUser(username = "subscriber@example.com")
+    void search_subscriberTier_limitReached_showsWarning() throws Exception {
+        Subscriber subscriber = new Subscriber("subscriber@example.com", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        when(subscriberPort.findByEmail("subscriber@example.com")).thenReturn(Optional.of(subscriber));
+        UsageRecord exhausted = new UsageRecord("subscriber@example.com", "2026-06", 200, 200);
+        when(usageTrackingPort.getOrCreateUsage(eq("subscriber@example.com"), anyString())).thenReturn(exhausted);
         when(tierGatingService.canQuery(any(UsageRecord.class))).thenReturn(false);
 
         mockMvc.perform(get("/research/ai-search").param("q", "some query"))
@@ -215,13 +215,13 @@ class AiSearchControllerTest {
     }
 
     // -------------------------------------------------------------------------
-    // MEMBER tier — empty results
+    // SUBSCRIBER tier — empty results
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "member@example.com")
-    void search_memberTier_emptyResults_showsEmptyState() throws Exception {
-        stubMemberTier("member@example.com");
+    @WithMockUser(username = "subscriber@example.com")
+    void search_subscriberTier_emptyResults_showsEmptyState() throws Exception {
+        stubSubscriberTier("subscriber@example.com");
         AiSearchResult emptyResult = new AiSearchResult(
                 "s1", "obscure topic", List.of(), List.of(), Instant.now());
         when(aiSearchUseCase.search(anyString(), anyInt(), any())).thenReturn(emptyResult);
@@ -237,9 +237,9 @@ class AiSearchControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "member@example.com")
-    void search_memberTier_synthesisFailure_fallsBackToVectorOnly() throws Exception {
-        stubMemberTier("member@example.com");
+    @WithMockUser(username = "subscriber@example.com")
+    void search_subscriberTier_synthesisFailure_fallsBackToVectorOnly() throws Exception {
+        stubSubscriberTier("subscriber@example.com");
         NewsArticle a1 = sampleArticle("id-1", "Fallback Article");
         when(aiSearchUseCase.search(anyString(), anyInt(), any()))
                 .thenThrow(new RuntimeException("API timeout"));
@@ -257,9 +257,9 @@ class AiSearchControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    @WithMockUser(username = "member@example.com")
-    void search_memberTier_passesAvailableModelsToTemplate() throws Exception {
-        stubMemberTier("member@example.com");
+    @WithMockUser(username = "subscriber@example.com")
+    void search_subscriberTier_passesAvailableModelsToTemplate() throws Exception {
+        stubSubscriberTier("subscriber@example.com");
 
         mockMvc.perform(get("/research/ai-search"))
                 .andExpect(status().isOk())

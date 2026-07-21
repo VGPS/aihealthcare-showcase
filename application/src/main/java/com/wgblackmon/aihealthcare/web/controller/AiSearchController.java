@@ -42,7 +42,7 @@ import java.util.Optional;
  * Replaces the former separate Semantic Search and AI Search pages.
  *
  * <p>FREE-tier users see an upgrade banner instead of the search form.
- * MEMBER-tier users who have exhausted their monthly query limit see a
+ * SUBSCRIBER-tier users who have exhausted their monthly query limit see a
  * limit-reached warning.  Each successful search increments the subscriber's
  * monthly usage counter via {@link UsageTrackingPort}.
  *
@@ -52,7 +52,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-06-02
- * @updated 2026-07-10
+ * @updated 2026-07-20
  */
 @Slf4j
 @Controller
@@ -93,7 +93,7 @@ public class AiSearchController {
      * Renders the AI-enhanced search page.
      *
      * <p>If the authenticated user is FREE tier, sets {@code accessDenied=true}
-     * and renders an upgrade banner.  If the user is MEMBER tier, accepts an
+     * and renders an upgrade banner.  If the user is SUBSCRIBER tier, accepts an
      * optional query parameter {@code q} and returns multi-model AI syntheses.
      *
      * @param q         optional search query string
@@ -118,13 +118,13 @@ public class AiSearchController {
             SubscriptionTier tier = resolveTier(principal);
 
             // FREE tier — show upgrade banner, no search
-            if (tier != SubscriptionTier.MEMBER) {
+            if (tier != SubscriptionTier.SUBSCRIBER) {
                 model.addAttribute("accessDenied", true);
                 log.debug("search() | return=ai-search (accessDenied)");
                 return "ai-search";
             }
 
-            // MEMBER tier — check usage limit
+            // SUBSCRIBER tier — check usage limit
             String email = principal.getName();
             String currentMonth = YearMonth.now().toString();
             UsageRecord usage = usageTrackingPort.getOrCreateUsage(email, currentMonth);

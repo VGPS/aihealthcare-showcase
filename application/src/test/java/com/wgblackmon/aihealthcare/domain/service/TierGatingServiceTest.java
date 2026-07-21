@@ -23,12 +23,14 @@ class TierGatingServiceTest {
 
     private TierGatingService service;
 
-    private static final TierLimits FREE_LIMITS   = new TierLimits(7, 15);
-    private static final TierLimits MEMBER_LIMITS = new TierLimits(0, 200);
+    private static final TierLimits FREE_LIMITS          = new TierLimits(7, 15);
+    private static final TierLimits SUBSCRIBER_LIMITS    = new TierLimits(0, 200);
+    private static final TierLimits DEMO_LIMITS          = new TierLimits(0, 200);
+    private static final TierLimits FREE_PENDING_LIMITS  = new TierLimits(0, 0);
 
     @BeforeEach
     void setUp() {
-        service = new TierGatingService(FREE_LIMITS, MEMBER_LIMITS);
+        service = new TierGatingService(FREE_LIMITS, SUBSCRIBER_LIMITS, DEMO_LIMITS, FREE_PENDING_LIMITS);
     }
 
     @Test
@@ -40,11 +42,27 @@ class TierGatingServiceTest {
     }
 
     @Test
-    void getLimits_memberTier_returnsMemberLimits() {
-        TierLimits result = service.getLimits(SubscriptionTier.MEMBER);
+    void getLimits_subscriberTier_returnsSubscriberLimits() {
+        TierLimits result = service.getLimits(SubscriptionTier.SUBSCRIBER);
 
         assertThat(result.archiveDays()).isEqualTo(0);
         assertThat(result.monthlyQueryLimit()).isEqualTo(200);
+    }
+
+    @Test
+    void getLimits_demoTier_returnsDemoLimits() {
+        TierLimits result = service.getLimits(SubscriptionTier.DEMO);
+
+        assertThat(result.archiveDays()).isEqualTo(0);
+        assertThat(result.monthlyQueryLimit()).isEqualTo(200);
+    }
+
+    @Test
+    void getLimits_freePendingTier_returnsFreePendingLimits() {
+        TierLimits result = service.getLimits(SubscriptionTier.FREE_PENDING);
+
+        assertThat(result.archiveDays()).isEqualTo(0);
+        assertThat(result.monthlyQueryLimit()).isEqualTo(0);
     }
 
     @Test
@@ -81,8 +99,8 @@ class TierGatingServiceTest {
     }
 
     @Test
-    void archiveDaysFor_memberTier_returns0() {
-        assertThat(service.archiveDaysFor(SubscriptionTier.MEMBER)).isEqualTo(0);
+    void archiveDaysFor_subscriberTier_returns0() {
+        assertThat(service.archiveDaysFor(SubscriptionTier.SUBSCRIBER)).isEqualTo(0);
     }
 
     @Test
@@ -91,7 +109,7 @@ class TierGatingServiceTest {
     }
 
     @Test
-    void monthlyQueryLimitFor_memberTier_returns200() {
-        assertThat(service.monthlyQueryLimitFor(SubscriptionTier.MEMBER)).isEqualTo(200);
+    void monthlyQueryLimitFor_subscriberTier_returns200() {
+        assertThat(service.monthlyQueryLimitFor(SubscriptionTier.SUBSCRIBER)).isEqualTo(200);
     }
 }

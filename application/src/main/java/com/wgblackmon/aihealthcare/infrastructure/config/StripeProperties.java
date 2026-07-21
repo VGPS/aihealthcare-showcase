@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>{@code STRIPE_API_KEY} — Stripe secret key (sk_test_... or sk_live_...)</li>
  *   <li>{@code STRIPE_WEBHOOK_SECRET} — webhook endpoint signing secret (whsec_...)</li>
- *   <li>{@code STRIPE_MEMBER_PRICE_ID} — Stripe Price ID for the Member tier</li>
+ *   <li>{@code STRIPE_SUBSCRIBER_PRICE_ID} — Stripe Price ID for the Subscriber tier</li>
  * </ul>
  *
  * <p>When {@code apiKey} is blank the Stripe integration is effectively disabled;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-05-23
- * @updated 2026-05-26
+ * @updated 2026-07-20
  */
 @Slf4j
 @Component
@@ -33,7 +33,7 @@ public class StripeProperties {
     private String apiKey = "";
     private String publishableKey = "";
     private String webhookSecret = "";
-    private String memberPriceId = "";
+    private String subscriberPriceId = "";
 
     /**
      * Initializes the Stripe SDK global API key if configured.
@@ -59,8 +59,8 @@ public class StripeProperties {
     public String getWebhookSecret()                     { return webhookSecret; }
     public void setWebhookSecret(String webhookSecret)   { this.webhookSecret = webhookSecret; }
 
-    public String getMemberPriceId()                     { return memberPriceId; }
-    public void setMemberPriceId(String memberPriceId)   { this.memberPriceId = memberPriceId; }
+    public String getSubscriberPriceId()                       { return subscriberPriceId; }
+    public void setSubscriberPriceId(String subscriberPriceId) { this.subscriberPriceId = subscriberPriceId; }
 
     /**
      * Returns {@code true} if a Stripe API key has been configured.

@@ -813,7 +813,7 @@ aihealthcare:
     api-key: ${STRIPE_API_KEY:}
     publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
     webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
-    member-price-id: ${STRIPE_MEMBER_PRICE_ID:}
+    subscriber-price-id: ${STRIPE_SUBSCRIBER_PRICE_ID:}
 
   # ---------------------------------------------------------------------------
   # Subscription tier feature limits.
@@ -821,9 +821,15 @@ aihealthcare:
   # monthly-query-limit: max AI research queries per calendar month.
   # ---------------------------------------------------------------------------
   tiers:
+    demo:
+      archive-days: 0
+      monthly-query-limit: 200
+    free-pending:
+      archive-days: 0
+      monthly-query-limit: 0
     free:
       archive-days: 7
       monthly-query-limit: 15
-    member:
+    subscriber:
       archive-days: 0
       monthly-query-limit: 200

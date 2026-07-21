@@ -41,7 +41,7 @@ class AppUserDetailsServiceTest {
 
     @Test
     void loadUserByUsername_returnsUserDetails_whenFound() {
-        AppUser user = new AppUser("demo@gmail.com", "$2b$10$hash", "Demo", "USER", true);
+        AppUser user = new AppUser("demo@gmail.com", "$2b$10$hash", "Demo", "USER", true, null, null);
         when(appUserPort.findByEmail("demo@gmail.com")).thenReturn(Optional.of(user));
 
         UserDetails result = service.loadUserByUsername("demo@gmail.com");
@@ -63,7 +63,7 @@ class AppUserDetailsServiceTest {
 
     @Test
     void loadUserByUsername_reportsDisabled_whenUserNotEnabled() {
-        AppUser user = new AppUser("disabled@gmail.com", "$2b$10$hash", "Disabled", "USER", false);
+        AppUser user = new AppUser("disabled@gmail.com", "$2b$10$hash", "Disabled", "USER", false, null, null);
         when(appUserPort.findByEmail("disabled@gmail.com")).thenReturn(Optional.of(user));
 
         UserDetails result = service.loadUserByUsername("disabled@gmail.com");

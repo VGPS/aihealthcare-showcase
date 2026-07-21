@@ -322,20 +322,20 @@
     <!-- Upgrade banner for FREE-tier users -->
     <div th:if="${accessDenied}" class="upgrade-banner">
         <span class="banner-text">
-            <strong>Semantic Search is a Member feature.</strong><br/>
-            Upgrade to Member to search across the full article archive using AI-powered vector similarity.
+            <strong>Semantic Search is a Subscriber feature.</strong><br/>
+            Upgrade to Subscriber to search across the full article archive using AI-powered vector similarity.
         </span>
         <a th:href="@{/pricing}">Upgrade</a>
     </div>
 
-    <!-- Limit reached warning for MEMBER users -->
+    <!-- Limit reached warning for SUBSCRIBER users -->
     <div th:if="${limitReached}" class="limit-warning">
         <strong>Monthly query limit reached.</strong>
         You have used <span th:text="${used}">0</span> of <span th:text="${limit}">200</span>
         queries this month. Your limit resets at the start of next month.
     </div>
 
-    <!-- Search form — only shown for MEMBER users who are not access-denied -->
+    <!-- Search form — only shown for SUBSCRIBER users who are not access-denied -->
     <div th:if="${accessDenied == null and limitReached == null}" class="search-card">
         <h2>Search Articles</h2>
         <p class="hint">Enter a natural-language query to find semantically similar articles in the archive.</p>

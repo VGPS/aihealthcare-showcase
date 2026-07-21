@@ -155,6 +155,11 @@
             You have been signed out successfully.
         </div>
 
+        <div th:if="${param['demo-expired'] != null}" class="alert alert-error">
+            Your demo has expired. You have been moved to the Free newsletter plan.
+            <a th:href="@{/pricing}" style="color: #991b1b; font-weight: 600;">Upgrade to Subscriber</a> for full access.
+        </div>
+
         <form th:action="@{/login}" method="post">
             <div class="form-group">
                 <label for="username">Email</label>
@@ -172,6 +177,7 @@
         </form>
 
         <div class="login-footer">
+            <a th:href="@{/register}">Start a free 7-day trial</a> |
             <a th:href="@{/pricing}">View pricing plans</a>
         </div>
     </div>

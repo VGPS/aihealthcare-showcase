@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-07-04 | Reflects Slice W5 (50 slices complete, 808 tests passing)
+> Last updated: 2026-07-21 | Reflects Access Model Redesign R8 (909 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -83,6 +83,12 @@ api  ──▶  web   (generated DTOs imported here only)
 | W1 | LLM Wiki — domain records, port interfaces, unit tests | 759 |
 | W2 | LLM Wiki — persistence, compilation adapter, REST trigger, scheduler wiring | 800 |
 | W5 | Reader-Facing Wiki Provenance UI — wiki index, detail, contradictions pages | 808 |
+| W6 | Wiki Linter — orphan/broken-ref/stale detection + scheduled lint runs | 847 |
+| W3 | Reversal Watch newsletter section from wiki contradictions | 860 |
+| — | Vendor Compare UX Overhaul — checkbox grid, compareSelected(), vendor prompt | 862 |
+| — | Dynamic model registry + admin failure notifications + AWS Bedrock adapter | 876 |
+| — | CompanyDiscoveryScheduler + model availability gating | 879 |
+| R1–R8 | Access Model Redesign — 4-tier (DEMO/FREE_PENDING/FREE/SUBSCRIBER), demo expiration, digest email, Stripe re-enable | 909 |
 
 ---
 
@@ -289,7 +295,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**808 tests** across 102 test classes — all pass with `mvn test` (no live AI or network calls).
+**909 tests** across 127 test classes — all pass with `mvn test` (no live AI or network calls).
 
 ---
 

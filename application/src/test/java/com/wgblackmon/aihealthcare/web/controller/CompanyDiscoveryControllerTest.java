@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc slice tests for {@link CompanyDiscoveryController}.
  *
  * <p>Covers the {@code POST /api/v1/companies/discover} endpoint including
- * MEMBER tier gating via the {@code X-Subscriber-Email} header.
+ * SUBSCRIBER tier gating via the {@code X-Subscriber-Email} header.
  *
  * @author  Bill Blackmon
  * @version 1.1
@@ -53,9 +53,9 @@ class CompanyDiscoveryControllerTest {
     @MockBean
     private SubscriberPort subscriberPort;
 
-    private void stubMemberSubscriber(String email) {
-        Subscriber member = new Subscriber(email, "Member User", true, Instant.now(), SubscriptionTier.MEMBER);
-        when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(member));
+    private void stubSubscriberTier(String email) {
+        Subscriber subscriber = new Subscriber(email, "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(subscriber));
     }
 
     // -------------------------------------------------------------------------
@@ -66,7 +66,7 @@ class CompanyDiscoveryControllerTest {
     void discover_noHeader_returns403() throws Exception {
         mockMvc.perform(post("/api/v1/companies/discover"))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error").value("Company discovery is a Member-only feature"))
+                .andExpect(jsonPath("$.error").value("Company discovery is a Subscriber-only feature"))
                 .andExpect(jsonPath("$.tier").value("FREE"));
     }
 
@@ -78,7 +78,7 @@ class CompanyDiscoveryControllerTest {
         mockMvc.perform(post("/api/v1/companies/discover")
                         .header("X-Subscriber-Email", "free@example.com"))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error").value("Company discovery is a Member-only feature"))
+                .andExpect(jsonPath("$.error").value("Company discovery is a Subscriber-only feature"))
                 .andExpect(jsonPath("$.tier").value("FREE"));
     }
 
@@ -93,12 +93,12 @@ class CompanyDiscoveryControllerTest {
     }
 
     // -------------------------------------------------------------------------
-    // Successful discovery (MEMBER tier)
+    // Successful discovery (SUBSCRIBER tier)
     // -------------------------------------------------------------------------
 
     @Test
     void discover_returns200WithCompanies() throws Exception {
-        stubMemberSubscriber("member@example.com");
+        stubSubscriberTier("subscriber@example.com");
 
         Company company = new Company("ScribeBot", "YC Health Tech",
                 "https://yc.com/scribebot", "https://scribebot.com",
@@ -111,7 +111,7 @@ class CompanyDiscoveryControllerTest {
         when(discoverCompaniesUseCase.discover()).thenReturn(result);
 
         mockMvc.perform(post("/api/v1/companies/discover")
-                        .header("X-Subscriber-Email", "member@example.com"))
+                        .header("X-Subscriber-Email", "subscriber@example.com"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalScraped").value(10))
                 .andExpect(jsonPath("$.afterDedup").value(8))
@@ -125,7 +125,7 @@ class CompanyDiscoveryControllerTest {
 
     @Test
     void discover_emptyResult_returns200() throws Exception {
-        stubMemberSubscriber("member@example.com");
+        stubSubscriberTier("subscriber@example.com");
 
         CompanyDiscoveryResult result = new CompanyDiscoveryResult(
                 List.of(), "No companies found.", 0, 0, 0);
@@ -133,7 +133,7 @@ class CompanyDiscoveryControllerTest {
         when(discoverCompaniesUseCase.discover()).thenReturn(result);
 
         mockMvc.perform(post("/api/v1/companies/discover")
-                        .header("X-Subscriber-Email", "member@example.com"))
+                        .header("X-Subscriber-Email", "subscriber@example.com"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalScraped").value(0))
                 .andExpect(jsonPath("$.companies").isEmpty());
@@ -141,7 +141,7 @@ class CompanyDiscoveryControllerTest {
 
     @Test
     void discover_multipleCompanies_returnsAll() throws Exception {
-        stubMemberSubscriber("member@example.com");
+        stubSubscriberTier("subscriber@example.com");
 
         Company c1 = new Company("ScribeBot", "YC Health Tech",
                 "https://yc.com/sb", null, "AI scribe.",
@@ -156,7 +156,7 @@ class CompanyDiscoveryControllerTest {
         when(discoverCompaniesUseCase.discover()).thenReturn(result);
 
         mockMvc.perform(post("/api/v1/companies/discover")
-                        .header("X-Subscriber-Email", "member@example.com"))
+                        .header("X-Subscriber-Email", "subscriber@example.com"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.companies.length()").value(2))
                 .andExpect(jsonPath("$.companies[0].name").value("ScribeBot"))
@@ -166,7 +166,7 @@ class CompanyDiscoveryControllerTest {
 
     @Test
     void discover_companyTagsFlattened() throws Exception {
-        stubMemberSubscriber("member@example.com");
+        stubSubscriberTier("subscriber@example.com");
 
         Company company = new Company("OmniHealth", "anchor",
                 "https://omni.com", "https://omni.com",
@@ -179,7 +179,7 @@ class CompanyDiscoveryControllerTest {
         when(discoverCompaniesUseCase.discover()).thenReturn(result);
 
         mockMvc.perform(post("/api/v1/companies/discover")
-                        .header("X-Subscriber-Email", "member@example.com"))
+                        .header("X-Subscriber-Email", "subscriber@example.com"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.companies[0].scribe").value(true))
                 .andExpect(jsonPath("$.companies[0].agent").value(true))
