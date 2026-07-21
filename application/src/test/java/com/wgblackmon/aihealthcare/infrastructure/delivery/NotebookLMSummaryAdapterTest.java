@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-20
+ * @updated 2026-07-21
  */
 class NotebookLMSummaryAdapterTest {
 
@@ -64,5 +64,37 @@ class NotebookLMSummaryAdapterTest {
 
         assertThat(result).isPresent();
         assertThat(result.get()).isEqualTo(textContent);
+    }
+
+    @Test
+    void findMostRecentSummaryDate_findsYesterdayFile() throws IOException {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        String filename = yesterday.format(java.time.format.DateTimeFormatter.ofPattern("yyyy_MM_dd")) + ".html";
+        Files.writeString(tempDir.resolve(filename), "<p>Yesterday</p>", StandardCharsets.UTF_8);
+
+        Optional<LocalDate> result = adapter.findMostRecentSummaryDate();
+
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(yesterday);
+    }
+
+    @Test
+    void findMostRecentSummaryDate_skipsToday_findsOlder() throws IOException {
+        // Place a file from 3 days ago (not today, not yesterday)
+        LocalDate threeDaysAgo = LocalDate.now().minusDays(3);
+        String filename = threeDaysAgo.format(java.time.format.DateTimeFormatter.ofPattern("yyyy_MM_dd")) + ".html";
+        Files.writeString(tempDir.resolve(filename), "<p>Older</p>", StandardCharsets.UTF_8);
+
+        Optional<LocalDate> result = adapter.findMostRecentSummaryDate();
+
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(threeDaysAgo);
+    }
+
+    @Test
+    void findMostRecentSummaryDate_noFiles_returnsEmpty() {
+        Optional<LocalDate> result = adapter.findMostRecentSummaryDate();
+
+        assertThat(result).isEmpty();
     }
 }

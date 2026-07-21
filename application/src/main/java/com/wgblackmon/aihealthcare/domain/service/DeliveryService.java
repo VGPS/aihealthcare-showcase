@@ -34,7 +34,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-07-20
+ * @updated 2026-07-21
  */
 @Slf4j
 public class DeliveryService implements ManageSubscribersUseCase, DeliverNewsletterUseCase {
@@ -98,38 +98,50 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
             return;
         }
 
+        boolean anyDelivered = false;
+
         // Deliver full newsletter to SUBSCRIBER subscribers
         if (!subscriberRecipients.isEmpty()) {
             newsletterDeliveryPort.deliver(run, subscriberRecipients);
+            anyDelivered = true;
             log.info("deliver() | Full newsletter sent to {} subscriber-tier recipients", subscriberRecipients.size());
         }
 
         // Deliver full newsletter to DEMO subscribers (same content as SUBSCRIBER)
         if (!demoRecipients.isEmpty()) {
             newsletterDeliveryPort.deliver(run, demoRecipients);
+            anyDelivered = true;
             log.info("deliver() | Full newsletter sent to {} demo-tier recipients", demoRecipients.size());
         }
 
         // Deliver daily digest to FREE subscribers (NotebookLM summary, not teaser)
         if (!freeRecipients.isEmpty()) {
-            NewsletterRun digestRun = digestRenderer.buildDigest();
-            newsletterDeliveryPort.deliver(digestRun, freeRecipients);
-            log.info("deliver() | Digest newsletter sent to {} free subscribers", freeRecipients.size());
+            Optional<NewsletterRun> digestOpt = digestRenderer.buildDigest();
+            if (digestOpt.isPresent()) {
+                newsletterDeliveryPort.deliver(digestOpt.get(), freeRecipients);
+                anyDelivered = true;
+                log.info("deliver() | Digest newsletter sent to {} free subscribers", freeRecipients.size());
+            } else {
+                log.info("deliver() | No articles today — skipping digest for {} free subscribers", freeRecipients.size());
+            }
         }
 
-        NewsletterRun sent = new NewsletterRun(
-                run.runId(),
-                run.title(),
-                run.weekOf(),
-                run.htmlContent(),
-                run.plainTextContent(),
-                NewsletterRunStatus.SENT,
-                run.generatedAt()
-        );
-        newsletterRunPort.save(sent);
-
-        log.info("deliver() | Newsletter delivered: runId={}, subscriber={}, demo={}, free={}",
-                 runId, subscriberRecipients.size(), demoRecipients.size(), freeRecipients.size());
+        if (anyDelivered) {
+            NewsletterRun sent = new NewsletterRun(
+                    run.runId(),
+                    run.title(),
+                    run.weekOf(),
+                    run.htmlContent(),
+                    run.plainTextContent(),
+                    NewsletterRunStatus.SENT,
+                    run.generatedAt()
+            );
+            newsletterRunPort.save(sent);
+            log.info("deliver() | Newsletter delivered: runId={}, subscriber={}, demo={}, free={}",
+                     runId, subscriberRecipients.size(), demoRecipients.size(), freeRecipients.size());
+        } else {
+            log.info("deliver() | No emails sent for runId={} — 0 articles available", runId);
+        }
 
         log.debug("deliver() | return=void");
     }

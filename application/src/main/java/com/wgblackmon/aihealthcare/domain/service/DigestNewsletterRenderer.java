@@ -22,7 +22,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-20
+ * @updated 2026-07-21
  */
 @Slf4j
 public class DigestNewsletterRenderer {
@@ -44,9 +44,14 @@ public class DigestNewsletterRenderer {
      * in an email-safe layout, and returns a synthetic {@link NewsletterRun}
      * suitable for delivery.
      *
-     * @return A newsletter run containing the digest HTML and plain-text content.
+     * <p>When no summary exists for today, falls back to the most recent
+     * available summary and prepends a "No new articles found" banner with
+     * the original summary date.  Returns {@link Optional#empty()} only when
+     * no summary files exist at all (within the lookback window).
+     *
+     * @return An optional newsletter run; empty if no summaries exist at all.
      */
-    public NewsletterRun buildDigest() {
+    public Optional<NewsletterRun> buildDigest() {
         log.debug("buildDigest() | (no args)");
 
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
@@ -62,9 +67,26 @@ public class DigestNewsletterRenderer {
             bodyHtml = htmlOpt.get();
             bodyText = textOpt.orElse("Today's AI Healthcare article digest. View in a browser for best experience.");
         } else {
-            log.info("buildDigest() | No summary file for {} — using fallback", today);
-            bodyHtml = buildFallbackHtml(dateDisplay);
-            bodyText = "No articles available for " + dateDisplay + ". Check back tomorrow for the latest AI healthcare news.";
+            log.info("buildDigest() | No summary file for {} — searching for most recent", today);
+            Optional<LocalDate> recentDateOpt = dailySummaryPort.findMostRecentSummaryDate();
+
+            if (recentDateOpt.isEmpty()) {
+                log.info("buildDigest() | No recent summaries found — skipping digest");
+                log.debug("buildDigest() | return=Optional.empty()");
+                return Optional.empty();
+            }
+
+            LocalDate recentDate = recentDateOpt.get();
+            String recentDateDisplay = recentDate.format(DISPLAY_FMT);
+            log.info("buildDigest() | Falling back to most recent summary from {}", recentDate);
+
+            Optional<String> recentHtml = dailySummaryPort.getHtmlSummary(recentDate);
+            Optional<String> recentText = dailySummaryPort.getTextSummary(recentDate);
+
+            String banner = buildNoNewArticlesBanner(recentDateDisplay);
+            bodyHtml = banner + recentHtml.orElse("");
+            bodyText = "No new articles found. Here is the most recent summary from " + recentDateDisplay + ".\n\n"
+                    + recentText.orElse("View in a browser for best experience.");
         }
 
         String wrappedHtml = wrapInEmailLayout(bodyHtml, dateDisplay);
@@ -79,7 +101,18 @@ public class DigestNewsletterRenderer {
                 Instant.now()
         );
 
-        log.debug("buildDigest() | return=NewsletterRun[runId={}]", result.runId());
+        log.debug("buildDigest() | return=Optional[NewsletterRun[runId={}]]", result.runId());
+        return Optional.of(result);
+    }
+
+    private String buildNoNewArticlesBanner(String summaryDateDisplay) {
+        log.debug("buildNoNewArticlesBanner() | summaryDate={}", summaryDateDisplay);
+        String result = "<div style=\"background:#fff3cd; border:1px solid #ffc107; border-radius:6px; "
+                + "padding:12px 16px; margin-bottom:20px; font-size:0.95em; color:#856404;\">"
+                + "<strong>No new articles found.</strong> "
+                + "Here is the most recent summary from " + summaryDateDisplay + "."
+                + "</div>\n";
+        log.debug("buildNoNewArticlesBanner() | return={} chars", result.length());
         return result;
     }
 
@@ -130,12 +163,4 @@ public class DigestNewsletterRenderer {
         return result;
     }
 
-    private String buildFallbackHtml(String dateDisplay) {
-        log.debug("buildFallbackHtml() | date={}", dateDisplay);
-        String result = "<p style=\"font-size:0.95em; color:#333; line-height:1.6;\">"
-                + "No articles are available for " + dateDisplay + ". "
-                + "Check back tomorrow for the latest AI healthcare news and research.</p>";
-        log.debug("buildFallbackHtml() | return={} chars", result.length());
-        return result;
-    }
 }
