@@ -387,14 +387,14 @@ class DashboardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("archiveLimited", true))
                 .andExpect(model().attribute("archiveDays", 7))
-                .andExpect(content().string(containsString("Upgrade to Member")));
+                .andExpect(content().string(containsString("Upgrade to Subscriber")));
     }
 
     @Test
-    void news_memberTier_noArchiveBanner() throws Exception {
-        Subscriber member = new Subscriber("user", "Member User", true, Instant.now(), SubscriptionTier.MEMBER);
-        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(member));
-        when(tierGatingService.archiveDaysFor(SubscriptionTier.MEMBER)).thenReturn(0);
+    void news_subscriberTier_noArchiveBanner() throws Exception {
+        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
+        when(tierGatingService.archiveDaysFor(SubscriptionTier.SUBSCRIBER)).thenReturn(0);
         when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(0)))
                 .thenReturn(List.of());
@@ -404,14 +404,14 @@ class DashboardControllerTest {
                 .andExpect(model().attribute("archiveLimited", false))
                 .andReturn().getResponse().getContentAsString();
 
-        assert !html.contains("Upgrade to Member") : "Member should not see upgrade banner";
+        assert !html.contains("Upgrade to Subscriber") : "Subscriber should not see upgrade banner";
     }
 
     @Test
-    void news_memberTier_usesUnlimitedArchive() throws Exception {
-        Subscriber member = new Subscriber("user", "Member User", true, Instant.now(), SubscriptionTier.MEMBER);
-        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(member));
-        when(tierGatingService.archiveDaysFor(SubscriptionTier.MEMBER)).thenReturn(0);
+    void news_subscriberTier_usesUnlimitedArchive() throws Exception {
+        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
+        when(tierGatingService.archiveDaysFor(SubscriptionTier.SUBSCRIBER)).thenReturn(0);
         NewsArticle article = sampleArticle("Old Article", Instant.parse("2025-01-01T10:00:00Z"));
         when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("General AI Healthcare News"), eq(0)))
@@ -435,13 +435,13 @@ class DashboardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("articles"))
                 .andExpect(model().attribute("accessDenied", true))
-                .andExpect(content().string(containsString("Member feature")));
+                .andExpect(content().string(containsString("Subscriber feature")));
     }
 
     @Test
-    void articles_companiesTopic_memberUser_showsArticles() throws Exception {
-        Subscriber member = new Subscriber("user", "Member User", true, Instant.now(), SubscriptionTier.MEMBER);
-        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(member));
+    void articles_companiesTopic_subscriberUser_showsArticles() throws Exception {
+        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
         when(articleIngestionPort.fetchAllByTopic(eq("New AI Healthcare Companies")))
                 .thenReturn(List.of());
 

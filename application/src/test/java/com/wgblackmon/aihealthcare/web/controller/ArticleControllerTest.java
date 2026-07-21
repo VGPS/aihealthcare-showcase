@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * <p>Covers {@code GET /api/v1/articles} with archive depth gating
  * based on the {@code X-Subscriber-Email} header.  FREE tier subscribers
- * receive date-limited results; MEMBER tier receives unlimited results.
+ * receive date-limited results; SUBSCRIBER tier receives unlimited results.
  *
  * @author  Bill Blackmon
  * @version 1.0
@@ -100,16 +100,16 @@ class ArticleControllerTest {
     }
 
     @Test
-    void listArticles_memberSubscriber_usesUnlimitedArchive() throws Exception {
-        Subscriber member = new Subscriber("member@test.com", "Member User", true, Instant.now(), SubscriptionTier.MEMBER);
-        when(subscriberPort.findByEmail("member@test.com")).thenReturn(Optional.of(member));
-        when(tierGatingService.archiveDaysFor(SubscriptionTier.MEMBER)).thenReturn(0);
+    void listArticles_subscriberTier_usesUnlimitedArchive() throws Exception {
+        Subscriber subscriber = new Subscriber("subscriber@test.com", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        when(subscriberPort.findByEmail("subscriber@test.com")).thenReturn(Optional.of(subscriber));
+        when(tierGatingService.archiveDaysFor(SubscriptionTier.SUBSCRIBER)).thenReturn(0);
         when(ingestionPort.fetchArticles(eq("AI Healthcare"), eq(20)))
                 .thenReturn(List.of(sampleArticle("a1", "All Articles")));
 
         mockMvc.perform(get("/api/v1/articles")
                         .param("topic", "AI Healthcare")
-                        .header("X-Subscriber-Email", "member@test.com"))
+                        .header("X-Subscriber-Email", "subscriber@test.com"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
 

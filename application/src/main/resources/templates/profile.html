@@ -100,9 +100,26 @@
             background: #f0f0f0;
             color: #666;
         }
-        .tier-badge.member {
+        .tier-badge.subscriber {
             background: #d4edda;
             color: #155724;
+        }
+        .tier-badge.demo {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .demo-countdown {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #856404;
+        }
+        .demo-countdown strong {
+            font-size: 1.1rem;
         }
 
         .usage-bar-container {
@@ -206,12 +223,13 @@
             <span class="info-label">Name</span>
             <span class="info-value" th:text="${subscriberName}">User Name</span>
 
-            <span class="info-label">Member since</span>
+            <span class="info-label">Subscriber since</span>
             <span class="info-value" th:text="${subscribedAt}">2026-01-01</span>
 
             <span class="info-label">Subscription</span>
             <span class="info-value">
-                <span class="tier-badge" th:classappend="${tier == 'MEMBER' ? 'member' : 'free'}"
+                <span class="tier-badge"
+                      th:classappend="${tier == 'SUBSCRIBER' ? 'subscriber' : (tier == 'DEMO' ? 'demo' : 'free')}"
                       th:text="${tier}">FREE</span>
                 <span th:if="${isAdmin}" class="admin-badge">ADMIN</span>
             </span>
@@ -219,6 +237,11 @@
             <span class="info-label">Archive access</span>
             <span class="info-value"
                   th:text="${archiveDays == 0 ? 'Unlimited' : archiveDays + ' days'}">30 days</span>
+        </div>
+
+        <div th:if="${isDemo}" class="demo-countdown">
+            Demo Expires: <strong th:text="${demoDaysLeft}">7</strong> days remaining
+            (expires <span th:text="${demoExpiresAt}">2026-07-27</span>)
         </div>
     </div>
 
@@ -243,9 +266,12 @@
         <h2>Manage Subscription</h2>
         <div class="action-buttons">
             <a th:if="${tier == 'FREE' and stripeEnabled}" th:href="@{/pricing}" class="btn btn-primary">
-                Upgrade to Member
+                Upgrade to Subscriber
             </a>
-            <a th:if="${tier == 'MEMBER' and stripeEnabled}"
+            <a th:if="${tier == 'DEMO' and stripeEnabled}" th:href="@{/pricing}" class="btn btn-primary">
+                Upgrade to Subscriber
+            </a>
+            <a th:if="${tier == 'SUBSCRIBER' and stripeEnabled}"
                th:href="@{/pricing}" class="btn btn-outline">
                 View Plans
             </a>

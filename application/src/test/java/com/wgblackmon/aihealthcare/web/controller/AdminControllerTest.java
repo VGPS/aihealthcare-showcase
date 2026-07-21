@@ -68,8 +68,8 @@ class AdminControllerTest {
 
     @Test
     void adminPanel_rendersPageWithModelAttributes() throws Exception {
-        AppUser admin = new AppUser("admin@gmail.com", "hash", "Admin", "ADMIN", true);
-        AppUser user = new AppUser("demo@gmail.com", "hash", "Demo", "USER", true);
+        AppUser admin = new AppUser("admin@gmail.com", "hash", "Admin", "ADMIN", true, null, null);
+        AppUser user = new AppUser("demo@gmail.com", "hash", "Demo", "USER", true, null, null);
         when(appUserPort.findAll()).thenReturn(List.of(admin, user));
 
         IngestionAnalytics ingestion = new IngestionAnalytics(42, List.of(), List.of(), 10, 30, null);
@@ -121,10 +121,10 @@ class AdminControllerTest {
 
     @Test
     void adminPanel_countsRolesCorrectly() throws Exception {
-        AppUser admin1 = new AppUser("admin1@test.com", "hash", "Admin1", "ADMIN", true);
-        AppUser admin2 = new AppUser("admin2@test.com", "hash", "Admin2", "ADMIN", true);
-        AppUser user1 = new AppUser("user1@test.com", "hash", "User1", "USER", true);
-        AppUser disabled = new AppUser("disabled@test.com", "hash", "Disabled", "USER", false);
+        AppUser admin1 = new AppUser("admin1@test.com", "hash", "Admin1", "ADMIN", true, null, null);
+        AppUser admin2 = new AppUser("admin2@test.com", "hash", "Admin2", "ADMIN", true, null, null);
+        AppUser user1 = new AppUser("user1@test.com", "hash", "User1", "USER", true, null, null);
+        AppUser disabled = new AppUser("disabled@test.com", "hash", "Disabled", "USER", false, null, null);
         when(appUserPort.findAll()).thenReturn(List.of(admin1, admin2, user1, disabled));
 
         IngestionAnalytics ingestion = new IngestionAnalytics(0, List.of(), List.of(), 0, 0, null);
@@ -148,7 +148,7 @@ class AdminControllerTest {
 
     @Test
     void toggleEnabled_disablesActiveUser() throws Exception {
-        AppUser active = new AppUser("demo@gmail.com", "hash", "Demo", "USER", true);
+        AppUser active = new AppUser("demo@gmail.com", "hash", "Demo", "USER", true, null, null);
         when(appUserPort.findByEmail("demo@gmail.com")).thenReturn(Optional.of(active));
 
         mockMvc.perform(post("/admin/users/demo@gmail.com/toggle-enabled").with(csrf()))
@@ -164,7 +164,7 @@ class AdminControllerTest {
 
     @Test
     void toggleEnabled_enablesDisabledUser() throws Exception {
-        AppUser disabled = new AppUser("demo@gmail.com", "hash", "Demo", "USER", false);
+        AppUser disabled = new AppUser("demo@gmail.com", "hash", "Demo", "USER", false, null, null);
         when(appUserPort.findByEmail("demo@gmail.com")).thenReturn(Optional.of(disabled));
 
         mockMvc.perform(post("/admin/users/demo@gmail.com/toggle-enabled").with(csrf()))
@@ -205,7 +205,7 @@ class AdminControllerTest {
 
     @Test
     void changeRole_switchesUserToAdmin() throws Exception {
-        AppUser user = new AppUser("demo@gmail.com", "hash", "Demo", "USER", true);
+        AppUser user = new AppUser("demo@gmail.com", "hash", "Demo", "USER", true, null, null);
         when(appUserPort.findByEmail("demo@gmail.com")).thenReturn(Optional.of(user));
 
         mockMvc.perform(post("/admin/users/demo@gmail.com/change-role")
@@ -223,7 +223,7 @@ class AdminControllerTest {
 
     @Test
     void changeRole_switchesAdminToUser() throws Exception {
-        AppUser admin = new AppUser("other-admin@gmail.com", "hash", "OtherAdmin", "ADMIN", true);
+        AppUser admin = new AppUser("other-admin@gmail.com", "hash", "OtherAdmin", "ADMIN", true, null, null);
         when(appUserPort.findByEmail("other-admin@gmail.com")).thenReturn(Optional.of(admin));
 
         mockMvc.perform(post("/admin/users/other-admin@gmail.com/change-role")

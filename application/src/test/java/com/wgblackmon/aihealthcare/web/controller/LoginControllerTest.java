@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-28
- * @updated 2026-05-28
+ * @updated 2026-07-20
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(LoginController.class)
@@ -54,5 +54,12 @@ class LoginControllerTest {
         mockMvc.perform(get("/login").param("logout", ""))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("signed out successfully")));
+    }
+
+    @Test
+    void login_withDemoExpired_showsDemoExpiredMessage() throws Exception {
+        mockMvc.perform(get("/login").param("demo-expired", ""))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Your demo has expired")));
     }
 }

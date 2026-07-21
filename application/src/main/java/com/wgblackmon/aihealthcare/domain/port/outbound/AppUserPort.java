@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.domain.port.outbound;
 
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,4 +43,15 @@ public interface AppUserPort {
      * @param user The user to persist.
      */
     void save(AppUser user);
+
+    /**
+     * Returns all users with the given tier whose demo has expired before the
+     * given cutoff time.  Used by the nightly demo expiration scheduler.
+     *
+     * @param tier   the tier to filter by (typically DEMO).
+     * @param before the cutoff timestamp; users whose demoExpiresAt is before
+     *               this value are returned.
+     * @return matching users; may be empty.
+     */
+    List<AppUser> findByTierAndDemoExpiresAtBefore(String tier, Instant before);
 }

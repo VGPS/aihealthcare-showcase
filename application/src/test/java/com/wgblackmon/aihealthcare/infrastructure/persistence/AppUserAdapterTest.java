@@ -34,7 +34,9 @@ class AppUserAdapterTest {
             "$2b$10$hashedPassword",
             "Test User",
             "USER",
-            true
+            true,
+            null,
+            null
     );
 
     @Test
@@ -73,7 +75,9 @@ class AppUserAdapterTest {
                 "$2b$10$hashedPassword",
                 "Test User",
                 "ADMIN",
-                false
+                false,
+                null,
+                null
         );
         adapter.save(updated);
 

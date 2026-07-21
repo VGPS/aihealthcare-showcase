@@ -67,7 +67,7 @@
 
         .tier-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 2rem;
         }
 
@@ -80,7 +80,7 @@
             flex-direction: column;
         }
 
-        .tier-card.member {
+        .tier-card.subscriber {
             border: 2px solid #0066cc;
             position: relative;
         }
@@ -164,11 +164,11 @@
             color: #666;
         }
 
-        .tier-button.member {
+        .tier-button.subscriber {
             background: #0066cc;
             color: white;
         }
-        .tier-button.member:hover { background: #004499; }
+        .tier-button.subscriber:hover { background: #004499; }
 
         .comparison-table {
             margin-top: 3rem;
@@ -206,16 +206,18 @@
         }
 
         .comparison-table td:nth-child(2),
-        .comparison-table td:nth-child(3) {
+        .comparison-table td:nth-child(3),
+        .comparison-table td:nth-child(4) {
             text-align: center;
         }
 
         .comparison-table th:nth-child(2),
-        .comparison-table th:nth-child(3) {
+        .comparison-table th:nth-child(3),
+        .comparison-table th:nth-child(4) {
             text-align: center;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 900px) {
             .tier-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -248,37 +250,54 @@
     <p class="page-subtitle">AI-powered healthcare intelligence for professionals and teams</p>
 
     <div class="tier-grid">
+        <!-- DEMO tier card -->
+        <div class="tier-card">
+            <div class="tier-name">Demo</div>
+            <div class="tier-price">$0 <span>/ 7 days</span></div>
+            <p class="tier-desc">
+                Try the full platform free for 7 days. No credit card required.
+                All Subscriber features included.
+            </p>
+            <ul class="feature-list">
+                <li><span class="check">&#10003;</span> Full newsletter content</li>
+                <li><span class="check">&#10003;</span> Unlimited article archive</li>
+                <li><span class="check">&#10003;</span> Semantic / vector search</li>
+                <li>
+                    <span class="check">&#10003;</span>
+                    <span th:text="${subscriberQueryLimit} + ' AI research queries'">200 AI research queries</span>
+                </li>
+                <li><span class="check">&#10003;</span> LLM model choice</li>
+                <li><span class="check">&#10003;</span> Vendor comparisons</li>
+                <li><span class="check">&#10003;</span> 7-day full access trial</li>
+            </ul>
+            <a class="tier-button subscriber" th:href="@{/register}">Start Free Trial</a>
+        </div>
+
         <!-- FREE tier card -->
         <div class="tier-card">
             <div class="tier-name">Free</div>
             <div class="tier-price">$0 <span>/month</span></div>
             <p class="tier-desc">
-                Stay informed with weekly highlights and basic access to the
-                AI-in-Healthcare newsletter.
+                Daily article digest newsletter delivered to your inbox.
+                No platform access.
             </p>
             <ul class="feature-list">
-                <li><span class="check">&#10003;</span> Weekly newsletter teaser</li>
-                <li>
-                    <span class="check">&#10003;</span>
-                    <span th:text="${freeArchiveDays} + '-day article archive'">30-day article archive</span>
-                </li>
-                <li><span class="check">&#10003;</span> Basic keyword search</li>
-                <li>
-                    <span class="check">&#10003;</span>
-                    <span th:text="${freeQueryLimit} + ' AI research queries/month'">15 AI research queries/month</span>
-                </li>
+                <li><span class="check">&#10003;</span> Daily article digest email</li>
+                <li><span class="cross">&#10007;</span> Platform access</li>
+                <li><span class="cross">&#10007;</span> Article archive</li>
+                <li><span class="cross">&#10007;</span> AI research queries</li>
                 <li><span class="cross">&#10007;</span> Semantic / vector search</li>
                 <li><span class="cross">&#10007;</span> LLM model choice</li>
                 <li><span class="cross">&#10007;</span> Full newsletter content</li>
             </ul>
-            <div class="tier-button free">Current Plan</div>
+            <div class="tier-button free">Email Only</div>
         </div>
 
-        <!-- MEMBER tier card -->
-        <div class="tier-card member">
+        <!-- SUBSCRIBER tier card -->
+        <div class="tier-card subscriber">
             <div class="tier-badge">Recommended</div>
-            <div class="tier-name">Member</div>
-            <div class="tier-price">$15 <span>/month</span></div>
+            <div class="tier-name">Subscriber</div>
+            <div class="tier-price">$39 <span>/month</span></div>
             <p class="tier-desc">
                 Full access to the platform: complete newsletters, deep archive,
                 semantic search, and AI-powered research tools.
@@ -287,22 +306,22 @@
                 <li><span class="check">&#10003;</span> Full weekly newsletter</li>
                 <li>
                     <span class="check">&#10003;</span>
-                    <span th:text="${memberArchiveDays == 0} ? 'Unlimited article archive' : ${memberArchiveDays} + '-day article archive'">Unlimited article archive</span>
+                    <span th:text="${subscriberArchiveDays == 0} ? 'Unlimited article archive' : ${subscriberArchiveDays} + '-day article archive'">Unlimited article archive</span>
                 </li>
                 <li><span class="check">&#10003;</span> Basic + semantic search</li>
                 <li>
                     <span class="check">&#10003;</span>
-                    <span th:text="${memberQueryLimit} + ' AI research queries/month'">200 AI research queries/month</span>
+                    <span th:text="${subscriberQueryLimit} + ' AI research queries/month'">200 AI research queries/month</span>
                 </li>
                 <li><span class="check">&#10003;</span> Semantic / vector search</li>
                 <li><span class="check">&#10003;</span> LLM model choice</li>
                 <li><span class="check">&#10003;</span> Vendor comparisons &amp; reports</li>
             </ul>
-            <button class="tier-button member" id="upgradeBtn"
+            <button class="tier-button subscriber" id="upgradeBtn"
                     th:if="${stripeEnabled}"
-                    th:data-price-id="${memberPriceId}"
-                    onclick="handleUpgrade()">Upgrade to Member</button>
-            <a class="tier-button member" th:if="${!stripeEnabled}" href="#upgrade"
+                    th:data-price-id="${subscriberPriceId}"
+                    onclick="handleUpgrade()">Upgrade to Subscriber</button>
+            <a class="tier-button subscriber" th:if="${!stripeEnabled}" href="#upgrade"
                style="opacity:0.5; pointer-events:none;">Upgrade (coming soon)</a>
         </div>
     </div>
@@ -314,55 +333,65 @@
             <thead>
                 <tr>
                     <th>Feature</th>
+                    <th>Demo (7 days)</th>
                     <th>Free</th>
-                    <th>Member</th>
+                    <th>Subscriber</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>Newsletter content</td>
-                    <td>Teaser (first section)</td>
+                    <td>Full newsletter</td>
+                    <td>Daily digest email</td>
                     <td>Full newsletter</td>
                 </tr>
                 <tr>
+                    <td>Platform access</td>
+                    <td><span class="check">&#10003;</span></td>
+                    <td><span class="cross">&#10007;</span></td>
+                    <td><span class="check">&#10003;</span></td>
+                </tr>
+                <tr>
                     <td>Article archive</td>
-                    <td th:text="${freeArchiveDays} + ' days'">30 days</td>
-                    <td th:text="${memberArchiveDays == 0} ? 'Unlimited' : ${memberArchiveDays} + ' days'">Unlimited</td>
+                    <td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td>
+                    <td><span class="cross">&#10007;</span></td>
+                    <td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td>
                 </tr>
                 <tr>
                     <td>AI research queries</td>
-                    <td th:text="${freeQueryLimit} + ' / month'">15 / month</td>
-                    <td th:text="${memberQueryLimit} + ' / month'">200 / month</td>
-                </tr>
-                <tr>
-                    <td>Keyword search</td>
-                    <td><span class="check">&#10003;</span></td>
-                    <td><span class="check">&#10003;</span></td>
+                    <td th:text="${subscriberQueryLimit} + ' / trial'">200 / trial</td>
+                    <td><span class="cross">&#10007;</span></td>
+                    <td th:text="${subscriberQueryLimit} + ' / month'">200 / month</td>
                 </tr>
                 <tr>
                     <td>Semantic / vector search</td>
+                    <td><span class="check">&#10003;</span></td>
                     <td><span class="cross">&#10007;</span></td>
                     <td><span class="check">&#10003;</span></td>
                 </tr>
                 <tr>
                     <td>LLM model choice</td>
-                    <td>Default only</td>
+                    <td>Multiple models</td>
+                    <td><span class="cross">&#10007;</span></td>
                     <td>Multiple models</td>
                 </tr>
                 <tr>
                     <td>Vendor comparison reports</td>
+                    <td><span class="check">&#10003;</span></td>
                     <td><span class="cross">&#10007;</span></td>
                     <td><span class="check">&#10003;</span></td>
                 </tr>
                 <tr>
                     <td>Research run history</td>
-                    <td>Last 7 days</td>
+                    <td>Unlimited</td>
+                    <td><span class="cross">&#10007;</span></td>
                     <td>Unlimited</td>
                 </tr>
                 <tr>
-                    <td>Topic AI summaries</td>
-                    <td><span class="check">&#10003;</span></td>
-                    <td><span class="check">&#10003;</span></td>
+                    <td>Duration</td>
+                    <td>7 days</td>
+                    <td>Unlimited</td>
+                    <td>Unlimited</td>
                 </tr>
             </tbody>
         </table>

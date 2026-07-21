@@ -131,7 +131,7 @@ public class AdminController {
 
         AppUser user = existing.get();
         AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
-                user.role(), !user.enabled());
+                user.role(), !user.enabled(), user.tier(), user.demoExpiresAt());
         appUserPort.save(updated);
 
         String action = updated.enabled() ? "enabled" : "disabled";
@@ -177,7 +177,7 @@ public class AdminController {
 
         AppUser user = existing.get();
         AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
-                role, user.enabled());
+                role, user.enabled(), user.tier(), user.demoExpiresAt());
         appUserPort.save(updated);
 
         redirectAttributes.addFlashAttribute("successMessage",

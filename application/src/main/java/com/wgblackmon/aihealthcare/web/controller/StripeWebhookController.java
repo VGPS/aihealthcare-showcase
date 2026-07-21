@@ -5,8 +5,10 @@ import com.stripe.model.Event;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
+import com.wgblackmon.aihealthcare.domain.model.AppUser;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.StripeProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +46,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-23
- * @updated 2026-05-26
+ * @updated 2026-07-20
  */
 @Slf4j
 @RestController
@@ -53,12 +55,16 @@ public class StripeWebhookController {
 
     private final StripeProperties stripeProperties;
     private final SubscriberPort   subscriberPort;
+    private final AppUserPort      appUserPort;
 
     public StripeWebhookController(StripeProperties stripeProperties,
-                                   SubscriberPort subscriberPort) {
-        log.debug("StripeWebhookController() | stripeEnabled={}", stripeProperties.isEnabled());
+                                   SubscriberPort subscriberPort,
+                                   AppUserPort appUserPort) {
+        log.debug("StripeWebhookController() | stripeEnabled={}, appUserPort={}",
+                  stripeProperties.isEnabled(), appUserPort.getClass().getSimpleName());
         this.stripeProperties = stripeProperties;
         this.subscriberPort   = subscriberPort;
+        this.appUserPort      = appUserPort;
     }
 
     /**
@@ -143,6 +149,7 @@ public class StripeWebhookController {
                 ? session.getMetadata().get("price_id") : null);
 
         upsertSubscriber(email, tier);
+        reEnableAppUser(email, tier);
         log.info("handleCheckoutCompleted() | New paid subscriber: email={}, tier={}", email, tier);
         log.debug("handleCheckoutCompleted() | return=void");
     }
@@ -201,6 +208,28 @@ public class StripeWebhookController {
     // -------------------------------------------------------------------------
 
     /**
+     * Re-enables an {@link AppUser} account and sets its tier after successful
+     * Stripe checkout.  Handles the FREE→SUBSCRIBER upgrade path where the
+     * user's account was previously disabled during demo expiration.
+     */
+    private void reEnableAppUser(String email, SubscriptionTier tier) {
+        log.debug("reEnableAppUser() | email={}, tier={}", email, tier);
+
+        Optional<AppUser> userOpt = appUserPort.findByEmail(email);
+        if (userOpt.isPresent()) {
+            AppUser user = userOpt.get();
+            AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
+                    user.role(), true, tier, user.demoExpiresAt());
+            appUserPort.save(updated);
+            log.info("reEnableAppUser() | Re-enabled app_user: email={}, tier={}", email, tier);
+        } else {
+            log.debug("reEnableAppUser() | No app_user found for email={} — skipping", email);
+        }
+
+        log.debug("reEnableAppUser() | return=void");
+    }
+
+    /**
      * Maps a Stripe Price ID to a {@link SubscriptionTier}.
      * Falls back to FREE if the price ID is unrecognised or null.
      */
@@ -208,8 +237,8 @@ public class StripeWebhookController {
         log.debug("mapPriceToTier() | priceId={}", priceId);
 
         SubscriptionTier result;
-        if (priceId != null && priceId.equals(stripeProperties.getMemberPriceId())) {
-            result = SubscriptionTier.MEMBER;
+        if (priceId != null && priceId.equals(stripeProperties.getSubscriberPriceId())) {
+            result = SubscriptionTier.SUBSCRIBER;
         } else {
             result = SubscriptionTier.FREE;
         }

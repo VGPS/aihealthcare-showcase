@@ -1,10 +1,12 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -67,6 +69,20 @@ public class AppUserAdapter implements AppUserPort {
         log.debug("save() | return=void");
     }
 
+    @Override
+    public List<AppUser> findByTierAndDemoExpiresAtBefore(String tier, Instant before) {
+        log.debug("findByTierAndDemoExpiresAtBefore() | tier={}, before={}", tier, before);
+
+        List<AppUserEntity> entities = repository.findAllByTierAndDemoExpiresAtBefore(tier, before);
+        List<AppUser> result = new ArrayList<>();
+        for (AppUserEntity entity : entities) {
+            result.add(toDomain(entity));
+        }
+
+        log.debug("findByTierAndDemoExpiresAtBefore() | return={} users", result.size());
+        return result;
+    }
+
     // -------------------------------------------------------------------------
     // Mapping helpers
     // -------------------------------------------------------------------------
@@ -80,6 +96,8 @@ public class AppUserAdapter implements AppUserPort {
         entity.setDisplayName(user.displayName());
         entity.setRole(user.role());
         entity.setEnabled(user.enabled());
+        entity.setTier(user.tier() != null ? user.tier().name() : null);
+        entity.setDemoExpiresAt(user.demoExpiresAt());
 
         log.debug("toEntity() | return={}", entity.getEmail());
         return entity;
@@ -88,12 +106,19 @@ public class AppUserAdapter implements AppUserPort {
     private AppUser toDomain(AppUserEntity entity) {
         log.debug("toDomain() | email={}", entity.getEmail());
 
+        SubscriptionTier tier = null;
+        if (entity.getTier() != null) {
+            tier = SubscriptionTier.valueOf(entity.getTier());
+        }
+
         AppUser result = new AppUser(
                 entity.getEmail(),
                 entity.getPasswordHash(),
                 entity.getDisplayName(),
                 entity.getRole(),
-                entity.isEnabled()
+                entity.isEnabled(),
+                tier,
+                entity.getDemoExpiresAt()
         );
 
         log.debug("toDomain() | return={}", result.email());

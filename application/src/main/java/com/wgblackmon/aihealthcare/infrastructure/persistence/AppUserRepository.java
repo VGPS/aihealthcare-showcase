@@ -2,6 +2,8 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -25,4 +27,13 @@ public interface AppUserRepository extends JpaRepository<AppUserEntity, String> 
      * @return An {@link Optional} containing the entity, or empty if not found.
      */
     Optional<AppUserEntity> findByEmail(String email);
+
+    /**
+     * Finds users with the given tier whose demo expiration is before the cutoff.
+     *
+     * @param tier   the tier string (e.g. "DEMO").
+     * @param before the cutoff timestamp.
+     * @return matching entities; never {@code null}.
+     */
+    List<AppUserEntity> findAllByTierAndDemoExpiresAtBefore(String tier, Instant before);
 }

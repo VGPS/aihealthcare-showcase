@@ -30,14 +30,14 @@ import java.util.Optional;
  * classifies companies, deduplicates, persists as articles, and
  * returns the categorized company list with newsletter markdown.
  *
- * <p>This is a <strong>Member-only</strong> feature. Callers must
- * supply an {@code X-Subscriber-Email} header for a MEMBER-tier
+ * <p>This is a <strong>Subscriber-only</strong> feature. Callers must
+ * supply an {@code X-Subscriber-Email} header for a SUBSCRIBER-tier
  * subscriber, or the request is rejected with HTTP 403.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-07
- * @updated 2026-06-07
+ * @updated 2026-07-20
  */
 @Slf4j
 @RestController
@@ -60,7 +60,7 @@ public class CompanyDiscoveryController {
     /**
      * Triggers the full company discovery pipeline.
      *
-     * <p>Requires a MEMBER-tier subscriber. Pass the subscriber's email
+     * <p>Requires a SUBSCRIBER-tier subscriber. Pass the subscriber's email
      * via the {@code X-Subscriber-Email} header.
      *
      * @param subscriberEmail subscriber email from header (required)
@@ -71,12 +71,12 @@ public class CompanyDiscoveryController {
             @RequestHeader(value = "X-Subscriber-Email", required = false) String subscriberEmail) {
         log.debug("discover() | subscriberEmail={}", subscriberEmail);
 
-        // Tier gating — MEMBER only
+        // Tier gating — SUBSCRIBER only
         SubscriptionTier tier = resolveTier(subscriberEmail);
-        if (tier != SubscriptionTier.MEMBER) {
+        if (tier != SubscriptionTier.SUBSCRIBER) {
             log.warn("discover() | access denied — tier={} for email={}", tier, subscriberEmail);
             Map<String, Object> body = new LinkedHashMap<>();
-            body.put("error", "Company discovery is a Member-only feature");
+            body.put("error", "Company discovery is a Subscriber-only feature");
             body.put("tier", tier.name());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
         }

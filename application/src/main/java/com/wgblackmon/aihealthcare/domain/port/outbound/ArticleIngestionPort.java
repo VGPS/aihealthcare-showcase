@@ -43,7 +43,7 @@ public interface ArticleIngestionPort {
      * no date restriction is applied (unlimited archive access).
      *
      * <p>Used by tier-gated UI pages to enforce archive depth limits per
-     * subscription tier (e.g. FREE sees last 7 days, MEMBER sees all).
+     * subscription tier (e.g. FREE sees last 7 days, SUBSCRIBER sees all).
      *
      * @param topic       exact topic label to filter by (case-insensitive substring match)
      * @param archiveDays maximum article age in days; 0 = unlimited

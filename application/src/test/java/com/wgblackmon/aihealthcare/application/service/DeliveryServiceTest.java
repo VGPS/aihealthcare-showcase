@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
+import com.wgblackmon.aihealthcare.domain.service.DigestNewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,8 @@ class DeliveryServiceTest {
     private NewsletterDeliveryPort  newsletterDeliveryPort;
     @Mock
     private NewsletterTeaserBuilder teaserBuilder;
+    @Mock
+    private DigestNewsletterRenderer digestRenderer;
 
     private DeliveryService service;
 
@@ -61,7 +64,7 @@ class DeliveryServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new DeliveryService(subscriberPort, newsletterRunPort, newsletterDeliveryPort, teaserBuilder);
+        service = new DeliveryService(subscriberPort, newsletterRunPort, newsletterDeliveryPort, teaserBuilder, digestRenderer);
     }
 
     // -------------------------------------------------------------------------

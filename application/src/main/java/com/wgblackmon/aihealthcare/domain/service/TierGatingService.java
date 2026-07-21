@@ -8,28 +8,35 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Domain service that evaluates feature access and usage limits per subscription tier.
  *
- * <p>Holds the configured {@link TierLimits} for each tier and provides simple
- * predicate methods that controllers and services can call to decide whether a
- * subscriber is allowed to perform a gated action (e.g. an AI research query).
+ * <p>Holds the configured {@link TierLimits} for each of the four tiers (DEMO,
+ * FREE_PENDING, FREE, SUBSCRIBER) and provides simple predicate methods that
+ * controllers and services can call to decide whether a subscriber is allowed
+ * to perform a gated action (e.g. an AI research query).
  *
  * <p>This class carries no Spring annotations; it is wired as a {@code @Bean} in
  * {@link com.wgblackmon.aihealthcare.infrastructure.config.AppConfig}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-05-26
- * @updated 2026-05-26
+ * @updated 2026-07-20
  */
 @Slf4j
 public class TierGatingService {
 
     private final TierLimits freeLimits;
-    private final TierLimits memberLimits;
+    private final TierLimits subscriberLimits;
+    private final TierLimits demoLimits;
+    private final TierLimits freePendingLimits;
 
-    public TierGatingService(TierLimits freeLimits, TierLimits memberLimits) {
-        log.debug("TierGatingService() | freeLimits={}, memberLimits={}", freeLimits, memberLimits);
-        this.freeLimits   = freeLimits;
-        this.memberLimits = memberLimits;
+    public TierGatingService(TierLimits freeLimits, TierLimits subscriberLimits,
+                             TierLimits demoLimits, TierLimits freePendingLimits) {
+        log.debug("TierGatingService() | freeLimits={}, subscriberLimits={}, demoLimits={}, freePendingLimits={}",
+                  freeLimits, subscriberLimits, demoLimits, freePendingLimits);
+        this.freeLimits         = freeLimits;
+        this.subscriberLimits   = subscriberLimits;
+        this.demoLimits         = demoLimits;
+        this.freePendingLimits  = freePendingLimits;
     }
 
     /**
@@ -42,8 +49,12 @@ public class TierGatingService {
         log.debug("getLimits() | tier={}", tier);
 
         TierLimits result;
-        if (tier == SubscriptionTier.MEMBER) {
-            result = memberLimits;
+        if (tier == SubscriptionTier.SUBSCRIBER) {
+            result = subscriberLimits;
+        } else if (tier == SubscriptionTier.DEMO) {
+            result = demoLimits;
+        } else if (tier == SubscriptionTier.FREE_PENDING) {
+            result = freePendingLimits;
         } else {
             result = freeLimits;
         }

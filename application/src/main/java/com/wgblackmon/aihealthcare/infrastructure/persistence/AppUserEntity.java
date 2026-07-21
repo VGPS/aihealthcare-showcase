@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.Instant;
+
 /**
  * JPA entity representing a row in the {@code app_users} table.
  *
@@ -17,10 +19,14 @@ import jakarta.persistence.Table;
  * ID is needed.  The {@code enabled} flag supports soft-disabling accounts without
  * deleting the historical record.
  *
+ * <p>The {@code tier} column stores the subscription tier as a string (e.g. "DEMO",
+ * "FREE", "SUBSCRIBER").  The {@code demoExpiresAt} column holds the DEMO
+ * expiration timestamp; {@code null} for non-DEMO users.
+ *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-05-28
- * @updated 2026-05-28
+ * @updated 2026-07-20
  */
 @Entity
 @Table(name = "app_users")
@@ -42,6 +48,12 @@ public class AppUserEntity {
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 
+    @Column(name = "tier", length = 20)
+    private String tier;
+
+    @Column(name = "demo_expires_at")
+    private Instant demoExpiresAt;
+
     /** Required no-arg constructor for JPA. */
     public AppUserEntity() {}
 
@@ -59,4 +71,10 @@ public class AppUserEntity {
 
     public boolean isEnabled()                      { return enabled; }
     public void setEnabled(boolean enabled)         { this.enabled = enabled; }
+
+    public String getTier()                         { return tier; }
+    public void setTier(String tier)                { this.tier = tier; }
+
+    public Instant getDemoExpiresAt()               { return demoExpiresAt; }
+    public void setDemoExpiresAt(Instant demoExpiresAt) { this.demoExpiresAt = demoExpiresAt; }
 }

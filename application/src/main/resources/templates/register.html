@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AIHealthcare — Register</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            font-size: 14px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+        }
+        header h1 { font-size: 1.25rem; font-weight: 600; }
+        header p  { font-size: 0.8rem; opacity: 0.6; }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .register-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .register-card h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .register-card .subtitle {
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-badge {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 0.3rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        .register-button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            background: #0066cc;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.25rem;
+        }
+        .register-button:hover { background: #004499; }
+
+        .alert {
+            padding: 0.6rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .register-footer {
+            text-align: center;
+            margin-top: 1.25rem;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .register-footer a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .register-footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AIHealthcare</h1>
+    <p>AI-in-Healthcare Intelligence Platform</p>
+</header>
+
+<main>
+    <div class="register-card">
+        <h2>Start Your Free Trial</h2>
+        <p class="subtitle">
+            <span class="demo-badge">7-DAY DEMO</span><br/>
+            Full access to the platform for 7 days. No credit card required.
+        </p>
+
+        <div th:if="${error}" class="alert alert-error" th:text="${error}">
+            Error message
+        </div>
+
+        <form th:action="@{/register}" method="post">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email"
+                       th:value="${email}"
+                       placeholder="you@example.com" required autofocus/>
+            </div>
+
+            <div class="form-group">
+                <label for="displayName">Display Name</label>
+                <input type="text" id="displayName" name="displayName"
+                       th:value="${displayName}"
+                       placeholder="Your name" required/>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password"
+                       placeholder="Choose a password" required/>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword"
+                       placeholder="Confirm your password" required/>
+            </div>
+
+            <button type="submit" class="register-button">Create Account</button>
+        </form>
+
+        <div class="register-footer">
+            Already have an account? <a th:href="@{/login}">Sign in</a>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

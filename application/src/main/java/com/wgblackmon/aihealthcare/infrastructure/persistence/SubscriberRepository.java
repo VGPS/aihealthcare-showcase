@@ -33,7 +33,7 @@ public interface SubscriberRepository extends JpaRepository<SubscriberEntity, St
      * Returns all active subscribers with the given tier.
      * Used to target content delivery by subscription level.
      *
-     * @param tier The tier string (FREE, MEMBER).
+     * @param tier The tier string (FREE, SUBSCRIBER).
      * @return List of matching subscriber entities; never {@code null}.
      */
     List<SubscriberEntity> findAllByActiveTrueAndTier(String tier);

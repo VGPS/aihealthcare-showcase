@@ -12,14 +12,14 @@ import java.security.Principal;
 /**
  * Thymeleaf controller that renders the public pricing page at {@code GET /pricing}.
  *
- * <p>Displays the two-tier comparison (Free vs Member) with feature limits loaded
+ * <p>Displays the two-tier comparison (Free vs Subscriber) with feature limits loaded
  * from {@link TierLimitProperties} and an upgrade button backed by the Stripe
  * publishable key from {@link StripeProperties}.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-26
- * @updated 2026-07-03
+ * @updated 2026-07-20
  */
 @Slf4j
 @Controller
@@ -47,16 +47,16 @@ public class PricingController {
     public String pricing(Model model, Principal principal) {
         log.debug("pricing() | principal={}", principal != null ? principal.getName() : "anonymous");
 
-        TierLimitProperties.TierConfig free   = tierLimitProperties.getFree();
-        TierLimitProperties.TierConfig member = tierLimitProperties.getMember();
+        TierLimitProperties.TierConfig free       = tierLimitProperties.getFree();
+        TierLimitProperties.TierConfig subscriber = tierLimitProperties.getSubscriber();
 
         model.addAttribute("freeArchiveDays", free.getArchiveDays());
         model.addAttribute("freeQueryLimit", free.getMonthlyQueryLimit());
-        model.addAttribute("memberArchiveDays", member.getArchiveDays());
-        model.addAttribute("memberQueryLimit", member.getMonthlyQueryLimit());
+        model.addAttribute("subscriberArchiveDays", subscriber.getArchiveDays());
+        model.addAttribute("subscriberQueryLimit", subscriber.getMonthlyQueryLimit());
         model.addAttribute("stripeEnabled", stripeProperties.isEnabled());
         model.addAttribute("stripePublishableKey", stripeProperties.getPublishableKey());
-        model.addAttribute("memberPriceId", stripeProperties.getMemberPriceId());
+        model.addAttribute("subscriberPriceId", stripeProperties.getSubscriberPriceId());
         model.addAttribute("userEmail", principal != null ? principal.getName() : "");
 
         log.debug("pricing() | return=pricing");

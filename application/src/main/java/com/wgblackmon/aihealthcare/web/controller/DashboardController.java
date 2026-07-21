@@ -56,7 +56,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.4
  * @since   2026-05-04
- * @updated 2026-07-05
+ * @updated 2026-07-20
  */
 @Slf4j
 @Controller
@@ -162,10 +162,10 @@ public class DashboardController {
             Model model) {
         log.debug("articles() | topic={}, sort={}", topic, sort);
 
-        // Gate "New AI Healthcare Companies" topic to MEMBER tier
+        // Gate "New AI Healthcare Companies" topic to SUBSCRIBER tier
         if ("New AI Healthcare Companies".equals(topic) && !isAdmin(principal)) {
             SubscriptionTier tier = resolveTier(principal);
-            if (tier != SubscriptionTier.MEMBER) {
+            if (tier != SubscriptionTier.SUBSCRIBER) {
                 log.debug("articles() | access denied for FREE tier user on topic={}", topic);
                 model.addAttribute("topic", topic);
                 model.addAttribute("accessDenied", true);
@@ -427,8 +427,8 @@ public class DashboardController {
         if (principal instanceof Authentication auth) {
             for (GrantedAuthority authority : auth.getAuthorities()) {
                 if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    log.debug("resolveTier() | ADMIN role detected, return={}", SubscriptionTier.MEMBER);
-                    return SubscriptionTier.MEMBER;
+                    log.debug("resolveTier() | ADMIN role detected, return={}", SubscriptionTier.SUBSCRIBER);
+                    return SubscriptionTier.SUBSCRIBER;
                 }
             }
         }

@@ -197,18 +197,18 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Vendor Compare UX Overhaul — COMPLETE — 862 tests passing**
-- [x] UX: Replaced confusing free-form text input with vendor checkbox grid (derived from COMPETITOR-tier feed sources)
-- [x] UX: Added "How It Works" callout explaining the 4-step comparison pipeline
-- [x] UX: Added optional "Healthcare focus" field to narrow comparisons by domain
-- [x] UX: Retained free-form query as fallback (backward compatible)
-- [x] Domain: `CompareVendorsUseCase.compareSelected()` — new inbound port method for vendor-select mode
-- [x] Service: `ResearchOrchestratorService.compareSelected()` — direct per-topic article fetch, bypasses query decomposition and lossy `filterByQueryRelevance`
-- [x] Service: `VendorAssessmentService.assess()` — overloaded with `vendorNames` param; injects explicit vendor list into AI prompt so all selected vendors appear in results
-- [x] Prompt: `vendor-compare.txt` — `{vendorList}` placeholder for explicit vendor enumeration
-- [x] Controller: `VendorCompareController` — injects `FeedSourceProperties`, builds checkbox options from COMPETITOR feeds, routes to `compareSelected()` or legacy `compare()`
-- [x] Template: `vendor-compare.html` — checkbox grid, "How It Works" box, focus area field, updated empty state
-- [x] Tests: 8 new tests (`VendorCompareControllerTest` +2, `VendorAssessmentServiceTest` +2, `ResearchOrchestratorServiceTest` +4)
+**Access Model Redesign (R1–R8) — COMPLETE — 909 tests passing**
+- [x] R1: `SubscriptionTier` enum renamed: FREE→DEMO, MEMBER→SUBSCRIBER; added FREE_PENDING and FREE values
+- [x] R2: `AppUser` record — added `demoExpiresAt` (Instant) field; `AppUserPort` + adapter + entity + repository updated
+- [x] R3: `DemoExpirationFilter` — servlet filter redirects expired DEMO users to `/choose-path`; `DemoExpirationScheduler` — nightly batch flips expired DEMO→FREE_PENDING
+- [x] R4: `ChoosePathController` — `GET /choose-path` (decision page), `POST /choose-path` (FREE or pricing redirect); `TierGatingService` + `TierLimits` updated for 4-tier model
+- [x] R5: `ProfileController` — DEMO countdown display; `pricing.html` — 3-column layout (DEMO/FREE/SUBSCRIBER); `login.html` — `?demo-expired` alert
+- [x] R6: `DailySummaryPort` + `NotebookLMSummaryAdapter` — reads daily export files; `DigestNewsletterRenderer` — email-only digest layout with CTA; `DeliveryService` — 4-tier routing (SUBSCRIBER/DEMO→full, FREE→digest, FREE_PENDING→skip)
+- [x] R7: `StripeWebhookController` — re-enables disabled users on checkout.session.completed, sets tier=SUBSCRIBER
+- [x] R8: Documentation — CLAUDE.md and architecture.md updated with 4-tier access model
+
+**Previously complete: Vendor Compare UX Overhaul — COMPLETE — 862 tests passing**
+_(see git log for details — vendor checkbox grid, compareSelected() port, VendorAssessmentService overload, vendor-compare.html)_
 
 **Previously complete: Slice W5 — Reader-Facing Wiki Provenance UI — COMPLETE — 808 tests passing**
 - [x] Web: `WikiController` — `GET /wiki` (index), `GET /wiki/{slug}` (detail), `GET /wiki/contradictions` (reversal watch)
@@ -245,7 +245,7 @@ _(see git log for details — Search Result Caching, Profile Page, Email Templat
 - [x] Domain: `DiscoverCompaniesUseCase` inbound port; `CompanyScrapingPort` outbound port
 - [x] Domain services: `CompanyClassifier` (8 subcategories), `CompanyDeduplicator` (fuzzy name matching), `CompanyDiscoveryService`, `CompanyNewsletterRenderer`
 - [x] Infrastructure: `StartupDirectoryHarvester` — scrapes YC, TopStartups, anchors incumbents
-- [x] Web: `CompanyDiscoveryController` — `POST /api/v1/companies/discover` (REST, MEMBER-only)
+- [x] Web: `CompanyDiscoveryController` — `POST /api/v1/companies/discover` (REST, SUBSCRIBER-only)
 - [x] Grounded vendor scoring: Doc Frequency + TF-IDF algorithms with source reference table
 - [x] UI polish: inline sort arrows, article dedup by title, body text previews, loading spinners
 - [x] Tests: `CompanyClassifierTest` (8), `CompanyDeduplicatorTest` (6), `CompanyDiscoveryServiceTest` (7), `CompanyNewsletterRendererTest` (9), `StartupDirectoryHarvesterTest` (8), `CompanyDiscoveryControllerTest` (6)
