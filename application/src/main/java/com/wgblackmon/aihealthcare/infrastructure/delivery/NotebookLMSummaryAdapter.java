@@ -24,7 +24,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-20
+ * @updated 2026-07-21
  */
 @Slf4j
 @Component
@@ -55,6 +55,27 @@ public class NotebookLMSummaryAdapter implements DailySummaryPort {
         Optional<String> result = readFile(date, ".txt");
         log.debug("getTextSummary() | return={}", result.isPresent() ? result.get().length() + " chars" : "empty");
         return result;
+    }
+
+    @Override
+    public Optional<LocalDate> findMostRecentSummaryDate() {
+        log.debug("findMostRecentSummaryDate() | (no args)");
+
+        LocalDate today = LocalDate.now();
+        int lookbackDays = 30;
+
+        for (int i = 1; i <= lookbackDays; i++) {
+            LocalDate candidate = today.minusDays(i);
+            String filename = candidate.format(DATE_FORMAT) + ".html";
+            Path file = Paths.get(summariesDirectory).resolve(filename);
+            if (Files.exists(file)) {
+                log.debug("findMostRecentSummaryDate() | return={}", candidate);
+                return Optional.of(candidate);
+            }
+        }
+
+        log.debug("findMostRecentSummaryDate() | return=empty (no files in last {} days)", lookbackDays);
+        return Optional.empty();
     }
 
     private Optional<String> readFile(LocalDate date, String extension) {

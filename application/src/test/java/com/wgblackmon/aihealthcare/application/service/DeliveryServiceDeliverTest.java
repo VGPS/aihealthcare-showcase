@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-04-13
- * @updated 2026-07-20
+ * @updated 2026-07-21
  */
 @ExtendWith(MockitoExtension.class)
 class DeliveryServiceDeliverTest {
@@ -133,7 +134,7 @@ class DeliveryServiceDeliverTest {
         when(subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER)).thenReturn(List.of());
         when(subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO)).thenReturn(List.of());
         when(subscriberPort.findAllActiveByTier(SubscriptionTier.FREE)).thenReturn(List.of(FREE_SUB));
-        when(digestRenderer.buildDigest()).thenReturn(DIGEST_RUN);
+        when(digestRenderer.buildDigest()).thenReturn(Optional.of(DIGEST_RUN));
 
         service.deliver(RUN_ID);
 
@@ -147,7 +148,7 @@ class DeliveryServiceDeliverTest {
         when(subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER)).thenReturn(List.of(SUBSCRIBER_SUB));
         when(subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO)).thenReturn(List.of());
         when(subscriberPort.findAllActiveByTier(SubscriptionTier.FREE)).thenReturn(List.of(FREE_SUB));
-        when(digestRenderer.buildDigest()).thenReturn(DIGEST_RUN);
+        when(digestRenderer.buildDigest()).thenReturn(Optional.of(DIGEST_RUN));
 
         service.deliver(RUN_ID);
 
@@ -169,6 +170,25 @@ class DeliveryServiceDeliverTest {
         verify(newsletterRunPort).save(captor.capture());
         assertThat(captor.getValue().status()).isEqualTo(NewsletterRunStatus.SENT);
         assertThat(captor.getValue().runId()).isEqualTo(RUN_ID);
+    }
+
+    // -------------------------------------------------------------------------
+    // deliver() — 0 articles: digest empty, FREE delivery skipped
+    // -------------------------------------------------------------------------
+
+    @Test
+    void deliver_noArticlesToday_skipsDigestForFreeSubscribers() {
+        when(newsletterRunPort.findByRunId(RUN_ID)).thenReturn(DRAFT_RUN);
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER)).thenReturn(List.of());
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO)).thenReturn(List.of());
+        when(subscriberPort.findAllActiveByTier(SubscriptionTier.FREE)).thenReturn(List.of(FREE_SUB));
+        when(digestRenderer.buildDigest()).thenReturn(Optional.empty());
+
+        service.deliver(RUN_ID);
+
+        verify(digestRenderer).buildDigest();
+        verify(newsletterDeliveryPort, never()).deliver(any(), anyList());
+        verify(newsletterRunPort, never()).save(any());
     }
 
     // -------------------------------------------------------------------------

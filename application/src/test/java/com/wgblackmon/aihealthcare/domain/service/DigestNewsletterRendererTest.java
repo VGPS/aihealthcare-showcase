@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-20
+ * @updated 2026-07-21
  */
 class DigestNewsletterRendererTest {
 
@@ -40,13 +40,14 @@ class DigestNewsletterRendererTest {
         when(dailySummaryPort.getTextSummary(any(LocalDate.class)))
                 .thenReturn(Optional.of("Today's articles in plain text"));
 
-        NewsletterRun result = renderer.buildDigest();
+        Optional<NewsletterRun> result = renderer.buildDigest();
 
-        assertThat(result.htmlContent()).contains("AI Healthcare Daily Digest");
-        assertThat(result.htmlContent()).contains("Today's Articles");
-        assertThat(result.htmlContent()).contains("Upgrade to Subscriber");
-        assertThat(result.plainTextContent()).isEqualTo("Today's articles in plain text");
-        assertThat(result.status()).isEqualTo(NewsletterRunStatus.DRAFT);
+        assertThat(result).isPresent();
+        assertThat(result.get().htmlContent()).contains("AI Healthcare Daily Digest");
+        assertThat(result.get().htmlContent()).contains("Today's Articles");
+        assertThat(result.get().htmlContent()).contains("Upgrade to Subscriber");
+        assertThat(result.get().plainTextContent()).isEqualTo("Today's articles in plain text");
+        assertThat(result.get().status()).isEqualTo(NewsletterRunStatus.DRAFT);
     }
 
     @Test
@@ -56,24 +57,47 @@ class DigestNewsletterRendererTest {
         when(dailySummaryPort.getTextSummary(any(LocalDate.class)))
                 .thenReturn(Optional.of("Summary"));
 
-        NewsletterRun result = renderer.buildDigest();
+        Optional<NewsletterRun> result = renderer.buildDigest();
 
-        assertThat(result.htmlContent()).contains("Want deeper AI analysis?");
-        assertThat(result.htmlContent()).contains("$39/mo");
-        assertThat(result.htmlContent()).contains("pricing");
+        assertThat(result).isPresent();
+        assertThat(result.get().htmlContent()).contains("Want deeper AI analysis?");
+        assertThat(result.get().htmlContent()).contains("$39/mo");
+        assertThat(result.get().htmlContent()).contains("pricing");
     }
 
     @Test
-    void buildDigest_noSummaryFile_returnsFallbackContent() {
+    void buildDigest_noSummaryToday_fallsBackToMostRecent() {
+        LocalDate recentDate = LocalDate.of(2026, 7, 19);
         when(dailySummaryPort.getHtmlSummary(any(LocalDate.class)))
                 .thenReturn(Optional.empty());
-        when(dailySummaryPort.getTextSummary(any(LocalDate.class)))
+        when(dailySummaryPort.findMostRecentSummaryDate())
+                .thenReturn(Optional.of(recentDate));
+        when(dailySummaryPort.getHtmlSummary(recentDate))
+                .thenReturn(Optional.of("<p>Saturday's articles</p>"));
+        when(dailySummaryPort.getTextSummary(recentDate))
+                .thenReturn(Optional.of("Saturday's articles in text"));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        assertThat(result.get().htmlContent()).contains("No new articles found");
+        assertThat(result.get().htmlContent()).contains("July 19, 2026");
+        assertThat(result.get().htmlContent()).contains("Saturday's articles");
+        assertThat(result.get().plainTextContent()).contains("No new articles found");
+        assertThat(result.get().plainTextContent()).contains("July 19, 2026");
+        assertThat(result.get().plainTextContent()).contains("Saturday's articles in text");
+    }
+
+    @Test
+    void buildDigest_noSummaryAtAll_returnsEmpty() {
+        when(dailySummaryPort.getHtmlSummary(any(LocalDate.class)))
+                .thenReturn(Optional.empty());
+        when(dailySummaryPort.findMostRecentSummaryDate())
                 .thenReturn(Optional.empty());
 
-        NewsletterRun result = renderer.buildDigest();
+        Optional<NewsletterRun> result = renderer.buildDigest();
 
-        assertThat(result.htmlContent()).contains("No articles are available");
-        assertThat(result.plainTextContent()).contains("No articles available");
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -83,10 +107,11 @@ class DigestNewsletterRendererTest {
         when(dailySummaryPort.getTextSummary(any(LocalDate.class)))
                 .thenReturn(Optional.of("Content"));
 
-        NewsletterRun result = renderer.buildDigest();
+        Optional<NewsletterRun> result = renderer.buildDigest();
 
-        assertThat(result.runId()).startsWith("digest-");
-        assertThat(result.title()).contains("Daily Digest");
+        assertThat(result).isPresent();
+        assertThat(result.get().runId()).startsWith("digest-");
+        assertThat(result.get().title()).contains("Daily Digest");
     }
 
     @Test
@@ -96,9 +121,10 @@ class DigestNewsletterRendererTest {
         when(dailySummaryPort.getTextSummary(any(LocalDate.class)))
                 .thenReturn(Optional.empty());
 
-        NewsletterRun result = renderer.buildDigest();
+        Optional<NewsletterRun> result = renderer.buildDigest();
 
-        assertThat(result.htmlContent()).contains("HTML content");
-        assertThat(result.plainTextContent()).contains("View in a browser");
+        assertThat(result).isPresent();
+        assertThat(result.get().htmlContent()).contains("HTML content");
+        assertThat(result.get().plainTextContent()).contains("View in a browser");
     }
 }

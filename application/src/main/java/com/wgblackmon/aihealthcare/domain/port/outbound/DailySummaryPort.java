@@ -14,7 +14,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-20
+ * @updated 2026-07-21
  */
 public interface DailySummaryPort {
 
@@ -33,4 +33,12 @@ public interface DailySummaryPort {
      * @return The text content, or empty if no file exists for that date.
      */
     Optional<String> getTextSummary(LocalDate date);
+
+    /**
+     * Returns the most recent date for which an HTML summary file exists,
+     * searching backwards from today up to a configurable lookback window.
+     *
+     * @return The most recent summary date, or empty if none found.
+     */
+    Optional<LocalDate> findMostRecentSummaryDate();
 }
