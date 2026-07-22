@@ -40,6 +40,7 @@ import com.wgblackmon.aihealthcare.domain.service.ResearchPlanningService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
+import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
 import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import com.wgblackmon.aihealthcare.domain.service.TrendOrchestrationService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSnapshotPort;
@@ -634,6 +635,20 @@ public class AppConfig {
         TrendOrchestrationService result = new TrendOrchestrationService(
                 articleIngestionPort, trendDetectionService, trendSnapshotPort);
         log.debug("trendOrchestrationService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link CompanyProfileService} bean — a stateless, pure-Java domain
+     * service that manages company intelligence profiles and event detection.
+     *
+     * @return The wired {@link CompanyProfileService} instance.
+     */
+    @Bean
+    public CompanyProfileService companyProfileService() {
+        log.debug("companyProfileService() | creating stateless service");
+        CompanyProfileService result = new CompanyProfileService();
+        log.debug("companyProfileService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 
