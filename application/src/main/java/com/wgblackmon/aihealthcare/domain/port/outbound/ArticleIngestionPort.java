@@ -62,4 +62,16 @@ public interface ArticleIngestionPort {
      * @return The matching articles; may be smaller than the input list if some IDs are missing.
      */
     List<NewsArticle> fetchArticlesByIds(List<String> articleIds);
+
+    /**
+     * Fetch all articles created within the last {@code days} days,
+     * regardless of topic.
+     *
+     * <p>Used by the trend detection engine to analyze keyword frequency
+     * across the entire article corpus within a rolling time window.
+     *
+     * @param days number of days to look back; must be &gt; 0
+     * @return all articles created within the window; may be empty
+     */
+    List<NewsArticle> fetchRecentArticles(int days);
 }

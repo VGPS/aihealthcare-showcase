@@ -160,6 +160,16 @@ aihealthcare:
     staleness-threshold-days: 30
 
   # ---------------------------------------------------------------------------
+  # Trend Detection — weekly keyword frequency analysis across rolling windows.
+  # Schedule default: Sunday 08:00 UTC (after wiki lint completes).
+  # ---------------------------------------------------------------------------
+  trends:
+    schedule: "0 0 8 ? * SUN"
+    min-occurrences: 3
+    rising-limit: 20
+    fading-limit: 10
+
+  # ---------------------------------------------------------------------------
   # Research pipeline — controls which pipeline branch POST /api/v1/research uses.
   # LEGACY_GOOGLE:   fetch from ingestion DB only (no API keys required, always safe).
   # STAGED_RESEARCH: AI planning + Perplexity retrieval + AI synthesis.

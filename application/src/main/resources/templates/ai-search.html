@@ -22,6 +22,7 @@
     <a th:href="@{/research/vendors}">Vendor Compare</a>
     <a th:href="@{/research/ai-search}" class="active">AI Search</a>
     <a th:href="@{/wiki}">Wiki</a>
+    <a th:href="@{/dashboard/trends}">Trends</a>
     <a th:href="@{/dashboard/search}">Article Search</a>
     <a th:href="@{/pricing}">Pricing</a>
     <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
@@ -70,7 +71,6 @@
                 <li style="margin-bottom:0.15rem;">Enter a natural-language query and choose which AI models to use.</li>
                 <li style="margin-bottom:0.15rem;">The system finds the most relevant articles from the ingestion database using vector similarity search.</li>
                 <li style="margin-bottom:0.15rem;">Each selected AI model receives the matched articles and produces an independent synthesis with key findings and inline citations.</li>
-                <li style="margin-bottom:0.15rem;">Results are displayed side by side so you can compare how each model interprets the evidence.</li>
             </ol>
         </div>
 
