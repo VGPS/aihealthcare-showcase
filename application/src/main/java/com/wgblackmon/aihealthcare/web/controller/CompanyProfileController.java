@@ -1,15 +1,24 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.Company;
+import com.wgblackmon.aihealthcare.domain.model.CompanyDiscoveryResult;
 import com.wgblackmon.aihealthcare.domain.model.CompanyEvent;
 import com.wgblackmon.aihealthcare.domain.model.CompanyProfile;
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DiscoverCompaniesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
+import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.net.URI;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -40,13 +49,19 @@ public class CompanyProfileController {
 
     private final CompanyProfilePort companyProfilePort;
     private final CompanyEventPort companyEventPort;
+    private final DiscoverCompaniesUseCase discoverCompaniesUseCase;
+    private final CompanyProfileService companyProfileService;
 
     public CompanyProfileController(CompanyProfilePort companyProfilePort,
-                                    CompanyEventPort companyEventPort) {
-        log.debug("CompanyProfileController() | companyProfilePort={}, companyEventPort={}",
-                  companyProfilePort, companyEventPort);
+                                    CompanyEventPort companyEventPort,
+                                    DiscoverCompaniesUseCase discoverCompaniesUseCase,
+                                    CompanyProfileService companyProfileService) {
+        log.debug("CompanyProfileController() | companyProfilePort={}, companyEventPort={}, discoverCompaniesUseCase={}, companyProfileService={}",
+                  companyProfilePort, companyEventPort, discoverCompaniesUseCase, companyProfileService);
         this.companyProfilePort = companyProfilePort;
         this.companyEventPort = companyEventPort;
+        this.discoverCompaniesUseCase = discoverCompaniesUseCase;
+        this.companyProfileService = companyProfileService;
     }
 
     /**
@@ -76,6 +91,66 @@ public class CompanyProfileController {
 
         log.debug("index() | return=company-index, profileCount={}", profiles.size());
         return "company-index";
+    }
+
+    /**
+     * Runs the company discovery pipeline and creates/updates profiles from results.
+     *
+     * @param redirectAttributes flash attributes for the redirect
+     * @return redirect to the company index
+     */
+    @PostMapping("/companies/discover")
+    public String runDiscovery(RedirectAttributes redirectAttributes) {
+        log.debug("runDiscovery()");
+
+        try {
+            CompanyDiscoveryResult result = discoverCompaniesUseCase.discover();
+            int created = 0;
+            int updated = 0;
+
+            for (Company company : result.companies()) {
+                String slug = companyProfileService.toSlug(company.name());
+                Optional<CompanyProfile> existing = companyProfilePort.findBySlug(slug);
+
+                // Build a synthetic article list from the company's URL
+                List<NewsArticle> relatedArticles = new ArrayList<>();
+                String articleId = "company-" + slug;
+                NewsArticle syntheticArticle = new NewsArticle(
+                        articleId, company.name(),
+                        URI.create(company.url() != null ? company.url() : "https://example.com"),
+                        company.description(), "New AI Healthcare Companies",
+                        null, null, company.source(), "INDUSTRY", 0.5, Instant.now());
+                relatedArticles.add(syntheticArticle);
+
+                CompanyProfile profile = companyProfileService.upsertFromDiscovery(
+                        company, relatedArticles, existing.orElse(null));
+                companyProfilePort.save(profile);
+
+                // Detect events from the synthetic article
+                List<CompanyEvent> events = companyProfileService.detectEvents(profile, relatedArticles);
+                for (CompanyEvent event : events) {
+                    companyEventPort.save(event);
+                }
+
+                if (existing.isPresent()) {
+                    updated++;
+                } else {
+                    created++;
+                }
+            }
+
+            redirectAttributes.addFlashAttribute("successMessage",
+                    String.format("Discovery complete: %d companies found (%d new, %d updated)",
+                            result.companies().size(), created, updated));
+            log.info("runDiscovery() | created={}, updated={}, total={}", created, updated, result.companies().size());
+        } catch (Exception e) {
+            log.error("runDiscovery() | discovery pipeline failed", e);
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Discovery pipeline failed: " + e.getMessage());
+        }
+
+        log.debug("runDiscovery() | return=redirect:/companies");
+        return "redirect:/companies";
     }
 
     /**
