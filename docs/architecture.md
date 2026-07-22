@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-07-22 | Reflects Trend Detection slice (965 tests passing)
+> Last updated: 2026-07-22 | Reflects Custom Watchlists slice (1021 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -91,6 +91,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | R1–R8 | Access Model Redesign — 4-tier (DEMO/FREE_PENDING/FREE/SUBSCRIBER), demo expiration, digest email, Stripe re-enable | 909 |
 | — | UI polish: shared CSS extraction, news sort, button fixes, label formatting | 914 |
 | — | Trend Detection — weekly keyword frequency analysis (rising/fading/new) with UI + REST | 965 |
+| W-WATCH | Custom Watchlists — subscriber watchlist with keyword/company/topic matching + scheduler integration | 1021 |
 
 ---
 
@@ -211,6 +212,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /wiki/{slug}` | `WikiController` | `wiki-detail.html` — rendered markdown + provenance table + contradictions |
 | `GET /wiki/contradictions` | `WikiController` | `wiki-contradictions.html` — reversal watch contradiction feed |
 | `GET /dashboard/trends` | `TrendController` | `trends.html` — keyword trend analysis (rising/fading/new) |
+| `GET /watchlist` | `WatchlistController` | `watchlist.html` — subscriber watchlist with keyword/company/topic items + matches |
 
 ---
 
@@ -263,6 +265,8 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `wiki_page_revisions` | `WikiPageRevisionEntity` | pageSlug, revision, contentMarkdown CLOB |
 | `compilation_reports` | `CompilationReportEntity` | run timestamps, articlesProcessed, pipe-delimited slugs |
 | `trend_snapshots` | `TrendSnapshotEntity` | generatedAt, windowDays, JSON-serialized rising/fading/new signals |
+| `watchlist_items` | `WatchlistItemEntity` | itemId PK, userEmail, itemType, value, label, createdAt |
+| `watchlist_matches` | `WatchlistMatchEntity` | matchId PK, itemId FK, articleId, matchedOn, snippet TEXT |
 
 ---
 
@@ -301,7 +305,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**965 tests** across 133 test classes — all pass with `mvn test` (no live AI or network calls).
+**1021 tests** across 133 test classes — all pass with `mvn test` (no live AI or network calls).
 
 ---
 
