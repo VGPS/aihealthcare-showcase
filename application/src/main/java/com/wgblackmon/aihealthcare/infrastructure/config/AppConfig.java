@@ -40,6 +40,9 @@ import com.wgblackmon.aihealthcare.domain.service.ResearchPlanningService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
+import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
+import com.wgblackmon.aihealthcare.domain.service.TrendOrchestrationService;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSnapshotPort;
 import com.wgblackmon.aihealthcare.domain.service.WikiLintService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchQueryPort;
@@ -586,6 +589,51 @@ public class AppConfig {
                 new CompanyDeduplicator(),
                 new CompanyNewsletterRenderer());
         log.debug("companyDiscoveryService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link TrendDetectionService} bean — a stateless, pure-Java domain
+     * service that performs keyword frequency analysis across rolling time windows.
+     *
+     * @param minOccurrences minimum keyword occurrences to be included in analysis
+     * @param risingLimit    maximum rising signals to return
+     * @param fadingLimit    maximum fading signals to return
+     * @return The wired {@link TrendDetectionService} instance.
+     */
+    @Bean
+    public TrendDetectionService trendDetectionService(
+            @Value("${aihealthcare.trends.min-occurrences:3}") int minOccurrences,
+            @Value("${aihealthcare.trends.rising-limit:20}") int risingLimit,
+            @Value("${aihealthcare.trends.fading-limit:10}") int fadingLimit) {
+        log.debug("trendDetectionService() | minOccurrences={}, risingLimit={}, fadingLimit={}",
+                  minOccurrences, risingLimit, fadingLimit);
+        TrendDetectionService result = new TrendDetectionService(minOccurrences, risingLimit, fadingLimit);
+        log.debug("trendDetectionService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link TrendOrchestrationService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase}.
+     *
+     * @param articleIngestionPort    Adapter implementing article fetching (auto-detected).
+     * @param trendDetectionService   The trend analysis engine.
+     * @param trendSnapshotPort       Adapter implementing snapshot persistence (auto-detected).
+     * @return The wired {@link TrendOrchestrationService} instance.
+     */
+    @Bean
+    public TrendOrchestrationService trendOrchestrationService(
+            ArticleIngestionPort articleIngestionPort,
+            TrendDetectionService trendDetectionService,
+            TrendSnapshotPort trendSnapshotPort) {
+        log.debug("trendOrchestrationService() | articleIngestionPort={}, trendDetectionService={}, trendSnapshotPort={}",
+                  articleIngestionPort.getClass().getSimpleName(),
+                  trendDetectionService.getClass().getSimpleName(),
+                  trendSnapshotPort.getClass().getSimpleName());
+        TrendOrchestrationService result = new TrendOrchestrationService(
+                articleIngestionPort, trendDetectionService, trendSnapshotPort);
+        log.debug("trendOrchestrationService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 
