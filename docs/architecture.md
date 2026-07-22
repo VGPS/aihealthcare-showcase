@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-07-21 | Reflects Access Model Redesign R8 (909 tests passing)
+> Last updated: 2026-07-22 | Reflects Trend Detection slice (965 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -89,6 +89,8 @@ api  ──▶  web   (generated DTOs imported here only)
 | — | Dynamic model registry + admin failure notifications + AWS Bedrock adapter | 876 |
 | — | CompanyDiscoveryScheduler + model availability gating | 879 |
 | R1–R8 | Access Model Redesign — 4-tier (DEMO/FREE_PENDING/FREE/SUBSCRIBER), demo expiration, digest email, Stripe re-enable | 909 |
+| — | UI polish: shared CSS extraction, news sort, button fixes, label formatting | 914 |
+| — | Trend Detection — weekly keyword frequency analysis (rising/fading/new) with UI + REST | 965 |
 
 ---
 
@@ -208,6 +210,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /wiki` | `WikiController` | `wiki-index.html` — searchable wiki page grid with type filter |
 | `GET /wiki/{slug}` | `WikiController` | `wiki-detail.html` — rendered markdown + provenance table + contradictions |
 | `GET /wiki/contradictions` | `WikiController` | `wiki-contradictions.html` — reversal watch contradiction feed |
+| `GET /dashboard/trends` | `TrendController` | `trends.html` — keyword trend analysis (rising/fading/new) |
 
 ---
 
@@ -235,6 +238,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | POST | `/api/v1/stripe/webhook` | `StripeWebhookController` |
 | POST | `/api/v1/companies/discover` | `CompanyDiscoveryController` |
 | POST | `/monitoring/wiki/compile` | `WikiCompilationController` |
+| GET/POST | `/api/v1/trends/latest`, `/api/v1/trends/detect` | `TrendRestController` |
 
 ---
 
@@ -258,6 +262,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `wiki_contradictions` | `WikiContradictionEntity` | pageSlug, prior/new claims, pipe-delimited sourceIds |
 | `wiki_page_revisions` | `WikiPageRevisionEntity` | pageSlug, revision, contentMarkdown CLOB |
 | `compilation_reports` | `CompilationReportEntity` | run timestamps, articlesProcessed, pipe-delimited slugs |
+| `trend_snapshots` | `TrendSnapshotEntity` | generatedAt, windowDays, JSON-serialized rising/fading/new signals |
 
 ---
 
@@ -273,6 +278,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | `EmbeddingScheduler` | 07:00 daily | `aihealthcare.embedding.schedule` | Embed all articles into vector store |
 | `NewsletterGenerationScheduler` | 00:00 daily (midnight) | `aihealthcare.newsletter.schedule` | Ingest → generate DRAFT (no auto-send) |
 | `MarketIntelligenceScheduler` | 1st of month, 08:00 | `aihealthcare.market-intelligence.schedule` | AI-generated market intelligence report |
+| `TrendDetectionScheduler` | Sunday 08:00 | `aihealthcare.trends.schedule` | Keyword frequency analysis → TrendSnapshot |
 
 ---
 
@@ -295,7 +301,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**909 tests** across 127 test classes — all pass with `mvn test` (no live AI or network calls).
+**965 tests** across 133 test classes — all pass with `mvn test` (no live AI or network calls).
 
 ---
 

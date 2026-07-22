@@ -78,6 +78,10 @@ AIHealthcare/
 | `ConductAiSearchUseCase`    | `domain.port.inbound`                | Inbound port — multi-model AI search                       |
 | `DiscoverCompaniesUseCase`  | `domain.port.inbound`                | Inbound port — company discovery pipeline                  |
 | `AiSearchPort`              | `domain.port.outbound`               | AI model synthesis adapter interface                       |
+| `TrendSignal`               | `domain.model`                       | Keyword trend signal (30/90/180-day frequency + momentum)  |
+| `TrendSnapshot`             | `domain.model`                       | Point-in-time snapshot of rising/fading/new keyword trends |
+| `DetectTrendsUseCase`       | `domain.port.inbound`                | Inbound port — trend detection + latest snapshot retrieval |
+| `TrendSnapshotPort`         | `domain.port.outbound`               | Persist and query trend snapshots                          |
 
 ### `NewsArticle` field inventory (11 fields)
 ```
@@ -197,15 +201,20 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Access Model Redesign (R1–R8) — COMPLETE — 909 tests passing**
-- [x] R1: `SubscriptionTier` enum renamed: FREE→DEMO, MEMBER→SUBSCRIBER; added FREE_PENDING and FREE values
-- [x] R2: `AppUser` record — added `demoExpiresAt` (Instant) field; `AppUserPort` + adapter + entity + repository updated
-- [x] R3: `DemoExpirationFilter` — servlet filter redirects expired DEMO users to `/choose-path`; `DemoExpirationScheduler` — nightly batch flips expired DEMO→FREE_PENDING
-- [x] R4: `ChoosePathController` — `GET /choose-path` (decision page), `POST /choose-path` (FREE or pricing redirect); `TierGatingService` + `TierLimits` updated for 4-tier model
-- [x] R5: `ProfileController` — DEMO countdown display; `pricing.html` — 3-column layout (DEMO/FREE/SUBSCRIBER); `login.html` — `?demo-expired` alert
-- [x] R6: `DailySummaryPort` + `NotebookLMSummaryAdapter` — reads daily export files; `DigestNewsletterRenderer` — email-only digest layout with CTA; `DeliveryService` — 4-tier routing (SUBSCRIBER/DEMO→full, FREE→digest, FREE_PENDING→skip)
-- [x] R7: `StripeWebhookController` — re-enables disabled users on checkout.session.completed, sets tier=SUBSCRIBER
-- [x] R8: Documentation — CLAUDE.md and architecture.md updated with 4-tier access model
+**Trend Detection — COMPLETE — 965 tests passing**
+- [x] Domain: `TrendDirection` enum, `TrendSignal` record, `TrendSnapshot` record
+- [x] Ports: `DetectTrendsUseCase` inbound, `TrendSnapshotPort` outbound
+- [x] Services: `TrendDetectionService` (keyword frequency analysis across 30/90/180-day windows), `TrendOrchestrationService` (article retrieval + analysis + persistence)
+- [x] `ArticleIngestionPort.fetchRecentArticles(days)` + `ArticleIngestionAdapter` implementation
+- [x] Persistence: `TrendSnapshotEntity`, `TrendSnapshotRepository`, `TrendSnapshotAdapter`
+- [x] Scheduler: `TrendDetectionScheduler` — weekly Sunday 08:00 UTC via `${aihealthcare.trends.schedule}`
+- [x] Web: `TrendController` at `GET /dashboard/trends` (Thymeleaf), `TrendRestController` at `/api/v1/trends/latest` + `/api/v1/trends/detect`
+- [x] Template: `trends.html` — rising/fading/new keyword cards with momentum indicators
+- [x] Nav: "Trends" link added to all Thymeleaf templates
+- [x] Tests: `TrendDetectionServiceTest` (30), `TrendOrchestrationServiceTest` (4), `TrendSnapshotAdapterTest` (4), `TrendDetectionSchedulerTest` (3), `TrendControllerTest` (6), `TrendRestControllerTest` (4)
+
+**Previously complete: Access Model Redesign (R1–R8) — COMPLETE — 909 tests passing**
+_(see git log for details — 4-tier DEMO/FREE_PENDING/FREE/SUBSCRIBER, demo expiration, digest email, Stripe re-enable)_
 
 **Previously complete: Vendor Compare UX Overhaul — COMPLETE — 862 tests passing**
 _(see git log for details — vendor checkbox grid, compareSelected() port, VendorAssessmentService overload, vendor-compare.html)_
