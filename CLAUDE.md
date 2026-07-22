@@ -82,6 +82,12 @@ AIHealthcare/
 | `TrendSnapshot`             | `domain.model`                       | Point-in-time snapshot of rising/fading/new keyword trends |
 | `DetectTrendsUseCase`       | `domain.port.inbound`                | Inbound port — trend detection + latest snapshot retrieval |
 | `TrendSnapshotPort`         | `domain.port.outbound`               | Persist and query trend snapshots                          |
+| `RegulatoryEventType`       | `domain.model`                       | Enum: FDA_510K_CLEARANCE, DE_NOVO, PMA, CMS rules, etc.   |
+| `RegulatoryBody`            | `domain.model`                       | Enum: FDA, CMS, ONC, OTHER                                |
+| `RegulatoryEvent`           | `domain.model`                       | 13-field record: regulatory event with ref#, applicant, device |
+| `MonitorRegulatoryEventsUseCase` | `domain.port.inbound`           | Inbound port — regulatory event retrieval + harvest trigger |
+| `RegulatoryEventPort`       | `domain.port.outbound`               | Persist and query regulatory events                        |
+| `RegulatoryHarvestingPort`  | `domain.port.outbound`               | Harvest regulatory events from external APIs               |
 
 ### `NewsArticle` field inventory (11 fields)
 ```
@@ -201,7 +207,20 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Custom Watchlists (W-WATCH) — COMPLETE — 1021 tests passing**
+**Regulatory Alert System (R-REG) — COMPLETE — 1081 tests passing**
+- [x] Domain: `RegulatoryEventType` enum (10 values), `RegulatoryBody` enum, `RegulatoryEvent` record (13 fields)
+- [x] Ports: `MonitorRegulatoryEventsUseCase` inbound, `RegulatoryEventPort` + `RegulatoryHarvestingPort` outbound
+- [x] Services: `RegulatoryEventService` (harvest dedup + retrieval), `RegulatoryWatchlistMatcher` (pure domain, keyword/company/topic matching against events)
+- [x] Persistence: `RegulatoryEventEntity`, `RegulatoryEventRepository`, `RegulatoryEventAdapter` (pipe-delimited keywords)
+- [x] Harvesters: `Fda510kHarvester` (openFDA 510(k) API), `FdaDeNovoHarvester` (openFDA classification API), `CmsRuleHarvester` (Federal Register API)
+- [x] Infrastructure: `RegulatorySourceHarvester` interface, `CompositeRegulatoryHarvester` (aggregates sources, isolates failures), `RegulatoryHarvestProperties`
+- [x] Scheduler: `RegulatoryHarvestScheduler` — daily 04:30 UTC via `${aihealthcare.regulatory.schedule}`, integrates with watchlist matching
+- [x] Web: `RegulatoryController` at `GET /dashboard/regulatory` — tier-gated (FREE=5, SUBSCRIBER/DEMO/ADMIN=50), filter by FDA/CMS
+- [x] Template: `regulatory.html` — summary badges, filter tabs, events table with color-coded type badges, upgrade prompt
+- [x] Nav: "Regulatory" link added to all Thymeleaf templates
+- [x] Tests: `RegulatoryEventTest` (13), `RegulatoryEventServiceTest` (10), `RegulatoryWatchlistMatcherTest` (12), `RegulatoryEventAdapterTest` (8), `RegulatoryHarvestSchedulerTest` (4), `Fda510kHarvesterTest` (3), `CompositeRegulatoryHarvesterTest` (3), `RegulatoryControllerTest` (7)
+
+**Previously complete: Custom Watchlists (W-WATCH) — COMPLETE — 1021 tests passing**
 - [x] Domain: `WatchlistItemType` enum, `WatchlistItem` record, `WatchlistMatch` record
 - [x] Ports: `WatchlistPort`, `WatchlistMatchPort` outbound ports
 - [x] Service: `WatchlistMatchingService` — keyword/company/topic matching with snippet extraction

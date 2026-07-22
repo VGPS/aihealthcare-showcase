@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-07-22 | Reflects Custom Watchlists slice (1021 tests passing)
+> Last updated: 2026-07-22 | Reflects Regulatory Alert System slice (1081 tests passing)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -92,6 +92,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | — | UI polish: shared CSS extraction, news sort, button fixes, label formatting | 914 |
 | — | Trend Detection — weekly keyword frequency analysis (rising/fading/new) with UI + REST | 965 |
 | W-WATCH | Custom Watchlists — subscriber watchlist with keyword/company/topic matching + scheduler integration | 1021 |
+| R-REG | Regulatory Alert System — FDA 510(k)/De Novo + CMS rules harvesting, watchlist integration, tier-gated UI | 1081 |
 
 ---
 
@@ -111,6 +112,7 @@ com.wgblackmon.aihealthcare.infrastructure.ingestion.feed
 com.wgblackmon.aihealthcare.infrastructure.ingestion.document
 com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface
 com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity
+com.wgblackmon.aihealthcare.infrastructure.ingestion.regulatory
 com.wgblackmon.aihealthcare.infrastructure.ingestion.web
 com.wgblackmon.aihealthcare.infrastructure.persistence
 com.wgblackmon.aihealthcare.infrastructure.research
@@ -161,10 +163,12 @@ FeedHarvestScheduler     → RomeFeedHarvester     → RSS feeds (ACADEMIC/REGUL
 WebMonitoringScheduler   → WebPageHarvester       → Competitor web pages (SHA-256 change detection)
                          → HuggingFaceHarvester   → HuggingFace model API
 ResearchHarvestScheduler → PerplexityHarvester    → Perplexity API (COMBINED research mode, daily)
+RegulatoryHarvestScheduler → CompositeRegulatoryHarvester → FDA/CMS APIs (510(k), De Novo, Federal Register)
 ```
 
 All harvested articles share the `NewsArticle` domain record (11 fields). `ArticleStorageAdapter`
-deduplicates by URL before persisting.
+deduplicates by URL before persisting. Regulatory events use a separate `RegulatoryEvent` domain
+record (13 fields) persisted via `RegulatoryEventAdapter` with dedup by reference number and source URL.
 
 ---
 
@@ -213,6 +217,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /wiki/contradictions` | `WikiController` | `wiki-contradictions.html` — reversal watch contradiction feed |
 | `GET /dashboard/trends` | `TrendController` | `trends.html` — keyword trend analysis (rising/fading/new) |
 | `GET /watchlist` | `WatchlistController` | `watchlist.html` — subscriber watchlist with keyword/company/topic items + matches |
+| `GET /dashboard/regulatory` | `RegulatoryController` | `regulatory.html` — FDA/CMS regulatory alerts with filter tabs + tier gating |
 
 ---
 
@@ -267,6 +272,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `trend_snapshots` | `TrendSnapshotEntity` | generatedAt, windowDays, JSON-serialized rising/fading/new signals |
 | `watchlist_items` | `WatchlistItemEntity` | itemId PK, userEmail, itemType, value, label, createdAt |
 | `watchlist_matches` | `WatchlistMatchEntity` | matchId PK, itemId FK, articleId, matchedOn, snippet TEXT |
+| `regulatory_events` | `RegulatoryEventEntity` | eventId PK, eventType, regulatoryBody, referenceNumber, applicantName, deviceName, aiHealthcareKeywords TEXT (pipe-delimited) |
 
 ---
 
@@ -283,6 +289,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | `NewsletterGenerationScheduler` | 00:00 daily (midnight) | `aihealthcare.newsletter.schedule` | Ingest → generate DRAFT (no auto-send) |
 | `MarketIntelligenceScheduler` | 1st of month, 08:00 | `aihealthcare.market-intelligence.schedule` | AI-generated market intelligence report |
 | `TrendDetectionScheduler` | Sunday 08:00 | `aihealthcare.trends.schedule` | Keyword frequency analysis → TrendSnapshot |
+| `RegulatoryHarvestScheduler` | 04:30 daily | `aihealthcare.regulatory.schedule` | FDA/CMS harvest → dedup → save → watchlist match |
 
 ---
 
@@ -305,7 +312,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**1021 tests** across 133 test classes — all pass with `mvn test` (no live AI or network calls).
+**1081 tests** across 141 test classes — all pass with `mvn test` (no live AI or network calls).
 
 ---
 

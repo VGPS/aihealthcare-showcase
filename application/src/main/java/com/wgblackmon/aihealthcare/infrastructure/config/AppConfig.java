@@ -41,9 +41,13 @@ import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
+import com.wgblackmon.aihealthcare.domain.service.RegulatoryEventService;
+import com.wgblackmon.aihealthcare.domain.service.RegulatoryWatchlistMatcher;
 import com.wgblackmon.aihealthcare.domain.service.WatchlistMatchingService;
 import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import com.wgblackmon.aihealthcare.domain.service.TrendOrchestrationService;
+import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSnapshotPort;
 import com.wgblackmon.aihealthcare.domain.service.WikiLintService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
@@ -713,6 +717,40 @@ public class AppConfig {
                 contradictionRepository, revisionRepository,
                 responseParser, wikiCompilePrompt);
         log.debug("wikiCompilationAdapter() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link RegulatoryEventService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase}.
+     *
+     * @param regulatoryEventPort      Adapter implementing regulatory event persistence (auto-detected).
+     * @param regulatoryHarvestingPort  Adapter implementing regulatory harvesting (auto-detected).
+     * @return The wired {@link RegulatoryEventService} instance.
+     */
+    @Bean
+    public RegulatoryEventService regulatoryEventService(
+            RegulatoryEventPort regulatoryEventPort,
+            RegulatoryHarvestingPort regulatoryHarvestingPort) {
+        log.debug("regulatoryEventService() | regulatoryEventPort={}, regulatoryHarvestingPort={}",
+                  regulatoryEventPort.getClass().getSimpleName(),
+                  regulatoryHarvestingPort.getClass().getSimpleName());
+        RegulatoryEventService result = new RegulatoryEventService(regulatoryEventPort, regulatoryHarvestingPort);
+        log.debug("regulatoryEventService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link RegulatoryWatchlistMatcher} bean — a stateless, pure-Java
+     * domain service that matches regulatory events against subscriber watchlist items.
+     *
+     * @return The wired {@link RegulatoryWatchlistMatcher} instance.
+     */
+    @Bean
+    public RegulatoryWatchlistMatcher regulatoryWatchlistMatcher() {
+        log.debug("regulatoryWatchlistMatcher() | creating stateless service");
+        RegulatoryWatchlistMatcher result = new RegulatoryWatchlistMatcher();
+        log.debug("regulatoryWatchlistMatcher() | return={}", result.getClass().getSimpleName());
         return result;
     }
 
