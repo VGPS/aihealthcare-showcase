@@ -135,10 +135,11 @@ aihealthcare:
   # Daily timeline:
   #   04:00  RSS feeds (ACADEMIC + REGULATORY tiers)
   #   04:00  Research harvest (COMBINED pipeline, 11 topics)
+  #   04:00  Company discovery (daily — same time as RSS harvest)
+  #   04:30  Regulatory harvest (FDA 510(k), De Novo, CMS rules)
   #   05:00  Competitor web pages (SHA-256 change detection)
   #   05:30  HuggingFace model discovery
   #   06:00  Industry feeds (first run; then every 4 hours)
-  #   04:00  Company discovery (daily — same time as RSS harvest)
   #   07:00  Embedding scheduler (vector store refresh)
   #   00:00  Newsletter draft generation (previous day's news, DRAFT only)
   #
@@ -168,6 +169,26 @@ aihealthcare:
     min-occurrences: 3
     rising-limit: 20
     fading-limit: 10
+
+  # ---------------------------------------------------------------------------
+  # Regulatory Alert System — FDA 510(k), De Novo, CMS rule monitoring.
+  # Schedule default: daily 04:30 UTC (after RSS feeds, before competitors).
+  # ---------------------------------------------------------------------------
+  regulatory:
+    enabled: true
+    schedule: "0 30 4 * * *"
+    lookback-days: 7
+    ai-keywords:
+      - "artificial intelligence"
+      - "machine learning"
+      - "SaMD"
+      - "software as medical device"
+      - "clinical decision support"
+      - "CADe"
+      - "CADx"
+      - "algorithm"
+      - "deep learning"
+      - "neural network"
 
   # ---------------------------------------------------------------------------
   # Research pipeline — controls which pipeline branch POST /api/v1/research uses.

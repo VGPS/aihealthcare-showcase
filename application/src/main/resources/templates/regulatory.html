@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AIHealthcare — Regulatory Alerts</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+
+<header>
+    <h1>Regulatory Alerts</h1>
+    <p>FDA 510(k) clearances, De Novo classifications, and CMS rules for AI in healthcare</p>
+</header>
+
+<nav>
+    <a th:href="@{/dashboard}">Analytics</a>
+    <a th:href="@{/dashboard/news}">News Listing</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
+    <a th:href="@{/research/runs}">Research Runs</a>
+    <a th:href="@{/research/vendors}">Vendor Compare</a>
+    <a th:href="@{/research/ai-search}">AI Search</a>
+    <a th:href="@{/wiki}">Wiki</a>
+    <a th:href="@{/dashboard/trends}">Trends</a>
+    <a th:href="@{/dashboard/regulatory}" style="font-weight:600;">Regulatory</a>
+    <a th:href="@{/companies}">Companies</a>
+    <a th:href="@{/watchlist}">Watchlist</a>
+    <a th:href="@{/dashboard/search}">Article Search</a>
+    <a th:href="@{/pricing}">Pricing</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
+       style="margin-left:auto; color:#e57373;">Logout</a>
+</nav>
+
+<main>
+
+    <!-- Summary badges -->
+    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <div style="background: var(--surface-container); border-radius: 8px; padding: 0.75rem 1.25rem; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: 700;" th:text="${eventCount}">0</div>
+            <div style="font-size: 0.8rem; color: var(--on-surface-variant);">Total Events</div>
+        </div>
+        <div style="background: #e3f2fd; border-radius: 8px; padding: 0.75rem 1.25rem; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #1565c0;" th:text="${fda510kCount}">0</div>
+            <div style="font-size: 0.8rem; color: #1565c0;">510(k)</div>
+        </div>
+        <div style="background: #e8f5e9; border-radius: 8px; padding: 0.75rem 1.25rem; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #2e7d32;" th:text="${deNovoCount}">0</div>
+            <div style="font-size: 0.8rem; color: #2e7d32;">De Novo</div>
+        </div>
+        <div style="background: #fff3e0; border-radius: 8px; padding: 0.75rem 1.25rem; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #e65100;" th:text="${cmsCount}">0</div>
+            <div style="font-size: 0.8rem; color: #e65100;">CMS Rules</div>
+        </div>
+    </div>
+
+    <!-- Filter tabs -->
+    <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem;">
+        <a th:href="@{/dashboard/regulatory}"
+           th:style="${filter == null} ? 'font-weight:700; text-decoration:underline;' : ''">All</a>
+        <a th:href="@{/dashboard/regulatory(filter='fda')}"
+           th:style="${filter == 'fda'} ? 'font-weight:700; text-decoration:underline;' : ''">FDA</a>
+        <a th:href="@{/dashboard/regulatory(filter='cms')}"
+           th:style="${filter == 'cms'} ? 'font-weight:700; text-decoration:underline;' : ''">CMS</a>
+    </div>
+
+    <!-- Events table -->
+    <div th:if="${eventCount > 0}">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+            <tr style="border-bottom: 2px solid var(--outline); text-align: left;">
+                <th style="padding: 0.5rem;">Type</th>
+                <th style="padding: 0.5rem;">Title</th>
+                <th style="padding: 0.5rem;">Applicant / Device</th>
+                <th style="padding: 0.5rem;">Reference</th>
+                <th style="padding: 0.5rem;">Published</th>
+                <th style="padding: 0.5rem;">Keywords</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="event : ${events}" style="border-bottom: 1px solid var(--outline-variant);">
+                <td style="padding: 0.5rem;">
+                    <span th:switch="${event.eventType().name()}">
+                        <span th:case="'FDA_510K_CLEARANCE'"
+                              style="background:#1565c0; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">510(k)</span>
+                        <span th:case="'FDA_DE_NOVO_CLASSIFICATION'"
+                              style="background:#2e7d32; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">De Novo</span>
+                        <span th:case="'FDA_PMA_APPROVAL'"
+                              style="background:#6a1b9a; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">PMA</span>
+                        <span th:case="'CMS_PROPOSED_RULE'"
+                              style="background:#e65100; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">CMS Proposed</span>
+                        <span th:case="'CMS_FINAL_RULE'"
+                              style="background:#bf360c; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">CMS Final</span>
+                        <span th:case="'CMS_NCD'"
+                              style="background:#ff6f00; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">NCD</span>
+                        <span th:case="*"
+                              style="background:#757575; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;"
+                              th:text="${event.eventType().name()}">OTHER</span>
+                    </span>
+                </td>
+                <td style="padding: 0.5rem;">
+                    <a th:href="${event.sourceUrl()}" target="_blank"
+                       th:text="${event.title()}" style="color: var(--primary);">Title</a>
+                    <div th:if="${event.summary() != null}"
+                         style="font-size: 0.8rem; color: var(--on-surface-variant); margin-top: 2px;"
+                         th:text="${#strings.abbreviate(event.summary(), 120)}">Summary</div>
+                </td>
+                <td style="padding: 0.5rem; font-size: 0.85rem;">
+                    <span th:if="${event.applicantName() != null}" th:text="${event.applicantName()}">Applicant</span>
+                    <br th:if="${event.applicantName() != null and event.deviceName() != null}"/>
+                    <span th:if="${event.deviceName() != null}" style="color: var(--on-surface-variant);"
+                          th:text="${event.deviceName()}">Device</span>
+                </td>
+                <td style="padding: 0.5rem; font-size: 0.85rem; font-family: monospace;">
+                    <span th:if="${event.referenceNumber() != null}" th:text="${event.referenceNumber()}">K241234</span>
+                </td>
+                <td style="padding: 0.5rem; font-size: 0.85rem; white-space: nowrap;"
+                    th:text="${eventDates.get(event.eventId()) ?: discoveredDates.get(event.eventId())}">Jan 1, 2026</td>
+                <td style="padding: 0.5rem;">
+                    <span th:each="kw : ${event.aiHealthcareKeywords()}"
+                          style="display:inline-block; background:var(--surface-container); padding:1px 6px; border-radius:3px; font-size:0.7rem; margin:1px;"
+                          th:text="${kw}">keyword</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${eventCount == 0}" style="padding: 2rem; text-align: center; color: var(--on-surface-variant);">
+        <p>No regulatory events found. The system harvests from FDA and CMS daily.</p>
+    </div>
+
+    <!-- Upgrade prompt for free users -->
+    <div th:unless="${fullAccess}" style="margin-top: 2rem; padding: 1rem; background: var(--surface-container); border-radius: 8px; text-align: center;">
+        <p style="margin: 0;">Showing the 5 most recent events. <a th:href="@{/pricing}">Upgrade to Subscriber</a> for full regulatory monitoring with watchlist alerts.</p>
+    </div>
+
+</main>
+
+</body>
+</html>
