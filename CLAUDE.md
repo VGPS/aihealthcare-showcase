@@ -201,7 +201,18 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Trend Detection — COMPLETE — 965 tests passing**
+**Custom Watchlists (W-WATCH) — COMPLETE — 1021 tests passing**
+- [x] Domain: `WatchlistItemType` enum, `WatchlistItem` record, `WatchlistMatch` record
+- [x] Ports: `WatchlistPort`, `WatchlistMatchPort` outbound ports
+- [x] Service: `WatchlistMatchingService` — keyword/company/topic matching with snippet extraction
+- [x] Persistence: `WatchlistItemEntity`, `WatchlistMatchEntity`, repositories, `WatchlistItemAdapter`, `WatchlistMatchAdapter`
+- [x] Scheduler: `FeedHarvestScheduler` — watchlist matching after wiki lint in both daily + industry harvests
+- [x] Web: `WatchlistController` at `GET /watchlist` (Thymeleaf) — tier-gated to SUBSCRIBER/DEMO/ADMIN
+- [x] Template: `watchlist.html` — add form, items grouped by type (pills), recent matches table
+- [x] Nav: "Watchlist" link added to all Thymeleaf templates
+- [x] Tests: `WatchlistMatchingServiceTest` (11), `WatchlistItemAdapterTest` (5), `WatchlistMatchAdapterTest` (4), `WatchlistControllerTest` (9)
+
+**Previously complete: Trend Detection — COMPLETE — 965 tests passing**
 - [x] Domain: `TrendDirection` enum, `TrendSignal` record, `TrendSnapshot` record
 - [x] Ports: `DetectTrendsUseCase` inbound, `TrendSnapshotPort` outbound
 - [x] Services: `TrendDetectionService` (keyword frequency analysis across 30/90/180-day windows), `TrendOrchestrationService` (article retrieval + analysis + persistence)

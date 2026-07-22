@@ -24,6 +24,7 @@
     <a th:href="@{/wiki}">Wiki</a>
     <a th:href="@{/dashboard/trends}">Trends</a>
     <a th:href="@{/companies}" style="font-weight:600;">Companies</a>
+    <a th:href="@{/watchlist}">Watchlist</a>
     <a th:href="@{/dashboard/search}">Article Search</a>
     <a th:href="@{/pricing}">Pricing</a>
     <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
@@ -76,12 +77,6 @@
             <p th:if="${profile.description() != null && !profile.description().isEmpty()}"
                style="font-size:0.85rem; color:var(--on-surface-variant); margin-bottom:0.75rem; line-height:1.4;"
                th:text="${#strings.abbreviate(profile.description(), 150)}">Description</p>
-            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.5rem;">
-                <span th:each="cat : ${profile.categories()}"
-                      th:text="${cat}"
-                      style="background:var(--primary-container); color:var(--on-primary-container);
-                             padding:0.15rem 0.5rem; border-radius:8px; font-size:0.7rem; text-transform:uppercase;"></span>
-            </div>
             <div style="font-size:0.8rem; color:var(--on-surface-variant);">
                 <span th:text="${profile.articleCount()}">0</span> articles
                 &nbsp;|&nbsp; Discovered: <span th:text="${discoveredDates[profile.slug()]}">N/A</span>

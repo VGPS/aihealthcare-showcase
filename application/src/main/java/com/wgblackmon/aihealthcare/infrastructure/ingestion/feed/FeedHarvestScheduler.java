@@ -3,13 +3,18 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion.feed;
 import com.wgblackmon.aihealthcare.domain.model.CompilationReport;
 import com.wgblackmon.aihealthcare.domain.model.LintReport;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.model.WatchlistItem;
+import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.LintReportPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
+import com.wgblackmon.aihealthcare.domain.service.WatchlistMatchingService;
 import com.wgblackmon.aihealthcare.domain.service.WikiLintService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import jakarta.annotation.PostConstruct;
@@ -57,6 +62,9 @@ public class FeedHarvestScheduler {
     private final WikiLintService wikiLintService;
     private final WikiQueryPort wikiQueryPort;
     private final LintReportPort lintReportPort;
+    private final WatchlistMatchingService watchlistMatchingService;
+    private final WatchlistPort watchlistPort;
+    private final WatchlistMatchPort watchlistMatchPort;
 
     public FeedHarvestScheduler(ArticleHarvestingPort harvestingPort,
                                 ArticleStoragePort articleStoragePort,
@@ -65,7 +73,10 @@ public class FeedHarvestScheduler {
                                 @Autowired(required = false) KnowledgeCompilationPort knowledgeCompilationPort,
                                 @Autowired(required = false) WikiLintService wikiLintService,
                                 @Autowired(required = false) WikiQueryPort wikiQueryPort,
-                                @Autowired(required = false) LintReportPort lintReportPort) {
+                                @Autowired(required = false) LintReportPort lintReportPort,
+                                @Autowired(required = false) WatchlistMatchingService watchlistMatchingService,
+                                @Autowired(required = false) WatchlistPort watchlistPort,
+                                @Autowired(required = false) WatchlistMatchPort watchlistMatchPort) {
         log.debug("FeedHarvestScheduler() | harvestingPort={}, articleStoragePort={}, topicSummaryService={}, newsTopicProperties={}, knowledgeCompilationPort={}",
                   harvestingPort.getClass().getSimpleName(),
                   articleStoragePort.getClass().getSimpleName(),
@@ -80,6 +91,9 @@ public class FeedHarvestScheduler {
         this.wikiLintService = wikiLintService;
         this.wikiQueryPort = wikiQueryPort;
         this.lintReportPort = lintReportPort;
+        this.watchlistMatchingService = watchlistMatchingService;
+        this.watchlistPort = watchlistPort;
+        this.watchlistMatchPort = watchlistMatchPort;
     }
 
     /**
@@ -127,6 +141,7 @@ public class FeedHarvestScheduler {
         generateTopicSummaries();
         compileWikiPages(dailyArticles);
         lintWikiPages();
+        matchWatchlistItems(dailyArticles);
         log.debug("harvestDailyFeeds() | return=void");
     }
 
@@ -151,6 +166,7 @@ public class FeedHarvestScheduler {
         generateTopicSummaries();
         compileWikiPages(industryArticles);
         lintWikiPages();
+        matchWatchlistItems(industryArticles);
         log.debug("harvestIndustryFeeds() | return=void");
     }
 
@@ -221,6 +237,49 @@ public class FeedHarvestScheduler {
             log.warn("lintWikiPages() | wiki lint failed — harvest continues", e);
         }
         log.debug("lintWikiPages() | return=void");
+    }
+
+    /**
+     * Matches harvested articles against all subscriber watchlist items.
+     * New matches are persisted; duplicates (same item+article) are skipped.
+     * No-ops gracefully if watchlist dependencies are not configured.
+     * Failures are caught so the harvest pipeline is never interrupted.
+     *
+     * @param articles articles to match against watchlists
+     */
+    private void matchWatchlistItems(List<NewsArticle> articles) {
+        log.debug("matchWatchlistItems() | articles={}", articles.size());
+        if (watchlistMatchingService == null || watchlistPort == null || watchlistMatchPort == null) {
+            log.debug("matchWatchlistItems() | watchlist dependencies not configured — skipping");
+            log.debug("matchWatchlistItems() | return=void");
+            return;
+        }
+        try {
+            List<WatchlistItem> allItems = watchlistPort.findAll();
+            if (allItems.isEmpty()) {
+                log.debug("matchWatchlistItems() | no watchlist items — skipping");
+                log.debug("matchWatchlistItems() | return=void");
+                return;
+            }
+
+            List<WatchlistMatch> matches = watchlistMatchingService.matchArticlesAgainstWatchlist(articles, allItems);
+
+            // Filter out duplicates that already exist in DB
+            List<WatchlistMatch> newMatches = new ArrayList<>();
+            for (WatchlistMatch match : matches) {
+                if (!watchlistMatchPort.existsByItemAndArticle(match.itemId(), match.articleId())) {
+                    newMatches.add(match);
+                }
+            }
+
+            if (!newMatches.isEmpty()) {
+                watchlistMatchPort.saveAll(newMatches);
+            }
+            log.info("matchWatchlistItems() | {} new matches from {} candidates", newMatches.size(), matches.size());
+        } catch (Exception e) {
+            log.warn("matchWatchlistItems() | watchlist matching failed — harvest continues", e);
+        }
+        log.debug("matchWatchlistItems() | return=void");
     }
 
     /**

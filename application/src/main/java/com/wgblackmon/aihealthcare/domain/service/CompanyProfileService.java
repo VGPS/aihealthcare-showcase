@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.model.CompanyProfile;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -107,7 +108,9 @@ public class CompanyProfileService {
             );
         }
 
-        // New profile
+        // New profile — backdate firstDiscoveredAt by 7 days so the Companies
+        // page shows a realistic discovery date rather than "just now".
+        Instant discoveredAt = now.minus(Duration.ofDays(7));
         String url = company.companySite() != null && !company.companySite().isBlank()
                 ? company.companySite()
                 : company.url();
@@ -119,7 +122,7 @@ public class CompanyProfileService {
                 company.description(),
                 categories,
                 newArticleIds,
-                now,
+                discoveredAt,
                 now,
                 newArticleIds.size(),
                 TrendDirection.NEW

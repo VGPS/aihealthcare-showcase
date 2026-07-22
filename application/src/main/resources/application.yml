@@ -138,7 +138,7 @@ aihealthcare:
   #   05:00  Competitor web pages (SHA-256 change detection)
   #   05:30  HuggingFace model discovery
   #   06:00  Industry feeds (first run; then every 4 hours)
-  #   06:30  Company discovery (weekly — Saturdays only)
+  #   04:00  Company discovery (daily — same time as RSS harvest)
   #   07:00  Embedding scheduler (vector store refresh)
   #   00:00  Newsletter draft generation (previous day's news, DRAFT only)
   #
@@ -149,7 +149,7 @@ aihealthcare:
     industry-rate-ms: "14400000"
     competitor-cron: "0 0 5 * * *"
     huggingface-cron: "0 30 5 * * *"
-    company-discovery-cron: "0 30 6 * * SAT"
+    company-discovery-cron: "0 0 4 * * *"
 
   # ---------------------------------------------------------------------------
   # Wiki linter — automated quality checks on the knowledge base.

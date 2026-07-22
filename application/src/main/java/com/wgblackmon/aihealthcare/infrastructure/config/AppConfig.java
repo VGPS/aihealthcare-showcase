@@ -41,6 +41,7 @@ import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
+import com.wgblackmon.aihealthcare.domain.service.WatchlistMatchingService;
 import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import com.wgblackmon.aihealthcare.domain.service.TrendOrchestrationService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSnapshotPort;
@@ -649,6 +650,20 @@ public class AppConfig {
         log.debug("companyProfileService() | creating stateless service");
         CompanyProfileService result = new CompanyProfileService();
         log.debug("companyProfileService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link WatchlistMatchingService} bean — a stateless, pure-Java
+     * domain service that matches incoming articles against subscriber watchlist items.
+     *
+     * @return The wired {@link WatchlistMatchingService} instance.
+     */
+    @Bean
+    public WatchlistMatchingService watchlistMatchingService() {
+        log.debug("watchlistMatchingService() | creating stateless service");
+        WatchlistMatchingService result = new WatchlistMatchingService();
+        log.debug("watchlistMatchingService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 
