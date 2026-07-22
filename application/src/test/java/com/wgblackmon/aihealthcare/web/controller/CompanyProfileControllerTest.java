@@ -1,11 +1,16 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.Company;
+import com.wgblackmon.aihealthcare.domain.model.CompanyDiscoveryResult;
 import com.wgblackmon.aihealthcare.domain.model.CompanyEvent;
 import com.wgblackmon.aihealthcare.domain.model.CompanyEventType;
 import com.wgblackmon.aihealthcare.domain.model.CompanyProfile;
+import com.wgblackmon.aihealthcare.domain.model.CompanyTags;
 import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DiscoverCompaniesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
+import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -17,8 +22,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,6 +54,12 @@ class CompanyProfileControllerTest {
 
     @MockitoBean
     private CompanyEventPort companyEventPort;
+
+    @MockitoBean
+    private DiscoverCompaniesUseCase discoverCompaniesUseCase;
+
+    @MockitoBean
+    private CompanyProfileService companyProfileService;
 
     @Test
     @WithMockUser
@@ -117,6 +134,30 @@ class CompanyProfileControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("company-detail"))
                 .andExpect(model().attributeExists("events"));
+    }
+
+    @Test
+    @WithMockUser
+    void runDiscoveryCreatesProfilesAndRedirects() throws Exception {
+        Company company = new Company("Tempus AI", "YC", "https://yc.com/tempus",
+                "https://tempus.com", "Clinical data", CompanyTags.none(), true, true);
+        CompanyDiscoveryResult result = new CompanyDiscoveryResult(
+                List.of(company), "markdown", 10, 5, 3);
+
+        when(discoverCompaniesUseCase.discover()).thenReturn(result);
+        when(companyProfileService.toSlug("Tempus AI")).thenReturn("tempus-ai");
+        when(companyProfilePort.findBySlug("tempus-ai")).thenReturn(Optional.empty());
+        when(companyProfileService.upsertFromDiscovery(any(), anyList(), any()))
+                .thenReturn(new CompanyProfile("tempus-ai", "Tempus AI", "https://tempus.com",
+                        "Clinical data", List.of(), List.of(), Instant.now(), Instant.now(), 1, TrendDirection.NEW));
+        when(companyProfileService.detectEvents(any(), anyList())).thenReturn(List.of());
+
+        mockMvc.perform(post("/companies/discover").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/companies"))
+                .andExpect(flash().attributeExists("successMessage"));
+
+        verify(companyProfilePort).save(any(CompanyProfile.class));
     }
 
     @Test
