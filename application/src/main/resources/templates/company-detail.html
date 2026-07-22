@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="'AIHealthcare — ' + ${profile.name()}">AIHealthcare — Company</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+
+<header>
+    <h1 th:text="${profile.name()}">Company Name</h1>
+    <p>Company Intelligence Profile</p>
+</header>
+
+<nav>
+    <a th:href="@{/dashboard}">Analytics</a>
+    <a th:href="@{/dashboard/news}">News Listing</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
+    <a th:href="@{/research/runs}">Research Runs</a>
+    <a th:href="@{/research/vendors}">Vendor Compare</a>
+    <a th:href="@{/research/ai-search}">AI Search</a>
+    <a th:href="@{/wiki}">Wiki</a>
+    <a th:href="@{/dashboard/trends}">Trends</a>
+    <a th:href="@{/companies}" style="font-weight:600;">Companies</a>
+    <a th:href="@{/dashboard/search}">Article Search</a>
+    <a th:href="@{/pricing}">Pricing</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
+    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
+       style="margin-left:auto; color:#e57373;">Logout</a>
+</nav>
+
+<main>
+
+    <!-- Profile card -->
+    <div style="border:1px solid var(--outline); border-radius:12px; padding:1.5rem; margin-bottom:1.5rem; background:var(--surface);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <div>
+                <a th:if="${profile.url() != null}" th:href="${profile.url()}" target="_blank"
+                   style="color:var(--primary); font-size:0.85rem;" th:text="${profile.url()}">URL</a>
+            </div>
+            <span th:if="${profile.trendDirection() != null}"
+                  th:text="${profile.trendDirection().name()}"
+                  th:style="${profile.trendDirection().name() == 'RISING' ? 'color:#4caf50;font-weight:600;' :
+                             profile.trendDirection().name() == 'FADING' ? 'color:#f44336;font-weight:600;' :
+                             profile.trendDirection().name() == 'NEW' ? 'color:#2196f3;font-weight:600;' :
+                             'color:var(--on-surface-variant);'}">STABLE</span>
+        </div>
+        <p th:if="${profile.description() != null && !profile.description().isEmpty()}"
+           style="margin-bottom:1rem; line-height:1.5;"
+           th:text="${profile.description()}">Description</p>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+            <span th:each="cat : ${profile.categories()}"
+                  th:text="${cat}"
+                  style="background:var(--primary-container); color:var(--on-primary-container);
+                         padding:0.2rem 0.6rem; border-radius:8px; font-size:0.75rem; text-transform:uppercase;"></span>
+        </div>
+        <div style="font-size:0.85rem; color:var(--on-surface-variant);">
+            <span th:text="${profile.articleCount()}">0</span> linked articles
+            &nbsp;|&nbsp; First discovered: <span th:text="${discoveredAt}">N/A</span>
+            &nbsp;|&nbsp; Last updated: <span th:text="${updatedAt}">N/A</span>
+        </div>
+    </div>
+
+    <!-- Event timeline -->
+    <h2 style="margin-bottom:1rem;">Event Timeline</h2>
+
+    <div th:if="${#lists.isEmpty(events)}"
+         style="text-align:center; padding:2rem; color:var(--on-surface-variant);">
+        <p>No events detected yet for this company.</p>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(events)}">
+        <div th:each="event : ${events}"
+             style="border-left:3px solid var(--primary); padding:0.75rem 1rem; margin-bottom:1rem; background:var(--surface); border-radius:0 8px 8px 0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+                <span th:text="${event.eventType().name()}"
+                      th:style="${event.eventType().name() == 'FUNDING' ? 'color:#4caf50;font-weight:600;font-size:0.75rem;' :
+                                 event.eventType().name() == 'REGULATORY' ? 'color:#ff9800;font-weight:600;font-size:0.75rem;' :
+                                 event.eventType().name() == 'PRODUCT_LAUNCH' ? 'color:#2196f3;font-weight:600;font-size:0.75rem;' :
+                                 event.eventType().name() == 'PARTNERSHIP' ? 'color:#9c27b0;font-weight:600;font-size:0.75rem;' :
+                                 'color:var(--on-surface-variant);font-size:0.75rem;'}">EVENT_TYPE</span>
+                <span th:if="${eventDates[event.eventId()] != null}"
+                      th:text="${eventDates[event.eventId()]}"
+                      style="font-size:0.75rem; color:var(--on-surface-variant);">Date</span>
+            </div>
+            <div th:text="${event.title()}"
+                 style="font-weight:500; margin-bottom:0.25rem;">Event Title</div>
+            <div th:if="${event.description() != null}"
+                 th:text="${event.description()}"
+                 style="font-size:0.85rem; color:var(--on-surface-variant);">Description</div>
+        </div>
+    </div>
+
+    <div style="margin-top:1.5rem;">
+        <a th:href="@{/companies}" style="color:var(--primary);">&larr; Back to Companies</a>
+    </div>
+
+</main>
+
+</body>
+</html>
