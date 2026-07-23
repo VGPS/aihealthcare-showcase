@@ -74,6 +74,25 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, 
     List<NewsArticleEntity> findByArticleIdIn(List<String> articleIds);
 
     /**
+     * Finds articles whose title contains the given keyword (case-insensitive).
+     *
+     * @param keyword substring to match against the title column
+     * @return list of matching entities; empty if none found
+     */
+    List<NewsArticleEntity> findByTitleContainingIgnoreCase(String keyword);
+
+    /**
+     * Finds real news articles mentioning a company name in the title,
+     * excluding synthetic discovery entries (topic = 'New AI Healthcare Companies').
+     *
+     * @param keyword substring to match against the title column (case-insensitive)
+     * @return list of matching entities; empty if none found
+     */
+    @Query("SELECT n FROM NewsArticleEntity n WHERE LOWER(n.title) LIKE LOWER(CONCAT('%', :keyword, '%')) "
+         + "AND n.topic <> 'New AI Healthcare Companies' ORDER BY n.createdAt DESC")
+    List<NewsArticleEntity> findRealArticlesByCompanyName(String keyword);
+
+    /**
      * Returns article counts grouped by {@code sourceTier}, ordered by count descending.
      * Each element is a two-element {@code Object[]} where index 0 is the tier string
      * and index 1 is the {@code Long} count.

@@ -65,9 +65,12 @@
         <div th:each="profile : ${profiles}"
              style="border:1px solid var(--outline); border-radius:12px; padding:1.25rem; background:var(--surface);">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
-                <a th:href="@{/companies/{slug}(slug=${profile.slug()})}"
+                <a th:if="${profile.url() != null}" th:href="${profile.url()}" target="_blank"
                    style="font-size:1.1rem; font-weight:600; text-decoration:none; color:var(--primary);"
                    th:text="${profile.name()}">Company Name</a>
+                <span th:if="${profile.url() == null}"
+                      style="font-size:1.1rem; font-weight:600; color:var(--primary);"
+                      th:text="${profile.name()}">Company Name</span>
                 <span th:if="${profile.trendDirection() != null}"
                       th:text="${profile.trendDirection().name()}"
                       th:style="${profile.trendDirection().name() == 'RISING' ? 'color:#4caf50;font-weight:600;font-size:0.75rem;' :
@@ -79,7 +82,10 @@
                style="font-size:0.85rem; color:var(--on-surface-variant); margin-bottom:0.75rem; line-height:1.4;"
                th:text="${#strings.abbreviate(profile.description(), 150)}">Description</p>
             <div style="font-size:0.8rem; color:var(--on-surface-variant);">
-                <span th:text="${profile.articleCount()}">0</span> articles
+                <a th:href="@{/companies/{slug}(slug=${profile.slug()})}"
+                   style="color:var(--primary); text-decoration:underline;">
+                    <span th:text="${realArticleCounts[profile.slug()]}">0</span> articles
+                </a>
                 &nbsp;|&nbsp; Discovered: <span th:text="${discoveredDates[profile.slug()]}">N/A</span>
             </div>
         </div>

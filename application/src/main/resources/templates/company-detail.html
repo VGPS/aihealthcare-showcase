@@ -36,39 +36,46 @@
 
 <main>
 
-    <!-- Profile card -->
-    <div style="border:1px solid var(--outline); border-radius:12px; padding:1.5rem; margin-bottom:1.5rem; background:var(--surface);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-            <div>
-                <a th:if="${profile.url() != null}" th:href="${profile.url()}" target="_blank"
-                   style="color:var(--primary); font-size:0.85rem;" th:text="${profile.url()}">URL</a>
-            </div>
-            <span th:if="${profile.trendDirection() != null}"
-                  th:text="${profile.trendDirection().name()}"
-                  th:style="${profile.trendDirection().name() == 'RISING' ? 'color:#4caf50;font-weight:600;' :
-                             profile.trendDirection().name() == 'FADING' ? 'color:#f44336;font-weight:600;' :
-                             profile.trendDirection().name() == 'NEW' ? 'color:#2196f3;font-weight:600;' :
-                             'color:var(--on-surface-variant);'}">STABLE</span>
-        </div>
-        <p th:if="${profile.description() != null && !profile.description().isEmpty()}"
-           style="margin-bottom:1rem; line-height:1.5;"
-           th:text="${profile.description()}">Description</p>
-        <div style="font-size:0.85rem; color:var(--on-surface-variant);">
-            <span th:text="${profile.articleCount()}">0</span> linked articles
-            &nbsp;|&nbsp; First discovered: <span th:text="${discoveredAt}">N/A</span>
-            &nbsp;|&nbsp; Last updated: <span th:text="${updatedAt}">N/A</span>
-        </div>
-    </div>
+    <!-- Linked Articles -->
+    <h2 id="linked-articles" style="margin-bottom:1rem;">Linked Articles for
+        <a th:if="${profile.url() != null}" th:href="${profile.url()}" target="_blank"
+           style="color:var(--primary); text-decoration:none;"
+           th:text="${profile.name()}">Company Name</a>
+        <span th:if="${profile.url() == null}" th:text="${profile.name()}">Company Name</span>
+    </h2>
 
-    <!-- Event timeline -->
-    <h2 style="margin-bottom:1rem;">Event Timeline</h2>
-
-    <div th:if="${#lists.isEmpty(events)}"
+    <div th:if="${#lists.isEmpty(linkedArticles)}"
          style="text-align:center; padding:2rem; color:var(--on-surface-variant);">
-        <p>No events detected yet for this company.</p>
+        <p>No linked articles found for this company.</p>
     </div>
 
+    <div th:unless="${#lists.isEmpty(linkedArticles)}">
+        <div th:each="article : ${linkedArticles}"
+             style="border:1px solid var(--outline-variant); border-radius:8px; padding:1rem; margin-bottom:0.75rem; background:var(--surface);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <a th:href="${article.url()}" target="_blank"
+                   style="font-weight:600; color:var(--primary); text-decoration:none; font-size:0.95rem;"
+                   th:text="${article.title()}">Article Title</a>
+                <span th:if="${articleDates[article.articleId()] != null}"
+                      th:text="${articleDates[article.articleId()]}"
+                      style="font-size:0.75rem; color:var(--on-surface-variant); white-space:nowrap; margin-left:1rem;">Date</span>
+            </div>
+            <div style="font-size:0.8rem; color:var(--on-surface-variant); margin-top:0.35rem;">
+                <span th:if="${article.sourceName() != null}" th:text="${article.sourceName()}"
+                      style="margin-right:0.75rem;">Source</span>
+                <span th:if="${article.topic() != null}"
+                      style="background:var(--surface-container); padding:1px 6px; border-radius:3px;"
+                      th:text="${article.topic()}">Topic</span>
+            </div>
+            <p th:if="${article.bodyText() != null && !article.bodyText().isEmpty()}"
+               style="font-size:0.85rem; color:var(--on-surface-variant); margin-top:0.5rem; line-height:1.4;"
+               th:text="${#strings.abbreviate(article.bodyText(), 250)}">Body preview</p>
+        </div>
+    </div>
+
+    <!-- Event Timeline — only shown when events exist -->
     <div th:unless="${#lists.isEmpty(events)}">
+        <h2 style="margin-top:2rem; margin-bottom:1rem;">Event Timeline</h2>
         <div th:each="event : ${events}"
              style="border-left:3px solid var(--primary); padding:0.75rem 1rem; margin-bottom:1rem; background:var(--surface); border-radius:0 8px 8px 0;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
@@ -90,7 +97,12 @@
         </div>
     </div>
 
-    <div style="margin-top:1.5rem;">
+    <div style="font-size:0.85rem; color:var(--on-surface-variant); margin-top:2rem;">
+        First discovered: <span th:text="${discoveredAt}">N/A</span>
+        &nbsp;|&nbsp; Last updated: <span th:text="${updatedAt}">N/A</span>
+    </div>
+
+    <div style="margin-top:1rem;">
         <a th:href="@{/companies}" style="color:var(--primary);">&larr; Back to Companies</a>
     </div>
 
