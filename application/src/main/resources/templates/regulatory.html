@@ -36,6 +36,14 @@
 
 <main>
 
+    <!-- Run Harvest button (ADMIN only) -->
+    <div sec:authorize="hasRole('ADMIN')" style="margin-bottom: 1.5rem;">
+        <button id="harvestBtn" onclick="runHarvest()" style="padding: 0.5rem 1.25rem; background: #1565c0; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
+            Run Regulatory Harvest
+        </button>
+        <span id="harvestStatus" style="margin-left: 0.75rem; font-size: 0.85rem; color: var(--on-surface-variant);"></span>
+    </div>
+
     <!-- Summary badges -->
     <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
         <div style="background: var(--surface-container); border-radius: 8px; padding: 0.75rem 1.25rem; text-align: center;">
@@ -139,5 +147,27 @@
 
 </main>
 
+<script>
+function runHarvest() {
+    var btn = document.getElementById('harvestBtn');
+    var status = document.getElementById('harvestStatus');
+    btn.disabled = true;
+    btn.textContent = 'Harvesting...';
+    status.textContent = '';
+    fetch('/monitoring/regulatory/harvest', { method: 'POST' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            status.textContent = data.status || 'Done';
+            status.style.color = '#2e7d32';
+            setTimeout(function() { location.reload(); }, 1500);
+        })
+        .catch(function(err) {
+            status.textContent = 'Error: ' + err.message;
+            status.style.color = '#c62828';
+            btn.disabled = false;
+            btn.textContent = 'Run Regulatory Harvest';
+        });
+}
+</script>
 </body>
 </html>

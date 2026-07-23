@@ -177,7 +177,7 @@ aihealthcare:
   regulatory:
     enabled: true
     schedule: "0 30 4 * * *"
-    lookback-days: 7
+    lookback-days: 30
     ai-keywords:
       - "artificial intelligence"
       - "machine learning"
