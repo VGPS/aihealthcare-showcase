@@ -8,6 +8,8 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DiscoverCompaniesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -51,17 +53,20 @@ public class CompanyProfileController {
     private final CompanyEventPort companyEventPort;
     private final DiscoverCompaniesUseCase discoverCompaniesUseCase;
     private final CompanyProfileService companyProfileService;
+    private final NewsArticleRepository newsArticleRepository;
 
     public CompanyProfileController(CompanyProfilePort companyProfilePort,
                                     CompanyEventPort companyEventPort,
                                     DiscoverCompaniesUseCase discoverCompaniesUseCase,
-                                    CompanyProfileService companyProfileService) {
-        log.debug("CompanyProfileController() | companyProfilePort={}, companyEventPort={}, discoverCompaniesUseCase={}, companyProfileService={}",
-                  companyProfilePort, companyEventPort, discoverCompaniesUseCase, companyProfileService);
+                                    CompanyProfileService companyProfileService,
+                                    NewsArticleRepository newsArticleRepository) {
+        log.debug("CompanyProfileController() | companyProfilePort={}, companyEventPort={}, discoverCompaniesUseCase={}, companyProfileService={}, newsArticleRepository={}",
+                  companyProfilePort, companyEventPort, discoverCompaniesUseCase, companyProfileService, newsArticleRepository);
         this.companyProfilePort = companyProfilePort;
         this.companyEventPort = companyEventPort;
         this.discoverCompaniesUseCase = discoverCompaniesUseCase;
         this.companyProfileService = companyProfileService;
+        this.newsArticleRepository = newsArticleRepository;
     }
 
     /**
@@ -76,17 +81,21 @@ public class CompanyProfileController {
 
         List<CompanyProfile> profiles = companyProfilePort.findAll();
 
-        // Format timestamps server-side
+        // Format timestamps server-side and compute real article counts
         Map<String, String> discoveredDates = new HashMap<>();
         Map<String, String> updatedDates = new HashMap<>();
+        Map<String, Integer> realArticleCounts = new HashMap<>();
         for (CompanyProfile profile : profiles) {
             discoveredDates.put(profile.slug(), DISPLAY_FMT.format(profile.firstDiscoveredAt()));
             updatedDates.put(profile.slug(), DISPLAY_FMT.format(profile.lastUpdatedAt()));
+            int count = newsArticleRepository.findRealArticlesByCompanyName(profile.name()).size();
+            realArticleCounts.put(profile.slug(), count);
         }
 
         model.addAttribute("profiles", profiles);
         model.addAttribute("discoveredDates", discoveredDates);
         model.addAttribute("updatedDates", updatedDates);
+        model.addAttribute("realArticleCounts", realArticleCounts);
         model.addAttribute("profileCount", profiles.size());
 
         log.debug("index() | return=company-index, profileCount={}", profiles.size());
@@ -181,13 +190,43 @@ public class CompanyProfileController {
             }
         }
 
+        // Fetch real news articles mentioning this company (excludes synthetic discovery entries)
+        List<NewsArticleEntity> entities = newsArticleRepository.findRealArticlesByCompanyName(profile.name());
+        List<NewsArticle> linkedArticles = new ArrayList<>();
+        for (NewsArticleEntity e : entities) {
+            String cleanBody = e.getBodyText();
+            if (cleanBody != null) {
+                cleanBody = cleanBody.replaceAll("<[^>]+>", " ")
+                        .replace("&nbsp;", " ")
+                        .replaceAll("&[a-zA-Z]+;", " ")
+                        .replaceAll("\\s+", " ")
+                        .trim();
+            }
+            linkedArticles.add(new NewsArticle(
+                    e.getArticleId(), e.getTitle(),
+                    URI.create(e.getUrl()), cleanBody, e.getTopic(),
+                    e.getAuthor(), e.getTopicId(), e.getSourceName(),
+                    e.getSourceTier(), e.getSourceWeight(),
+                    e.getPublishedAt()));
+        }
+
+        // Format article dates server-side
+        Map<String, String> articleDates = new HashMap<>();
+        for (NewsArticle article : linkedArticles) {
+            if (article.publishedAt() != null) {
+                articleDates.put(article.articleId(), DISPLAY_FMT.format(article.publishedAt()));
+            }
+        }
+
         model.addAttribute("profile", profile);
         model.addAttribute("events", events);
         model.addAttribute("eventDates", eventDates);
+        model.addAttribute("linkedArticles", linkedArticles);
+        model.addAttribute("articleDates", articleDates);
         model.addAttribute("discoveredAt", DISPLAY_FMT.format(profile.firstDiscoveredAt()));
         model.addAttribute("updatedAt", DISPLAY_FMT.format(profile.lastUpdatedAt()));
 
-        log.debug("detail() | return=company-detail, eventCount={}", events.size());
+        log.debug("detail() | return=company-detail, eventCount={}, articleCount={}", events.size(), linkedArticles.size());
         return "company-detail";
     }
 }

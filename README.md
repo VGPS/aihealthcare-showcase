@@ -10,6 +10,10 @@ An automated AI-powered newsletter, research, and knowledge platform that discov
 | **LLM-Compiled Knowledge Wiki** | AI synthesizes harvested articles into a persistent, searchable wiki with revision history and cross-references |
 | **Source Provenance Tracking** | Every wiki claim links to its original PubMed, FDA, or industry source for verifiable trust |
 | **Contradiction Detection** | Automatically flags when new evidence contradicts prior wiki claims — a "Reversal Watch" for healthcare AI |
+| **Regulatory Alert System** | Automated FDA 510(k)/De Novo clearance and CMS rule harvesting from openFDA and Federal Register APIs with watchlist integration |
+| **Company Intelligence Profiles** | Persistent company pages with real article linking, event timelines, trend indicators, and homepage links |
+| **Custom Watchlists** | Subscriber-defined keyword, company, and topic watchlists with automated matching against new articles and regulatory events |
+| **Trend Detection** | Weekly keyword frequency analysis across 30/90/180-day windows identifying rising, fading, and new healthcare AI trends |
 | **PubMed Historical Backfill** | E-utilities API integration retrieves years of academic articles to build longitudinal knowledge depth |
 | **Multi-Model AI Search** | Fan-out synthesis across Claude, GPT, Perplexity Sonar, and Gemini with numbered citation references |
 | **Staged Research Pipeline** | AI-planned query decomposition, multi-source retrieval, citation assembly, and synthesized research answers |
@@ -19,13 +23,13 @@ An automated AI-powered newsletter, research, and knowledge platform that discov
 | **Company Discovery Pipeline** | Scrapes YC and startup directories, classifies by healthcare AI subcategory, deduplicates, and renders reports |
 | **Vector Semantic Search** | PGVector-powered similarity search across the full article archive for contextual retrieval |
 | **RAG-Enhanced Summarization** | Retrieval-augmented generation enriches newsletter sections with relevant archived context |
-| **Subscription Tier Gating** | FREE vs MEMBER content access with Stripe Billing, usage metering, and feature-level gating |
+| **Subscription Tier Gating** | 4-tier access model (DEMO/FREE_PENDING/FREE/SUBSCRIBER) with Stripe Billing, usage metering, and feature-level gating |
 | **Role-Based Access Control** | Spring Security with ADMIN/USER roles, session-based auth, and per-page authorization |
 | **Hexagonal Architecture** | Framework-free domain layer with pluggable adapters — swap AI providers or databases with zero domain changes |
 | **What Changed Digest** | Weekly activity dashboard showing new pages, updated pages, and detected contradictions with configurable time windows |
 | **Evidence Grade Classification** | Automatic source credibility badges (Peer-Reviewed, Regulatory, Industry, Vendor, News) with color-coded provenance |
-| **17-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, and vendor comparison pages |
-| **822 Automated Tests** | Comprehensive test suite across domain, web, persistence, and infrastructure layers — no live AI calls |
+| **20-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, watchlist, and company pages |
+| **1,081 Automated Tests** | Comprehensive test suite across domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
@@ -33,6 +37,10 @@ An automated AI-powered newsletter, research, and knowledge platform that discov
 - **LLM-Compiled Knowledge Wiki** — AI synthesizes articles into a persistent, versioned wiki with provenance tracking and cross-references
 - **Source Provenance Tracking** — Every wiki claim links to its PubMed, FDA, or industry origin for verifiable healthcare trust
 - **Contradiction Detection** — Automated "Reversal Watch" flags when new evidence contradicts prior wiki claims with side-by-side comparison
+- **Regulatory Alert System** — Automated FDA 510(k)/De Novo clearance and CMS rule harvesting from openFDA and Federal Register APIs with watchlist integration
+- **Company Intelligence Profiles** — Persistent company pages with real news article linking, event timelines, trend indicators, and external homepage links
+- **Custom Watchlists** — Subscriber-defined keyword, company, and topic watchlists with automated matching against new articles and regulatory events
+- **Trend Detection** — Weekly keyword frequency analysis across 30/90/180-day windows identifying rising, fading, and new healthcare AI trends
 - **PubMed Historical Backfill** — E-utilities API integration retrieves years of academic articles for longitudinal knowledge depth
 - **Multi-Model AI Search** — Fan-out synthesis across Claude, GPT, Perplexity Sonar, and Gemini with numbered citation references
 - **Staged Research Pipeline** — AI-planned query decomposition with multi-source retrieval, citation assembly, and synthesized answers
@@ -44,10 +52,10 @@ An automated AI-powered newsletter, research, and knowledge platform that discov
 - **RAG-Enhanced Summarization** — Retrieval-augmented generation enriches newsletter sections with relevant archived context
 - **What Changed Digest** — Weekly activity dashboard showing new pages, updates, and contradictions with configurable time windows
 - **Evidence Grade Classification** — Automatic source credibility badges (Peer-Reviewed, Regulatory, Industry) with color-coded provenance
-- **Subscription Tier Gating** — FREE vs MEMBER content access with Stripe Billing, usage metering, and feature-level gating
+- **Subscription Tier Gating** — 4-tier access model (DEMO/FREE_PENDING/FREE/SUBSCRIBER) with Stripe Billing, usage metering, and feature-level gating
 - **Role-Based Access Control** — Spring Security with ADMIN/USER roles, session-based authentication, and per-page authorization
 - **Hexagonal Architecture** — Framework-free domain with pluggable adapters; swap AI providers or databases with zero domain changes
-- **822 Automated Tests** — Comprehensive test suite across domain, web, persistence, and infrastructure layers with no live AI calls
+- **1,081 Automated Tests** — Comprehensive test suite across 141 test classes across domain, web, persistence, and infrastructure layers with no live AI calls
 
 ## What It Does
 
@@ -60,9 +68,13 @@ AIHealthcare runs multiple automated pipelines:
 5. **Backfill** — PubMed E-utilities API retrieves historical academic articles (2022-2025) across 10 configurable query topics
 6. **Research** — Staged research pipeline combining Perplexity API + DB articles, with planning, retrieval, citation assembly, and AI synthesis
 7. **Evaluate** — LLM-as-judge prompt evaluation scoring across 5 dimensions with A/B variant comparison
-8. **Deliver** — Generates a daily newsletter draft for review; send manually after editing in the TinyMCE WYSIWYG editor; tier-aware content gating (FREE gets teaser, MEMBER gets full)
+8. **Deliver** — Generates a daily newsletter draft for review; send manually after editing in the TinyMCE WYSIWYG editor; tier-aware content gating
 9. **Export** — NotebookLM-compatible article exports with HTML summaries grouped by source
-10. **Gate** — Usage metering and feature gating per subscription tier (FREE vs MEMBER): archive depth (FREE=7 days, MEMBER=unlimited), newsletter teaser vs full content, AI query limits, with Stripe Billing integration
+10. **Regulate** — Harvests FDA 510(k) clearances, De Novo authorizations, and CMS rules from openFDA and Federal Register APIs; matches against subscriber watchlists
+11. **Discover** — Scrapes startup directories (YC, TopStartups), classifies companies by healthcare AI subcategory, builds persistent intelligence profiles with real article linking
+12. **Watch** — Subscriber-defined keyword, company, and topic watchlists with automated matching against incoming articles and regulatory events
+13. **Trend** — Weekly keyword frequency analysis across rolling 30/90/180-day windows identifying rising, fading, and emerging healthcare AI trends
+14. **Gate** — Usage metering and feature gating per 4-tier subscription model (DEMO/FREE_PENDING/FREE/SUBSCRIBER): archive depth, AI query limits, with Stripe Billing integration
 
 ## Architecture
 
@@ -141,7 +153,7 @@ POST /api/v1/comparisons
 | UI                | Thymeleaf + Spring Security extras                 |
 | Build             | Maven                                              |
 | Markdown Render   | CommonMark 0.24.0 (wiki content)                   |
-| Testing           | JUnit 5 + AssertJ + Mockito (822 tests)            |
+| Testing           | JUnit 5 + AssertJ + Mockito (1,081 tests)          |
 
 ## Prerequisites
 
@@ -228,7 +240,12 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | `/research/ai-search` | Multi-model AI search — Claude, GPT, Perplexity, Gemini synthesis |
 | `/newsletter/runs` | Newsletter run list with status badges and edit links (Admin only) |
 | `/newsletter/runs/{runId}/edit` | TinyMCE WYSIWYG editor — edit and send newsletter drafts |
-| `/pricing` | Two-tier comparison (Free vs Member) with Stripe Checkout |
+| `/dashboard/trends` | Keyword trend analysis — rising, fading, and new healthcare AI trends with momentum charts |
+| `/dashboard/regulatory` | FDA/CMS regulatory alerts with filter tabs, color-coded type badges, and tier gating |
+| `/companies` | Company intelligence index — all tracked companies with real article counts and trend indicators |
+| `/companies/{slug}` | Company detail — linked articles, event timeline, discovered/updated dates |
+| `/watchlist` | Subscriber watchlist — add keyword/company/topic items, view recent matches |
+| `/pricing` | Tier comparison (Demo/Free/Subscriber) with Stripe Checkout |
 | `/profile` | Subscriber self-service — tier badge, usage meter, Stripe portal link |
 | `/admin` | User management table and system status dashboard (Admin only) |
 | `/login` | Session-based form login |
@@ -268,7 +285,9 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | POST | `/monitoring/wiki/compile` | Trigger LLM wiki compilation from recent articles |
 | POST | `/monitoring/backfill` | Trigger PubMed historical backfill (10 queries, 2022-2025) |
 | POST | `/monitoring/backfill/custom?query=` | Run custom PubMed backfill query |
+| POST | `/monitoring/regulatory/harvest` | Trigger regulatory event harvest (FDA/CMS) |
 | GET | `/monitoring/hashes` | List page content hashes |
+| GET/POST | `/api/v1/trends/latest`, `/api/v1/trends/detect` | Retrieve latest trend snapshot / trigger detection |
 | POST | `/api/v1/stripe/checkout` | Create Stripe Checkout session for upgrade |
 | POST | `/api/v1/stripe/webhook` | Stripe webhook receiver (tier updates) |
 
@@ -283,7 +302,9 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 | Competitor Scrape | 05:00 daily | `aihealthcare.harvest.competitor-cron` | Web page SHA-256 change detection |
 | HuggingFace Discovery | 05:30 daily | `aihealthcare.harvest.huggingface-cron` | Healthcare LLM model API |
 | Industry RSS | Every 4 hours | `aihealthcare.harvest.industry-rate-ms` | High-frequency industry feeds |
+| Regulatory Harvest | 04:30 daily | `aihealthcare.regulatory.schedule` | FDA/CMS harvest → dedup → save → watchlist match |
 | Embedding | 07:00 daily | `aihealthcare.embedding.schedule` | Vector store refresh (after harvests) |
+| Trend Detection | Sunday 08:00 | `aihealthcare.trends.schedule` | Keyword frequency analysis → TrendSnapshot |
 | Newsletter Draft | 00:00 daily | `aihealthcare.newsletter.schedule` | Generate DRAFT (review + send manually) |
 | Market Intelligence | 1st of month, 08:00 | `aihealthcare.market-intelligence.schedule` | Monthly AI market report |
 
@@ -308,13 +329,17 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 
 ### Subscription Tiers
 
-| Feature | Free | Member ($15/mo) |
-|---------|------|-----------------|
+| Feature | Free | Subscriber ($15/mo) |
+|---------|------|---------------------|
 | Newsletter content | Teaser (first section) | Full newsletter |
 | Article archive | 7 days | Unlimited |
 | AI research queries | 15/month | 200/month |
 | Semantic search | No | Yes |
 | New AI Healthcare Companies | No | Yes |
+| Custom Watchlists | No | Yes |
+| Regulatory Alerts | 5 events | 50 events |
+| Trend Analysis | Yes | Yes |
+| Company Profiles | Yes | Yes |
 
 ### New AI Healthcare Companies (Member Only)
 
@@ -343,7 +368,7 @@ STRIPE_MEMBER_PRICE_ID=price_...
 
 ## Testing
 
-822 tests across 105 test classes — all pass with no live AI or network calls.
+1,081 tests across 141 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
@@ -369,15 +394,15 @@ AIHealthcare/
 │   │   ├── config/          # AppConfig, SecurityConfig, bean wiring, properties
 │   │   ├── delivery/        # EmailDeliveryAdapter, NotebookLMService
 │   │   ├── ingestion/       # RSS, web scraping, HuggingFace, Perplexity, PubMed backfill
-│   │   ├── persistence/     # JPA entities, repositories, storage adapters (16 tables)
+│   │   ├── persistence/     # JPA entities, repositories, storage adapters (20 tables)
 │   │   ├── research/        # Perplexity + legacy Google research adapters
 │   │   └── scheduler/       # NewsletterGenerationScheduler
 │   └── web/
-│       ├── controller/      # REST + Thymeleaf controllers (20+ controllers)
+│       ├── controller/      # REST + Thymeleaf controllers (25+ controllers)
 │       └── dto/             # Request/response records
 ├── application/src/main/resources/
 │   ├── prompts/             # AI prompt templates (10 templates)
-│   └── templates/           # Thymeleaf HTML templates (17 pages)
+│   └── templates/           # Thymeleaf HTML templates (20 pages)
 ├── docs/                    # Architecture and conventions documentation
 ├── pom.xml
 └── CLAUDE.md                # AI assistant project context

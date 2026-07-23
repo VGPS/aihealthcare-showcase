@@ -7,9 +7,12 @@ import com.wgblackmon.aihealthcare.domain.model.CompanyEventType;
 import com.wgblackmon.aihealthcare.domain.model.CompanyProfile;
 import com.wgblackmon.aihealthcare.domain.model.CompanyTags;
 import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DiscoverCompaniesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -61,6 +65,9 @@ class CompanyProfileControllerTest {
     @MockitoBean
     private CompanyProfileService companyProfileService;
 
+    @MockitoBean
+    private NewsArticleRepository newsArticleRepository;
+
     @Test
     @WithMockUser
     void indexRendersCompanyIndexWithProfiles() throws Exception {
@@ -70,11 +77,12 @@ class CompanyProfileControllerTest {
                 List.of("a1"), now, now, 1, TrendDirection.RISING);
 
         when(companyProfilePort.findAll()).thenReturn(List.of(profile));
+        when(newsArticleRepository.findRealArticlesByCompanyName("Tempus AI")).thenReturn(List.of());
 
         mockMvc.perform(get("/companies"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("company-index"))
-                .andExpect(model().attributeExists("profiles"))
+                .andExpect(model().attributeExists("profiles", "realArticleCounts"))
                 .andExpect(model().attribute("profileCount", 1));
     }
 
@@ -100,13 +108,25 @@ class CompanyProfileControllerTest {
                 CompanyEventType.FUNDING, "Tempus raises $200M",
                 "Funding detected", "a1", now, now);
 
+        NewsArticleEntity articleEntity = new NewsArticleEntity();
+        articleEntity.setArticleId("real-1");
+        articleEntity.setTitle("Tempus AI raises $200M in Series G");
+        articleEntity.setUrl("https://example.com/tempus-funding");
+        articleEntity.setBodyText("Tempus AI announced a $200M funding round.");
+        articleEntity.setTopic("Healthcare AI");
+        articleEntity.setSourceName("TechCrunch");
+        articleEntity.setSourceTier("INDUSTRY");
+        articleEntity.setSourceWeight(0.7);
+        articleEntity.setPublishedAt(now);
+
         when(companyProfilePort.findBySlug("tempus-ai")).thenReturn(Optional.of(profile));
         when(companyEventPort.findByCompanySlug("tempus-ai")).thenReturn(List.of(event));
+        when(newsArticleRepository.findRealArticlesByCompanyName("Tempus AI")).thenReturn(List.of(articleEntity));
 
         mockMvc.perform(get("/companies/tempus-ai"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("company-detail"))
-                .andExpect(model().attributeExists("profile", "events"));
+                .andExpect(model().attributeExists("profile", "events", "linkedArticles"));
     }
 
     @Test
