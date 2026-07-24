@@ -191,6 +191,27 @@ aihealthcare:
       - "neural network"
 
   # ---------------------------------------------------------------------------
+  # Clinical Trial Integration — ClinicalTrials.gov v2 API harvesting.
+  # Schedule default: daily 05:00 UTC (after regulatory harvest).
+  # ---------------------------------------------------------------------------
+  clinical-trials:
+    enabled: true
+    schedule: "0 0 5 * * *"
+    lookback-days: 7
+    max-results: 100
+    ai-keywords:
+      - "artificial intelligence"
+      - "machine learning"
+      - "deep learning"
+      - "neural network"
+      - "clinical decision support"
+      - "SaMD"
+      - "software as medical device"
+      - "algorithm"
+      - "computer-aided"
+      - "natural language processing"
+
+  # ---------------------------------------------------------------------------
   # Research pipeline — controls which pipeline branch POST /api/v1/research uses.
   # LEGACY_GOOGLE:   fetch from ingestion DB only (no API keys required, always safe).
   # STAGED_RESEARCH: AI planning + Perplexity retrieval + AI synthesis.

@@ -41,11 +41,15 @@ import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
+import com.wgblackmon.aihealthcare.domain.service.ClinicalTrialService;
+import com.wgblackmon.aihealthcare.domain.service.ClinicalTrialWatchlistMatcher;
 import com.wgblackmon.aihealthcare.domain.service.RegulatoryEventService;
 import com.wgblackmon.aihealthcare.domain.service.RegulatoryWatchlistMatcher;
 import com.wgblackmon.aihealthcare.domain.service.WatchlistMatchingService;
 import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import com.wgblackmon.aihealthcare.domain.service.TrendOrchestrationService;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialHarvestingPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSnapshotPort;
@@ -751,6 +755,40 @@ public class AppConfig {
         log.debug("regulatoryWatchlistMatcher() | creating stateless service");
         RegulatoryWatchlistMatcher result = new RegulatoryWatchlistMatcher();
         log.debug("regulatoryWatchlistMatcher() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link ClinicalTrialService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.MonitorClinicalTrialsUseCase}.
+     *
+     * @param clinicalTrialPort          Adapter implementing clinical trial persistence (auto-detected).
+     * @param clinicalTrialHarvestingPort Adapter implementing clinical trial harvesting (auto-detected).
+     * @return The wired {@link ClinicalTrialService} instance.
+     */
+    @Bean
+    public ClinicalTrialService clinicalTrialService(
+            ClinicalTrialPort clinicalTrialPort,
+            ClinicalTrialHarvestingPort clinicalTrialHarvestingPort) {
+        log.debug("clinicalTrialService() | clinicalTrialPort={}, clinicalTrialHarvestingPort={}",
+                  clinicalTrialPort.getClass().getSimpleName(),
+                  clinicalTrialHarvestingPort.getClass().getSimpleName());
+        ClinicalTrialService result = new ClinicalTrialService(clinicalTrialPort, clinicalTrialHarvestingPort);
+        log.debug("clinicalTrialService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link ClinicalTrialWatchlistMatcher} bean — a stateless, pure-Java
+     * domain service that matches clinical trials against subscriber watchlist items.
+     *
+     * @return The wired {@link ClinicalTrialWatchlistMatcher} instance.
+     */
+    @Bean
+    public ClinicalTrialWatchlistMatcher clinicalTrialWatchlistMatcher() {
+        log.debug("clinicalTrialWatchlistMatcher() | creating stateless service");
+        ClinicalTrialWatchlistMatcher result = new ClinicalTrialWatchlistMatcher();
+        log.debug("clinicalTrialWatchlistMatcher() | return={}", result.getClass().getSimpleName());
         return result;
     }
 
