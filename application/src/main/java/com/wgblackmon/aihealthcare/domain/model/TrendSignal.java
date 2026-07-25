@@ -1,6 +1,8 @@
 package com.wgblackmon.aihealthcare.domain.model;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Immutable domain record representing a single keyword's trend signal
@@ -21,11 +23,12 @@ import java.time.Instant;
  * @param momentum     per-day frequency ratio: (current30d / 30) / (previous90d / 60)
  * @param direction    computed trend classification
  * @param firstSeenAt  earliest article timestamp containing this keyword
+ * @param topArticles  highest-scoring articles for this keyword (may be empty)
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-24
  */
 public record TrendSignal(
         String keyword,
@@ -34,11 +37,12 @@ public record TrendSignal(
         long baseline180d,
         double momentum,
         TrendDirection direction,
-        Instant firstSeenAt
+        Instant firstSeenAt,
+        List<ScoredArticle> topArticles
 ) {
 
     /**
-     * Compact constructor — validates required fields.
+     * Compact constructor — validates required fields and defensive-copies topArticles.
      */
     public TrendSignal {
         if (keyword == null || keyword.isBlank()) {
@@ -56,5 +60,17 @@ public record TrendSignal(
         if (direction == null) {
             throw new IllegalArgumentException("direction must not be null");
         }
+        topArticles = topArticles == null ? List.of() : List.copyOf(topArticles);
+    }
+
+    /**
+     * Convenience constructor without topArticles — defaults to empty list.
+     * Maintains backward compatibility with existing callers.
+     */
+    public TrendSignal(String keyword, long current30d, long previous90d,
+                       long baseline180d, double momentum,
+                       TrendDirection direction, Instant firstSeenAt) {
+        this(keyword, current30d, previous90d, baseline180d,
+             momentum, direction, firstSeenAt, List.of());
     }
 }

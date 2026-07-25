@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
 import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
 import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
@@ -26,9 +27,9 @@ import static org.mockito.Mockito.when;
  * MockMvc tests for {@link TrendController}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-24
  */
 @WebMvcTest(TrendController.class)
 class TrendControllerTest {
@@ -122,5 +123,34 @@ class TrendControllerTest {
         mockMvc.perform(get("/dashboard/trends"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("chartLabels", "chartData"));
+    }
+
+    @Test
+    @WithMockUser
+    void trendsPage_includesScoringRubric() throws Exception {
+        TrendSnapshot snapshot = new TrendSnapshot(
+                Instant.now(), 30, List.of(), List.of(), List.of(), 10);
+        when(detectTrendsUseCase.getLatestSnapshot()).thenReturn(Optional.of(snapshot));
+
+        mockMvc.perform(get("/dashboard/trends"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("scoringRubric"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void trendsPage_risingSignalWithScoredArticles() throws Exception {
+        ScoredArticle scored = new ScoredArticle("a1", "FDA clears AI tool", 8,
+                "Major regulatory milestone", "radiology ai");
+        TrendSignal rising = new TrendSignal("radiology ai", 10, 3, 2,
+                3.33, TrendDirection.RISING, Instant.now(), List.of(scored));
+        TrendSnapshot snapshot = new TrendSnapshot(
+                Instant.now(), 30, List.of(rising), List.of(), List.of(), 42);
+        when(detectTrendsUseCase.getLatestSnapshot()).thenReturn(Optional.of(snapshot));
+
+        mockMvc.perform(get("/dashboard/trends"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("hasSnapshot", true))
+                .andExpect(model().attribute("fullAccess", true));
     }
 }

@@ -59,6 +59,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchQueryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleScoringPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.EvaluationResultPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
@@ -636,13 +637,20 @@ public class AppConfig {
     public TrendOrchestrationService trendOrchestrationService(
             ArticleIngestionPort articleIngestionPort,
             TrendDetectionService trendDetectionService,
-            TrendSnapshotPort trendSnapshotPort) {
-        log.debug("trendOrchestrationService() | articleIngestionPort={}, trendDetectionService={}, trendSnapshotPort={}",
+            TrendSnapshotPort trendSnapshotPort,
+            ArticleScoringPort articleScoringPort,
+            @Value("${aihealthcare.tech-trends.scoring-enabled:false}") boolean scoringEnabled,
+            @Value("${aihealthcare.tech-trends.score-threshold:7}") int scoreThreshold) {
+        log.debug("trendOrchestrationService() | articleIngestionPort={}, trendDetectionService={}, " +
+                  "trendSnapshotPort={}, articleScoringPort={}, scoringEnabled={}, scoreThreshold={}",
                   articleIngestionPort.getClass().getSimpleName(),
                   trendDetectionService.getClass().getSimpleName(),
-                  trendSnapshotPort.getClass().getSimpleName());
+                  trendSnapshotPort.getClass().getSimpleName(),
+                  articleScoringPort.getClass().getSimpleName(),
+                  scoringEnabled, scoreThreshold);
         TrendOrchestrationService result = new TrendOrchestrationService(
-                articleIngestionPort, trendDetectionService, trendSnapshotPort);
+                articleIngestionPort, trendDetectionService, trendSnapshotPort,
+                articleScoringPort, scoringEnabled, scoreThreshold);
         log.debug("trendOrchestrationService() | return={}", result.getClass().getSimpleName());
         return result;
     }
