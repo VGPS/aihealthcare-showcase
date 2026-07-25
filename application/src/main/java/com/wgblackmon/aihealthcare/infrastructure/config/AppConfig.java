@@ -609,17 +609,15 @@ public class AppConfig {
      *
      * @param minOccurrences minimum keyword occurrences to be included in analysis
      * @param risingLimit    maximum rising signals to return
-     * @param fadingLimit    maximum fading signals to return
      * @return The wired {@link TrendDetectionService} instance.
      */
     @Bean
     public TrendDetectionService trendDetectionService(
             @Value("${aihealthcare.trends.min-occurrences:3}") int minOccurrences,
-            @Value("${aihealthcare.trends.rising-limit:20}") int risingLimit,
-            @Value("${aihealthcare.trends.fading-limit:10}") int fadingLimit) {
-        log.debug("trendDetectionService() | minOccurrences={}, risingLimit={}, fadingLimit={}",
-                  minOccurrences, risingLimit, fadingLimit);
-        TrendDetectionService result = new TrendDetectionService(minOccurrences, risingLimit, fadingLimit);
+            @Value("${aihealthcare.trends.rising-limit:20}") int risingLimit) {
+        log.debug("trendDetectionService() | minOccurrences={}, risingLimit={}",
+                  minOccurrences, risingLimit);
+        TrendDetectionService result = new TrendDetectionService(minOccurrences, risingLimit);
         log.debug("trendDetectionService() | return={}", result.getClass().getSimpleName());
         return result;
     }

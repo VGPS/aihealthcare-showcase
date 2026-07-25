@@ -168,7 +168,6 @@ aihealthcare:
     schedule: "0 0 8 ? * SUN"
     min-occurrences: 3
     rising-limit: 20
-    fading-limit: 10
 
   # ---------------------------------------------------------------------------
   # Tech Trend Scoring — LLM-based article significance scoring for trends.

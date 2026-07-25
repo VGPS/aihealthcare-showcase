@@ -24,8 +24,8 @@ import java.util.Optional;
  * Thymeleaf controller that renders the trend detection dashboard page.
  *
  * <p>Serves {@code GET /dashboard/trends} by loading the latest
- * {@link TrendSnapshot} and populating the Thymeleaf model with rising,
- * fading, and newly emerged keyword signals.
+ * {@link TrendSnapshot} and populating the Thymeleaf model with rising
+ * keyword signals and their LLM-scored articles.
  *
  * <p>Tier gating: SUBSCRIBER and DEMO users see the full trend lists;
  * FREE users see only the top 5 rising topics.
@@ -33,7 +33,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-22
- * @updated 2026-07-24
+ * @updated 2026-07-25
  */
 @Slf4j
 @Controller
@@ -87,14 +87,7 @@ public class TrendController {
                 risingTopics = limitList(snapshot.risingTopics(), FREE_RISING_LIMIT);
             }
 
-            List<TrendSignal> fadingTopics = fullAccess || isAdmin(principal)
-                    ? snapshot.fadingTopics() : List.of();
-            List<TrendSignal> newTopics = fullAccess || isAdmin(principal)
-                    ? snapshot.newTopics() : List.of();
-
             model.addAttribute("risingTopics", risingTopics);
-            model.addAttribute("fadingTopics", fadingTopics);
-            model.addAttribute("newTopics", newTopics);
             model.addAttribute("totalKeywords", snapshot.totalKeywords());
             model.addAttribute("generatedAt", DISPLAY_FMT.format(snapshot.generatedAt()));
             model.addAttribute("hasSnapshot", true);
@@ -115,8 +108,6 @@ public class TrendController {
         } else {
             model.addAttribute("hasSnapshot", false);
             model.addAttribute("risingTopics", List.of());
-            model.addAttribute("fadingTopics", List.of());
-            model.addAttribute("newTopics", List.of());
             model.addAttribute("totalKeywords", 0);
             model.addAttribute("generatedAt", "N/A");
             model.addAttribute("fullAccess", false);

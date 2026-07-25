@@ -31,7 +31,7 @@ class TrendDetectionServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new TrendDetectionService(2, 20, 10);
+        service = new TrendDetectionService(2, 20);
         now = Instant.now();
     }
 
@@ -40,8 +40,6 @@ class TrendDetectionServiceTest {
         TrendSnapshot snapshot = service.detectTrends(List.of(), now);
 
         assertThat(snapshot.risingTopics()).isEmpty();
-        assertThat(snapshot.fadingTopics()).isEmpty();
-        assertThat(snapshot.newTopics()).isEmpty();
         assertThat(snapshot.totalKeywords()).isZero();
     }
 
@@ -77,61 +75,6 @@ class TrendDetectionServiceTest {
             }
         }
         assertThat(foundRising).isTrue();
-    }
-
-    @Test
-    void fadingKeyword_detectedWhenPreviousExceedsCurrent() {
-        List<NewsArticle> articles = new ArrayList<>();
-        // "telehealth" is a domain unigram — 1 time in last 30 days
-        articles.add(makeArticle("Telehealth platform launches",
-                now.minus(5, ChronoUnit.DAYS)));
-        // "telehealth" appears 8 times in previous window (31-90 days)
-        for (int i = 0; i < 8; i++) {
-            articles.add(makeArticle("Telehealth expansion initiative " + i,
-                    now.minus(40 + i, ChronoUnit.DAYS)));
-        }
-        // "telehealth" appears 2 times in baseline (91-180)
-        articles.add(makeArticle("Telehealth overview document",
-                now.minus(100, ChronoUnit.DAYS)));
-        articles.add(makeArticle("Telehealth pilot program",
-                now.minus(120, ChronoUnit.DAYS)));
-
-        TrendSnapshot snapshot = service.detectTrends(articles, now);
-
-        boolean foundFading = false;
-        for (TrendSignal signal : snapshot.fadingTopics()) {
-            if (signal.keyword().equals("telehealth")) {
-                foundFading = true;
-                assertThat(signal.direction()).isEqualTo(TrendDirection.FADING);
-                break;
-            }
-        }
-        assertThat(foundFading).isTrue();
-    }
-
-    @Test
-    void newKeyword_detectedWhenOnlyInCurrentWindow() {
-        List<NewsArticle> articles = new ArrayList<>();
-        // "gpt5" is a domain unigram — only appears in last 30 days
-        articles.add(makeArticle("GPT5 healthcare applications",
-                now.minus(3, ChronoUnit.DAYS)));
-        articles.add(makeArticle("GPT5 clinical trials assessment",
-                now.minus(10, ChronoUnit.DAYS)));
-        articles.add(makeArticle("GPT5 diagnostic tool evaluation",
-                now.minus(15, ChronoUnit.DAYS)));
-
-        TrendSnapshot snapshot = service.detectTrends(articles, now);
-
-        boolean foundNew = false;
-        for (TrendSignal signal : snapshot.newTopics()) {
-            if (signal.keyword().equals("gpt5")) {
-                foundNew = true;
-                assertThat(signal.direction()).isEqualTo(TrendDirection.NEW);
-                assertThat(signal.baseline180d()).isZero();
-                break;
-            }
-        }
-        assertThat(foundNew).isTrue();
     }
 
     @Test
@@ -192,32 +135,20 @@ class TrendDetectionServiceTest {
 
     @Test
     void directionClassification_risingAboveThreshold() {
-        TrendDirection dir = service.classifyDirection(10, 2, 5, 2.0);
+        TrendDirection dir = service.classifyDirection(10, 2, 2.0);
         assertThat(dir).isEqualTo(TrendDirection.RISING);
     }
 
     @Test
-    void directionClassification_fadingBelowThreshold() {
-        TrendDirection dir = service.classifyDirection(1, 10, 5, 0.3);
-        assertThat(dir).isEqualTo(TrendDirection.FADING);
-    }
-
-    @Test
     void directionClassification_stableInMiddle() {
-        TrendDirection dir = service.classifyDirection(5, 5, 5, 1.0);
+        TrendDirection dir = service.classifyDirection(5, 5, 1.0);
         assertThat(dir).isEqualTo(TrendDirection.STABLE);
-    }
-
-    @Test
-    void directionClassification_newWhenNoBaseline() {
-        TrendDirection dir = service.classifyDirection(5, 0, 0, Double.MAX_VALUE);
-        assertThat(dir).isEqualTo(TrendDirection.NEW);
     }
 
     @Test
     void risingTopicsAreLimitedAndSortedByMomentum() {
         // Use a service with risingLimit=2
-        TrendDetectionService limited = new TrendDetectionService(2, 2, 10);
+        TrendDetectionService limited = new TrendDetectionService(2, 2);
         List<NewsArticle> articles = new ArrayList<>();
 
         // Use domain unigrams so they pass the filter
@@ -249,7 +180,7 @@ class TrendDetectionServiceTest {
     @Test
     void minOccurrencesFilter_excludesRareKeywords() {
         // minOccurrences=3 — keyword must appear 3+ times in at least one window
-        TrendDetectionService strict = new TrendDetectionService(3, 20, 10);
+        TrendDetectionService strict = new TrendDetectionService(3, 20);
         List<NewsArticle> articles = new ArrayList<>();
 
         // "nanomedicine" appears only 2 times — should be excluded
@@ -262,12 +193,6 @@ class TrendDetectionServiceTest {
 
         boolean found = false;
         for (TrendSignal signal : snapshot.risingTopics()) {
-            if (signal.keyword().equals("nanomedicine")) {
-                found = true;
-                break;
-            }
-        }
-        for (TrendSignal signal : snapshot.newTopics()) {
             if (signal.keyword().equals("nanomedicine")) {
                 found = true;
                 break;
@@ -421,9 +346,6 @@ class TrendDetectionServiceTest {
 
         List<String> allKeywords = new ArrayList<>();
         for (TrendSignal signal : snapshot.risingTopics()) {
-            allKeywords.add(signal.keyword());
-        }
-        for (TrendSignal signal : snapshot.newTopics()) {
             allKeywords.add(signal.keyword());
         }
 

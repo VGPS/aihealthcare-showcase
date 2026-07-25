@@ -94,10 +94,10 @@ class TrendControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void trendsPage_adminGetsFullAccess() throws Exception {
-        TrendSignal fading = new TrendSignal("old keyword", 1, 10, 8,
-                0.2, TrendDirection.FADING, Instant.now());
+        TrendSignal rising = new TrendSignal("genomics", 15, 3, 2,
+                5.0, TrendDirection.RISING, Instant.now());
         TrendSnapshot snapshot = new TrendSnapshot(
-                Instant.now(), 30, List.of(), List.of(fading), List.of(), 50);
+                Instant.now(), 30, List.of(rising), List.of(), List.of(), 50);
         when(detectTrendsUseCase.getLatestSnapshot()).thenReturn(Optional.of(snapshot));
 
         mockMvc.perform(get("/dashboard/trends"))

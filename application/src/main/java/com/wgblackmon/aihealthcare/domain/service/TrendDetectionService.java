@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Pure-domain service that detects rising, fading, and newly emerged keywords
- * by comparing frequency across three rolling time windows.
+ * Pure-domain service that detects rising keywords by comparing frequency
+ * across three rolling time windows.
  *
  * <p>The algorithm extracts bigrams and trigrams from article titles and body text,
  * applies a healthcare-domain relevance filter, counts occurrence per window,
@@ -37,7 +37,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 2.1
  * @since   2026-07-22
- * @updated 2026-07-24
+ * @updated 2026-07-25
  */
 public class TrendDetectionService {
 
@@ -46,19 +46,16 @@ public class TrendDetectionService {
     private static final int BASELINE_WINDOW_DAYS = 90; // 91–180
 
     private static final double RISING_THRESHOLD = 1.5;
-    private static final double FADING_THRESHOLD = 0.67;
 
     private final int minOccurrences;
     private final int risingLimit;
-    private final int fadingLimit;
 
     private static final Set<String> STOP_WORDS = buildStopWords();
     private static final Set<String> DOMAIN_UNIGRAMS = buildDomainUnigrams();
 
-    public TrendDetectionService(int minOccurrences, int risingLimit, int fadingLimit) {
+    public TrendDetectionService(int minOccurrences, int risingLimit) {
         this.minOccurrences = minOccurrences;
         this.risingLimit = risingLimit;
-        this.fadingLimit = fadingLimit;
     }
 
     /**
@@ -66,7 +63,7 @@ public class TrendDetectionService {
      *
      * @param articles   all articles within the 180-day lookback window
      * @param analysisTime the reference time for window calculations
-     * @return a snapshot containing rising, fading, and new keyword signals
+     * @return a snapshot containing rising keyword signals
      */
     public TrendSnapshot detectTrends(List<NewsArticle> articles, Instant analysisTime) {
         if (articles == null || articles.isEmpty()) {
@@ -129,10 +126,8 @@ public class TrendDetectionService {
             }
         }
 
-        // Build signals
+        // Build signals — only rising topics are surfaced
         List<TrendSignal> risingSignals = new ArrayList<>();
-        List<TrendSignal> fadingSignals = new ArrayList<>();
-        List<TrendSignal> newSignals = new ArrayList<>();
 
         for (String keyword : allKeywords) {
             long current = currentCounts.getOrDefault(keyword, 0L);
@@ -140,20 +135,14 @@ public class TrendDetectionService {
             long baseline = baselineCounts.getOrDefault(keyword, 0L);
 
             double momentum = computeMomentum(current, previous);
-            TrendDirection direction = classifyDirection(current, previous, baseline, momentum);
+            TrendDirection direction = classifyDirection(current, previous, momentum);
 
-            TrendSignal signal = new TrendSignal(
-                    keyword, current, previous, baseline,
-                    momentum, direction, firstSeen.get(keyword));
-
-            if (direction == TrendDirection.NEW) {
-                newSignals.add(signal);
-            } else if (direction == TrendDirection.RISING) {
+            if (direction == TrendDirection.RISING) {
+                TrendSignal signal = new TrendSignal(
+                        keyword, current, previous, baseline,
+                        momentum, direction, firstSeen.get(keyword));
                 risingSignals.add(signal);
-            } else if (direction == TrendDirection.FADING) {
-                fadingSignals.add(signal);
             }
-            // STABLE signals are not surfaced
         }
 
         // Sort rising by momentum descending, limit
@@ -162,20 +151,8 @@ public class TrendDetectionService {
             risingSignals = new ArrayList<>(risingSignals.subList(0, risingLimit));
         }
 
-        // Sort fading by momentum ascending, limit
-        sortByMomentumAscending(fadingSignals);
-        if (fadingSignals.size() > fadingLimit) {
-            fadingSignals = new ArrayList<>(fadingSignals.subList(0, fadingLimit));
-        }
-
-        // Sort new by current count descending, limit to risingLimit
-        sortByCurrentDescending(newSignals);
-        if (newSignals.size() > risingLimit) {
-            newSignals = new ArrayList<>(newSignals.subList(0, risingLimit));
-        }
-
         return new TrendSnapshot(analysisTime, CURRENT_WINDOW_DAYS,
-                risingSignals, fadingSignals, newSignals, allKeywords.size());
+                risingSignals, List.of(), List.of(), allKeywords.size());
     }
 
     /**
@@ -358,18 +335,9 @@ public class TrendDetectionService {
         return currentRate / previousRate;
     }
 
-    TrendDirection classifyDirection(long current, long previous, long baseline,
-                                     double momentum) {
-        // NEW: appears in current window but has zero baseline
-        if (current > 0 && baseline == 0 && previous == 0) {
-            return TrendDirection.NEW;
-        }
-
+    TrendDirection classifyDirection(long current, long previous, double momentum) {
         if (momentum > RISING_THRESHOLD) {
             return TrendDirection.RISING;
-        }
-        if (momentum < FADING_THRESHOLD) {
-            return TrendDirection.FADING;
         }
         return TrendDirection.STABLE;
     }
@@ -379,32 +347,6 @@ public class TrendDetectionService {
         for (int i = 0; i < n - 1; i++) {
             for (int j = 0; j < n - 1 - i; j++) {
                 if (signals.get(j).momentum() < signals.get(j + 1).momentum()) {
-                    TrendSignal tmp = signals.get(j);
-                    signals.set(j, signals.get(j + 1));
-                    signals.set(j + 1, tmp);
-                }
-            }
-        }
-    }
-
-    private void sortByMomentumAscending(List<TrendSignal> signals) {
-        int n = signals.size();
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - 1 - i; j++) {
-                if (signals.get(j).momentum() > signals.get(j + 1).momentum()) {
-                    TrendSignal tmp = signals.get(j);
-                    signals.set(j, signals.get(j + 1));
-                    signals.set(j + 1, tmp);
-                }
-            }
-        }
-    }
-
-    private void sortByCurrentDescending(List<TrendSignal> signals) {
-        int n = signals.size();
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - 1 - i; j++) {
-                if (signals.get(j).current30d() < signals.get(j + 1).current30d()) {
                     TrendSignal tmp = signals.get(j);
                     signals.set(j, signals.get(j + 1));
                     signals.set(j + 1, tmp);
