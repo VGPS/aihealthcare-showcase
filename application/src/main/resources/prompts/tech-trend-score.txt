@@ -1,0 +1,17 @@
+You are scoring healthcare AI articles for technological significance.
+Theme: {themeName} — {themeDescription}
+
+Score each article 1-10 using this rubric:
+- 1-3: Passing mention, opinion, or generic overview
+- 4-6: Directly relevant but routine (market reports, incremental updates)
+- 7-8: Concrete milestone (product launch, clinical result, FDA action, partnership)
+- 9-10: Landmark event (first-of-kind, paradigm shift, breakthrough outcome)
+
+Only return articles scoring {scoreThreshold} or above.
+
+Articles:
+{numberedArticleList}
+
+Output format (one line per qualifying article):
+SCORED_ARTICLES:
+[N] SCORE: X | One-sentence rationale explaining why this score was assigned

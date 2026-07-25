@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.domain.service;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
 import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
 import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
@@ -34,9 +35,9 @@ import java.util.Set;
  * </ul>
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 2.1
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-24
  */
 public class TrendDetectionService {
 
@@ -175,6 +176,41 @@ public class TrendDetectionService {
 
         return new TrendSnapshot(analysisTime, CURRENT_WINDOW_DAYS,
                 risingSignals, fadingSignals, newSignals, allKeywords.size());
+    }
+
+    /**
+     * Analyzes articles and produces a trend snapshot, attaching scored articles
+     * to each rising signal when available.
+     *
+     * @param articles             all articles within the 180-day lookback window
+     * @param analysisTime         the reference time for window calculations
+     * @param scoredArticlesByKeyword scored articles keyed by keyword; may be null
+     * @return a snapshot with scored articles attached to rising signals
+     */
+    public TrendSnapshot detectTrends(List<NewsArticle> articles, Instant analysisTime,
+                                       Map<String, List<ScoredArticle>> scoredArticlesByKeyword) {
+        TrendSnapshot base = detectTrends(articles, analysisTime);
+
+        if (scoredArticlesByKeyword == null || scoredArticlesByKeyword.isEmpty()) {
+            return base;
+        }
+
+        // Rebuild rising signals with scored articles attached
+        List<TrendSignal> enrichedRising = new ArrayList<>();
+        for (TrendSignal signal : base.risingTopics()) {
+            List<ScoredArticle> scored = scoredArticlesByKeyword.get(signal.keyword());
+            if (scored != null && !scored.isEmpty()) {
+                enrichedRising.add(new TrendSignal(
+                        signal.keyword(), signal.current30d(), signal.previous90d(),
+                        signal.baseline180d(), signal.momentum(), signal.direction(),
+                        signal.firstSeenAt(), scored));
+            } else {
+                enrichedRising.add(signal);
+            }
+        }
+
+        return new TrendSnapshot(base.generatedAt(), base.windowDays(),
+                enrichedRising, base.fadingTopics(), base.newTopics(), base.totalKeywords());
     }
 
     /**

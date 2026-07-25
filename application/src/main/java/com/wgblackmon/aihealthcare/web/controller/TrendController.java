@@ -31,9 +31,9 @@ import java.util.Optional;
  * FREE users see only the top 5 rising topics.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-24
  */
 @Slf4j
 @Controller
@@ -44,6 +44,12 @@ public class TrendController {
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final int FREE_RISING_LIMIT = 5;
+
+    private static final String SCORING_RUBRIC =
+            "1-3: Noise (passing mention, opinion) | " +
+            "4-6: Routine (market reports, incremental updates) | " +
+            "7-8: Significant (product launch, clinical result, FDA action) | " +
+            "9-10: Landmark (first-of-kind, paradigm shift, breakthrough)";
 
     private final DetectTrendsUseCase detectTrendsUseCase;
     private final SubscriberPort subscriberPort;
@@ -105,6 +111,7 @@ public class TrendController {
             }
             model.addAttribute("chartLabels", chartLabels);
             model.addAttribute("chartData", chartData);
+            model.addAttribute("scoringRubric", SCORING_RUBRIC);
         } else {
             model.addAttribute("hasSnapshot", false);
             model.addAttribute("risingTopics", List.of());
@@ -115,6 +122,7 @@ public class TrendController {
             model.addAttribute("fullAccess", false);
             model.addAttribute("chartLabels", List.of());
             model.addAttribute("chartData", List.of());
+            model.addAttribute("scoringRubric", SCORING_RUBRIC);
         }
 
         log.debug("trends() | return=trends");

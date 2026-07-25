@@ -171,6 +171,15 @@ aihealthcare:
     fading-limit: 10
 
   # ---------------------------------------------------------------------------
+  # Tech Trend Scoring — LLM-based article significance scoring for trends.
+  # Adds quality signal to keyword frequency analysis.
+  # ---------------------------------------------------------------------------
+  tech-trends:
+    scoring-enabled: true
+    score-threshold: 7
+    max-articles-per-keyword: 5
+
+  # ---------------------------------------------------------------------------
   # Regulatory Alert System — FDA 510(k), De Novo, CMS rule monitoring.
   # Schedule default: daily 04:30 UTC (after RSS feeds, before competitors).
   # ---------------------------------------------------------------------------

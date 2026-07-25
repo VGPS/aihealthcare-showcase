@@ -47,6 +47,28 @@
         <p>No trend data available yet. Trend detection runs weekly.</p>
     </div>
 
+    <!-- Scoring Rubric legend -->
+    <div th:if="${hasSnapshot}" style="margin-bottom: 1.5rem; background: var(--surface-container); border-radius: 8px; padding: 0.75rem 1rem;">
+        <details>
+            <summary style="cursor: pointer; font-weight: 600; font-size: 0.9rem; color: var(--on-surface-variant);">
+                Article Scoring Rubric (1-10)
+            </summary>
+            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--on-surface-variant); line-height: 1.6;">
+                <span style="display:inline-block; background:#9e9e9e; color:white; padding:1px 6px; border-radius:3px; font-size:0.7rem; font-weight:600;">1-3</span>
+                Noise — passing mention, opinion, or generic overview
+                &nbsp;&nbsp;
+                <span style="display:inline-block; background:#ff9800; color:white; padding:1px 6px; border-radius:3px; font-size:0.7rem; font-weight:600;">4-6</span>
+                Routine — market reports, incremental updates
+                &nbsp;&nbsp;
+                <span style="display:inline-block; background:#4caf50; color:white; padding:1px 6px; border-radius:3px; font-size:0.7rem; font-weight:600;">7-8</span>
+                Significant — product launch, clinical result, FDA action
+                &nbsp;&nbsp;
+                <span style="display:inline-block; background:#1565c0; color:white; padding:1px 6px; border-radius:3px; font-size:0.7rem; font-weight:600;">9-10</span>
+                Landmark — first-of-kind, paradigm shift, breakthrough
+            </div>
+        </details>
+    </div>
+
     <!-- Rising Topics chart -->
     <div th:if="${hasSnapshot}" style="margin-bottom: 2rem;">
         <canvas id="trendChart" height="60"></canvas>
@@ -78,6 +100,22 @@
                           style="margin-left: 0.5rem; color: #27ae60; font-weight: 600;">
                         &#x25B2; NEW
                     </span>
+                </div>
+                <!-- Scored articles for this keyword -->
+                <div th:if="${fullAccess and !signal.topArticles().isEmpty()}"
+                     style="margin-top: 0.4rem; padding-left: 0.5rem; border-left: 2px solid var(--outline-variant);">
+                    <div th:each="scored : ${signal.topArticles()}"
+                         style="margin-bottom: 0.3rem; font-size: 0.8rem;">
+                        <span th:if="${scored.score() >= 9}"
+                              style="display:inline-block; background:#1565c0; color:white; padding:1px 5px; border-radius:3px; font-size:0.7rem; font-weight:600;"
+                              th:text="${scored.score()}">9</span>
+                        <span th:if="${scored.score() >= 7 and scored.score() <= 8}"
+                              style="display:inline-block; background:#4caf50; color:white; padding:1px 5px; border-radius:3px; font-size:0.7rem; font-weight:600;"
+                              th:text="${scored.score()}">7</span>
+                        <span style="color: var(--on-surface);" th:text="${scored.title()}">Article title</span>
+                        <div style="font-size: 0.75rem; color: var(--on-surface-variant); margin-left: 1.8rem;"
+                             th:text="${scored.rationale()}">Rationale text</div>
+                    </div>
                 </div>
             </div>
         </section>
