@@ -74,10 +74,8 @@
         <canvas id="trendChart" height="60"></canvas>
     </div>
 
-    <!-- Three-column grid: Rising / Fading / New -->
-    <div th:if="${hasSnapshot}" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
-
-        <!-- Rising Topics -->
+    <!-- Rising Topics -->
+    <div th:if="${hasSnapshot}">
         <section>
             <div class="section-header" style="border-left: 4px solid #27ae60; padding-left: 0.75rem;">
                 <h2 style="font-size: 1.1rem; color: #27ae60;">&#x25B2; Rising Topics</h2>
@@ -119,54 +117,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Fading Topics -->
-        <section>
-            <div class="section-header" style="border-left: 4px solid #e74c3c; padding-left: 0.75rem;">
-                <h2 style="font-size: 1.1rem; color: #e74c3c;">&#x25BC; Fading Topics</h2>
-            </div>
-            <div th:unless="${fullAccess}" style="color: var(--on-surface-variant); font-size: 0.85rem; padding: 0.5rem;">
-                <a th:href="@{/pricing}" style="color: var(--primary);">Upgrade to Subscriber</a> to see fading &amp; new topics.
-            </div>
-            <div th:if="${fullAccess and #lists.isEmpty(fadingTopics)}" style="color: var(--on-surface-variant); font-size: 0.85rem; padding: 0.5rem;">
-                No fading topics detected.
-            </div>
-            <div th:if="${fullAccess}" th:each="signal : ${fadingTopics}" style="padding: 0.5rem 0; border-bottom: 1px solid var(--outline-variant);">
-                <div style="font-weight: 600; font-size: 0.95rem;" th:text="${signal.keyword()}">keyword</div>
-                <div style="font-size: 0.8rem; color: var(--on-surface-variant);">
-                    30d: <span th:text="${signal.current30d()}">0</span>
-                    &nbsp;|&nbsp; 31-90d: <span th:text="${signal.previous90d()}">0</span>
-                    &nbsp;|&nbsp; 91-180d: <span th:text="${signal.baseline180d()}">0</span>
-                    <span style="margin-left: 0.5rem; color: #e74c3c; font-weight: 600;">
-                        &#x25BC;
-                        <span th:text="${#numbers.formatDecimal(signal.momentum(), 1, 2)}">0.0</span>x
-                    </span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Newly Emerged -->
-        <section>
-            <div class="section-header" style="border-left: 4px solid #3498db; padding-left: 0.75rem;">
-                <h2 style="font-size: 1.1rem; color: #3498db;">&#x2728; Newly Emerged</h2>
-            </div>
-            <div th:unless="${fullAccess}" style="color: var(--on-surface-variant); font-size: 0.85rem; padding: 0.5rem;">
-                <a th:href="@{/pricing}" style="color: var(--primary);">Upgrade to Subscriber</a> to see new topics.
-            </div>
-            <div th:if="${fullAccess and #lists.isEmpty(newTopics)}" style="color: var(--on-surface-variant); font-size: 0.85rem; padding: 0.5rem;">
-                No newly emerged topics detected.
-            </div>
-            <div th:if="${fullAccess}" th:each="signal : ${newTopics}" style="padding: 0.5rem 0; border-bottom: 1px solid var(--outline-variant);">
-                <div style="font-weight: 600; font-size: 0.95rem;" th:text="${signal.keyword()}">keyword</div>
-                <div style="font-size: 0.8rem; color: var(--on-surface-variant);">
-                    30d: <span th:text="${signal.current30d()}">0</span>
-                    <span style="margin-left: 0.5rem; color: #3498db; font-weight: 600;">
-                        NEW
-                    </span>
-                </div>
-            </div>
-        </section>
-
     </div>
 
 </main>

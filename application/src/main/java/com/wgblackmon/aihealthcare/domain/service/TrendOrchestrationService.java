@@ -84,9 +84,8 @@ public class TrendOrchestrationService implements DetectTrendsUseCase {
 
         trendSnapshotPort.save(snapshot);
 
-        log.info("detectTrends() | snapshot saved: rising={}, fading={}, new={}, total={}",
-                 snapshot.risingTopics().size(), snapshot.fadingTopics().size(),
-                 snapshot.newTopics().size(), snapshot.totalKeywords());
+        log.info("detectTrends() | snapshot saved: rising={}, total={}",
+                 snapshot.risingTopics().size(), snapshot.totalKeywords());
         log.debug("detectTrends() | return={}", snapshot);
         return snapshot;
     }
