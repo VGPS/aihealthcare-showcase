@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -337,11 +338,12 @@ public class DashboardController {
             @RequestParam(required = false) String publishedFrom,
             @RequestParam(required = false) String publishedTo,
             @RequestParam(defaultValue = "desc") String sortDate,
+            @RequestHeader(value = "HX-Request", required = false) String hxRequest,
             Model model) {
         log.debug("search() | title={}, topic={}, author={}, sourceName={}, "
-                + "bodyText={}, publishedFrom={}, publishedTo={}, sortDate={}",
+                + "bodyText={}, publishedFrom={}, publishedTo={}, sortDate={}, hxRequest={}",
                 title, topic, author, sourceName, bodyText,
-                publishedFrom, publishedTo, sortDate);
+                publishedFrom, publishedTo, sortDate, hxRequest);
 
         Instant pubFrom = parseDateTime(publishedFrom);
         Instant pubTo = parseDateTime(publishedTo);
@@ -368,8 +370,10 @@ public class DashboardController {
         model.addAttribute("publishedToParam", publishedTo);
         model.addAttribute("sortDate", sortDate);
 
-        log.debug("search() | return=search (resultCount={})", sorted.size());
-        return "search";
+        boolean isHtmx = "true".equals(hxRequest);
+        String viewName = isHtmx ? "fragments/search-results :: results" : "search";
+        log.debug("search() | return={} (resultCount={}, htmx={})", viewName, sorted.size(), isHtmx);
+        return viewName;
     }
 
     /**
