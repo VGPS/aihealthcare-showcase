@@ -25,7 +25,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-24
- * @updated 2026-07-24
+ * @updated 2026-07-28
  */
 @Slf4j
 @Component
@@ -234,7 +234,10 @@ public class ArticleScoringAdapter implements ArticleScoringPort {
                         article.title(),
                         score,
                         rationale,
-                        theme));
+                        theme,
+                        article.url() != null ? article.url().toString() : null,
+                        article.sourceName(),
+                        article.publishedAt()));
             } catch (NumberFormatException e) {
                 log.warn("parseResponse() | failed to parse line: {}", trimmed);
             }

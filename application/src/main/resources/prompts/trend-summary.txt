@@ -1,0 +1,11 @@
+You are an expert healthcare AI industry analyst. A keyword trend "{keyword}" is rising in recent healthcare AI news coverage.
+
+Below are the articles driving this trend:
+
+{articleList}
+
+Write a concise 2-3 sentence summary explaining:
+1. WHY this keyword is trending (what happened or is happening)
+2. What it means for healthcare AI analysts and investors
+
+Be specific and factual. Reference concrete developments from the articles. Do not use bullet points or headers — write flowing prose suitable for an executive brief. Do not start with "The keyword..." — lead with the substance.

@@ -53,6 +53,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSnapshotPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSummaryPort;
 import com.wgblackmon.aihealthcare.domain.service.WikiLintService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchQueryPort;
@@ -637,18 +638,23 @@ public class AppConfig {
             TrendDetectionService trendDetectionService,
             TrendSnapshotPort trendSnapshotPort,
             ArticleScoringPort articleScoringPort,
+            TrendSummaryPort trendSummaryPort,
             @Value("${aihealthcare.tech-trends.scoring-enabled:false}") boolean scoringEnabled,
-            @Value("${aihealthcare.tech-trends.score-threshold:7}") int scoreThreshold) {
+            @Value("${aihealthcare.tech-trends.score-threshold:7}") int scoreThreshold,
+            @Value("${aihealthcare.deep-research.max-summaries-per-run:5}") int maxSummariesPerRun) {
         log.debug("trendOrchestrationService() | articleIngestionPort={}, trendDetectionService={}, " +
-                  "trendSnapshotPort={}, articleScoringPort={}, scoringEnabled={}, scoreThreshold={}",
+                  "trendSnapshotPort={}, articleScoringPort={}, trendSummaryPort={}, " +
+                  "scoringEnabled={}, scoreThreshold={}, maxSummariesPerRun={}",
                   articleIngestionPort.getClass().getSimpleName(),
                   trendDetectionService.getClass().getSimpleName(),
                   trendSnapshotPort.getClass().getSimpleName(),
                   articleScoringPort.getClass().getSimpleName(),
-                  scoringEnabled, scoreThreshold);
+                  trendSummaryPort.getClass().getSimpleName(),
+                  scoringEnabled, scoreThreshold, maxSummariesPerRun);
         TrendOrchestrationService result = new TrendOrchestrationService(
                 articleIngestionPort, trendDetectionService, trendSnapshotPort,
-                articleScoringPort, scoringEnabled, scoreThreshold);
+                articleScoringPort, trendSummaryPort, scoringEnabled, scoreThreshold,
+                maxSummariesPerRun);
         log.debug("trendOrchestrationService() | return={}", result.getClass().getSimpleName());
         return result;
     }
