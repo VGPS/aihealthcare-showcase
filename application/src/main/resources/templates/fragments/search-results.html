@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+/**
+ * HTMX partial fragment — article search results table.
+ *
+ * Returned by DashboardController.search() when the HX-Request header is present,
+ * allowing live search to replace only the results container without a full page reload.
+ * Also included in the full search.html page via th:replace for the initial load.
+ *
+ * Model attributes consumed: articles, resultCount, searched, sortDate,
+ *   titleParam, topicParam, authorParam, sourceNameParam, bodyTextParam,
+ *   publishedFromParam, publishedToParam.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-07-28
+ * @updated 2026-07-28
+ */
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="results">
+
+    <!-- Empty state: form submitted but no matches -->
+    <div th:if="${searched and #lists.isEmpty(articles)}"
+         class="empty-state">
+        No articles matched your criteria. Try broadening your search filters.
+    </div>
+
+    <!-- Results table -->
+    <div th:if="${searched and not #lists.isEmpty(articles)}">
+        <div class="results-header">
+            <h2>Results</h2>
+            <span class="count-badge" th:text="${resultCount} + ' found'">0 found</span>
+        </div>
+
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Topic</th>
+                    <th>Source</th>
+                    <th>Published
+                        <a th:href="@{/dashboard/search(title=${titleParam},topic=${topicParam},author=${authorParam},sourceName=${sourceNameParam},bodyText=${bodyTextParam},publishedFrom=${publishedFromParam},publishedTo=${publishedToParam},sortDate='asc')}"
+                           class="sort-arrow" th:classappend="${sortDate == 'asc' ? ' active' : ''}"
+                           title="Oldest first">&#8593;</a>
+                        <a th:href="@{/dashboard/search(title=${titleParam},topic=${topicParam},author=${authorParam},sourceName=${sourceNameParam},bodyText=${bodyTextParam},publishedFrom=${publishedFromParam},publishedTo=${publishedToParam},sortDate='desc')}"
+                           class="sort-arrow" th:classappend="${sortDate != 'asc' ? ' active' : ''}"
+                           title="Newest first">&#8595;</a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="article : ${articles}">
+                    <td class="title-cell">
+                        <a th:href="${article.url}" th:text="${article.title}"
+                           target="_blank" rel="noopener noreferrer">Title</a>
+                        <div class="meta" th:if="${article.author != null}"
+                             th:text="${article.author}"></div>
+                    </td>
+                    <td><span class="topic-badge" th:text="${article.topic}">Topic</span></td>
+                    <td th:text="${article.sourceName != null ? article.sourceName : '—'}">—</td>
+                    <td th:if="${article.publishedAt != null}" class="date-cell"
+                        th:text="${#strings.replace(#strings.substring(article.publishedAt.toString(), 0, 16), 'T', ' ')} + ' UTC'">—</td>
+                    <td th:if="${article.publishedAt == null}" class="date-cell null-date">unknown</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+</html>

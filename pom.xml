@@ -210,6 +210,34 @@
             </testResource>
         </testResources>
         <plugins>
+            <!-- Tailwind CSS build: runs the standalone Tailwind CLI during generate-resources.
+                 Developer workflow: run 'mvn generate-resources' to rebuild CSS, or
+                 run the CLI with watch flag alongside spring-boot:run. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>tailwind-build</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>${project.basedir}/tools/tailwindcss.exe</executable>
+                            <arguments>
+                                <argument>--input</argument>
+                                <argument>${project.basedir}/application/src/main/resources/static/css/tailwind-source.css</argument>
+                                <argument>--output</argument>
+                                <argument>${project.basedir}/application/src/main/resources/static/css/tailwind.css</argument>
+                                <argument>--config</argument>
+                                <argument>${project.basedir}/tailwind.config.js</argument>
+                                <argument>--minify</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

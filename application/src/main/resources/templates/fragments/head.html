@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Shared head fragment for Tailwind-migrated pages.
+ *
+ * Includes the compiled Tailwind CSS, the legacy styles.css (for non-migrated
+ * pages that include this fragment transitionally), CSRF meta tags for HTMX,
+ * and vendored HTMX + Alpine.js scripts.
+ *
+ * Usage: <head th:replace="~{fragments/head :: head('Page Title')}">
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-07-28
+ * @updated 2026-07-28
+ */
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(pageTitle)">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${pageTitle} + ' — AIHealthcare'">AIHealthcare</title>
+
+    <!-- CSRF meta tags — read by htmx-csrf.js to attach the token to HTMX requests -->
+    <meta name="_csrf"        th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Outfit:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap"
+          rel="stylesheet"/>
+
+    <!-- Tailwind CSS (compiled) — primary stylesheet for migrated pages -->
+    <link rel="stylesheet" th:href="@{/css/tailwind.css}"/>
+
+    <!-- Legacy styles — kept so non-migrated templates that share this head still render -->
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+
+    <!-- HTMX 1.9 — server-driven partial updates -->
+    <script th:src="@{/js/htmx.min.js}" defer></script>
+
+    <!-- Alpine.js 3 — lightweight client-side reactivity (dropdowns, modals, toggles) -->
+    <script th:src="@{/js/alpine.min.js}" defer></script>
+
+    <!-- CSRF bridge — must come after htmx.min.js in document order -->
+    <script th:src="@{/js/htmx-csrf.js}" defer></script>
+</head>
+</html>
