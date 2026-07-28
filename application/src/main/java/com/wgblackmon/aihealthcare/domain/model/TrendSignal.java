@@ -24,11 +24,12 @@ import java.util.List;
  * @param direction    computed trend classification
  * @param firstSeenAt  earliest article timestamp containing this keyword
  * @param topArticles  highest-scoring articles for this keyword (may be empty)
+ * @param summary      LLM-generated 2-3 sentence trend summary for analysts (nullable)
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-07-22
- * @updated 2026-07-24
+ * @updated 2026-07-27
  */
 public record TrendSignal(
         String keyword,
@@ -38,7 +39,8 @@ public record TrendSignal(
         double momentum,
         TrendDirection direction,
         Instant firstSeenAt,
-        List<ScoredArticle> topArticles
+        List<ScoredArticle> topArticles,
+        String summary
 ) {
 
     /**
@@ -64,13 +66,24 @@ public record TrendSignal(
     }
 
     /**
-     * Convenience constructor without topArticles — defaults to empty list.
+     * Convenience constructor without summary — defaults to null.
+     */
+    public TrendSignal(String keyword, long current30d, long previous90d,
+                       long baseline180d, double momentum,
+                       TrendDirection direction, Instant firstSeenAt,
+                       List<ScoredArticle> topArticles) {
+        this(keyword, current30d, previous90d, baseline180d,
+             momentum, direction, firstSeenAt, topArticles, null);
+    }
+
+    /**
+     * Convenience constructor without topArticles or summary — defaults to empty list and null.
      * Maintains backward compatibility with existing callers.
      */
     public TrendSignal(String keyword, long current30d, long previous90d,
                        long baseline180d, double momentum,
                        TrendDirection direction, Instant firstSeenAt) {
         this(keyword, current30d, previous90d, baseline180d,
-             momentum, direction, firstSeenAt, List.of());
+             momentum, direction, firstSeenAt, List.of(), null);
     }
 }

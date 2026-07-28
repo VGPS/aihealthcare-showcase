@@ -179,6 +179,17 @@ aihealthcare:
     max-articles-per-keyword: 5
 
   # ---------------------------------------------------------------------------
+  # Perplexity Deep Research — async Sonar Deep Research API for analyst-grade
+  # trend summaries. Uses the same PERPLEXITY_API_KEY as the search adapter.
+  # Cost control: max-summaries-per-run caps how many keywords get deep-researched
+  # per trend detection run (~$3-5 per summary, so 5 = ~$15-25/month on weekly runs).
+  # ---------------------------------------------------------------------------
+  deep-research:
+    max-summaries-per-run: 5
+    poll-interval-ms: 5000
+    poll-timeout-ms: 300000
+
+  # ---------------------------------------------------------------------------
   # Regulatory Alert System — FDA 510(k), De Novo, CMS rule monitoring.
   # Schedule default: daily 04:30 UTC (after RSS feeds, before competitors).
   # ---------------------------------------------------------------------------

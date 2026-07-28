@@ -52,6 +52,7 @@ public class TrendDetectionService {
 
     private static final Set<String> STOP_WORDS = buildStopWords();
     private static final Set<String> DOMAIN_UNIGRAMS = buildDomainUnigrams();
+    private static final Set<String> DOMAIN_MODIFIERS = buildDomainModifiers();
 
     public TrendDetectionService(int minOccurrences, int risingLimit) {
         this.minOccurrences = minOccurrences;
@@ -299,19 +300,23 @@ public class TrendDetectionService {
     }
 
     /**
-     * Returns true if a bigram contains at least one domain-relevant token.
-     * A token is domain-relevant if it appears in the domain unigrams set
-     * or matches a healthcare/AI pattern.
+     * Returns true if a bigram is a meaningful healthcare/AI phrase.
+     * Both tokens must be recognized as domain terms or domain modifiers.
      */
     private boolean isDomainRelevantPhrase(String a, String b) {
-        return isDomainToken(a) || isDomainToken(b);
+        return isDomainOrModifier(a) && isDomainOrModifier(b);
     }
 
     /**
-     * Returns true if a trigram contains at least one domain-relevant token.
+     * Returns true if a trigram is a meaningful healthcare/AI phrase.
+     * At least two of three tokens must be domain terms or modifiers.
      */
     private boolean isDomainRelevantPhrase(String a, String b, String c) {
-        return isDomainToken(a) || isDomainToken(b) || isDomainToken(c);
+        int count = 0;
+        if (isDomainOrModifier(a)) count++;
+        if (isDomainOrModifier(b)) count++;
+        if (isDomainOrModifier(c)) count++;
+        return count >= 2;
     }
 
     /**
@@ -319,6 +324,14 @@ public class TrendDetectionService {
      */
     private boolean isDomainToken(String token) {
         return DOMAIN_UNIGRAMS.contains(token);
+    }
+
+    /**
+     * Returns true if the token is a domain term or a meaningful modifier
+     * that combines well with domain terms (e.g. "clinical", "patient").
+     */
+    private boolean isDomainOrModifier(String token) {
+        return DOMAIN_UNIGRAMS.contains(token) || DOMAIN_MODIFIERS.contains(token);
     }
 
     /**
@@ -528,6 +541,33 @@ public class TrendDetectionService {
             words.add(w);
         }
 
+        // Additional verbs/adverbs that escape the generic filter
+        String[] additionalVerbs = {
+            "allows", "easier", "quickly", "helps", "shows", "makes",
+            "takes", "gives", "keeps", "brings", "goes", "comes",
+            "gets", "puts", "sets", "runs", "calls", "lets", "tells",
+            "seems", "adds", "asks", "cuts", "ends", "fits", "hits",
+            "holds", "joins", "lays", "lies", "logs", "maps", "marks",
+            "meets", "opens", "pays", "picks", "plays", "pulls", "puts",
+            "reads", "rises", "sees", "sits", "stays", "stops", "tries",
+            "turns", "uses", "wins", "works", "worth", "writes",
+            "faster", "better", "worse", "newer", "older", "larger",
+            "smaller", "higher", "lower", "broader", "deeper", "wider",
+            "nearly", "merely", "highly", "greatly", "clearly", "closely",
+            "widely", "directly", "easily", "fully", "largely", "mainly",
+            "partly", "poorly", "rapidly", "roughly", "slowly", "strongly",
+            "ability", "capable", "capabilities", "solution", "solutions",
+            "platform", "platforms", "technology", "technologies",
+            "service", "services", "system", "systems", "tool", "tools",
+            "application", "applications", "software", "industry",
+            "market", "markets", "organization", "organizations",
+            "information", "management", "potential", "performance",
+            "quality", "innovation", "framework", "opportunity"
+        };
+        for (String w : additionalVerbs) {
+            words.add(w);
+        }
+
         // Numeric-looking tokens
         String[] numeric = {
             "2020", "2021", "2022", "2023", "2024", "2025", "2026", "2027",
@@ -626,5 +666,77 @@ public class TrendDetectionService {
         }
 
         return terms;
+    }
+
+    /**
+     * Meaningful modifiers that combine with domain terms to form valid phrases.
+     * These are adjectives, nouns, and qualifiers specific to healthcare AI
+     * that are not standalone domain terms but are valid in multi-word keywords.
+     */
+    private static Set<String> buildDomainModifiers() {
+        Set<String> mods = new HashSet<>();
+
+        String[] terms = {
+            // Clinical / medical modifiers
+            "clinical", "medical", "patient", "patients", "health", "healthcare",
+            "hospital", "hospitals", "care", "treatment", "treatments",
+            "drug", "drugs", "therapy", "disease", "diseases", "chronic",
+            "acute", "rare", "pediatric", "geriatric", "maternal", "neonatal",
+            "mental", "behavioral", "preventive", "palliative", "primary",
+            "emergency", "critical", "intensive", "outpatient", "inpatient",
+            "ambulatory", "home", "community", "population", "public",
+            "surgical", "nonsurgical", "invasive", "noninvasive",
+            "diagnostic", "prognostic", "predictive", "preventative",
+            "imaging", "pathology", "laboratory", "lab", "specimen",
+
+            // Technology / AI modifiers
+            "digital", "automated", "autonomous", "intelligent", "smart",
+            "deep", "machine", "neural", "natural", "language", "computer",
+            "vision", "robotic", "virtual", "augmented", "remote",
+            "cloud", "edge", "real", "time", "realtime",
+            "model", "models", "algorithm", "algorithms",
+            "training", "prediction", "predictions", "classification",
+            "detection", "segmentation", "recognition", "generation",
+            "processing", "learning", "network", "networks",
+            "data", "dataset", "datasets", "database",
+            "electronic", "mobile", "wearable", "wireless", "sensor",
+            "device", "devices", "implant", "implants", "monitor",
+            "monitoring", "tracking", "continuous",
+
+            // Regulatory / compliance modifiers
+            "regulatory", "regulation", "regulations", "compliance", "approved", "cleared", "certified",
+            "validated", "trial", "trials", "study", "enrollment",
+            "endpoint", "endpoints", "safety", "efficacy", "outcome",
+            "outcomes", "evidence", "guideline", "guidelines",
+            "premarket", "postmarket", "surveillance", "pathway", "pathways",
+            "enforcement", "submission", "submissions",
+
+            // Business / market modifiers
+            "startup", "enterprise", "vendor", "provider", "providers",
+            "payer", "insurer", "manufacturer", "developer", "developers",
+            "investor", "investment", "funding", "revenue", "cost",
+            "pricing", "reimbursement", "coverage", "payment", "billing",
+            "integration", "workflow", "pipeline", "deployment",
+            "adoption", "implementation", "migration", "transformation",
+            "interoperability", "standardization", "certification",
+            "partnership", "collaboration", "acquisition", "merger",
+
+            // Molecular / genomics modifiers
+            "molecular", "genetic", "genomic", "protein", "biomarker",
+            "cellular", "tissue", "organ", "blood", "plasma",
+            "antibody", "antigen", "receptor", "pathway", "mutation",
+
+            // Scope / scale modifiers
+            "global", "national", "regional", "rural", "urban",
+            "scalable", "large", "small", "pilot", "phase",
+            "multicenter", "single", "multi", "cross", "longitudinal",
+            "retrospective", "prospective", "randomized", "controlled",
+            "blinded", "double", "open", "label"
+        };
+        for (String t : terms) {
+            mods.add(t);
+        }
+
+        return mods;
     }
 }

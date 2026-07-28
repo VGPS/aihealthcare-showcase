@@ -8,6 +8,7 @@ import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleScoringPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSnapshotPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSummaryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +26,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,7 +40,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-22
- * @updated 2026-07-24
+ * @updated 2026-07-28
  */
 class TrendOrchestrationServiceTest {
 
@@ -46,6 +48,7 @@ class TrendOrchestrationServiceTest {
     private TrendDetectionService trendDetectionService;
     private TrendSnapshotPort trendSnapshotPort;
     private ArticleScoringPort articleScoringPort;
+    private TrendSummaryPort trendSummaryPort;
     private TrendOrchestrationService service;
     private TrendOrchestrationService serviceWithScoring;
 
@@ -55,16 +58,17 @@ class TrendOrchestrationServiceTest {
         trendDetectionService = mock(TrendDetectionService.class);
         trendSnapshotPort = mock(TrendSnapshotPort.class);
         articleScoringPort = mock(ArticleScoringPort.class);
+        trendSummaryPort = mock(TrendSummaryPort.class);
 
-        // Service with scoring disabled (backward-compatible)
+        // Service with scoring disabled, no summary port
         service = new TrendOrchestrationService(
                 articleIngestionPort, trendDetectionService, trendSnapshotPort,
-                null, false, 7);
+                null, null, false, 7, 5);
 
-        // Service with scoring enabled
+        // Service with scoring enabled and summary port available
         serviceWithScoring = new TrendOrchestrationService(
                 articleIngestionPort, trendDetectionService, trendSnapshotPort,
-                articleScoringPort, true, 7);
+                articleScoringPort, trendSummaryPort, true, 7, 5);
     }
 
     @Test
@@ -76,15 +80,16 @@ class TrendOrchestrationServiceTest {
         TrendSnapshot snapshot = new TrendSnapshot(
                 Instant.now(), 30, List.of(rising), List.of(), List.of(), 1);
 
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of(article));
+        when(articleIngestionPort.fetchRecentArticles(180)).thenReturn(List.of(article));
         when(trendDetectionService.detectTrends(anyList(), any(Instant.class))).thenReturn(snapshot);
 
         TrendSnapshot result = service.detectTrends();
 
-        assertThat(result).isSameAs(snapshot);
-        verify(articleIngestionPort).fetchRecentArticles(7);
+        assertThat(result.risingTopics()).hasSize(1);
+        assertThat(result.risingTopics().get(0).keyword()).isEqualTo("radiology");
+        verify(articleIngestionPort).fetchRecentArticles(180);
         verify(trendDetectionService).detectTrends(eq(List.of(article)), any(Instant.class));
-        verify(trendSnapshotPort).save(snapshot);
+        verify(trendSnapshotPort).save(any(TrendSnapshot.class));
     }
 
     @Test
@@ -92,7 +97,7 @@ class TrendOrchestrationServiceTest {
         TrendSnapshot snapshot = new TrendSnapshot(
                 Instant.now(), 30, List.of(), List.of(), List.of(), 0);
 
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of());
+        when(articleIngestionPort.fetchRecentArticles(180)).thenReturn(List.of());
         when(trendDetectionService.detectTrends(anyList(), any(Instant.class))).thenReturn(snapshot);
 
         TrendSnapshot result = service.detectTrends();
@@ -129,7 +134,7 @@ class TrendOrchestrationServiceTest {
         TrendSnapshot snapshot = new TrendSnapshot(
                 Instant.now(), 30, List.of(rising), List.of(), List.of(), 1);
 
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of());
+        when(articleIngestionPort.fetchRecentArticles(180)).thenReturn(List.of());
         when(trendDetectionService.detectTrends(anyList(), any(Instant.class))).thenReturn(snapshot);
 
         service.detectTrends();
@@ -150,7 +155,7 @@ class TrendOrchestrationServiceTest {
         ScoredArticle scored = new ScoredArticle("a1", "Radiology AI breakthrough", 8,
                 "Major FDA clearance for AI radiology tool", "radiology");
 
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of(article));
+        when(articleIngestionPort.fetchRecentArticles(180)).thenReturn(List.of(article));
         when(trendDetectionService.detectTrends(anyList(), any(Instant.class)))
                 .thenReturn(baseSnapshot);
         when(trendDetectionService.detectTrends(anyList(), any(Instant.class), any(Map.class)))
@@ -168,12 +173,97 @@ class TrendOrchestrationServiceTest {
         TrendSnapshot emptySnapshot = new TrendSnapshot(
                 Instant.now(), 30, List.of(), List.of(), List.of(), 0);
 
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of());
+        when(articleIngestionPort.fetchRecentArticles(180)).thenReturn(List.of());
         when(trendDetectionService.detectTrends(anyList(), any(Instant.class)))
                 .thenReturn(emptySnapshot);
 
         serviceWithScoring.detectTrends();
 
         verify(articleScoringPort, never()).scoreArticles(anyList(), anyString(), anyString(), anyInt());
+    }
+
+    @Test
+    void detectTrends_summaryPortAvailable_generatesSummaries() {
+        NewsArticle article = new NewsArticle("a1", "Radiology AI breakthrough",
+                URI.create("https://example.com"), "body about radiology", "Topic",
+                null, null, "Source", "INDUSTRY", 0.5, Instant.now());
+        TrendSignal rising = new TrendSignal("radiology", 15, 5, 2, 6.0,
+                TrendDirection.RISING, Instant.now());
+        TrendSnapshot baseSnapshot = new TrendSnapshot(
+                Instant.now(), 30, List.of(rising), List.of(), List.of(), 1);
+
+        when(articleIngestionPort.fetchRecentArticles(180)).thenReturn(List.of(article));
+        when(trendDetectionService.detectTrends(anyList(), any(Instant.class)))
+                .thenReturn(baseSnapshot);
+        when(trendDetectionService.detectTrends(anyList(), any(Instant.class), any(Map.class)))
+                .thenReturn(baseSnapshot);
+        when(articleScoringPort.scoreArticles(anyList(), anyString(), anyString(), anyInt()))
+                .thenReturn(List.of());
+        when(trendSummaryPort.isAvailable()).thenReturn(true);
+        when(trendSummaryPort.generateSummary(eq("radiology"), anyList()))
+                .thenReturn("Deep research summary about radiology AI.");
+
+        TrendSnapshot result = serviceWithScoring.detectTrends();
+
+        verify(trendSummaryPort).generateSummary(eq("radiology"), anyList());
+        assertThat(result.risingTopics().get(0).summary())
+                .isEqualTo("Deep research summary about radiology AI.");
+    }
+
+    @Test
+    void detectTrends_summaryPortUnavailable_skipsSummaries() {
+        TrendSignal rising = new TrendSignal("radiology", 15, 5, 2, 6.0,
+                TrendDirection.RISING, Instant.now());
+        TrendSnapshot snapshot = new TrendSnapshot(
+                Instant.now(), 30, List.of(rising), List.of(), List.of(), 1);
+
+        when(articleIngestionPort.fetchRecentArticles(180)).thenReturn(List.of());
+        when(trendDetectionService.detectTrends(anyList(), any(Instant.class)))
+                .thenReturn(snapshot);
+        when(trendDetectionService.detectTrends(anyList(), any(Instant.class), any(Map.class)))
+                .thenReturn(snapshot);
+        when(trendSummaryPort.isAvailable()).thenReturn(false);
+
+        serviceWithScoring.detectTrends();
+
+        verify(trendSummaryPort, never()).generateSummary(anyString(), anyList());
+    }
+
+    @Test
+    void detectTrends_respectsMaxSummariesPerRun() {
+        NewsArticle a1 = new NewsArticle("a1", "Article about radiology",
+                URI.create("https://example.com/1"), "body radiology", "T",
+                null, null, "S", "INDUSTRY", 0.5, Instant.now());
+        NewsArticle a2 = new NewsArticle("a2", "Article about genomics",
+                URI.create("https://example.com/2"), "body genomics", "T",
+                null, null, "S", "INDUSTRY", 0.5, Instant.now());
+
+        TrendSignal s1 = new TrendSignal("radiology", 15, 5, 2, 6.0,
+                TrendDirection.RISING, Instant.now());
+        TrendSignal s2 = new TrendSignal("genomics", 12, 4, 1, 5.0,
+                TrendDirection.RISING, Instant.now());
+        TrendSnapshot snapshot = new TrendSnapshot(
+                Instant.now(), 30, List.of(s1, s2), List.of(), List.of(), 2);
+
+        // Service with max 1 summary per run
+        TrendOrchestrationService limitedService = new TrendOrchestrationService(
+                articleIngestionPort, trendDetectionService, trendSnapshotPort,
+                articleScoringPort, trendSummaryPort, true, 7, 1);
+
+        when(articleIngestionPort.fetchRecentArticles(180)).thenReturn(List.of(a1, a2));
+        when(trendDetectionService.detectTrends(anyList(), any(Instant.class)))
+                .thenReturn(snapshot);
+        when(trendDetectionService.detectTrends(anyList(), any(Instant.class), any(Map.class)))
+                .thenReturn(snapshot);
+        when(articleScoringPort.scoreArticles(anyList(), anyString(), anyString(), anyInt()))
+                .thenReturn(List.of());
+        when(trendSummaryPort.isAvailable()).thenReturn(true);
+        when(trendSummaryPort.generateSummary(anyString(), anyList()))
+                .thenReturn("Summary text.");
+
+        limitedService.detectTrends();
+
+        // Only 1 summary generated despite 2 rising keywords
+        verify(trendSummaryPort, times(1)).generateSummary(anyString(), anyList());
     }
 }

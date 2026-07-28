@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
@@ -14,11 +15,17 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.security.Principal;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Thymeleaf controller that renders the trend detection dashboard page.
@@ -33,7 +40,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-22
- * @updated 2026-07-25
+ * @updated 2026-07-27
  */
 @Slf4j
 @Controller
@@ -80,11 +87,23 @@ public class TrendController {
             SubscriptionTier tier = resolveTier(principal);
             boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO;
 
-            List<TrendSignal> risingTopics;
+            List<TrendSignal> rawRising;
             if (fullAccess || isAdmin(principal)) {
-                risingTopics = snapshot.risingTopics();
+                rawRising = snapshot.risingTopics();
             } else {
-                risingTopics = limitList(snapshot.risingTopics(), FREE_RISING_LIMIT);
+                rawRising = limitList(snapshot.risingTopics(), FREE_RISING_LIMIT);
+            }
+
+            // Apply title case and article dedup
+            List<TrendSignal> risingTopics = new ArrayList<>();
+            for (TrendSignal signal : rawRising) {
+                List<ScoredArticle> dedupedArticles = deduplicateArticles(signal.topArticles());
+                risingTopics.add(new TrendSignal(
+                        toTitleCase(signal.keyword()),
+                        signal.current30d(), signal.previous90d(),
+                        signal.baseline180d(), signal.momentum(),
+                        signal.direction(), signal.firstSeenAt(),
+                        dedupedArticles, signal.summary()));
             }
 
             model.addAttribute("risingTopics", risingTopics);
@@ -99,12 +118,23 @@ public class TrendController {
             int chartLimit = Math.min(risingTopics.size(), 10);
             for (int i = 0; i < chartLimit; i++) {
                 TrendSignal signal = risingTopics.get(i);
-                chartLabels.add(signal.keyword());
+                chartLabels.add(signal.keyword()); // already title-cased above
                 chartData.add(signal.current30d());
             }
             model.addAttribute("chartLabels", chartLabels);
             model.addAttribute("chartData", chartData);
             model.addAttribute("scoringRubric", SCORING_RUBRIC);
+
+            // Build articleDates map for server-side date formatting
+            Map<String, String> articleDates = new HashMap<>();
+            for (TrendSignal signal : risingTopics) {
+                for (ScoredArticle scored : signal.topArticles()) {
+                    if (scored.publishedAt() != null) {
+                        articleDates.put(scored.articleId(), DISPLAY_FMT.format(scored.publishedAt()));
+                    }
+                }
+            }
+            model.addAttribute("articleDates", articleDates);
         } else {
             model.addAttribute("hasSnapshot", false);
             model.addAttribute("risingTopics", List.of());
@@ -114,6 +144,7 @@ public class TrendController {
             model.addAttribute("chartLabels", List.of());
             model.addAttribute("chartData", List.of());
             model.addAttribute("scoringRubric", SCORING_RUBRIC);
+            model.addAttribute("articleDates", Map.of());
         }
 
         log.debug("trends() | return=trends");
@@ -141,6 +172,81 @@ public class TrendController {
         Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
         SubscriptionTier result = subscriber.map(Subscriber::tier).orElse(SubscriptionTier.FREE);
         log.debug("resolveTier() | return={}", result);
+        return result;
+    }
+
+    /**
+     * Converts a lowercase keyword to Title Case (e.g. "clinical trials" -> "Clinical Trials").
+     */
+    private String toTitleCase(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return keyword;
+        }
+        String[] words = keyword.split(" ");
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < words.length; i++) {
+            if (i > 0) {
+                result.append(' ');
+            }
+            String word = words[i];
+            if (!word.isEmpty()) {
+                result.append(Character.toUpperCase(word.charAt(0)));
+                if (word.length() > 1) {
+                    result.append(word.substring(1));
+                }
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Deduplicates articles by title (case-insensitive), keeping only the most recent
+     * per calendar day. Prevents showing "Med-PaLM" 4 times on Jul 22.
+     */
+    private List<ScoredArticle> deduplicateArticles(List<ScoredArticle> articles) {
+        if (articles == null || articles.size() <= 1) {
+            return articles;
+        }
+
+        // Group by lowercase title + date, keep the most recent publishedAt
+        Map<String, ScoredArticle> bestByTitleDate = new HashMap<>();
+        for (ScoredArticle article : articles) {
+            String titleKey = article.title() != null ? article.title().toLowerCase() : "";
+            String dateKey = "";
+            if (article.publishedAt() != null) {
+                dateKey = LocalDate.ofInstant(article.publishedAt(), ZoneId.of("America/New_York")).toString();
+            }
+            String key = titleKey + "|" + dateKey;
+
+            ScoredArticle existing = bestByTitleDate.get(key);
+            if (existing == null) {
+                bestByTitleDate.put(key, article);
+            } else {
+                // Keep the one with later publishedAt
+                if (article.publishedAt() != null && existing.publishedAt() != null
+                        && article.publishedAt().isAfter(existing.publishedAt())) {
+                    bestByTitleDate.put(key, article);
+                }
+            }
+        }
+
+        // Preserve original order, picking the winner from each group
+        List<ScoredArticle> result = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (ScoredArticle article : articles) {
+            String titleKey = article.title() != null ? article.title().toLowerCase() : "";
+            String dateKey = "";
+            if (article.publishedAt() != null) {
+                dateKey = LocalDate.ofInstant(article.publishedAt(), ZoneId.of("America/New_York")).toString();
+            }
+            String key = titleKey + "|" + dateKey;
+
+            if (!seen.contains(key)) {
+                seen.add(key);
+                result.add(bestByTitleDate.get(key));
+            }
+        }
+
         return result;
     }
 

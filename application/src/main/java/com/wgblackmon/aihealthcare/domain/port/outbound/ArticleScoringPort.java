@@ -37,4 +37,5 @@ public interface ArticleScoringPort {
                                        String theme,
                                        String themeDescription,
                                        int scoreThreshold);
+
 }

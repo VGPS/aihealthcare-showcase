@@ -1,6 +1,6 @@
 package com.wgblackmon.aihealthcare.domain.model;
 
-import java.util.List;
+import java.time.Instant;
 
 /**
  * Immutable domain record representing an article scored by an LLM
@@ -14,23 +14,29 @@ import java.util.List;
  *   <li><b>9-10:</b> Landmark — paradigm shift, first-of-kind, breakthrough outcome</li>
  * </ul>
  *
- * @param articleId  the unique identifier of the scored article
- * @param title      the article title
- * @param score      significance score (1-10)
- * @param rationale  one-sentence LLM explanation of why this score was assigned
- * @param keyword    the trend keyword this article was scored against
+ * @param articleId   the unique identifier of the scored article
+ * @param title       the article title
+ * @param score       significance score (1-10)
+ * @param rationale   one-sentence LLM explanation of why this score was assigned
+ * @param keyword     the trend keyword this article was scored against
+ * @param url         the article URL for linking (nullable)
+ * @param sourceName  the publication name, e.g. "MedCity News" (nullable)
+ * @param publishedAt the article publication date (nullable)
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-24
- * @updated 2026-07-24
+ * @updated 2026-07-26
  */
 public record ScoredArticle(
         String articleId,
         String title,
         int score,
         String rationale,
-        String keyword
+        String keyword,
+        String url,
+        String sourceName,
+        Instant publishedAt
 ) {
 
     /**
@@ -52,5 +58,14 @@ public record ScoredArticle(
         if (keyword == null || keyword.isBlank()) {
             throw new IllegalArgumentException("keyword must not be blank");
         }
+    }
+
+    /**
+     * Convenience constructor without metadata fields — backward compatible
+     * with existing callers that don't have article metadata available.
+     */
+    public ScoredArticle(String articleId, String title, int score,
+                          String rationale, String keyword) {
+        this(articleId, title, score, rationale, keyword, null, null, null);
     }
 }
