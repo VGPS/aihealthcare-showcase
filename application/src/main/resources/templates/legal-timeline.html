@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Legal & Regulatory Timeline — chronological feed of litigation, regulation,
+ * and policy events in AI healthcare.
+ *
+ * Merges articles from "AI Healthcare Legal" and "AI Healthcare Government Policy"
+ * topics with FDA/CMS regulatory events into a single sorted timeline with
+ * category and days filters.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-07-29
+ * @updated 2026-07-29
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Legal & Regulatory Timeline')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Legal &amp; Regulatory Timeline</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Litigation, regulation, and policy events in AI healthcare</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('legal')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Summary badges -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div class="bg-gray-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-gray-700" th:text="${entryCount}">0</div>
+            <div class="text-xs text-gray-500">Total</div>
+        </div>
+        <div class="bg-red-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-red-800" th:text="${litigationCount}">0</div>
+            <div class="text-xs text-red-800">Litigation</div>
+        </div>
+        <div class="bg-blue-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-blue-800" th:text="${regulationCount}">0</div>
+            <div class="text-xs text-blue-800">Regulation</div>
+        </div>
+        <div class="bg-amber-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-amber-800" th:text="${policyCount}">0</div>
+            <div class="text-xs text-amber-800">Policy</div>
+        </div>
+    </div>
+
+    <!-- Filter controls -->
+    <div class="bg-white rounded-lg shadow-sm px-5 py-4 mb-6 flex flex-wrap gap-4 items-center justify-between">
+        <!-- Category tabs -->
+        <div class="flex gap-3 text-sm">
+            <a th:href="@{/dashboard/legal(days=${days})}"
+               th:classappend="${filter == null} ? ' font-bold underline' : ''"
+               class="text-gray-700 hover:text-primary-600">All</a>
+            <a th:href="@{/dashboard/legal(filter='litigation', days=${days})}"
+               th:classappend="${filter == 'litigation'} ? ' font-bold underline' : ''"
+               class="text-red-700 hover:text-red-900">Litigation</a>
+            <a th:href="@{/dashboard/legal(filter='regulation', days=${days})}"
+               th:classappend="${filter == 'regulation'} ? ' font-bold underline' : ''"
+               class="text-blue-700 hover:text-blue-900">Regulation</a>
+            <a th:href="@{/dashboard/legal(filter='policy', days=${days})}"
+               th:classappend="${filter == 'policy'} ? ' font-bold underline' : ''"
+               class="text-amber-700 hover:text-amber-900">Policy</a>
+        </div>
+
+        <!-- Days dropdown -->
+        <form class="flex gap-2 items-center" method="get" th:action="@{/dashboard/legal}">
+            <input type="hidden" name="filter" th:value="${filter}" th:if="${filter != null}" />
+            <label for="days" class="text-sm text-gray-600">Show last</label>
+            <select name="days" id="days"
+                    class="px-3 py-1.5 border border-gray-300 rounded-md text-sm bg-white">
+                <option value="30" th:selected="${days == 30}">30 days</option>
+                <option value="90" th:selected="${days == 90}">90 days</option>
+                <option value="180" th:selected="${days == 180}">180 days</option>
+                <option value="365" th:selected="${days == 365}">1 year</option>
+                <option value="0" th:selected="${days == 0}">All time</option>
+            </select>
+            <button type="submit"
+                    class="px-4 py-1.5 bg-primary-600 text-white rounded-md text-sm font-semibold hover:bg-primary-700 border-0 cursor-pointer">
+                Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Tier upgrade notice -->
+    <div th:if="${!fullAccess}"
+         class="bg-amber-50 border-l-4 border-amber-400 rounded p-3 mb-5 text-sm text-amber-900 flex items-center justify-between">
+        <span>Showing events from the last <strong th:text="${days}">30</strong> days.
+              Upgrade for full archive access.</span>
+        <a th:href="@{/pricing}" class="text-primary-600 font-semibold ml-4 no-underline">Upgrade</a>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${entryCount == 0}" class="py-8 text-center text-gray-500">
+        <p>No legal or regulatory events found for the selected filters.</p>
+    </div>
+
+    <!-- Timeline entries -->
+    <div th:if="${entryCount > 0}" class="space-y-3">
+        <div th:each="entry : ${entries}"
+             class="bg-white rounded-lg shadow-sm p-4 border-l-4 hover:shadow-md transition-shadow"
+             th:classappend="${entry.category() == 'Litigation'} ? ' border-red-400' : (${entry.category() == 'Regulation'} ? ' border-blue-400' : ' border-amber-400')">
+
+            <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                <!-- Date pill -->
+                <span th:if="${!entry.formattedDate().isEmpty()}"
+                      class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded font-medium"
+                      th:text="${entry.formattedDate()}">Jul 15, 2026</span>
+                <!-- Category badge -->
+                <span class="text-xs px-2 py-0.5 rounded font-semibold"
+                      th:classappend="${entry.categoryBadgeClass()}"
+                      th:text="${entry.category()}">Litigation</span>
+                <!-- Publisher -->
+                <span th:if="${entry.sourceLabel() != null}"
+                      class="text-xs text-gray-400 italic"
+                      th:text="${entry.sourceLabel()}">Publisher</span>
+            </div>
+
+            <!-- Title -->
+            <div class="font-semibold text-[0.95rem] leading-snug">
+                <a th:if="${entry.url() != null}"
+                   th:href="${entry.url()}" th:text="${entry.title()}"
+                   target="_blank" rel="noopener noreferrer"
+                   class="text-primary-600 no-underline hover:underline">Title</a>
+                <span th:if="${entry.url() == null}"
+                      th:text="${entry.title()}">Title</span>
+            </div>
+
+            <!-- Snippet -->
+            <p th:if="${!entry.snippet().isEmpty()}"
+               class="text-sm text-gray-600 mt-1 leading-relaxed"
+               th:text="${entry.snippet()}">Snippet text...</p>
+        </div>
+    </div>
+
+</main>
+
+</body>
+</html>
