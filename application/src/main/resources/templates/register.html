@@ -1,62 +1,87 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Registration page — centered card layout with Tailwind CSS.
+ *
+ * 7-day demo signup form. No nav bar (unauthenticated). CSRF token is
+ * auto-injected by Spring Security into the POST form via th:action.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-04-15
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AIHealthcare — Register</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+<head th:replace="~{fragments/head :: head('Register')}">
 </head>
-<body>
 
-<header>
-    <h1>AIHealthcare</h1>
-    <p>AI-in-Healthcare Intelligence Platform</p>
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
+
+<!-- Header -->
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
+    <p class="text-primary-200 text-sm mt-0.5">AI-in-Healthcare Intelligence Platform</p>
 </header>
 
-<main>
-    <div class="register-card">
-        <h2>Start Your Free Trial</h2>
-        <p class="subtitle">
-            <span class="demo-badge">7-DAY DEMO</span><br/>
-            Full access to the platform for 7 days. No credit card required.
-        </p>
+<!-- Centered register card -->
+<main class="flex-1 flex items-center justify-center px-4 py-12">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="font-display text-xl font-semibold text-on-surface mb-1">Start Your Free Trial</h2>
+            <p class="text-sm text-on-surface-variant mb-5">
+                <span class="inline-block bg-accent-200 text-accent-700 text-xs font-bold px-2 py-0.5 rounded-pill mr-1">7-DAY DEMO</span><br/>
+                Full access to the platform for 7 days. No credit card required.
+            </p>
 
-        <div th:if="${error}" class="alert alert-error" th:text="${error}">
-            Error message
-        </div>
-
-        <form th:action="@{/register}" method="post">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email"
-                       th:value="${email}"
-                       placeholder="you@example.com" required autofocus/>
+            <!-- Error alert -->
+            <div th:if="${error}"
+                 class="bg-red-50 border-l-4 border-red-500 text-red-800 text-sm p-3 mb-4 rounded"
+                 th:text="${error}">
+                Error message
             </div>
 
-            <div class="form-group">
-                <label for="displayName">Display Name</label>
-                <input type="text" id="displayName" name="displayName"
-                       th:value="${displayName}"
-                       placeholder="Your name" required/>
+            <form th:action="@{/register}" method="post" class="space-y-4">
+                <div class="flex flex-col gap-1">
+                    <label for="email" class="text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="email" name="email"
+                           th:value="${email}"
+                           placeholder="you@example.com" required autofocus
+                           class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="displayName" class="text-sm font-medium text-gray-700">Display Name</label>
+                    <input type="text" id="displayName" name="displayName"
+                           th:value="${displayName}"
+                           placeholder="Your name" required
+                           class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="password" class="text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="password" name="password"
+                           placeholder="Choose a password" required
+                           class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="confirmPassword" class="text-sm font-medium text-gray-700">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword"
+                           placeholder="Confirm your password" required
+                           class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-accent-600 hover:bg-accent-700 text-white font-semibold py-2.5 rounded-md text-sm transition-colors">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="mt-5 text-center text-sm text-on-surface-variant">
+                Already have an account?
+                <a th:href="@{/login}" class="text-primary-600 hover:text-primary-700 font-medium">Sign in</a>
             </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password"
-                       placeholder="Choose a password" required/>
-            </div>
-
-            <div class="form-group">
-                <label for="confirmPassword">Confirm Password</label>
-                <input type="password" id="confirmPassword" name="confirmPassword"
-                       placeholder="Confirm your password" required/>
-            </div>
-
-            <button type="submit" class="register-button">Create Account</button>
-        </form>
-
-        <div class="register-footer">
-            Already have an account? <a th:href="@{/login}">Sign in</a>
         </div>
     </div>
 </main>

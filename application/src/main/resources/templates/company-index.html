@@ -1,55 +1,45 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Company Intelligence index page — AI healthcare company profiles grid.
+ *
+ * Displays discovered company profiles in a responsive card grid with trend
+ * direction indicators, article counts, and a discovery pipeline trigger.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-07-22
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AIHealthcare — Company Intelligence</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+<head th:replace="~{fragments/head :: head('Company Intelligence')}">
 </head>
-<body>
+<body class="bg-surface font-sans text-on-surface">
 
-<header>
-    <h1>Company Intelligence</h1>
-    <p>AI healthcare company profiles with event timelines</p>
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Company Intelligence</h1>
+    <p class="text-primary-200 text-sm mt-0.5">AI healthcare company profiles with event timelines</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Analytics</a>
-    <a th:href="@{/dashboard/news}">News Listing</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}" style="font-weight:600;">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('companies')}"></nav>
 
-<main>
+<main class="max-w-7xl mx-auto px-4 py-6">
 
     <!-- Flash messages -->
-    <div th:if="${successMessage}" style="background:#e8f5e9; color:#2e7d32; padding:0.75rem 1rem; border-radius:8px; margin-bottom:1rem;">
+    <div th:if="${successMessage}" class="bg-green-50 text-green-800 px-4 py-3 rounded-lg mb-4">
         <span th:text="${successMessage}">Success</span>
     </div>
-    <div th:if="${errorMessage}" style="background:#ffebee; color:#c62828; padding:0.75rem 1rem; border-radius:8px; margin-bottom:1rem;">
+    <div th:if="${errorMessage}" class="bg-red-50 text-red-800 px-4 py-3 rounded-lg mb-4">
         <span th:text="${errorMessage}">Error</span>
     </div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-        <span style="color: var(--on-surface-variant); font-size: 0.85rem;">
+    <div class="flex justify-between items-center mb-6">
+        <span class="text-gray-500 text-sm">
             <span th:text="${profileCount}">0</span> companies tracked
         </span>
-        <form th:action="@{/companies/discover}" method="post" style="margin:0;">
+        <form th:action="@{/companies/discover}" method="post" class="m-0">
             <button type="submit" class="btn-search" id="discoverBtn"
                     onclick="this.disabled=true; this.innerHTML='<span class=\'spinner\'></span> Discovering...'; this.form.submit();">
                 Run Discovery Pipeline
@@ -58,33 +48,33 @@
     </div>
 
     <div th:if="${#lists.isEmpty(profiles)}"
-         style="text-align:center; padding:3rem; color:var(--on-surface-variant);">
+         class="text-center py-12 text-gray-500">
         <p>No company profiles yet. Click <b>Run Discovery Pipeline</b> above to scan startup directories and populate this page.</p>
     </div>
 
-    <div th:unless="${#lists.isEmpty(profiles)}" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1rem;">
+    <div th:unless="${#lists.isEmpty(profiles)}" class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
         <div th:each="profile : ${profiles}"
-             style="border:1px solid var(--outline); border-radius:12px; padding:1.25rem; background:var(--surface);">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+             class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+            <div class="flex justify-between items-start mb-2">
                 <a th:if="${profile.url() != null}" th:href="${profile.url()}" target="_blank"
-                   style="font-size:1.1rem; font-weight:600; text-decoration:none; color:var(--primary);"
+                   class="text-lg font-semibold no-underline text-primary-600"
                    th:text="${profile.name()}">Company Name</a>
                 <span th:if="${profile.url() == null}"
-                      style="font-size:1.1rem; font-weight:600; color:var(--primary);"
+                      class="text-lg font-semibold text-primary-600"
                       th:text="${profile.name()}">Company Name</span>
                 <span th:if="${profile.trendDirection() != null}"
                       th:text="${profile.trendDirection().name()}"
-                      th:style="${profile.trendDirection().name() == 'RISING' ? 'color:#4caf50;font-weight:600;font-size:0.75rem;' :
-                                 profile.trendDirection().name() == 'FADING' ? 'color:#f44336;font-weight:600;font-size:0.75rem;' :
-                                 profile.trendDirection().name() == 'NEW' ? 'color:#2196f3;font-weight:600;font-size:0.75rem;' :
-                                 'color:var(--on-surface-variant);font-size:0.75rem;'}">STABLE</span>
+                      th:classappend="${profile.trendDirection().name() == 'RISING' ? 'text-green-500 font-semibold text-xs' :
+                                       profile.trendDirection().name() == 'FADING' ? 'text-red-500 font-semibold text-xs' :
+                                       profile.trendDirection().name() == 'NEW' ? 'text-blue-500 font-semibold text-xs' :
+                                       'text-gray-500 text-xs'}">STABLE</span>
             </div>
             <p th:if="${profile.description() != null && !profile.description().isEmpty()}"
-               style="font-size:0.85rem; color:var(--on-surface-variant); margin-bottom:0.75rem; line-height:1.4;"
+               class="text-sm text-gray-500 mb-3 leading-relaxed"
                th:text="${#strings.abbreviate(profile.description(), 150)}">Description</p>
-            <div style="font-size:0.8rem; color:var(--on-surface-variant);">
+            <div class="text-xs text-gray-500">
                 <a th:href="@{/companies/{slug}(slug=${profile.slug()})}"
-                   style="color:var(--primary); text-decoration:underline;">
+                   class="text-primary-600 underline">
                     <span th:text="${realArticleCounts[profile.slug()]}">0</span> articles
                 </a>
                 &nbsp;|&nbsp; Discovered: <span th:text="${discoveredDates[profile.slug()]}">N/A</span>

@@ -1,57 +1,47 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Analytics Dashboard — Chart.js trend and topic distribution charts.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-03-15
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AIHealthcare Analytics Dashboard</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+<head th:replace="~{fragments/head :: head('Analytics Dashboard')}">
 </head>
-<body>
 
-<header>
-    <h1>AIHealthcare Analytics</h1>
-    <p>Live stats &mdash; refreshes on each page load</p>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare Analytics</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Live stats &mdash; refreshes on each page load</p>
 </header>
 
-<nav>
-    <a href="#analytics">Analytics</a>
-    <a th:href="@{/dashboard/news}">News Listing</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('dashboard')}"></nav>
 
-<main>
+<main class="max-w-7xl mx-auto px-4 py-6">
 
-    <!-- ================================================================
-         Analytics Charts
-         ================================================================ -->
     <section id="analytics">
         <div class="section-header">
-            <h2>Analytics Charts</h2>
+            <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-5">Analytics Charts</h2>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-            <div>
-                <h3 style="font-size: 0.85rem; color: #666; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Articles Ingested &mdash; Last 30 Days: <span th:text="${last30DaysCount}">0</span>, Total articles since <span th:text="${earliestDate}">N/A</span>: <span th:text="${totalArticles}">0</span></h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow-sm p-5">
+                <h3 class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
+                    Articles Ingested &mdash; Last 30 Days:
+                    <span th:text="${last30DaysCount}">0</span>,
+                    Total articles since <span th:text="${earliestDate}">N/A</span>:
+                    <span th:text="${totalArticles}">0</span>
+                </h3>
                 <canvas id="articleTrendChart" height="200"></canvas>
             </div>
-            <div>
-                <h3 style="font-size: 0.85rem; color: #666; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Articles by Topic — Top 10</h3>
+            <div class="bg-white rounded-lg shadow-sm p-5">
+                <h3 class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">Articles by Topic — Top 10</h3>
                 <canvas id="topicDistChart" height="200"></canvas>
             </div>
         </div>
@@ -66,7 +56,6 @@
     var topicLabels = /*[[${topicChartLabels}]]*/ [];
     var topicData = /*[[${topicChartData}]]*/ [];
 
-    // Article trend line chart
     new Chart(document.getElementById('articleTrendChart'), {
         type: 'line',
         data: {
@@ -74,8 +63,8 @@
             datasets: [{
                 label: 'Articles',
                 data: chartData,
-                borderColor: '#4361ee',
-                backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                borderColor: '#006875',
+                backgroundColor: 'rgba(0, 104, 117, 0.1)',
                 fill: true,
                 tension: 0.3,
                 pointRadius: 2,
@@ -92,10 +81,9 @@
         }
     });
 
-    // Topic distribution doughnut chart
     var topicColors = [
-        '#4361ee', '#27ae60', '#f39c12', '#e74c3c', '#9b59b6',
-        '#1abc9c', '#3498db', '#e67e22', '#2c3e50', '#95a5a6'
+        '#006875', '#7ab800', '#4a6266', '#525e7d', '#33a6b7',
+        '#558100', '#004b56', '#9cd633', '#3f484a', '#bfc8ca'
     ];
     new Chart(document.getElementById('topicDistChart'), {
         type: 'doughnut',

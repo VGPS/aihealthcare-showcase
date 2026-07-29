@@ -1,126 +1,107 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Pricing page — tier comparison cards with Stripe checkout integration.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-04-20
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AIHealthcare — Pricing</title>
-    <meta name="user-email" th:if="${userEmail != null and !userEmail.isEmpty()}" th:content="${userEmail}"/>
-    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+<head th:replace="~{fragments/head :: head('Pricing')}">
 </head>
-<body>
 
-<header>
-    <h1>AIHealthcare</h1>
-    <p>AI-in-Healthcare Intelligence Platform</p>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
+    <p class="text-primary-200 text-sm mt-0.5">AI-in-Healthcare Intelligence Platform</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Dashboard</a>
-    <a th:href="@{/dashboard/news}">News Listing</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}" class="active">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('pricing')}"></nav>
 
-<main>
-    <h1 class="page-title">Choose Your Plan</h1>
-    <p class="page-subtitle">AI-powered healthcare intelligence for professionals and teams</p>
+<main class="max-w-7xl mx-auto px-4 py-6">
+    <div class="text-center mb-8">
+        <h2 class="font-display text-2xl font-bold text-on-surface">Choose Your Plan</h2>
+        <p class="text-sm text-on-surface-variant mt-1">AI-powered healthcare intelligence for professionals and teams</p>
+    </div>
 
-    <div class="tier-grid">
-        <!-- DEMO tier card -->
-        <div class="tier-card">
-            <div class="tier-name">Demo</div>
-            <div class="tier-price">$0 <span>/ 7 days</span></div>
-            <p class="tier-desc">
-                Try the full platform free for 7 days. No credit card required.
-                All Subscriber features included.
-            </p>
-            <ul class="feature-list">
-                <li><span class="check">&#10003;</span> Full newsletter content</li>
-                <li><span class="check">&#10003;</span> Unlimited article archive</li>
-                <li><span class="check">&#10003;</span> Semantic / vector search</li>
-                <li>
-                    <span class="check">&#10003;</span>
-                    <span th:text="${subscriberQueryLimit} + ' AI research queries'">200 AI research queries</span>
-                </li>
-                <li><span class="check">&#10003;</span> LLM model choice</li>
-                <li><span class="check">&#10003;</span> Vendor comparisons</li>
-                <li><span class="check">&#10003;</span> 7-day full access trial</li>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+        <!-- DEMO -->
+        <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-6 flex flex-col">
+            <div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Demo</div>
+            <div class="text-3xl font-bold text-on-surface mb-1">$0 <span class="text-sm font-normal text-on-surface-variant">/ 7 days</span></div>
+            <p class="text-sm text-on-surface-variant mb-4">Try the full platform free for 7 days. No credit card required.</p>
+            <ul class="text-sm text-on-surface-variant space-y-2 mb-6 flex-1">
+                <li><span class="text-green-600 mr-1">&#10003;</span> Full newsletter content</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> Unlimited article archive</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> Semantic / vector search</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> <span th:text="${subscriberQueryLimit} + ' AI research queries'">200 AI research queries</span></li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> LLM model choice</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> Vendor comparisons</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> 7-day full access trial</li>
             </ul>
-            <a class="tier-button subscriber" th:href="@{/register}">Start Free Trial</a>
+            <a th:href="@{/register}"
+               class="block text-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-md text-sm transition-colors">
+                Start Free Trial
+            </a>
         </div>
 
-        <!-- FREE tier card -->
-        <div class="tier-card">
-            <div class="tier-name">Free</div>
-            <div class="tier-price">$0 <span>/month</span></div>
-            <p class="tier-desc">
-                Daily article digest newsletter delivered to your inbox.
-                No platform access.
-            </p>
-            <ul class="feature-list">
-                <li><span class="check">&#10003;</span> Daily article digest email</li>
-                <li><span class="cross">&#10007;</span> Platform access</li>
-                <li><span class="cross">&#10007;</span> Article archive</li>
-                <li><span class="cross">&#10007;</span> AI research queries</li>
-                <li><span class="cross">&#10007;</span> Semantic / vector search</li>
-                <li><span class="cross">&#10007;</span> LLM model choice</li>
-                <li><span class="cross">&#10007;</span> Full newsletter content</li>
+        <!-- FREE -->
+        <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-6 flex flex-col">
+            <div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Free</div>
+            <div class="text-3xl font-bold text-on-surface mb-1">$0 <span class="text-sm font-normal text-on-surface-variant">/month</span></div>
+            <p class="text-sm text-on-surface-variant mb-4">Daily article digest newsletter delivered to your inbox.</p>
+            <ul class="text-sm text-on-surface-variant space-y-2 mb-6 flex-1">
+                <li><span class="text-green-600 mr-1">&#10003;</span> Daily article digest email</li>
+                <li><span class="text-red-400 mr-1">&#10007;</span> Platform access</li>
+                <li><span class="text-red-400 mr-1">&#10007;</span> Article archive</li>
+                <li><span class="text-red-400 mr-1">&#10007;</span> AI research queries</li>
+                <li><span class="text-red-400 mr-1">&#10007;</span> Semantic / vector search</li>
+                <li><span class="text-red-400 mr-1">&#10007;</span> LLM model choice</li>
+                <li><span class="text-red-400 mr-1">&#10007;</span> Full newsletter content</li>
             </ul>
-            <div class="tier-button free">Email Only</div>
+            <div class="block text-center bg-gray-100 text-gray-500 font-semibold py-2.5 rounded-md text-sm">
+                Email Only
+            </div>
         </div>
 
-        <!-- SUBSCRIBER tier card -->
-        <div class="tier-card subscriber">
-            <div class="tier-badge">Recommended</div>
-            <div class="tier-name">Subscriber</div>
-            <div class="tier-price">$39 <span>/month</span></div>
-            <p class="tier-desc">
-                Full access to the platform: complete newsletters, deep archive,
-                semantic search, and AI-powered research tools.
-            </p>
-            <ul class="feature-list">
-                <li><span class="check">&#10003;</span> Full weekly newsletter</li>
-                <li>
-                    <span class="check">&#10003;</span>
-                    <span th:text="${subscriberArchiveDays == 0} ? 'Unlimited article archive' : ${subscriberArchiveDays} + '-day article archive'">Unlimited article archive</span>
-                </li>
-                <li><span class="check">&#10003;</span> Basic + semantic search</li>
-                <li>
-                    <span class="check">&#10003;</span>
-                    <span th:text="${subscriberQueryLimit} + ' AI research queries/month'">200 AI research queries/month</span>
-                </li>
-                <li><span class="check">&#10003;</span> Semantic / vector search</li>
-                <li><span class="check">&#10003;</span> LLM model choice</li>
-                <li><span class="check">&#10003;</span> Vendor comparisons &amp; reports</li>
+        <!-- SUBSCRIBER -->
+        <div class="bg-white rounded-lg shadow-md border-2 border-primary-600 p-6 flex flex-col relative">
+            <span class="absolute -top-2.5 left-4 bg-primary-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-pill">Recommended</span>
+            <div class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-1">Subscriber</div>
+            <div class="text-3xl font-bold text-on-surface mb-1">$39 <span class="text-sm font-normal text-on-surface-variant">/month</span></div>
+            <p class="text-sm text-on-surface-variant mb-4">Full access: newsletters, deep archive, semantic search, and AI tools.</p>
+            <ul class="text-sm text-on-surface-variant space-y-2 mb-6 flex-1">
+                <li><span class="text-green-600 mr-1">&#10003;</span> Full weekly newsletter</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> <span th:text="${subscriberArchiveDays == 0} ? 'Unlimited article archive' : ${subscriberArchiveDays} + '-day article archive'">Unlimited</span></li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> Basic + semantic search</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> <span th:text="${subscriberQueryLimit} + ' AI research queries/month'">200/month</span></li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> Semantic / vector search</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> LLM model choice</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> Vendor comparisons &amp; reports</li>
             </ul>
-            <button class="tier-button subscriber" id="upgradeBtn"
+            <button id="upgradeBtn"
                     th:if="${stripeEnabled}"
                     th:data-price-id="${subscriberPriceId}"
-                    onclick="handleUpgrade()">Upgrade to Subscriber</button>
-            <a class="tier-button subscriber" th:if="${!stripeEnabled}" href="#upgrade"
-               style="opacity:0.5; pointer-events:none;">Upgrade (coming soon)</a>
+                    onclick="handleUpgrade()"
+                    class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-md text-sm transition-colors">
+                Upgrade to Subscriber
+            </button>
+            <a th:if="${!stripeEnabled}" href="#upgrade"
+               class="block text-center bg-gray-200 text-gray-400 font-semibold py-2.5 rounded-md text-sm pointer-events-none">
+                Upgrade (coming soon)
+            </a>
         </div>
     </div>
 
     <!-- Feature comparison table -->
-    <div class="comparison-table">
-        <h2>Feature Comparison</h2>
-        <table>
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="font-display text-lg font-semibold text-on-surface mb-4">Feature Comparison</h2>
+        <table class="result-table">
             <thead>
                 <tr>
                     <th>Feature</th>
@@ -130,60 +111,15 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Newsletter content</td>
-                    <td>Full newsletter</td>
-                    <td>Daily digest email</td>
-                    <td>Full newsletter</td>
-                </tr>
-                <tr>
-                    <td>Platform access</td>
-                    <td><span class="check">&#10003;</span></td>
-                    <td><span class="cross">&#10007;</span></td>
-                    <td><span class="check">&#10003;</span></td>
-                </tr>
-                <tr>
-                    <td>Article archive</td>
-                    <td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td>
-                    <td><span class="cross">&#10007;</span></td>
-                    <td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td>
-                </tr>
-                <tr>
-                    <td>AI research queries</td>
-                    <td th:text="${subscriberQueryLimit} + ' / trial'">200 / trial</td>
-                    <td><span class="cross">&#10007;</span></td>
-                    <td th:text="${subscriberQueryLimit} + ' / month'">200 / month</td>
-                </tr>
-                <tr>
-                    <td>Semantic / vector search</td>
-                    <td><span class="check">&#10003;</span></td>
-                    <td><span class="cross">&#10007;</span></td>
-                    <td><span class="check">&#10003;</span></td>
-                </tr>
-                <tr>
-                    <td>LLM model choice</td>
-                    <td>Multiple models</td>
-                    <td><span class="cross">&#10007;</span></td>
-                    <td>Multiple models</td>
-                </tr>
-                <tr>
-                    <td>Vendor comparison reports</td>
-                    <td><span class="check">&#10003;</span></td>
-                    <td><span class="cross">&#10007;</span></td>
-                    <td><span class="check">&#10003;</span></td>
-                </tr>
-                <tr>
-                    <td>Research run history</td>
-                    <td>Unlimited</td>
-                    <td><span class="cross">&#10007;</span></td>
-                    <td>Unlimited</td>
-                </tr>
-                <tr>
-                    <td>Duration</td>
-                    <td>7 days</td>
-                    <td>Unlimited</td>
-                    <td>Unlimited</td>
-                </tr>
+                <tr><td>Newsletter content</td><td>Full newsletter</td><td>Daily digest email</td><td>Full newsletter</td></tr>
+                <tr><td>Platform access</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
+                <tr><td>Article archive</td><td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td><td><span class="text-red-400">&#10007;</span></td><td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td></tr>
+                <tr><td>AI research queries</td><td th:text="${subscriberQueryLimit} + ' / trial'">200</td><td><span class="text-red-400">&#10007;</span></td><td th:text="${subscriberQueryLimit} + ' / month'">200</td></tr>
+                <tr><td>Semantic / vector search</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
+                <tr><td>LLM model choice</td><td>Multiple models</td><td><span class="text-red-400">&#10007;</span></td><td>Multiple models</td></tr>
+                <tr><td>Vendor comparison reports</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
+                <tr><td>Research run history</td><td>Unlimited</td><td><span class="text-red-400">&#10007;</span></td><td>Unlimited</td></tr>
+                <tr><td>Duration</td><td>7 days</td><td>Unlimited</td><td>Unlimited</td></tr>
             </tbody>
         </table>
     </div>
@@ -200,12 +136,8 @@
 
         var email = '';
         var authMeta = document.querySelector('meta[name="user-email"]');
-        if (authMeta) {
-            email = authMeta.getAttribute('content');
-        }
-        if (!email) {
-            email = prompt('Enter your email address to continue:');
-        }
+        if (authMeta) { email = authMeta.getAttribute('content'); }
+        if (!email) { email = prompt('Enter your email address to continue:'); }
         if (!email) {
             btn.textContent = originalText;
             btn.style.opacity = '1';
@@ -217,28 +149,18 @@
             var response = await fetch(document.getElementById('checkoutUrl').value, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: email,
-                    priceId: btn.getAttribute('data-price-id')
-                })
+                body: JSON.stringify({ email: email, priceId: btn.getAttribute('data-price-id') })
             });
-
             if (!response.ok) {
-                var errorText = await response.text();
-                alert('Checkout error: ' + errorText);
-                btn.textContent = originalText;
-                btn.style.opacity = '1';
-                btn.style.pointerEvents = 'auto';
+                alert('Checkout error: ' + (await response.text()));
+                btn.textContent = originalText; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
                 return;
             }
-
             var data = await response.json();
             window.location.href = data.checkoutUrl;
         } catch (err) {
             alert('Unable to start checkout. Please try again.');
-            btn.textContent = originalText;
-            btn.style.opacity = '1';
-            btn.style.pointerEvents = 'auto';
+            btn.textContent = originalText; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
         }
     }
 </script>

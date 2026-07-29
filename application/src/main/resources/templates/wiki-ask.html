@@ -1,356 +1,46 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Wiki "Prompt the Wiki" page — accepts natural-language questions and returns
+ * AI-synthesized answers grounded in compiled wiki knowledge with source attribution.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-05-10
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Prompt the Wiki — AIHealthcare</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f6fa;
-            color: #333;
-            font-size: 14px;
-        }
-
-        header {
-            background: #1a1a2e;
-            color: white;
-            padding: 1.25rem 2rem;
-            display: flex;
-            align-items: baseline;
-            gap: 1.5rem;
-        }
-        header h1 { font-size: 1.25rem; font-weight: 600; }
-        header p  { font-size: 0.8rem; opacity: 0.6; }
-
-        nav {
-            background: #16213e;
-            padding: 0 2rem;
-            display: flex;
-            gap: 1.5rem;
-        }
-        nav a {
-            color: #aaa;
-            text-decoration: none;
-            font-size: 0.8rem;
-            padding: 0.6rem 0;
-            border-bottom: 2px solid transparent;
-            display: inline-block;
-        }
-        nav a:hover { color: white; }
-        nav a.active { color: white; border-bottom-color: #4361ee; }
-
-        main {
-            max-width: 900px;
-            margin: 1.5rem auto;
-            padding: 0 1rem;
-        }
-
-        .breadcrumb {
-            font-size: 0.78rem;
-            color: #888;
-            margin-bottom: 1rem;
-        }
-        .breadcrumb a { color: #4361ee; text-decoration: none; }
-        .breadcrumb a:hover { text-decoration: underline; }
-
-        .page-header {
-            margin-bottom: 1.25rem;
-        }
-        .page-header h2 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-        .page-header .subtitle {
-            font-size: 0.82rem;
-            color: #888;
-            margin-top: 0.25rem;
-        }
-
-        /* Search form */
-        .search-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1.25rem;
-            margin-bottom: 1.25rem;
-        }
-        .search-card .search-row {
-            display: flex;
-            gap: 0.75rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .search-card input[type="text"] {
-            flex: 1;
-            min-width: 250px;
-            padding: 0.6rem 0.85rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-        .search-card input[type="text"]:focus {
-            outline: none;
-            border-color: #4361ee;
-            box-shadow: 0 0 0 2px rgba(67,97,238,0.15);
-        }
-        .search-card button {
-            padding: 0.6rem 1.5rem;
-            background: #4361ee;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        .search-card button:hover { background: #3651d4; }
-
-        /* Loading spinner */
-        .spinner {
-            display: none;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 0.8s linear infinite;
-            vertical-align: middle;
-            margin-right: 0.4rem;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .search-card button.loading .spinner { display: inline-block; }
-        .search-card button.loading { opacity: 0.7; pointer-events: none; }
-
-        .model-row {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            margin-top: 0.75rem;
-            font-size: 0.82rem;
-            color: #666;
-        }
-        .model-row label {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            cursor: pointer;
-        }
-
-        /* Synthesis cards */
-        .synthesis-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1.5rem;
-            margin-bottom: 1.25rem;
-            border-left: 4px solid #4361ee;
-        }
-        .synthesis-card.claude { border-left-color: #d4a574; background: #fffcf8; }
-        .synthesis-card.gpt { border-left-color: #10a37f; background: #f7fdfb; }
-        .synthesis-card.perplexity { border-left-color: #207bdf; background: #f7faff; }
-        .synthesis-card.gemini { border-left-color: #5c6bc0; background: #f8f8ff; }
-        .synthesis-card.aws { border-left-color: #ff9900; background: #fffbf2; }
-
-        .synthesis-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        .model-badge {
-            display: inline-block;
-            padding: 0.25em 0.7em;
-            border-radius: 99px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: white;
-        }
-        .model-badge.claude { background: #d4a574; }
-        .model-badge.gpt { background: #10a37f; }
-        .model-badge.perplexity { background: #207bdf; }
-        .model-badge.gemini { background: #5c6bc0; }
-        .model-badge.aws { background: #ff9900; }
-
-        .synthesis-title {
-            font-size: 0.92rem;
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-
-        .synthesis-summary {
-            font-size: 0.88rem;
-            line-height: 1.7;
-            color: #2c2c2c;
-            margin-bottom: 1rem;
-        }
-
-        .findings-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #888;
-            margin-bottom: 0.5rem;
-        }
-        .findings-list {
-            margin: 0;
-            padding-left: 1.25rem;
-            font-size: 0.85rem;
-            line-height: 1.6;
-            color: #444;
-        }
-        .findings-list li { margin-bottom: 0.35rem; }
-
-        /* Source wiki pages */
-        .sources-section {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1.25rem;
-            margin-bottom: 1.25rem;
-        }
-        .sources-section h3 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #1a1a2e;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #f0f0f0;
-        }
-        .sources-section h3 .count {
-            font-weight: 400;
-            color: #888;
-            font-size: 0.82rem;
-        }
-
-        .wiki-source-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.6rem 0;
-            border-bottom: 1px solid #f5f5f5;
-        }
-        .wiki-source-item:last-child { border-bottom: none; }
-        .wiki-source-item a {
-            color: #1a1a2e;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.88rem;
-        }
-        .wiki-source-item a:hover { color: #4361ee; }
-        .source-num {
-            font-weight: 700;
-            color: #4361ee;
-            min-width: 1.5rem;
-            font-size: 0.85rem;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.2em 0.6em;
-            border-radius: 99px;
-            font-size: 0.6rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .badge-entity     { background: #d4edda; color: #155724; }
-        .badge-concept    { background: #cce5ff; color: #004085; }
-        .badge-comparison { background: #fff3cd; color: #856404; }
-        .badge-overview   { background: #e2e3e5; color: #495057; }
-
-        .source-date {
-            font-size: 0.72rem;
-            color: #999;
-            margin-left: auto;
-            white-space: nowrap;
-        }
-        .source-count-badge {
-            font-size: 0.72rem;
-            color: #4361ee;
-            font-weight: 500;
-        }
-
-        /* Empty state */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #888;
-        }
-        .empty-state h3 {
-            font-size: 1rem;
-            margin-bottom: 0.75rem;
-            color: #555;
-        }
-        .empty-state p {
-            font-size: 0.85rem;
-            line-height: 1.6;
-        }
-
-        /* Hint box */
-        .hint-box {
-            background: #f0f4ff;
-            border: 1px solid #d0d9f0;
-            border-radius: 8px;
-            padding: 1rem 1.25rem;
-            font-size: 0.82rem;
-            line-height: 1.6;
-            color: #555;
-            margin-bottom: 1.25rem;
-        }
-        .hint-box strong { color: #1a1a2e; }
-    </style>
+<head th:replace="~{fragments/head :: head('Prompt the Wiki')}">
 </head>
-<body>
 
-<header>
-    <h1>AIHealthcare Analytics</h1>
-    <p>Knowledge Wiki</p>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare Analytics</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Knowledge Wiki</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Dashboard</a>
-    <a th:href="@{/dashboard/articles}">Articles</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}" class="active">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('wiki')}"></nav>
 
-<main>
+<main class="max-w-4xl mx-auto px-4 py-6">
 
-    <div class="breadcrumb">
-        <a th:href="@{/wiki}">Wiki</a> &rsaquo; Prompt the Wiki
+    <!-- Breadcrumb -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a th:href="@{/wiki}" class="text-primary-600 hover:text-primary-700">Wiki</a>
+        &rsaquo; Prompt the Wiki
     </div>
 
-    <div class="page-header">
-        <h2>Prompt the Wiki</h2>
-        <div class="subtitle">Get AI-synthesized answers grounded in the knowledge wiki's compiled research</div>
+    <div class="mb-5">
+        <h2 class="font-display text-lg font-semibold text-on-surface">Prompt the Wiki</h2>
+        <div class="text-sm text-gray-500 mt-1">Get AI-synthesized answers grounded in the knowledge wiki's compiled research</div>
     </div>
 
     <!-- Purpose -->
-    <div style="background:#f0fdf4; border-left:3px solid #22c55e; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
-        <strong style="color:#222; font-size:0.85rem;">Purpose</strong>
-        <p style="margin-top:0.3rem;">
+    <div class="bg-green-50 border-l-4 border-green-500 rounded-r-md p-4 mb-4 text-sm text-gray-700 leading-relaxed">
+        <strong class="text-gray-900">Purpose</strong>
+        <p class="mt-1">
             Prompt any healthcare AI question and get an answer grounded in the wiki's compiled
             knowledge base. Unlike a web search, answers draw on curated, source-tracked
             wiki pages — providing deeper longitudinal context that goes beyond individual articles.
@@ -358,41 +48,48 @@
     </div>
 
     <!-- How It Works -->
-    <div style="background:#eff6ff; border-left:3px solid #4361ee; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
-        <strong style="color:#222; font-size:0.85rem;">How It Works</strong>
-        <ol style="margin:0.4rem 0 0 1.2rem; padding:0;">
-            <li style="margin-bottom:0.15rem;">Type a natural-language question and optionally select which AI models to use.</li>
-            <li style="margin-bottom:0.15rem;">The system searches the wiki for pages most relevant to your question.</li>
-            <li style="margin-bottom:0.15rem;">Each selected AI model synthesizes an answer from the matched wiki content, citing specific pages as evidence.</li>
-            <li style="margin-bottom:0.15rem;">Answers include links to the source wiki pages so you can verify claims and explore further.</li>
+    <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-md p-4 mb-4 text-sm text-gray-700 leading-relaxed">
+        <strong class="text-gray-900">How It Works</strong>
+        <ol class="mt-1 ml-5 list-decimal space-y-0.5">
+            <li>Type a natural-language question and optionally select which AI models to use.</li>
+            <li>The system searches the wiki for pages most relevant to your question.</li>
+            <li>Each selected AI model synthesizes an answer from the matched wiki content, citing specific pages as evidence.</li>
+            <li>Answers include links to the source wiki pages so you can verify claims and explore further.</li>
         </ol>
     </div>
 
     <!-- Hint when no query -->
-    <div class="hint-box" th:if="${q == null}">
-        <strong>Enter a prompt</strong> and the wiki's compiled knowledge will be searched
+    <div class="bg-primary-50 border border-primary-200 rounded-lg p-4 mb-5 text-sm leading-relaxed text-gray-600"
+         th:if="${q == null}">
+        <strong class="text-on-surface">Enter a prompt</strong> and the wiki's compiled knowledge will be searched
         for relevant pages. An AI model then synthesizes an answer grounded in the wiki content
         — providing deeper, longitudinal context that goes beyond individual articles.
         <br/><br/>
-        <strong>Example questions:</strong><br/>
+        <strong class="text-on-surface">Example questions:</strong><br/>
         &bull; What is the current state of FDA regulation for AI diagnostic tools?<br/>
         &bull; How has bias in healthcare AI algorithms been addressed?<br/>
         &bull; What are the key legal considerations for LLMs in clinical settings?
     </div>
 
     <!-- Search form -->
-    <div class="search-card">
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-5">
         <form method="get" th:action="@{/wiki/ask}">
-            <div class="search-row">
+            <div class="flex gap-3 items-center flex-wrap">
                 <input type="text" name="q"
                        placeholder="e.g. What are the legal risks of AI diagnostic tools in healthcare?"
-                       th:value="${q}"/>
-                <button type="submit" id="promptBtn">
-                    <span class="spinner"></span>Prompt</button>
+                       th:value="${q}"
+                       class="flex-1 min-w-[250px] px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"/>
+                <button type="submit" id="promptBtn"
+                        class="px-5 py-2 bg-primary-600 text-white rounded-md text-sm font-semibold hover:bg-primary-700 border-0 cursor-pointer">
+                    <span class="spinner hidden border-2 border-white/30 border-t-white rounded-full w-4 h-4 animate-spin inline-block align-middle mr-1"></span>
+                    Prompt
+                </button>
             </div>
-            <div class="model-row" th:if="${availableModels != null && !availableModels.isEmpty()}">
+            <div class="flex gap-4 items-center mt-3 text-sm text-gray-600 flex-wrap"
+                 th:if="${availableModels != null && !availableModels.isEmpty()}">
                 <span>Models:</span>
-                <label th:each="m : ${availableModels}">
+                <label class="flex items-center gap-1.5 cursor-pointer"
+                       th:each="m : ${availableModels}">
                     <input type="checkbox" name="models" th:value="${m}"
                            th:checked="${selectedModels != null && selectedModels.contains(m)}"/>
                     <span th:text="${m}">Claude</span>
@@ -404,28 +101,29 @@
     <!-- AI Syntheses -->
     <div th:if="${syntheses != null && !syntheses.isEmpty()}">
         <div th:each="synthesis : ${syntheses}"
-             class="synthesis-card"
-             th:classappend="${#strings.toLowerCase(synthesis.modelName()) == 'claude'} ? 'claude'
-                          : (${#strings.toLowerCase(synthesis.modelName()) == 'gpt'} ? 'gpt'
-                          : (${#strings.toLowerCase(synthesis.modelName()) == 'perplexity'} ? 'perplexity'
-                          : (${#strings.toLowerCase(synthesis.modelName()) == 'gemini'} ? 'gemini'
-                          : (${#strings.toLowerCase(synthesis.modelName()) == 'amazon/aws'} ? 'aws' : ''))))">
-            <div class="synthesis-header">
-                <span class="model-badge"
-                      th:classappend="${#strings.toLowerCase(synthesis.modelName()) == 'claude'} ? 'claude'
-                                   : (${#strings.toLowerCase(synthesis.modelName()) == 'gpt'} ? 'gpt'
-                                   : (${#strings.toLowerCase(synthesis.modelName()) == 'perplexity'} ? 'perplexity'
-                                   : (${#strings.toLowerCase(synthesis.modelName()) == 'gemini'} ? 'gemini'
-                                   : (${#strings.toLowerCase(synthesis.modelName()) == 'amazon/aws'} ? 'aws' : ''))))"
+             class="bg-white rounded-lg shadow-sm p-5 mb-4 border-l-4"
+             th:classappend="${#strings.toLowerCase(synthesis.modelName()) == 'claude'} ? 'border-amber-400 bg-amber-50/20'
+                          : (${#strings.toLowerCase(synthesis.modelName()) == 'gpt'} ? 'border-emerald-500 bg-emerald-50/20'
+                          : (${#strings.toLowerCase(synthesis.modelName()) == 'perplexity'} ? 'border-blue-500 bg-blue-50/20'
+                          : (${#strings.toLowerCase(synthesis.modelName()) == 'gemini'} ? 'border-indigo-500 bg-indigo-50/20'
+                          : 'border-orange-400 bg-orange-50/20')))">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider"
+                      th:classappend="${#strings.toLowerCase(synthesis.modelName()) == 'claude'} ? 'bg-amber-200 text-amber-900'
+                                   : (${#strings.toLowerCase(synthesis.modelName()) == 'gpt'} ? 'bg-emerald-100 text-emerald-800'
+                                   : (${#strings.toLowerCase(synthesis.modelName()) == 'perplexity'} ? 'bg-blue-100 text-blue-800'
+                                   : (${#strings.toLowerCase(synthesis.modelName()) == 'gemini'} ? 'bg-indigo-100 text-indigo-800'
+                                   : 'bg-orange-100 text-orange-800')))"
                       th:text="${synthesis.modelName()}">Claude</span>
-                <span class="synthesis-title">Wiki Synthesis</span>
+                <span class="text-sm font-semibold text-on-surface">Wiki Synthesis</span>
             </div>
-            <div class="synthesis-summary" th:text="${synthesis.summary()}">
+            <div class="text-sm leading-relaxed text-gray-700 mb-4"
+                 th:text="${synthesis.summary()}">
                 AI-generated summary grounded in wiki content...
             </div>
             <div th:if="${synthesis.keyFindings() != null && !synthesis.keyFindings().isEmpty()}">
-                <div class="findings-label">Key Findings</div>
-                <ul class="findings-list">
+                <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Key Findings</div>
+                <ul class="ml-5 list-disc space-y-1 text-sm text-gray-600 leading-relaxed">
                     <li th:each="finding : ${synthesis.keyFindings()}" th:text="${finding}">
                         Finding text
                     </li>
@@ -435,37 +133,50 @@
     </div>
 
     <!-- No results -->
-    <div class="empty-state" th:if="${q != null && (pages == null || pages.isEmpty())}">
-        <h3>No relevant wiki pages found</h3>
-        <p>
+    <div class="py-12 text-center text-gray-400"
+         th:if="${q != null && (pages == null || pages.isEmpty())}">
+        <h3 class="text-base font-medium text-gray-500 mb-2">No relevant wiki pages found</h3>
+        <p class="text-sm leading-relaxed">
             Try rephrasing your question or
-            <a th:href="@{/wiki}">browse the wiki</a> to see available topics.
+            <a th:href="@{/wiki}" class="text-primary-600 hover:underline">browse the wiki</a>
+            to see available topics.
         </p>
     </div>
 
     <!-- Source wiki pages -->
-    <div class="sources-section" th:if="${pages != null && !pages.isEmpty()}">
-        <h3>Source Wiki Pages <span class="count" th:text="'(' + ${pageCount} + ')'"></span></h3>
-        <div class="wiki-source-item" th:each="page, iter : ${pages}">
-            <span class="source-num" th:text="${iter.index + 1} + '.'">1.</span>
-            <span class="badge"
-                  th:classappend="${page.pageType().name() == 'ENTITY'} ? 'badge-entity'
-                               : (${page.pageType().name() == 'CONCEPT'} ? 'badge-concept'
-                               : (${page.pageType().name() == 'COMPARISON'} ? 'badge-comparison'
-                               : 'badge-overview'))"
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-5" th:if="${pages != null && !pages.isEmpty()}">
+        <h3 class="font-display text-base font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-4">
+            Source Wiki Pages
+            <span class="text-gray-400 font-normal text-sm" th:text="'(' + ${pageCount} + ')'"></span>
+        </h3>
+        <div class="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0"
+             th:each="page, iter : ${pages}">
+            <span class="font-bold text-primary-600 min-w-[1.5rem] text-sm"
+                  th:text="${iter.index + 1} + '.'">1.</span>
+            <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider"
+                  th:classappend="${page.pageType().name() == 'ENTITY'} ? 'bg-green-100 text-green-800'
+                               : (${page.pageType().name() == 'CONCEPT'} ? 'bg-blue-100 text-blue-800'
+                               : (${page.pageType().name() == 'COMPARISON'} ? 'bg-amber-100 text-amber-800'
+                               : 'bg-gray-200 text-gray-600'))"
                   th:text="${page.pageType().name()}">ENTITY</span>
-            <a th:href="@{/wiki/{slug}(slug=${page.slug()})}" th:text="${page.title()}">Page Title</a>
-            <span class="source-count-badge" th:text="${page.sources().size()} + ' sources'">0 sources</span>
-            <span class="source-date" th:text="${pageTimestamps.get(page.slug())}">Jul 4, 2026</span>
+            <a class="text-sm font-medium text-on-surface hover:text-primary-600"
+               th:href="@{/wiki/{slug}(slug=${page.slug()})}"
+               th:text="${page.title()}">Page Title</a>
+            <span class="text-xs text-primary-600 font-medium"
+                  th:text="${page.sources().size()} + ' sources'">0 sources</span>
+            <span class="text-xs text-gray-400 ml-auto whitespace-nowrap"
+                  th:text="${pageTimestamps.get(page.slug())}">Jul 4, 2026</span>
         </div>
     </div>
 
 </main>
 
 <script>
-    document.querySelector('.search-card form').addEventListener('submit', function() {
+    document.querySelector('form').addEventListener('submit', function() {
         var btn = document.getElementById('promptBtn');
         if (btn) btn.classList.add('loading');
+        var spinner = btn ? btn.querySelector('.spinner') : null;
+        if (spinner) spinner.classList.remove('hidden');
     });
 </script>
 </body>

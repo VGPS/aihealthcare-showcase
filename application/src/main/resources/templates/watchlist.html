@@ -1,81 +1,71 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Watchlist page — track companies, keywords, and topics with article match alerts.
+ *
+ * Displays the user's watchlist items grouped by type (keyword/company/topic)
+ * as pill badges, an add-item form, and a recent matches table. Subscriber-only.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-07-22
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AIHealthcare — My Watchlist</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+<head th:replace="~{fragments/head :: head('My Watchlist')}">
 </head>
-<body>
+<body class="bg-surface font-sans text-on-surface">
 
-<header>
-    <h1>My Watchlist</h1>
-    <p>Track companies, keywords, and topics — get notified when new articles match</p>
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">My Watchlist</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Track companies, keywords, and topics — get notified when new articles match</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Analytics</a>
-    <a th:href="@{/dashboard/news}">News Listing</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}" style="font-weight:600;">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('watchlist')}"></nav>
 
-<main>
+<main class="max-w-7xl mx-auto px-4 py-6">
 
     <!-- Flash messages -->
-    <div th:if="${successMessage}" style="background:#e8f5e9; color:#2e7d32; padding:0.75rem 1rem; border-radius:8px; margin-bottom:1rem;">
+    <div th:if="${successMessage}" class="bg-green-50 text-green-800 px-4 py-3 rounded-lg mb-4">
         <span th:text="${successMessage}">Success</span>
     </div>
-    <div th:if="${errorMessage}" style="background:#ffebee; color:#c62828; padding:0.75rem 1rem; border-radius:8px; margin-bottom:1rem;">
+    <div th:if="${errorMessage}" class="bg-red-50 text-red-800 px-4 py-3 rounded-lg mb-4">
         <span th:text="${errorMessage}">Error</span>
     </div>
 
     <!-- Add Item Form -->
-    <div style="border:1px solid var(--outline); border-radius:12px; padding:1.25rem; margin-bottom:1.5rem; background:var(--surface);">
-        <h2 style="margin-bottom:0.75rem; font-size:1rem;">Add to Watchlist</h2>
-        <form th:action="@{/watchlist}" method="post" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-end;">
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-5 border border-gray-200">
+        <h2 class="font-display text-lg font-semibold text-on-surface mb-3">Add to Watchlist</h2>
+        <form th:action="@{/watchlist}" method="post" class="flex gap-3 flex-wrap items-end">
             <div>
-                <label for="itemType" style="font-size:0.8rem; color:var(--on-surface-variant);">Type</label>
-                <select id="itemType" name="itemType" style="display:block; padding:0.4rem 0.75rem; border:1px solid var(--outline); border-radius:6px; font-size:0.85rem;">
+                <label for="itemType" class="text-xs text-gray-500">Type</label>
+                <select id="itemType" name="itemType" class="block px-3 py-1.5 border border-gray-300 rounded-md text-sm">
                     <option value="KEYWORD">Keyword</option>
                     <option value="COMPANY">Company</option>
                     <option value="TOPIC">Topic</option>
                 </select>
             </div>
-            <div style="flex:1; min-width:200px;">
-                <label for="value" style="font-size:0.8rem; color:var(--on-surface-variant);">Value</label>
+            <div class="flex-1 min-w-[200px]">
+                <label for="value" class="text-xs text-gray-500">Value</label>
                 <input type="text" id="value" name="value" required
                        placeholder="e.g. FDA clearance, Tempus AI, AI Healthcare Government Policy"
-                       style="display:block; width:100%; padding:0.4rem 0.75rem; border:1px solid var(--outline); border-radius:6px; font-size:0.85rem;"/>
+                       class="block w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm"/>
             </div>
             <div>
-                <label for="label" style="font-size:0.8rem; color:var(--on-surface-variant);">Display Label (optional)</label>
+                <label for="label" class="text-xs text-gray-500">Display Label (optional)</label>
                 <input type="text" id="label" name="label"
                        placeholder="e.g. FDA Clearances"
-                       style="display:block; padding:0.4rem 0.75rem; border:1px solid var(--outline); border-radius:6px; font-size:0.85rem;"/>
+                       class="block px-3 py-1.5 border border-gray-300 rounded-md text-sm"/>
             </div>
             <button type="submit" class="btn-search">Add</button>
         </form>
     </div>
 
     <!-- Stats bar -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-        <span style="color:var(--on-surface-variant); font-size:0.85rem;">
+    <div class="flex justify-between items-center mb-6">
+        <span class="text-gray-500 text-sm">
             <span th:text="${itemCount}">0</span> items tracked
             &nbsp;|&nbsp;
             <span th:text="${matchCount}">0</span> recent matches
@@ -84,60 +74,60 @@
 
     <!-- Watchlist Items by Type -->
     <div th:if="${itemCount == 0}"
-         style="text-align:center; padding:2rem; color:var(--on-surface-variant); margin-bottom:1.5rem;">
+         class="text-center py-8 text-gray-500 mb-6">
         <p>Your watchlist is empty. Use the form above to start tracking companies, keywords, or topics.</p>
     </div>
 
     <!-- Keywords Section -->
-    <div th:if="${!#lists.isEmpty(keywordItems)}" style="margin-bottom:1.5rem;">
-        <h3 style="font-size:0.9rem; color:var(--on-surface-variant); margin-bottom:0.5rem;">Keywords</h3>
-        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+    <div th:if="${!#lists.isEmpty(keywordItems)}" class="mb-6">
+        <h3 class="text-sm text-gray-500 mb-2">Keywords</h3>
+        <div class="flex gap-2 flex-wrap">
             <div th:each="item : ${keywordItems}"
-                 style="display:inline-flex; align-items:center; gap:0.5rem; background:var(--primary-container); color:var(--on-primary-container); padding:0.35rem 0.75rem; border-radius:20px; font-size:0.8rem;">
+                 class="inline-flex items-center gap-2 bg-primary-50 text-primary-800 px-3 py-1.5 rounded-full text-xs">
                 <span th:text="${item.label()}">Keyword</span>
-                <span style="font-size:0.7rem; color:var(--on-surface-variant);" th:text="${itemDates[item.itemId()]}">Date</span>
-                <form th:action="@{/watchlist/{id}/delete(id=${item.itemId()})}" method="post" style="margin:0; display:inline;">
-                    <button type="submit" style="background:none; border:none; cursor:pointer; color:#e57373; font-size:0.8rem; padding:0;" title="Remove">&times;</button>
+                <span class="text-[0.7rem] text-gray-500" th:text="${itemDates[item.itemId()]}">Date</span>
+                <form th:action="@{/watchlist/{id}/delete(id=${item.itemId()})}" method="post" class="m-0 inline">
+                    <button type="submit" class="bg-transparent border-none cursor-pointer text-red-400 text-xs p-0" title="Remove">&times;</button>
                 </form>
             </div>
         </div>
     </div>
 
     <!-- Companies Section -->
-    <div th:if="${!#lists.isEmpty(companyItems)}" style="margin-bottom:1.5rem;">
-        <h3 style="font-size:0.9rem; color:var(--on-surface-variant); margin-bottom:0.5rem;">Companies</h3>
-        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+    <div th:if="${!#lists.isEmpty(companyItems)}" class="mb-6">
+        <h3 class="text-sm text-gray-500 mb-2">Companies</h3>
+        <div class="flex gap-2 flex-wrap">
             <div th:each="item : ${companyItems}"
-                 style="display:inline-flex; align-items:center; gap:0.5rem; background:#e3f2fd; color:#1565c0; padding:0.35rem 0.75rem; border-radius:20px; font-size:0.8rem;">
+                 class="inline-flex items-center gap-2 bg-blue-50 text-blue-800 px-3 py-1.5 rounded-full text-xs">
                 <span th:text="${item.label()}">Company</span>
-                <span style="font-size:0.7rem; color:var(--on-surface-variant);" th:text="${itemDates[item.itemId()]}">Date</span>
-                <form th:action="@{/watchlist/{id}/delete(id=${item.itemId()})}" method="post" style="margin:0; display:inline;">
-                    <button type="submit" style="background:none; border:none; cursor:pointer; color:#e57373; font-size:0.8rem; padding:0;" title="Remove">&times;</button>
+                <span class="text-[0.7rem] text-gray-500" th:text="${itemDates[item.itemId()]}">Date</span>
+                <form th:action="@{/watchlist/{id}/delete(id=${item.itemId()})}" method="post" class="m-0 inline">
+                    <button type="submit" class="bg-transparent border-none cursor-pointer text-red-400 text-xs p-0" title="Remove">&times;</button>
                 </form>
             </div>
         </div>
     </div>
 
     <!-- Topics Section -->
-    <div th:if="${!#lists.isEmpty(topicItems)}" style="margin-bottom:1.5rem;">
-        <h3 style="font-size:0.9rem; color:var(--on-surface-variant); margin-bottom:0.5rem;">Topics</h3>
-        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+    <div th:if="${!#lists.isEmpty(topicItems)}" class="mb-6">
+        <h3 class="text-sm text-gray-500 mb-2">Topics</h3>
+        <div class="flex gap-2 flex-wrap">
             <div th:each="item : ${topicItems}"
-                 style="display:inline-flex; align-items:center; gap:0.5rem; background:#f3e5f5; color:#7b1fa2; padding:0.35rem 0.75rem; border-radius:20px; font-size:0.8rem;">
+                 class="inline-flex items-center gap-2 bg-purple-50 text-purple-800 px-3 py-1.5 rounded-full text-xs">
                 <span th:text="${item.label()}">Topic</span>
-                <span style="font-size:0.7rem; color:var(--on-surface-variant);" th:text="${itemDates[item.itemId()]}">Date</span>
-                <form th:action="@{/watchlist/{id}/delete(id=${item.itemId()})}" method="post" style="margin:0; display:inline;">
-                    <button type="submit" style="background:none; border:none; cursor:pointer; color:#e57373; font-size:0.8rem; padding:0;" title="Remove">&times;</button>
+                <span class="text-[0.7rem] text-gray-500" th:text="${itemDates[item.itemId()]}">Date</span>
+                <form th:action="@{/watchlist/{id}/delete(id=${item.itemId()})}" method="post" class="m-0 inline">
+                    <button type="submit" class="bg-transparent border-none cursor-pointer text-red-400 text-xs p-0" title="Remove">&times;</button>
                 </form>
             </div>
         </div>
     </div>
 
     <!-- Recent Matches -->
-    <h2 style="margin-top:2rem; margin-bottom:1rem;">Recent Matches</h2>
+    <h2 class="font-display text-lg font-semibold text-on-surface mt-8 mb-4">Recent Matches</h2>
 
     <div th:if="${#lists.isEmpty(matches)}"
-         style="text-align:center; padding:2rem; color:var(--on-surface-variant);">
+         class="text-center py-8 text-gray-500">
         <p>No matches yet. As new articles are harvested, matches against your watchlist items will appear here.</p>
     </div>
 
@@ -155,14 +145,14 @@
                 <tr th:each="match : ${matches}">
                     <td>
                         <span th:text="${itemLabels[match.itemId()] != null ? itemLabels[match.itemId()] : match.itemId()}"
-                              style="font-weight:500;">Item</span>
-                        <div style="font-size:0.7rem; color:var(--on-surface-variant);"
+                              class="font-medium">Item</span>
+                        <div class="text-[0.7rem] text-gray-500"
                              th:text="${itemTypes[match.itemId()]}">TYPE</div>
                     </td>
-                    <td th:text="${match.articleId()}" style="font-size:0.85rem;">Article ID</td>
-                    <td style="font-size:0.8rem; color:var(--on-surface-variant); max-width:300px; overflow:hidden; text-overflow:ellipsis;"
+                    <td th:text="${match.articleId()}" class="text-sm">Article ID</td>
+                    <td class="text-xs text-gray-500 max-w-[300px] overflow-hidden text-ellipsis"
                         th:text="${match.snippet() != null ? match.snippet() : '—'}">Snippet</td>
-                    <td style="font-size:0.8rem; white-space:nowrap;"
+                    <td class="text-xs whitespace-nowrap"
                         th:text="${matchDates[match.matchId()]}">Date</td>
                 </tr>
             </tbody>

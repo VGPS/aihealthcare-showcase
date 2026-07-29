@@ -1,396 +1,123 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Semantic Search page — vector similarity search across the article archive.
+ *
+ * Redirects to /research/ai-search per the access model redesign; this template
+ * is retained for backwards compatibility. SUBSCRIBER-tier users may search the
+ * article archive using natural-language queries. Shows AI synthesis cards and
+ * numbered result cards. FREE-tier users see an upgrade banner.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-01-15
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Semantic Search — AIHealthcare</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f6fa;
-            color: #333;
-            font-size: 14px;
-        }
-
-        header {
-            background: #1a1a2e;
-            color: white;
-            padding: 1.25rem 2rem;
-            display: flex;
-            align-items: baseline;
-            gap: 1.5rem;
-        }
-        header h1 { font-size: 1.25rem; font-weight: 600; }
-        header p  { font-size: 0.8rem; opacity: 0.6; }
-
-        nav {
-            background: #16213e;
-            padding: 0 2rem;
-            display: flex;
-            gap: 1.5rem;
-        }
-        nav a {
-            color: #aaa;
-            text-decoration: none;
-            font-size: 0.8rem;
-            padding: 0.6rem 0;
-            border-bottom: 2px solid transparent;
-            display: inline-block;
-        }
-        nav a:hover  { color: white; }
-        nav a.active { color: white; border-bottom-color: #4361ee; }
-
-        main {
-            max-width: 900px;
-            margin: 1.5rem auto;
-            padding: 0 1rem;
-        }
-
-        /* Search form */
-        .search-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .search-card h2 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #1a1a2e;
-            margin-bottom: 0.75rem;
-        }
-        .search-card p.hint {
-            font-size: 0.8rem;
-            color: #888;
-            margin-bottom: 1rem;
-        }
-        .search-form {
-            display: flex;
-            gap: 0.75rem;
-            align-items: flex-end;
-        }
-        .search-form .field {
-            flex: 1;
-        }
-        .search-form label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #555;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.35rem;
-        }
-        .search-form input[type="text"] {
-            width: 100%;
-            padding: 0.6rem 0.875rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .search-form input[type="text"]:focus {
-            border-color: #4361ee;
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
-        }
-        .search-form input[type="number"] {
-            width: 80px;
-            padding: 0.6rem 0.875rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            outline: none;
-        }
-        .search-form button {
-            padding: 0.6rem 1.5rem;
-            background: #4361ee;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .search-form button:hover { background: #3a56d4; }
-
-        /* Loading spinner */
-        .spinner {
-            display: none;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 0.8s linear infinite;
-            vertical-align: middle;
-            margin-right: 0.4rem;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .search-form button.loading .spinner { display: inline-block; }
-        .search-form button.loading { opacity: 0.7; pointer-events: none; }
-
-        /* Upgrade banner */
-        .upgrade-banner {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-        }
-        .upgrade-banner .banner-text {
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-        .upgrade-banner .banner-text strong { font-weight: 600; }
-        .upgrade-banner a {
-            background: white;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.85rem;
-            padding: 0.5rem 1.25rem;
-            border-radius: 6px;
-            white-space: nowrap;
-            flex-shrink: 0;
-            margin-left: 1.5rem;
-        }
-        .upgrade-banner a:hover { background: #f0f0ff; }
-
-        /* Limit warning */
-        .limit-warning {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            color: #92400e;
-            padding: 1rem 1.25rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-        }
-        .limit-warning strong { font-weight: 600; }
-
-        /* Results */
-        .results-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-        .results-header h2 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-        .results-header .count-badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.2em 0.65em;
-            border-radius: 99px;
-            background: #e8f0fe;
-            color: #1a73e8;
-        }
-
-        .result-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1rem 1.25rem;
-            margin-bottom: 0.75rem;
-            transition: box-shadow 0.15s;
-        }
-        .result-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-
-        .result-card .result-title {
-            font-weight: 600;
-            font-size: 0.95rem;
-            margin-bottom: 0.35rem;
-            display: flex;
-            align-items: baseline;
-            gap: 0.5rem;
-        }
-        .result-card .citation-number {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #4361ee;
-            flex-shrink: 0;
-        }
-        .result-card .result-title a {
-            color: #1a1a2e;
-            text-decoration: none;
-        }
-        .result-card .result-title a:hover { color: #4361ee; text-decoration: underline; }
-
-        .result-meta {
-            margin-top: 0.25rem;
-        }
-        .result-meta .date {
-            font-size: 0.8rem;
-            color: #666;
-        }
-
-        /* AI Synthesis */
-        .synthesis-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border-left: 4px solid #4361ee;
-        }
-        .synthesis-card h3 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #1a1a2e;
-            margin-bottom: 0.75rem;
-        }
-        .synthesis-card .model-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #4361ee;
-            margin-bottom: 0.5rem;
-        }
-        .synthesis-card .summary-text {
-            font-size: 0.9rem;
-            color: #333;
-            line-height: 1.6;
-            margin-bottom: 0.75rem;
-        }
-        .synthesis-card ul {
-            list-style: none;
-            padding: 0;
-        }
-        .synthesis-card ul li {
-            font-size: 0.85rem;
-            color: #444;
-            padding: 0.3rem 0 0.3rem 1.25rem;
-            position: relative;
-            line-height: 1.5;
-        }
-        .synthesis-card ul li::before {
-            content: "\2022";
-            color: #4361ee;
-            font-weight: bold;
-            position: absolute;
-            left: 0.25rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 2rem 1rem;
-            color: #bbb;
-            font-style: italic;
-        }
-    </style>
+<head th:replace="~{fragments/head :: head('Semantic Search — AIHealthcare')}">
 </head>
-<body>
 
-<header>
-    <h1>Semantic Search</h1>
-    <p>Vector similarity search across the article archive</p>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Semantic Search</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Vector similarity search across the article archive</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Dashboard</a>
-    <a th:href="@{/dashboard/news}">News Listing</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/search}" class="active">Semantic Search</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('ai-search')}"></nav>
 
-<main>
+<main class="max-w-4xl mx-auto px-4 py-6">
 
     <!-- Upgrade banner for FREE-tier users -->
-    <div th:if="${accessDenied}" class="upgrade-banner">
-        <span class="banner-text">
+    <div th:if="${accessDenied}"
+         class="bg-gradient-to-r from-primary-600 to-purple-600 text-white p-4 rounded-lg mb-6 flex items-center justify-between shadow-md">
+        <span class="text-sm leading-relaxed">
             <strong>Semantic Search is a Subscriber feature.</strong><br/>
             Upgrade to Subscriber to search across the full article archive using AI-powered vector similarity.
         </span>
-        <a th:href="@{/pricing}">Upgrade</a>
+        <a th:href="@{/pricing}"
+           class="bg-white text-primary-600 font-semibold text-sm px-4 py-2 rounded-md hover:bg-gray-100 ml-6 shrink-0">Upgrade</a>
     </div>
 
     <!-- Limit reached warning for SUBSCRIBER users -->
-    <div th:if="${limitReached}" class="limit-warning">
+    <div th:if="${limitReached}"
+         class="bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 rounded-lg mb-6 text-sm">
         <strong>Monthly query limit reached.</strong>
         You have used <span th:text="${used}">0</span> of <span th:text="${limit}">200</span>
         queries this month. Your limit resets at the start of next month.
     </div>
 
     <!-- Search form — only shown for SUBSCRIBER users who are not access-denied -->
-    <div th:if="${accessDenied == null and limitReached == null}" class="search-card">
-        <h2>Search Articles</h2>
-        <p class="hint">Enter a natural-language query to find semantically similar articles in the archive.</p>
-        <form class="search-form" method="get" th:action="@{/research/search}">
-            <div class="field">
-                <label for="q">Search Query</label>
+    <div th:if="${accessDenied == null and limitReached == null}"
+         class="bg-white rounded-lg shadow-sm p-5 mb-6">
+        <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-4">
+            Search Articles
+        </h2>
+        <p class="text-sm text-gray-500 mb-4">Enter a natural-language query to find semantically similar articles in the archive.</p>
+        <form method="get" th:action="@{/research/search}" class="flex gap-3 items-end">
+            <div class="flex-1">
+                <label for="q" class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Search Query</label>
                 <input type="text" id="q" name="q" th:value="${q}"
-                       placeholder="e.g. AI diagnostic tools for radiology" required/>
+                       placeholder="e.g. AI diagnostic tools for radiology" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"/>
             </div>
             <div>
-                <label for="topK">Max Results</label>
+                <label for="topK" class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Max Results</label>
                 <input type="number" id="topK" name="topK" th:value="${topK}" min="1" max="50"
-                       placeholder="20"/>
+                       placeholder="20"
+                       class="w-20 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"/>
             </div>
-            <button type="submit" id="searchBtn">
-                <span class="spinner"></span>Prompt</button>
+            <button type="submit" id="searchBtn"
+                    class="px-4 py-2 bg-primary-600 text-white rounded-md text-sm font-semibold hover:bg-primary-700 cursor-pointer border-0 flex items-center gap-1">
+                <span class="spinner hidden border-2 border-white/30 border-t-white rounded-full w-4 h-4 animate-spin inline-block align-middle mr-1"></span>
+                Prompt
+            </button>
         </form>
     </div>
 
-    <!-- AI Synthesis -->
-    <div th:if="${syntheses != null and !syntheses.isEmpty()}">
-        <div th:each="synthesis : ${syntheses}" class="synthesis-card">
-            <div class="model-label" th:text="${synthesis.modelName()}">Model</div>
-            <h3>AI Summary</h3>
-            <div class="summary-text" th:text="${synthesis.summary()}">Summary</div>
-            <ul th:if="${synthesis.keyFindings() != null and !synthesis.keyFindings().isEmpty()}">
-                <li th:each="finding : ${synthesis.keyFindings()}" th:text="${finding}">Finding</li>
+    <!-- AI Synthesis cards -->
+    <div th:if="${syntheses != null and !syntheses.isEmpty()}" class="mb-6">
+        <div th:each="synthesis : ${syntheses}"
+             class="bg-white rounded-lg shadow-sm p-5 mb-4 border-l-4 border-primary-500">
+            <div class="text-xs font-semibold uppercase tracking-wider text-primary-600 mb-1"
+                 th:text="${synthesis.modelName()}">Model</div>
+            <h3 class="font-semibold text-on-surface text-sm mb-3">AI Summary</h3>
+            <div class="text-sm text-gray-700 leading-relaxed mb-3"
+                 th:text="${synthesis.summary()}">Summary</div>
+            <ul th:if="${synthesis.keyFindings() != null and !synthesis.keyFindings().isEmpty()}"
+                class="space-y-1">
+                <li th:each="finding : ${synthesis.keyFindings()}"
+                    th:text="${finding}"
+                    class="text-sm text-gray-600 pl-4 relative before:content-['•'] before:absolute before:left-1 before:text-primary-500 before:font-bold leading-relaxed">Finding</li>
             </ul>
         </div>
     </div>
 
     <!-- Search results -->
     <div th:if="${results != null}">
-        <div class="results-header">
-            <h2>Sources</h2>
-            <span class="count-badge" th:text="${resultCount} + ' found'">0 found</span>
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-display text-lg font-semibold text-on-surface">Sources</h2>
+            <span class="inline-flex items-center bg-blue-50 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full"
+                  th:text="${resultCount} + ' found'">0 found</span>
         </div>
 
-        <div th:if="${results.isEmpty()}" class="empty-state">
+        <div th:if="${results.isEmpty()}" class="py-8 text-center text-gray-400 italic">
             No articles matched your query. Try a broader search term.
         </div>
 
-        <div th:each="article, iterStat : ${results}" class="result-card">
-            <div class="result-title">
-                <span class="citation-number" th:text="'[' + ${iterStat.count} + ']'">[1]</span>
+        <div th:each="article, iterStat : ${results}"
+             class="bg-white rounded-lg shadow-sm p-3 mb-2 hover:shadow-md transition-shadow">
+            <div class="flex items-baseline gap-2">
+                <span class="text-xs font-bold text-primary-600 shrink-0"
+                      th:text="'[' + ${iterStat.count} + ']'">[1]</span>
                 <a th:href="${article.url}" th:text="${article.title}"
-                   target="_blank" rel="noopener noreferrer">Title</a>
+                   target="_blank" rel="noopener noreferrer"
+                   class="text-sm font-medium text-on-surface hover:text-primary-600 hover:underline">Title</a>
             </div>
-            <div th:if="${resultDates.containsKey(article.articleId())}" class="result-meta">
-                <span class="date" th:text="${resultDates.get(article.articleId())}">Date</span>
+            <div th:if="${resultDates.containsKey(article.articleId())}" class="mt-1 pl-6">
+                <span class="text-xs text-gray-500" th:text="${resultDates.get(article.articleId())}">Date</span>
             </div>
         </div>
     </div>

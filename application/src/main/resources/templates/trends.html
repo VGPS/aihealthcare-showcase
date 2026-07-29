@@ -1,159 +1,148 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Trend Detection page — keyword frequency analysis across rolling time windows.
+ *
+ * Displays rising topics with LLM-scored articles, trend summaries, and a
+ * Chart.js bar chart of top keywords. Admin users can trigger detection manually.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-07-22
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AIHealthcare — Trend Detection</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+<head th:replace="~{fragments/head :: head('Trend Detection')}">
 </head>
-<body>
+<body class="bg-surface font-sans text-on-surface">
 
-<header>
-    <h1>Trend Detection</h1>
-    <p>Keyword frequency analysis across rolling time windows</p>
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Trend Detection</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Keyword frequency analysis across rolling time windows</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Analytics</a>
-    <a th:href="@{/dashboard/news}">News Listing</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}">Wiki</a>
-    <a th:href="@{/dashboard/trends}" style="font-weight:600;">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('trends')}"></nav>
 
-<main>
+<main class="max-w-7xl mx-auto px-4 py-6">
 
     <!-- Run Trend Detection button (ADMIN only) -->
-    <div sec:authorize="hasRole('ADMIN')" style="margin-bottom: 1.5rem;">
-        <button id="detectBtn" onclick="runDetection()" style="padding: 0.5rem 1.25rem; background: #27ae60; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
+    <div sec:authorize="hasRole('ADMIN')" class="mb-6">
+        <button id="detectBtn" onclick="runDetection()"
+                class="px-5 py-2 bg-green-600 text-white border-none rounded-md cursor-pointer text-sm hover:bg-green-700 transition-colors">
             Run Trend Detection
         </button>
-        <span id="detectStatus" style="margin-left: 0.75rem; font-size: 0.85rem; color: var(--on-surface-variant);"></span>
+        <span id="detectStatus" class="ml-3 text-sm text-gray-500"></span>
     </div>
 
     <!-- Snapshot meta -->
-    <div th:if="${hasSnapshot}" style="margin-bottom: 1.5rem; color: var(--on-surface-variant); font-size: 0.85rem;">
+    <div th:if="${hasSnapshot}" class="mb-6 text-gray-500 text-sm">
         Last updated: <span th:text="${generatedAt}">N/A</span>
         &nbsp;|&nbsp; <span th:text="${totalKeywords}">0</span> keywords tracked
     </div>
 
-    <div th:unless="${hasSnapshot}" style="padding: 2rem; text-align: center; color: var(--on-surface-variant);">
+    <div th:unless="${hasSnapshot}" class="py-8 text-center text-gray-500">
         <p>No trend data available yet. Click <b>Run Trend Detection</b> above or wait for the weekly run.</p>
     </div>
 
     <!-- Scoring Rubric legend -->
-    <div th:if="${hasSnapshot}" style="margin-bottom: 1.5rem; background: var(--surface-container); border-radius: 8px; padding: 0.75rem 1rem;">
+    <div th:if="${hasSnapshot}" class="mb-6 bg-gray-50 rounded-lg px-4 py-3">
         <details>
-            <summary style="cursor: pointer; font-weight: 600; font-size: 0.9rem; color: var(--on-surface-variant);">
+            <summary class="cursor-pointer font-semibold text-sm text-gray-500">
                 Article Scoring Rubric (1-10)
             </summary>
-            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--on-surface-variant); line-height: 1.6;">
-                <span style="display:inline-block; background:#9e9e9e; color:white; padding:1px 6px; border-radius:3px; font-size:0.7rem; font-weight:600;">1-3</span>
+            <div class="mt-2 text-xs text-gray-500 leading-relaxed">
+                <span class="inline-block bg-gray-500 text-white px-1.5 py-px rounded text-xs font-semibold">1-3</span>
                 Noise — passing mention, opinion, or generic overview
                 &nbsp;&nbsp;
-                <span style="display:inline-block; background:#ff9800; color:white; padding:1px 6px; border-radius:3px; font-size:0.7rem; font-weight:600;">4-6</span>
+                <span class="inline-block bg-orange-500 text-white px-1.5 py-px rounded text-xs font-semibold">4-6</span>
                 Routine — market reports, incremental updates
                 &nbsp;&nbsp;
-                <span style="display:inline-block; background:#4caf50; color:white; padding:1px 6px; border-radius:3px; font-size:0.7rem; font-weight:600;">7-8</span>
+                <span class="inline-block bg-green-600 text-white px-1.5 py-px rounded text-xs font-semibold">7-8</span>
                 Significant — product launch, clinical result, FDA action
                 &nbsp;&nbsp;
-                <span style="display:inline-block; background:#1565c0; color:white; padding:1px 6px; border-radius:3px; font-size:0.7rem; font-weight:600;">9-10</span>
+                <span class="inline-block bg-blue-800 text-white px-1.5 py-px rounded text-xs font-semibold">9-10</span>
                 Landmark — first-of-kind, paradigm shift, breakthrough
             </div>
         </details>
     </div>
 
     <!-- Rising Topics chart -->
-    <div th:if="${hasSnapshot}" style="margin-bottom: 2rem;">
+    <div th:if="${hasSnapshot}" class="mb-8">
         <canvas id="trendChart" height="60"></canvas>
     </div>
 
     <!-- Rising Topics -->
     <div th:if="${hasSnapshot}">
         <section>
-            <div class="section-header" style="border-left: 4px solid #27ae60; padding-left: 0.75rem;">
-                <h2 style="font-size: 1.1rem; color: #27ae60;">&#x25B2; Rising Topics</h2>
+            <div class="border-l-4 border-green-600 pl-3">
+                <h2 class="font-display text-lg font-semibold text-green-600">&#x25B2; Rising Topics</h2>
             </div>
-            <div th:if="${#lists.isEmpty(risingTopics)}" style="color: var(--on-surface-variant); font-size: 0.85rem; padding: 0.5rem;">
+            <div th:if="${#lists.isEmpty(risingTopics)}" class="text-gray-500 text-sm p-2">
                 No rising topics detected.
             </div>
-            <div th:each="signal : ${risingTopics}" style="padding: 0.5rem 0; border-bottom: 1px solid var(--outline-variant);">
-                <div style="font-weight: 600; font-size: 0.95rem;" th:text="${signal.keyword()}">keyword</div>
-                <div style="font-size: 0.8rem; color: var(--on-surface-variant);">
+            <div th:each="signal : ${risingTopics}" class="py-2 border-b border-gray-200">
+                <div class="font-semibold text-[0.95rem]" th:text="${signal.keyword()}">keyword</div>
+                <div class="text-xs text-gray-500">
                     Last 30 days: <span th:text="${signal.current30d()}">0</span>
                     &nbsp;|&nbsp; 31–90 days: <span th:text="${signal.previous90d()}">0</span>
                     &nbsp;|&nbsp; 91–180 days: <span th:text="${signal.baseline180d()}">0</span>
                     <span th:if="${signal.previous90d() == 0 and signal.baseline180d() == 0}"
-                          style="margin-left: 0.5rem; color: #1565c0; font-weight: 600;">
+                          class="ml-2 text-blue-800 font-semibold">
                         &#x25B2; NEW
                     </span>
                     <span th:if="${signal.previous90d() == 0 and signal.baseline180d() > 0}"
-                          style="margin-left: 0.5rem; color: #27ae60; font-weight: 600;">
+                          class="ml-2 text-green-600 font-semibold">
                         &#x25B2; RE-EMERGING
                     </span>
                     <span th:if="${signal.previous90d() > 0}"
-                          style="margin-left: 0.5rem; color: #27ae60; font-weight: 600;">
+                          class="ml-2 text-green-600 font-semibold">
                         &#x25B2;
                         <span th:text="${#numbers.formatDecimal(signal.momentum(), 1, 1)}">0.0</span>x
                     </span>
                 </div>
                 <!-- Trend summary (LLM-generated for analyst/investor audience) -->
                 <div th:if="${signal.summary() != null}"
-                     style="margin-top: 0.4rem; font-size: 0.85rem; color: var(--on-surface); line-height: 1.5; padding: 0.5rem 0.75rem; background: var(--surface-container); border-radius: 6px; border-left: 3px solid #1565c0;">
+                     class="mt-1.5 text-sm text-on-surface leading-relaxed px-3 py-2 bg-gray-50 rounded-md border-l-[3px] border-blue-800">
                     <strong>Summary:</strong> <span th:text="${signal.summary()}">Trend summary text</span>
                 </div>
                 <!-- Articles driving this trend -->
                 <div th:if="${!signal.topArticles().isEmpty()}"
-                     style="margin-top: 0.5rem; padding-left: 0.75rem; border-left: 3px solid var(--outline-variant);">
+                     class="mt-2 pl-3 border-l-[3px] border-gray-200">
                     <div th:each="scored : ${signal.topArticles()}"
-                         style="margin-bottom: 0.6rem; font-size: 0.85rem; padding: 0.4rem 0;">
-                        <div style="display: flex; align-items: baseline; gap: 0.4rem; flex-wrap: wrap;">
+                         class="mb-2.5 text-sm py-1.5">
+                        <div class="flex items-baseline gap-1.5 flex-wrap">
                             <!-- LLM-scored badge (only for scores != 5, which is the unscored default) -->
                             <span th:if="${scored.score() >= 9}"
-                                  style="display:inline-block; background:#1565c0; color:white; padding:1px 6px; border-radius:3px; font-size:0.7rem; font-weight:600; flex-shrink:0;"
+                                  class="inline-block bg-blue-800 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
                                   th:text="${scored.score()}">9</span>
                             <span th:if="${scored.score() >= 7 and scored.score() <= 8}"
-                                  style="display:inline-block; background:#4caf50; color:white; padding:1px 6px; border-radius:3px; font-size:0.7rem; font-weight:600; flex-shrink:0;"
+                                  class="inline-block bg-green-600 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
                                   th:text="${scored.score()}">7</span>
                             <span th:if="${scored.score() >= 4 and scored.score() <= 6 and !scored.rationale().startsWith('Matches trend keyword')}"
-                                  style="display:inline-block; background:#ff9800; color:white; padding:1px 6px; border-radius:3px; font-size:0.7rem; font-weight:600; flex-shrink:0;"
+                                  class="inline-block bg-orange-500 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
                                   th:text="${scored.score()}">5</span>
                             <!-- Article title — clickable if URL available -->
                             <a th:if="${scored.url() != null}"
                                th:href="${scored.url()}" th:text="${scored.title()}"
                                target="_blank" rel="noopener noreferrer"
-                               style="color: var(--primary); text-decoration: none; font-weight: 500;">Article title</a>
+                               class="text-primary-600 no-underline font-medium">Article title</a>
                             <span th:if="${scored.url() == null}"
-                                  style="color: var(--on-surface); font-weight: 500;"
+                                  class="text-on-surface font-medium"
                                   th:text="${scored.title()}">Article title</span>
                         </div>
                         <!-- Publication + date metadata -->
-                        <div style="margin-top: 0.15rem; margin-left: 1.8rem; font-size: 0.75rem; color: var(--on-surface-variant); display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                        <div class="mt-0.5 ml-7 text-xs text-gray-500 flex gap-2 flex-wrap items-center">
                             <span th:if="${scored.sourceName() != null}"
-                                  style="background: var(--surface-container); padding: 1px 6px; border-radius: 3px; font-weight: 500;"
+                                  class="bg-gray-100 px-1.5 py-px rounded font-medium"
                                   th:text="${scored.sourceName()}">Publication</span>
                             <span th:if="${articleDates.containsKey(scored.articleId())}"
                                   th:text="${articleDates.get(scored.articleId())}">Date</span>
                         </div>
                         <!-- Rationale — only show for LLM-scored articles, not keyword matches -->
                         <div th:if="${!scored.rationale().startsWith('Matches trend keyword')}"
-                             style="font-size: 0.75rem; color: var(--on-surface-variant); margin-left: 1.8rem; margin-top: 0.1rem; font-style: italic;"
+                             class="text-xs text-gray-500 ml-7 mt-0.5 italic"
                              th:text="${scored.rationale()}">Rationale text</div>
                     </div>
                 </div>

@@ -1,290 +1,51 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Wiki activity digest page — shows what changed in the wiki knowledge base over a
+ * configurable time window: new pages, updated pages, and contradictions detected.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-05-10
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>What Changed This Week — AIHealthcare Wiki</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f6fa;
-            color: #333;
-            font-size: 14px;
-        }
-
-        header {
-            background: #1a1a2e;
-            color: white;
-            padding: 1.25rem 2rem;
-            display: flex;
-            align-items: baseline;
-            gap: 1.5rem;
-        }
-        header h1 { font-size: 1.25rem; font-weight: 600; }
-        header p  { font-size: 0.8rem; opacity: 0.6; }
-
-        nav {
-            background: #16213e;
-            padding: 0 2rem;
-            display: flex;
-            gap: 1.5rem;
-        }
-        nav a {
-            color: #aaa;
-            text-decoration: none;
-            font-size: 0.8rem;
-            padding: 0.6rem 0;
-            border-bottom: 2px solid transparent;
-            display: inline-block;
-        }
-        nav a:hover { color: white; }
-        nav a.active { color: white; border-bottom-color: #4361ee; }
-
-        main {
-            max-width: 900px;
-            margin: 1.5rem auto;
-            padding: 0 1rem;
-        }
-
-        .breadcrumb {
-            font-size: 0.78rem;
-            color: #888;
-            margin-bottom: 1rem;
-        }
-        .breadcrumb a { color: #4361ee; text-decoration: none; }
-        .breadcrumb a:hover { text-decoration: underline; }
-
-        .digest-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.25rem;
-        }
-        .digest-header h2 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-        .digest-header .subtitle {
-            font-size: 0.8rem;
-            color: #888;
-        }
-
-        /* Filter bar */
-        .filter-bar {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 0.75rem 1.25rem;
-            margin-bottom: 1.25rem;
-            display: flex;
-            gap: 0.75rem;
-            align-items: center;
-            font-size: 0.82rem;
-        }
-        .filter-bar label { color: #666; }
-        .filter-bar select {
-            padding: 0.4rem 0.6rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.82rem;
-            background: white;
-        }
-
-        /* Summary stats */
-        .stat-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .stat-box {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1rem 1.25rem;
-            text-align: center;
-        }
-        .stat-box .value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: #1a1a2e;
-        }
-        .stat-box .label {
-            font-size: 0.7rem;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 0.25rem;
-        }
-        .stat-box.green { border-left: 4px solid #27ae60; }
-        .stat-box.blue  { border-left: 4px solid #4361ee; }
-        .stat-box.amber { border-left: 4px solid #f39c12; }
-        .stat-box.slate { border-left: 4px solid #95a5a6; }
-
-        /* Section card */
-        .section-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 1.25rem;
-        }
-        .section-card h3 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #1a1a2e;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid #f0f0f0;
-        }
-        .section-card h3 .count {
-            font-weight: 400;
-            color: #888;
-            font-size: 0.82rem;
-        }
-
-        /* Page list items */
-        .page-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.6rem 0;
-            border-bottom: 1px solid #f5f5f5;
-        }
-        .page-item:last-child { border-bottom: none; }
-        .page-item a {
-            color: #1a1a2e;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.88rem;
-        }
-        .page-item a:hover { color: #4361ee; }
-
-        .badge {
-            display: inline-block;
-            padding: 0.2em 0.6em;
-            border-radius: 99px;
-            font-size: 0.6rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .badge-entity     { background: #d4edda; color: #155724; }
-        .badge-concept    { background: #cce5ff; color: #004085; }
-        .badge-comparison { background: #fff3cd; color: #856404; }
-        .badge-overview   { background: #e2e3e5; color: #495057; }
-
-        .page-date {
-            font-size: 0.72rem;
-            color: #999;
-            margin-left: auto;
-            white-space: nowrap;
-        }
-        .page-rev {
-            font-size: 0.7rem;
-            color: #4361ee;
-            font-weight: 500;
-        }
-
-        /* Contradiction items */
-        .contradiction-item {
-            padding: 0.75rem 0;
-            border-bottom: 1px solid #f5f5f5;
-        }
-        .contradiction-item:last-child { border-bottom: none; }
-        .contradiction-item .page-link {
-            font-size: 0.82rem;
-            font-weight: 500;
-            color: #4361ee;
-            text-decoration: none;
-        }
-        .contradiction-item .page-link:hover { text-decoration: underline; }
-        .claim-box {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-top: 0.5rem;
-        }
-        .claim {
-            padding: 0.6rem 0.75rem;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            line-height: 1.5;
-        }
-        .claim.prior {
-            background: #fff5f5;
-            border-left: 3px solid #e74c3c;
-        }
-        .claim.new-claim {
-            background: #f0fff8;
-            border-left: 3px solid #27ae60;
-        }
-        .claim-label {
-            font-size: 0.65rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #888;
-            margin-bottom: 0.25rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 2rem 1rem;
-            color: #888;
-            font-size: 0.85rem;
-        }
-    </style>
+<head th:replace="~{fragments/head :: head('What Changed This Week — Wiki')}">
 </head>
-<body>
 
-<header>
-    <h1>AIHealthcare Analytics</h1>
-    <p>Knowledge Wiki</p>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare Analytics</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Knowledge Wiki</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Dashboard</a>
-    <a th:href="@{/dashboard/articles}">Articles</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}" class="active">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('wiki')}"></nav>
 
-<main>
+<main class="max-w-4xl mx-auto px-4 py-6">
 
-    <div class="breadcrumb">
-        <a th:href="@{/wiki}">Wiki</a> &rsaquo; What Changed
+    <!-- Breadcrumb -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a th:href="@{/wiki}" class="text-primary-600 hover:text-primary-700">Wiki</a>
+        &rsaquo; What Changed
     </div>
 
-    <div class="digest-header">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-5">
         <div>
-            <h2>What Changed This Week</h2>
-            <span class="subtitle">Wiki knowledge base activity digest</span>
+            <h2 class="font-display text-lg font-semibold text-on-surface">What Changed This Week</h2>
+            <span class="text-sm text-gray-500">Wiki knowledge base activity digest</span>
         </div>
     </div>
 
     <!-- Time filter -->
-    <form class="filter-bar" method="get" th:action="@{/wiki/digest}">
-        <label>Show last</label>
-        <select name="days" onchange="this.form.submit()">
+    <form class="bg-white rounded-lg shadow-sm px-5 py-4 mb-5 flex gap-3 items-center text-sm"
+          method="get" th:action="@{/wiki/digest}">
+        <label class="text-gray-600">Show last</label>
+        <select name="days" onchange="this.form.submit()"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white">
             <option value="7" th:selected="${days == 7}">7 days</option>
             <option value="14" th:selected="${days == 14}">14 days</option>
             <option value="30" th:selected="${days == 30}">30 days</option>
@@ -292,85 +53,114 @@
         </select>
     </form>
 
-    <!-- Summary stats -->
-    <div class="stat-row">
-        <div class="stat-box green">
-            <div class="value" th:text="${#lists.size(newPages)}">0</div>
-            <div class="label">New Pages</div>
+    <!-- Stat grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-green-50 border-l-4 border-green-500 rounded p-3 text-center">
+            <div class="text-2xl font-bold text-on-surface" th:text="${#lists.size(newPages)}">0</div>
+            <div class="text-xs text-gray-500 uppercase tracking-wider mt-1">New Pages</div>
         </div>
-        <div class="stat-box blue">
-            <div class="value" th:text="${#lists.size(updatedPages)}">0</div>
-            <div class="label">Updated</div>
+        <div class="bg-primary-50 border-l-4 border-primary-500 rounded p-3 text-center">
+            <div class="text-2xl font-bold text-on-surface" th:text="${#lists.size(updatedPages)}">0</div>
+            <div class="text-xs text-gray-500 uppercase tracking-wider mt-1">Updated</div>
         </div>
-        <div class="stat-box amber">
-            <div class="value" th:text="${#lists.size(contradictions)}">0</div>
-            <div class="label">Contradictions</div>
+        <div class="bg-amber-50 border-l-4 border-amber-500 rounded p-3 text-center">
+            <div class="text-2xl font-bold text-on-surface" th:text="${#lists.size(contradictions)}">0</div>
+            <div class="text-xs text-gray-500 uppercase tracking-wider mt-1">Contradictions</div>
         </div>
-        <div class="stat-box slate">
-            <div class="value" th:text="${totalPages}">0</div>
-            <div class="label">Total Pages</div>
+        <div class="bg-gray-50 border-l-4 border-gray-400 rounded p-3 text-center">
+            <div class="text-2xl font-bold text-on-surface" th:text="${totalPages}">0</div>
+            <div class="text-xs text-gray-500 uppercase tracking-wider mt-1">Total Pages</div>
         </div>
     </div>
 
     <!-- New pages -->
-    <div class="section-card">
-        <h3>New Pages <span class="count" th:text="'(' + ${#lists.size(newPages)} + ')'"></span></h3>
-        <div th:if="${#lists.isEmpty(newPages)}" class="empty-state">
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-6">
+        <h3 class="font-display text-base font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-4">
+            New Pages
+            <span class="text-gray-400 font-normal text-sm"
+                  th:text="'(' + ${#lists.size(newPages)} + ')'"></span>
+        </h3>
+        <div class="py-8 text-center text-sm text-gray-400"
+             th:if="${#lists.isEmpty(newPages)}">
             No new pages created in the last <span th:text="${days}">7</span> days.
         </div>
         <div th:unless="${#lists.isEmpty(newPages)}">
-            <div class="page-item" th:each="p : ${newPages}">
-                <span class="badge"
-                      th:classappend="${p['pageType'] == 'ENTITY'} ? 'badge-entity'
-                                   : (${p['pageType'] == 'CONCEPT'} ? 'badge-concept'
-                                   : (${p['pageType'] == 'COMPARISON'} ? 'badge-comparison'
-                                   : 'badge-overview'))"
+            <div class="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0"
+                 th:each="p : ${newPages}">
+                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider"
+                      th:classappend="${p['pageType'] == 'ENTITY'} ? 'bg-green-100 text-green-800'
+                                   : (${p['pageType'] == 'CONCEPT'} ? 'bg-blue-100 text-blue-800'
+                                   : (${p['pageType'] == 'COMPARISON'} ? 'bg-amber-100 text-amber-800'
+                                   : 'bg-gray-200 text-gray-600'))"
                       th:text="${p['pageType']}">ENTITY</span>
-                <a th:href="@{/wiki/{slug}(slug=${p['slug']})}" th:text="${p['title']}">Page Title</a>
-                <span class="page-date" th:text="${p['date']}">Jul 4, 2026</span>
+                <a class="text-sm font-medium text-on-surface hover:text-primary-600"
+                   th:href="@{/wiki/{slug}(slug=${p['slug']})}"
+                   th:text="${p['title']}">Page Title</a>
+                <span class="text-xs text-gray-400 ml-auto whitespace-nowrap"
+                      th:text="${p['date']}">Jul 4, 2026</span>
             </div>
         </div>
     </div>
 
     <!-- Updated pages -->
-    <div class="section-card">
-        <h3>Updated Pages <span class="count" th:text="'(' + ${#lists.size(updatedPages)} + ')'"></span></h3>
-        <div th:if="${#lists.isEmpty(updatedPages)}" class="empty-state">
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-6">
+        <h3 class="font-display text-base font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-4">
+            Updated Pages
+            <span class="text-gray-400 font-normal text-sm"
+                  th:text="'(' + ${#lists.size(updatedPages)} + ')'"></span>
+        </h3>
+        <div class="py-8 text-center text-sm text-gray-400"
+             th:if="${#lists.isEmpty(updatedPages)}">
             No pages updated in the last <span th:text="${days}">7</span> days.
         </div>
         <div th:unless="${#lists.isEmpty(updatedPages)}">
-            <div class="page-item" th:each="p : ${updatedPages}">
-                <span class="badge"
-                      th:classappend="${p['pageType'] == 'ENTITY'} ? 'badge-entity'
-                                   : (${p['pageType'] == 'CONCEPT'} ? 'badge-concept'
-                                   : (${p['pageType'] == 'COMPARISON'} ? 'badge-comparison'
-                                   : 'badge-overview'))"
+            <div class="flex items-center gap-3 py-2 border-b border-gray-100 last:border-b-0"
+                 th:each="p : ${updatedPages}">
+                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider"
+                      th:classappend="${p['pageType'] == 'ENTITY'} ? 'bg-green-100 text-green-800'
+                                   : (${p['pageType'] == 'CONCEPT'} ? 'bg-blue-100 text-blue-800'
+                                   : (${p['pageType'] == 'COMPARISON'} ? 'bg-amber-100 text-amber-800'
+                                   : 'bg-gray-200 text-gray-600'))"
                       th:text="${p['pageType']}">ENTITY</span>
-                <a th:href="@{/wiki/{slug}(slug=${p['slug']})}" th:text="${p['title']}">Page Title</a>
-                <span class="page-rev" th:text="'Rev ' + ${p['revision']}">Rev 2</span>
-                <span class="page-date" th:text="${p['date']}">Jul 4, 2026</span>
+                <a class="text-sm font-medium text-on-surface hover:text-primary-600"
+                   th:href="@{/wiki/{slug}(slug=${p['slug']})}"
+                   th:text="${p['title']}">Page Title</a>
+                <span class="text-xs text-primary-600 font-medium"
+                      th:text="'Rev ' + ${p['revision']}">Rev 2</span>
+                <span class="text-xs text-gray-400 ml-auto whitespace-nowrap"
+                      th:text="${p['date']}">Jul 4, 2026</span>
             </div>
         </div>
     </div>
 
     <!-- Contradictions -->
-    <div class="section-card">
-        <h3>Contradictions Detected <span class="count" th:text="'(' + ${#lists.size(contradictions)} + ')'"></span></h3>
-        <div th:if="${#lists.isEmpty(contradictions)}" class="empty-state">
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-6">
+        <h3 class="font-display text-base font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-4">
+            Contradictions Detected
+            <span class="text-gray-400 font-normal text-sm"
+                  th:text="'(' + ${#lists.size(contradictions)} + ')'"></span>
+        </h3>
+        <div class="py-8 text-center text-sm text-gray-400"
+             th:if="${#lists.isEmpty(contradictions)}">
             No contradictions detected in the last <span th:text="${days}">7</span> days.
         </div>
         <div th:unless="${#lists.isEmpty(contradictions)}">
-            <div class="contradiction-item" th:each="c : ${contradictions}">
-                <a class="page-link" th:href="@{/wiki/{slug}(slug=${c['pageSlug']})}"
-                   th:text="${c['pageTitle']}">Page Title</a>
-                <span class="page-date" th:text="${c['date']}" style="margin-left:0.5rem;">Jul 4</span>
-                <div class="claim-box">
-                    <div class="claim prior">
-                        <div class="claim-label">Prior Claim</div>
+            <div class="py-3 border-b border-gray-100 last:border-b-0"
+                 th:each="c : ${contradictions}">
+                <div class="flex items-center gap-2 mb-2">
+                    <a class="text-sm font-medium text-primary-600 hover:underline"
+                       th:href="@{/wiki/{slug}(slug=${c['pageSlug']})}"
+                       th:text="${c['pageTitle']}">Page Title</a>
+                    <span class="text-xs text-gray-400 ml-auto"
+                          th:text="${c['date']}">Jul 4</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="bg-red-50 border-l-4 border-red-400 rounded p-3 text-xs leading-relaxed">
+                        <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Prior Claim</div>
                         <span th:text="${c['priorClaim']}">Old claim text</span>
                     </div>
-                    <div class="claim new-claim">
-                        <div class="claim-label">New Evidence</div>
+                    <div class="bg-green-50 border-l-4 border-green-500 rounded p-3 text-xs leading-relaxed">
+                        <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">New Evidence</div>
                         <span th:text="${c['newClaim']}">New claim text</span>
                     </div>
                 </div>
