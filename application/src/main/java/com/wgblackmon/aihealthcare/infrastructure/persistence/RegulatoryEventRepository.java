@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-29
  */
 public interface RegulatoryEventRepository extends JpaRepository<RegulatoryEventEntity, String> {
 
@@ -25,6 +26,8 @@ public interface RegulatoryEventRepository extends JpaRepository<RegulatoryEvent
     List<RegulatoryEventEntity> findByEventTypeOrderByDiscoveredAtDesc(String eventType);
 
     List<RegulatoryEventEntity> findByRegulatoryBodyOrderByDiscoveredAtDesc(String regulatoryBody);
+
+    List<RegulatoryEventEntity> findByDiscoveredAtAfterOrderByDiscoveredAtDesc(Instant since);
 
     @Query("SELECT e FROM RegulatoryEventEntity e WHERE " +
            "LOWER(e.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +

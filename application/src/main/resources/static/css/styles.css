@@ -109,34 +109,94 @@ header p {
 
 
 /* ==================== Navigation ==================== */
-nav {
+/* ── Nav bar ── */
+nav.nav-bar {
     background: var(--on-primary-container);
     padding: 0 2rem;
     display: flex;
-    gap: 0.25rem;
-    overflow-x: auto;
+    align-items: stretch;
+    gap: 0;
 }
-nav a {
+.nav-link {
     color: var(--outline-variant);
     text-decoration: none;
     font-size: 0.78rem;
     font-weight: 500;
     padding: 0.65rem 0.75rem;
     border-bottom: 2px solid transparent;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     white-space: nowrap;
     transition: color 0.15s, border-color 0.15s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    cursor: pointer;
+    font-family: inherit;
 }
-nav a:hover {
+.nav-link:hover {
     color: var(--on-primary);
 }
-nav a.active, nav a[aria-current="page"] {
+.nav-link.active {
     color: var(--on-primary);
     border-bottom-color: var(--primary-container);
 }
-nav a[style*="margin-left:auto"] {
-    color: #ef9a9a;
+
+/* ── Dropdown groups ── */
+.nav-group {
+    position: relative;
+    display: flex;
+    align-items: stretch;
 }
+.nav-group-btn {
+    gap: 0.25rem;
+}
+.nav-group-right {
+    margin-left: auto;
+}
+.nav-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: var(--on-primary-container);
+    min-width: 11rem;
+    border-radius: 0 0 0.5rem 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    padding: 0.25rem 0;
+}
+.nav-dropdown-right {
+    left: auto;
+    right: 0;
+}
+.nav-dropdown a {
+    color: var(--outline-variant);
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+}
+.nav-dropdown a:hover {
+    color: var(--on-primary);
+    background: rgba(255,255,255,0.08);
+}
+.nav-dropdown a.active {
+    color: var(--on-primary);
+    background: rgba(255,255,255,0.05);
+}
+
+/* ── Logout link ── */
+.nav-logout {
+    color: #ef9a9a !important;
+}
+
+/* ── Alpine x-cloak ── */
+[x-cloak] { display: none !important; }
 
 
 /* ==================== Main Container ==================== */

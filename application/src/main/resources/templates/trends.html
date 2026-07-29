@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <!--
 /**
- * Trend Detection page — keyword frequency analysis across rolling time windows.
+ * Trend Detection page — topic frequency analysis across rolling time windows.
  *
  * Displays rising topics with LLM-scored articles, trend summaries, and a
- * Chart.js bar chart of top keywords. Admin users can trigger detection manually.
+ * Chart.js bar chart of top topics. Admin users can trigger detection manually.
  *
  * @author  Bill Blackmon
  * @version 1.0
@@ -20,7 +20,7 @@
 
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
     <h1 class="font-display text-2xl font-bold tracking-tight">Trend Detection</h1>
-    <p class="text-primary-200 text-sm mt-0.5">Keyword frequency analysis across rolling time windows</p>
+    <p class="text-primary-200 text-sm mt-0.5">Topic frequency analysis across rolling time windows</p>
 </header>
 
 <nav th:replace="~{fragments/nav :: nav('trends')}"></nav>
@@ -39,7 +39,7 @@
     <!-- Snapshot meta -->
     <div th:if="${hasSnapshot}" class="mb-6 text-gray-500 text-sm">
         Last updated: <span th:text="${generatedAt}">N/A</span>
-        &nbsp;|&nbsp; <span th:text="${totalKeywords}">0</span> keywords tracked
+        &nbsp;|&nbsp; <span th:text="${totalKeywords}">0</span> topics tracked
     </div>
 
     <div th:unless="${hasSnapshot}" class="py-8 text-center text-gray-500">
@@ -179,7 +179,7 @@
             indexAxis: 'y',
             plugins: {
                 legend: { display: false },
-                title: { display: true, text: 'Top Rising Keywords — Last 30 Days', font: { size: 14 } }
+                title: { display: true, text: 'Top Rising Topics — Last 30 Days', font: { size: 14 } }
             },
             scales: {
                 x: { beginAtZero: true, ticks: { precision: 0 } },
