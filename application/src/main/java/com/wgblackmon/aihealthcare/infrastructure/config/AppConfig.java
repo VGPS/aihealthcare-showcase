@@ -46,7 +46,6 @@ import com.wgblackmon.aihealthcare.domain.service.ClinicalTrialWatchlistMatcher;
 import com.wgblackmon.aihealthcare.domain.service.RegulatoryEventService;
 import com.wgblackmon.aihealthcare.domain.service.RegulatoryWatchlistMatcher;
 import com.wgblackmon.aihealthcare.domain.service.WatchlistMatchingService;
-import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import com.wgblackmon.aihealthcare.domain.service.TrendOrchestrationService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialPort;
@@ -54,6 +53,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSnapshotPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSummaryPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TrendTopicExtractionPort;
 import com.wgblackmon.aihealthcare.domain.service.WikiLintService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchQueryPort;
@@ -605,56 +605,48 @@ public class AppConfig {
     }
 
     /**
-     * Creates the {@link TrendDetectionService} bean — a stateless, pure-Java domain
-     * service that performs keyword frequency analysis across rolling time windows.
-     *
-     * @param minOccurrences minimum keyword occurrences to be included in analysis
-     * @param risingLimit    maximum rising signals to return
-     * @return The wired {@link TrendDetectionService} instance.
-     */
-    @Bean
-    public TrendDetectionService trendDetectionService(
-            @Value("${aihealthcare.trends.min-occurrences:3}") int minOccurrences,
-            @Value("${aihealthcare.trends.rising-limit:20}") int risingLimit) {
-        log.debug("trendDetectionService() | minOccurrences={}, risingLimit={}",
-                  minOccurrences, risingLimit);
-        TrendDetectionService result = new TrendDetectionService(minOccurrences, risingLimit);
-        log.debug("trendDetectionService() | return={}", result.getClass().getSimpleName());
-        return result;
-    }
-
-    /**
      * Creates the {@link TrendOrchestrationService} bean that implements
      * {@link com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase}.
      *
-     * @param articleIngestionPort    Adapter implementing article fetching (auto-detected).
-     * @param trendDetectionService   The trend analysis engine.
-     * @param trendSnapshotPort       Adapter implementing snapshot persistence (auto-detected).
+     * <p>Uses LLM-based topic extraction instead of n-gram frequency counting.
+     * The {@link TrendTopicExtractionPort} adapter (auto-detected) sends article
+     * titles to an LLM to identify emerging themes.
+     *
+     * @param articleIngestionPort       Adapter implementing article fetching (auto-detected).
+     * @param trendTopicExtractionPort   LLM-based topic extraction adapter (auto-detected).
+     * @param trendSnapshotPort          Adapter implementing snapshot persistence (auto-detected).
+     * @param articleScoringPort         Adapter implementing article scoring (auto-detected).
+     * @param trendSummaryPort           Adapter implementing deep research summaries (auto-detected).
+     * @param scoringEnabled             whether to enable LLM article scoring.
+     * @param scoreThreshold             minimum score to include articles.
+     * @param maxSummariesPerRun         maximum deep research summaries per run.
+     * @param maxTopics                  maximum trend topics to extract per window.
      * @return The wired {@link TrendOrchestrationService} instance.
      */
     @Bean
     public TrendOrchestrationService trendOrchestrationService(
             ArticleIngestionPort articleIngestionPort,
-            TrendDetectionService trendDetectionService,
+            TrendTopicExtractionPort trendTopicExtractionPort,
             TrendSnapshotPort trendSnapshotPort,
             ArticleScoringPort articleScoringPort,
             TrendSummaryPort trendSummaryPort,
             @Value("${aihealthcare.tech-trends.scoring-enabled:false}") boolean scoringEnabled,
             @Value("${aihealthcare.tech-trends.score-threshold:7}") int scoreThreshold,
-            @Value("${aihealthcare.deep-research.max-summaries-per-run:5}") int maxSummariesPerRun) {
-        log.debug("trendOrchestrationService() | articleIngestionPort={}, trendDetectionService={}, " +
+            @Value("${aihealthcare.deep-research.max-summaries-per-run:5}") int maxSummariesPerRun,
+            @Value("${aihealthcare.trends.rising-limit:20}") int maxTopics) {
+        log.debug("trendOrchestrationService() | articleIngestionPort={}, trendTopicExtractionPort={}, " +
                   "trendSnapshotPort={}, articleScoringPort={}, trendSummaryPort={}, " +
-                  "scoringEnabled={}, scoreThreshold={}, maxSummariesPerRun={}",
+                  "scoringEnabled={}, scoreThreshold={}, maxSummariesPerRun={}, maxTopics={}",
                   articleIngestionPort.getClass().getSimpleName(),
-                  trendDetectionService.getClass().getSimpleName(),
+                  trendTopicExtractionPort.getClass().getSimpleName(),
                   trendSnapshotPort.getClass().getSimpleName(),
                   articleScoringPort.getClass().getSimpleName(),
                   trendSummaryPort.getClass().getSimpleName(),
-                  scoringEnabled, scoreThreshold, maxSummariesPerRun);
+                  scoringEnabled, scoreThreshold, maxSummariesPerRun, maxTopics);
         TrendOrchestrationService result = new TrendOrchestrationService(
-                articleIngestionPort, trendDetectionService, trendSnapshotPort,
+                articleIngestionPort, trendTopicExtractionPort, trendSnapshotPort,
                 articleScoringPort, trendSummaryPort, scoringEnabled, scoreThreshold,
-                maxSummariesPerRun);
+                maxSummariesPerRun, maxTopics);
         log.debug("trendOrchestrationService() | return={}", result.getClass().getSimpleName());
         return result;
     }

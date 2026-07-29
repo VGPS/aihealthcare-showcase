@@ -70,7 +70,9 @@
 
     <!-- Rising Topics chart -->
     <div th:if="${hasSnapshot}" class="mb-8">
-        <canvas id="trendChart" height="60"></canvas>
+        <div style="position:relative; height:350px;">
+            <canvas id="trendChart"></canvas>
+        </div>
     </div>
 
     <!-- Rising Topics -->
@@ -85,21 +87,20 @@
             <div th:each="signal : ${risingTopics}" class="py-2 border-b border-gray-200">
                 <div class="font-semibold text-[0.95rem]" th:text="${signal.keyword()}">keyword</div>
                 <div class="text-xs text-gray-500">
-                    Last 30 days: <span th:text="${signal.current30d()}">0</span>
-                    &nbsp;|&nbsp; 31–90 days: <span th:text="${signal.previous90d()}">0</span>
-                    &nbsp;|&nbsp; 91–180 days: <span th:text="${signal.baseline180d()}">0</span>
-                    <span th:if="${signal.previous90d() == 0 and signal.baseline180d() == 0}"
+                    Last 30 days: <span th:text="${signal.current30d()}">0</span> articles
+                    <span th:if="${signal.previous90d() > 0}">
+                        &nbsp;|&nbsp; Prior 31–90 days: <span th:text="${signal.previous90d()}">0</span>
+                    </span>
+                    <span th:if="${signal.direction().name() == 'NEW'}"
                           class="ml-2 text-blue-800 font-semibold">
                         &#x25B2; NEW
                     </span>
-                    <span th:if="${signal.previous90d() == 0 and signal.baseline180d() > 0}"
-                          class="ml-2 text-green-600 font-semibold">
-                        &#x25B2; RE-EMERGING
-                    </span>
-                    <span th:if="${signal.previous90d() > 0}"
+                    <span th:if="${signal.direction().name() == 'RISING'}"
                           class="ml-2 text-green-600 font-semibold">
                         &#x25B2;
-                        <span th:text="${#numbers.formatDecimal(signal.momentum(), 1, 1)}">0.0</span>x
+                        <span th:if="${signal.momentum() <= 99}"
+                              th:text="${#numbers.formatDecimal(signal.momentum(), 1, 1)}">0.0</span>
+                        <span th:if="${signal.momentum() > 99}">&#x221E;</span>x momentum
                     </span>
                 </div>
                 <!-- Trend summary (LLM-generated for analyst/investor audience) -->
@@ -109,7 +110,10 @@
                 </div>
                 <!-- Articles driving this trend -->
                 <div th:if="${!signal.topArticles().isEmpty()}"
-                     class="mt-2 pl-3 border-l-[3px] border-gray-200">
+                     class="mt-2 pl-3 border-l-[3px] border-green-400 bg-gray-50 rounded-r-md py-2 pr-3">
+                    <div class="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
+                        <span th:text="${signal.topArticles().size()}">0</span> Related Articles
+                    </div>
                     <div th:each="scored : ${signal.topArticles()}"
                          class="mb-2.5 text-sm py-1.5">
                         <div class="flex items-baseline gap-1.5 flex-wrap">
@@ -120,7 +124,7 @@
                             <span th:if="${scored.score() >= 7 and scored.score() <= 8}"
                                   class="inline-block bg-green-600 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
                                   th:text="${scored.score()}">7</span>
-                            <span th:if="${scored.score() >= 4 and scored.score() <= 6 and !scored.rationale().startsWith('Matches trend keyword')}"
+                            <span th:if="${scored.score() >= 4 and scored.score() <= 6}"
                                   class="inline-block bg-orange-500 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
                                   th:text="${scored.score()}">5</span>
                             <!-- Article title — clickable if URL available -->
@@ -140,8 +144,8 @@
                             <span th:if="${articleDates.containsKey(scored.articleId())}"
                                   th:text="${articleDates.get(scored.articleId())}">Date</span>
                         </div>
-                        <!-- Rationale — only show for LLM-scored articles, not keyword matches -->
-                        <div th:if="${!scored.rationale().startsWith('Matches trend keyword')}"
+                        <!-- Rationale — show the LLM's description of why this article is relevant -->
+                        <div th:if="${scored.rationale() != null and !scored.rationale().isBlank()}"
                              class="text-xs text-gray-500 ml-7 mt-0.5 italic"
                              th:text="${scored.rationale()}">Rationale text</div>
                     </div>
@@ -171,13 +175,15 @@
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             indexAxis: 'y',
             plugins: {
                 legend: { display: false },
                 title: { display: true, text: 'Top Rising Keywords — Last 30 Days', font: { size: 14 } }
             },
             scales: {
-                x: { beginAtZero: true, ticks: { precision: 0 } }
+                x: { beginAtZero: true, ticks: { precision: 0 } },
+                y: { ticks: { autoSkip: false } }
             }
         }
     });

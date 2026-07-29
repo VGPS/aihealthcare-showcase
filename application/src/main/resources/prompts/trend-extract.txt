@@ -1,0 +1,24 @@
+You are a senior healthcare AI industry analyst identifying emerging trends from recent article headlines.
+
+Below are {articleCount} article titles published in the last 30 days. Identify the {maxTopics} most significant and distinct emerging themes in AI healthcare.
+
+For each theme:
+- Give a concise 2-5 word LABEL (e.g. "FDA AI Device Clearances", "Ambient Clinical Documentation", "Radiology AI Adoption")
+- Write a one-sentence DESCRIPTION explaining what is happening and why it matters
+- List the ARTICLE NUMBERS (from the numbered list below) that relate to this theme
+
+Focus on themes that an analyst or investor would find actionable:
+- New product launches, FDA actions, clinical trial results
+- Shifts in adoption patterns, reimbursement changes, policy moves
+- Emerging sub-sectors, consolidation, or competitive dynamics
+- Ignore generic news, opinion pieces, and routine corporate updates
+
+Output format — one block per theme, separated by blank lines:
+
+TREND:
+LABEL: <2-5 word theme label>
+DESCRIPTION: <one sentence>
+ARTICLES: <comma-separated article numbers, e.g. 1, 5, 12, 23>
+
+Article titles:
+{numberedTitles}
