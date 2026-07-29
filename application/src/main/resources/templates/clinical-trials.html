@@ -1,78 +1,69 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Clinical Trials page — AI/ML clinical trials from ClinicalTrials.gov.
+ *
+ * Displays trials in a filterable table with recruitment status badges,
+ * phase indicators, summary statistics, and tier-gated access.
+ * Admin users can trigger harvest manually.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-07-27
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AIHealthcare — Clinical Trials</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+<head th:replace="~{fragments/head :: head('Clinical Trials')}">
 </head>
-<body>
+<body class="bg-surface font-sans text-on-surface">
 
-<header>
-    <h1>Clinical Trials</h1>
-    <p>AI/ML clinical trials from ClinicalTrials.gov — recruitment status, phases, and sponsors</p>
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Clinical Trials</h1>
+    <p class="text-primary-200 text-sm mt-0.5">AI/ML clinical trials from ClinicalTrials.gov — recruitment status, phases, and sponsors</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Analytics</a>
-    <a th:href="@{/dashboard/news}">News Listing</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}" style="font-weight:600;">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('clinical-trials')}"></nav>
 
-<main>
+<main class="max-w-7xl mx-auto px-4 py-6">
 
     <!-- Run Harvest button (ADMIN only) -->
-    <div sec:authorize="hasRole('ADMIN')" style="margin-bottom: 1.5rem;">
-        <form th:action="@{/monitoring/clinical-trials-harvest}" method="post" style="display:inline;">
+    <div sec:authorize="hasRole('ADMIN')" class="mb-6">
+        <form th:action="@{/monitoring/clinical-trials-harvest}" method="post" class="inline">
             <button type="submit" id="harvestBtn"
-                    style="padding: 0.5rem 1.25rem; background: #1565c0; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
+                    class="px-5 py-2 bg-blue-800 text-white border-none rounded-md cursor-pointer text-sm hover:bg-blue-900 transition-colors">
                 Run Clinical Trials Harvest
             </button>
         </form>
     </div>
 
     <!-- Summary badges -->
-    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-        <div style="background: var(--surface-container); border-radius: 8px; padding: 0.75rem 1.25rem; text-align: center;">
-            <div style="font-size: 1.5rem; font-weight: 700;" th:text="${trialCount}">0</div>
-            <div style="font-size: 0.8rem; color: var(--on-surface-variant);">Total Trials</div>
+    <div class="flex gap-4 mb-6 flex-wrap">
+        <div class="bg-gray-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold" th:text="${trialCount}">0</div>
+            <div class="text-xs text-gray-500">Total Trials</div>
         </div>
-        <div style="background: #e8f5e9; border-radius: 8px; padding: 0.75rem 1.25rem; text-align: center;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: #2e7d32;" th:text="${recruitingCount}">0</div>
-            <div style="font-size: 0.8rem; color: #2e7d32;">Recruiting</div>
+        <div class="bg-green-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-green-800" th:text="${recruitingCount}">0</div>
+            <div class="text-xs text-green-800">Recruiting</div>
         </div>
-        <div style="background: #e3f2fd; border-radius: 8px; padding: 0.75rem 1.25rem; text-align: center;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: #1565c0;" th:text="${completedCount}">0</div>
-            <div style="font-size: 0.8rem; color: #1565c0;">Completed</div>
+        <div class="bg-blue-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-blue-800" th:text="${completedCount}">0</div>
+            <div class="text-xs text-blue-800">Completed</div>
         </div>
-        <div style="background: #f3e5f5; border-radius: 8px; padding: 0.75rem 1.25rem; text-align: center;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: #6a1b9a;" th:text="${phase2Count}">0</div>
-            <div style="font-size: 0.8rem; color: #6a1b9a;">Phase 2</div>
+        <div class="bg-purple-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-purple-800" th:text="${phase2Count}">0</div>
+            <div class="text-xs text-purple-800">Phase 2</div>
         </div>
-        <div style="background: #fff3e0; border-radius: 8px; padding: 0.75rem 1.25rem; text-align: center;">
-            <div style="font-size: 1.5rem; font-weight: 700; color: #e65100;" th:text="${phase3Count}">0</div>
-            <div style="font-size: 0.8rem; color: #e65100;">Phase 3</div>
+        <div class="bg-orange-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-orange-800" th:text="${phase3Count}">0</div>
+            <div class="text-xs text-orange-800">Phase 3</div>
         </div>
     </div>
 
     <!-- Filter tabs -->
-    <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem;">
+    <div class="mb-6 flex gap-2">
         <a th:href="@{/dashboard/clinical-trials}"
            th:style="${filter == null} ? 'font-weight:700; text-decoration:underline;' : ''">All</a>
         <a th:href="@{/dashboard/clinical-trials(filter='recruiting')}"
@@ -83,90 +74,90 @@
 
     <!-- Trials table -->
     <div th:if="${trialCount > 0}">
-        <table style="width: 100%; border-collapse: collapse;">
+        <table class="w-full border-collapse">
             <thead>
-            <tr style="border-bottom: 2px solid var(--outline); text-align: left;">
-                <th style="padding: 0.5rem;">Status</th>
-                <th style="padding: 0.5rem;">Title</th>
-                <th style="padding: 0.5rem;">Sponsor</th>
-                <th style="padding: 0.5rem;">Phase</th>
-                <th style="padding: 0.5rem;">Conditions</th>
-                <th style="padding: 0.5rem;">NCT ID</th>
-                <th style="padding: 0.5rem;">Discovered</th>
+            <tr class="border-b-2 border-gray-300 text-left">
+                <th class="p-2">Status</th>
+                <th class="p-2">Title</th>
+                <th class="p-2">Sponsor</th>
+                <th class="p-2">Phase</th>
+                <th class="p-2">Conditions</th>
+                <th class="p-2">NCT ID</th>
+                <th class="p-2">Discovered</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="trial : ${trials}" style="border-bottom: 1px solid var(--outline-variant);">
-                <td style="padding: 0.5rem;">
+            <tr th:each="trial : ${trials}" class="border-b border-gray-200">
+                <td class="p-2">
                     <span th:switch="${trial.status().name()}">
                         <span th:case="'RECRUITING'"
-                              style="background:#2e7d32; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">Recruiting</span>
+                              class="inline-block bg-green-800 text-white px-2 py-0.5 rounded text-xs">Recruiting</span>
                         <span th:case="'ACTIVE_NOT_RECRUITING'"
-                              style="background:#1565c0; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">Active</span>
+                              class="inline-block bg-blue-800 text-white px-2 py-0.5 rounded text-xs">Active</span>
                         <span th:case="'COMPLETED'"
-                              style="background:#757575; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">Completed</span>
+                              class="inline-block bg-gray-500 text-white px-2 py-0.5 rounded text-xs">Completed</span>
                         <span th:case="'NOT_YET_RECRUITING'"
-                              style="background:#ff8f00; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">Not Yet</span>
+                              class="inline-block bg-amber-600 text-white px-2 py-0.5 rounded text-xs">Not Yet</span>
                         <span th:case="'ENROLLING_BY_INVITATION'"
-                              style="background:#6a1b9a; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">By Invite</span>
+                              class="inline-block bg-purple-800 text-white px-2 py-0.5 rounded text-xs">By Invite</span>
                         <span th:case="'TERMINATED'"
-                              style="background:#c62828; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">Terminated</span>
+                              class="inline-block bg-red-800 text-white px-2 py-0.5 rounded text-xs">Terminated</span>
                         <span th:case="'WITHDRAWN'"
-                              style="background:#c62828; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">Withdrawn</span>
+                              class="inline-block bg-red-800 text-white px-2 py-0.5 rounded text-xs">Withdrawn</span>
                         <span th:case="'SUSPENDED'"
-                              style="background:#e65100; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;">Suspended</span>
+                              class="inline-block bg-orange-800 text-white px-2 py-0.5 rounded text-xs">Suspended</span>
                         <span th:case="*"
-                              style="background:#9e9e9e; color:white; padding:2px 8px; border-radius:4px; font-size:0.75rem;"
+                              class="inline-block bg-gray-400 text-white px-2 py-0.5 rounded text-xs"
                               th:text="${trial.status().name()}">Unknown</span>
                     </span>
                 </td>
-                <td style="padding: 0.5rem;">
+                <td class="p-2">
                     <a th:href="${trial.sourceUrl()}" target="_blank"
-                       th:text="${#strings.abbreviate(trial.title(), 80)}" style="color: var(--primary);">Title</a>
+                       th:text="${#strings.abbreviate(trial.title(), 80)}" class="text-primary-600">Title</a>
                     <div th:if="${trial.briefSummary() != null}"
-                         style="font-size: 0.8rem; color: var(--on-surface-variant); margin-top: 2px;"
+                         class="text-xs text-gray-500 mt-0.5"
                          th:text="${#strings.abbreviate(trial.briefSummary(), 120)}">Summary</div>
                 </td>
-                <td style="padding: 0.5rem; font-size: 0.85rem;">
+                <td class="p-2 text-sm">
                     <span th:if="${trial.sponsor() != null}" th:text="${trial.sponsor()}">Sponsor</span>
                 </td>
-                <td style="padding: 0.5rem;">
+                <td class="p-2">
                     <span th:if="${trial.phase() != null}" th:switch="${trial.phase().name()}">
                         <span th:case="'EARLY_PHASE_1'"
-                              style="background:#e3f2fd; color:#1565c0; padding:2px 6px; border-radius:3px; font-size:0.75rem;">Early Ph 1</span>
+                              class="inline-block bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded text-xs">Early Ph 1</span>
                         <span th:case="'PHASE_1'"
-                              style="background:#e3f2fd; color:#1565c0; padding:2px 6px; border-radius:3px; font-size:0.75rem;">Phase 1</span>
+                              class="inline-block bg-blue-50 text-blue-800 px-1.5 py-0.5 rounded text-xs">Phase 1</span>
                         <span th:case="'PHASE_2'"
-                              style="background:#f3e5f5; color:#6a1b9a; padding:2px 6px; border-radius:3px; font-size:0.75rem;">Phase 2</span>
+                              class="inline-block bg-purple-50 text-purple-800 px-1.5 py-0.5 rounded text-xs">Phase 2</span>
                         <span th:case="'PHASE_3'"
-                              style="background:#fff3e0; color:#e65100; padding:2px 6px; border-radius:3px; font-size:0.75rem;">Phase 3</span>
+                              class="inline-block bg-orange-50 text-orange-800 px-1.5 py-0.5 rounded text-xs">Phase 3</span>
                         <span th:case="'PHASE_4'"
-                              style="background:#fce4ec; color:#c62828; padding:2px 6px; border-radius:3px; font-size:0.75rem;">Phase 4</span>
+                              class="inline-block bg-red-50 text-red-800 px-1.5 py-0.5 rounded text-xs">Phase 4</span>
                         <span th:case="*"
-                              style="background:var(--surface-container); padding:2px 6px; border-radius:3px; font-size:0.75rem;">N/A</span>
+                              class="inline-block bg-gray-100 px-1.5 py-0.5 rounded text-xs">N/A</span>
                     </span>
                 </td>
-                <td style="padding: 0.5rem; font-size: 0.8rem;">
+                <td class="p-2 text-xs">
                     <span th:each="cond, stat : ${trial.conditions()}"
                           th:text="${cond + (stat.last ? '' : ', ')}">Condition</span>
                 </td>
-                <td style="padding: 0.5rem; font-size: 0.85rem; font-family: monospace;">
+                <td class="p-2 text-sm font-mono">
                     <span th:text="${trial.nctId()}">NCT001</span>
                 </td>
-                <td style="padding: 0.5rem; font-size: 0.85rem; white-space: nowrap;"
+                <td class="p-2 text-sm whitespace-nowrap"
                     th:text="${discoveredDates.get(trial.trialId())}">Jan 1, 2026</td>
             </tr>
             </tbody>
         </table>
     </div>
 
-    <div th:if="${trialCount == 0}" style="padding: 2rem; text-align: center; color: var(--on-surface-variant);">
+    <div th:if="${trialCount == 0}" class="py-8 text-center text-gray-500">
         <p>No clinical trials found. The system harvests from ClinicalTrials.gov daily.</p>
     </div>
 
     <!-- Upgrade prompt for free users -->
-    <div th:unless="${fullAccess}" style="margin-top: 2rem; padding: 1rem; background: var(--surface-container); border-radius: 8px; text-align: center;">
-        <p style="margin: 0;">Showing the 5 most recent trials. <a th:href="@{/pricing}">Upgrade to Subscriber</a> for full clinical trial monitoring with watchlist alerts.</p>
+    <div th:unless="${fullAccess}" class="mt-8 p-4 bg-gray-50 rounded-lg text-center">
+        <p class="m-0">Showing the 5 most recent trials. <a th:href="@{/pricing}" class="text-primary-600">Upgrade to Subscriber</a> for full clinical trial monitoring with watchlist alerts.</p>
     </div>
 
 </main>

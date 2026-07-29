@@ -1,224 +1,79 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Research Run Detail page — full metadata for a single research pipeline run.
+ *
+ * Displays run ID, original query, pipeline mode badge, timestamp, and citation
+ * count for the selected run. Breadcrumb navigates back to run history. No
+ * inline HTML content is shown here — this is the metadata view only.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-02-15
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Research Run Detail — AIHealthcare</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f6fa;
-            color: #333;
-            font-size: 14px;
-        }
-
-        header {
-            background: #1a1a2e;
-            color: white;
-            padding: 1.25rem 2rem;
-            display: flex;
-            align-items: baseline;
-            gap: 1.5rem;
-        }
-        header h1 { font-size: 1.25rem; font-weight: 600; }
-        header p  { font-size: 0.8rem; opacity: 0.6; }
-
-        nav {
-            background: #16213e;
-            padding: 0 2rem;
-            display: flex;
-            gap: 1.5rem;
-        }
-        nav a {
-            color: #aaa;
-            text-decoration: none;
-            font-size: 0.8rem;
-            padding: 0.6rem 0;
-            border-bottom: 2px solid transparent;
-            display: inline-block;
-        }
-        nav a:hover { color: white; }
-
-        main {
-            max-width: 900px;
-            margin: 1.5rem auto;
-            padding: 0 1rem;
-        }
-
-        /* Breadcrumb */
-        .breadcrumb {
-            font-size: 0.78rem;
-            color: #888;
-            margin-bottom: 1rem;
-        }
-        .breadcrumb a { color: #4361ee; text-decoration: none; }
-        .breadcrumb a:hover { text-decoration: underline; }
-
-        /* Detail card */
-        .detail-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .detail-card h2 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #1a1a2e;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 0.75rem;
-            margin-bottom: 1.25rem;
-        }
-
-        /* Field rows */
-        .field-grid {
-            display: grid;
-            grid-template-columns: 160px 1fr;
-            gap: 0.75rem 1rem;
-            align-items: baseline;
-        }
-        .field-label {
-            font-size: 0.72rem;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 600;
-            padding-top: 0.1rem;
-        }
-        .field-value {
-            font-size: 0.9rem;
-            color: #1a1a2e;
-            word-break: break-word;
-        }
-        .field-value.mono {
-            font-family: monospace;
-            font-size: 0.8rem;
-            color: #555;
-        }
-        .field-value.query {
-            font-size: 0.95rem;
-            font-weight: 500;
-            line-height: 1.5;
-        }
-
-        /* Mode badge */
-        .badge {
-            display: inline-block;
-            padding: 0.25em 0.7em;
-            border-radius: 99px;
-            font-size: 0.72rem;
-            font-weight: 600;
-        }
-        .badge-combined { background: #d4edda; color: #155724; }
-        .badge-staged   { background: #fff3cd; color: #856404; }
-        .badge-legacy   { background: #e2e3e5; color: #495057; }
-
-        /* Citation stat pill */
-        .stat-pill {
-            display: inline-block;
-            background: #f8f9ff;
-            border-left: 4px solid #4361ee;
-            border-radius: 0 6px 6px 0;
-            padding: 0.4rem 0.875rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1a1a2e;
-            line-height: 1;
-        }
-        .stat-pill small {
-            display: block;
-            font-size: 0.68rem;
-            font-weight: 400;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 0.2rem;
-        }
-
-        /* Back link */
-        .back-link {
-            display: inline-block;
-            margin-top: 0.5rem;
-            color: #4361ee;
-            text-decoration: none;
-            font-size: 0.85rem;
-        }
-        .back-link:hover { text-decoration: underline; }
-    </style>
+<head th:replace="~{fragments/head :: head('Research Run Detail — AIHealthcare')}">
 </head>
-<body>
 
-<header>
-    <h1>AIHealthcare Analytics</h1>
-    <p>Research Run Detail</p>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare Analytics</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Research Run Detail</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Dashboard</a>
-    <a th:href="@{/dashboard/articles}">Articles</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('research')}"></nav>
 
-<main>
+<main class="max-w-4xl mx-auto px-4 py-6">
 
-    <div class="breadcrumb">
-        <a th:href="@{/research/runs}">Research Runs</a> &rsaquo; Run Detail
+    <!-- Breadcrumb -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a th:href="@{/research/runs}" class="text-primary-600 hover:text-primary-700">Research Runs</a>
+        &rsaquo; Run Detail
     </div>
 
-    <div class="detail-card">
-        <h2>Research Run</h2>
+    <!-- Detail card -->
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-6">
+        <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-5">
+            Research Run
+        </h2>
 
-        <div class="field-grid">
+        <div class="grid grid-cols-[160px_1fr] gap-3 items-baseline">
 
-            <span class="field-label">Run ID</span>
-            <span class="field-value mono" th:text="${run.runId()}">uuid-here</span>
+            <span class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Run ID</span>
+            <span class="font-mono text-xs text-gray-400 break-all" th:text="${run.runId()}">uuid-here</span>
 
-            <span class="field-label">Query</span>
-            <span class="field-value query" th:text="${run.query()}">Research question</span>
+            <span class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Query</span>
+            <span class="text-base font-semibold text-on-surface leading-relaxed" th:text="${run.query()}">Research question</span>
 
-            <span class="field-label">Pipeline Mode</span>
-            <span class="field-value">
-                <span class="badge"
-                      th:classappend="${run.mode() == 'COMBINED'} ? 'badge-combined'
-                                   : (${run.mode() == 'STAGED_RESEARCH'} ? 'badge-staged'
-                                   : 'badge-legacy')"
+            <span class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Pipeline Mode</span>
+            <span>
+                <span th:classappend="${run.mode() == 'COMBINED'} ? 'bg-green-100 text-green-800'
+                                   : (${run.mode() == 'STAGED_RESEARCH'} ? 'bg-amber-100 text-amber-800'
+                                   : 'bg-gray-200 text-gray-600')"
+                      class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold"
                       th:text="${run.mode()}">COMBINED</span>
             </span>
 
-            <span class="field-label">Researched At</span>
-            <span class="field-value" th:text="${displayTime}">2026-01-01 06:00 UTC</span>
+            <span class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Researched At</span>
+            <span class="text-sm text-on-surface" th:text="${displayTime}">2026-01-01 06:00 UTC</span>
 
-            <span class="field-label">Citations</span>
-            <span class="field-value">
-                <div class="stat-pill">
-                    <span th:text="${run.citationCount()}">0</span>
-                    <small>unique sources</small>
+            <span class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Citations</span>
+            <span>
+                <div class="inline-block bg-primary-50 border-l-4 border-primary-500 rounded-r-lg px-4 py-2">
+                    <span class="text-2xl font-bold text-on-surface" th:text="${run.citationCount()}">0</span>
+                    <small class="block text-xs text-gray-500 uppercase tracking-wider mt-0.5">unique sources</small>
                 </div>
             </span>
 
         </div>
     </div>
 
-    <a class="back-link" th:href="@{/research/runs}">&larr; Back to Run History</a>
+    <a class="inline-block mt-2 text-primary-600 hover:text-primary-700 text-sm"
+       th:href="@{/research/runs}">&larr; Back to Run History</a>
 
 </main>
 </body>

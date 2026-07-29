@@ -1,55 +1,81 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Login page — centered card layout with Tailwind CSS.
+ *
+ * No nav bar (unauthenticated). CSRF token is auto-injected by Spring Security
+ * into the POST form via th:action.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-04-15
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AIHealthcare — Login</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+<head th:replace="~{fragments/head :: head('Login')}">
 </head>
-<body>
 
-<header>
-    <h1>AIHealthcare</h1>
-    <p>AI-in-Healthcare Intelligence Platform</p>
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
+
+<!-- Header -->
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
+    <p class="text-primary-200 text-sm mt-0.5">AI-in-Healthcare Intelligence Platform</p>
 </header>
 
-<main>
-    <div class="login-card">
-        <h2>Sign In</h2>
-        <p class="subtitle">Enter your credentials to access the platform</p>
+<!-- Centered login card -->
+<main class="flex-1 flex items-center justify-center px-4 py-12">
+    <div class="w-full max-w-md">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h2 class="font-display text-xl font-semibold text-on-surface mb-1">Sign In</h2>
+            <p class="text-sm text-on-surface-variant mb-6">Enter your credentials to access the platform</p>
 
-        <div th:if="${param.error}" class="alert alert-error">
-            Invalid email or password. Please try again.
-        </div>
-
-        <div th:if="${param.logout}" class="alert alert-success">
-            You have been signed out successfully.
-        </div>
-
-        <div th:if="${param['demo-expired'] != null}" class="alert alert-error">
-            Your demo has expired. You have been moved to the Free newsletter plan.
-            <a th:href="@{/pricing}" style="color: #991b1b; font-weight: 600;">Upgrade to Subscriber</a> for full access.
-        </div>
-
-        <form th:action="@{/login}" method="post">
-            <div class="form-group">
-                <label for="username">Email</label>
-                <input type="email" id="username" name="username"
-                       placeholder="you@example.com" required autofocus/>
+            <!-- Error alert -->
+            <div th:if="${param.error}"
+                 class="bg-red-50 border-l-4 border-red-500 text-red-800 text-sm p-3 mb-4 rounded">
+                Invalid email or password. Please try again.
             </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password"
-                       placeholder="Enter your password" required/>
+            <!-- Logout success alert -->
+            <div th:if="${param.logout}"
+                 class="bg-green-50 border-l-4 border-green-500 text-green-800 text-sm p-3 mb-4 rounded">
+                You have been signed out successfully.
             </div>
 
-            <button type="submit" class="login-button">Sign In</button>
-        </form>
+            <!-- Demo expired alert -->
+            <div th:if="${param['demo-expired'] != null}"
+                 class="bg-red-50 border-l-4 border-red-500 text-red-800 text-sm p-3 mb-4 rounded">
+                Your demo has expired. You have been moved to the Free newsletter plan.
+                <a th:href="@{/pricing}" class="font-semibold underline text-red-900">Upgrade to Subscriber</a> for full access.
+            </div>
 
-        <div class="login-footer">
-            <a th:href="@{/register}">Start a free 7-day trial</a> |
-            <a th:href="@{/pricing}">View pricing plans</a>
+            <form th:action="@{/login}" method="post" class="space-y-4">
+                <div class="flex flex-col gap-1">
+                    <label for="username" class="text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="username" name="username"
+                           placeholder="you@example.com" required autofocus
+                           class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label for="password" class="text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="password" name="password"
+                           placeholder="Enter your password" required
+                           class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-md text-sm transition-colors">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="mt-5 text-center text-sm text-on-surface-variant">
+                <a th:href="@{/register}" class="text-primary-600 hover:text-primary-700 font-medium">Start a free 7-day trial</a>
+                <span class="mx-1.5 text-outline-variant">|</span>
+                <a th:href="@{/pricing}" class="text-primary-600 hover:text-primary-700 font-medium">View pricing plans</a>
+            </div>
         </div>
     </div>
 </main>

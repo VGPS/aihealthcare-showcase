@@ -1,81 +1,70 @@
 <!DOCTYPE html>
+<!--
+/**
+ * News Listing page — articles grouped by topic with AI summaries and sort controls.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-04-01
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>News Listing — AIHealthcare</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+<head th:replace="~{fragments/head :: head('News Listing')}">
 </head>
-<body>
 
-<header>
-    <h1>AIHealthcare News</h1>
-    <p th:text="${totalArticles} + ' articles across ' + ${topicNames.size()} + ' topics'">0 articles</p>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare News</h1>
+    <p class="text-primary-200 text-sm mt-0.5" th:text="${totalArticles} + ' articles across ' + ${topicNames.size()} + ' topics'">0 articles</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Dashboard</a>
-    <a th:href="@{/dashboard/news}" class="active">News Listing</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('news')}"></nav>
 
-<main>
+<main class="max-w-7xl mx-auto px-4 py-6">
 
-    <div class="article-count" th:text="${totalArticles} + ' total articles'">0 total articles</div>
+    <div class="text-sm text-on-surface-variant mb-4" th:text="${totalArticles} + ' total articles'">0 total articles</div>
 
-    <!-- Archive depth banner for FREE tier users -->
-    <div th:if="${archiveLimited}" class="archive-banner">
-        <span class="banner-text">
+    <!-- Archive depth banner for FREE tier -->
+    <div th:if="${archiveLimited}"
+         class="bg-amber-50 border-l-4 border-amber-400 rounded p-3 mb-5 text-sm text-amber-900 flex items-center justify-between">
+        <span>
             Showing articles from the last <strong th:text="${archiveDays}">7</strong> days.
             Upgrade to Subscriber for full archive access.
         </span>
-        <a th:href="@{/pricing}">Upgrade</a>
+        <a th:href="@{/pricing}" class="text-primary-600 hover:text-primary-700 font-semibold ml-4">Upgrade</a>
     </div>
 
     <!-- Topic sections -->
-    <div th:each="topicName : ${topicNames}" th:if="${!topicArticles.get(topicName).isEmpty()}" class="topic-section">
-        <div class="topic-header">
-            <h2 th:text="${topicName}">Topic Name</h2>
-            <span class="count-badge"
-                  th:text="${topicArticles.get(topicName).size()} + ' articles'">0 articles</span>
+    <div th:each="topicName : ${topicNames}" th:if="${!topicArticles.get(topicName).isEmpty()}"
+         class="bg-white rounded-lg shadow-sm mb-6">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-outline-variant">
+            <h2 class="font-display text-base font-semibold text-on-surface" th:text="${topicName}">Topic Name</h2>
+            <span class="count-badge" th:text="${topicArticles.get(topicName).size()} + ' articles'">0 articles</span>
         </div>
 
-        <table>
+        <table class="result-table">
             <thead>
                 <tr>
                     <th>Title
                         <a th:href="@{/dashboard/news(sort='asc',sortBy='title')}"
-                           class="sort-arrow" th:classappend="${sortBy == 'title' and sort == 'asc' ? 'active' : ''}" title="A-Z">&uarr;</a>
+                           class="sort-arrow" th:classappend="${sortBy == 'title' and sort == 'asc' ? ' active' : ''}" title="A-Z">&#8593;</a>
                         <a th:href="@{/dashboard/news(sort='desc',sortBy='title')}"
-                           class="sort-arrow" th:classappend="${sortBy == 'title' and sort != 'asc' ? 'active' : ''}" title="Z-A">&darr;</a>
+                           class="sort-arrow" th:classappend="${sortBy == 'title' and sort != 'asc' ? ' active' : ''}" title="Z-A">&#8595;</a>
                     </th>
                     <th>Publication
                         <a th:href="@{/dashboard/news(sort='asc',sortBy='publication')}"
-                           class="sort-arrow" th:classappend="${sortBy == 'publication' and sort == 'asc' ? 'active' : ''}" title="A-Z">&uarr;</a>
+                           class="sort-arrow" th:classappend="${sortBy == 'publication' and sort == 'asc' ? ' active' : ''}" title="A-Z">&#8593;</a>
                         <a th:href="@{/dashboard/news(sort='desc',sortBy='publication')}"
-                           class="sort-arrow" th:classappend="${sortBy == 'publication' and sort != 'asc' ? 'active' : ''}" title="Z-A">&darr;</a>
+                           class="sort-arrow" th:classappend="${sortBy == 'publication' and sort != 'asc' ? ' active' : ''}" title="Z-A">&#8595;</a>
                     </th>
                     <th>Publication Date
                         <a th:href="@{/dashboard/news(sort='asc',sortBy='date')}"
-                           class="sort-arrow" th:classappend="${sortBy != 'title' and sortBy != 'publication' and sort == 'asc' ? 'active' : ''}" title="Oldest first">&uarr;</a>
+                           class="sort-arrow" th:classappend="${sortBy != 'title' and sortBy != 'publication' and sort == 'asc' ? ' active' : ''}" title="Oldest first">&#8593;</a>
                         <a th:href="@{/dashboard/news(sort='desc',sortBy='date')}"
-                           class="sort-arrow" th:classappend="${sortBy != 'title' and sortBy != 'publication' and sort != 'asc' ? 'active' : ''}" title="Newest first">&darr;</a>
+                           class="sort-arrow" th:classappend="${sortBy != 'title' and sortBy != 'publication' and sort != 'asc' ? ' active' : ''}" title="Newest first">&#8595;</a>
                     </th>
                 </tr>
             </thead>
@@ -94,9 +83,10 @@
                 </tr>
             </tbody>
         </table>
-        <div th:if="${topicSummaries.containsKey(topicName)}" class="topic-summary">
-            <div class="summary-label">AI Summary</div>
-            <p th:text="${topicSummaries.get(topicName)}"></p>
+        <div th:if="${topicSummaries.containsKey(topicName)}"
+             class="bg-primary-50 border-t border-outline-variant px-5 py-3 text-sm">
+            <span class="font-semibold text-primary-600 text-xs uppercase tracking-wide">AI Summary</span>
+            <p class="mt-1 text-on-surface-variant leading-relaxed" th:text="${topicSummaries.get(topicName)}"></p>
         </div>
     </div>
 

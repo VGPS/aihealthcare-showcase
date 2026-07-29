@@ -1,256 +1,41 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Knowledge Wiki index page — searchable grid of all compiled wiki pages with
+ * type filter, keyword search, and links to related wiki features.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-04-15
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Knowledge Wiki — AIHealthcare</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f6fa;
-            color: #333;
-            font-size: 14px;
-        }
-
-        header {
-            background: #1a1a2e;
-            color: white;
-            padding: 1.25rem 2rem;
-            display: flex;
-            align-items: baseline;
-            gap: 1.5rem;
-        }
-        header h1 { font-size: 1.25rem; font-weight: 600; }
-        header p  { font-size: 0.8rem; opacity: 0.6; }
-
-        nav {
-            background: #16213e;
-            padding: 0 2rem;
-            display: flex;
-            gap: 1.5rem;
-        }
-        nav a {
-            color: #aaa;
-            text-decoration: none;
-            font-size: 0.8rem;
-            padding: 0.6rem 0;
-            border-bottom: 2px solid transparent;
-            display: inline-block;
-        }
-        nav a:hover { color: white; }
-        nav a.active { color: white; border-bottom-color: #4361ee; }
-
-        main {
-            max-width: 1100px;
-            margin: 1.5rem auto;
-            padding: 0 1rem;
-        }
-
-        /* Page header */
-        .page-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.25rem;
-        }
-        .page-header h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1a1a2e;
-        }
-        .page-header .count {
-            font-size: 0.8rem;
-            color: #888;
-        }
-
-        /* Filter bar */
-        .filter-bar {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1rem 1.25rem;
-            margin-bottom: 1.25rem;
-            display: flex;
-            gap: 0.75rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .filter-bar input[type="text"] {
-            flex: 1;
-            min-width: 200px;
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.85rem;
-        }
-        .filter-bar select {
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            background: white;
-        }
-        .filter-bar button {
-            padding: 0.5rem 1.25rem;
-            background: #4361ee;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-        .filter-bar button:hover { background: #3651d4; }
-        .filter-bar a.clear-btn {
-            padding: 0.5rem 1rem;
-            color: #888;
-            text-decoration: none;
-            font-size: 0.85rem;
-        }
-        .filter-bar a.clear-btn:hover { color: #333; }
-
-        /* Page cards */
-        .page-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1rem;
-        }
-        .page-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 1.25rem;
-            transition: box-shadow 0.15s;
-            display: flex;
-            flex-direction: column;
-        }
-        .page-card:hover {
-            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
-        }
-        .page-card a.card-link {
-            text-decoration: none;
-            color: inherit;
-        }
-        .page-card h3 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #1a1a2e;
-            margin-bottom: 0.5rem;
-            line-height: 1.4;
-        }
-        .page-card h3:hover { color: #4361ee; }
-
-        /* Badge */
-        .badge {
-            display: inline-block;
-            padding: 0.2em 0.6em;
-            border-radius: 99px;
-            font-size: 0.65rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .badge-entity     { background: #d4edda; color: #155724; }
-        .badge-concept    { background: #cce5ff; color: #004085; }
-        .badge-comparison { background: #fff3cd; color: #856404; }
-        .badge-overview   { background: #e2e3e5; color: #495057; }
-
-        /* Tags */
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.35rem;
-            margin: 0.5rem 0;
-        }
-        .tag {
-            display: inline-block;
-            background: #f0f1f5;
-            color: #555;
-            padding: 0.15em 0.5em;
-            border-radius: 4px;
-            font-size: 0.7rem;
-        }
-
-        /* Meta line */
-        .card-meta {
-            font-size: 0.72rem;
-            color: #999;
-            margin-top: auto;
-            padding-top: 0.5rem;
-        }
-        .card-meta span { margin-right: 1rem; }
-
-        /* Sources count */
-        .source-count {
-            font-size: 0.72rem;
-            color: #4361ee;
-            font-weight: 500;
-        }
-
-        /* Empty state */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #888;
-        }
-        .empty-state h3 {
-            font-size: 1rem;
-            margin-bottom: 0.75rem;
-            color: #555;
-        }
-        .empty-state p {
-            font-size: 0.85rem;
-            line-height: 1.6;
-        }
-        .empty-state code {
-            background: #eee;
-            padding: 0.2em 0.5em;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-    </style>
+<head th:replace="~{fragments/head :: head('Knowledge Wiki')}">
 </head>
-<body>
 
-<header>
-    <h1>AIHealthcare Analytics</h1>
-    <p>Knowledge Wiki</p>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare Analytics</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Knowledge Wiki</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Dashboard</a>
-    <a th:href="@{/dashboard/articles}">Articles</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}" class="active">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('wiki')}"></nav>
 
-<main>
+<main class="max-w-7xl mx-auto px-4 py-6">
 
-    <div class="page-header">
-        <h2>Knowledge Wiki</h2>
-        <span class="count" th:text="${totalPages} + ' pages'">0 pages</span>
+    <!-- Page header -->
+    <div class="flex items-center justify-between mb-5">
+        <h2 class="font-display text-lg font-semibold text-on-surface">Knowledge Wiki</h2>
+        <span class="text-sm text-gray-500" th:text="${totalPages} + ' pages'">0 pages</span>
     </div>
 
     <!-- Purpose -->
-    <div style="background:#f0fdf4; border-left:3px solid #22c55e; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
-        <strong style="color:#222; font-size:0.85rem;">Purpose</strong>
-        <p style="margin-top:0.3rem;">
+    <div class="bg-green-50 border-l-4 border-green-500 rounded-r-md p-4 mb-4 text-sm text-gray-700 leading-relaxed">
+        <strong class="text-gray-900">Purpose</strong>
+        <p class="mt-1">
             The Knowledge Wiki is an AI-compiled reference library built from hundreds of
             harvested articles. Each wiki page synthesizes information across multiple sources
             into a single, provenance-tracked entry — giving you longitudinal context that
@@ -259,77 +44,83 @@
     </div>
 
     <!-- How It Works -->
-    <div style="background:#eff6ff; border-left:3px solid #4361ee; border-radius:4px; padding:0.85rem 1.1rem; margin-bottom:1rem; font-size:0.82rem; color:#444; line-height:1.6;">
-        <strong style="color:#222; font-size:0.85rem;">How It Works</strong>
-        <ol style="margin:0.4rem 0 0 1.2rem; padding:0;">
-            <li style="margin-bottom:0.15rem;">Articles are harvested daily from RSS feeds, competitor pages, and research APIs.</li>
-            <li style="margin-bottom:0.15rem;">An AI compilation step groups related articles and synthesizes them into wiki pages with full source provenance.</li>
-            <li style="margin-bottom:0.15rem;">Search by keyword or filter by page type (Entity, Concept, Comparison, Overview) to find topics of interest.</li>
-            <li style="margin-bottom:0.15rem;">Each page links back to its original sources and tracks contradictions when new evidence reverses prior claims.</li>
+    <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-md p-4 mb-4 text-sm text-gray-700 leading-relaxed">
+        <strong class="text-gray-900">How It Works</strong>
+        <ol class="mt-1 ml-5 list-decimal space-y-0.5">
+            <li>Articles are harvested daily from RSS feeds, competitor pages, and research APIs.</li>
+            <li>An AI compilation step groups related articles and synthesizes them into wiki pages with full source provenance.</li>
+            <li>Search by keyword or filter by page type (Entity, Concept, Comparison, Overview) to find topics of interest.</li>
+            <li>Each page links back to its original sources and tracks contradictions when new evidence reverses prior claims.</li>
         </ol>
     </div>
 
     <!-- Filter bar -->
-    <form class="filter-bar" method="get" th:action="@{/wiki}">
+    <form class="bg-white rounded-lg shadow-sm px-5 py-4 mb-5 flex gap-3 items-center flex-wrap"
+          method="get" th:action="@{/wiki}">
         <input type="text" name="query" placeholder="e.g. AI Legal Liability in Healthcare"
-               th:value="${query}"/>
-        <select name="pageType">
+               th:value="${query}"
+               class="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500"/>
+        <select name="pageType"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white">
             <option value="">All Types</option>
             <option th:each="pt : ${pageTypes}"
                     th:value="${pt.name()}"
                     th:text="${pt.name()}"
                     th:selected="${pt.name() == selectedType}">TYPE</option>
         </select>
-        <button type="submit">Prompt</button>
-        <a class="clear-btn" th:href="@{/wiki}">Clear</a>
-        <a class="clear-btn" th:href="@{/wiki/digest}"
-           style="color:#4361ee;">What Changed</a>
-        <a class="clear-btn" th:href="@{/wiki/contradictions}"
-           style="color:#e57373;">Contradictions</a>
-        <a class="clear-btn" th:href="@{/wiki/ask}"
-           style="color:#4361ee; font-weight:500;">Prompt the Wiki</a>
+        <button type="submit"
+                class="px-4 py-2 bg-primary-600 text-white rounded-md text-sm font-semibold hover:bg-primary-700 border-0 cursor-pointer">
+            Filter
+        </button>
+        <a th:href="@{/wiki}" class="text-sm text-gray-500 hover:text-gray-700 px-3 py-2">Clear</a>
+        <a th:href="@{/wiki/digest}" class="text-sm text-primary-600 hover:text-primary-700 px-3 py-2">What Changed</a>
+        <a th:href="@{/wiki/contradictions}" class="text-sm text-red-500 hover:text-red-700 px-3 py-2">Contradictions</a>
+        <a th:href="@{/wiki/ask}" class="text-sm text-primary-600 hover:text-primary-700 font-semibold px-3 py-2">Prompt the Wiki</a>
     </form>
 
-    <!-- Page cards -->
-    <div class="page-grid" th:if="${!pages.isEmpty()}">
-        <div class="page-card" th:each="page : ${pages}">
-            <a class="card-link" th:href="@{/wiki/{slug}(slug=${page.slug()})}">
-                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
-                    <span class="badge"
-                          th:classappend="${page.pageType().name() == 'ENTITY'} ? 'badge-entity'
-                                       : (${page.pageType().name() == 'CONCEPT'} ? 'badge-concept'
-                                       : (${page.pageType().name() == 'COMPARISON'} ? 'badge-comparison'
-                                       : 'badge-overview'))"
+    <!-- Page grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" th:if="${!pages.isEmpty()}">
+        <div class="bg-white rounded-lg shadow-sm p-5 flex flex-col hover:shadow-md transition-shadow"
+             th:each="page : ${pages}">
+            <a class="no-underline text-inherit" th:href="@{/wiki/{slug}(slug=${page.slug()})}">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider"
+                          th:classappend="${page.pageType().name() == 'ENTITY'} ? 'bg-green-100 text-green-800'
+                                       : (${page.pageType().name() == 'CONCEPT'} ? 'bg-blue-100 text-blue-800'
+                                       : (${page.pageType().name() == 'COMPARISON'} ? 'bg-amber-100 text-amber-800'
+                                       : 'bg-gray-200 text-gray-600'))"
                           th:text="${page.pageType().name()}">ENTITY</span>
-                    <span class="source-count"
+                    <span class="text-xs text-primary-600 font-medium"
                           th:text="${page.sources().size()} + ' sources'">0 sources</span>
                 </div>
-                <h3 th:text="${page.title()}">Page Title</h3>
+                <h3 class="text-sm font-semibold text-on-surface mb-2 leading-snug hover:text-primary-600"
+                    th:text="${page.title()}">Page Title</h3>
             </a>
-            <div class="tag-list" th:if="${!page.tags().isEmpty()}">
-                <a class="tag" th:each="tag : ${page.tags()}"
+            <div class="flex flex-wrap gap-1.5 mb-2" th:if="${!page.tags().isEmpty()}">
+                <a class="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs hover:bg-gray-200 no-underline"
+                   th:each="tag : ${page.tags()}"
                    th:href="@{/wiki(query=${tag})}"
-                   th:text="${tag}"
-                   style="text-decoration:none; cursor:pointer;">tag</a>
+                   th:text="${tag}">tag</a>
             </div>
-            <div class="card-meta">
+            <div class="text-xs text-gray-400 mt-auto pt-2">
                 <span th:text="'Rev ' + ${page.revision()}">Rev 1</span>
+                &nbsp;&middot;&nbsp;
                 <span th:text="${pageTimestamps.get(page.slug())}">Jul 4, 2026</span>
             </div>
         </div>
     </div>
 
     <!-- Empty state -->
-    <div class="empty-state" th:if="${pages.isEmpty()}">
-        <h3>No wiki pages compiled yet</h3>
-        <p th:if="${query != null}">
+    <div class="py-12 text-center text-gray-400" th:if="${pages.isEmpty()}">
+        <h3 class="text-base font-medium text-gray-500 mb-2">No wiki pages compiled yet</h3>
+        <p class="text-sm leading-relaxed" th:if="${query != null}">
             No pages match your search. Try a different query or
-            <a th:href="@{/wiki}">clear filters</a>.
+            <a th:href="@{/wiki}" class="text-primary-600 hover:underline">clear filters</a>.
         </p>
-        <p th:if="${query == null}">
+        <p class="text-sm leading-relaxed" th:if="${query == null}">
             The wiki compiles knowledge from harvested articles.<br/>
             Trigger a compilation run via
-            <code>POST /monitoring/wiki/compile</code>
+            <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">POST /monitoring/wiki/compile</code>
             or wait for the next scheduled harvest.
         </p>
     </div>

@@ -1,478 +1,54 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Vendor Compare page — AI-powered side-by-side comparison of healthcare AI vendors.
+ *
+ * Allows users to select vendors via checkboxes, optionally narrow to a focus area
+ * or free-form query, then runs the COMBINED research pipeline to produce per-vendor
+ * strengths/weaknesses assessments. Displays vendor cards with relevance bars and
+ * a sortable source reference table. Supports Doc Frequency and TF-IDF scoring modes.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-02-01
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Vendor Compare — AIHealthcare</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f6fa;
-            color: #333;
-            font-size: 14px;
-        }
-
-        header {
-            background: #1a1a2e;
-            color: white;
-            padding: 1.25rem 2rem;
-            display: flex;
-            align-items: baseline;
-            gap: 1.5rem;
-        }
-        header h1 { font-size: 1.25rem; font-weight: 600; }
-        header p  { font-size: 0.8rem; opacity: 0.6; }
-
-        nav {
-            background: #16213e;
-            padding: 0 2rem;
-            display: flex;
-            gap: 1.5rem;
-        }
-        nav a {
-            color: #aaa;
-            text-decoration: none;
-            font-size: 0.8rem;
-            padding: 0.6rem 0;
-            border-bottom: 2px solid transparent;
-            display: inline-block;
-        }
-        nav a:hover  { color: white; }
-        nav a.active { color: white; border-bottom-color: #4361ee; }
-
-        main {
-            max-width: 1200px;
-            margin: 1.5rem auto;
-            padding: 0 1rem;
-        }
-
-        .search-card {
-            background: white;
-            border-radius: 8px;
-            padding: 1.25rem 1.5rem;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-            margin-bottom: 1.5rem;
-        }
-        .search-card h2 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: #222;
-        }
-
-        /* How It Works callout */
-        .how-it-works {
-            background: #eff6ff;
-            border-left: 3px solid #4361ee;
-            border-radius: 4px;
-            padding: 0.85rem 1.1rem;
-            margin-bottom: 1.25rem;
-            font-size: 0.82rem;
-            color: #444;
-            line-height: 1.6;
-        }
-        .how-it-works strong {
-            color: #222;
-            font-size: 0.85rem;
-        }
-        .how-it-works ol {
-            margin: 0.4rem 0 0 1.2rem;
-            padding: 0;
-        }
-        .how-it-works li {
-            margin-bottom: 0.15rem;
-        }
-
-        /* Vendor checkbox grid */
-        .vendor-checkboxes {
-            margin-bottom: 1rem;
-        }
-        .vendor-checkboxes label.section-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #555;
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-        .checkbox-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem 1.5rem;
-        }
-        .checkbox-grid label {
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            font-size: 0.85rem;
-            color: #333;
-            cursor: pointer;
-            padding: 0.3rem 0.6rem;
-            border: 1px solid #dde;
-            border-radius: 6px;
-            background: #fafbfc;
-            transition: background 0.15s, border-color 0.15s;
-        }
-        .checkbox-grid label:hover {
-            background: #eff6ff;
-            border-color: #4361ee;
-        }
-        .checkbox-grid input[type="checkbox"] {
-            accent-color: #4361ee;
-        }
-
-        /* Form rows */
-        .form-row {
-            display: flex;
-            gap: 0.75rem;
-            align-items: center;
-            margin-bottom: 0.75rem;
-        }
-        .form-row input[type="text"] {
-            flex: 1;
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #dde;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-        .form-row input[type="number"] {
-            width: 90px;
-            padding: 0.5rem 0.5rem;
-            border: 1px solid #dde;
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-        .form-row label {
-            font-size: 0.8rem;
-            color: #666;
-            white-space: nowrap;
-        }
-        .scoring-select {
-            padding: 0.5rem 0.5rem;
-            border: 1px solid #dde;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            background: white;
-        }
-        .btn-primary {
-            background: #4361ee;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 0.5rem 1.25rem;
-            font-size: 0.85rem;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .btn-primary:hover { background: #3451d1; }
-
-        .or-divider {
-            font-size: 0.75rem;
-            color: #999;
-            text-align: center;
-            margin: 0.5rem 0;
-            font-style: italic;
-        }
-
-        /* Vendor cards */
-        .results-header {
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 1rem;
-        }
-
-        .vendor-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 1.25rem;
-        }
-
-        .vendor-card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-            overflow: hidden;
-        }
-
-        .vendor-card-header {
-            background: #1a1a2e;
-            color: white;
-            padding: 0.85rem 1.25rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .vendor-name {
-            font-weight: 600;
-            font-size: 1rem;
-        }
-        .relevance-badge {
-            font-size: 0.75rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-        .relevance-high   { background: #22c55e; color: white; }
-        .relevance-medium { background: #f59e0b; color: white; }
-        .relevance-low    { background: #94a3b8; color: white; }
-
-        .vendor-card-body {
-            padding: 1rem 1.25rem;
-        }
-
-        .relevance-bar-wrap {
-            margin-bottom: 1rem;
-        }
-        .relevance-bar-wrap label {
-            font-size: 0.75rem;
-            color: #888;
-            display: block;
-            margin-bottom: 0.25rem;
-        }
-        .relevance-bar-track {
-            background: #e5e7eb;
-            border-radius: 4px;
-            height: 8px;
-            width: 100%;
-        }
-        .relevance-bar-fill {
-            background: #4361ee;
-            border-radius: 4px;
-            height: 8px;
-        }
-
-        .assessment-section {
-            margin-bottom: 0.85rem;
-        }
-        .assessment-section h4 {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            margin-bottom: 0.4rem;
-        }
-        .assessment-section.strengths h4 { color: #16a34a; }
-        .assessment-section.weaknesses h4 { color: #dc2626; }
-
-        .assessment-section ul {
-            list-style: none;
-            padding: 0;
-        }
-        .assessment-section li {
-            font-size: 0.82rem;
-            color: #444;
-            padding: 0.15rem 0;
-            padding-left: 1rem;
-            position: relative;
-        }
-        .assessment-section.strengths li::before {
-            content: '+';
-            position: absolute;
-            left: 0;
-            color: #16a34a;
-            font-weight: 700;
-        }
-        .assessment-section.weaknesses li::before {
-            content: '−';
-            position: absolute;
-            left: 0;
-            color: #dc2626;
-            font-weight: 700;
-        }
-        .empty-items {
-            font-size: 0.8rem;
-            color: #bbb;
-            font-style: italic;
-        }
-
-        /* Source references table */
-        .sources-section {
-            margin-top: 2rem;
-        }
-        .sources-section h3 {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #222;
-            margin-bottom: 0.75rem;
-        }
-        .sources-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-            font-size: 0.82rem;
-        }
-        .sources-table thead {
-            background: #1a1a2e;
-            color: white;
-        }
-        .sources-table th {
-            padding: 0.6rem 0.9rem;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
-        .sources-table td {
-            padding: 0.5rem 0.9rem;
-            border-bottom: 1px solid #eee;
-            color: #444;
-            vertical-align: top;
-        }
-        .sources-table tr:last-child td {
-            border-bottom: none;
-        }
-        .sources-table tr:hover {
-            background: #f8f9ff;
-        }
-        .sources-table .ref-num {
-            font-weight: 700;
-            color: #4361ee;
-            white-space: nowrap;
-            width: 40px;
-        }
-        .sources-table .ref-title a {
-            color: #4361ee;
-            text-decoration: none;
-        }
-        .sources-table .ref-title a:hover {
-            text-decoration: underline;
-        }
-        .sources-table .ref-pub {
-            white-space: nowrap;
-            color: #666;
-            font-size: 0.8rem;
-        }
-        .sources-table .ref-date {
-            white-space: nowrap;
-            color: #888;
-        }
-
-        /* Methodology note */
-        .methodology-note {
-            margin-top: 1.5rem;
-            padding: 1rem 1.25rem;
-            background: #f8f9fa;
-            border-left: 3px solid #4361ee;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            color: #555;
-            line-height: 1.5;
-        }
-        .methodology-note strong {
-            color: #333;
-        }
-
-        /* Sort arrows */
-        .sort-arrow {
-            color: #999;
-            text-decoration: none;
-            font-size: 0.75rem;
-            margin-left: 0.1rem;
-            cursor: pointer;
-        }
-        .sort-arrow:hover { color: #4361ee; }
-        .sort-arrow.active { color: #4361ee; font-weight: 700; }
-
-        /* Loading spinner */
-        .spinner {
-            display: none;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid white;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            animation: spin 0.8s linear infinite;
-            vertical-align: middle;
-            margin-right: 0.4rem;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .btn-primary.loading .spinner { display: inline-block; }
-        .btn-primary.loading { opacity: 0.7; pointer-events: none; }
-
-        /* Vendor name link */
-        .vendor-name a {
-            color: white;
-            text-decoration: none;
-        }
-        .vendor-name a:hover {
-            text-decoration: underline;
-            opacity: 0.9;
-        }
-
-        /* Error + empty states */
-        .alert-error {
-            background: #fef2f2;
-            border: 1px solid #fca5a5;
-            border-radius: 6px;
-            padding: 0.9rem 1.25rem;
-            color: #dc2626;
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
-        }
-        .empty-state {
-            text-align: center;
-            color: #bbb;
-            font-style: italic;
-            padding: 2rem 0;
-            font-size: 0.9rem;
-        }
-    </style>
+<head th:replace="~{fragments/head :: head('Vendor Compare — AIHealthcare')}">
 </head>
-<body>
 
-<header>
-    <h1>AIHealthcare Analytics</h1>
-    <p>AI Vendor Comparison</p>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare Analytics</h1>
+    <p class="text-primary-200 text-sm mt-0.5">AI Vendor Comparison</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Dashboard</a>
-    <a th:href="@{/dashboard/articles}">Articles</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}" class="active">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('vendors')}"></nav>
 
-<main>
+<main class="max-w-7xl mx-auto px-4 py-6">
 
     <!-- Search Form -->
-    <div class="search-card">
-        <h2>Compare AI Healthcare Vendors Frameworks</h2>
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-6">
+        <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-5">
+            Compare AI Healthcare Vendors Frameworks
+        </h2>
 
         <!-- Purpose -->
-        <div class="how-it-works" style="border-left-color: #22c55e; background: #f0fdf4;">
-            <strong>Purpose</strong>
-            <p style="margin-top: 0.3rem;">
-                This tool helps you quickly compare how major AI vendors are positioned in
-                healthcare. Select the companies you care about, and we'll scan hundreds of
-                recent articles, press releases, and research papers to surface each vendor's
-                strengths, weaknesses, and overall presence in the healthcare AI landscape.
-            </p>
+        <div class="bg-green-50 border-l-4 border-green-500 rounded-r-md p-4 mb-4 text-sm text-gray-700 leading-relaxed">
+            <strong class="block text-gray-900 font-semibold mb-1">Purpose</strong>
+            This tool helps you quickly compare how major AI vendors are positioned in
+            healthcare. Select the companies you care about, and we'll scan hundreds of
+            recent articles, press releases, and research papers to surface each vendor's
+            strengths, weaknesses, and overall presence in the healthcare AI landscape.
         </div>
 
         <!-- How It Works -->
-        <div class="how-it-works">
-            <strong>How It Works</strong>
-            <ol>
+        <div class="bg-blue-50 border-l-4 border-blue-500 rounded-r-md p-4 mb-4 text-sm text-gray-700 leading-relaxed">
+            <strong class="block text-gray-900 font-semibold mb-1">How It Works</strong>
+            <ol class="list-decimal ml-5 space-y-1 mt-1">
                 <li>Select the vendors you want to compare using the checkboxes below.</li>
                 <li>Optionally narrow the comparison to a specific healthcare focus area (e.g., radiology, clinical trials).</li>
                 <li>The system retrieves relevant articles for each vendor from the ingestion database (RSS feeds, competitor web pages, and the Perplexity Sonar API).</li>
@@ -480,102 +56,128 @@
             </ol>
         </div>
 
-        <form method="get" th:action="@{/research/vendors}">
+        <form method="get" th:action="@{/research/vendors}" class="space-y-4">
 
             <!-- Vendor Checkboxes -->
-            <div class="vendor-checkboxes">
-                <label class="section-label">Select vendors to compare (at least 2):</label>
-                <div class="checkbox-grid">
-                    <label th:each="v : ${availableVendors}">
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">
+                    Select vendors to compare (at least 2):
+                </label>
+                <div class="flex flex-wrap gap-2">
+                    <label th:each="v : ${availableVendors}"
+                           class="flex items-center gap-1.5 text-sm text-gray-700 cursor-pointer px-3 py-1.5 border border-gray-300 rounded-md bg-gray-50 hover:bg-blue-50 hover:border-primary-400 transition-colors">
                         <input type="checkbox" name="vendors" th:value="${v.topicName()}"
                                th:checked="${selectedVendors.contains(v.topicName())}"
-                               th:text="${v.label()}"/>
+                               class="accent-primary-600"/>
+                        <span th:text="${v.label()}">Vendor</span>
                     </label>
                 </div>
             </div>
 
             <!-- Focus Area -->
-            <div class="form-row">
-                <label>Healthcare focus (optional):</label>
+            <div class="flex items-center gap-3">
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Healthcare focus (optional):</label>
                 <input type="text" name="focusArea" th:value="${focusArea}"
-                       placeholder="e.g., radiology, clinical trials, EHR integration"/>
+                       placeholder="e.g., radiology, clinical trials, EHR integration"
+                       class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"/>
             </div>
 
-            <div class="or-divider">— or enter a free-form research question instead —</div>
+            <div class="text-xs text-gray-400 italic text-center">— or enter a free-form research question instead —</div>
 
-            <!-- Free-form query (legacy fallback) -->
-            <div class="form-row">
-                <label>Research question:</label>
+            <!-- Free-form query -->
+            <div class="flex items-center gap-3">
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Research question:</label>
                 <input type="text" name="query" th:value="${query}"
-                       placeholder="e.g., AI diagnostics tools in radiology"/>
+                       placeholder="e.g., AI diagnostics tools in radiology"
+                       class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"/>
             </div>
 
             <!-- Options row -->
-            <div class="form-row">
-                <label>Sources:</label>
+            <div class="flex items-center gap-3 flex-wrap">
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Sources:</label>
                 <input type="number" name="maxSources" th:value="${maxSources}"
-                       min="1" max="100"/>
-                <label>Scoring:</label>
-                <select name="scoring" class="scoring-select">
+                       min="1" max="100"
+                       class="w-20 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"/>
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Scoring:</label>
+                <select name="scoring"
+                        class="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:border-primary-500">
                     <option value="DOC_FREQUENCY" th:selected="${scoring == 'DOC_FREQUENCY'}">Doc Frequency</option>
                     <option value="TF_IDF" th:selected="${scoring == 'TF_IDF'}">TF-IDF</option>
                 </select>
-                <button type="submit" class="btn-primary" id="searchBtn">
-                    <span class="spinner"></span>Compare Vendors</button>
+                <button type="submit" id="searchBtn"
+                        class="px-4 py-2 bg-primary-600 text-white rounded-md text-sm font-semibold hover:bg-primary-700 cursor-pointer border-0 flex items-center gap-1">
+                    <span class="spinner hidden border-2 border-white/30 border-t-white rounded-full w-4 h-4 animate-spin inline-block align-middle mr-1"></span>
+                    Compare Vendors
+                </button>
             </div>
         </form>
     </div>
 
     <!-- Error -->
-    <div class="alert-error" th:if="${errorMessage != null}" th:text="${errorMessage}"></div>
+    <div th:if="${errorMessage != null}"
+         class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm"
+         th:text="${errorMessage}"></div>
 
     <!-- Results -->
     <div th:if="${hasResults}">
-        <p class="results-header"
+        <p class="text-sm text-gray-500 mb-4"
            th:text="'Found ' + ${vendors.size()} + ' vendor(s) assessed from ' + ${citations.size()} + ' source documents'"></p>
 
-        <div class="vendor-grid">
-            <div class="vendor-card" th:each="vendor : ${vendors}">
+        <!-- Vendor grid -->
+        <div class="grid gap-5 mb-8" style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr))">
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden" th:each="vendor : ${vendors}">
 
-                <!-- Card header: vendor name + relevance badge -->
-                <div class="vendor-card-header">
-                    <span class="vendor-name">
+                <!-- Card header -->
+                <div class="bg-gray-900 text-white px-5 py-3 flex justify-between items-center">
+                    <span class="font-semibold text-base">
                         <a th:href="'https://www.google.com/search?q=' + ${vendor.vendorName()} + ' healthcare AI'"
-                           th:text="${vendor.vendorName()}" target="_blank" rel="noopener noreferrer">Vendor</a>
+                           th:text="${vendor.vendorName()}"
+                           target="_blank" rel="noopener noreferrer"
+                           class="text-white hover:underline hover:opacity-90">Vendor</a>
                     </span>
-                    <span class="relevance-badge"
-                          th:classappend="${vendor.relevanceScore() >= 0.7 ? 'relevance-high' :
-                                          (vendor.relevanceScore() >= 0.4 ? 'relevance-medium' : 'relevance-low')}"
+                    <span th:classappend="${vendor.relevanceScore() >= 0.7} ? 'bg-green-500 text-white'
+                                        : (${vendor.relevanceScore() >= 0.4} ? 'bg-amber-500 text-white'
+                                        : 'bg-gray-400 text-white')"
+                          class="text-xs px-2 py-0.5 rounded-full font-semibold"
                           th:text="${#numbers.formatDecimal(vendor.relevanceScore(), 1, 2) + '*'}">0.00*</span>
                 </div>
 
-                <div class="vendor-card-body">
+                <div class="px-5 py-4">
 
-                    <!-- Relevance progress bar -->
-                    <div class="relevance-bar-wrap">
-                        <label th:text="'Relevance Score* — ' + ${vendor.mentionCount()} + ' of ' + ${vendor.totalSources()} + ' sources'">Relevance Score</label>
-                        <div class="relevance-bar-track">
-                            <div class="relevance-bar-fill"
+                    <!-- Relevance bar -->
+                    <div class="mb-4">
+                        <label class="block text-xs text-gray-500 mb-1"
+                               th:text="'Relevance Score* — ' + ${vendor.mentionCount()} + ' of ' + ${vendor.totalSources()} + ' sources'">Relevance Score</label>
+                        <div class="bg-gray-200 rounded h-2 w-full">
+                            <div class="bg-primary-500 rounded h-2"
                                  th:style="'width: ' + ${vendor.relevanceScore() * 100} + '%'"></div>
                         </div>
                     </div>
 
                     <!-- Strengths -->
-                    <div class="assessment-section strengths">
-                        <h4>Strengths</h4>
-                        <ul th:if="${!vendor.strengths().isEmpty()}">
-                            <li th:each="s : ${vendor.strengths()}" th:text="${s}"></li>
+                    <div class="mb-3">
+                        <h4 class="text-xs font-semibold uppercase tracking-wider text-green-700 mb-2">Strengths</h4>
+                        <ul th:if="${!vendor.strengths().isEmpty()}" class="space-y-1">
+                            <li th:each="s : ${vendor.strengths()}"
+                                th:text="${s}"
+                                class="text-xs text-gray-600 pl-4 relative before:content-['+'] before:absolute before:left-0 before:text-green-600 before:font-bold">
+                            </li>
                         </ul>
-                        <span class="empty-items" th:if="${vendor.strengths().isEmpty()}">None identified</span>
+                        <span th:if="${vendor.strengths().isEmpty()}"
+                              class="text-xs text-gray-400 italic">None identified</span>
                     </div>
 
                     <!-- Weaknesses -->
-                    <div class="assessment-section weaknesses">
-                        <h4>Weaknesses</h4>
-                        <ul th:if="${!vendor.weaknesses().isEmpty()}">
-                            <li th:each="w : ${vendor.weaknesses()}" th:text="${w}"></li>
+                    <div>
+                        <h4 class="text-xs font-semibold uppercase tracking-wider text-red-600 mb-2">Weaknesses</h4>
+                        <ul th:if="${!vendor.weaknesses().isEmpty()}" class="space-y-1">
+                            <li th:each="w : ${vendor.weaknesses()}"
+                                th:text="${w}"
+                                class="text-xs text-gray-600 pl-4 relative before:content-['−'] before:absolute before:left-0 before:text-red-500 before:font-bold">
+                            </li>
                         </ul>
-                        <span class="empty-items" th:if="${vendor.weaknesses().isEmpty()}">None identified</span>
+                        <span th:if="${vendor.weaknesses().isEmpty()}"
+                              class="text-xs text-gray-400 italic">None identified</span>
                     </div>
 
                 </div>
@@ -583,54 +185,66 @@
         </div>
 
         <!-- Source References -->
-        <div class="sources-section" th:if="${!citations.isEmpty()}">
-            <h3 th:text="'Source Documents (' + ${citations.size()} + ')'">Source Documents</h3>
-            <table class="sources-table">
+        <div th:if="${!citations.isEmpty()}" class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+            <div class="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+                <h3 class="font-semibold text-sm text-on-surface"
+                    th:text="'Source Documents (' + ${citations.size()} + ')'">Source Documents</h3>
+            </div>
+            <table class="w-full border-collapse">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Article Title
-                            <a href="#" class="sort-arrow" id="sortTitleAsc" title="Title A-Z" onclick="sortByColumn('ref-title', 'asc'); return false;">&uarr;</a>
-                            <a href="#" class="sort-arrow" id="sortTitleDesc" title="Title Z-A" onclick="sortByColumn('ref-title', 'desc'); return false;">&darr;</a>
+                        <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold w-10">#</th>
+                        <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">
+                            Article Title
+                            <a href="#" class="sort-arrow text-gray-400 hover:text-primary-600 text-xs ml-1 cursor-pointer" id="sortTitleAsc" title="Title A-Z" onclick="sortByColumn('ref-title', 'asc'); return false;">&uarr;</a>
+                            <a href="#" class="sort-arrow text-gray-400 hover:text-primary-600 text-xs ml-0.5 cursor-pointer" id="sortTitleDesc" title="Title Z-A" onclick="sortByColumn('ref-title', 'desc'); return false;">&darr;</a>
                         </th>
-                        <th>Publication
-                            <a href="#" class="sort-arrow" id="sortPubAsc" title="Publication A-Z" onclick="sortByColumn('ref-pub', 'asc'); return false;">&uarr;</a>
-                            <a href="#" class="sort-arrow" id="sortPubDesc" title="Publication Z-A" onclick="sortByColumn('ref-pub', 'desc'); return false;">&darr;</a>
+                        <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">
+                            Publication
+                            <a href="#" class="sort-arrow text-gray-400 hover:text-primary-600 text-xs ml-1 cursor-pointer" id="sortPubAsc" title="Publication A-Z" onclick="sortByColumn('ref-pub', 'asc'); return false;">&uarr;</a>
+                            <a href="#" class="sort-arrow text-gray-400 hover:text-primary-600 text-xs ml-0.5 cursor-pointer" id="sortPubDesc" title="Publication Z-A" onclick="sortByColumn('ref-pub', 'desc'); return false;">&darr;</a>
                         </th>
-                        <th>Publication Date
-                            <a href="#" class="sort-arrow" id="sortDateAsc" title="Oldest first" onclick="sortByColumn('ref-date', 'asc'); return false;">&uarr;</a>
-                            <a href="#" class="sort-arrow active" id="sortDateDesc" title="Newest first" onclick="sortByColumn('ref-date', 'desc'); return false;">&darr;</a>
+                        <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">
+                            Publication Date
+                            <a href="#" class="sort-arrow text-gray-400 hover:text-primary-600 text-xs ml-1 cursor-pointer" id="sortDateAsc" title="Oldest first" onclick="sortByColumn('ref-date', 'asc'); return false;">&uarr;</a>
+                            <a href="#" class="sort-arrow sort-arrow-active text-primary-600 font-bold text-xs ml-0.5 cursor-pointer" id="sortDateDesc" title="Newest first" onclick="sortByColumn('ref-date', 'desc'); return false;">&darr;</a>
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="c : ${citations}">
-                        <td class="ref-num" th:text="${c.citationNumber()}">1</td>
-                        <td class="ref-title">
-                            <a th:href="${c.url()}" th:text="${citationTitles[c.citationNumber()]}" target="_blank"
-                               rel="noopener noreferrer">Title</a>
+                    <tr th:each="c : ${citations}" class="hover:bg-gray-50">
+                        <td class="ref-num px-3 py-2 border-b border-gray-100 text-sm align-middle font-bold text-primary-600 whitespace-nowrap"
+                            th:text="${c.citationNumber()}">1</td>
+                        <td class="ref-title px-3 py-2 border-b border-gray-100 text-sm align-middle">
+                            <a th:href="${c.url()}" th:text="${citationTitles[c.citationNumber()]}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="text-primary-600 hover:text-primary-700 hover:underline">Title</a>
                         </td>
-                        <td class="ref-pub" th:text="${citationPubs[c.citationNumber()]}">—</td>
-                        <td class="ref-date" th:text="${citationDates[c.citationNumber()]}">—</td>
+                        <td class="ref-pub px-3 py-2 border-b border-gray-100 text-sm align-middle whitespace-nowrap text-gray-500"
+                            th:text="${citationPubs[c.citationNumber()]}">—</td>
+                        <td class="ref-date px-3 py-2 border-b border-gray-100 text-sm align-middle whitespace-nowrap text-gray-400"
+                            th:text="${citationDates[c.citationNumber()]}">—</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
         <!-- Methodology note -->
-        <div class="methodology-note" th:if="${scoring == 'DOC_FREQUENCY'}">
-            <p>* <strong>Document Frequency Scoring</strong> — Each vendor's relevance score is
+        <div th:if="${scoring == 'DOC_FREQUENCY'}"
+             class="bg-blue-50 border-l-4 border-blue-500 rounded-r-md p-4 text-sm text-gray-700 leading-relaxed">
+            <p>* <strong class="text-gray-900">Document Frequency Scoring</strong> — Each vendor's relevance score is
             calculated as the number of retrieved source documents that explicitly mention the
             vendor divided by the total number of source documents evaluated. For example, a
             score of 0.40 means that 40% of the retrieved sources reference that vendor by name
             or product. This approach provides an objective, evidence-based measure of vendor
             presence in the literature.</p>
         </div>
-        <div class="methodology-note" th:if="${scoring == 'TF_IDF'}">
-            <p>* <strong>TF-IDF Scoring</strong> — Each vendor's relevance score uses
+        <div th:if="${scoring == 'TF_IDF'}"
+             class="bg-blue-50 border-l-4 border-blue-500 rounded-r-md p-4 text-sm text-gray-700 leading-relaxed">
+            <p>* <strong class="text-gray-900">TF-IDF Scoring</strong> — Each vendor's relevance score uses
             Term Frequency-Inverse Document Frequency, a classic information retrieval algorithm.
-            <strong>TF</strong> (mentions / total sources) measures how frequently a vendor
-            appears. <strong>IDF</strong> (log(1 + total sources / mentions)) downweights vendors
+            <strong class="text-gray-900">TF</strong> (mentions / total sources) measures how frequently a vendor
+            appears. <strong class="text-gray-900">IDF</strong> (log(1 + total sources / mentions)) downweights vendors
             that appear in nearly every document (generic mentions) and upweights vendors
             concentrated in a subset of highly specific sources. The raw TF-IDF value is
             normalized so the top-scoring vendor receives 1.0. This approach rewards
@@ -639,7 +253,7 @@
     </div>
 
     <!-- Empty state after a query -->
-    <div class="empty-state"
+    <div class="py-8 text-center text-gray-400 italic"
          th:if="${!hasResults and ((query != null and !#strings.isEmpty(query)) or !selectedVendors.isEmpty()) and errorMessage == null}">
         No vendor assessments were produced. Try selecting different vendors or adjusting the healthcare focus area.
     </div>
@@ -653,7 +267,7 @@
     });
 
     function sortByColumn(colClass, dir) {
-        var tbody = document.querySelector('.sources-table tbody');
+        var tbody = document.querySelector('table tbody');
         if (!tbody) return;
         var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
         var isDate = (colClass === 'ref-date');
@@ -680,12 +294,16 @@
         // Reset all sort arrows, then activate the selected one
         var arrows = document.querySelectorAll('.sort-arrow');
         for (var j = 0; j < arrows.length; j++) {
-            arrows[j].className = 'sort-arrow';
+            arrows[j].classList.remove('sort-arrow-active', 'text-primary-600', 'font-bold');
+            arrows[j].classList.add('text-gray-400');
         }
         var colMap = {'ref-title': 'Title', 'ref-pub': 'Pub', 'ref-date': 'Date'};
         var activeId = 'sort' + colMap[colClass] + (dir === 'asc' ? 'Asc' : 'Desc');
         var activeEl = document.getElementById(activeId);
-        if (activeEl) activeEl.className = 'sort-arrow active';
+        if (activeEl) {
+            activeEl.classList.add('sort-arrow-active', 'text-primary-600', 'font-bold');
+            activeEl.classList.remove('text-gray-400');
+        }
     }
 </script>
 </body>

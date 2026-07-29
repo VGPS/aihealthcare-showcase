@@ -1,110 +1,100 @@
 <!DOCTYPE html>
+<!--
+/**
+ * Company detail page — linked articles and event timeline for a single company.
+ *
+ * Shows all articles mentioning the company with body previews, plus a
+ * chronological event timeline with color-coded event type indicators.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-07-22
+ * @updated 2026-07-28
+ */
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title th:text="'AIHealthcare — ' + ${profile.name()}">AIHealthcare — Company</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+<head th:replace="~{fragments/head :: head(${profile.name()})}">
 </head>
-<body>
+<body class="bg-surface font-sans text-on-surface">
 
-<header>
-    <h1 th:text="${profile.name()}">Company Name</h1>
-    <p>Company Intelligence Profile</p>
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight" th:text="${profile.name()}">Company Name</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Company Intelligence Profile</p>
 </header>
 
-<nav>
-    <a th:href="@{/dashboard}">Analytics</a>
-    <a th:href="@{/dashboard/news}">News Listing</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}">Newsletter Preview</a>
-    <a th:href="@{/research/runs}">Research Runs</a>
-    <a th:href="@{/research/vendors}">Vendor Compare</a>
-    <a th:href="@{/research/ai-search}">AI Search</a>
-    <a th:href="@{/wiki}">Wiki</a>
-    <a th:href="@{/dashboard/trends}">Trends</a>
-    <a th:href="@{/dashboard/regulatory}">Regulatory</a>
-    <a th:href="@{/dashboard/clinical-trials}">Clinical Trials</a>
-    <a th:href="@{/companies}" style="font-weight:600;">Companies</a>
-    <a th:href="@{/watchlist}">Watchlist</a>
-    <a th:href="@{/dashboard/search}">Article Search</a>
-    <a th:href="@{/pricing}">Pricing</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/profile}">Profile</a>
-    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">Admin</a>
-    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
-       style="margin-left:auto; color:#e57373;">Logout</a>
-</nav>
+<nav th:replace="~{fragments/nav :: nav('companies')}"></nav>
 
-<main>
+<main class="max-w-7xl mx-auto px-4 py-6">
 
     <!-- Linked Articles -->
-    <h2 id="linked-articles" style="margin-bottom:1rem;">Linked Articles for
+    <h2 id="linked-articles" class="font-display text-lg font-semibold text-on-surface mb-4">Linked Articles for
         <a th:if="${profile.url() != null}" th:href="${profile.url()}" target="_blank"
-           style="color:var(--primary); text-decoration:none;"
+           class="text-primary-600 no-underline"
            th:text="${profile.name()}">Company Name</a>
         <span th:if="${profile.url() == null}" th:text="${profile.name()}">Company Name</span>
     </h2>
 
     <div th:if="${#lists.isEmpty(linkedArticles)}"
-         style="text-align:center; padding:2rem; color:var(--on-surface-variant);">
+         class="text-center py-8 text-gray-500">
         <p>No linked articles found for this company.</p>
     </div>
 
     <div th:unless="${#lists.isEmpty(linkedArticles)}">
         <div th:each="article : ${linkedArticles}"
-             style="border:1px solid var(--outline-variant); border-radius:8px; padding:1rem; margin-bottom:0.75rem; background:var(--surface);">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+             class="bg-white rounded-lg shadow-sm p-4 mb-3 border border-gray-200">
+            <div class="flex justify-between items-start">
                 <a th:href="${article.url()}" target="_blank"
-                   style="font-weight:600; color:var(--primary); text-decoration:none; font-size:0.95rem;"
+                   class="font-semibold text-primary-600 no-underline text-[0.95rem]"
                    th:text="${article.title()}">Article Title</a>
                 <span th:if="${articleDates[article.articleId()] != null}"
                       th:text="${articleDates[article.articleId()]}"
-                      style="font-size:0.75rem; color:var(--on-surface-variant); white-space:nowrap; margin-left:1rem;">Date</span>
+                      class="text-xs text-gray-500 whitespace-nowrap ml-4">Date</span>
             </div>
-            <div style="font-size:0.8rem; color:var(--on-surface-variant); margin-top:0.35rem;">
+            <div class="text-xs text-gray-500 mt-1.5">
                 <span th:if="${article.sourceName() != null}" th:text="${article.sourceName()}"
-                      style="margin-right:0.75rem;">Source</span>
+                      class="mr-3">Source</span>
                 <span th:if="${article.topic() != null}"
-                      style="background:var(--surface-container); padding:1px 6px; border-radius:3px;"
+                      class="bg-gray-100 px-1.5 py-px rounded"
                       th:text="${article.topic()}">Topic</span>
             </div>
             <p th:if="${article.bodyText() != null && !article.bodyText().isEmpty()}"
-               style="font-size:0.85rem; color:var(--on-surface-variant); margin-top:0.5rem; line-height:1.4;"
+               class="text-sm text-gray-500 mt-2 leading-relaxed"
                th:text="${#strings.abbreviate(article.bodyText(), 250)}">Body preview</p>
         </div>
     </div>
 
     <!-- Event Timeline — only shown when events exist -->
     <div th:unless="${#lists.isEmpty(events)}">
-        <h2 style="margin-top:2rem; margin-bottom:1rem;">Event Timeline</h2>
+        <h2 class="font-display text-lg font-semibold text-on-surface mt-8 mb-4">Event Timeline</h2>
         <div th:each="event : ${events}"
-             style="border-left:3px solid var(--primary); padding:0.75rem 1rem; margin-bottom:1rem; background:var(--surface); border-radius:0 8px 8px 0;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+             class="border-l-[3px] border-primary-600 px-4 py-3 mb-4 bg-white rounded-r-lg shadow-sm">
+            <div class="flex justify-between items-center mb-1">
                 <span th:text="${event.eventType().name()}"
-                      th:style="${event.eventType().name() == 'FUNDING' ? 'color:#4caf50;font-weight:600;font-size:0.75rem;' :
-                                 event.eventType().name() == 'REGULATORY' ? 'color:#ff9800;font-weight:600;font-size:0.75rem;' :
-                                 event.eventType().name() == 'PRODUCT_LAUNCH' ? 'color:#2196f3;font-weight:600;font-size:0.75rem;' :
-                                 event.eventType().name() == 'PARTNERSHIP' ? 'color:#9c27b0;font-weight:600;font-size:0.75rem;' :
-                                 'color:var(--on-surface-variant);font-size:0.75rem;'}">EVENT_TYPE</span>
+                      th:classappend="${event.eventType().name() == 'FUNDING' ? 'text-green-500 font-semibold text-xs' :
+                                       event.eventType().name() == 'REGULATORY' ? 'text-orange-500 font-semibold text-xs' :
+                                       event.eventType().name() == 'PRODUCT_LAUNCH' ? 'text-blue-500 font-semibold text-xs' :
+                                       event.eventType().name() == 'PARTNERSHIP' ? 'text-purple-500 font-semibold text-xs' :
+                                       'text-gray-500 text-xs'}">EVENT_TYPE</span>
                 <span th:if="${eventDates[event.eventId()] != null}"
                       th:text="${eventDates[event.eventId()]}"
-                      style="font-size:0.75rem; color:var(--on-surface-variant);">Date</span>
+                      class="text-xs text-gray-500">Date</span>
             </div>
             <div th:text="${event.title()}"
-                 style="font-weight:500; margin-bottom:0.25rem;">Event Title</div>
+                 class="font-medium mb-1">Event Title</div>
             <div th:if="${event.description() != null}"
                  th:text="${event.description()}"
-                 style="font-size:0.85rem; color:var(--on-surface-variant);">Description</div>
+                 class="text-sm text-gray-500">Description</div>
         </div>
     </div>
 
-    <div style="font-size:0.85rem; color:var(--on-surface-variant); margin-top:2rem;">
+    <div class="text-sm text-gray-500 mt-8">
         First discovered: <span th:text="${discoveredAt}">N/A</span>
         &nbsp;|&nbsp; Last updated: <span th:text="${updatedAt}">N/A</span>
     </div>
 
-    <div style="margin-top:1rem;">
-        <a th:href="@{/companies}" style="color:var(--primary);">&larr; Back to Companies</a>
+    <div class="mt-4">
+        <a th:href="@{/companies}" class="text-primary-600">&larr; Back to Companies</a>
     </div>
 
 </main>
