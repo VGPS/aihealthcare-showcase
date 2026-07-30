@@ -88,10 +88,27 @@ public class NewsletterRenderer {
 
         // Sections
         for (NewsletterSection section : draft.sections()) {
-            boolean isReversal = section.sectionType() == SectionType.REVERSAL_WATCH;
-            String borderColor = isReversal ? "#cc3300" : "#0066cc";
-            String bgColor = isReversal ? "#fff5f5" : "#f8f9fc";
-            String headlineColor = isReversal ? "#cc3300" : "#0066cc";
+            String borderColor;
+            String bgColor;
+            String headlineColor;
+            String icon;
+
+            if (section.sectionType() == SectionType.REVERSAL_WATCH) {
+                borderColor = "#cc3300";
+                bgColor = "#fff5f5";
+                headlineColor = "#cc3300";
+                icon = "\u26A0 ";
+            } else if (section.sectionType() == SectionType.LEGAL_BRIEF) {
+                borderColor = "#1a5276";
+                bgColor = "#eaf2f8";
+                headlineColor = "#1a5276";
+                icon = "\u2696 ";
+            } else {
+                borderColor = "#0066cc";
+                bgColor = "#f8f9fc";
+                headlineColor = "#0066cc";
+                icon = "";
+            }
 
             html.append("<tr><td style=\"padding: 16px 32px;\">")
                 .append("<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" ")
@@ -100,7 +117,7 @@ public class NewsletterRenderer {
                 .append("; border-radius: 0 6px 6px 0;\">")
                 .append("<tr><td style=\"padding: 16px 20px;\">")
                 .append("<h2 style=\"margin: 0 0 8px; font-size: 17px; color: ").append(headlineColor).append(";\">")
-                .append(isReversal ? "\u26A0 " : "")
+                .append(icon)
                 .append(escapeHtml(section.headline()))
                 .append("</h2>")
                 .append("<p style=\"margin: 0; font-size: 14px; line-height: 1.7; color: #444;\">")
@@ -181,6 +198,8 @@ public class NewsletterRenderer {
         for (NewsletterSection section : draft.sections()) {
             if (section.sectionType() == SectionType.REVERSAL_WATCH) {
                 text.append("=== REVERSAL WATCH ===\n");
+            } else if (section.sectionType() == SectionType.LEGAL_BRIEF) {
+                text.append("=== LEGAL & REGULATORY BRIEF ===\n");
             } else {
                 text.append("---\n");
             }

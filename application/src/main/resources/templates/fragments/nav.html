@@ -12,8 +12,8 @@
  * Usage: <nav th:replace="~{fragments/nav :: nav('search')}">
  *
  * activePage values: dashboard | news | newsletter | research | vendors | ai-search |
- *                    wiki | trends | regulatory | legal | clinical-trials | companies |
- *                    watchlist | search | pricing | profile | admin
+ *                    wiki | trends | regulatory | legal | legal-trends | clinical-trials |
+ *                    companies | watchlist | search | pricing | profile | admin
  *
  * Nav groups: Dashboard | Content | Research | Legal | Reference | Search | Account
  *
@@ -69,7 +69,7 @@
     <!-- Legal group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'legal' || activePage == 'regulatory'} ? ' active'">
+                th:classappend="${activePage == 'legal' || activePage == 'regulatory' || activePage == 'legal-trends'} ? ' active'">
             Legal ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
@@ -77,6 +77,8 @@
                th:classappend="${activePage == 'legal'} ? ' active'">Legal Timeline</a>
             <a th:href="@{/dashboard/regulatory}"
                th:classappend="${activePage == 'regulatory'} ? ' active'">Regulatory</a>
+            <a th:href="@{/dashboard/legal/trends}"
+               th:classappend="${activePage == 'legal-trends'} ? ' active'">Legal Trends</a>
         </div>
     </div>
 

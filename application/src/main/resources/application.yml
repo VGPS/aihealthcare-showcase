@@ -107,6 +107,8 @@ server:
 # Set to INFO in production to suppress tracing output.
 # -----------------------------------------------------------------------------
 logging:
+  file:
+    name: logs/aihealthcare.log
   level:
     com.wgblackmon: DEBUG
     org.springframework.web: INFO
@@ -168,6 +170,14 @@ aihealthcare:
     schedule: "0 0 8 ? * SUN"
     min-occurrences: 3
     rising-limit: 20
+
+  # ---------------------------------------------------------------------------
+  # Legal Trend Detection — weekly trend analysis for legal/regulatory/policy
+  # articles. Schedule default: Sunday 09:00 UTC (1h after general trends).
+  # ---------------------------------------------------------------------------
+  legal-trends:
+    schedule: "0 0 9 ? * SUN"
+    max-topics: 15
 
   # ---------------------------------------------------------------------------
   # Tech Trend Scoring — LLM-based article significance scoring for trends.

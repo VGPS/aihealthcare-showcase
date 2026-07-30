@@ -60,5 +60,12 @@ public enum SectionType {
      * detected by the wiki's contradiction tracking system.  Typical subjects:
      * reversed FDA guidance, retracted efficacy claims, contradicted study results.
      */
-    REVERSAL_WATCH
+    REVERSAL_WATCH,
+
+    /**
+     * A digest of recent legal, regulatory, and policy developments affecting
+     * AI in healthcare.  Typical subjects: litigation filings, FDA enforcement,
+     * CMS rule-making, HIPAA compliance actions, government policy changes.
+     */
+    LEGAL_BRIEF
 }
