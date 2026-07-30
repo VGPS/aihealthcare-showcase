@@ -48,7 +48,8 @@ class RegulatoryEventTest {
     void nullEventTypeThrows() {
         assertThatThrownBy(() -> new RegulatoryEvent("e1", null, RegulatoryBody.FDA,
                 "Title", null, null, null, null,
-                "https://fda.gov/e1", null, null, NOW, null))
+                "https://fda.gov/e1", null, null, NOW, null,
+                null, null, null, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("eventType");
     }
@@ -57,7 +58,8 @@ class RegulatoryEventTest {
     void nullRegulatoryBodyThrows() {
         assertThatThrownBy(() -> new RegulatoryEvent("e1", RegulatoryEventType.FDA_510K_CLEARANCE,
                 null, "Title", null, null, null, null,
-                "https://fda.gov/e1", null, null, NOW, null))
+                "https://fda.gov/e1", null, null, NOW, null,
+                null, null, null, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("regulatoryBody");
     }
@@ -80,7 +82,8 @@ class RegulatoryEventTest {
     void nullSourceUrlThrows() {
         assertThatThrownBy(() -> new RegulatoryEvent("e1", RegulatoryEventType.FDA_510K_CLEARANCE,
                 RegulatoryBody.FDA, "Title", null, null, null, null,
-                null, null, null, NOW, null))
+                null, null, null, NOW, null,
+                null, null, null, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("sourceUrl");
     }
@@ -89,7 +92,8 @@ class RegulatoryEventTest {
     void nullDiscoveredAtThrows() {
         assertThatThrownBy(() -> new RegulatoryEvent("e1", RegulatoryEventType.FDA_510K_CLEARANCE,
                 RegulatoryBody.FDA, "Title", null, null, null, null,
-                "https://fda.gov/e1", null, null, null, null))
+                "https://fda.gov/e1", null, null, null, null,
+                null, null, null, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("discoveredAt");
     }
@@ -98,7 +102,8 @@ class RegulatoryEventTest {
     void nullKeywordsDefaultsToEmptyList() {
         RegulatoryEvent event = new RegulatoryEvent("e1", RegulatoryEventType.FDA_510K_CLEARANCE,
                 RegulatoryBody.FDA, "Title", null, null, null, null,
-                "https://fda.gov/e1", null, null, NOW, null);
+                "https://fda.gov/e1", null, null, NOW, null,
+                null, null, null, null);
 
         assertThat(event.aiHealthcareKeywords()).isEmpty();
     }
@@ -111,7 +116,8 @@ class RegulatoryEventTest {
 
         RegulatoryEvent event = new RegulatoryEvent("e1", RegulatoryEventType.FDA_510K_CLEARANCE,
                 RegulatoryBody.FDA, "Title", null, null, null, null,
-                "https://fda.gov/e1", null, null, NOW, keywords);
+                "https://fda.gov/e1", null, null, NOW, keywords,
+                null, null, null, null);
 
         assertThat(event.aiHealthcareKeywords()).hasSize(2);
         assertThatThrownBy(() -> event.aiHealthcareKeywords().add("new"))
@@ -122,7 +128,8 @@ class RegulatoryEventTest {
     void optionalFieldsCanBeNull() {
         RegulatoryEvent event = new RegulatoryEvent("e1", RegulatoryEventType.CMS_PROPOSED_RULE,
                 RegulatoryBody.CMS, "CMS proposes AI rule", null, null, null, null,
-                "https://federalregister.gov/r1", null, null, NOW, null);
+                "https://federalregister.gov/r1", null, null, NOW, null,
+                null, null, null, null);
 
         assertThat(event.summary()).isNull();
         assertThat(event.referenceNumber()).isNull();
@@ -140,13 +147,17 @@ class RegulatoryEventTest {
                 "K241234", "Tempus AI", "AI Lung Scanner",
                 "https://fda.gov/K241234", "article-123",
                 Instant.parse("2026-07-20T00:00:00Z"), NOW,
-                List.of("radiology", "lung", "AI"));
+                List.of("radiology", "lung", "AI"),
+                RegulatoryOutcomeStatus.CLEARED, NOW, "Traditional 510(k)", "K192345");
 
         assertThat(event.referenceNumber()).isEqualTo("K241234");
         assertThat(event.applicantName()).isEqualTo("Tempus AI");
         assertThat(event.deviceName()).isEqualTo("AI Lung Scanner");
         assertThat(event.linkedArticleId()).isEqualTo("article-123");
         assertThat(event.aiHealthcareKeywords()).containsExactly("radiology", "lung", "AI");
+        assertThat(event.outcomeStatus()).isEqualTo(RegulatoryOutcomeStatus.CLEARED);
+        assertThat(event.clearanceType()).isEqualTo("Traditional 510(k)");
+        assertThat(event.predicateDeviceNumber()).isEqualTo("K192345");
     }
 
     // --- Helper ---
@@ -154,6 +165,7 @@ class RegulatoryEventTest {
     private RegulatoryEvent event(String eventId, String title) {
         return new RegulatoryEvent(eventId, RegulatoryEventType.FDA_510K_CLEARANCE,
                 RegulatoryBody.FDA, title, null, null, null, null,
-                "https://fda.gov/" + eventId, null, null, NOW, null);
+                "https://fda.gov/" + eventId, null, null, NOW, null,
+                null, null, null, null);
     }
 }

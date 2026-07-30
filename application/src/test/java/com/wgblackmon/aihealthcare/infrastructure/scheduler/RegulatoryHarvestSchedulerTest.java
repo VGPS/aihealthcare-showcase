@@ -111,6 +111,7 @@ class RegulatoryHarvestSchedulerTest {
                 RegulatoryBody.FDA, "FDA clears AI diagnostic tool",
                 "Summary", refNumber, "Applicant", "Device",
                 "https://fda.gov/" + id, null, Instant.now(), Instant.now(),
-                List.of("AI", "diagnostic"));
+                List.of("AI", "diagnostic"),
+                null, null, null, null);
     }
 }

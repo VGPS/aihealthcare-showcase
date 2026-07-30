@@ -36,4 +36,9 @@ public interface RegulatoryEventRepository extends JpaRepository<RegulatoryEvent
            "LOWER(e.deviceName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
            "ORDER BY e.discoveredAt DESC")
     List<RegulatoryEventEntity> findByKeyword(@Param("keyword") String keyword);
+
+    @Query("SELECT e FROM RegulatoryEventEntity e WHERE " +
+           "LOWER(e.applicantName) LIKE LOWER(CONCAT('%', :name, '%')) " +
+           "ORDER BY e.discoveredAt DESC")
+    List<RegulatoryEventEntity> findByApplicantNameContaining(@Param("name") String name);
 }

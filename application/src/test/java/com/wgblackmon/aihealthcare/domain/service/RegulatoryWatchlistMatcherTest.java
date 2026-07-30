@@ -98,7 +98,8 @@ class RegulatoryWatchlistMatcherTest {
         RegulatoryEvent event = new RegulatoryEvent("e1", RegulatoryEventType.FDA_510K_CLEARANCE,
                 RegulatoryBody.FDA, "Clearance", null, null, null, null,
                 "https://fda.gov/e1", null, null, Instant.now(),
-                List.of("radiology", "machine learning"));
+                List.of("radiology", "machine learning"),
+                null, null, null, null);
         WatchlistItem item = new WatchlistItem("w1", "user@test.com",
                 WatchlistItemType.TOPIC, "radiology", "Radiology", Instant.now());
 
@@ -183,7 +184,8 @@ class RegulatoryWatchlistMatcherTest {
                                    String applicant, String device) {
         return new RegulatoryEvent(id, RegulatoryEventType.FDA_510K_CLEARANCE,
                 RegulatoryBody.FDA, title, summary, null, applicant, device,
-                "https://fda.gov/" + id, null, null, Instant.now(), null);
+                "https://fda.gov/" + id, null, null, Instant.now(), null,
+                null, null, null, null);
     }
 
     private WatchlistItem keywordItem(String id, String keyword) {

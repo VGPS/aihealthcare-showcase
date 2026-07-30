@@ -165,6 +165,7 @@ class RegulatoryEventServiceTest {
                 RegulatoryBody.FDA, "510(k) Clearance",
                 "Summary", refNumber, "Applicant Inc", "AI Device",
                 sourceUrl, null, Instant.now(), Instant.now(),
-                List.of("AI", "radiology"));
+                List.of("AI", "radiology"),
+                null, null, null, null);
     }
 }

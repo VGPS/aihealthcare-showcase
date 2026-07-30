@@ -123,6 +123,7 @@ class RegulatoryControllerTest {
                 "510(k) Clearance: AI Device", "Summary text",
                 refNumber, "Applicant Inc", "AI Scanner",
                 "https://fda.gov/" + id, null,
-                Instant.now(), Instant.now(), List.of("AI", "radiology"));
+                Instant.now(), Instant.now(), List.of("AI", "radiology"),
+                null, null, null, null);
     }
 }

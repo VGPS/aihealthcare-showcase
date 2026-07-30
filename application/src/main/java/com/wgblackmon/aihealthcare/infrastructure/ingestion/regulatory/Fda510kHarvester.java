@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryBody;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
+import com.wgblackmon.aihealthcare.domain.model.RegulatoryOutcomeStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -106,6 +107,8 @@ public class Fda510kHarvester implements RegulatorySourceHarvester {
                     String advisoryCommittee = textOrNull(node, "advisory_committee_description");
                     String decisionDate = textOrNull(node, "decision_date");
                     String productCode = textOrNull(node, "product_code");
+                    String clearanceType = textOrNull(node, "clearance_type");
+                    String predicateNumber = textOrNull(node, "expedited_review_flag");
 
                     // Check AI-relevance
                     String searchText = (deviceName != null ? deviceName : "")
@@ -132,7 +135,11 @@ public class Fda510kHarvester implements RegulatorySourceHarvester {
                             null,
                             publishedAt,
                             Instant.now(),
-                            matchedKeywords
+                            matchedKeywords,
+                            RegulatoryOutcomeStatus.CLEARED,
+                            Instant.now(),
+                            clearanceType,
+                            predicateNumber
                     );
                     events.add(event);
                 }

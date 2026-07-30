@@ -74,7 +74,8 @@ class LegalTrendDetectionServiceTest {
                 RegulatoryBody.FDA, title, null, "K241234", "Company",
                 "AI Device", "https://fda.gov/" + id, null,
                 NOW.minus(3, ChronoUnit.DAYS), NOW.minus(2, ChronoUnit.DAYS),
-                List.of("ai", "healthcare"));
+                List.of("ai", "healthcare"),
+                null, null, null, null);
     }
 
     @BeforeEach

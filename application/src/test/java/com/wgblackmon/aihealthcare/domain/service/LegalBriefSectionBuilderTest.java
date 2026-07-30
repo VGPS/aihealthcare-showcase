@@ -67,7 +67,8 @@ class LegalBriefSectionBuilderTest {
             "AI-Powered ECG Monitor Cleared", "FDA clears AI ECG monitor",
             "K241234", "HeartTech Inc", "AI ECG Monitor",
             "https://fda.gov/510k/K241234", null, Instant.now(), Instant.now(),
-            List.of("AI", "ECG")
+            List.of("AI", "ECG"),
+            null, null, null, null
     );
 
     @BeforeEach

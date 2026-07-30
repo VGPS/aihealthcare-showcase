@@ -112,7 +112,8 @@ class LegalBackfillServiceTest {
                 "evt-1", RegulatoryEventType.FDA_510K_CLEARANCE, RegulatoryBody.FDA,
                 "Test Device", "Summary", "K241234", "Acme Corp",
                 "AI Device", "https://fda.gov/test", null,
-                Instant.now(), Instant.now(), List.of("AI"));
+                Instant.now(), Instant.now(), List.of("AI"),
+                null, null, null, null);
         when(mockRegHarvester.harvest(eq(1095), anyList())).thenReturn(List.of(event));
         when(regulatoryEventPort.existsByReferenceNumber("K241234")).thenReturn(false);
         when(regulatoryEventPort.existsBySourceUrl("https://fda.gov/test")).thenReturn(false);

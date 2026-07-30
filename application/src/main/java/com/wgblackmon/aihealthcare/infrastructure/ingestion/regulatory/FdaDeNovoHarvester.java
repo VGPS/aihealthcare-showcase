@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryBody;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
+import com.wgblackmon.aihealthcare.domain.model.RegulatoryOutcomeStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +33,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-30
  */
 @Slf4j
 @Component
@@ -128,7 +129,11 @@ public class FdaDeNovoHarvester implements RegulatorySourceHarvester {
                         null,
                         publishedAt,
                         Instant.now(),
-                        matchedKeywords
+                        matchedKeywords,
+                        RegulatoryOutcomeStatus.APPROVED,
+                        Instant.now(),
+                        null,
+                        null
                 );
                 events.add(event);
             }

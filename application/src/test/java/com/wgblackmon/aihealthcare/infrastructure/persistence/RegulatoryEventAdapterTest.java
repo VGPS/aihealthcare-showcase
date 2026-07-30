@@ -109,7 +109,8 @@ class RegulatoryEventAdapterTest {
         RegulatoryEvent event = new RegulatoryEvent("e1", RegulatoryEventType.FDA_510K_CLEARANCE,
                 RegulatoryBody.FDA, "AI Device", "Summary", "K241234",
                 "Applicant", "Device", "https://fda.gov/e1", null,
-                Instant.now(), Instant.now(), List.of("AI", "radiology", "deep learning"));
+                Instant.now(), Instant.now(), List.of("AI", "radiology", "deep learning"),
+                null, null, null, null);
         adapter.save(event);
 
         Optional<RegulatoryEvent> result = adapter.findById("e1");
@@ -124,7 +125,8 @@ class RegulatoryEventAdapterTest {
                 RegulatoryBody.FDA, "510(k) Clearance",
                 "Summary", refNumber, "Applicant Inc", "AI Device",
                 sourceUrl, null, Instant.now(), Instant.now(),
-                List.of("AI", "radiology"));
+                List.of("AI", "radiology"),
+                null, null, null, null);
     }
 
     private RegulatoryEvent cmsEvent(String id, String sourceUrl) {
@@ -132,6 +134,7 @@ class RegulatoryEventAdapterTest {
                 RegulatoryBody.CMS, "CMS Proposed Rule",
                 "Abstract", null, null, null,
                 sourceUrl, null, Instant.now(), Instant.now(),
-                List.of("clinical decision support"));
+                List.of("clinical decision support"),
+                null, null, null, null);
     }
 }

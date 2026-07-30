@@ -26,12 +26,16 @@ import java.util.List;
  * @param linkedArticleId   FK to {@link NewsArticle#articleId()} if one exists (nullable)
  * @param publishedAt       when the regulatory event was published/effective (nullable)
  * @param discoveredAt      when our system first discovered this event
- * @param aiHealthcareKeywords extracted keywords relevant to AI/healthcare
+ * @param aiHealthcareKeywords    extracted keywords relevant to AI/healthcare
+ * @param outcomeStatus           lifecycle status (PENDING, CLEARED, APPROVED, etc.) — nullable
+ * @param outcomeUpdatedAt        when the outcome was last checked or changed — nullable
+ * @param clearanceType           510(k) clearance pathway (Traditional, Special, Abbreviated) — nullable
+ * @param predicateDeviceNumber   predicate device reference for 510(k) (e.g. "K192345") — nullable
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-30
  */
 public record RegulatoryEvent(
         String eventId,
@@ -46,7 +50,11 @@ public record RegulatoryEvent(
         String linkedArticleId,
         Instant publishedAt,
         Instant discoveredAt,
-        List<String> aiHealthcareKeywords
+        List<String> aiHealthcareKeywords,
+        RegulatoryOutcomeStatus outcomeStatus,
+        Instant outcomeUpdatedAt,
+        String clearanceType,
+        String predicateDeviceNumber
 ) {
 
     /** Compact constructor — validates required fields and defensive-copies the keyword list. */
