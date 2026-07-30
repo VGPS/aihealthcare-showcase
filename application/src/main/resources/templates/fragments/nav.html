@@ -15,10 +15,14 @@
  *                    wiki | trends | regulatory | legal | clinical-trials | companies |
  *                    watchlist | search | pricing | profile | admin
  *
+ * Nav groups: Dashboard | Content | Research | Legal | Reference | Search | Account
+ *
+ * Legal group contains Legal Timeline + Regulatory (moved from Reference).
+ *
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-28
- * @updated 2026-07-29
+ * @updated 2026-07-30
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org"
@@ -33,7 +37,7 @@
     <!-- Content group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'news' || activePage == 'newsletter' || activePage == 'trends' || activePage == 'legal'} ? ' active'">
+                th:classappend="${activePage == 'news' || activePage == 'newsletter' || activePage == 'trends'} ? ' active'">
             Content ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
@@ -43,8 +47,6 @@
                th:classappend="${activePage == 'newsletter'} ? ' active'">Newsletter Preview</a>
             <a th:href="@{/dashboard/trends}"
                th:classappend="${activePage == 'trends'} ? ' active'">Trends</a>
-            <a th:href="@{/dashboard/legal}"
-               th:classappend="${activePage == 'legal'} ? ' active'">Legal Timeline</a>
         </div>
     </div>
 
@@ -64,17 +66,29 @@
         </div>
     </div>
 
+    <!-- Legal group -->
+    <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+        <button @click="open = !open" class="nav-link nav-group-btn"
+                th:classappend="${activePage == 'legal' || activePage == 'regulatory'} ? ' active'">
+            Legal ▾
+        </button>
+        <div x-show="open" x-cloak class="nav-dropdown">
+            <a th:href="@{/dashboard/legal}"
+               th:classappend="${activePage == 'legal'} ? ' active'">Legal Timeline</a>
+            <a th:href="@{/dashboard/regulatory}"
+               th:classappend="${activePage == 'regulatory'} ? ' active'">Regulatory</a>
+        </div>
+    </div>
+
     <!-- Reference group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'wiki' || activePage == 'regulatory' || activePage == 'clinical-trials' || activePage == 'companies'} ? ' active'">
+                th:classappend="${activePage == 'wiki' || activePage == 'clinical-trials' || activePage == 'companies'} ? ' active'">
             Reference ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
             <a th:href="@{/wiki}"
                th:classappend="${activePage == 'wiki'} ? ' active'">Wiki</a>
-            <a th:href="@{/dashboard/regulatory}"
-               th:classappend="${activePage == 'regulatory'} ? ' active'">Regulatory</a>
             <a th:href="@{/dashboard/clinical-trials}"
                th:classappend="${activePage == 'clinical-trials'} ? ' active'">Clinical Trials</a>
             <a th:href="@{/companies}"
