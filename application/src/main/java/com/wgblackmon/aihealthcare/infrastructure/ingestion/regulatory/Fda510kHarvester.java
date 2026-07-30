@@ -33,7 +33,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-30
  */
 @Slf4j
 @Component
@@ -42,6 +42,7 @@ public class Fda510kHarvester implements RegulatorySourceHarvester {
     private static final String BASE_URL = "https://api.fda.gov/device/510k.json";
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
     private static final int MAX_RESULTS = 100;
+    private static final int MAX_SKIP = 5000;
     private static final DateTimeFormatter FDA_DATE = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final HttpClient httpClient;
@@ -69,67 +70,83 @@ public class Fda510kHarvester implements RegulatorySourceHarvester {
         try {
             String fromDate = LocalDate.now(ZoneOffset.UTC).minusDays(lookbackDays).format(FDA_DATE);
             String toDate = LocalDate.now(ZoneOffset.UTC).format(FDA_DATE);
+            String searchParam = "decision_date:[" + fromDate + "+TO+" + toDate + "]";
 
-            String url = BASE_URL + "?search=decision_date:[" + fromDate + "+TO+" + toDate + "]"
-                    + "&limit=" + MAX_RESULTS;
+            int skip = 0;
+            boolean hasMore = true;
+            while (hasMore) {
+                String url = BASE_URL + "?search=" + searchParam
+                        + "&limit=" + MAX_RESULTS + "&skip=" + skip;
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .timeout(REQUEST_TIMEOUT)
-                    .GET()
-                    .build();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .timeout(REQUEST_TIMEOUT)
+                        .GET()
+                        .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            log.debug("harvest() | FDA 510(k) API returned status={}", response.statusCode());
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                log.debug("harvest() | FDA 510(k) API returned status={}, skip={}", response.statusCode(), skip);
 
-            if (response.statusCode() != 200) {
-                log.warn("harvest() | FDA 510(k) API returned non-200: {}", response.statusCode());
-                return events;
-            }
-
-            JsonNode root = objectMapper.readTree(response.body());
-            JsonNode results = root.get("results");
-            if (results == null || !results.isArray()) {
-                log.info("harvest() | no results in FDA 510(k) response");
-                return events;
-            }
-
-            for (JsonNode node : results) {
-                String kNumber = textOrNull(node, "k_number");
-                String deviceName = textOrNull(node, "device_name");
-                String applicant = textOrNull(node, "applicant");
-                String advisoryCommittee = textOrNull(node, "advisory_committee_description");
-                String decisionDate = textOrNull(node, "decision_date");
-                String productCode = textOrNull(node, "product_code");
-
-                // Check AI-relevance
-                String searchText = (deviceName != null ? deviceName : "")
-                        + " " + (advisoryCommittee != null ? advisoryCommittee : "")
-                        + " " + (productCode != null ? productCode : "");
-                List<String> matchedKeywords = matchKeywords(searchText, aiKeywords);
-                if (matchedKeywords.isEmpty()) {
-                    continue;
+                if (response.statusCode() != 200) {
+                    log.warn("harvest() | FDA 510(k) API returned non-200: {}", response.statusCode());
+                    break;
                 }
 
-                Instant publishedAt = parseDecisionDate(decisionDate);
-                String sourceUrl = "https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpmn/pmn.cfm?ID=" + kNumber;
+                JsonNode root = objectMapper.readTree(response.body());
+                JsonNode results = root.get("results");
+                if (results == null || !results.isArray() || results.isEmpty()) {
+                    log.info("harvest() | no results in FDA 510(k) response at skip={}", skip);
+                    break;
+                }
 
-                RegulatoryEvent event = new RegulatoryEvent(
-                        UUID.randomUUID().toString(),
-                        RegulatoryEventType.FDA_510K_CLEARANCE,
-                        RegulatoryBody.FDA,
-                        "510(k) Clearance: " + (deviceName != null ? deviceName : kNumber),
-                        buildSummary(applicant, deviceName, advisoryCommittee),
-                        kNumber,
-                        applicant,
-                        deviceName,
-                        sourceUrl,
-                        null,
-                        publishedAt,
-                        Instant.now(),
-                        matchedKeywords
-                );
-                events.add(event);
+                for (JsonNode node : results) {
+                    String kNumber = textOrNull(node, "k_number");
+                    String deviceName = textOrNull(node, "device_name");
+                    String applicant = textOrNull(node, "applicant");
+                    String advisoryCommittee = textOrNull(node, "advisory_committee_description");
+                    String decisionDate = textOrNull(node, "decision_date");
+                    String productCode = textOrNull(node, "product_code");
+
+                    // Check AI-relevance
+                    String searchText = (deviceName != null ? deviceName : "")
+                            + " " + (advisoryCommittee != null ? advisoryCommittee : "")
+                            + " " + (productCode != null ? productCode : "");
+                    List<String> matchedKeywords = matchKeywords(searchText, aiKeywords);
+                    if (matchedKeywords.isEmpty()) {
+                        continue;
+                    }
+
+                    Instant publishedAt = parseDecisionDate(decisionDate);
+                    String sourceUrl = "https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpmn/pmn.cfm?ID=" + kNumber;
+
+                    RegulatoryEvent event = new RegulatoryEvent(
+                            UUID.randomUUID().toString(),
+                            RegulatoryEventType.FDA_510K_CLEARANCE,
+                            RegulatoryBody.FDA,
+                            "510(k) Clearance: " + (deviceName != null ? deviceName : kNumber),
+                            buildSummary(applicant, deviceName, advisoryCommittee),
+                            kNumber,
+                            applicant,
+                            deviceName,
+                            sourceUrl,
+                            null,
+                            publishedAt,
+                            Instant.now(),
+                            matchedKeywords
+                    );
+                    events.add(event);
+                }
+
+                // Paginate if we got a full page of results
+                if (results.size() < MAX_RESULTS) {
+                    hasMore = false;
+                } else {
+                    skip += MAX_RESULTS;
+                    if (skip > MAX_SKIP) {
+                        log.info("harvest() | reached pagination safety cap at skip={}", skip);
+                        hasMore = false;
+                    }
+                }
             }
 
         } catch (Exception e) {

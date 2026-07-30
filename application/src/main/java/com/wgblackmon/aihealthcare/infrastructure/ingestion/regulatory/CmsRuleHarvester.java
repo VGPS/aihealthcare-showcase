@@ -30,7 +30,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-30
  */
 @Slf4j
 @Component
@@ -39,6 +39,7 @@ public class CmsRuleHarvester implements RegulatorySourceHarvester {
     private static final String BASE_URL = "https://www.federalregister.gov/api/v1/documents.json";
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
     private static final int PER_PAGE = 50;
+    private static final int MAX_PAGES = 50;
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -65,77 +66,94 @@ public class CmsRuleHarvester implements RegulatorySourceHarvester {
         try {
             String fromDate = LocalDate.now(ZoneOffset.UTC).minusDays(lookbackDays).toString();
 
-            String url = BASE_URL
-                    + "?conditions[agencies][]=centers-for-medicare-medicaid-services"
-                    + "&conditions[type][]=RULE"
-                    + "&conditions[type][]=PRORULE"
-                    + "&conditions[publication_date][gte]=" + fromDate
-                    + "&per_page=" + PER_PAGE
-                    + "&order=newest";
+            int page = 1;
+            boolean hasMore = true;
+            while (hasMore) {
+                String url = BASE_URL
+                        + "?conditions[agencies][]=centers-for-medicare-medicaid-services"
+                        + "&conditions[type][]=RULE"
+                        + "&conditions[type][]=PRORULE"
+                        + "&conditions[publication_date][gte]=" + fromDate
+                        + "&per_page=" + PER_PAGE
+                        + "&page=" + page
+                        + "&order=newest";
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .timeout(REQUEST_TIMEOUT)
-                    .GET()
-                    .build();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .timeout(REQUEST_TIMEOUT)
+                        .GET()
+                        .build();
 
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            log.debug("harvest() | Federal Register API returned status={}", response.statusCode());
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                log.debug("harvest() | Federal Register API returned status={}, page={}", response.statusCode(), page);
 
-            if (response.statusCode() != 200) {
-                log.warn("harvest() | Federal Register API returned non-200: {}", response.statusCode());
-                return events;
-            }
-
-            JsonNode root = objectMapper.readTree(response.body());
-            JsonNode results = root.get("results");
-            if (results == null || !results.isArray()) {
-                log.info("harvest() | no results in Federal Register response");
-                return events;
-            }
-
-            for (JsonNode node : results) {
-                String title = textOrNull(node, "title");
-                String docType = textOrNull(node, "type");
-                String abstractText = textOrNull(node, "abstract");
-                String htmlUrl = textOrNull(node, "html_url");
-                String pubDate = textOrNull(node, "publication_date");
-                String docNumber = textOrNull(node, "document_number");
-
-                if (title == null || htmlUrl == null) {
-                    continue;
+                if (response.statusCode() != 200) {
+                    log.warn("harvest() | Federal Register API returned non-200: {}", response.statusCode());
+                    break;
                 }
 
-                // Check AI-relevance in title + abstract
-                String searchText = title + " " + (abstractText != null ? abstractText : "");
-                List<String> matchedKeywords = matchKeywords(searchText, aiKeywords);
-                if (matchedKeywords.isEmpty()) {
-                    continue;
+                JsonNode root = objectMapper.readTree(response.body());
+                JsonNode results = root.get("results");
+                if (results == null || !results.isArray() || results.isEmpty()) {
+                    log.info("harvest() | no results in Federal Register response at page={}", page);
+                    break;
                 }
 
-                RegulatoryEventType eventType = "RULE".equalsIgnoreCase(docType)
-                        ? RegulatoryEventType.CMS_FINAL_RULE
-                        : RegulatoryEventType.CMS_PROPOSED_RULE;
+                for (JsonNode node : results) {
+                    String title = textOrNull(node, "title");
+                    String docType = textOrNull(node, "type");
+                    String abstractText = textOrNull(node, "abstract");
+                    String htmlUrl = textOrNull(node, "html_url");
+                    String pubDate = textOrNull(node, "publication_date");
+                    String docNumber = textOrNull(node, "document_number");
 
-                Instant publishedAt = parseDate(pubDate);
+                    if (title == null || htmlUrl == null) {
+                        continue;
+                    }
 
-                RegulatoryEvent event = new RegulatoryEvent(
-                        UUID.randomUUID().toString(),
-                        eventType,
-                        RegulatoryBody.CMS,
-                        title,
-                        abstractText != null && abstractText.length() > 500
-                                ? abstractText.substring(0, 500) : abstractText,
-                        docNumber,
-                        null,
-                        null,
-                        htmlUrl,
-                        null,
-                        publishedAt,
-                        Instant.now(),
-                        matchedKeywords
-                );
-                events.add(event);
+                    // Check AI-relevance in title + abstract
+                    String searchText = title + " " + (abstractText != null ? abstractText : "");
+                    List<String> matchedKeywords = matchKeywords(searchText, aiKeywords);
+                    if (matchedKeywords.isEmpty()) {
+                        continue;
+                    }
+
+                    RegulatoryEventType eventType = "RULE".equalsIgnoreCase(docType)
+                            ? RegulatoryEventType.CMS_FINAL_RULE
+                            : RegulatoryEventType.CMS_PROPOSED_RULE;
+
+                    Instant publishedAt = parseDate(pubDate);
+
+                    RegulatoryEvent event = new RegulatoryEvent(
+                            UUID.randomUUID().toString(),
+                            eventType,
+                            RegulatoryBody.CMS,
+                            title,
+                            abstractText != null && abstractText.length() > 500
+                                    ? abstractText.substring(0, 500) : abstractText,
+                            docNumber,
+                            null,
+                            null,
+                            htmlUrl,
+                            null,
+                            publishedAt,
+                            Instant.now(),
+                            matchedKeywords
+                    );
+                    events.add(event);
+                }
+
+                // Check for next page
+                JsonNode nextPageUrl = root.get("next_page_url");
+                if (nextPageUrl == null || nextPageUrl.isNull()) {
+                    hasMore = false;
+                } else {
+                    page++;
+                    if (page > MAX_PAGES) {
+                        log.info("harvest() | reached pagination safety cap at page={}", page);
+                        hasMore = false;
+                    }
+                }
             }
 
         } catch (Exception e) {
