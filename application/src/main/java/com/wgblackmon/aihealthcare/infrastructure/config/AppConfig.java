@@ -32,6 +32,8 @@ import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
 import com.wgblackmon.aihealthcare.domain.service.MarketIntelligenceService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
+import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
+import com.wgblackmon.aihealthcare.domain.service.LegalBriefSectionBuilder;
 import com.wgblackmon.aihealthcare.domain.service.ReversalWatchSectionBuilder;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.PromptEvaluationService;
@@ -46,11 +48,13 @@ import com.wgblackmon.aihealthcare.domain.service.ClinicalTrialWatchlistMatcher;
 import com.wgblackmon.aihealthcare.domain.service.RegulatoryEventService;
 import com.wgblackmon.aihealthcare.domain.service.RegulatoryWatchlistMatcher;
 import com.wgblackmon.aihealthcare.domain.service.WatchlistMatchingService;
+import com.wgblackmon.aihealthcare.domain.service.LegalTrendDetectionService;
 import com.wgblackmon.aihealthcare.domain.service.TrendOrchestrationService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryHarvestingPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.LegalTrendSnapshotPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSnapshotPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSummaryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendTopicExtractionPort;
@@ -306,18 +310,22 @@ public class AppConfig {
                                                AiSummarizationPort summarizationPort,
                                                NewsletterRunPort newsletterRunPort,
                                                ArticleSearchPort searchPort,
-                                               WikiQueryPort wikiQueryPort) {
-        log.debug("newsletterService() | ingestionPort={}, summarizationPort={}, newsletterRunPort={}, searchPort={}, wikiQueryPort={}",
+                                               WikiQueryPort wikiQueryPort,
+                                               MonitorRegulatoryEventsUseCase regulatoryUseCase) {
+        log.debug("newsletterService() | ingestionPort={}, summarizationPort={}, newsletterRunPort={}, searchPort={}, wikiQueryPort={}, regulatoryUseCase={}",
                   ingestionPort.getClass().getSimpleName(),
                   summarizationPort.getClass().getSimpleName(),
                   newsletterRunPort.getClass().getSimpleName(),
                   searchPort.getClass().getSimpleName(),
-                  wikiQueryPort.getClass().getSimpleName());
+                  wikiQueryPort.getClass().getSimpleName(),
+                  regulatoryUseCase.getClass().getSimpleName());
         NewsletterRenderer renderer = new NewsletterRenderer();
         ReversalWatchSectionBuilder reversalWatchBuilder = new ReversalWatchSectionBuilder();
+        LegalBriefSectionBuilder legalBriefBuilder = new LegalBriefSectionBuilder(
+                ingestionPort, regulatoryUseCase);
         NewsletterService result = new NewsletterService(
                 ingestionPort, summarizationPort, renderer, newsletterRunPort, searchPort,
-                wikiQueryPort, reversalWatchBuilder);
+                wikiQueryPort, reversalWatchBuilder, legalBriefBuilder);
         log.debug("newsletterService() | return={}", result.getClass().getSimpleName());
         return result;
     }
@@ -648,6 +656,44 @@ public class AppConfig {
                 articleScoringPort, trendSummaryPort, scoringEnabled, scoreThreshold,
                 maxSummariesPerRun, maxTopics);
         log.debug("trendOrchestrationService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link LegalTrendDetectionService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.DetectLegalTrendsUseCase}.
+     *
+     * <p>Reuses the existing {@link TrendTopicExtractionPort} for LLM-based theme
+     * extraction, scoped to legal/policy articles and regulatory events.
+     *
+     * @param articleIngestionPort       Adapter implementing article fetching (auto-detected).
+     * @param regulatoryUseCase          Regulatory event monitoring use case (auto-detected).
+     * @param trendTopicExtractionPort   LLM-based topic extraction adapter (auto-detected).
+     * @param legalTrendSnapshotPort     Legal trend snapshot persistence (auto-detected).
+     * @param trendSummaryPort           Deep research summary adapter (auto-detected).
+     * @param maxTopics                  Maximum trend topics to extract per window.
+     * @return The wired {@link LegalTrendDetectionService} instance.
+     */
+    @Bean
+    public LegalTrendDetectionService legalTrendDetectionService(
+            ArticleIngestionPort articleIngestionPort,
+            MonitorRegulatoryEventsUseCase regulatoryUseCase,
+            TrendTopicExtractionPort trendTopicExtractionPort,
+            LegalTrendSnapshotPort legalTrendSnapshotPort,
+            TrendSummaryPort trendSummaryPort,
+            @Value("${aihealthcare.legal-trends.max-topics:15}") int maxTopics) {
+        log.debug("legalTrendDetectionService() | articleIngestionPort={}, regulatoryUseCase={}, " +
+                  "trendTopicExtractionPort={}, legalTrendSnapshotPort={}, trendSummaryPort={}, maxTopics={}",
+                  articleIngestionPort.getClass().getSimpleName(),
+                  regulatoryUseCase.getClass().getSimpleName(),
+                  trendTopicExtractionPort.getClass().getSimpleName(),
+                  legalTrendSnapshotPort.getClass().getSimpleName(),
+                  trendSummaryPort.getClass().getSimpleName(),
+                  maxTopics);
+        LegalTrendDetectionService result = new LegalTrendDetectionService(
+                articleIngestionPort, regulatoryUseCase, trendTopicExtractionPort,
+                legalTrendSnapshotPort, trendSummaryPort, maxTopics);
+        log.debug("legalTrendDetectionService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

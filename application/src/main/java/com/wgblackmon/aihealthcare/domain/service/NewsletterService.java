@@ -63,6 +63,7 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
     private final ArticleSearchPort            searchPort;
     private final WikiQueryPort                wikiQueryPort;
     private final ReversalWatchSectionBuilder  reversalWatchBuilder;
+    private final LegalBriefSectionBuilder    legalBriefBuilder;
 
     // In-memory stores — articles map supports ingest→generate handoff;
     // draftByDraftId supports getDraft() in the same session.
@@ -77,9 +78,10 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
                              NewsletterRunPort newsletterRunPort,
                              ArticleSearchPort searchPort,
                              WikiQueryPort wikiQueryPort,
-                             ReversalWatchSectionBuilder reversalWatchBuilder) {
-        log.debug("NewsletterService() | ingestionPort={}, summarizationPort={}, renderer={}, newsletterRunPort={}, searchPort={}, wikiQueryPort={}, reversalWatchBuilder={}",
-                  ingestionPort, summarizationPort, renderer, newsletterRunPort, searchPort, wikiQueryPort, reversalWatchBuilder);
+                             ReversalWatchSectionBuilder reversalWatchBuilder,
+                             LegalBriefSectionBuilder legalBriefBuilder) {
+        log.debug("NewsletterService() | ingestionPort={}, summarizationPort={}, renderer={}, newsletterRunPort={}, searchPort={}, wikiQueryPort={}, reversalWatchBuilder={}, legalBriefBuilder={}",
+                  ingestionPort, summarizationPort, renderer, newsletterRunPort, searchPort, wikiQueryPort, reversalWatchBuilder, legalBriefBuilder);
         this.ingestionPort         = ingestionPort;
         this.summarizationPort     = summarizationPort;
         this.renderer              = renderer;
@@ -87,6 +89,7 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
         this.searchPort            = searchPort;
         this.wikiQueryPort         = wikiQueryPort;
         this.reversalWatchBuilder  = reversalWatchBuilder;
+        this.legalBriefBuilder     = legalBriefBuilder;
     }
 
     // -------------------------------------------------------------------------
@@ -198,6 +201,14 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
             sections.add(reversalSection);
             log.info("generate() | Reversal Watch section appended with {} contradiction(s)",
                     contradictions.size());
+        }
+
+        // Append Legal & Regulatory Brief section from recent legal data (last 7 days)
+        String legalSectionId = "section-%03d".formatted(sectionCounter.incrementAndGet());
+        NewsletterSection legalSection = legalBriefBuilder.build(legalSectionId, 7);
+        if (legalSection != null) {
+            sections.add(legalSection);
+            log.info("generate() | Legal Brief section appended");
         }
 
         String introduction = summarizationPort.generateIntroduction(sections, tone);

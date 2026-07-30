@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Legal & Regulatory Trends page — trend analysis for legal, regulatory,
+ * and policy articles affecting AI in healthcare.
+ *
+ * Displays rising legal trends with category badges (Litigation, Regulation,
+ * Policy), momentum indicators, and optional trend summaries. Admin users
+ * can trigger detection manually.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-07-30
+ * @updated 2026-07-30
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Legal Trends')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Legal &amp; Regulatory Trends</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Trend analysis across litigation, regulation, and policy domains</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('legal-trends')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Run Detection button (ADMIN only) -->
+    <div sec:authorize="hasRole('ADMIN')" class="mb-6">
+        <form th:action="@{/dashboard/legal/trends/detect}" method="post" style="display:inline">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit"
+                    class="px-5 py-2 bg-green-600 text-white border-none rounded-md cursor-pointer text-sm hover:bg-green-700 transition-colors">
+                Run Legal Trend Detection
+            </button>
+        </form>
+    </div>
+
+    <!-- Snapshot meta -->
+    <div th:if="${hasSnapshot}" class="mb-6 text-gray-500 text-sm">
+        Last updated: <span th:text="${generatedAt}">N/A</span>
+        &nbsp;|&nbsp; <span th:text="${totalKeywords}">0</span> topics analyzed
+    </div>
+
+    <!-- Summary badges -->
+    <div th:if="${hasSnapshot}" class="flex flex-wrap gap-3 mb-6">
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+            Litigation: <span th:text="${litigationCount}" class="ml-1">0</span>
+        </span>
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+            Regulation: <span th:text="${regulationCount}" class="ml-1">0</span>
+        </span>
+        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-amber-100 text-amber-800">
+            Policy: <span th:text="${policyCount}" class="ml-1">0</span>
+        </span>
+    </div>
+
+    <div th:unless="${hasSnapshot}" class="py-8 text-center text-gray-500">
+        <p>No legal trend data available yet. Click <b>Run Legal Trend Detection</b> above or wait for the weekly run.</p>
+    </div>
+
+    <!-- Chart -->
+    <div th:if="${hasSnapshot}" class="mb-8">
+        <div style="position:relative; height:300px;">
+            <canvas id="legalTrendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Trend cards -->
+    <div th:if="${hasSnapshot}">
+        <section>
+            <h2 class="text-xl font-semibold mb-4">Rising Legal Trends</h2>
+
+            <div th:each="signal : ${risingTrends}" class="mb-4 border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-lg font-semibold" th:text="${signal.keyword()}">Keyword</h3>
+                        <!-- Category badge -->
+                        <span th:if="${signal.category() == 'LITIGATION'}"
+                              class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800">
+                            Litigation
+                        </span>
+                        <span th:if="${signal.category() == 'REGULATION'}"
+                              class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">
+                            Regulation
+                        </span>
+                        <span th:if="${signal.category() == 'POLICY'}"
+                              class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">
+                            Policy
+                        </span>
+                        <!-- Direction badge -->
+                        <span th:if="${signal.direction().name() == 'RISING'}"
+                              class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
+                            &#x2191; Rising
+                        </span>
+                        <span th:if="${signal.direction().name() == 'NEW'}"
+                              class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">
+                            &#x2605; New
+                        </span>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                        <span th:text="${signal.current30d()}">0</span> mentions (30d)
+                        <span th:if="${signal.previous90d() > 0}" class="ml-1">
+                            | <span th:text="${signal.previous90d()}">0</span> (prior 60d)
+                        </span>
+                        <span th:if="${signal.momentum() > 0}" class="ml-1 font-semibold text-green-700"
+                              th:text="'Momentum: ' + ${#numbers.formatDecimal(signal.momentum(), 1, 1)} + 'x'">
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Summary (if available) -->
+                <div th:if="${signal.summary() != null}" class="mt-2 text-sm text-gray-700 leading-relaxed border-l-4 border-blue-300 pl-3">
+                    <p th:text="${signal.summary()}">Trend summary...</p>
+                </div>
+
+                <!-- Article count — clickable toggle -->
+                <div th:if="${!signal.topArticleIds().isEmpty()}" class="mt-2">
+                    <button type="button"
+                            th:onclick="'toggleArticles(this)'"
+                            class="text-xs text-blue-600 hover:text-blue-800 cursor-pointer bg-transparent border-none underline">
+                        <span th:text="${signal.topArticleIds().size()}">0</span> linked articles/events &#x25BC;
+                    </button>
+                    <!-- Expandable article list -->
+                    <div class="hidden mt-2 border-t border-gray-100 pt-2"
+                         th:with="items=${trendLinkedItems[signal.keyword()]}">
+                        <div th:if="${items != null and !items.isEmpty()}">
+                            <div th:each="item : ${items}" class="py-1.5 flex items-start gap-2 text-sm border-b border-gray-50 last:border-b-0">
+                                <span class="text-gray-400 mt-0.5">&#x2022;</span>
+                                <div class="flex-1 min-w-0">
+                                    <a th:if="${item.url() != null}" th:href="${item.url()}" target="_blank" rel="noopener"
+                                       class="text-blue-700 hover:underline font-medium leading-tight"
+                                       th:text="${item.title()}">Title</a>
+                                    <span th:if="${item.url() == null}" class="font-medium leading-tight"
+                                          th:text="${item.title()}">Title</span>
+                                    <div class="text-xs text-gray-400 mt-0.5">
+                                        <span th:if="${item.source() != null}" th:text="${item.source()}" class="mr-2">Source</span>
+                                        <span th:if="${item.date() != null}" th:text="${item.date()}">Date</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${items == null or items.isEmpty()}" class="text-xs text-gray-400 italic">
+                            No linked articles or events found
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upgrade prompt for free users -->
+            <div th:unless="${fullAccess}" class="mt-6 p-4 bg-blue-50 rounded-lg text-center">
+                <p class="text-sm text-blue-800">
+                    Free accounts see the top 3 legal trends.
+                    <a th:href="@{/pricing}" class="underline font-semibold">Upgrade</a>
+                    to see all trends and summaries.
+                </p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Back link -->
+    <div class="mt-8">
+        <a th:href="@{/dashboard/legal}" class="text-blue-600 hover:underline text-sm">
+            &larr; Back to Legal Timeline
+        </a>
+    </div>
+
+</main>
+
+<!-- Toggle linked articles -->
+<script>
+    function toggleArticles(btn) {
+        var panel = btn.nextElementSibling;
+        if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');
+            btn.innerHTML = btn.innerHTML.replace('\u25BC', '\u25B2');
+        } else {
+            panel.classList.add('hidden');
+            btn.innerHTML = btn.innerHTML.replace('\u25B2', '\u25BC');
+        }
+    }
+</script>
+
+<!-- Chart.js -->
+<script th:if="${hasSnapshot}" th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        var labels = /*[[${chartLabels}]]*/ [];
+        var data = /*[[${chartData}]]*/ [];
+        var ctx = document.getElementById('legalTrendChart');
+        if (ctx && labels.length > 0) {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Mentions (30 days)',
+                        data: data,
+                        backgroundColor: 'rgba(26, 82, 118, 0.7)',
+                        borderColor: 'rgba(26, 82, 118, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
+                }
+            });
+        }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</body>
+</html>

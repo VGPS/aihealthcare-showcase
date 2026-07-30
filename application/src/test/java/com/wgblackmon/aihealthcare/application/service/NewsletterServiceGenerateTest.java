@@ -13,6 +13,8 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
+import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
+import com.wgblackmon.aihealthcare.domain.service.LegalBriefSectionBuilder;
 import com.wgblackmon.aihealthcare.domain.service.ReversalWatchSectionBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -66,6 +68,9 @@ class NewsletterServiceGenerateTest {
     @Mock
     private WikiQueryPort wikiQueryPort;
 
+    @Mock
+    private MonitorRegulatoryEventsUseCase regulatoryUseCase;
+
     private NewsletterService service;
 
     private static final String RUN_ID   = "run-001";
@@ -92,9 +97,12 @@ class NewsletterServiceGenerateTest {
 
     @BeforeEach
     void setUp() {
+        LegalBriefSectionBuilder legalBriefBuilder = new LegalBriefSectionBuilder(
+                ingestionPort, regulatoryUseCase);
         service = new NewsletterService(ingestionPort, summarizationPort,
                                         new NewsletterRenderer(), newsletterRunPort, searchPort,
-                                        wikiQueryPort, new ReversalWatchSectionBuilder());
+                                        wikiQueryPort, new ReversalWatchSectionBuilder(),
+                                        legalBriefBuilder);
     }
 
     @Test
