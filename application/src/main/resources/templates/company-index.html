@@ -9,7 +9,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-28
+ * @updated 2026-07-30
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -35,7 +35,7 @@
         <span th:text="${errorMessage}">Error</span>
     </div>
 
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex justify-between items-center mb-4">
         <span class="text-gray-500 text-sm">
             <span th:text="${profileCount}">0</span> companies tracked
         </span>
@@ -45,6 +45,13 @@
                 Run Discovery Pipeline
             </button>
         </form>
+    </div>
+
+    <!-- Search filter -->
+    <div th:unless="${#lists.isEmpty(profiles)}" class="mb-6">
+        <input type="text" id="companySearch" placeholder="Filter companies by name..."
+               class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-primary-600"
+               oninput="filterCompanies(this.value)"/>
     </div>
 
     <div th:if="${#lists.isEmpty(profiles)}"
@@ -77,6 +84,11 @@
                    class="text-primary-600 underline">
                     <span th:text="${realArticleCounts[profile.slug()]}">0</span> articles
                 </a>
+                <span th:if="${regulatoryCounts[profile.slug()] != null and regulatoryCounts[profile.slug()] > 0}"
+                      class="ml-2">
+                    <span class="inline-block bg-blue-100 text-blue-800 px-1.5 py-px rounded text-[0.7rem] font-semibold"
+                          th:text="${regulatoryCounts[profile.slug()]} + ' regulatory'">0 regulatory</span>
+                </span>
                 &nbsp;|&nbsp; Discovered: <span th:text="${discoveredDates[profile.slug()]}">N/A</span>
             </div>
         </div>
@@ -84,5 +96,16 @@
 
 </main>
 
+<script>
+function filterCompanies(query) {
+    var cards = document.querySelectorAll('.grid > div');
+    var lowerQuery = query.toLowerCase();
+    for (var i = 0; i < cards.length; i++) {
+        var name = cards[i].querySelector('a, span.text-lg');
+        var text = name ? name.textContent.toLowerCase() : '';
+        cards[i].style.display = text.indexOf(lowerQuery) !== -1 ? '' : 'none';
+    }
+}
+</script>
 </body>
 </html>

@@ -17,7 +17,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-30
  */
 public interface RegulatoryEventPort {
 
@@ -68,4 +68,10 @@ public interface RegulatoryEventPort {
      * contain the given keyword (case-insensitive).
      */
     List<RegulatoryEvent> findByKeyword(String keyword, int limit);
+
+    /**
+     * Returns events where the applicant name contains the given company name
+     * (case-insensitive). Used by company timeline views.
+     */
+    List<RegulatoryEvent> findByApplicant(String companyName, int limit);
 }

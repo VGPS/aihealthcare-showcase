@@ -17,7 +17,7 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-30
  */
 @Entity
 @Table(name = "regulatory_events")
@@ -63,6 +63,18 @@ public class RegulatoryEventEntity {
     @Column(name = "ai_healthcare_keywords", columnDefinition = "TEXT")
     private String aiHealthcareKeywords;
 
+    @Column(name = "outcome_status", length = 30)
+    private String outcomeStatus;
+
+    @Column(name = "outcome_updated_at")
+    private Instant outcomeUpdatedAt;
+
+    @Column(name = "clearance_type", length = 50)
+    private String clearanceType;
+
+    @Column(name = "predicate_device_number", length = 50)
+    private String predicateDeviceNumber;
+
     /** Required no-arg constructor for JPA. */
     public RegulatoryEventEntity() {}
 
@@ -104,4 +116,16 @@ public class RegulatoryEventEntity {
 
     public String getAiHealthcareKeywords()                 { return aiHealthcareKeywords; }
     public void setAiHealthcareKeywords(String keywords)    { this.aiHealthcareKeywords = keywords; }
+
+    public String getOutcomeStatus()                                    { return outcomeStatus; }
+    public void setOutcomeStatus(String outcomeStatus)                  { this.outcomeStatus = outcomeStatus; }
+
+    public Instant getOutcomeUpdatedAt()                                { return outcomeUpdatedAt; }
+    public void setOutcomeUpdatedAt(Instant outcomeUpdatedAt)           { this.outcomeUpdatedAt = outcomeUpdatedAt; }
+
+    public String getClearanceType()                                    { return clearanceType; }
+    public void setClearanceType(String clearanceType)                  { this.clearanceType = clearanceType; }
+
+    public String getPredicateDeviceNumber()                            { return predicateDeviceNumber; }
+    public void setPredicateDeviceNumber(String predicateDeviceNumber)  { this.predicateDeviceNumber = predicateDeviceNumber; }
 }

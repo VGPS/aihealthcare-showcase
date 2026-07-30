@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryBody;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
+import com.wgblackmon.aihealthcare.domain.model.RegulatoryOutcomeStatus;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,7 +23,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-07-30
  */
 @Slf4j
 @Component
@@ -113,6 +114,15 @@ public class RegulatoryEventAdapter implements RegulatoryEventPort {
         return result;
     }
 
+    @Override
+    public List<RegulatoryEvent> findByApplicant(String companyName, int limit) {
+        log.debug("findByApplicant() | companyName={}, limit={}", companyName, limit);
+        List<RegulatoryEventEntity> entities = repository.findByApplicantNameContaining(companyName);
+        List<RegulatoryEvent> result = toLimitedDomainList(entities, limit);
+        log.debug("findByApplicant() | return={} events", result.size());
+        return result;
+    }
+
     private List<RegulatoryEvent> toLimitedDomainList(List<RegulatoryEventEntity> entities, int limit) {
         List<RegulatoryEvent> result = new ArrayList<>();
         int count = 0;
@@ -141,10 +151,16 @@ public class RegulatoryEventAdapter implements RegulatoryEventPort {
         entity.setPublishedAt(event.publishedAt());
         entity.setDiscoveredAt(event.discoveredAt());
         entity.setAiHealthcareKeywords(joinKeywords(event.aiHealthcareKeywords()));
+        entity.setOutcomeStatus(event.outcomeStatus() != null ? event.outcomeStatus().name() : null);
+        entity.setOutcomeUpdatedAt(event.outcomeUpdatedAt());
+        entity.setClearanceType(event.clearanceType());
+        entity.setPredicateDeviceNumber(event.predicateDeviceNumber());
         return entity;
     }
 
     private RegulatoryEvent toDomain(RegulatoryEventEntity entity) {
+        RegulatoryOutcomeStatus outcomeStatus = entity.getOutcomeStatus() != null
+                ? RegulatoryOutcomeStatus.valueOf(entity.getOutcomeStatus()) : null;
         return new RegulatoryEvent(
                 entity.getEventId(),
                 RegulatoryEventType.valueOf(entity.getEventType()),
@@ -158,7 +174,11 @@ public class RegulatoryEventAdapter implements RegulatoryEventPort {
                 entity.getLinkedArticleId(),
                 entity.getPublishedAt(),
                 entity.getDiscoveredAt(),
-                splitKeywords(entity.getAiHealthcareKeywords())
+                splitKeywords(entity.getAiHealthcareKeywords()),
+                outcomeStatus,
+                entity.getOutcomeUpdatedAt(),
+                entity.getClearanceType(),
+                entity.getPredicateDeviceNumber()
         );
     }
 

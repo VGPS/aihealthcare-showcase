@@ -9,7 +9,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-28
+ * @updated 2026-07-30
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -86,6 +86,81 @@
                  th:text="${event.description()}"
                  class="text-sm text-gray-500">Description</div>
         </div>
+    </div>
+
+    <!-- Regulatory History — only shown when regulatory events exist -->
+    <div th:unless="${#lists.isEmpty(regulatoryEvents)}">
+        <h2 class="font-display text-lg font-semibold text-on-surface mt-8 mb-4">Regulatory History</h2>
+        <table class="w-full border-collapse">
+            <thead>
+            <tr class="border-b-2 border-gray-300 text-left">
+                <th class="p-2">Type</th>
+                <th class="p-2">Title</th>
+                <th class="p-2">Reference</th>
+                <th class="p-2">Outcome</th>
+                <th class="p-2">Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="regEvent : ${regulatoryEvents}" class="border-b border-gray-200">
+                <td class="p-2">
+                    <span th:switch="${regEvent.eventType().name()}">
+                        <span th:case="'FDA_510K_CLEARANCE'"
+                              class="inline-block bg-blue-800 text-white px-2 py-0.5 rounded text-xs">510(k)</span>
+                        <span th:case="'FDA_DE_NOVO_CLASSIFICATION'"
+                              class="inline-block bg-green-800 text-white px-2 py-0.5 rounded text-xs">De Novo</span>
+                        <span th:case="'FDA_PMA_APPROVAL'"
+                              class="inline-block bg-purple-800 text-white px-2 py-0.5 rounded text-xs">PMA</span>
+                        <span th:case="'CMS_PROPOSED_RULE'"
+                              class="inline-block bg-orange-800 text-white px-2 py-0.5 rounded text-xs">CMS Proposed</span>
+                        <span th:case="'CMS_FINAL_RULE'"
+                              class="inline-block bg-red-900 text-white px-2 py-0.5 rounded text-xs">CMS Final</span>
+                        <span th:case="*"
+                              class="inline-block bg-gray-500 text-white px-2 py-0.5 rounded text-xs"
+                              th:text="${regEvent.eventType().name()}">OTHER</span>
+                    </span>
+                </td>
+                <td class="p-2">
+                    <a th:href="${regEvent.sourceUrl()}" target="_blank"
+                       th:text="${regEvent.title()}" class="text-primary-600">Title</a>
+                    <div th:if="${regEvent.deviceName() != null}"
+                         class="text-xs text-gray-500 mt-0.5"
+                         th:text="'Device: ' + ${regEvent.deviceName()}">Device</div>
+                    <div th:if="${regEvent.clearanceType() != null}"
+                         class="text-xs text-blue-600 mt-0.5"
+                         th:text="'Pathway: ' + ${regEvent.clearanceType()}">Clearance Type</div>
+                </td>
+                <td class="p-2 text-sm font-mono">
+                    <span th:if="${regEvent.referenceNumber() != null}" th:text="${regEvent.referenceNumber()}">K241234</span>
+                </td>
+                <td class="p-2">
+                    <span th:if="${regEvent.outcomeStatus() != null}" th:switch="${regEvent.outcomeStatus().name()}">
+                        <span th:case="'CLEARED'"
+                              class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Cleared</span>
+                        <span th:case="'APPROVED'"
+                              class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Approved</span>
+                        <span th:case="'PENDING'"
+                              class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-semibold">Pending</span>
+                        <span th:case="'DENIED'"
+                              class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-semibold">Denied</span>
+                        <span th:case="'WITHDRAWN'"
+                              class="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold">Withdrawn</span>
+                        <span th:case="'MARKETED'"
+                              class="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-semibold">Marketed</span>
+                        <span th:case="'CMS_COVERED'"
+                              class="inline-block bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-xs font-semibold">CMS Covered</span>
+                        <span th:case="'CMS_NON_COVERED'"
+                              class="inline-block bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-semibold">Not Covered</span>
+                        <span th:case="*"
+                              class="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs"
+                              th:text="${regEvent.outcomeStatus().name()}">Status</span>
+                    </span>
+                </td>
+                <td class="p-2 text-sm whitespace-nowrap"
+                    th:text="${regEventDates[regEvent.eventId()]}">Jan 1, 2026</td>
+            </tr>
+            </tbody>
+        </table>
     </div>
 
     <div class="text-sm text-gray-500 mt-8">

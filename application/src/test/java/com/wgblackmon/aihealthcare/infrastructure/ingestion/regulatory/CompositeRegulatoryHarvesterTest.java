@@ -78,6 +78,7 @@ class CompositeRegulatoryHarvesterTest {
     private RegulatoryEvent event(String id) {
         return new RegulatoryEvent(id, RegulatoryEventType.FDA_510K_CLEARANCE,
                 RegulatoryBody.FDA, "Event " + id, null, null, null, null,
-                "https://fda.gov/" + id, null, null, Instant.now(), null);
+                "https://fda.gov/" + id, null, null, Instant.now(), null,
+                null, null, null, null);
     }
 }

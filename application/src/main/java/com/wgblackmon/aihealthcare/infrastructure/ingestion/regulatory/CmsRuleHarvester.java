@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryBody;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
+import com.wgblackmon.aihealthcare.domain.model.RegulatoryOutcomeStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -118,9 +119,13 @@ public class CmsRuleHarvester implements RegulatorySourceHarvester {
                         continue;
                     }
 
-                    RegulatoryEventType eventType = "RULE".equalsIgnoreCase(docType)
+                    boolean isFinalRule = "RULE".equalsIgnoreCase(docType);
+                    RegulatoryEventType eventType = isFinalRule
                             ? RegulatoryEventType.CMS_FINAL_RULE
                             : RegulatoryEventType.CMS_PROPOSED_RULE;
+                    RegulatoryOutcomeStatus outcomeStatus = isFinalRule
+                            ? RegulatoryOutcomeStatus.APPROVED
+                            : RegulatoryOutcomeStatus.PENDING;
 
                     Instant publishedAt = parseDate(pubDate);
 
@@ -138,7 +143,11 @@ public class CmsRuleHarvester implements RegulatorySourceHarvester {
                             null,
                             publishedAt,
                             Instant.now(),
-                            matchedKeywords
+                            matchedKeywords,
+                            outcomeStatus,
+                            Instant.now(),
+                            null,
+                            null
                     );
                     events.add(event);
                 }
