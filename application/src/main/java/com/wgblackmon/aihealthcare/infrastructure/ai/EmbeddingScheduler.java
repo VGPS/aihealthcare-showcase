@@ -38,7 +38,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-06-05
+ * @updated 2026-07-30
  */
 @Slf4j
 @Component
@@ -76,8 +76,8 @@ public class EmbeddingScheduler {
             return;
         }
 
-        List<NewsArticleEntity> entities = repository.findAll();
-        log.info("embedArticles() | Found {} articles to embed", entities.size());
+        List<NewsArticleEntity> entities = repository.findByEmbeddedFalse();
+        log.info("embedArticles() | Found {} new articles to embed (skipping already-embedded)", entities.size());
 
         if (entities.isEmpty()) {
             log.debug("embedArticles() | return=void (nothing to embed)");
@@ -103,6 +103,11 @@ public class EmbeddingScheduler {
             List<Document> batch = documents.subList(i, end);
             try {
                 vectorStore.add(batch);
+                // Mark this batch of entities as embedded so they are skipped next run
+                for (int j = i; j < end; j++) {
+                    entities.get(j).setEmbedded(true);
+                }
+                repository.saveAll(entities.subList(i, end));
                 totalEmbedded += batch.size();
                 log.info("embedArticles() | Embedded batch {}-{} of {} articles",
                          i + 1, end, documents.size());
@@ -120,7 +125,7 @@ public class EmbeddingScheduler {
                 }
             }
         }
-        log.info("embedArticles() | Completed — {} of {} articles embedded",
+        log.info("embedArticles() | Completed — {} of {} new articles embedded",
                  totalEmbedded, documents.size());
 
         log.debug("embedArticles() | return=void");

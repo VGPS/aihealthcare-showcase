@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Admin pipeline management page — trigger and monitor all data pipelines.
+ *
+ * Displays a card grid of every data-gathering pipeline with schedule info,
+ * descriptions, performance impact ratings, pre-flight warnings, last run
+ * status, dry-run toggle, and manual trigger buttons with structured results.
+ *
+ * @author  Bill Blackmon
+ * @version 2.0
+ * @since   2026-07-30
+ * @updated 2026-07-30
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Pipeline Management')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Pipeline Management</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Trigger and monitor all data-gathering pipelines</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('admin-pipelines')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
+        <span class="text-gray-500 text-sm">
+            <span th:text="${pipelineCount}">0</span> pipelines configured
+            &nbsp;|&nbsp; Server time: <span th:text="${serverTime}">N/A</span>
+        </span>
+        <div class="flex items-center gap-3">
+            <label class="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+                <input type="checkbox" id="dryRunToggle" class="rounded" />
+                Dry Run
+            </label>
+            <button type="button" class="btn-search" id="runAllBtn"
+                    onclick="runAllSafe(this)">
+                Run All Safe Pipelines
+            </button>
+            <span class="text-xs text-gray-400">(safe = no LLM cost)</span>
+        </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="flex flex-wrap gap-3 mb-4 text-xs text-gray-500">
+        <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-green-500"></span> Ready</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-yellow-500"></span> Warnings</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-red-500"></span> Blocked</span>
+        <span class="flex items-center gap-1"><span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span> Running</span>
+    </div>
+
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(360px,1fr))] gap-4">
+        <div th:each="p : ${pipelines}"
+             th:id="'card-' + ${p.id()}"
+             class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+
+            <!-- Header row: name + impact badge + health indicator -->
+            <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center gap-2">
+                    <!-- Pre-flight health dot -->
+                    <span th:if="${preFlightWarnings[p.id()] == null or preFlightWarnings[p.id()].isEmpty()}"
+                          class="inline-block w-2.5 h-2.5 rounded-full bg-green-500" title="Ready"></span>
+                    <span th:if="${preFlightWarnings[p.id()] != null and !preFlightWarnings[p.id()].isEmpty()}"
+                          class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-500" title="Warnings"></span>
+                    <h3 class="text-lg font-semibold text-primary-600" th:text="${p.name()}">Pipeline</h3>
+                </div>
+                <span th:switch="${p.performanceImpact()}">
+                    <span th:case="'High (LLM cost)'" class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-semibold">High (LLM)</span>
+                    <span th:case="'High (CPU + API)'" class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-semibold">High (CPU)</span>
+                    <span th:case="'Medium (LLM)'" class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-semibold">Medium (LLM)</span>
+                    <span th:case="'Medium'" class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-semibold">Medium</span>
+                    <span th:case="'Minimal'" class="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold">Minimal</span>
+                    <span th:case="*" class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold" th:text="${p.performanceImpact()}">Low</span>
+                </span>
+            </div>
+
+            <!-- Pre-flight warnings -->
+            <div th:if="${preFlightWarnings[p.id()] != null and !preFlightWarnings[p.id()].isEmpty()}"
+                 class="bg-yellow-50 border border-yellow-200 rounded px-3 py-2 mb-3 text-xs text-yellow-800">
+                <div th:each="warn : ${preFlightWarnings[p.id()]}" class="flex items-start gap-1">
+                    <span class="font-bold">!</span>
+                    <span th:text="${warn}">Warning</span>
+                </div>
+            </div>
+
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed" th:text="${p.description()}">Description</p>
+
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Schedule: <span class="font-semibold" th:text="${p.schedule()}">Daily</span></div>
+                <div>Scheduler: <span class="font-mono" th:text="${p.schedulerClass()}">Class</span></div>
+                <div>Endpoint: <span class="font-mono text-primary-600" th:text="${p.triggerUrl()}">/api/...</span></div>
+                <div>Est. duration: <span th:text="${p.estimatedDuration()}">~1 min</span></div>
+            </div>
+
+            <!-- Last run info -->
+            <div th:if="${lastRunSummaries[p.id()] != null}"
+                 class="text-xs mb-3 px-2 py-1.5 rounded"
+                 th:classappend="${lastRunStatuses[p.id()] == 'SUCCESS' ? 'bg-green-50 text-green-700' :
+                                  lastRunStatuses[p.id()] == 'FAILED' ? 'bg-red-50 text-red-700' :
+                                  'bg-yellow-50 text-yellow-700'}">
+                Last run (<span th:text="${lastRunTimes[p.id()]}">time</span>):
+                <span th:text="${lastRunSummaries[p.id()]}">summary</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="button" class="btn-search text-sm px-3 py-1.5"
+                        th:data-id="${p.id()}"
+                        th:data-name="${p.name()}"
+                        onclick="triggerPipeline(this)">
+                    Run Now
+                </button>
+                <span th:id="'status-' + ${p.id()}" class="text-xs"></span>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+
+var batchRunning = false;
+var batchStopped = false;
+
+/* Pipeline registry: id → {triggerUrl, httpMethod, requiresCsrf} */
+var pipelineRegistry = /*[[${pipelineRegistry}]]*/{};
+
+function getCsrfToken() {
+    var meta = document.querySelector('meta[name="_csrf"]');
+    return meta ? meta.getAttribute('content') : '';
+}
+
+function getCsrfHeader() {
+    var meta = document.querySelector('meta[name="_csrf_header"]');
+    return meta ? meta.getAttribute('content') : 'X-CSRF-TOKEN';
+}
+
+function getAllPipelineButtons() {
+    return document.querySelectorAll('button[data-id]');
+}
+
+function setAllButtonsDisabled(disabled) {
+    var buttons = getAllPipelineButtons();
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].disabled = disabled;
+    }
+    var runAllBtn = document.getElementById('runAllBtn');
+    if (runAllBtn && !batchRunning) {
+        runAllBtn.disabled = disabled;
+    }
+}
+
+function isDryRun() {
+    var toggle = document.getElementById('dryRunToggle');
+    return toggle && toggle.checked;
+}
+
+/**
+ * Triggers a single pipeline by calling its native endpoint directly.
+ * 1. Pre-flight check via /admin/pipelines/dry-run/{id}
+ * 2. If dry-run mode, stop after showing the result
+ * 3. Otherwise call the original pipeline endpoint with browser session
+ * 4. Report the result back via POST /admin/pipelines/record/{id}
+ *
+ * Returns a Promise that resolves when done (success or error).
+ */
+function triggerPipeline(btn) {
+    var id = btn.getAttribute('data-id');
+    var statusEl = document.getElementById('status-' + id);
+    var cardEl = document.getElementById('card-' + id);
+    var dryRun = isDryRun();
+    var pipeline = pipelineRegistry[id];
+
+    btn.disabled = true;
+    btn.textContent = dryRun ? 'Checking...' : 'Preflight...';
+    statusEl.textContent = dryRun ? 'Dry run...' : 'Preflight check...';
+    statusEl.className = 'text-xs text-blue-600 font-semibold';
+    cardEl.classList.add('border-blue-300');
+    cardEl.classList.remove('border-gray-200', 'border-green-300', 'border-red-300', 'border-yellow-300');
+
+    if (!batchRunning) {
+        setAllButtonsDisabled(true);
+    }
+
+    /* Step 1: Pre-flight / dry-run check */
+    return fetch('/admin/pipelines/dry-run/' + id, {
+        method: 'GET',
+        credentials: 'same-origin'
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(dryRunResult) {
+        /* If blocked, stop immediately */
+        if (dryRunResult.status === 'BLOCKED') {
+            cardEl.classList.remove('border-blue-300');
+            cardEl.classList.add('border-yellow-300');
+            btn.textContent = 'Blocked';
+            statusEl.className = 'text-xs text-yellow-700 font-semibold';
+            var warnText = '';
+            for (var i = 0; i < dryRunResult.warnings.length; i++) {
+                if (i > 0) warnText += '; ';
+                warnText += dryRunResult.warnings[i];
+            }
+            statusEl.textContent = 'Blocked: ' + warnText;
+            if (!batchRunning) { setAllButtonsDisabled(false); }
+            return Promise.resolve('BLOCKED');
+        }
+
+        /* If dry-run mode, show result and stop */
+        if (dryRun) {
+            cardEl.classList.remove('border-blue-300');
+            cardEl.classList.add('border-green-300');
+            btn.textContent = 'Ready';
+            statusEl.className = 'text-xs text-green-700 font-semibold';
+            statusEl.textContent = 'Dry run OK: ' + (dryRunResult.detail || 'Ready to execute');
+            if (!batchRunning) { setAllButtonsDisabled(false); }
+            return Promise.resolve('DRYRUN');
+        }
+
+        /* Step 2: Call the original pipeline endpoint directly */
+        btn.textContent = 'Running...';
+        statusEl.textContent = 'Executing...';
+        var startTime = Date.now();
+
+        var headers = { 'Content-Type': 'application/json' };
+        if (pipeline.httpMethod === 'POST') {
+            headers[getCsrfHeader()] = getCsrfToken();
+        }
+
+        return fetch(pipeline.triggerUrl, {
+            method: pipeline.httpMethod,
+            headers: headers,
+            credentials: 'same-origin'
+        })
+        .then(function(resp) {
+            var durationMs = Date.now() - startTime;
+            cardEl.classList.remove('border-blue-300');
+
+            if (resp.ok) {
+                btn.textContent = 'Done';
+                cardEl.classList.add('border-green-300');
+                statusEl.className = 'text-xs text-green-700 font-semibold';
+                statusEl.textContent = 'OK (' + durationMs + 'ms)';
+
+                /* Report success */
+                return recordRun(id, 'SUCCESS', '', durationMs);
+            } else {
+                return resp.text().then(function(bodyText) {
+                    var errMsg = 'HTTP ' + resp.status;
+                    try {
+                        var errJson = JSON.parse(bodyText);
+                        errMsg = errJson.error || errJson.message || errMsg;
+                    } catch (e) {
+                        if (bodyText.length > 0 && bodyText.length < 200) errMsg = bodyText;
+                    }
+                    if (errMsg.length > 150) errMsg = errMsg.substring(0, 150) + '...';
+
+                    btn.textContent = 'Failed';
+                    cardEl.classList.add('border-red-300');
+                    statusEl.className = 'text-xs text-red-700 font-semibold';
+                    statusEl.textContent = errMsg;
+
+                    /* Report failure */
+                    return recordRun(id, 'FAILED', errMsg, durationMs);
+                });
+            }
+        });
+    })
+    .catch(function(err) {
+        btn.textContent = 'Error';
+        cardEl.classList.remove('border-blue-300');
+        cardEl.classList.add('border-red-300');
+        statusEl.className = 'text-xs text-red-700 font-semibold';
+        statusEl.textContent = 'Network error: ' + err.message;
+        if (!batchRunning) { setAllButtonsDisabled(false); }
+    });
+}
+
+/** Reports a pipeline run result to the server for tracking. */
+function recordRun(pipelineId, status, message, durationMs) {
+    var headers = { 'Content-Type': 'application/json' };
+    headers[getCsrfHeader()] = getCsrfToken();
+
+    return fetch('/admin/pipelines/record/' + pipelineId, {
+        method: 'POST',
+        headers: headers,
+        credentials: 'same-origin',
+        body: JSON.stringify({ status: status, message: message, durationMs: durationMs })
+    }).then(function() {
+        if (!batchRunning) { setAllButtonsDisabled(false); }
+    }).catch(function() {
+        /* Recording failure is non-critical — pipeline already ran */
+        if (!batchRunning) { setAllButtonsDisabled(false); }
+    });
+}
+
+/** Runs safe pipelines sequentially — each waits for the previous to fully complete. */
+function runAllSafe(btn) {
+    batchRunning = true;
+    batchStopped = false;
+    setAllButtonsDisabled(true);
+    btn.disabled = false;
+    btn.textContent = 'Stop All';
+    btn.onclick = function() { stopAll(btn); };
+
+    var safeIds = ['rss-feeds', 'competitor', 'huggingface', 'regulatory', 'clinical-trials', 'wiki-lint', 'trend-detection'];
+    var buttons = [];
+    for (var i = 0; i < safeIds.length; i++) {
+        var card = document.getElementById('card-' + safeIds[i]);
+        if (card) {
+            var b = card.querySelector('button[data-id]');
+            if (b) buttons.push(b);
+        }
+    }
+
+    var completed = 0;
+    var errors = 0;
+    var blocked = 0;
+
+    function runNext(idx) {
+        if (batchStopped || idx >= buttons.length) {
+            var parts = [];
+            if (completed > 0) parts.push(completed + ' done');
+            if (errors > 0) parts.push(errors + ' failed');
+            if (blocked > 0) parts.push(blocked + ' blocked');
+            var prefix = batchStopped ? 'Stopped' : 'Complete';
+            finishBatch(btn, prefix + ': ' + parts.join(', '));
+            return;
+        }
+        btn.textContent = 'Stop (' + (idx + 1) + '/' + buttons.length + ')';
+        var current = buttons[idx];
+        var statusEl = document.getElementById('status-' + current.getAttribute('data-id'));
+
+        triggerPipeline(current).then(function() {
+            if (statusEl.className.indexOf('text-red') !== -1) {
+                errors++;
+            } else if (statusEl.className.indexOf('text-yellow') !== -1) {
+                blocked++;
+            } else {
+                completed++;
+            }
+            runNext(idx + 1);
+        });
+    }
+    runNext(0);
+}
+
+function stopAll(btn) {
+    batchStopped = true;
+    btn.textContent = 'Stopping after current...';
+    btn.disabled = true;
+}
+
+function finishBatch(btn, message) {
+    batchRunning = false;
+    batchStopped = false;
+    btn.textContent = message;
+    btn.disabled = false;
+    btn.onclick = function() { runAllSafe(btn); };
+    setAllButtonsDisabled(false);
+}
+
+/*]]>*/
+</script>
+</body>
+</html>

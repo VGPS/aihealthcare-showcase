@@ -22,10 +22,17 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-07-03
+ * @updated 2026-07-30
  */
 public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, String>,
                 JpaSpecificationExecutor<NewsArticleEntity> {
+
+    /**
+     * Finds all articles that have not yet been embedded into the vector store.
+     *
+     * @return list of un-embedded entities; empty if all are embedded
+     */
+    List<NewsArticleEntity> findByEmbeddedFalse();
 
     /**
      * Returns {@code true} if an article with the given URL already exists.
