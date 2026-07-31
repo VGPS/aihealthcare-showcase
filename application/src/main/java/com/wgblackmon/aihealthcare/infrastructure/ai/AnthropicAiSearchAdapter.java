@@ -30,7 +30,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-07-19
+ * @updated 2026-07-31
  */
 @Slf4j
 @Component
@@ -54,7 +54,7 @@ public class AnthropicAiSearchAdapter implements AiSearchPort {
             @Qualifier("anthropicChatModel") ChatModel anthropicChatModel,
             PromptLoaderService promptLoaderService,
             @Value("${spring.ai.anthropic.chat.options.model:claude-sonnet-4-6}") String modelId,
-            @Value("${spring.ai.anthropic.api-key:}") String apiKey) {
+            @Value("${ANTHROPIC_API_KEY:}") String apiKey) {
         log.debug("AnthropicAiSearchAdapter() | model={}, promptLoaderService={}, modelId={}, apiKeyPresent={}",
                   anthropicChatModel.getClass().getSimpleName(),
                   promptLoaderService.getClass().getSimpleName(), modelId,

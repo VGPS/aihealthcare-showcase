@@ -236,11 +236,6 @@ public class AdminPipelineController {
                 "Daily 05:00 UTC", "ClinicalTrialHarvestScheduler",
                 "/monitoring/clinical-trials-harvest", "POST", true, "~1 min", "Low"));
 
-        list.add(new PipelineInfo("company-discovery", "Company Discovery",
-                "Scrapes YC and TopStartups.io for AI healthcare companies. Classifies, deduplicates, creates CompanyProfile records.",
-                "Daily 04:00 UTC", "CompanyDiscoveryScheduler",
-                "/companies/discover", "POST", true, "~2 min", "Medium"));
-
         list.add(new PipelineInfo("wiki-compile", "Wiki Compilation",
                 "Compiles recent articles into wiki pages via LLM with provenance and contradiction detection. Requires AI API key.",
                 "After daily feed harvest", "FeedHarvestScheduler",

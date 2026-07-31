@@ -29,7 +29,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-07-19
+ * @updated 2026-07-31
  */
 @Slf4j
 @Component
@@ -53,7 +53,7 @@ public class OpenAiSearchAdapter implements AiSearchPort {
             @Qualifier("openAiChatModel") ChatModel openaiChatModel,
             PromptLoaderService promptLoaderService,
             @Value("${spring.ai.openai.chat.options.model:gpt-4o}") String modelId,
-            @Value("${spring.ai.openai.api-key:}") String apiKey) {
+            @Value("${OPENAI_API_KEY:}") String apiKey) {
         log.debug("OpenAiSearchAdapter() | model={}, promptLoaderService={}, modelId={}, apiKeyPresent={}",
                   openaiChatModel.getClass().getSimpleName(),
                   promptLoaderService.getClass().getSimpleName(), modelId,

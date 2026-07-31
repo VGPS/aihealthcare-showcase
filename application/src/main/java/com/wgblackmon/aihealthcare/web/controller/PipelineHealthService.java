@@ -3,7 +3,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-30
- * @updated 2026-07-30
+ * @updated 2026-07-31
  */
 @Slf4j
 @Service
@@ -37,16 +37,23 @@ public class PipelineHealthService {
     private final boolean isH2;
     private final String anthropicApiKey;
     private final String openaiApiKey;
+    private final java.nio.file.Path dotEnvPath;
     private final ConcurrentHashMap<String, PipelineRunRecord> lastRuns = new ConcurrentHashMap<>();
 
+    @Autowired
     public PipelineHealthService(Environment env,
-                                 ObjectProvider<VectorStore> vectorStoreProvider,
-                                 @Value("${spring.ai.anthropic.api-key:}") String anthropicApiKey,
-                                 @Value("${spring.ai.openai.api-key:}") String openaiApiKey) {
+                                 ObjectProvider<VectorStore> vectorStoreProvider) {
+        this(env, vectorStoreProvider, java.nio.file.Path.of(".env"));
+    }
+
+    PipelineHealthService(Environment env,
+                          ObjectProvider<VectorStore> vectorStoreProvider,
+                          java.nio.file.Path dotEnvPath) {
         log.debug("PipelineHealthService() | env={}, vectorStoreProvider={}", env, vectorStoreProvider);
         this.env = env;
-        this.anthropicApiKey = anthropicApiKey;
-        this.openaiApiKey = openaiApiKey;
+        this.dotEnvPath = dotEnvPath;
+        this.anthropicApiKey = resolveKey(env, "ANTHROPIC_API_KEY", "spring.ai.anthropic.api-key");
+        this.openaiApiKey = resolveKey(env, "OPENAI_API_KEY", "spring.ai.openai.api-key");
         this.vectorStoreAvailable = vectorStoreProvider.getIfAvailable() != null;
         String dsUrl = env.getProperty("spring.datasource.url", "");
         this.isH2 = dsUrl.contains("jdbc:h2:");
@@ -103,7 +110,6 @@ public class PipelineHealthService {
             case "huggingface":
             case "regulatory":
             case "clinical-trials":
-            case "company-discovery":
             case "wiki-lint":
             case "legal-backfill":
             case "pubmed-backfill":
@@ -220,6 +226,42 @@ public class PipelineHealthService {
         return key != null && !key.isBlank() && !key.startsWith("placeholder-set-");
     }
 
+    private String resolveKey(Environment env, String envVarName, String springPropertyName) {
+        log.debug("resolveKey() | envVarName={}, springPropertyName={}", envVarName, springPropertyName);
+        // Try Environment property sources first
+        String val = env.getProperty(envVarName, "");
+        if (!val.isBlank()) {
+            log.debug("resolveKey() | return=(resolved from env)");
+            return val;
+        }
+        val = env.getProperty(springPropertyName, "");
+        if (!val.isBlank()) {
+            log.debug("resolveKey() | return=(resolved from spring property)");
+            return val;
+        }
+        // Fallback: read .env file directly (Spring property resolution can miss some keys)
+        val = readDotEnvKey(envVarName);
+        log.debug("resolveKey() | return=(from .env fallback, found={})", !val.isBlank());
+        return val;
+    }
+
+    private String readDotEnvKey(String keyName) {
+        try {
+            if (dotEnvPath == null || !java.nio.file.Files.exists(dotEnvPath)) {
+                return "";
+            }
+            List<String> lines = java.nio.file.Files.readAllLines(dotEnvPath);
+            for (String line : lines) {
+                if (line.startsWith(keyName + "=")) {
+                    return line.substring(keyName.length() + 1).trim();
+                }
+            }
+        } catch (Exception e) {
+            log.warn("readDotEnvKey() | failed to read .env for key={}: {}", keyName, e.getMessage());
+        }
+        return "";
+    }
+
     private String getDryRunDetail(String pipelineId) {
         switch (pipelineId) {
             case "rss-feeds":
@@ -232,8 +274,6 @@ public class PipelineHealthService {
                 return "Will harvest FDA 510(k), De Novo, and CMS rules from federal APIs, deduplicate, match watchlists";
             case "clinical-trials":
                 return "Will harvest AI-related clinical trials from ClinicalTrials.gov, deduplicate by NCT ID";
-            case "company-discovery":
-                return "Will scrape YC and TopStartups.io for AI healthcare companies, classify, deduplicate";
             case "wiki-compile":
                 return "Will compile recent articles into wiki pages via LLM with provenance and contradiction detection";
             case "wiki-lint":
