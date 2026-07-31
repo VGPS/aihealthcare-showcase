@@ -28,7 +28,7 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-20
+ * @updated 2026-07-30
  */
 @Entity
 @Table(name = "news_articles")
@@ -64,6 +64,9 @@ public class NewsArticleEntity {
     private Instant publishedAt;
 
     private Instant createdAt;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean embedded = false;
 
     /** Required no-arg constructor for JPA. */
     public NewsArticleEntity() {}
@@ -110,4 +113,7 @@ public class NewsArticleEntity {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public boolean isEmbedded() { return embedded; }
+    public void setEmbedded(boolean embedded) { this.embedded = embedded; }
 }

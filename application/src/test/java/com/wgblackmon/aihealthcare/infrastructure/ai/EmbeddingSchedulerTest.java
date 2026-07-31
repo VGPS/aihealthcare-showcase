@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-04-13
+ * @updated 2026-07-30
  */
 @ExtendWith(MockitoExtension.class)
 class EmbeddingSchedulerTest {
@@ -76,7 +76,7 @@ class EmbeddingSchedulerTest {
     void embedArticles_callsVectorStoreAddWithOneDocumentPerEntity() {
         NewsArticleEntity e1 = entity("a-001", "AI improves diagnosis", "Body text one.");
         NewsArticleEntity e2 = entity("a-002", "ML in drug discovery", "Body text two.");
-        when(repository.findAll()).thenReturn(List.of(e1, e2));
+        when(repository.findByEmbeddedFalse()).thenReturn(List.of(e1, e2));
 
         scheduler.embedArticles();
 
@@ -91,7 +91,7 @@ class EmbeddingSchedulerTest {
     @Test
     void embedArticles_documentIdMatchesArticleId() {
         NewsArticleEntity e = entity("a-001", "Title", "Body.");
-        when(repository.findAll()).thenReturn(List.of(e));
+        when(repository.findByEmbeddedFalse()).thenReturn(List.of(e));
 
         scheduler.embedArticles();
 
@@ -108,7 +108,7 @@ class EmbeddingSchedulerTest {
     @Test
     void embedArticles_documentContentCombinesTitleAndBody() {
         NewsArticleEntity e = entity("a-001", "My Title", "My body.");
-        when(repository.findAll()).thenReturn(List.of(e));
+        when(repository.findByEmbeddedFalse()).thenReturn(List.of(e));
 
         scheduler.embedArticles();
 
@@ -123,7 +123,7 @@ class EmbeddingSchedulerTest {
     @Test
     void embedArticles_documentMetadataContainsArticleIdTopicAndUrl() {
         NewsArticleEntity e = entity("a-001", "Title", "Body.");
-        when(repository.findAll()).thenReturn(List.of(e));
+        when(repository.findByEmbeddedFalse()).thenReturn(List.of(e));
 
         scheduler.embedArticles();
 
@@ -138,13 +138,26 @@ class EmbeddingSchedulerTest {
         assertThat(doc.getMetadata().get("articleId")).isEqualTo("a-001");
     }
 
+    @Test
+    void embedArticles_marksArticlesAsEmbeddedAfterSuccess() {
+        NewsArticleEntity e1 = entity("a-001", "Title One", "Body one.");
+        NewsArticleEntity e2 = entity("a-002", "Title Two", "Body two.");
+        when(repository.findByEmbeddedFalse()).thenReturn(List.of(e1, e2));
+
+        scheduler.embedArticles();
+
+        assertThat(e1.isEmbedded()).isTrue();
+        assertThat(e2.isEmbedded()).isTrue();
+        verify(repository).saveAll(anyList());
+    }
+
     // -------------------------------------------------------------------------
     // embedArticles() — empty repository
     // -------------------------------------------------------------------------
 
     @Test
     void embedArticles_emptyRepository_doesNotCallVectorStore() {
-        when(repository.findAll()).thenReturn(List.of());
+        when(repository.findByEmbeddedFalse()).thenReturn(List.of());
 
         scheduler.embedArticles();
 
@@ -158,7 +171,7 @@ class EmbeddingSchedulerTest {
     @Test
     void embedArticles_vectorStoreThrows_doesNotPropagateException() {
         NewsArticleEntity e = entity("a-001", "Title", "Body.");
-        when(repository.findAll()).thenReturn(List.of(e));
+        when(repository.findByEmbeddedFalse()).thenReturn(List.of(e));
         doThrow(new RuntimeException("invalid API key")).when(vectorStore).add(anyList());
 
         // Must not throw — the scheduler swallows embedding failures so the thread stays alive
