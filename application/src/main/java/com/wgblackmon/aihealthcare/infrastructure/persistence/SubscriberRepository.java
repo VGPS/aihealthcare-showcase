@@ -37,4 +37,12 @@ public interface SubscriberRepository extends JpaRepository<SubscriberEntity, St
      * @return List of matching subscriber entities; never {@code null}.
      */
     List<SubscriberEntity> findAllByActiveTrueAndTier(String tier);
+
+    /**
+     * Finds a subscriber by their unique unsubscribe token.
+     *
+     * @param unsubscribeToken The UUID unsubscribe token.
+     * @return An {@link Optional} containing the entity, or empty if not found.
+     */
+    Optional<SubscriberEntity> findByUnsubscribeToken(String unsubscribeToken);
 }

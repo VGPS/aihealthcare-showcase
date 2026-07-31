@@ -90,7 +90,12 @@
                class="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-5 py-2 rounded-md text-sm transition-colors">
                 Upgrade to Subscriber
             </a>
-            <a th:if="${tier == 'SUBSCRIBER' and stripeEnabled}" th:href="@{/pricing}"
+            <button th:if="${tier == 'SUBSCRIBER' and stripeEnabled and hasStripeCustomer}"
+                    onclick="handleManageSubscription()"
+                    class="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-5 py-2 rounded-md text-sm transition-colors cursor-pointer">
+                Manage Subscription
+            </button>
+            <a th:if="${tier == 'SUBSCRIBER' and stripeEnabled and !hasStripeCustomer}" th:href="@{/pricing}"
                class="border border-outline-variant hover:bg-gray-50 text-on-surface font-medium px-5 py-2 rounded-md text-sm transition-colors">
                 View Plans
             </a>
@@ -101,6 +106,29 @@
         </div>
     </div>
 </main>
+
+<meta name="user-email" th:content="${email}" />
+<script th:inline="javascript">
+function handleManageSubscription() {
+    var email = document.querySelector('meta[name="user-email"]').content;
+    fetch('/api/v1/stripe/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.portalUrl) {
+            window.location.href = data.portalUrl;
+        } else {
+            alert(data.error || 'Failed to open subscription portal');
+        }
+    })
+    .catch(function(err) {
+        alert('Error: ' + err.message);
+    });
+}
+</script>
 
 </body>
 </html>

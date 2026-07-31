@@ -18,8 +18,9 @@ public interface DeliverNewsletterUseCase {
      * Delivers the newsletter run identified by {@code runId} to all active subscribers.
      *
      * @param runId The ID of the newsletter run to deliver.
+     * @return the total number of recipients the newsletter was sent to.
      * @throws com.wgblackmon.aihealthcare.domain.exception.RunNotFoundException
      *         if no run exists for the given {@code runId}.
      */
-    void deliver(String runId);
+    int deliver(String runId);
 }

@@ -142,6 +142,10 @@ public class ProfileController {
         // Stripe config
         model.addAttribute("stripeEnabled", stripeProperties.isEnabled());
         model.addAttribute("subscriberPriceId", stripeProperties.getSubscriberPriceId());
+        boolean hasStripeCustomer = subscriberOpt.isPresent()
+                && subscriberOpt.get().stripeCustomerId() != null
+                && !subscriberOpt.get().stripeCustomerId().isBlank();
+        model.addAttribute("hasStripeCustomer", hasStripeCustomer);
 
         log.debug("profile() | return=profile");
         return "profile";

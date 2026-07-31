@@ -27,6 +27,7 @@ import com.wgblackmon.aihealthcare.domain.service.RegistrationService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DailySummaryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PasswordHashingPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
 import com.wgblackmon.aihealthcare.domain.service.MarketIntelligenceService;
@@ -197,12 +198,14 @@ public class AppConfig {
     @Bean
     public RegistrationService registrationService(AppUserPort appUserPort,
                                                    SubscriberPort subscriberPort,
-                                                   PasswordHashingPort passwordHashingPort) {
-        log.debug("registrationService() | appUserPort={}, subscriberPort={}, passwordHashingPort={}",
+                                                   PasswordHashingPort passwordHashingPort,
+                                                   TransactionalEmailPort transactionalEmailPort) {
+        log.debug("registrationService() | appUserPort={}, subscriberPort={}, passwordHashingPort={}, transactionalEmailPort={}",
                   appUserPort.getClass().getSimpleName(),
                   subscriberPort.getClass().getSimpleName(),
-                  passwordHashingPort.getClass().getSimpleName());
-        RegistrationService result = new RegistrationService(appUserPort, subscriberPort, passwordHashingPort);
+                  passwordHashingPort.getClass().getSimpleName(),
+                  transactionalEmailPort.getClass().getSimpleName());
+        RegistrationService result = new RegistrationService(appUserPort, subscriberPort, passwordHashingPort, transactionalEmailPort);
         log.debug("registrationService() | return={}", result.getClass().getSimpleName());
         return result;
     }

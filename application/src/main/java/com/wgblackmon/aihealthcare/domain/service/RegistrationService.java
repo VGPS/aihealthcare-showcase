@@ -8,10 +8,12 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.RegisterUserUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PasswordHashingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 /**
  * Domain service that handles self-registration of new DEMO users.
@@ -36,17 +38,21 @@ public class RegistrationService implements RegisterUserUseCase {
     private final AppUserPort appUserPort;
     private final SubscriberPort subscriberPort;
     private final PasswordHashingPort passwordHashingPort;
+    private final TransactionalEmailPort transactionalEmailPort;
 
     public RegistrationService(AppUserPort appUserPort,
                                SubscriberPort subscriberPort,
-                               PasswordHashingPort passwordHashingPort) {
-        log.debug("RegistrationService() | appUserPort={}, subscriberPort={}, passwordHashingPort={}",
+                               PasswordHashingPort passwordHashingPort,
+                               TransactionalEmailPort transactionalEmailPort) {
+        log.debug("RegistrationService() | appUserPort={}, subscriberPort={}, passwordHashingPort={}, transactionalEmailPort={}",
                   appUserPort.getClass().getSimpleName(),
                   subscriberPort.getClass().getSimpleName(),
-                  passwordHashingPort.getClass().getSimpleName());
+                  passwordHashingPort.getClass().getSimpleName(),
+                  transactionalEmailPort.getClass().getSimpleName());
         this.appUserPort = appUserPort;
         this.subscriberPort = subscriberPort;
         this.passwordHashingPort = passwordHashingPort;
+        this.transactionalEmailPort = transactionalEmailPort;
     }
 
     @Override
@@ -71,8 +77,11 @@ public class RegistrationService implements RegisterUserUseCase {
         appUserPort.save(appUser);
 
         Subscriber subscriber = new Subscriber(
-                email, displayName, true, Instant.now(), SubscriptionTier.DEMO);
+                email, displayName, true, Instant.now(), SubscriptionTier.DEMO,
+                UUID.randomUUID().toString(), null, null);
         subscriberPort.save(subscriber);
+
+        transactionalEmailPort.sendWelcome(email, displayName, DEMO_DURATION_DAYS);
 
         log.debug("register() | return={}", appUser.email());
         return appUser;

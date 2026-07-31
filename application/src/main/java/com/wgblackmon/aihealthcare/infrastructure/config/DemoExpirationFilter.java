@@ -118,7 +118,8 @@ public class DemoExpirationFilter extends OncePerRequestFilter {
             if (subOpt.isPresent()) {
                 Subscriber sub = subOpt.get();
                 Subscriber updatedSub = new Subscriber(sub.email(), sub.name(), sub.active(),
-                        sub.subscribedAt(), SubscriptionTier.FREE_PENDING);
+                        sub.subscribedAt(), SubscriptionTier.FREE_PENDING,
+                        sub.unsubscribeToken(), sub.stripeCustomerId(), sub.stripeSubscriptionId());
                 subscriberPort.save(updatedSub);
             }
 

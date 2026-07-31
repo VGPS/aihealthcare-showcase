@@ -93,13 +93,13 @@ class DeliveryServiceDeliverTest {
     );
 
     private static final Subscriber SUBSCRIBER_SUB = new Subscriber(
-            "subscriber@example.com", "Subscriber User", true, Instant.parse("2026-04-13T10:00:00Z"), SubscriptionTier.SUBSCRIBER);
+            "subscriber@example.com", "Subscriber User", true, Instant.parse("2026-04-13T10:00:00Z"), SubscriptionTier.SUBSCRIBER, null, null, null);
 
     private static final Subscriber DEMO_SUB = new Subscriber(
-            "demo@example.com", "Demo User", true, Instant.parse("2026-04-13T10:00:00Z"), SubscriptionTier.DEMO);
+            "demo@example.com", "Demo User", true, Instant.parse("2026-04-13T10:00:00Z"), SubscriptionTier.DEMO, null, null, null);
 
     private static final Subscriber FREE_SUB = new Subscriber(
-            "free@example.com", "Free User", true, Instant.parse("2026-04-13T10:00:00Z"), SubscriptionTier.FREE);
+            "free@example.com", "Free User", true, Instant.parse("2026-04-13T10:00:00Z"), SubscriptionTier.FREE, null, null, null);
 
     @BeforeEach
     void setUp() {

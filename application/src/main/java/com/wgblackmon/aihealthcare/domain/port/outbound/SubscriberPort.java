@@ -17,9 +17,9 @@ import java.util.Optional;
  * identifier and the deduplication check.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-04-13
- * @updated 2026-05-23
+ * @updated 2026-07-31
  */
 public interface SubscriberPort {
 
@@ -62,4 +62,12 @@ public interface SubscriberPort {
      * @param email The email address of the subscriber to delete.
      */
     void deleteByEmail(String email);
+
+    /**
+     * Looks up a subscriber by their unique unsubscribe token.
+     *
+     * @param token The UUID unsubscribe token.
+     * @return An {@link Optional} containing the subscriber, or empty if not found.
+     */
+    Optional<Subscriber> findByUnsubscribeToken(String token);
 }

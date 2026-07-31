@@ -65,7 +65,8 @@ public class SecurityConfig {
             .addFilterBefore(new ApiKeyAuthenticationFilter(apiKeyPort),
                              UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/register", "/choose-path", "/css/**", "/js/**", "/webjars/**",
+                .requestMatchers("/login", "/register", "/choose-path", "/unsubscribe",
+                                 "/css/**", "/js/**", "/webjars/**",
                                  "/pricing", "/error").permitAll()
                 .requestMatchers("/api/**").permitAll()
                 .requestMatchers("/monitoring/**").permitAll()

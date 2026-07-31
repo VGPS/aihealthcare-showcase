@@ -20,9 +20,9 @@ import java.time.Instant;
  * deleting the historical record.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-04-13
- * @updated 2026-05-23
+ * @updated 2026-07-31
  */
 @Entity
 @Table(name = "subscribers")
@@ -44,6 +44,15 @@ public class SubscriberEntity {
     @Column(name = "tier", nullable = false, length = 20)
     private String tier = "FREE";
 
+    @Column(name = "unsubscribe_token", length = 36, unique = true)
+    private String unsubscribeToken;
+
+    @Column(name = "stripe_customer_id", length = 255)
+    private String stripeCustomerId;
+
+    @Column(name = "stripe_subscription_id", length = 255)
+    private String stripeSubscriptionId;
+
     /** Required no-arg constructor for JPA. */
     public SubscriberEntity() {}
 
@@ -61,4 +70,13 @@ public class SubscriberEntity {
 
     public String getTier()             { return tier; }
     public void setTier(String tier)    { this.tier = tier; }
+
+    public String getUnsubscribeToken()                          { return unsubscribeToken; }
+    public void setUnsubscribeToken(String unsubscribeToken)     { this.unsubscribeToken = unsubscribeToken; }
+
+    public String getStripeCustomerId()                          { return stripeCustomerId; }
+    public void setStripeCustomerId(String stripeCustomerId)     { this.stripeCustomerId = stripeCustomerId; }
+
+    public String getStripeSubscriptionId()                              { return stripeSubscriptionId; }
+    public void setStripeSubscriptionId(String stripeSubscriptionId)     { this.stripeSubscriptionId = stripeSubscriptionId; }
 }
