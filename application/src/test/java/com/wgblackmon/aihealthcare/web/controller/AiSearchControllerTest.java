@@ -100,7 +100,7 @@ class AiSearchControllerTest {
     }
 
     private void stubSubscriberTier(String email) {
-        Subscriber subscriber = new Subscriber(email, "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        Subscriber subscriber = new Subscriber(email, "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
         when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(subscriber));
         UsageRecord usage = new UsageRecord(email, "2026-06", 5, 200);
         when(usageTrackingPort.getOrCreateUsage(eq(email), anyString())).thenReturn(usage);
@@ -200,7 +200,7 @@ class AiSearchControllerTest {
     @Test
     @WithMockUser(username = "subscriber@example.com")
     void search_subscriberTier_limitReached_showsWarning() throws Exception {
-        Subscriber subscriber = new Subscriber("subscriber@example.com", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        Subscriber subscriber = new Subscriber("subscriber@example.com", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
         when(subscriberPort.findByEmail("subscriber@example.com")).thenReturn(Optional.of(subscriber));
         UsageRecord exhausted = new UsageRecord("subscriber@example.com", "2026-06", 200, 200);
         when(usageTrackingPort.getOrCreateUsage(eq("subscriber@example.com"), anyString())).thenReturn(exhausted);

@@ -57,12 +57,14 @@ class EmailDeliveryAdapterTest {
 
     private static Subscriber subscriber(String email) {
         return new Subscriber(email, "Test User", true,
-                              Instant.parse("2026-04-13T10:00:00Z"), null);
+                              Instant.parse("2026-04-13T10:00:00Z"), null, null, null, null);
     }
+
+    private static final String BASE_URL = "https://app.bigskylabs.ai";
 
     @BeforeEach
     void setUp() {
-        adapter = new EmailDeliveryAdapter(mailSender, FROM);
+        adapter = new EmailDeliveryAdapter(mailSender, FROM, BASE_URL);
     }
 
     // -------------------------------------------------------------------------
@@ -100,6 +102,26 @@ class EmailDeliveryAdapterTest {
     // -------------------------------------------------------------------------
     // deliver() — per-recipient error isolation
     // -------------------------------------------------------------------------
+
+    @Test
+    void deliver_replacesUnsubscribePlaceholders() {
+        MimeMessage mockMessage = mock(MimeMessage.class);
+        when(mailSender.createMimeMessage()).thenReturn(mockMessage);
+
+        NewsletterRun runWithPlaceholders = new NewsletterRun(
+                "run-002", "Weekly", LocalDate.of(2026, 7, 31),
+                "<a href=\"{{unsubscribe_url}}\">Unsub</a> <a href=\"{{preferences_url}}\">Prefs</a>",
+                "Unsub: {{unsubscribe_url}} Prefs: {{preferences_url}}",
+                NewsletterRunStatus.DRAFT, Instant.parse("2026-07-31T08:00:00Z"));
+
+        Subscriber sub = new Subscriber("test@example.com", "Test", true,
+                Instant.now(), null, "tok-abc", null, null);
+
+        adapter.deliver(runWithPlaceholders, List.of(sub));
+
+        // Verifies the message was sent (placeholder replacement doesn't throw)
+        verify(mailSender, times(1)).send(any(MimeMessage.class));
+    }
 
     @Test
     void deliver_oneRecipientFails_remainingRecipientsStillReceiveMail() {

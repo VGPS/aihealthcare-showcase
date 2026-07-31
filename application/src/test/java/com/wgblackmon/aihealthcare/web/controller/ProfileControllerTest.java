@@ -71,7 +71,7 @@ class ProfileControllerTest {
     private void stubDefaults(String email, SubscriptionTier tier) {
         AppUser appUser = new AppUser(email, "hash", "Test User", "USER", true, tier, null);
         when(appUserPort.findByEmail(email)).thenReturn(Optional.of(appUser));
-        Subscriber sub = new Subscriber(email, "Test User", true, Instant.now(), tier);
+        Subscriber sub = new Subscriber(email, "Test User", true, Instant.now(), tier, null, null, null);
         when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(sub));
         UsageRecord usage = new UsageRecord(email, "2026-07", 12, 200);
         when(usageTrackingPort.getOrCreateUsage(eq(email), anyString())).thenReturn(usage);
@@ -153,7 +153,7 @@ class ProfileControllerTest {
                 SubscriptionTier.DEMO, expiresAt);
         when(appUserPort.findByEmail("demo@example.com")).thenReturn(Optional.of(demoUser));
         Subscriber sub = new Subscriber("demo@example.com", "Demo User", true, Instant.now(),
-                SubscriptionTier.DEMO);
+                SubscriptionTier.DEMO, null, null, null);
         when(subscriberPort.findByEmail("demo@example.com")).thenReturn(Optional.of(sub));
         UsageRecord usage = new UsageRecord("demo@example.com", "2026-07", 3, 200);
         when(usageTrackingPort.getOrCreateUsage(eq("demo@example.com"), anyString())).thenReturn(usage);

@@ -77,7 +77,7 @@ class UsageTrackingAdapterTest {
 
     @Test
     void getOrCreateUsage_subscriberTier_useSubscriberLimit() {
-        Subscriber subscriberSub = new Subscriber(EMAIL, "Test", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        Subscriber subscriberSub = new Subscriber(EMAIL, "Test", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
         when(subscriberPort.findByEmail(EMAIL)).thenReturn(Optional.of(subscriberSub));
         when(tierGatingService.monthlyQueryLimitFor(SubscriptionTier.SUBSCRIBER)).thenReturn(200);
 

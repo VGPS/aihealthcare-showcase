@@ -160,10 +160,15 @@ public class NewsletterPreviewController {
     public String sendNewsletter(@PathVariable String runId) {
         log.debug("sendNewsletter() | runId={}", runId);
 
-        deliverUseCase.deliver(runId);
-
-        log.info("sendNewsletter() | Newsletter sent: runId={}", runId);
-        log.debug("sendNewsletter() | return=redirect");
-        return "redirect:/newsletter/runs?sent=true";
+        try {
+            int count = deliverUseCase.deliver(runId);
+            log.info("sendNewsletter() | Newsletter sent: runId={}, count={}", runId, count);
+            log.debug("sendNewsletter() | return=redirect (sent)");
+            return "redirect:/newsletter/runs?sent=true&count=" + count;
+        } catch (Exception e) {
+            log.error("sendNewsletter() | Delivery failed: runId={}, error={}", runId, e.getMessage());
+            log.debug("sendNewsletter() | return=redirect (error)");
+            return "redirect:/newsletter/runs?error=" + e.getMessage();
+        }
     }
 }

@@ -83,7 +83,7 @@ class ChoosePathControllerTest {
                 SubscriptionTier.FREE_PENDING, Instant.now());
         when(appUserPort.findByEmail("demo@example.com")).thenReturn(Optional.of(user));
         Subscriber sub = new Subscriber("demo@example.com", "Demo", true,
-                Instant.now(), SubscriptionTier.FREE_PENDING);
+                Instant.now(), SubscriptionTier.FREE_PENDING, null, null, null);
         when(subscriberPort.findByEmail("demo@example.com")).thenReturn(Optional.of(sub));
 
         mockMvc.perform(post("/choose-path")

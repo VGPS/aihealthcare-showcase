@@ -19,25 +19,31 @@ import java.time.Instant;
  * beyond a non-blank check; callers are responsible for providing well-formed
  * addresses.
  *
- * @param email        The subscriber's email address; used as the unique key.
- *                     Must not be blank.
- * @param name         The subscriber's display name.  Must not be blank.
- * @param active       {@code true} if the subscriber should receive mailings.
- * @param subscribedAt Timestamp of when the subscription was created.
- * @param tier         Subscription tier (FREE, SUBSCRIBER).
- *                     Defaults to {@link SubscriptionTier#FREE} if {@code null}.
+ * @param email                 The subscriber's email address; used as the unique key.
+ *                              Must not be blank.
+ * @param name                  The subscriber's display name.  Must not be blank.
+ * @param active                {@code true} if the subscriber should receive mailings.
+ * @param subscribedAt          Timestamp of when the subscription was created.
+ * @param tier                  Subscription tier (FREE, SUBSCRIBER).
+ *                              Defaults to {@link SubscriptionTier#FREE} if {@code null}.
+ * @param unsubscribeToken      UUID token for one-click email unsubscribe links.  Nullable.
+ * @param stripeCustomerId      Stripe customer ID from checkout session.  Nullable.
+ * @param stripeSubscriptionId  Stripe subscription ID for portal management.  Nullable.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-04-13
- * @updated 2026-07-20
+ * @updated 2026-07-31
  */
 public record Subscriber(
         String           email,
         String           name,
         boolean          active,
         Instant          subscribedAt,
-        SubscriptionTier tier
+        SubscriptionTier tier,
+        String           unsubscribeToken,
+        String           stripeCustomerId,
+        String           stripeSubscriptionId
 ) {
     /** Compact canonical constructor — validates required fields, defaults tier to FREE. */
     public Subscriber {

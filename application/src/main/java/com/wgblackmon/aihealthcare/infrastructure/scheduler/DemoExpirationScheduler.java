@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -30,12 +31,17 @@ public class DemoExpirationScheduler {
 
     private final AppUserPort appUserPort;
     private final SubscriberPort subscriberPort;
+    private final TransactionalEmailPort transactionalEmailPort;
 
-    public DemoExpirationScheduler(AppUserPort appUserPort, SubscriberPort subscriberPort) {
-        log.debug("DemoExpirationScheduler() | appUserPort={}, subscriberPort={}",
-                  appUserPort.getClass().getSimpleName(), subscriberPort.getClass().getSimpleName());
+    public DemoExpirationScheduler(AppUserPort appUserPort,
+                                   SubscriberPort subscriberPort,
+                                   TransactionalEmailPort transactionalEmailPort) {
+        log.debug("DemoExpirationScheduler() | appUserPort={}, subscriberPort={}, transactionalEmailPort={}",
+                  appUserPort.getClass().getSimpleName(), subscriberPort.getClass().getSimpleName(),
+                  transactionalEmailPort.getClass().getSimpleName());
         this.appUserPort = appUserPort;
         this.subscriberPort = subscriberPort;
+        this.transactionalEmailPort = transactionalEmailPort;
     }
 
     /**
@@ -61,10 +67,12 @@ public class DemoExpirationScheduler {
                 if (subOpt.isPresent()) {
                     Subscriber sub = subOpt.get();
                     Subscriber updatedSub = new Subscriber(sub.email(), sub.name(), sub.active(),
-                            sub.subscribedAt(), SubscriptionTier.FREE_PENDING);
+                            sub.subscribedAt(), SubscriptionTier.FREE_PENDING,
+                            sub.unsubscribeToken(), sub.stripeCustomerId(), sub.stripeSubscriptionId());
                     subscriberPort.save(updatedSub);
                 }
 
+                transactionalEmailPort.sendDemoExpiration(user.email(), user.displayName());
                 transitioned++;
             } catch (Exception e) {
                 log.error("expireExpiredDemos() | failed to transition user: {}", user.email(), e);

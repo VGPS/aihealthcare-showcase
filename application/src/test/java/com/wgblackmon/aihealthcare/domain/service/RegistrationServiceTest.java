@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PasswordHashingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -34,6 +35,7 @@ class RegistrationServiceTest {
     private AppUserPort appUserPort;
     private SubscriberPort subscriberPort;
     private PasswordHashingPort passwordHashingPort;
+    private TransactionalEmailPort transactionalEmailPort;
     private RegistrationService service;
 
     @BeforeEach
@@ -41,7 +43,8 @@ class RegistrationServiceTest {
         appUserPort = mock(AppUserPort.class);
         subscriberPort = mock(SubscriberPort.class);
         passwordHashingPort = mock(PasswordHashingPort.class);
-        service = new RegistrationService(appUserPort, subscriberPort, passwordHashingPort);
+        transactionalEmailPort = mock(TransactionalEmailPort.class);
+        service = new RegistrationService(appUserPort, subscriberPort, passwordHashingPort, transactionalEmailPort);
 
         when(appUserPort.findByEmail(anyString())).thenReturn(Optional.empty());
         when(subscriberPort.findByEmail(anyString())).thenReturn(Optional.empty());
@@ -110,7 +113,7 @@ class RegistrationServiceTest {
     @Test
     void register_duplicateSubscriber_throwsDuplicateUserException() {
         Subscriber existing = new Subscriber("existing@example.com", "Existing", true,
-                java.time.Instant.now(), SubscriptionTier.FREE);
+                java.time.Instant.now(), SubscriptionTier.FREE, null, null, null);
         when(subscriberPort.findByEmail("existing@example.com")).thenReturn(Optional.of(existing));
 
         assertThatThrownBy(() -> service.register("existing@example.com", "New User", "password123"))

@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 /**
  * REST controller exposing the manual newsletter delivery trigger.
  *
@@ -57,13 +59,13 @@ public class NewsletterDeliveryController {
      *         {@link GlobalExceptionHandler}).
      */
     @PostMapping("/deliver")
-    public ResponseEntity<Void> deliver(@RequestBody DeliverRequest request) {
+    public ResponseEntity<Map<String, Object>> deliver(@RequestBody DeliverRequest request) {
         log.debug("deliver() | request={}", request);
 
-        deliverNewsletterUseCase.deliver(request.runId());
+        int count = deliverNewsletterUseCase.deliver(request.runId());
 
-        log.info("deliver() | Delivery triggered: runId={}", request.runId());
-        log.debug("deliver() | return=204");
-        return ResponseEntity.noContent().build();
+        log.info("deliver() | Delivery triggered: runId={}, count={}", request.runId(), count);
+        log.debug("deliver() | return=200");
+        return ResponseEntity.ok(Map.of("sent", count));
     }
 }

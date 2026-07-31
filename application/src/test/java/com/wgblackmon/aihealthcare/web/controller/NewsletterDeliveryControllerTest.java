@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,19 +49,22 @@ class NewsletterDeliveryControllerTest {
     private static final String RUN_ID = "run-001";
 
     @Test
-    void deliver_returns204OnSuccess() throws Exception {
+    void deliver_returns200WithCount() throws Exception {
+        when(deliverNewsletterUseCase.deliver(RUN_ID)).thenReturn(5);
+
         mockMvc.perform(post("/api/v1/newsletter/deliver")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new DeliverRequest(RUN_ID))))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sent").value(5));
 
         verify(deliverNewsletterUseCase).deliver(RUN_ID);
     }
 
     @Test
     void deliver_runNotFound_returns404() throws Exception {
-        doThrow(new RunNotFoundException(RUN_ID))
-                .when(deliverNewsletterUseCase).deliver(RUN_ID);
+        when(deliverNewsletterUseCase.deliver(RUN_ID))
+                .thenThrow(new RunNotFoundException(RUN_ID));
 
         mockMvc.perform(post("/api/v1/newsletter/deliver")
                         .contentType(MediaType.APPLICATION_JSON)

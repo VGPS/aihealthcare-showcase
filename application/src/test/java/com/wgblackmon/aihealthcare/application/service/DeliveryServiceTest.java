@@ -60,7 +60,7 @@ class DeliveryServiceTest {
     private static final String NAME  = "Jane Doe";
 
     private static final Subscriber SUBSCRIBER = new Subscriber(
-            EMAIL, NAME, true, Instant.parse("2026-04-13T10:00:00Z"), null);
+            EMAIL, NAME, true, Instant.parse("2026-04-13T10:00:00Z"), null, null, null, null);
 
     @BeforeEach
     void setUp() {

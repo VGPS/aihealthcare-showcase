@@ -185,7 +185,7 @@ class LegalTimelineControllerTest {
     @WithMockUser
     void daysParam_365_respected() throws Exception {
         when(subscriberPort.findByEmail("user"))
-                .thenReturn(Optional.of(new Subscriber("user", "User", true, Instant.now(), SubscriptionTier.SUBSCRIBER)));
+                .thenReturn(Optional.of(new Subscriber("user", "User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null)));
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Legal"), eq(365)))
                 .thenReturn(List.of());
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Government Policy"), eq(365)))
@@ -204,7 +204,7 @@ class LegalTimelineControllerTest {
     @WithMockUser
     void freeUser_cappedAt30Days() throws Exception {
         when(subscriberPort.findByEmail("user"))
-                .thenReturn(Optional.of(new Subscriber("user", "User", true, Instant.now(), SubscriptionTier.FREE)));
+                .thenReturn(Optional.of(new Subscriber("user", "User", true, Instant.now(), SubscriptionTier.FREE, null, null, null)));
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Legal"), eq(30)))
                 .thenReturn(List.of());
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Government Policy"), eq(30)))

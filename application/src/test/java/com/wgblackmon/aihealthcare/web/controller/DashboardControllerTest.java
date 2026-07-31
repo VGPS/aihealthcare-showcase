@@ -392,7 +392,7 @@ class DashboardControllerTest {
 
     @Test
     void news_subscriberTier_noArchiveBanner() throws Exception {
-        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
         when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
         when(tierGatingService.archiveDaysFor(SubscriptionTier.SUBSCRIBER)).thenReturn(0);
         when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
@@ -409,7 +409,7 @@ class DashboardControllerTest {
 
     @Test
     void news_subscriberTier_usesUnlimitedArchive() throws Exception {
-        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
         when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
         when(tierGatingService.archiveDaysFor(SubscriptionTier.SUBSCRIBER)).thenReturn(0);
         NewsArticle article = sampleArticle("Old Article", Instant.parse("2025-01-01T10:00:00Z"));
@@ -440,7 +440,7 @@ class DashboardControllerTest {
 
     @Test
     void articles_companiesTopic_subscriberUser_showsArticles() throws Exception {
-        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
         when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
         when(articleIngestionPort.fetchAllByTopic(eq("New AI Healthcare Companies")))
                 .thenReturn(List.of());

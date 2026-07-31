@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -34,13 +35,15 @@ class DemoExpirationSchedulerTest {
 
     private AppUserPort appUserPort;
     private SubscriberPort subscriberPort;
+    private TransactionalEmailPort transactionalEmailPort;
     private DemoExpirationScheduler scheduler;
 
     @BeforeEach
     void setUp() {
         appUserPort = mock(AppUserPort.class);
         subscriberPort = mock(SubscriberPort.class);
-        scheduler = new DemoExpirationScheduler(appUserPort, subscriberPort);
+        transactionalEmailPort = mock(TransactionalEmailPort.class);
+        scheduler = new DemoExpirationScheduler(appUserPort, subscriberPort, transactionalEmailPort);
     }
 
     @Test
@@ -61,7 +64,7 @@ class DemoExpirationSchedulerTest {
                 .thenReturn(List.of(expired));
         when(subscriberPort.findByEmail("demo@example.com"))
                 .thenReturn(Optional.of(new Subscriber("demo@example.com", "Demo", true,
-                        Instant.now(), SubscriptionTier.DEMO)));
+                        Instant.now(), SubscriptionTier.DEMO, null, null, null)));
 
         scheduler.expireExpiredDemos();
 
@@ -77,7 +80,7 @@ class DemoExpirationSchedulerTest {
         when(appUserPort.findByTierAndDemoExpiresAtBefore(eq("DEMO"), any()))
                 .thenReturn(List.of(expired));
         Subscriber sub = new Subscriber("demo@example.com", "Demo", true,
-                Instant.now(), SubscriptionTier.DEMO);
+                Instant.now(), SubscriptionTier.DEMO, null, null, null);
         when(subscriberPort.findByEmail("demo@example.com")).thenReturn(Optional.of(sub));
 
         scheduler.expireExpiredDemos();

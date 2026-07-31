@@ -84,7 +84,7 @@ class ArticleControllerTest {
 
     @Test
     void listArticles_freeSubscriber_usesArchiveLimit() throws Exception {
-        Subscriber free = new Subscriber("free@test.com", "Free User", true, Instant.now(), SubscriptionTier.FREE);
+        Subscriber free = new Subscriber("free@test.com", "Free User", true, Instant.now(), SubscriptionTier.FREE, null, null, null);
         when(subscriberPort.findByEmail("free@test.com")).thenReturn(Optional.of(free));
         when(tierGatingService.archiveDaysFor(SubscriptionTier.FREE)).thenReturn(7);
         when(ingestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare"), eq(7)))
@@ -101,7 +101,7 @@ class ArticleControllerTest {
 
     @Test
     void listArticles_subscriberTier_usesUnlimitedArchive() throws Exception {
-        Subscriber subscriber = new Subscriber("subscriber@test.com", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        Subscriber subscriber = new Subscriber("subscriber@test.com", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
         when(subscriberPort.findByEmail("subscriber@test.com")).thenReturn(Optional.of(subscriber));
         when(tierGatingService.archiveDaysFor(SubscriptionTier.SUBSCRIBER)).thenReturn(0);
         when(ingestionPort.fetchArticles(eq("AI Healthcare"), eq(20)))

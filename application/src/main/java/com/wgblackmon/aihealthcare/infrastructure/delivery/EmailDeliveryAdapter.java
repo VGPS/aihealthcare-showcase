@@ -13,6 +13,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * SMTP-backed adapter implementing {@link NewsletterDeliveryPort} via Spring's
@@ -43,13 +44,16 @@ public class EmailDeliveryAdapter implements NewsletterDeliveryPort {
 
     private final JavaMailSender mailSender;
     private final String         fromAddress;
+    private final String         baseUrl;
 
     public EmailDeliveryAdapter(
             JavaMailSender mailSender,
-            @Value("${aihealthcare.newsletter.from-address}") String fromAddress) {
-        log.debug("EmailDeliveryAdapter() | fromAddress={}", fromAddress);
+            @Value("${aihealthcare.newsletter.from-address}") String fromAddress,
+            @Value("${aihealthcare.base-url}") String baseUrl) {
+        log.debug("EmailDeliveryAdapter() | fromAddress={}, baseUrl={}", fromAddress, baseUrl);
         this.mailSender  = mailSender;
         this.fromAddress = fromAddress;
+        this.baseUrl     = baseUrl;
     }
 
     /**
@@ -98,16 +102,46 @@ public class EmailDeliveryAdapter implements NewsletterDeliveryPort {
             throws MessagingException {
         log.debug("sendToRecipient() | runId={}, email={}", run.runId(), recipient.email());
 
+        String html = replacePlaceholders(run.htmlContent(), recipient);
+        String plain = replacePlaceholders(run.plainTextContent(), recipient);
+
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         helper.setFrom(fromAddress);
         helper.setTo(recipient.email());
         helper.setSubject(run.title());
-        helper.setText(run.plainTextContent(), run.htmlContent());
+        helper.setText(plain, html);
 
         mailSender.send(message);
 
         log.debug("sendToRecipient() | return=void");
+    }
+
+    /**
+     * Replaces per-recipient placeholders in newsletter content.
+     *
+     * @param content   the raw HTML or plain-text content.
+     * @param recipient the subscriber whose tokens should be substituted.
+     * @return the content with placeholders replaced.
+     */
+    private String replacePlaceholders(String content, Subscriber recipient) {
+        log.debug("replacePlaceholders() | email={}", recipient.email());
+
+        if (content == null) {
+            log.debug("replacePlaceholders() | return=null");
+            return null;
+        }
+
+        String result = content;
+
+        String unsubscribeUrl = recipient.unsubscribeToken() != null
+                ? baseUrl + "/unsubscribe?token=" + recipient.unsubscribeToken()
+                : baseUrl + "/profile";
+        result = result.replace("{{unsubscribe_url}}", unsubscribeUrl);
+        result = result.replace("{{preferences_url}}", baseUrl + "/profile");
+
+        log.debug("replacePlaceholders() | return=(replaced)");
+        return result;
     }
 }

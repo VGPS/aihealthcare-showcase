@@ -79,7 +79,7 @@ class AdminControllerTest {
         when(analyticsUseCase.getRunAnalytics()).thenReturn(runs);
 
         Subscriber sub = new Subscriber("sub@example.com", "Sub", true,
-                Instant.now(), SubscriptionTier.FREE);
+                Instant.now(), SubscriptionTier.FREE, null, null, null);
         when(subscriberPort.findAll()).thenReturn(List.of(sub));
 
         mockMvc.perform(get("/admin"))

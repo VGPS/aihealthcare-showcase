@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Application service that implements subscriber lifecycle management.
@@ -80,7 +81,7 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
      * run status is left unchanged; a warning is logged.
      */
     @Override
-    public void deliver(String runId) {
+    public int deliver(String runId) {
         log.debug("deliver() | runId={}", runId);
 
         NewsletterRun run = newsletterRunPort.findByRunId(runId);
@@ -94,23 +95,23 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
         int totalRecipients = subscriberRecipients.size() + demoRecipients.size() + freeRecipients.size();
         if (totalRecipients == 0) {
             log.warn("deliver() | No active subscribers — skipping delivery for runId={}", runId);
-            log.debug("deliver() | return=void (no recipients)");
-            return;
+            log.debug("deliver() | return=0");
+            return 0;
         }
 
-        boolean anyDelivered = false;
+        int sentCount = 0;
 
         // Deliver full newsletter to SUBSCRIBER subscribers
         if (!subscriberRecipients.isEmpty()) {
             newsletterDeliveryPort.deliver(run, subscriberRecipients);
-            anyDelivered = true;
+            sentCount += subscriberRecipients.size();
             log.info("deliver() | Full newsletter sent to {} subscriber-tier recipients", subscriberRecipients.size());
         }
 
         // Deliver full newsletter to DEMO subscribers (same content as SUBSCRIBER)
         if (!demoRecipients.isEmpty()) {
             newsletterDeliveryPort.deliver(run, demoRecipients);
-            anyDelivered = true;
+            sentCount += demoRecipients.size();
             log.info("deliver() | Full newsletter sent to {} demo-tier recipients", demoRecipients.size());
         }
 
@@ -119,14 +120,14 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
             Optional<NewsletterRun> digestOpt = digestRenderer.buildDigest();
             if (digestOpt.isPresent()) {
                 newsletterDeliveryPort.deliver(digestOpt.get(), freeRecipients);
-                anyDelivered = true;
+                sentCount += freeRecipients.size();
                 log.info("deliver() | Digest newsletter sent to {} free subscribers", freeRecipients.size());
             } else {
                 log.info("deliver() | No articles today — skipping digest for {} free subscribers", freeRecipients.size());
             }
         }
 
-        if (anyDelivered) {
+        if (sentCount > 0) {
             NewsletterRun sent = new NewsletterRun(
                     run.runId(),
                     run.title(),
@@ -143,7 +144,8 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
             log.info("deliver() | No emails sent for runId={} — 0 articles available", runId);
         }
 
-        log.debug("deliver() | return=void");
+        log.debug("deliver() | return={}", sentCount);
+        return sentCount;
     }
 
     // -------------------------------------------------------------------------
@@ -173,7 +175,8 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
             throw new DuplicateSubscriberException(email);
         }
 
-        Subscriber subscriber = new Subscriber(email, name, true, Instant.now(), null);
+        Subscriber subscriber = new Subscriber(email, name, true, Instant.now(), null,
+                UUID.randomUUID().toString(), null, null);
         subscriberPort.save(subscriber);
 
         log.info("addSubscriber() | Subscriber added: email={}", email);

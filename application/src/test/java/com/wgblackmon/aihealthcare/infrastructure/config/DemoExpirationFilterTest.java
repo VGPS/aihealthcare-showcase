@@ -77,7 +77,7 @@ class DemoExpirationFilterTest {
                 SubscriptionTier.DEMO, Instant.now().minus(1, ChronoUnit.DAYS));
         when(appUserPort.findByEmail("demo@example.com")).thenReturn(Optional.of(expiredDemo));
         when(subscriberPort.findByEmail("demo@example.com")).thenReturn(Optional.of(
-                new Subscriber("demo@example.com", "Demo", true, Instant.now(), SubscriptionTier.DEMO)));
+                new Subscriber("demo@example.com", "Demo", true, Instant.now(), SubscriptionTier.DEMO, null, null, null)));
 
         filter.doFilterInternal(request, response, filterChain);
 

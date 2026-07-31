@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Receives Stripe webhook events and updates local subscriber tiers.
@@ -148,9 +149,11 @@ public class StripeWebhookController {
         SubscriptionTier tier = mapPriceToTier(session.getMetadata() != null
                 ? session.getMetadata().get("price_id") : null);
 
-        upsertSubscriber(email, tier);
+        String stripeCustomerId = session.getCustomer();
+        String stripeSubscriptionId = session.getSubscription();
+        upsertSubscriber(email, tier, stripeCustomerId, stripeSubscriptionId);
         reEnableAppUser(email, tier);
-        log.info("handleCheckoutCompleted() | New paid subscriber: email={}, tier={}", email, tier);
+        log.info("handleCheckoutCompleted() | New paid subscriber: email={}, tier={}, customerId={}", email, tier, stripeCustomerId);
         log.debug("handleCheckoutCompleted() | return=void");
     }
 
@@ -177,7 +180,9 @@ public class StripeWebhookController {
         }
 
         SubscriptionTier tier = mapPriceToTier(priceId);
-        upsertSubscriber(email, tier);
+        String stripeCustomerId = subscription.getCustomer();
+        String stripeSubscriptionId = subscription.getId();
+        upsertSubscriber(email, tier, stripeCustomerId, stripeSubscriptionId);
         log.info("handleSubscriptionUpdated() | Subscription changed: email={}, tier={}", email, tier);
         log.debug("handleSubscriptionUpdated() | return=void");
     }
@@ -198,7 +203,7 @@ public class StripeWebhookController {
             return;
         }
 
-        upsertSubscriber(email, SubscriptionTier.FREE);
+        upsertSubscriber(email, SubscriptionTier.FREE, null, null);
         log.info("handleSubscriptionDeleted() | Subscription cancelled: email={}, reverted to FREE", email);
         log.debug("handleSubscriptionDeleted() | return=void");
     }
@@ -251,16 +256,21 @@ public class StripeWebhookController {
      * Creates or updates a subscriber's tier.  If the subscriber does not
      * exist locally, a new record is created with the email as the name.
      */
-    private void upsertSubscriber(String email, SubscriptionTier tier) {
-        log.debug("upsertSubscriber() | email={}, tier={}", email, tier);
+    private void upsertSubscriber(String email, SubscriptionTier tier,
+                                   String stripeCustomerId, String stripeSubscriptionId) {
+        log.debug("upsertSubscriber() | email={}, tier={}, stripeCustomerId={}", email, tier, stripeCustomerId);
 
         Optional<Subscriber> existing = subscriberPort.findByEmail(email);
         Subscriber updated;
         if (existing.isPresent()) {
             Subscriber s = existing.get();
-            updated = new Subscriber(s.email(), s.name(), s.active(), s.subscribedAt(), tier);
+            updated = new Subscriber(s.email(), s.name(), s.active(), s.subscribedAt(), tier,
+                    s.unsubscribeToken(),
+                    stripeCustomerId != null ? stripeCustomerId : s.stripeCustomerId(),
+                    stripeSubscriptionId != null ? stripeSubscriptionId : s.stripeSubscriptionId());
         } else {
-            updated = new Subscriber(email, email, true, Instant.now(), tier);
+            updated = new Subscriber(email, email, true, Instant.now(), tier,
+                    UUID.randomUUID().toString(), stripeCustomerId, stripeSubscriptionId);
         }
         subscriberPort.save(updated);
 

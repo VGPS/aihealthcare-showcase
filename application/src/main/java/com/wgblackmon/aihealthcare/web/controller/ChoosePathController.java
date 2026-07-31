@@ -96,7 +96,8 @@ public class ChoosePathController {
             if (subOpt.isPresent()) {
                 Subscriber sub = subOpt.get();
                 Subscriber updated = new Subscriber(sub.email(), sub.name(), true,
-                        sub.subscribedAt(), SubscriptionTier.FREE);
+                        sub.subscribedAt(), SubscriptionTier.FREE,
+                        sub.unsubscribeToken(), sub.stripeCustomerId(), sub.stripeSubscriptionId());
                 subscriberPort.save(updated);
             }
 

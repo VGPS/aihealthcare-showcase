@@ -23,9 +23,9 @@ import java.util.Optional;
  * which calls {@link #findByEmail} before invoking {@link #save}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-04-13
- * @updated 2026-05-23
+ * @updated 2026-07-31
  */
 @Slf4j
 @Component
@@ -96,6 +96,17 @@ public class SubscriberAdapter implements SubscriberPort {
         log.debug("deleteByEmail() | return=void");
     }
 
+    @Override
+    public Optional<Subscriber> findByUnsubscribeToken(String token) {
+        log.debug("findByUnsubscribeToken() | token={}", token);
+
+        Optional<SubscriberEntity> entity = repository.findByUnsubscribeToken(token);
+        Optional<Subscriber> result = entity.map(this::toDomain);
+
+        log.debug("findByUnsubscribeToken() | return={}", result.isPresent() ? "found" : "empty");
+        return result;
+    }
+
     // -------------------------------------------------------------------------
     // Mapping helpers
     // -------------------------------------------------------------------------
@@ -109,6 +120,9 @@ public class SubscriberAdapter implements SubscriberPort {
         entity.setActive(subscriber.active());
         entity.setSubscribedAt(subscriber.subscribedAt());
         entity.setTier(subscriber.tier().name());
+        entity.setUnsubscribeToken(subscriber.unsubscribeToken());
+        entity.setStripeCustomerId(subscriber.stripeCustomerId());
+        entity.setStripeSubscriptionId(subscriber.stripeSubscriptionId());
 
         log.debug("toEntity() | return={}", entity.getEmail());
         return entity;
@@ -131,7 +145,10 @@ public class SubscriberAdapter implements SubscriberPort {
                 entity.getName(),
                 entity.isActive(),
                 entity.getSubscribedAt(),
-                tier
+                tier,
+                entity.getUnsubscribeToken(),
+                entity.getStripeCustomerId(),
+                entity.getStripeSubscriptionId()
         );
 
         log.debug("toDomain() | return={}", result.email());

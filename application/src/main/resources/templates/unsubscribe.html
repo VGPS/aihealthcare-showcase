@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Unsubscribe confirmation page — shown after clicking an email unsubscribe link.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-07-31
+ * @updated 2026-07-31
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Unsubscribe — AI Healthcare Intelligence</title>
+    <link rel="stylesheet" th:href="@{/css/tailwind.css}"/>
+</head>
+
+<body class="bg-surface font-sans text-on-surface min-h-screen flex items-center justify-center">
+
+<div class="max-w-md w-full mx-auto px-6 py-12">
+    <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+
+        <!-- Success state -->
+        <div th:if="${success}">
+            <div class="text-green-600 text-5xl mb-4">&#10003;</div>
+            <h1 class="font-display text-xl font-semibold text-on-surface mb-2">Unsubscribed</h1>
+            <p class="text-on-surface-variant text-sm mb-6" th:text="${message}">
+                You have been successfully unsubscribed.
+            </p>
+            <p class="text-on-surface-variant text-xs mb-4">
+                <span th:text="${email}">user@example.com</span> will no longer receive newsletters.
+            </p>
+            <a th:href="@{/register}"
+               class="text-primary-600 hover:text-primary-700 text-sm font-medium underline">
+                Changed your mind? Re-subscribe
+            </a>
+        </div>
+
+        <!-- Error state -->
+        <div th:unless="${success}">
+            <div class="text-red-500 text-5xl mb-4">&#10007;</div>
+            <h1 class="font-display text-xl font-semibold text-on-surface mb-2">Unsubscribe Failed</h1>
+            <p class="text-on-surface-variant text-sm mb-6" th:text="${message}">
+                This unsubscribe link is invalid or has already been used.
+            </p>
+            <a th:href="@{/login}"
+               class="text-primary-600 hover:text-primary-700 text-sm font-medium underline">
+                Log in to manage your subscription
+            </a>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

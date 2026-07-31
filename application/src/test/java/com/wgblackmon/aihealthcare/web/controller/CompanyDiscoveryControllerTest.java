@@ -54,7 +54,7 @@ class CompanyDiscoveryControllerTest {
     private SubscriberPort subscriberPort;
 
     private void stubSubscriberTier(String email) {
-        Subscriber subscriber = new Subscriber(email, "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER);
+        Subscriber subscriber = new Subscriber(email, "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
         when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(subscriber));
     }
 
@@ -72,7 +72,7 @@ class CompanyDiscoveryControllerTest {
 
     @Test
     void discover_freeSubscriber_returns403() throws Exception {
-        Subscriber free = new Subscriber("free@example.com", "Free User", true, Instant.now(), SubscriptionTier.FREE);
+        Subscriber free = new Subscriber("free@example.com", "Free User", true, Instant.now(), SubscriptionTier.FREE, null, null, null);
         when(subscriberPort.findByEmail("free@example.com")).thenReturn(Optional.of(free));
 
         mockMvc.perform(post("/api/v1/companies/discover")

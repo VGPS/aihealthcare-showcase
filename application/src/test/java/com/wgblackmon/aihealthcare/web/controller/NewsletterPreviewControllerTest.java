@@ -113,21 +113,23 @@ class NewsletterPreviewControllerTest {
     }
 
     @Test
-    void sendNewsletter_deliversAndRedirects() throws Exception {
+    void sendNewsletter_deliversAndRedirectsWithCount() throws Exception {
+        when(deliverUseCase.deliver("run-001")).thenReturn(12);
+
         mockMvc.perform(post("/newsletter/runs/run-001/send").with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/newsletter/runs?sent=true"));
+                .andExpect(redirectedUrl("/newsletter/runs?sent=true&count=12"));
 
         verify(deliverUseCase).deliver("run-001");
     }
 
     @Test
-    void sendNewsletter_notFound_returns404() throws Exception {
-        doThrow(new RunNotFoundException("unknown"))
-                .when(deliverUseCase).deliver("unknown");
+    void sendNewsletter_error_redirectsWithErrorMessage() throws Exception {
+        when(deliverUseCase.deliver("unknown"))
+                .thenThrow(new RunNotFoundException("unknown"));
 
         mockMvc.perform(post("/newsletter/runs/unknown/send").with(csrf()))
-                .andExpect(status().isNotFound());
+                .andExpect(status().is3xxRedirection());
     }
 
     @Test

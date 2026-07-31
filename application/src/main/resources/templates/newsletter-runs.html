@@ -29,7 +29,11 @@
 <main class="max-w-7xl mx-auto px-4 py-6">
 
     <div th:if="${param.sent != null}" class="bg-green-50 text-green-800 border border-green-200 rounded-md px-5 py-3 mb-5 text-sm">
-        Newsletter delivered to subscribers successfully.
+        Newsletter sent to <strong th:text="${param.count != null ? param.count[0] : '?'}">?</strong> subscribers successfully.
+    </div>
+
+    <div th:if="${param.error != null}" class="bg-red-50 text-red-800 border border-red-200 rounded-md px-5 py-3 mb-5 text-sm">
+        Failed to send newsletter: <span th:text="${param.error[0]}">Unknown error</span>
     </div>
 
     <div class="bg-white rounded-lg shadow-sm p-6 mb-5">

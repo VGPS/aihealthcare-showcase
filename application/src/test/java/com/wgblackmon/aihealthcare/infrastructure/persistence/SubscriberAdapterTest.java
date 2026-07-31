@@ -34,7 +34,7 @@ class SubscriberAdapterTest {
     private static final Instant NOW = Instant.parse("2026-04-13T10:00:00Z");
 
     private static Subscriber subscriber(String email, String name, boolean active) {
-        return new Subscriber(email, name, active, NOW, null);
+        return new Subscriber(email, name, active, NOW, null, null, null, null);
     }
 
     // -------------------------------------------------------------------------
