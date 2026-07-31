@@ -85,7 +85,7 @@
     <!-- Reference group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'wiki' || activePage == 'clinical-trials' || activePage == 'companies'} ? ' active'">
+                th:classappend="${activePage == 'wiki' || activePage == 'clinical-trials'} ? ' active'">
             Reference ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
@@ -93,8 +93,6 @@
                th:classappend="${activePage == 'wiki'} ? ' active'">Wiki</a>
             <a th:href="@{/dashboard/clinical-trials}"
                th:classappend="${activePage == 'clinical-trials'} ? ' active'">Clinical Trials</a>
-            <a th:href="@{/companies}"
-               th:classappend="${activePage == 'companies'} ? ' active'">Companies</a>
         </div>
     </div>
 

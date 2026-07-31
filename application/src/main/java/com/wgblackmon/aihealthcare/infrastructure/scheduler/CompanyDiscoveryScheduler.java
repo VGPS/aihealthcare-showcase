@@ -65,7 +65,8 @@ public class CompanyDiscoveryScheduler {
      * Cron configured via {@code aihealthcare.harvest.company-discovery-cron}
      * (default: daily 04:00 UTC, same as RSS harvest).
      */
-    @Scheduled(cron = "${aihealthcare.harvest.company-discovery-cron}", zone = "UTC")
+    // @Scheduled — disabled 2026-07-31; company discovery pipeline discontinued pending redesign
+    // @Scheduled(cron = "${aihealthcare.harvest.company-discovery-cron}", zone = "UTC")
     public void runDailyCompanyDiscovery() {
         log.debug("runDailyCompanyDiscovery() | starting daily company discovery");
         try {

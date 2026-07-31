@@ -60,10 +60,24 @@ class PipelineHealthServiceTest {
             @Override public VectorStore getIfUnique() { return null; }
         };
 
-        serviceNoKeys = new PipelineHealthService(env, withVs, "", "");
-        serviceWithAnthropicKey = new PipelineHealthService(env, withVs, "sk-ant-real-key-123", "");
-        serviceWithoutVectorStore = new PipelineHealthService(env, withoutVs, "", "");
-        serviceWithOpenAiKey = new PipelineHealthService(env, withVs, "", "sk-real-openai-key");
+        // serviceNoKeys — no API keys
+        when(env.getProperty("ANTHROPIC_API_KEY", "")).thenReturn("");
+        when(env.getProperty("spring.ai.anthropic.api-key", "")).thenReturn("");
+        when(env.getProperty("OPENAI_API_KEY", "")).thenReturn("");
+        when(env.getProperty("spring.ai.openai.api-key", "")).thenReturn("");
+        serviceNoKeys = new PipelineHealthService(env, withVs, null);
+
+        // serviceWithAnthropicKey — Anthropic key present
+        when(env.getProperty("ANTHROPIC_API_KEY", "")).thenReturn("sk-ant-real-key-123");
+        serviceWithAnthropicKey = new PipelineHealthService(env, withVs, null);
+
+        // serviceWithoutVectorStore — no keys, no vector store
+        when(env.getProperty("ANTHROPIC_API_KEY", "")).thenReturn("");
+        serviceWithoutVectorStore = new PipelineHealthService(env, withoutVs, null);
+
+        // serviceWithOpenAiKey — OpenAI key present
+        when(env.getProperty("OPENAI_API_KEY", "")).thenReturn("sk-real-openai-key");
+        serviceWithOpenAiKey = new PipelineHealthService(env, withVs, null);
     }
 
     // --- Pre-flight checks ---

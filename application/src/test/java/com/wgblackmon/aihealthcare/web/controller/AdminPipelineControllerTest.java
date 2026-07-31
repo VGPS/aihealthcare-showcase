@@ -72,7 +72,7 @@ class AdminPipelineControllerTest {
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("pipelineCount", 15));
+                .andExpect(model().attribute("pipelineCount", 14));
     }
 
     @Test
