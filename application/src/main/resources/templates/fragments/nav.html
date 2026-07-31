@@ -15,14 +15,14 @@
  *                    wiki | trends | regulatory | legal | legal-trends | clinical-trials |
  *                    companies | watchlist | search | pricing | profile | admin | admin-pipelines
  *
- * Nav groups: Dashboard | Content | Research | Legal | Reference | Search | Account
+ * Nav groups: Dashboard | Content | Research | Legal | Reference | Account
  *
  * Legal group contains Legal Timeline + Regulatory (moved from Reference).
  *
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-28
- * @updated 2026-07-30
+ * @updated 2026-07-31
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org"
@@ -53,16 +53,18 @@
     <!-- Research group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'research' || activePage == 'vendors' || activePage == 'ai-search'} ? ' active'">
+                th:classappend="${activePage == 'research' || activePage == 'vendors' || activePage == 'ai-search' || activePage == 'search'} ? ' active'">
             Research ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
+            <a th:href="@{/research/ai-search}"
+               th:classappend="${activePage == 'ai-search'} ? ' active'">AI Search</a>
+            <a th:href="@{/dashboard/search}"
+               th:classappend="${activePage == 'search'} ? ' active'">Find Articles</a>
             <a th:href="@{/research/runs}"
                th:classappend="${activePage == 'research'} ? ' active'">Research Runs</a>
             <a th:href="@{/research/vendors}"
-               th:classappend="${activePage == 'vendors'} ? ' active'">Vendor Compare</a>
-            <a th:href="@{/research/ai-search}"
-               th:classappend="${activePage == 'ai-search'} ? ' active'">AI Search</a>
+               th:classappend="${activePage == 'vendors'} ? ' active'">AI Healthcare Framework Compare</a>
         </div>
     </div>
 
@@ -95,11 +97,6 @@
                th:classappend="${activePage == 'clinical-trials'} ? ' active'">Clinical Trials</a>
         </div>
     </div>
-
-    <!-- Search (standalone) -->
-    <a th:href="@{/dashboard/search}"
-       th:classappend="${activePage == 'search'} ? ' active'"
-       class="nav-link">Article Search</a>
 
     <!-- Account group (right side) -->
     <div class="nav-group nav-group-right" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
