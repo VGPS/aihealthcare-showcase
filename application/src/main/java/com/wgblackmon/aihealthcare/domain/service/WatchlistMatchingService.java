@@ -30,7 +30,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-08-01
  */
 public class WatchlistMatchingService {
 
@@ -52,7 +52,7 @@ public class WatchlistMatchingService {
 
         for (NewsArticle article : articles) {
             String titleLower = article.title() != null ? article.title().toLowerCase() : "";
-            String bodyLower = article.bodyText() != null ? article.bodyText().toLowerCase() : "";
+            String bodyLower = article.bodyText() != null ? stripHtmlTags(article.bodyText()).toLowerCase() : "";
             String combined = titleLower + " " + bodyLower;
             String topicLower = article.topic() != null ? article.topic().toLowerCase() : "";
 
@@ -92,6 +92,28 @@ public class WatchlistMatchingService {
         }
 
         return matches;
+    }
+
+    /**
+     * Strips HTML tags from text using a simple regex.
+     * Decodes common HTML entities and collapses whitespace.
+     *
+     * @param text raw text potentially containing HTML tags
+     * @return plain text with tags removed
+     */
+    private String stripHtmlTags(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+        String stripped = text.replaceAll("<[^>]+>", " ");
+        stripped = stripped.replace("&amp;", "&")
+                          .replace("&lt;", "<")
+                          .replace("&gt;", ">")
+                          .replace("&quot;", "\"")
+                          .replace("&#39;", "'")
+                          .replace("&nbsp;", " ");
+        stripped = stripped.replaceAll("\\s+", " ").trim();
+        return stripped;
     }
 
     /**
