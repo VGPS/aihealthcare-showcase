@@ -1,16 +1,22 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.domain.model.CountByLabel;
-import com.wgblackmon.aihealthcare.domain.model.IngestionAnalytics;
+import com.wgblackmon.aihealthcare.domain.model.ArticleSearchCriteria;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
-import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
+import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
+import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
+import com.wgblackmon.aihealthcare.domain.model.WatchlistItem;
+import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.SearchArticlesUseCase;
-import com.wgblackmon.aihealthcare.domain.model.ArticleSearchCriteria;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -39,10 +45,10 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Thymeleaf controller that renders the analytics dashboard and article-detail pages.
+ * Thymeleaf controller that renders the Daily Briefing dashboard and article-detail pages.
  *
- * <p>Serves {@code GET /dashboard} by fetching all three analytics aggregates
- * from {@link GetAnalyticsUseCase} and adding them to the Thymeleaf model.
+ * <p>Serves {@code GET /dashboard} as a personalized briefing page with watchlist
+ * alerts, top headlines, trending keywords, regulatory events, and legal developments.
  *
  * <p>Serves {@code GET /dashboard/articles?topic=...&sort=asc|desc} by fetching
  * up to 500 articles for the given topic via {@link ArticleIngestionPort}, sorting
@@ -57,7 +63,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.4
  * @since   2026-05-04
- * @updated 2026-07-20
+ * @updated 2026-08-01
  */
 @Slf4j
 @Controller
@@ -70,76 +76,170 @@ public class DashboardController {
     private static final DateTimeFormatter SHORT_DATE_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneId.of("America/New_York"));
 
-    private final GetAnalyticsUseCase analyticsUseCase;
     private final ArticleIngestionPort articleIngestionPort;
     private final NewsTopicProperties newsTopicProperties;
     private final TopicSummaryPort topicSummaryPort;
     private final SubscriberPort subscriberPort;
     private final TierGatingService tierGatingService;
     private final SearchArticlesUseCase searchUseCase;
+    private final WatchlistPort watchlistPort;
+    private final WatchlistMatchPort watchlistMatchPort;
+    private final DetectTrendsUseCase detectTrendsUseCase;
+    private final MonitorRegulatoryEventsUseCase regulatoryUseCase;
 
-    public DashboardController(GetAnalyticsUseCase analyticsUseCase,
-                               ArticleIngestionPort articleIngestionPort,
+    public DashboardController(ArticleIngestionPort articleIngestionPort,
                                NewsTopicProperties newsTopicProperties,
                                TopicSummaryPort topicSummaryPort,
                                SubscriberPort subscriberPort,
                                TierGatingService tierGatingService,
-                               SearchArticlesUseCase searchUseCase) {
-        this.analyticsUseCase        = analyticsUseCase;
+                               SearchArticlesUseCase searchUseCase,
+                               WatchlistPort watchlistPort,
+                               WatchlistMatchPort watchlistMatchPort,
+                               DetectTrendsUseCase detectTrendsUseCase,
+                               MonitorRegulatoryEventsUseCase regulatoryUseCase) {
         this.articleIngestionPort    = articleIngestionPort;
         this.newsTopicProperties     = newsTopicProperties;
         this.topicSummaryPort        = topicSummaryPort;
         this.subscriberPort          = subscriberPort;
         this.tierGatingService       = tierGatingService;
         this.searchUseCase           = searchUseCase;
+        this.watchlistPort           = watchlistPort;
+        this.watchlistMatchPort      = watchlistMatchPort;
+        this.detectTrendsUseCase     = detectTrendsUseCase;
+        this.regulatoryUseCase       = regulatoryUseCase;
     }
 
     /**
-     * Renders the main analytics dashboard page.
+     * Renders the Daily Briefing dashboard — a personalized landing page pulling
+     * together watchlist alerts, top headlines, trending keywords, regulatory
+     * events, and legal developments.
      *
-     * @param model Thymeleaf model populated with analytics data
+     * @param model     Thymeleaf model populated with briefing data
+     * @param principal the authenticated user, or null for anonymous
      * @return Thymeleaf view name "dashboard"
      */
     @GetMapping
-    public String dashboard(Model model) {
-        log.debug("dashboard()");
+    public String dashboard(Model model, Principal principal) {
+        log.debug("dashboard() | principal={}", principal != null ? principal.getName() : "anonymous");
 
-        IngestionAnalytics ingestion = analyticsUseCase.getIngestionAnalytics();
-        model.addAttribute("ingestion", ingestion);
-        model.addAttribute("last30DaysCount", ingestion.last30DaysCount());
-        model.addAttribute("totalArticles", ingestion.totalArticles());
-        String earliestDate = ingestion.earliestArticleDate() != null
-                ? SHORT_DATE_FMT.format(ingestion.earliestArticleDate())
-                : "N/A";
-        model.addAttribute("earliestDate", earliestDate);
+        String userEmail = principal != null ? principal.getName() : null;
+        SubscriptionTier tier = resolveTier(principal);
 
-        // Chart data: articles per day (last 30 days)
-        List<CountByLabel> dailyCounts = analyticsUseCase.getDailyArticleCounts(30);
-        List<String> chartLabels = new ArrayList<>();
-        List<Long> chartData = new ArrayList<>();
-        for (CountByLabel entry : dailyCounts) {
-            chartLabels.add(entry.label());
-            chartData.add(entry.count());
-        }
-        model.addAttribute("chartLabels", chartLabels);
-        model.addAttribute("chartData", chartData);
-
-        // Chart data: topic distribution (top 10)
-        List<CountByLabel> topicCounts = analyticsUseCase.getTopicDistribution(10);
-        List<String> topicLabels = new ArrayList<>();
-        List<Long> topicData = new ArrayList<>();
-        for (CountByLabel entry : topicCounts) {
-            String topicName = entry.label();
-            if (topicName.length() > 25) {
-                topicName = topicName.substring(0, 22) + "...";
+        // --- Watchlist Alerts (only if user has items with matches) ---
+        boolean hasWatchlist = false;
+        List<WatchlistMatch> watchlistMatches = List.of();
+        Map<String, String> watchlistLabels = new HashMap<>();
+        if (userEmail != null) {
+            List<WatchlistItem> items = watchlistPort.findByUser(userEmail);
+            if (!items.isEmpty()) {
+                watchlistMatches = watchlistMatchPort.findByUser(userEmail, 5);
+                if (!watchlistMatches.isEmpty()) {
+                    hasWatchlist = true;
+                    for (WatchlistItem item : items) {
+                        watchlistLabels.put(item.itemId(), item.label());
+                    }
+                }
             }
-            topicLabels.add(topicName);
-            topicData.add(entry.count());
         }
-        model.addAttribute("topicChartLabels", topicLabels);
-        model.addAttribute("topicChartData", topicData);
+        model.addAttribute("hasWatchlist", hasWatchlist);
+        model.addAttribute("watchlistMatches", watchlistMatches);
+        model.addAttribute("watchlistLabels", watchlistLabels);
+        Map<String, String> matchDates = new HashMap<>();
+        for (WatchlistMatch match : watchlistMatches) {
+            if (match.matchedOn() != null) {
+                matchDates.put(match.matchId(), SHORT_DATE_FMT.format(match.matchedOn()));
+            }
+        }
+        model.addAttribute("matchDates", matchDates);
 
-        log.debug("dashboard() | return=dashboard");
+        // --- Today's Headlines (top 5 articles from last 2 days, highest source weight) ---
+        List<NewsArticle> recentArticles = articleIngestionPort.fetchRecentArticles(2);
+        // Sort by source weight descending, then by publishedAt descending
+        sortByPublishedAt(recentArticles, false);
+        List<NewsArticle> headlines = new ArrayList<>();
+        java.util.Set<String> seenTitles = new java.util.HashSet<>();
+        for (NewsArticle article : recentArticles) {
+            String normalizedTitle = article.title() != null ? article.title().toLowerCase().trim() : "";
+            if (!normalizedTitle.isEmpty() && seenTitles.add(normalizedTitle)) {
+                headlines.add(article);
+            }
+            if (headlines.size() >= 8) {
+                break;
+            }
+        }
+        model.addAttribute("headlines", headlines);
+        Map<String, String> headlineDates = new HashMap<>();
+        Map<String, String> headlineTitles = new HashMap<>();
+        Map<String, String> headlinePublications = new HashMap<>();
+        for (NewsArticle article : headlines) {
+            if (article.publishedAt() != null) {
+                headlineDates.put(article.articleId(), SHORT_DATE_FMT.format(article.publishedAt()));
+            }
+            String t = article.title();
+            int dashIndex = t.lastIndexOf(" - ");
+            if (dashIndex > 0) {
+                headlineTitles.put(article.articleId(), t.substring(0, dashIndex).trim());
+                headlinePublications.put(article.articleId(), t.substring(dashIndex + 3).trim());
+            } else {
+                headlineTitles.put(article.articleId(), t);
+            }
+        }
+        model.addAttribute("headlineDates", headlineDates);
+        model.addAttribute("headlineTitles", headlineTitles);
+        model.addAttribute("headlinePublications", headlinePublications);
+
+        // --- Trending Now (top 5 rising keywords from latest snapshot) ---
+        List<TrendSignal> risingTrends = new ArrayList<>();
+        java.util.Optional<TrendSnapshot> snapshot = detectTrendsUseCase.getLatestSnapshot();
+        if (snapshot.isPresent()) {
+            List<TrendSignal> rising = snapshot.get().risingTopics();
+            for (int i = 0; i < rising.size() && i < 5; i++) {
+                risingTrends.add(rising.get(i));
+            }
+        }
+        model.addAttribute("risingTrends", risingTrends);
+
+        // --- Regulatory Watch (latest 3 events) ---
+        List<RegulatoryEvent> recentRegEvents = regulatoryUseCase.getRecentEvents(3);
+        model.addAttribute("regulatoryEvents", recentRegEvents);
+        Map<String, String> regDates = new HashMap<>();
+        for (RegulatoryEvent event : recentRegEvents) {
+            if (event.discoveredAt() != null) {
+                regDates.put(event.eventId(), SHORT_DATE_FMT.format(event.discoveredAt()));
+            }
+        }
+        model.addAttribute("regDates", regDates);
+
+        // --- Legal Pulse (latest 3 legal articles) ---
+        List<NewsArticle> legalArticles = articleIngestionPort.fetchByTopicWithArchiveLimit("AI Healthcare Legal", 0);
+        sortByPublishedAt(legalArticles, false);
+        List<NewsArticle> legalPulse = new ArrayList<>();
+        for (int i = 0; i < legalArticles.size() && legalPulse.size() < 3; i++) {
+            legalPulse.add(legalArticles.get(i));
+        }
+        model.addAttribute("legalPulse", legalPulse);
+        Map<String, String> legalDates = new HashMap<>();
+        Map<String, String> legalTitles = new HashMap<>();
+        for (NewsArticle article : legalPulse) {
+            if (article.publishedAt() != null) {
+                legalDates.put(article.articleId(), SHORT_DATE_FMT.format(article.publishedAt()));
+            }
+            String t = article.title();
+            int dashIndex = t.lastIndexOf(" - ");
+            if (dashIndex > 0) {
+                legalTitles.put(article.articleId(), t.substring(0, dashIndex).trim());
+            } else {
+                legalTitles.put(article.articleId(), t);
+            }
+        }
+        model.addAttribute("legalDates", legalDates);
+        model.addAttribute("legalTitles", legalTitles);
+
+        model.addAttribute("tier", tier);
+
+        log.debug("dashboard() | return=dashboard (headlines={}, watchlist={}, trends={}, reg={}, legal={})",
+                  headlines.size(), watchlistMatches.size(), risingTrends.size(),
+                  recentRegEvents.size(), legalPulse.size());
         return "dashboard";
     }
 

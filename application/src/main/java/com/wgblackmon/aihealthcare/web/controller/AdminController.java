@@ -1,6 +1,8 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.model.CountByLabel;
+import com.wgblackmon.aihealthcare.domain.model.IngestionAnalytics;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,7 +36,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-05-31
- * @updated 2026-06-01
+ * @updated 2026-08-01
  */
 @Slf4j
 @Controller
@@ -88,11 +91,40 @@ public class AdminController {
         model.addAttribute("userCount", userCount);
         model.addAttribute("disabledCount", disabledCount);
 
-        model.addAttribute("ingestion", analyticsUseCase.getIngestionAnalytics());
+        IngestionAnalytics ingestion = analyticsUseCase.getIngestionAnalytics();
+        model.addAttribute("ingestion", ingestion);
         model.addAttribute("runs", analyticsUseCase.getRunAnalytics());
 
         int subscriberCount = subscriberPort.findAll().size();
         model.addAttribute("subscriberCount", subscriberCount);
+
+        // Analytics chart data: articles per day (last 30 days)
+        List<CountByLabel> dailyCounts = analyticsUseCase.getDailyArticleCounts(30);
+        List<String> chartLabels = new ArrayList<>();
+        List<Long> chartData = new ArrayList<>();
+        for (CountByLabel entry : dailyCounts) {
+            chartLabels.add(entry.label());
+            chartData.add(entry.count());
+        }
+        model.addAttribute("chartLabels", chartLabels);
+        model.addAttribute("chartData", chartData);
+
+        // Analytics chart data: topic distribution (top 10)
+        List<CountByLabel> topicCounts = analyticsUseCase.getTopicDistribution(10);
+        List<String> topicLabels = new ArrayList<>();
+        List<Long> topicData = new ArrayList<>();
+        for (CountByLabel entry : topicCounts) {
+            String topicName = entry.label();
+            if (topicName.length() > 25) {
+                topicName = topicName.substring(0, 22) + "...";
+            }
+            topicLabels.add(topicName);
+            topicData.add(entry.count());
+        }
+        model.addAttribute("topicChartLabels", topicLabels);
+        model.addAttribute("topicChartData", topicData);
+        model.addAttribute("last30DaysCount", ingestion.last30DaysCount());
+        model.addAttribute("totalArticles", ingestion.totalArticles());
 
         log.debug("adminPanel() | return=admin (users={}, subscribers={})", users.size(), subscriberCount);
         return "admin";

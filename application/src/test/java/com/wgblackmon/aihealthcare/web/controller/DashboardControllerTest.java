@@ -1,24 +1,34 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.domain.model.CountByLabel;
-import com.wgblackmon.aihealthcare.domain.model.IngestionAnalytics;
+import com.wgblackmon.aihealthcare.domain.model.ArticleSearchCriteria;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.model.RegulatoryBody;
+import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
+import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
-import com.wgblackmon.aihealthcare.domain.model.ArticleSearchCriteria;
-import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
-import com.wgblackmon.aihealthcare.domain.port.inbound.SearchArticlesUseCase;
 import com.wgblackmon.aihealthcare.domain.model.TopicSummary;
+import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
+import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
+import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
+import com.wgblackmon.aihealthcare.domain.model.WatchlistItem;
+import com.wgblackmon.aihealthcare.domain.model.WatchlistItemType;
+import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.SearchArticlesUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
+import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
-import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -33,6 +43,7 @@ import java.util.Optional;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -44,14 +55,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * MockMvc slice tests for {@link DashboardController}.
  *
- * <p>Covers {@code GET /dashboard} (main analytics view),
+ * <p>Covers {@code GET /dashboard} (Daily Briefing),
  * {@code GET /dashboard/articles} (per-topic article detail with sort),
- * and {@code GET /dashboard/news} (all topics grouped with section headers).
+ * {@code GET /dashboard/news} (all topics grouped with section headers),
+ * and {@code GET /dashboard/search} (multi-field article search).
  *
  * @author  Bill Blackmon
- * @version 1.3
+ * @version 2.0
  * @since   2026-05-04
- * @updated 2026-07-05
+ * @updated 2026-08-01
  */
 @Import(SecurityConfig.class)
 @WithMockUser
@@ -60,41 +72,22 @@ class DashboardControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-    @MockitoBean
-    private ApiKeyPort apiKeyPort;
 
-    @MockitoBean
-    private GetAnalyticsUseCase analyticsUseCase;
-
-    @MockitoBean
-    private ArticleIngestionPort articleIngestionPort;
-
-    @MockitoBean
-    private NewsTopicProperties newsTopicProperties;
-
-    @MockitoBean
-    private TopicSummaryPort topicSummaryPort;
-
-    @MockitoBean
-    private SubscriberPort subscriberPort;
-
-    @MockitoBean
-    private TierGatingService tierGatingService;
-
-    @MockitoBean
-    private SearchArticlesUseCase searchUseCase;
+    @MockitoBean private ApiKeyPort apiKeyPort;
+    @MockitoBean private ArticleIngestionPort articleIngestionPort;
+    @MockitoBean private NewsTopicProperties newsTopicProperties;
+    @MockitoBean private TopicSummaryPort topicSummaryPort;
+    @MockitoBean private SubscriberPort subscriberPort;
+    @MockitoBean private TierGatingService tierGatingService;
+    @MockitoBean private SearchArticlesUseCase searchUseCase;
+    @MockitoBean private WatchlistPort watchlistPort;
+    @MockitoBean private WatchlistMatchPort watchlistMatchPort;
+    @MockitoBean private DetectTrendsUseCase detectTrendsUseCase;
+    @MockitoBean private MonitorRegulatoryEventsUseCase regulatoryUseCase;
 
     // -------------------------------------------------------------------------
     // Fixtures
     // -------------------------------------------------------------------------
-
-    private IngestionAnalytics sampleIngestion() {
-        return new IngestionAnalytics(
-                200L,
-                List.of(new CountByLabel("ACADEMIC", 120L), new CountByLabel("INDUSTRY", 80L)),
-                List.of(new CountByLabel("PubMed AI Healthcare", 120L)),
-                18L, 65L, Instant.parse("2026-01-15T00:00:00Z"));
-    }
 
     private NewsArticle sampleArticle(String title, Instant publishedAt) {
         return new NewsArticle(
@@ -103,36 +96,104 @@ class DashboardControllerTest {
                 1L, "PubMed", "ACADEMIC", 0.9, publishedAt);
     }
 
-    // -------------------------------------------------------------------------
-    // GET /dashboard
-    // -------------------------------------------------------------------------
-
     @BeforeEach
-    void stubChartDefaults() {
-        when(analyticsUseCase.getDailyArticleCounts(anyInt()))
+    void stubDefaults() {
+        // Dashboard defaults
+        when(watchlistPort.findByUser(anyString())).thenReturn(List.of());
+        when(watchlistMatchPort.findByUser(anyString(), anyInt())).thenReturn(List.of());
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of());
+        when(detectTrendsUseCase.getLatestSnapshot()).thenReturn(Optional.empty());
+        when(regulatoryUseCase.getRecentEvents(anyInt())).thenReturn(List.of());
+        when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Legal"), eq(0)))
                 .thenReturn(List.of());
-        when(analyticsUseCase.getTopicDistribution(anyInt()))
-                .thenReturn(List.of());
+        when(subscriberPort.findByEmail(any())).thenReturn(Optional.empty());
     }
 
-    @Test
-    void dashboard_returns200AndDashboardView() throws Exception {
-        when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
+    // -------------------------------------------------------------------------
+    // GET /dashboard — Daily Briefing
+    // -------------------------------------------------------------------------
 
+    @Test
+    void dashboard_returns200AndBriefingView() throws Exception {
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("dashboard"));
     }
 
     @Test
-    void dashboard_modelContainsIngestionAndChartAttributes() throws Exception {
-        when(analyticsUseCase.getIngestionAnalytics()).thenReturn(sampleIngestion());
+    void dashboard_modelContainsBriefingAttributes() throws Exception {
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("hasWatchlist", "watchlistMatches",
+                        "headlines", "risingTrends", "regulatoryEvents", "legalPulse", "tier"));
+    }
+
+    @Test
+    void dashboard_showsHeadlinesWhenArticlesExist() throws Exception {
+        NewsArticle article = sampleArticle("AI Breakthrough in Diagnostics", Instant.now());
+        when(articleIngestionPort.fetchRecentArticles(2)).thenReturn(List.of(article));
 
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("ingestion",
-                        "chartLabels", "chartData",
-                        "topicChartLabels", "topicChartData"));
+                .andExpect(content().string(containsString("AI Breakthrough in Diagnostics")));
+    }
+
+    @Test
+    void dashboard_showsWatchlistAlertsWhenMatchesExist() throws Exception {
+        WatchlistItem item = new WatchlistItem("item-1", "user", WatchlistItemType.KEYWORD,
+                "FDA clearance", "FDA clearance", Instant.now());
+        WatchlistMatch match = new WatchlistMatch("match-1", "item-1", "article-1",
+                Instant.now(), "FDA granted clearance for AI device...");
+        when(watchlistPort.findByUser("user")).thenReturn(List.of(item));
+        when(watchlistMatchPort.findByUser("user", 5)).thenReturn(List.of(match));
+
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("hasWatchlist", true))
+                .andExpect(content().string(containsString("Watchlist Alerts")))
+                .andExpect(content().string(containsString("FDA granted clearance")));
+    }
+
+    @Test
+    void dashboard_hidesWatchlistWhenNoMatches() throws Exception {
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("hasWatchlist", false));
+    }
+
+    @Test
+    void dashboard_showsTrendingKeywords() throws Exception {
+        TrendSignal signal = new TrendSignal("GPT-5 healthcare", 15, 5, 3, 3.0,
+                TrendDirection.RISING, Instant.now(), List.of(), "GPT-5 is transforming diagnostics");
+        TrendSnapshot snapshot = new TrendSnapshot(Instant.now(), 30,
+                List.of(signal), List.of(), List.of(), 50);
+        when(detectTrendsUseCase.getLatestSnapshot()).thenReturn(Optional.of(snapshot));
+
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("GPT-5 healthcare")));
+    }
+
+    @Test
+    void dashboard_showsRegulatoryEvents() throws Exception {
+        RegulatoryEvent event = new RegulatoryEvent("evt-1", RegulatoryEventType.FDA_510K_CLEARANCE,
+                RegulatoryBody.FDA, "AI Radiology Device Cleared", "Summary",
+                "K241234", "Acme AI", "RadiologyBot", "https://fda.gov/k241234",
+                null, Instant.now(), Instant.now(), List.of("radiology"),
+                null, null, null, null);
+        when(regulatoryUseCase.getRecentEvents(3)).thenReturn(List.of(event));
+
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("AI Radiology Device Cleared")))
+                .andExpect(content().string(containsString("Acme AI")));
+    }
+
+    @Test
+    void dashboard_showsUpgradePromptForFreeUsers() throws Exception {
+        mockMvc.perform(get("/dashboard"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Get the Full Picture")));
     }
 
     // -------------------------------------------------------------------------

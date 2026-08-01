@@ -22,7 +22,7 @@
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-28
- * @updated 2026-07-31
+ * @updated 2026-08-01
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org"
@@ -37,14 +37,12 @@
     <!-- Content group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'news' || activePage == 'newsletter' || activePage == 'trends'} ? ' active'">
+                th:classappend="${activePage == 'news' || activePage == 'trends'} ? ' active'">
             Content ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
             <a th:href="@{/dashboard/news}"
                th:classappend="${activePage == 'news'} ? ' active'">News Listing</a>
-            <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}"
-               th:classappend="${activePage == 'newsletter'} ? ' active'">Newsletter Preview</a>
             <a th:href="@{/dashboard/trends}"
                th:classappend="${activePage == 'trends'} ? ' active'">Trends</a>
         </div>
@@ -101,7 +99,7 @@
     <!-- Account group (right side) -->
     <div class="nav-group nav-group-right" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'watchlist' || activePage == 'pricing' || activePage == 'profile' || activePage == 'admin' || activePage == 'admin-pipelines'} ? ' active'">
+                th:classappend="${activePage == 'watchlist' || activePage == 'pricing' || activePage == 'profile' || activePage == 'admin' || activePage == 'admin-pipelines' || activePage == 'newsletter'} ? ' active'">
             Account ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown nav-dropdown-right">
@@ -115,6 +113,8 @@
                th:classappend="${activePage == 'admin'} ? ' active'">Admin</a>
             <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/pipelines}"
                th:classappend="${activePage == 'admin-pipelines'} ? ' active'">Pipelines</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/newsletter/runs}"
+               th:classappend="${activePage == 'newsletter'} ? ' active'">Newsletter Runs</a>
         </div>
     </div>
 

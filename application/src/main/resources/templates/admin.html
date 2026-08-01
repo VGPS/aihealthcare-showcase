@@ -10,7 +10,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2025-06-01
- * @updated 2026-07-28
+ * @updated 2026-08-01
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -132,6 +132,86 @@
         </div>
     </section>
 
+    <!-- Analytics Charts (moved from Dashboard) -->
+    <section class="mb-6">
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-gray-100 pb-3 mb-5">Analytics Charts</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow-sm p-5">
+                    <h3 class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
+                        Articles Ingested &mdash; Last 30 Days:
+                        <span th:text="${last30DaysCount}">0</span>,
+                        Total:
+                        <span th:text="${totalArticles}">0</span>
+                    </h3>
+                    <canvas id="articleTrendChart" height="200"></canvas>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm p-5">
+                    <h3 class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">Articles by Topic &mdash; Top 10</h3>
+                    <canvas id="topicDistChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
 </main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    var chartLabels = /*[[${chartLabels}]]*/ [];
+    var chartData = /*[[${chartData}]]*/ [];
+    var topicLabels = /*[[${topicChartLabels}]]*/ [];
+    var topicData = /*[[${topicChartData}]]*/ [];
+
+    new Chart(document.getElementById('articleTrendChart'), {
+        type: 'line',
+        data: {
+            labels: chartLabels.map(function(d) { return d.substring(5); }),
+            datasets: [{
+                label: 'Articles',
+                data: chartData,
+                borderColor: '#006875',
+                backgroundColor: 'rgba(0, 104, 117, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 2,
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0 } },
+                x: { ticks: { maxTicksLimit: 10, font: { size: 10 } } }
+            }
+        }
+    });
+
+    var topicColors = [
+        '#006875', '#7ab800', '#4a6266', '#525e7d', '#33a6b7',
+        '#558100', '#004b56', '#9cd633', '#3f484a', '#bfc8ca'
+    ];
+    new Chart(document.getElementById('topicDistChart'), {
+        type: 'doughnut',
+        data: {
+            labels: topicLabels,
+            datasets: [{
+                data: topicData,
+                backgroundColor: topicColors.slice(0, topicLabels.length),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { font: { size: 10 }, boxWidth: 12 }
+                }
+            }
+        }
+    });
+</script>
 </body>
 </html>
