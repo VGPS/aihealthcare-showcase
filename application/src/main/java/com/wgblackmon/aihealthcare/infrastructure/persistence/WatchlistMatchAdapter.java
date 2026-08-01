@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistItem;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-08-01
  */
 @Slf4j
 @Component
@@ -59,6 +60,7 @@ public class WatchlistMatchAdapter implements WatchlistMatchPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<WatchlistMatch> findByUser(String email, int limit) {
         log.debug("findByUser() | email={}, limit={}", email, limit);
 
@@ -91,6 +93,7 @@ public class WatchlistMatchAdapter implements WatchlistMatchPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<WatchlistMatch> findByItem(String itemId, int limit) {
         log.debug("findByItem() | itemId={}, limit={}", itemId, limit);
 
