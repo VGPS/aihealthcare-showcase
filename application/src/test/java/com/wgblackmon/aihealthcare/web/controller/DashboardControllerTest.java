@@ -24,6 +24,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
+import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,7 @@ import java.util.Optional;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -84,6 +86,7 @@ class DashboardControllerTest {
     @MockitoBean private WatchlistMatchPort watchlistMatchPort;
     @MockitoBean private DetectTrendsUseCase detectTrendsUseCase;
     @MockitoBean private MonitorRegulatoryEventsUseCase regulatoryUseCase;
+    @MockitoBean private TrendDetectionService trendDetectionService;
 
     // -------------------------------------------------------------------------
     // Fixtures
@@ -107,6 +110,8 @@ class DashboardControllerTest {
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Legal"), eq(0)))
                 .thenReturn(List.of());
         when(subscriberPort.findByEmail(any())).thenReturn(Optional.empty());
+        when(trendDetectionService.detectTrends(anyList(), any(Instant.class)))
+                .thenReturn(new TrendSnapshot(Instant.now(), 7, List.of(), List.of(), List.of(), 0));
     }
 
     // -------------------------------------------------------------------------
@@ -125,13 +130,14 @@ class DashboardControllerTest {
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())
                 .andExpect(model().attributeExists("hasWatchlist", "watchlistMatches",
-                        "headlines", "risingTrends", "regulatoryEvents", "legalPulse", "tier"));
+                        "headlines", "risingTrends", "regulatoryEvents", "legalPulse", "tier",
+                        "searchQuery", "searchResults", "searchResultCount"));
     }
 
     @Test
     void dashboard_showsHeadlinesWhenArticlesExist() throws Exception {
         NewsArticle article = sampleArticle("AI Breakthrough in Diagnostics", Instant.now());
-        when(articleIngestionPort.fetchRecentArticles(2)).thenReturn(List.of(article));
+        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of(article));
 
         mockMvc.perform(get("/dashboard"))
                 .andExpect(status().isOk())

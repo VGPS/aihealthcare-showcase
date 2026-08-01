@@ -31,6 +31,9 @@ import java.util.UUID;
  * @version 1.0
  * @since   2026-07-22
  * @updated 2026-08-01
+ *
+ * <p>Fix: stripHtmlTags now performs two-pass tag removal to catch tags
+ * re-created by HTML entity decoding (e.g. &amp;lt;a href=...&amp;gt;).
  */
 public class WatchlistMatchingService {
 
@@ -105,13 +108,17 @@ public class WatchlistMatchingService {
         if (text == null || text.isEmpty()) {
             return text;
         }
+        // First pass: remove actual HTML tags
         String stripped = text.replaceAll("<[^>]+>", " ");
+        // Decode HTML entities (may re-introduce angle brackets)
         stripped = stripped.replace("&amp;", "&")
                           .replace("&lt;", "<")
                           .replace("&gt;", ">")
                           .replace("&quot;", "\"")
                           .replace("&#39;", "'")
                           .replace("&nbsp;", " ");
+        // Second pass: remove any tags created by entity decoding
+        stripped = stripped.replaceAll("<[^>]+>", " ");
         stripped = stripped.replaceAll("\\s+", " ").trim();
         return stripped;
     }

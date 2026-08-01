@@ -50,6 +50,7 @@ import com.wgblackmon.aihealthcare.domain.service.RegulatoryEventService;
 import com.wgblackmon.aihealthcare.domain.service.RegulatoryWatchlistMatcher;
 import com.wgblackmon.aihealthcare.domain.service.WatchlistMatchingService;
 import com.wgblackmon.aihealthcare.domain.service.LegalTrendDetectionService;
+import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import com.wgblackmon.aihealthcare.domain.service.TrendOrchestrationService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialPort;
@@ -612,6 +613,25 @@ public class AppConfig {
                 new CompanyDeduplicator(),
                 new CompanyNewsletterRenderer());
         log.debug("companyDiscoveryService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link TrendDetectionService} bean — a pure-domain keyword
+     * frequency analyzer used as a fallback when the LLM-based trend detection
+     * has not run or produced an empty snapshot.
+     *
+     * @param minOccurrences minimum keyword occurrences to be included in analysis
+     * @param risingLimit    maximum number of rising signals to return
+     * @return The wired {@link TrendDetectionService} instance.
+     */
+    @Bean
+    public TrendDetectionService trendDetectionService(
+            @Value("${aihealthcare.trends.min-occurrences:2}") int minOccurrences,
+            @Value("${aihealthcare.trends.rising-limit:20}") int risingLimit) {
+        log.debug("trendDetectionService() | minOccurrences={}, risingLimit={}", minOccurrences, risingLimit);
+        TrendDetectionService result = new TrendDetectionService(minOccurrences, risingLimit);
+        log.debug("trendDetectionService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

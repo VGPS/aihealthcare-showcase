@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.domain.port.outbound;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -74,4 +75,17 @@ public interface ArticleIngestionPort {
      * @return all articles created within the window; may be empty
      */
     List<NewsArticle> fetchRecentArticles(int days);
+
+    /**
+     * Fetch all articles created between {@code from} and {@code to} (inclusive),
+     * regardless of topic.
+     *
+     * <p>Used by the trend detection date-range filter to analyze keyword frequency
+     * across a user-specified time window.
+     *
+     * @param from start of the date range (inclusive); must not be null
+     * @param to   end of the date range (inclusive); must not be null
+     * @return all articles created within the range; may be empty
+     */
+    List<NewsArticle> fetchArticlesByDateRange(Instant from, Instant to);
 }

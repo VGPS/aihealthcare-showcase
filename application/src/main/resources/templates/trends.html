@@ -36,6 +36,27 @@
         <span id="detectStatus" class="ml-3 text-sm text-gray-500"></span>
     </div>
 
+    <!-- Date range filter form -->
+    <div class="mb-6 bg-gray-50 rounded-lg px-4 py-3">
+        <form th:action="@{/dashboard/trends}" method="get" class="flex items-end gap-3 flex-wrap">
+            <div>
+                <label for="from" class="block text-xs font-medium text-gray-500 mb-1">From</label>
+                <input type="date" id="from" name="from" th:value="${fromParam}"
+                       class="px-3 py-1.5 border border-gray-300 rounded-md text-sm" />
+            </div>
+            <div>
+                <label for="to" class="block text-xs font-medium text-gray-500 mb-1">To</label>
+                <input type="date" id="to" name="to" th:value="${toParam}"
+                       class="px-3 py-1.5 border border-gray-300 rounded-md text-sm" />
+            </div>
+            <button type="submit"
+                    class="px-4 py-1.5 bg-primary-600 text-white border-none rounded-md cursor-pointer text-sm hover:bg-primary-700 transition-colors">
+                Analyze
+            </button>
+            <a th:href="@{/dashboard/trends}" class="text-sm text-gray-500 hover:text-primary-600 no-underline">Reset</a>
+        </form>
+    </div>
+
     <!-- Snapshot meta -->
     <div th:if="${hasSnapshot}" class="mb-6 text-gray-500 text-sm">
         Last updated: <span th:text="${generatedAt}">N/A</span>
@@ -95,12 +116,10 @@
                           class="ml-2 text-blue-800 font-semibold">
                         &#x25B2; NEW
                     </span>
-                    <span th:if="${signal.direction().name() == 'RISING'}"
+                    <span th:if="${signal.direction().name() == 'RISING' and signal.momentum() > 0 and signal.momentum() <= 99}"
                           class="ml-2 text-green-600 font-semibold">
                         &#x25B2;
-                        <span th:if="${signal.momentum() <= 99}"
-                              th:text="${#numbers.formatDecimal(signal.momentum(), 1, 1)}">0.0</span>
-                        <span th:if="${signal.momentum() > 99}">&#x221E;</span>x momentum
+                        <span th:text="${#numbers.formatDecimal(signal.momentum(), 1, 1)}">0.0</span>x momentum
                     </span>
                 </div>
                 <!-- Trend summary (LLM-generated for analyst/investor audience) -->
@@ -111,44 +130,48 @@
                 <!-- Articles driving this trend -->
                 <div th:if="${!signal.topArticles().isEmpty()}"
                      class="mt-2 pl-3 border-l-[3px] border-green-400 bg-gray-50 rounded-r-md py-2 pr-3">
-                    <div class="text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">
-                        <span th:text="${signal.topArticles().size()}">0</span> Related Articles
-                    </div>
-                    <div th:each="scored : ${signal.topArticles()}"
-                         class="mb-2.5 text-sm py-1.5">
-                        <div class="flex items-baseline gap-1.5 flex-wrap">
-                            <!-- LLM-scored badge (only for scores != 5, which is the unscored default) -->
-                            <span th:if="${scored.score() >= 9}"
-                                  class="inline-block bg-blue-800 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
-                                  th:text="${scored.score()}">9</span>
-                            <span th:if="${scored.score() >= 7 and scored.score() <= 8}"
-                                  class="inline-block bg-green-600 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
-                                  th:text="${scored.score()}">7</span>
-                            <span th:if="${scored.score() >= 4 and scored.score() <= 6}"
-                                  class="inline-block bg-orange-500 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
-                                  th:text="${scored.score()}">5</span>
-                            <!-- Article title — clickable if URL available -->
-                            <a th:if="${scored.url() != null}"
-                               th:href="${scored.url()}" th:text="${scored.title()}"
-                               target="_blank" rel="noopener noreferrer"
-                               class="text-primary-600 no-underline font-medium">Article title</a>
-                            <span th:if="${scored.url() == null}"
-                                  class="text-on-surface font-medium"
-                                  th:text="${scored.title()}">Article title</span>
+                    <details>
+                        <summary class="cursor-pointer text-sm font-semibold text-gray-500 hover:text-primary-600">
+                            <span th:text="${signal.topArticles().size()}">0</span> Related Articles
+                        </summary>
+                        <div class="mt-1.5">
+                            <div th:each="scored : ${signal.topArticles()}"
+                                 class="mb-2.5 text-sm py-1.5">
+                                <div class="flex items-baseline gap-1.5 flex-wrap">
+                                    <!-- LLM-scored badge (only for scores != 5, which is the unscored default) -->
+                                    <span th:if="${scored.score() >= 9}"
+                                          class="inline-block bg-blue-800 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
+                                          th:text="${scored.score()}">9</span>
+                                    <span th:if="${scored.score() >= 7 and scored.score() <= 8}"
+                                          class="inline-block bg-green-600 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
+                                          th:text="${scored.score()}">7</span>
+                                    <span th:if="${scored.score() >= 4 and scored.score() <= 6}"
+                                          class="inline-block bg-orange-500 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
+                                          th:text="${scored.score()}">5</span>
+                                    <!-- Article title — clickable if URL available -->
+                                    <a th:if="${scored.url() != null}"
+                                       th:href="${scored.url()}" th:text="${scored.title()}"
+                                       target="_blank" rel="noopener noreferrer"
+                                       class="text-primary-600 no-underline font-medium">Article title</a>
+                                    <span th:if="${scored.url() == null}"
+                                          class="text-on-surface font-medium"
+                                          th:text="${scored.title()}">Article title</span>
+                                </div>
+                                <!-- Publication + date metadata -->
+                                <div class="mt-0.5 ml-7 text-xs text-gray-500 flex gap-2 flex-wrap items-center">
+                                    <span th:if="${scored.sourceName() != null}"
+                                          class="bg-gray-100 px-1.5 py-px rounded font-medium"
+                                          th:text="${scored.sourceName()}">Publication</span>
+                                    <span th:if="${articleDates.containsKey(scored.articleId())}"
+                                          th:text="${articleDates.get(scored.articleId())}">Date</span>
+                                </div>
+                                <!-- Rationale — show the LLM's description of why this article is relevant -->
+                                <div th:if="${scored.score() != 5 and scored.rationale() != null and !scored.rationale().isBlank()}"
+                                     class="text-xs text-gray-500 ml-7 mt-0.5 italic"
+                                     th:text="${scored.rationale()}">Rationale text</div>
+                            </div>
                         </div>
-                        <!-- Publication + date metadata -->
-                        <div class="mt-0.5 ml-7 text-xs text-gray-500 flex gap-2 flex-wrap items-center">
-                            <span th:if="${scored.sourceName() != null}"
-                                  class="bg-gray-100 px-1.5 py-px rounded font-medium"
-                                  th:text="${scored.sourceName()}">Publication</span>
-                            <span th:if="${articleDates.containsKey(scored.articleId())}"
-                                  th:text="${articleDates.get(scored.articleId())}">Date</span>
-                        </div>
-                        <!-- Rationale — show the LLM's description of why this article is relevant -->
-                        <div th:if="${scored.rationale() != null and !scored.rationale().isBlank()}"
-                             class="text-xs text-gray-500 ml-7 mt-0.5 italic"
-                             th:text="${scored.rationale()}">Rationale text</div>
-                    </div>
+                    </details>
                 </div>
             </div>
         </section>
@@ -166,7 +189,7 @@
         data: {
             labels: chartLabels,
             datasets: [{
-                label: 'Mentions (last 30 days)',
+                label: 'Mentions',
                 data: chartData,
                 backgroundColor: 'rgba(39, 174, 96, 0.7)',
                 borderColor: '#27ae60',
@@ -179,7 +202,7 @@
             indexAxis: 'y',
             plugins: {
                 legend: { display: false },
-                title: { display: true, text: 'Top Rising Topics — Last 30 Days', font: { size: 14 } }
+                title: { display: true, text: /*[[${chartTitle}]]*/ 'Top Rising Topics', font: { size: 14 } }
             },
             scales: {
                 x: { beginAtZero: true, ticks: { precision: 0 } },

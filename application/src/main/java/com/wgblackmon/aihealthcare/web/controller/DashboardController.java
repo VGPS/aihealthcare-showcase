@@ -18,6 +18,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
+import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -86,6 +87,7 @@ public class DashboardController {
     private final WatchlistMatchPort watchlistMatchPort;
     private final DetectTrendsUseCase detectTrendsUseCase;
     private final MonitorRegulatoryEventsUseCase regulatoryUseCase;
+    private final TrendDetectionService trendDetectionService;
 
     public DashboardController(ArticleIngestionPort articleIngestionPort,
                                NewsTopicProperties newsTopicProperties,
@@ -96,7 +98,8 @@ public class DashboardController {
                                WatchlistPort watchlistPort,
                                WatchlistMatchPort watchlistMatchPort,
                                DetectTrendsUseCase detectTrendsUseCase,
-                               MonitorRegulatoryEventsUseCase regulatoryUseCase) {
+                               MonitorRegulatoryEventsUseCase regulatoryUseCase,
+                               TrendDetectionService trendDetectionService) {
         this.articleIngestionPort    = articleIngestionPort;
         this.newsTopicProperties     = newsTopicProperties;
         this.topicSummaryPort        = topicSummaryPort;
@@ -107,6 +110,7 @@ public class DashboardController {
         this.watchlistMatchPort      = watchlistMatchPort;
         this.detectTrendsUseCase     = detectTrendsUseCase;
         this.regulatoryUseCase       = regulatoryUseCase;
+        this.trendDetectionService   = trendDetectionService;
     }
 
     /**
@@ -119,11 +123,52 @@ public class DashboardController {
      * @return Thymeleaf view name "dashboard"
      */
     @GetMapping
-    public String dashboard(Model model, Principal principal) {
-        log.debug("dashboard() | principal={}", principal != null ? principal.getName() : "anonymous");
+    public String dashboard(Model model, Principal principal,
+                            @RequestParam(required = false) String q) {
+        log.debug("dashboard() | principal={}, q={}", principal != null ? principal.getName() : "anonymous", q);
 
         String userEmail = principal != null ? principal.getName() : null;
         SubscriptionTier tier = resolveTier(principal);
+
+        // --- Inline Search (if query provided) ---
+        if (q != null && !q.isBlank()) {
+            String trimmedQ = q.trim();
+            ArticleSearchCriteria criteria = new ArticleSearchCriteria(
+                    trimmedQ, null, null, null, trimmedQ, null, null);
+            List<NewsArticle> searchResults = searchUseCase.search(criteria);
+            sortByPublishedAt(searchResults, false);
+            // Limit to top 10 results
+            List<NewsArticle> limitedResults = new ArrayList<>();
+            for (int i = 0; i < searchResults.size() && i < 10; i++) {
+                limitedResults.add(searchResults.get(i));
+            }
+            Map<String, String> searchDates = new HashMap<>();
+            Map<String, String> searchTitles = new HashMap<>();
+            Map<String, String> searchPubs = new HashMap<>();
+            for (NewsArticle article : limitedResults) {
+                if (article.publishedAt() != null) {
+                    searchDates.put(article.articleId(), SHORT_DATE_FMT.format(article.publishedAt()));
+                }
+                String t = article.title();
+                int dashIndex = t.lastIndexOf(" - ");
+                if (dashIndex > 0) {
+                    searchTitles.put(article.articleId(), t.substring(0, dashIndex).trim());
+                    searchPubs.put(article.articleId(), t.substring(dashIndex + 3).trim());
+                } else {
+                    searchTitles.put(article.articleId(), t);
+                }
+            }
+            model.addAttribute("searchQuery", trimmedQ);
+            model.addAttribute("searchResults", limitedResults);
+            model.addAttribute("searchResultCount", searchResults.size());
+            model.addAttribute("searchDates", searchDates);
+            model.addAttribute("searchTitles", searchTitles);
+            model.addAttribute("searchPubs", searchPubs);
+        } else {
+            model.addAttribute("searchQuery", "");
+            model.addAttribute("searchResults", List.of());
+            model.addAttribute("searchResultCount", 0);
+        }
 
         // --- Watchlist Alerts (only if user has items with matches) ---
         boolean hasWatchlist = false;
@@ -152,8 +197,8 @@ public class DashboardController {
         }
         model.addAttribute("matchDates", matchDates);
 
-        // --- Today's Headlines (top 5 articles from last 2 days, highest source weight) ---
-        List<NewsArticle> recentArticles = articleIngestionPort.fetchRecentArticles(2);
+        // --- Today's Headlines (top 8 articles from last 7 days, highest source weight) ---
+        List<NewsArticle> recentArticles = articleIngestionPort.fetchRecentArticles(7);
         // Sort by source weight descending, then by publishedAt descending
         sortByPublishedAt(recentArticles, false);
         List<NewsArticle> headlines = new ArrayList<>();
@@ -194,13 +239,21 @@ public class DashboardController {
         model.addAttribute("headlineTitles", headlineTitles);
         model.addAttribute("headlinePublications", headlinePublications);
 
-        // --- Trending Now (top 5 rising keywords from latest snapshot) ---
+        // --- Trending Now (top 5 rising keywords from latest snapshot, or fallback from article topics) ---
         List<TrendSignal> risingTrends = new ArrayList<>();
         java.util.Optional<TrendSnapshot> snapshot = detectTrendsUseCase.getLatestSnapshot();
         if (snapshot.isPresent()) {
             List<TrendSignal> rising = snapshot.get().risingTopics();
             for (int i = 0; i < rising.size() && i < 5; i++) {
                 risingTrends.add(rising.get(i));
+            }
+        }
+        if (risingTrends.isEmpty()) {
+            // Fallback: keyword frequency analysis via TrendDetectionService (7-day window)
+            List<NewsArticle> trendArticles = articleIngestionPort.fetchRecentArticles(7);
+            TrendSnapshot fallbackSnapshot = trendDetectionService.detectTrends(trendArticles, Instant.now());
+            for (int i = 0; i < fallbackSnapshot.risingTopics().size() && risingTrends.size() < 5; i++) {
+                risingTrends.add(fallbackSnapshot.risingTopics().get(i));
             }
         }
         model.addAttribute("risingTrends", risingTrends);
