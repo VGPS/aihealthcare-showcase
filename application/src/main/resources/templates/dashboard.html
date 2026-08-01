@@ -156,8 +156,6 @@
                     <div th:each="trend : ${risingTrends}" class="p-3 rounded-lg bg-green-50 border border-green-100">
                         <div class="flex items-center justify-between mb-1">
                             <span class="text-sm font-semibold text-green-800" th:text="${trend.keyword()}">Keyword</span>
-                            <span class="text-xs font-mono text-green-600">&#9650;
-                                <span th:text="${#numbers.formatDecimal(trend.momentum(), 1, 1)}">0.0</span>x</span>
                         </div>
                         <div class="text-xs text-gray-500">
                             <span th:text="${trend.current30d()}">0</span> mentions (30d)
