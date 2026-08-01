@@ -171,9 +171,15 @@ public class DashboardController {
         Map<String, String> headlineDates = new HashMap<>();
         Map<String, String> headlineTitles = new HashMap<>();
         Map<String, String> headlinePublications = new HashMap<>();
+        Instant now = Instant.now();
         for (NewsArticle article : headlines) {
             if (article.publishedAt() != null) {
-                headlineDates.put(article.articleId(), SHORT_DATE_FMT.format(article.publishedAt()));
+                if (article.publishedAt().isAfter(now)) {
+                    headlineDates.put(article.articleId(),
+                            "Print Issue Date: " + SHORT_DATE_FMT.format(article.publishedAt()));
+                } else {
+                    headlineDates.put(article.articleId(), SHORT_DATE_FMT.format(article.publishedAt()));
+                }
             }
             String t = article.title();
             int dashIndex = t.lastIndexOf(" - ");
