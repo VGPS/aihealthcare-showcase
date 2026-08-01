@@ -147,6 +147,20 @@ public class ArticleIngestionAdapter implements ArticleIngestionPort {
         return result;
     }
 
+    @Override
+    public List<NewsArticle> fetchArticlesByDateRange(Instant from, Instant to) {
+        log.debug("fetchArticlesByDateRange() | from={}, to={}", from, to);
+
+        List<NewsArticleEntity> entities = repository.findByCreatedAtBetweenOrderByCreatedAtAsc(from, to);
+        List<NewsArticle> result = new ArrayList<>();
+        for (NewsArticleEntity entity : entities) {
+            result.add(toDomain(entity));
+        }
+
+        log.debug("fetchArticlesByDateRange() | return={} articles", result.size());
+        return result;
+    }
+
     private NewsArticle toDomain(NewsArticleEntity entity) {
         log.debug("toDomain() | articleId={}, topic={}, createdAt={}",
                   entity.getArticleId(), entity.getTopic(), entity.getCreatedAt());

@@ -1,23 +1,29 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
+import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
 import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +46,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-22
- * @updated 2026-07-27
+ * @updated 2026-08-01
  */
 @Slf4j
 @Controller
@@ -51,6 +57,7 @@ public class TrendController {
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final int FREE_RISING_LIMIT = 5;
+    private static final int DEFAULT_FALLBACK_DAYS = 7;
 
     private static final String SCORING_RUBRIC =
             "1-3: Noise (passing mention, opinion) | " +
@@ -59,14 +66,20 @@ public class TrendController {
             "9-10: Landmark (first-of-kind, paradigm shift, breakthrough)";
 
     private final DetectTrendsUseCase detectTrendsUseCase;
+    private final ArticleIngestionPort articleIngestionPort;
     private final SubscriberPort subscriberPort;
+    private final TrendDetectionService trendDetectionService;
 
     public TrendController(DetectTrendsUseCase detectTrendsUseCase,
-                           SubscriberPort subscriberPort) {
-        log.debug("TrendController() | detectTrendsUseCase={}, subscriberPort={}",
-                  detectTrendsUseCase, subscriberPort);
+                           ArticleIngestionPort articleIngestionPort,
+                           SubscriberPort subscriberPort,
+                           TrendDetectionService trendDetectionService) {
+        log.debug("TrendController() | detectTrendsUseCase={}, articleIngestionPort={}, subscriberPort={}, trendDetectionService={}",
+                  detectTrendsUseCase, articleIngestionPort, subscriberPort, trendDetectionService);
         this.detectTrendsUseCase = detectTrendsUseCase;
+        this.articleIngestionPort = articleIngestionPort;
         this.subscriberPort = subscriberPort;
+        this.trendDetectionService = trendDetectionService;
     }
 
     /**
@@ -77,12 +90,15 @@ public class TrendController {
      * @return the "trends" view name
      */
     @GetMapping("/dashboard/trends")
-    public String trends(Principal principal, Model model) {
-        log.debug("trends() | principal={}", principal != null ? principal.getName() : "anonymous");
+    public String trends(Principal principal, Model model,
+                         @RequestParam(required = false) String from,
+                         @RequestParam(required = false) String to) {
+        log.debug("trends() | principal={}, from={}, to={}",
+                  principal != null ? principal.getName() : "anonymous", from, to);
 
         Optional<TrendSnapshot> latest = detectTrendsUseCase.getLatestSnapshot();
 
-        if (latest.isPresent()) {
+        if (latest.isPresent() && !latest.get().risingTopics().isEmpty()) {
             TrendSnapshot snapshot = latest.get();
             SubscriptionTier tier = resolveTier(principal);
             boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO;
@@ -111,6 +127,7 @@ public class TrendController {
             model.addAttribute("generatedAt", DISPLAY_FMT.format(snapshot.generatedAt()));
             model.addAttribute("hasSnapshot", true);
             model.addAttribute("fullAccess", fullAccess || isAdmin(principal));
+            model.addAttribute("chartTitle", "Top Rising Topics — Last 30 Days");
 
             // Chart data: top 10 rising keywords + counts for bar chart
             List<String> chartLabels = new ArrayList<>();
@@ -135,16 +152,73 @@ public class TrendController {
                 }
             }
             model.addAttribute("articleDates", articleDates);
+            model.addAttribute("fromParam", from != null ? from : "");
+            model.addAttribute("toParam", to != null ? to : "");
         } else {
-            model.addAttribute("hasSnapshot", false);
-            model.addAttribute("risingTopics", List.of());
-            model.addAttribute("totalKeywords", 0);
-            model.addAttribute("generatedAt", "N/A");
-            model.addAttribute("fullAccess", false);
-            model.addAttribute("chartLabels", List.of());
-            model.addAttribute("chartData", List.of());
+            // Fallback: keyword frequency analysis via TrendDetectionService
+            Instant now = Instant.now();
+            List<NewsArticle> articles;
+            String chartTitle;
+
+            if (from != null && !from.isBlank() && to != null && !to.isBlank()) {
+                // Custom date range
+                Instant fromInstant = LocalDate.parse(from).atStartOfDay().toInstant(ZoneOffset.UTC);
+                Instant toInstant = LocalDate.parse(to).plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
+                articles = articleIngestionPort.fetchArticlesByDateRange(fromInstant, toInstant);
+                chartTitle = "Top Rising Topics — " + from + " to " + to;
+            } else {
+                // Default: 7-day window
+                articles = articleIngestionPort.fetchRecentArticles(DEFAULT_FALLBACK_DAYS);
+                chartTitle = "Top Rising Topics — Last " + DEFAULT_FALLBACK_DAYS + " Days";
+            }
+
+            log.debug("trends() | fallback: {} articles loaded for keyword analysis", articles.size());
+            TrendSnapshot fallbackSnapshot = trendDetectionService.detectTrends(articles, now);
+
+            // Attach matching articles to each signal for drill-down
+            List<TrendSignal> risingTopics = new ArrayList<>();
+            for (TrendSignal signal : fallbackSnapshot.risingTopics()) {
+                List<ScoredArticle> matchingArticles = findMatchingArticles(articles, signal.keyword(), 5);
+                risingTopics.add(new TrendSignal(
+                        toTitleCase(signal.keyword()),
+                        signal.current30d(), signal.previous90d(),
+                        signal.baseline180d(), signal.momentum(),
+                        signal.direction(), signal.firstSeenAt(),
+                        matchingArticles, signal.summary()));
+            }
+
+            // Build chart data
+            List<String> chartLabels = new ArrayList<>();
+            List<Long> chartData = new ArrayList<>();
+            int chartLimit = Math.min(risingTopics.size(), 10);
+            for (int i = 0; i < chartLimit; i++) {
+                TrendSignal signal = risingTopics.get(i);
+                chartLabels.add(signal.keyword());
+                chartData.add(signal.current30d());
+            }
+
+            // Build articleDates map
+            Map<String, String> articleDates = new HashMap<>();
+            for (TrendSignal signal : risingTopics) {
+                for (ScoredArticle scored : signal.topArticles()) {
+                    if (scored.publishedAt() != null) {
+                        articleDates.put(scored.articleId(), DISPLAY_FMT.format(scored.publishedAt()));
+                    }
+                }
+            }
+
+            model.addAttribute("hasSnapshot", !risingTopics.isEmpty());
+            model.addAttribute("risingTopics", risingTopics);
+            model.addAttribute("totalKeywords", fallbackSnapshot.totalKeywords());
+            model.addAttribute("generatedAt", DISPLAY_FMT.format(now));
+            model.addAttribute("fullAccess", isAdmin(principal));
+            model.addAttribute("chartLabels", chartLabels);
+            model.addAttribute("chartData", chartData);
             model.addAttribute("scoringRubric", SCORING_RUBRIC);
-            model.addAttribute("articleDates", Map.of());
+            model.addAttribute("articleDates", articleDates);
+            model.addAttribute("chartTitle", chartTitle);
+            model.addAttribute("fromParam", from != null ? from : "");
+            model.addAttribute("toParam", to != null ? to : "");
         }
 
         log.debug("trends() | return=trends");
@@ -248,6 +322,69 @@ public class TrendController {
         }
 
         return result;
+    }
+
+    /**
+     * Finds up to {@code limit} articles whose cleaned text contains all tokens
+     * of the keyword. Uses the same text-cleaning approach as
+     * {@link TrendDetectionService} so that n-gram keywords match the articles
+     * they were derived from.
+     */
+    private List<ScoredArticle> findMatchingArticles(List<NewsArticle> articles, String keyword, int limit) {
+        List<ScoredArticle> result = new ArrayList<>();
+        String[] keywordTokens = keyword.split(" ");
+        Set<String> seenTitles = new HashSet<>();
+
+        for (NewsArticle article : articles) {
+            if (result.size() >= limit) {
+                break;
+            }
+            String cleanedTitle = cleanForMatching(article.title());
+            String cleanedBody = cleanForMatching(article.bodyText());
+            if (allTokensPresent(keywordTokens, cleanedTitle)
+                    || allTokensPresent(keywordTokens, cleanedBody)) {
+                // Dedup by title
+                if (!cleanedTitle.isEmpty() && !seenTitles.add(cleanedTitle)) {
+                    continue;
+                }
+                String url = article.url() != null ? article.url().toString() : null;
+                result.add(new ScoredArticle(
+                        article.articleId(), article.title(), 5, "match", keyword,
+                        url, article.sourceName(), article.publishedAt()));
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Cleans text for keyword matching — mirrors TrendDetectionService.cleanText()
+     * logic: lowercase, strip HTML tags, keep only letters/digits/spaces, collapse whitespace.
+     */
+    private String cleanForMatching(String text) {
+        if (text == null || text.isBlank()) {
+            return "";
+        }
+        String cleaned = text.replaceAll("<[^>]+>", " ");
+        cleaned = cleaned.toLowerCase();
+        cleaned = cleaned.replaceAll("[^a-z0-9\\s]", " ");
+        cleaned = cleaned.replaceAll("\\s+", " ");
+        return cleaned.trim();
+    }
+
+    /**
+     * Returns true if every token in the keyword appears somewhere in the cleaned text.
+     */
+    private boolean allTokensPresent(String[] tokens, String text) {
+        if (text.isEmpty()) {
+            return false;
+        }
+        for (String token : tokens) {
+            if (!text.contains(token)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean isAdmin(Principal principal) {

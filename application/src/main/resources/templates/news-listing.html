@@ -38,7 +38,7 @@
     </div>
 
     <!-- Topic sections -->
-    <div th:each="topicName : ${topicNames}" th:if="${!topicArticles.get(topicName).isEmpty()}"
+    <div th:each="topicName : ${topicNames}" th:if="${topicArticles.get(topicName) != null && !topicArticles.get(topicName).isEmpty()}"
          class="bg-white rounded-lg shadow-sm mb-6">
         <div class="flex items-center justify-between px-5 py-3 border-b border-outline-variant">
             <h2 class="font-display text-base font-semibold text-on-surface" th:text="${topicName}">Topic Name</h2>

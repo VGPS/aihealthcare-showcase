@@ -1,11 +1,14 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
 import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
 import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -13,10 +16,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,7 +48,13 @@ class TrendControllerTest {
     private DetectTrendsUseCase detectTrendsUseCase;
 
     @MockitoBean
+    private ArticleIngestionPort articleIngestionPort;
+
+    @MockitoBean
     private SubscriberPort subscriberPort;
+
+    @MockitoBean
+    private TrendDetectionService trendDetectionService;
 
     @Test
     @WithMockUser
@@ -63,6 +76,9 @@ class TrendControllerTest {
     @WithMockUser
     void trendsPage_rendersWhenNoSnapshot() throws Exception {
         when(detectTrendsUseCase.getLatestSnapshot()).thenReturn(Optional.empty());
+        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of());
+        when(trendDetectionService.detectTrends(anyList(), any(Instant.class)))
+                .thenReturn(new TrendSnapshot(Instant.now(), 30, List.of(), List.of(), List.of(), 0));
 
         mockMvc.perform(get("/dashboard/trends"))
                 .andExpect(status().isOk())
@@ -128,9 +144,13 @@ class TrendControllerTest {
     @Test
     @WithMockUser
     void trendsPage_includesScoringRubric() throws Exception {
+        // Empty risingTopics triggers fallback path
         TrendSnapshot snapshot = new TrendSnapshot(
                 Instant.now(), 30, List.of(), List.of(), List.of(), 10);
         when(detectTrendsUseCase.getLatestSnapshot()).thenReturn(Optional.of(snapshot));
+        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of());
+        when(trendDetectionService.detectTrends(anyList(), any(Instant.class)))
+                .thenReturn(new TrendSnapshot(Instant.now(), 30, List.of(), List.of(), List.of(), 0));
 
         mockMvc.perform(get("/dashboard/trends"))
                 .andExpect(status().isOk())
