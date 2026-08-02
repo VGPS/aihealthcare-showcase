@@ -275,6 +275,7 @@ aihealthcare:
         - "Beckers Hospital Review"
         - "HuggingFace Healthcare LLMs"
         - "New AI Healthcare Companies"
+        - "Health Data Utilities"
 
   # ---------------------------------------------------------------------------
   # News listing — ordered topic headers shown on GET /dashboard/news.
@@ -282,7 +283,6 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   news:
     topics:
-      - "General AI Healthcare News"
       - "AI Healthcare Software Development"
       - "Healthcare Outsourcing and Jobs Layoffs"
       - "AI Healthcare Government Policy"
@@ -295,6 +295,8 @@ aihealthcare:
       - "Beckers Hospital Review"
       - "HuggingFace Healthcare LLMs"
       - "New AI Healthcare Companies"
+      - "Health Data Utilities"
+      - "General AI Healthcare News"
 
   feeds:
     sources:
@@ -766,6 +768,39 @@ aihealthcare:
         tier: INDUSTRY
         base-weight: 0.7
         max-items: 20
+      # -----------------------------------------------------------------
+      # Health Data Utilities — health data interoperability, FHIR, HL7,
+      # data exchange, claims data, health information exchanges (HIEs),
+      # data lakes, and health data analytics platforms.
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Google News Health Data Interoperability
+        topic: Health Data Utilities
+        url: https://news.google.com/rss/search?q=health+data+interoperability+FHIR+HL7+HIE&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.7
+        max-items: 20
+      - topic-id: 1
+        name: Google News Health Data Analytics
+        topic: Health Data Utilities
+        url: https://news.google.com/rss/search?q=healthcare+data+analytics+platform+claims+data+utility&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 20
+      - topic-id: 1
+        name: Google News Health Data Exchange
+        topic: Health Data Utilities
+        url: https://news.google.com/rss/search?q=health+information+exchange+data+lake+EHR+integration&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 20
+      - topic-id: 1
+        name: PubMed Health Data Utilities
+        topic: Health Data Utilities
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=health+data+utility+interoperability+FHIR&format=rss
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
       # -----------------------------------------------------------------
       # HuggingFace model discovery
       # -----------------------------------------------------------------

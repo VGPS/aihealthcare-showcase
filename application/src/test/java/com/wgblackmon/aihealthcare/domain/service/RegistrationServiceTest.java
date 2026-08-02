@@ -100,6 +100,13 @@ class RegistrationServiceTest {
     }
 
     @Test
+    void register_happyPath_notifiesAdminOfNewRegistration() {
+        service.register("new@example.com", "New User", "password123");
+
+        verify(transactionalEmailPort).notifyAdminNewRegistration("new@example.com", "New User", "DEMO");
+    }
+
+    @Test
     void register_duplicateAppUser_throwsDuplicateUserException() {
         AppUser existing = new AppUser("existing@example.com", "hash", "Existing", "USER", true, null, null);
         when(appUserPort.findByEmail("existing@example.com")).thenReturn(Optional.of(existing));
