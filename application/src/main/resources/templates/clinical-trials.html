@@ -10,7 +10,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-27
- * @updated 2026-07-28
+ * @updated 2026-08-02
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -77,13 +77,42 @@
         <table class="w-full border-collapse">
             <thead>
             <tr class="border-b-2 border-gray-300 text-left">
-                <th class="p-2">Status</th>
-                <th class="p-2">Title</th>
-                <th class="p-2">Sponsor</th>
-                <th class="p-2">Phase</th>
-                <th class="p-2">Conditions</th>
-                <th class="p-2">NCT ID</th>
-                <th class="p-2">Discovered</th>
+                <th class="p-2">Status
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='status')}"
+                       class="sort-arrow" th:classappend="${sort == 'status'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='status_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'status_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                </th>
+                <th class="p-2">Title
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='title')}"
+                       class="sort-arrow" th:classappend="${sort == 'title'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='title_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'title_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                </th>
+                <th class="p-2">Sponsor
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='sponsor')}"
+                       class="sort-arrow" th:classappend="${sort == 'sponsor'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='sponsor_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'sponsor_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                </th>
+                <th class="p-2">Phase
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='phase')}"
+                       class="sort-arrow" th:classappend="${sort == 'phase'} ? ' active' : ''" title="Sort ascending">&#8593;</a>
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='phase_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'phase_desc'} ? ' active' : ''" title="Sort descending">&#8595;</a>
+                </th>
+                <th class="p-2">Conditions
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='conditions')}"
+                       class="sort-arrow" th:classappend="${sort == 'conditions'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='conditions_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'conditions_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                </th>
+                <th class="p-2">NCT ID
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='nctid')}"
+                       class="sort-arrow" th:classappend="${sort == 'nctid'} ? ' active' : ''" title="Sort ascending">&#8593;</a>
+                    <a th:href="@{/dashboard/clinical-trials(filter=${filter},sort='nctid_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'nctid_desc'} ? ' active' : ''" title="Sort descending">&#8595;</a>
+                </th>
             </tr>
             </thead>
             <tbody>
@@ -144,8 +173,6 @@
                 <td class="p-2 text-sm font-mono">
                     <span th:text="${trial.nctId()}">NCT001</span>
                 </td>
-                <td class="p-2 text-sm whitespace-nowrap"
-                    th:text="${discoveredDates.get(trial.trialId())}">Jan 1, 2026</td>
             </tr>
             </tbody>
         </table>

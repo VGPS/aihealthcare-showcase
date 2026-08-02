@@ -72,9 +72,24 @@
             <table class="result-table">
                 <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>Publication</th>
-                        <th>Publication Date</th>
+                        <th>Title
+                            <a th:href="@{/dashboard/news(sortBy='title',sort='asc')}"
+                               class="sort-arrow" th:classappend="${sortBy == 'title' and sort == 'asc'} ? ' active' : ''" title="A-Z">&#8593;</a>
+                            <a th:href="@{/dashboard/news(sortBy='title',sort='desc')}"
+                               class="sort-arrow" th:classappend="${sortBy == 'title' and sort == 'desc'} ? ' active' : ''" title="Z-A">&#8595;</a>
+                        </th>
+                        <th>Publication
+                            <a th:href="@{/dashboard/news(sortBy='publication',sort='asc')}"
+                               class="sort-arrow" th:classappend="${sortBy == 'publication' and sort == 'asc'} ? ' active' : ''" title="A-Z">&#8593;</a>
+                            <a th:href="@{/dashboard/news(sortBy='publication',sort='desc')}"
+                               class="sort-arrow" th:classappend="${sortBy == 'publication' and sort == 'desc'} ? ' active' : ''" title="Z-A">&#8595;</a>
+                        </th>
+                        <th>Publication Date
+                            <a th:href="@{/dashboard/news(sortBy='date',sort='asc')}"
+                               class="sort-arrow" th:classappend="${sortBy == 'date' and sort == 'asc'} ? ' active' : ''" title="Oldest first">&#8593;</a>
+                            <a th:href="@{/dashboard/news(sortBy='date',sort='desc')}"
+                               class="sort-arrow" th:classappend="${sortBy == 'date' and sort == 'desc'} ? ' active' : ''" title="Newest first">&#8595;</a>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>

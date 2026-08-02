@@ -14,9 +14,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
+
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +40,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-18
- * @updated 2026-05-18
+ * @updated 2026-08-02
  */
 @Slf4j
 @Controller
@@ -65,10 +69,13 @@ public class NewsletterPreviewController {
      * @return view name {@code "newsletter-runs"}.
      */
     @GetMapping
-    public String listRuns(Model model) {
-        log.debug("listRuns() | (no args)");
+    public String listRuns(
+            @RequestParam(required = false, defaultValue = "generated_desc") String sort,
+            Model model) {
+        log.debug("listRuns() | sort={}", sort);
 
         List<NewsletterRun> runs = newsletterRunPort.findAll();
+        runs = sortRuns(runs, sort);
 
         Map<String, String> runTimestamps = new HashMap<>();
         for (NewsletterRun run : runs) {
@@ -79,9 +86,49 @@ public class NewsletterPreviewController {
 
         model.addAttribute("runs", runs);
         model.addAttribute("runTimestamps", runTimestamps);
+        model.addAttribute("sort", sort);
 
         log.debug("listRuns() | return=newsletter-runs (runCount={})", runs.size());
         return "newsletter-runs";
+    }
+
+    /**
+     * Sorts the newsletter run list by the specified column.
+     */
+    private List<NewsletterRun> sortRuns(List<NewsletterRun> runs, String sort) {
+        log.debug("sortRuns() | sort={}, size={}", sort, runs.size());
+        if (runs.isEmpty()) {
+            log.debug("sortRuns() | return=empty list");
+            return runs;
+        }
+
+        boolean descending = sort != null && sort.endsWith("_desc");
+        String column = descending ? sort.substring(0, sort.length() - 5) : sort;
+
+        Comparator<NewsletterRun> comparator;
+        if ("title".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(
+                    r -> r.title() != null ? r.title() : "",
+                    String.CASE_INSENSITIVE_ORDER);
+        } else if ("weekof".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(
+                    r -> r.weekOf() != null ? r.weekOf() : LocalDate.EPOCH);
+        } else if ("status".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(r -> r.status().name());
+        } else {
+            // Default: generated date
+            comparator = Comparator.comparing(
+                    r -> r.generatedAt() != null ? r.generatedAt() : Instant.EPOCH);
+        }
+
+        if (descending) {
+            comparator = comparator.reversed();
+        }
+
+        List<NewsletterRun> sorted = new ArrayList<>(runs);
+        sorted.sort(comparator);
+        log.debug("sortRuns() | return=sorted list, size={}", sorted.size());
+        return sorted;
     }
 
     /**

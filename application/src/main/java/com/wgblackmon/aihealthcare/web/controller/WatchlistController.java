@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +42,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-08-02
  */
 @Slf4j
 @Controller
@@ -73,8 +74,10 @@ public class WatchlistController {
      * Renders the watchlist page with the user's tracked items and recent matches.
      */
     @GetMapping("/watchlist")
-    public String index(Model model, Principal principal) {
-        log.debug("index() | principal={}", principal != null ? principal.getName() : "anonymous");
+    public String index(
+            @RequestParam(required = false, defaultValue = "matched_desc") String sort,
+            Model model, Principal principal) {
+        log.debug("index() | sort={}, principal={}", sort, principal != null ? principal.getName() : "anonymous");
 
         String email = principal != null ? principal.getName() : "";
 
@@ -117,6 +120,9 @@ public class WatchlistController {
             itemTypes.put(item.itemId(), item.itemType().name());
         }
 
+        // Sort matches
+        matches = sortMatches(matches, sort, itemLabels);
+
         // Format match dates
         Map<String, String> matchDates = new HashMap<>();
         for (WatchlistMatch match : matches) {
@@ -133,9 +139,50 @@ public class WatchlistController {
         model.addAttribute("matchDates", matchDates);
         model.addAttribute("itemLabels", itemLabels);
         model.addAttribute("itemTypes", itemTypes);
+        model.addAttribute("sort", sort);
 
         log.debug("index() | return=watchlist, items={}, matches={}", items.size(), matches.size());
         return "watchlist";
+    }
+
+    /**
+     * Sorts the matches list by the specified column.
+     */
+    private List<WatchlistMatch> sortMatches(List<WatchlistMatch> matches, String sort,
+                                              Map<String, String> itemLabels) {
+        log.debug("sortMatches() | sort={}, size={}", sort, matches.size());
+        if (matches.isEmpty()) {
+            log.debug("sortMatches() | return=empty list");
+            return matches;
+        }
+
+        boolean descending = sort != null && sort.endsWith("_desc");
+        String column = descending ? sort.substring(0, sort.length() - 5) : sort;
+
+        Comparator<WatchlistMatch> comparator;
+        if ("item".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(
+                    m -> itemLabels.getOrDefault(m.itemId(), ""),
+                    String.CASE_INSENSITIVE_ORDER);
+        } else if ("article".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(WatchlistMatch::articleId, String.CASE_INSENSITIVE_ORDER);
+        } else if ("snippet".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(
+                    m -> m.snippet() != null ? m.snippet() : "",
+                    String.CASE_INSENSITIVE_ORDER);
+        } else {
+            // Default: matched date
+            comparator = Comparator.comparing(WatchlistMatch::matchedOn);
+        }
+
+        if (descending) {
+            comparator = comparator.reversed();
+        }
+
+        List<WatchlistMatch> sorted = new ArrayList<>(matches);
+        sorted.sort(comparator);
+        log.debug("sortMatches() | return=sorted list, size={}", sorted.size());
+        return sorted;
     }
 
     /**

@@ -9,10 +9,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +39,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-12
- * @updated 2026-05-12
+ * @updated 2026-08-02
  */
 @Slf4j
 @Controller
@@ -73,10 +76,13 @@ public class ResearchDashboardController {
      * @return Thymeleaf view name {@code "research-runs"}
      */
     @GetMapping
-    public String listRuns(Model model) {
-        log.debug("listRuns() |");
+    public String listRuns(
+            @RequestParam(required = false, defaultValue = "timestamp_desc") String sort,
+            Model model) {
+        log.debug("listRuns() | sort={}", sort);
 
         List<ResearchRun> runs = researchRunPort.findAll();
+        runs = sortRuns(runs, sort);
         model.addAttribute("runs", runs);
 
         Map<String, String> runTimestamps = new LinkedHashMap<>();
@@ -87,10 +93,46 @@ public class ResearchDashboardController {
             runTimestamps.put(run.runId(), ts);
         }
         model.addAttribute("runTimestamps", runTimestamps);
+        model.addAttribute("sort", sort);
 
         log.info("listRuns() | rendering {} research runs", runs.size());
         log.debug("listRuns() | return=research-runs");
         return "research-runs";
+    }
+
+    /**
+     * Sorts the run list by the specified column.
+     */
+    private List<ResearchRun> sortRuns(List<ResearchRun> runs, String sort) {
+        log.debug("sortRuns() | sort={}, size={}", sort, runs.size());
+        if (runs.isEmpty()) {
+            log.debug("sortRuns() | return=empty list");
+            return runs;
+        }
+
+        boolean descending = sort != null && sort.endsWith("_desc");
+        String column = descending ? sort.substring(0, sort.length() - 5) : sort;
+
+        Comparator<ResearchRun> comparator;
+        if ("query".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(ResearchRun::query, String.CASE_INSENSITIVE_ORDER);
+        } else if ("mode".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(ResearchRun::mode, String.CASE_INSENSITIVE_ORDER);
+        } else if ("citations".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparingInt(ResearchRun::citationCount);
+        } else {
+            // Default: timestamp
+            comparator = Comparator.comparing(r -> r.researchedAt() != null ? r.researchedAt() : java.time.Instant.EPOCH);
+        }
+
+        if (descending) {
+            comparator = comparator.reversed();
+        }
+
+        List<ResearchRun> sorted = new ArrayList<>(runs);
+        sorted.sort(comparator);
+        log.debug("sortRuns() | return=sorted list, size={}", sorted.size());
+        return sorted;
     }
 
     /**

@@ -81,10 +81,30 @@
         <table class="w-full border-collapse" th:unless="${runs.isEmpty()}">
             <thead>
                 <tr>
-                    <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Timestamp (UTC)</th>
-                    <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Query</th>
-                    <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Mode</th>
-                    <th class="bg-gray-50 text-right px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Citations</th>
+                    <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Timestamp (UTC)
+                        <a th:href="@{/research/runs(sort='timestamp')}"
+                           class="sort-arrow" th:classappend="${sort == 'timestamp'} ? ' active' : ''" title="Oldest first">&#8593;</a>
+                        <a th:href="@{/research/runs(sort='timestamp_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'timestamp_desc'} ? ' active' : ''" title="Newest first">&#8595;</a>
+                    </th>
+                    <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Query
+                        <a th:href="@{/research/runs(sort='query')}"
+                           class="sort-arrow" th:classappend="${sort == 'query'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                        <a th:href="@{/research/runs(sort='query_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'query_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                    </th>
+                    <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Mode
+                        <a th:href="@{/research/runs(sort='mode')}"
+                           class="sort-arrow" th:classappend="${sort == 'mode'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                        <a th:href="@{/research/runs(sort='mode_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'mode_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                    </th>
+                    <th class="bg-gray-50 text-right px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Citations
+                        <a th:href="@{/research/runs(sort='citations')}"
+                           class="sort-arrow" th:classappend="${sort == 'citations'} ? ' active' : ''" title="Fewest first">&#8593;</a>
+                        <a th:href="@{/research/runs(sort='citations_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'citations_desc'} ? ' active' : ''" title="Most first">&#8595;</a>
+                    </th>
                     <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Run ID</th>
                 </tr>
             </thead>

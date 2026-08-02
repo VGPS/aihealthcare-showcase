@@ -71,12 +71,42 @@
         <table class="w-full border-collapse">
             <thead>
             <tr class="border-b-2 border-gray-300 text-left">
-                <th class="p-2">Type</th>
-                <th class="p-2">Title</th>
-                <th class="p-2">Applicant / Device</th>
-                <th class="p-2">Reference</th>
-                <th class="p-2">Outcome</th>
-                <th class="p-2">Published</th>
+                <th class="p-2">Type
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='type')}"
+                       class="sort-arrow" th:classappend="${sort == 'type'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='type_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'type_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                </th>
+                <th class="p-2">Title
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='title')}"
+                       class="sort-arrow" th:classappend="${sort == 'title'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='title_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'title_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                </th>
+                <th class="p-2">Applicant / Device
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='applicant')}"
+                       class="sort-arrow" th:classappend="${sort == 'applicant'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='applicant_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'applicant_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                </th>
+                <th class="p-2">Reference
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='reference')}"
+                       class="sort-arrow" th:classappend="${sort == 'reference'} ? ' active' : ''" title="Sort ascending">&#8593;</a>
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='reference_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'reference_desc'} ? ' active' : ''" title="Sort descending">&#8595;</a>
+                </th>
+                <th class="p-2">Outcome
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='outcome')}"
+                       class="sort-arrow" th:classappend="${sort == 'outcome'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='outcome_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'outcome_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                </th>
+                <th class="p-2">Published
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='published')}"
+                       class="sort-arrow" th:classappend="${sort == 'published'} ? ' active' : ''" title="Oldest first">&#8593;</a>
+                    <a th:href="@{/dashboard/regulatory(filter=${filter},sort='published_desc')}"
+                       class="sort-arrow" th:classappend="${sort == 'published_desc'} ? ' active' : ''" title="Newest first">&#8595;</a>
+                </th>
                 <th class="p-2">Keywords</th>
             </tr>
             </thead>

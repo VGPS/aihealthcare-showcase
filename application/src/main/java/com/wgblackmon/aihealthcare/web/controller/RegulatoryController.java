@@ -19,6 +19,7 @@ import java.security.Principal;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-08-02
  */
 @Slf4j
 @Controller
@@ -65,15 +66,17 @@ public class RegulatoryController {
      * Renders the regulatory alerts page.
      *
      * @param filter    optional filter: "fda", "cms", or null for all
+     * @param sort      optional sort column with optional _desc suffix
      * @param principal the authenticated user, or null for anonymous
      * @param model     Thymeleaf model
      * @return the "regulatory" view name
      */
     @GetMapping("/dashboard/regulatory")
     public String regulatory(@RequestParam(required = false) String filter,
+                              @RequestParam(required = false, defaultValue = "published_desc") String sort,
                               Principal principal,
                               Model model) {
-        log.debug("regulatory() | filter={}, principal={}", filter,
+        log.debug("regulatory() | filter={}, sort={}, principal={}", filter, sort,
                   principal != null ? principal.getName() : "anonymous");
 
         SubscriptionTier tier = resolveTier(principal);
@@ -90,6 +93,9 @@ public class RegulatoryController {
         } else {
             events = regulatoryUseCase.getRecentEvents(limit);
         }
+
+        // Sort the results
+        events = sortEvents(events, sort);
 
         // Format dates server-side
         Map<String, String> eventDates = new HashMap<>();
@@ -129,10 +135,57 @@ public class RegulatoryController {
         model.addAttribute("cmsCount", cmsCount);
         model.addAttribute("otherCount", otherCount);
         model.addAttribute("filter", filter);
+        model.addAttribute("sort", sort);
         model.addAttribute("fullAccess", fullAccess);
 
         log.debug("regulatory() | return=regulatory, eventCount={}", events.size());
         return "regulatory";
+    }
+
+    /**
+     * Sorts the event list by the specified column.
+     */
+    private List<RegulatoryEvent> sortEvents(List<RegulatoryEvent> events, String sort) {
+        log.debug("sortEvents() | sort={}, size={}", sort, events.size());
+        if (events.isEmpty()) {
+            log.debug("sortEvents() | return=empty list");
+            return events;
+        }
+
+        boolean descending = sort != null && sort.endsWith("_desc");
+        String column = descending ? sort.substring(0, sort.length() - 5) : sort;
+
+        Comparator<RegulatoryEvent> comparator;
+        if ("type".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(e -> e.eventType().name());
+        } else if ("title".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(RegulatoryEvent::title, String.CASE_INSENSITIVE_ORDER);
+        } else if ("applicant".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(
+                    e -> e.applicantName() != null ? e.applicantName() : "",
+                    String.CASE_INSENSITIVE_ORDER);
+        } else if ("reference".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(
+                    e -> e.referenceNumber() != null ? e.referenceNumber() : "",
+                    String.CASE_INSENSITIVE_ORDER);
+        } else if ("outcome".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(
+                    e -> e.outcomeStatus() != null ? e.outcomeStatus().name() : "",
+                    String.CASE_INSENSITIVE_ORDER);
+        } else {
+            // Default: published date
+            comparator = Comparator.comparing(
+                    e -> e.publishedAt() != null ? e.publishedAt() : e.discoveredAt());
+        }
+
+        if (descending) {
+            comparator = comparator.reversed();
+        }
+
+        List<RegulatoryEvent> sorted = new ArrayList<>(events);
+        sorted.sort(comparator);
+        log.debug("sortEvents() | return=sorted list, size={}", sorted.size());
+        return sorted;
     }
 
     private SubscriptionTier resolveTier(Principal principal) {
