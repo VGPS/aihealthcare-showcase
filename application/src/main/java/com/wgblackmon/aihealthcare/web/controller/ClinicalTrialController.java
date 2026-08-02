@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.security.Principal;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +39,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-23
- * @updated 2026-07-23
+ * @updated 2026-08-02
  */
 @Slf4j
 @Controller
@@ -65,15 +67,18 @@ public class ClinicalTrialController {
      * Renders the clinical trials page.
      *
      * @param filter    optional filter: "recruiting", "completed", or null for all
+     * @param sort      optional sort column: "status" (default), "title", "sponsor",
+     *                  "phase", "conditions", or "nctid"
      * @param principal the authenticated user, or null for anonymous
      * @param model     Thymeleaf model
      * @return the "clinical-trials" view name
      */
     @GetMapping("/dashboard/clinical-trials")
     public String clinicalTrials(@RequestParam(required = false) String filter,
+                                  @RequestParam(required = false, defaultValue = "status") String sort,
                                   Principal principal,
                                   Model model) {
-        log.debug("clinicalTrials() | filter={}, principal={}", filter,
+        log.debug("clinicalTrials() | filter={}, sort={}, principal={}", filter, sort,
                   principal != null ? principal.getName() : "anonymous");
 
         SubscriptionTier tier = resolveTier(principal);
@@ -91,14 +96,15 @@ public class ClinicalTrialController {
             trials = clinicalTrialsUseCase.getRecentTrials(limit);
         }
 
+        // Sort the results
+        trials = sortTrials(trials, sort);
+
         // Format dates server-side
         Map<String, String> startDates = new HashMap<>();
-        Map<String, String> discoveredDates = new HashMap<>();
         for (ClinicalTrial trial : trials) {
             if (trial.startDate() != null) {
                 startDates.put(trial.trialId(), DISPLAY_FMT.format(trial.startDate()));
             }
-            discoveredDates.put(trial.trialId(), DISPLAY_FMT.format(trial.discoveredAt()));
         }
 
         // Status counts for summary badges
@@ -121,17 +127,67 @@ public class ClinicalTrialController {
 
         model.addAttribute("trials", trials);
         model.addAttribute("startDates", startDates);
-        model.addAttribute("discoveredDates", discoveredDates);
         model.addAttribute("trialCount", trials.size());
         model.addAttribute("recruitingCount", recruitingCount);
         model.addAttribute("completedCount", completedCount);
         model.addAttribute("phase2Count", phase2Count);
         model.addAttribute("phase3Count", phase3Count);
         model.addAttribute("filter", filter);
+        model.addAttribute("sort", sort);
         model.addAttribute("fullAccess", fullAccess);
 
         log.debug("clinicalTrials() | return=clinical-trials, trialCount={}", trials.size());
         return "clinical-trials";
+    }
+
+    /**
+     * Sorts the trials list by the specified column.
+     *
+     * @param trials the unsorted trial list
+     * @param sort   column name with optional _desc suffix (e.g. "title", "title_desc")
+     * @return a new sorted list
+     */
+    private List<ClinicalTrial> sortTrials(List<ClinicalTrial> trials, String sort) {
+        log.debug("sortTrials() | sort={}, size={}", sort, trials.size());
+
+        if (trials.isEmpty()) {
+            log.debug("sortTrials() | return=empty list");
+            return trials;
+        }
+
+        boolean descending = sort != null && sort.endsWith("_desc");
+        String column = descending ? sort.substring(0, sort.length() - 5) : sort;
+
+        Comparator<ClinicalTrial> comparator;
+        if ("title".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(ClinicalTrial::title, String.CASE_INSENSITIVE_ORDER);
+        } else if ("sponsor".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(
+                    t -> t.sponsor() != null ? t.sponsor() : "",
+                    String.CASE_INSENSITIVE_ORDER);
+        } else if ("phase".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(
+                    t -> t.phase() != null ? t.phase().ordinal() : Integer.MAX_VALUE);
+        } else if ("conditions".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(
+                    t -> t.conditions().isEmpty() ? "" : t.conditions().get(0),
+                    String.CASE_INSENSITIVE_ORDER);
+        } else if ("nctid".equalsIgnoreCase(column)) {
+            comparator = Comparator.comparing(ClinicalTrial::nctId);
+        } else {
+            // Default: status
+            comparator = Comparator.comparing(t -> t.status().name());
+        }
+
+        if (descending) {
+            comparator = comparator.reversed();
+        }
+
+        List<ClinicalTrial> sorted = new ArrayList<>(trials);
+        sorted.sort(comparator);
+
+        log.debug("sortTrials() | return=sorted list, size={}", sorted.size());
+        return sorted;
     }
 
     /**

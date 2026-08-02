@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-23
- * @updated 2026-07-23
+ * @updated 2026-08-02
  */
 @WebMvcTest(ClinicalTrialController.class)
 class ClinicalTrialControllerTest {
@@ -126,6 +126,28 @@ class ClinicalTrialControllerTest {
     void clinicalTrialsPage_requiresAuthentication() throws Exception {
         mockMvc.perform(get("/dashboard/clinical-trials"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    void clinicalTrialsPage_sortByTitle() throws Exception {
+        ClinicalTrial trial = trial("t1", "NCT001", ClinicalTrialStatus.RECRUITING, ClinicalTrialPhase.PHASE_2);
+        when(clinicalTrialsUseCase.getRecentTrials(5)).thenReturn(List.of(trial));
+
+        mockMvc.perform(get("/dashboard/clinical-trials").param("sort", "title"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("sort", "title"))
+                .andExpect(model().attribute("trialCount", 1));
+    }
+
+    @Test
+    @WithMockUser
+    void clinicalTrialsPage_defaultSortIsStatus() throws Exception {
+        when(clinicalTrialsUseCase.getRecentTrials(5)).thenReturn(List.of());
+
+        mockMvc.perform(get("/dashboard/clinical-trials"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("sort", "status"));
     }
 
     // --- Helper ---

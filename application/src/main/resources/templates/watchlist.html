@@ -135,10 +135,25 @@
         <table class="result-table">
             <thead>
                 <tr>
-                    <th>Matched Item</th>
-                    <th>Article</th>
+                    <th>Matched Item
+                        <a th:href="@{/watchlist(sort='item')}"
+                           class="sort-arrow" th:classappend="${sort == 'item'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                        <a th:href="@{/watchlist(sort='item_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'item_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                    </th>
+                    <th>Article
+                        <a th:href="@{/watchlist(sort='article')}"
+                           class="sort-arrow" th:classappend="${sort == 'article'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                        <a th:href="@{/watchlist(sort='article_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'article_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                    </th>
                     <th>Snippet</th>
-                    <th>Matched</th>
+                    <th>Matched
+                        <a th:href="@{/watchlist(sort='matched')}"
+                           class="sort-arrow" th:classappend="${sort == 'matched'} ? ' active' : ''" title="Oldest first">&#8593;</a>
+                        <a th:href="@{/watchlist(sort='matched_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'matched_desc'} ? ' active' : ''" title="Newest first">&#8595;</a>
+                    </th>
                 </tr>
             </thead>
             <tbody>

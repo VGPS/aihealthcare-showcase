@@ -49,10 +49,30 @@
             <thead>
                 <tr>
                     <th>Run ID</th>
-                    <th>Title</th>
-                    <th>Week Of</th>
-                    <th>Status</th>
-                    <th>Generated</th>
+                    <th>Title
+                        <a th:href="@{/newsletter/runs(sort='title')}"
+                           class="sort-arrow" th:classappend="${sort == 'title'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                        <a th:href="@{/newsletter/runs(sort='title_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'title_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                    </th>
+                    <th>Week Of
+                        <a th:href="@{/newsletter/runs(sort='weekof')}"
+                           class="sort-arrow" th:classappend="${sort == 'weekof'} ? ' active' : ''" title="Oldest first">&#8593;</a>
+                        <a th:href="@{/newsletter/runs(sort='weekof_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'weekof_desc'} ? ' active' : ''" title="Newest first">&#8595;</a>
+                    </th>
+                    <th>Status
+                        <a th:href="@{/newsletter/runs(sort='status')}"
+                           class="sort-arrow" th:classappend="${sort == 'status'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                        <a th:href="@{/newsletter/runs(sort='status_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'status_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                    </th>
+                    <th>Generated
+                        <a th:href="@{/newsletter/runs(sort='generated')}"
+                           class="sort-arrow" th:classappend="${sort == 'generated'} ? ' active' : ''" title="Oldest first">&#8593;</a>
+                        <a th:href="@{/newsletter/runs(sort='generated_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'generated_desc'} ? ' active' : ''" title="Newest first">&#8595;</a>
+                    </th>
                     <th>Action</th>
                 </tr>
             </thead>
