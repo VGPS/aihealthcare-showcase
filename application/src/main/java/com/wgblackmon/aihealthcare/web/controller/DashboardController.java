@@ -40,10 +40,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Thymeleaf controller that renders the Daily Briefing dashboard and article-detail pages.
@@ -131,11 +133,29 @@ public class DashboardController {
         SubscriptionTier tier = resolveTier(principal);
 
         // --- Inline Search (if query provided) ---
+        // Searches title OR bodyText (two queries merged + deduped) so the user
+        // doesn't need exact phrasing in both fields simultaneously.
         if (q != null && !q.isBlank()) {
             String trimmedQ = q.trim();
-            ArticleSearchCriteria criteria = new ArticleSearchCriteria(
-                    trimmedQ, null, null, null, trimmedQ, null, null);
-            List<NewsArticle> searchResults = searchUseCase.search(criteria);
+            ArticleSearchCriteria titleCriteria = new ArticleSearchCriteria(
+                    trimmedQ, null, null, null, null, null, null);
+            ArticleSearchCriteria bodyCriteria = new ArticleSearchCriteria(
+                    null, null, null, null, trimmedQ, null, null);
+            List<NewsArticle> titleHits = searchUseCase.search(titleCriteria);
+            List<NewsArticle> bodyHits = searchUseCase.search(bodyCriteria);
+            // Merge and deduplicate by articleId
+            Set<String> seen = new HashSet<>();
+            List<NewsArticle> searchResults = new ArrayList<>();
+            for (NewsArticle article : titleHits) {
+                if (seen.add(article.articleId())) {
+                    searchResults.add(article);
+                }
+            }
+            for (NewsArticle article : bodyHits) {
+                if (seen.add(article.articleId())) {
+                    searchResults.add(article);
+                }
+            }
             sortByPublishedAt(searchResults, false);
             // Limit to top 10 results
             List<NewsArticle> limitedResults = new ArrayList<>();
@@ -395,8 +415,8 @@ public class DashboardController {
      */
     @GetMapping("/news")
     public String newsListing(
-            @RequestParam(defaultValue = "desc") String sort,
-            @RequestParam(defaultValue = "date") String sortBy,
+            @RequestParam(defaultValue = "asc") String sort,
+            @RequestParam(defaultValue = "title") String sortBy,
             Principal principal,
             Model model) {
         log.debug("newsListing() | sort={}, sortBy={}, principal={}", sort, sortBy, principal != null ? principal.getName() : "anonymous");

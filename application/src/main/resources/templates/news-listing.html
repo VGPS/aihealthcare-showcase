@@ -2,11 +2,12 @@
 <!--
 /**
  * News Listing page — articles grouped by topic with AI summaries and sort controls.
+ * Table of contents at top for quick topic navigation. Collapsible article lists.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-01
- * @updated 2026-07-28
+ * @updated 2026-08-01
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -37,59 +38,99 @@
         <a th:href="@{/pricing}" class="text-primary-600 hover:text-primary-700 font-semibold ml-4">Upgrade</a>
     </div>
 
-    <!-- Topic sections -->
-    <div th:each="topicName : ${topicNames}" th:if="${topicArticles.get(topicName) != null && !topicArticles.get(topicName).isEmpty()}"
-         class="bg-white rounded-lg shadow-sm mb-6">
-        <div class="flex items-center justify-between px-5 py-3 border-b border-outline-variant">
-            <h2 class="font-display text-base font-semibold text-on-surface" th:text="${topicName}">Topic Name</h2>
-            <span class="count-badge" th:text="${topicArticles.get(topicName).size()} + ' articles'">0 articles</span>
-        </div>
-
-        <table class="result-table">
-            <thead>
-                <tr>
-                    <th>Title
-                        <a th:href="@{/dashboard/news(sort='asc',sortBy='title')}"
-                           class="sort-arrow" th:classappend="${sortBy == 'title' and sort == 'asc' ? ' active' : ''}" title="A-Z">&#8593;</a>
-                        <a th:href="@{/dashboard/news(sort='desc',sortBy='title')}"
-                           class="sort-arrow" th:classappend="${sortBy == 'title' and sort != 'asc' ? ' active' : ''}" title="Z-A">&#8595;</a>
-                    </th>
-                    <th>Publication
-                        <a th:href="@{/dashboard/news(sort='asc',sortBy='publication')}"
-                           class="sort-arrow" th:classappend="${sortBy == 'publication' and sort == 'asc' ? ' active' : ''}" title="A-Z">&#8593;</a>
-                        <a th:href="@{/dashboard/news(sort='desc',sortBy='publication')}"
-                           class="sort-arrow" th:classappend="${sortBy == 'publication' and sort != 'asc' ? ' active' : ''}" title="Z-A">&#8595;</a>
-                    </th>
-                    <th>Publication Date
-                        <a th:href="@{/dashboard/news(sort='asc',sortBy='date')}"
-                           class="sort-arrow" th:classappend="${sortBy != 'title' and sortBy != 'publication' and sort == 'asc' ? ' active' : ''}" title="Oldest first">&#8593;</a>
-                        <a th:href="@{/dashboard/news(sort='desc',sortBy='date')}"
-                           class="sort-arrow" th:classappend="${sortBy != 'title' and sortBy != 'publication' and sort != 'asc' ? ' active' : ''}" title="Newest first">&#8595;</a>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="article : ${topicArticles.get(topicName)}">
-                    <td class="title-cell">
-                        <a th:href="${article.url}"
-                           th:text="${articleTitles.get(article.articleId())}"
-                           target="_blank" rel="noopener noreferrer">-</a>
-                    </td>
-                    <td class="publication-cell"
-                        th:text="${articlePublications.containsKey(article.articleId()) ? articlePublications.get(article.articleId()) : ''}"></td>
-                    <td th:if="${articleDates.containsKey(article.articleId())}" class="date-cell"
-                        th:text="${articleDates.get(article.articleId())}">-</td>
-                    <td th:if="${!articleDates.containsKey(article.articleId())}" class="date-cell null-date">unknown</td>
-                </tr>
-            </tbody>
-        </table>
-        <div th:if="${topicSummaries.containsKey(topicName)}"
-             class="bg-primary-50 border-t border-outline-variant px-5 py-3 text-sm">
-            <span class="font-semibold text-primary-600 text-xs uppercase tracking-wide">AI Summary</span>
-            <p class="mt-1 text-on-surface-variant leading-relaxed" th:text="${topicSummaries.get(topicName)}"></p>
+    <!-- Table of Contents -->
+    <div class="bg-white rounded-lg shadow-sm mb-6 px-5 py-4">
+        <h2 class="font-display text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Topics</h2>
+        <div class="flex flex-wrap gap-2">
+            <th:block th:each="topicName : ${topicNames}">
+                <a th:if="${topicArticles.get(topicName) != null && !topicArticles.get(topicName).isEmpty()}"
+                   th:href="'#topic-' + ${#strings.replace(topicName, ' ', '-')}"
+                   th:text="${topicName}"
+                   class="inline-block px-3 py-1.5 bg-primary-50 text-primary-700 text-sm font-medium rounded-full
+                          hover:bg-primary-100 hover:text-primary-800 transition-colors">Topic</a>
+            </th:block>
         </div>
     </div>
 
+    <!-- Topic sections -->
+    <div th:each="topicName : ${topicNames}" th:if="${topicArticles.get(topicName) != null && !topicArticles.get(topicName).isEmpty()}"
+         th:id="'topic-' + ${#strings.replace(topicName, ' ', '-')}"
+         class="bg-white rounded-lg shadow-sm mb-6">
+
+        <details class="group">
+            <summary class="flex items-center justify-between px-5 py-3 border-b border-outline-variant cursor-pointer
+                           hover:bg-gray-50 transition-colors list-none">
+                <h2 class="font-display text-base font-semibold text-on-surface" th:text="${topicName}">Topic Name</h2>
+                <div class="flex items-center gap-3">
+                    <span class="count-badge" th:text="${topicArticles.get(topicName).size()} + ' articles'">0 articles</span>
+                    <svg class="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+            </summary>
+
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Publication</th>
+                        <th>Publication Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="article : ${topicArticles.get(topicName)}">
+                        <td class="title-cell">
+                            <a th:href="${article.url}"
+                               th:text="${articleTitles.get(article.articleId())}"
+                               target="_blank" rel="noopener noreferrer">-</a>
+                        </td>
+                        <td class="publication-cell"
+                            th:text="${articlePublications.containsKey(article.articleId()) ? articlePublications.get(article.articleId()) : ''}"></td>
+                        <td th:if="${articleDates.containsKey(article.articleId())}" class="date-cell"
+                            th:text="${articleDates.get(article.articleId())}">-</td>
+                        <td th:if="${!articleDates.containsKey(article.articleId())}" class="date-cell null-date">unknown</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div th:if="${topicSummaries.containsKey(topicName)}"
+                 class="bg-primary-50 border-t border-outline-variant px-5 py-3 text-sm">
+                <span class="font-semibold text-primary-600 text-xs uppercase tracking-wide">AI Summary</span>
+                <p class="mt-1 text-on-surface-variant leading-relaxed" th:text="${topicSummaries.get(topicName)}"></p>
+            </div>
+        </details>
+    </div>
+
 </main>
+
+<script>
+(function() {
+    function openAndScroll(hash) {
+        if (!hash) return;
+        var target = document.getElementById(hash.replace('#', ''));
+        if (!target) return;
+        // Close all topics
+        document.querySelectorAll('details.group').forEach(function(d) { d.open = false; });
+        // Open only the selected one
+        var details = target.querySelector('details');
+        if (details) details.open = true;
+        // Scroll to top of page then offset to target
+        window.scrollTo(0, 0);
+        setTimeout(function() {
+            target.scrollIntoView({block: 'start'});
+        }, 50);
+    }
+    // Handle TOC clicks
+    document.querySelectorAll('a[href^="#topic-"]').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            var hash = this.getAttribute('href');
+            history.pushState(null, '', hash);
+            openAndScroll(hash);
+        });
+    });
+    // Handle direct URL with hash (e.g. page refresh)
+    if (window.location.hash) openAndScroll(window.location.hash);
+})();
+</script>
 </body>
 </html>

@@ -36,7 +36,7 @@ class TransactionalEmailAdapterTest {
 
     @BeforeEach
     void setUp() {
-        adapter = new TransactionalEmailAdapter(mailSender, "no-reply@bigskylabs.ai", "https://app.bigskylabs.ai");
+        adapter = new TransactionalEmailAdapter(mailSender, "no-reply@bigskylabs.ai", "https://app.bigskylabs.ai", "admin@bigskylabs.ai");
     }
 
     @Test
@@ -55,6 +55,16 @@ class TransactionalEmailAdapterTest {
         when(mailSender.createMimeMessage()).thenReturn(mockMessage);
 
         adapter.sendDemoExpiration("user@example.com", "Test User");
+
+        verify(mailSender).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void notifyAdminNewRegistration_sendsOneMessage() {
+        MimeMessage mockMessage = mock(MimeMessage.class);
+        when(mailSender.createMimeMessage()).thenReturn(mockMessage);
+
+        adapter.notifyAdminNewRegistration("newuser@example.com", "New User", "DEMO");
 
         verify(mailSender).send(any(MimeMessage.class));
     }

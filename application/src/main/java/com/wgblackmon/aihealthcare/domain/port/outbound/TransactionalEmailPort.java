@@ -10,7 +10,7 @@ package com.wgblackmon.aihealthcare.domain.port.outbound;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-31
- * @updated 2026-07-31
+ * @updated 2026-08-01
  */
 public interface TransactionalEmailPort {
 
@@ -30,4 +30,13 @@ public interface TransactionalEmailPort {
      * @param name  the user's display name.
      */
     void sendDemoExpiration(String email, String name);
+
+    /**
+     * Notifies the admin that a new user has registered.
+     *
+     * @param userEmail   the new user's email address.
+     * @param displayName the new user's display name.
+     * @param tier        the tier assigned to the new user.
+     */
+    void notifyAdminNewRegistration(String userEmail, String displayName, String tier);
 }

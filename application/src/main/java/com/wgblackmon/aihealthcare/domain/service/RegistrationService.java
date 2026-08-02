@@ -28,7 +28,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-20
+ * @updated 2026-08-01
  */
 @Slf4j
 public class RegistrationService implements RegisterUserUseCase {
@@ -82,6 +82,7 @@ public class RegistrationService implements RegisterUserUseCase {
         subscriberPort.save(subscriber);
 
         transactionalEmailPort.sendWelcome(email, displayName, DEMO_DURATION_DAYS);
+        transactionalEmailPort.notifyAdminNewRegistration(email, displayName, "DEMO");
 
         log.debug("register() | return={}", appUser.email());
         return appUser;

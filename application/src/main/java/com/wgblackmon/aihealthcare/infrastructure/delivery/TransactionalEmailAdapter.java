@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-31
- * @updated 2026-07-31
+ * @updated 2026-08-01
  */
 @Slf4j
 @Component
@@ -33,15 +33,18 @@ public class TransactionalEmailAdapter implements TransactionalEmailPort {
     private final JavaMailSender mailSender;
     private final String fromAddress;
     private final String baseUrl;
+    private final String adminEmail;
 
     public TransactionalEmailAdapter(
             JavaMailSender mailSender,
             @Value("${aihealthcare.newsletter.from-address}") String fromAddress,
-            @Value("${aihealthcare.base-url}") String baseUrl) {
-        log.debug("TransactionalEmailAdapter() | fromAddress={}, baseUrl={}", fromAddress, baseUrl);
+            @Value("${aihealthcare.base-url}") String baseUrl,
+            @Value("${aihealthcare.admin.email}") String adminEmail) {
+        log.debug("TransactionalEmailAdapter() | fromAddress={}, baseUrl={}, adminEmail={}", fromAddress, baseUrl, adminEmail);
         this.mailSender = mailSender;
         this.fromAddress = fromAddress;
         this.baseUrl = baseUrl;
+        this.adminEmail = adminEmail;
     }
 
     @Override
@@ -73,6 +76,35 @@ public class TransactionalEmailAdapter implements TransactionalEmailPort {
 
         sendEmail(email, subject, html, plain);
         log.debug("sendDemoExpiration() | return=void");
+    }
+
+    @Override
+    public void notifyAdminNewRegistration(String userEmail, String displayName, String tier) {
+        log.debug("notifyAdminNewRegistration() | userEmail={}, displayName={}, tier={}", userEmail, displayName, tier);
+
+        String subject = "New User Registration: " + displayName;
+        String html = "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px\">"
+                + "<div style=\"background:#059669;color:white;padding:24px;border-radius:8px 8px 0 0;text-align:center\">"
+                + "<h1 style=\"margin:0;font-size:24px\">New User Registered</h1></div>"
+                + "<div style=\"background:white;padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px\">"
+                + "<p>A new user has signed up for AI Healthcare Intelligence:</p>"
+                + "<table style=\"width:100%;border-collapse:collapse;margin:16px 0\">"
+                + "<tr><td style=\"padding:8px;font-weight:bold;border-bottom:1px solid #e5e7eb\">Name</td>"
+                + "<td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">" + escapeHtml(displayName) + "</td></tr>"
+                + "<tr><td style=\"padding:8px;font-weight:bold;border-bottom:1px solid #e5e7eb\">Email</td>"
+                + "<td style=\"padding:8px;border-bottom:1px solid #e5e7eb\">" + escapeHtml(userEmail) + "</td></tr>"
+                + "<tr><td style=\"padding:8px;font-weight:bold\">Tier</td>"
+                + "<td style=\"padding:8px\">" + escapeHtml(tier) + "</td></tr>"
+                + "</table>"
+                + "<p style=\"text-align:center;margin:24px 0\">"
+                + "<a href=\"" + baseUrl + "/admin\" style=\"background:#1e40af;color:white;padding:12px 32px;"
+                + "border-radius:6px;text-decoration:none;font-weight:bold\">View Admin Panel</a></p>"
+                + "</div></div>";
+        String plain = "New user registered:\nName: " + displayName + "\nEmail: " + userEmail + "\nTier: " + tier
+                + "\n\nManage users at " + baseUrl + "/admin";
+
+        sendEmail(adminEmail, subject, html, plain);
+        log.debug("notifyAdminNewRegistration() | return=void");
     }
 
     // -------------------------------------------------------------------------
