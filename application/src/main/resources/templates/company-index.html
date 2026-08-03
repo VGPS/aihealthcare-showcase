@@ -43,10 +43,10 @@
         <span class="text-gray-500 text-sm">
             <span th:text="${profileCount}">0</span> companies tracked
         </span>
-        <form th:action="@{/companies/discover}" method="post" class="m-0">
-            <button type="submit" class="btn-search" id="discoverBtn"
-                    onclick="this.disabled=true; this.innerHTML='<span class=\'spinner\'></span> Discovering...'; this.form.submit();">
-                Run Discovery Pipeline
+        <form id="discoverForm" th:action="@{/companies/discover}" method="post" class="m-0">
+            <button type="submit" class="btn-search" id="discoverBtn">
+                <span class="spinner hidden border-2 border-white/30 border-t-white rounded-full w-4 h-4 animate-spin inline-block align-middle mr-1"></span>
+                <span id="discoverLabel">Prompt</span>
             </button>
         </form>
     </div>
@@ -60,7 +60,7 @@
 
     <div th:if="${#lists.isEmpty(profiles)}"
          class="text-center py-12 text-gray-500">
-        <p>No company profiles yet. Click <b>Run Discovery Pipeline</b> above to scan startup directories and populate this page.</p>
+        <p>No company profiles yet. Click <b>Prompt</b> above to scan startup directories and populate this page.</p>
     </div>
 
     <div th:unless="${#lists.isEmpty(profiles)}" class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
@@ -100,6 +100,13 @@
 
 </main>
 
+<div id="loadingOverlay" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center gap-3">
+        <div class="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+        <p class="text-sm font-semibold text-on-surface">Prompting<span class="thinking-dots"></span></p>
+    </div>
+</div>
+
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
@@ -111,6 +118,18 @@ function filterCompanies(query) {
         var text = name ? name.textContent.toLowerCase() : '';
         cards[i].style.display = text.indexOf(lowerQuery) !== -1 ? '' : 'none';
     }
+}
+var discoverForm = document.getElementById('discoverForm');
+if (discoverForm) {
+    discoverForm.addEventListener('submit', function() {
+        var btn = document.getElementById('discoverBtn');
+        var spinner = btn.querySelector('.spinner');
+        var label = document.getElementById('discoverLabel');
+        if (spinner) spinner.classList.remove('hidden');
+        if (label) label.textContent = 'Prompting…';
+        btn.classList.add('loading');
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+    });
 }
 </script>
 </body>

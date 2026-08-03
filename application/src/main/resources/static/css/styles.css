@@ -1285,6 +1285,37 @@ details summary:hover { color: var(--primary); }
 /* Monospace text */
 .mono, code { font-family: var(--font-mono); }
 
+/* AI-generated report content — paragraph readability */
+.report-content p {
+    text-indent: 1.5em;
+    margin-bottom: 1.25em;
+    line-height: 1.75;
+}
+.report-content p:first-child { text-indent: 0; }
+.report-content h2 + p { text-indent: 0; }
+.report-content ul, .report-content ol { margin-bottom: 1.25em; }
+.report-content li { margin-bottom: 0.4em; line-height: 1.65; }
+.report-content ol.references { list-style: none; padding-left: 0; }
+.report-content ol.references li {
+    text-indent: 0;
+    padding: 0.35em 0;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 0.85em;
+    line-height: 1.5;
+}
+.report-content ol.references li:last-child { border-bottom: none; }
+
+/* Wiki content — same readability treatment */
+.wiki-content p {
+    text-indent: 1.5em;
+    margin-bottom: 1.25em;
+    line-height: 1.75;
+}
+.wiki-content p:first-child { text-indent: 0; }
+.wiki-content h2 + p, .wiki-content h3 + p { text-indent: 0; }
+.wiki-content ul, .wiki-content ol { margin-bottom: 1.25em; }
+.wiki-content li { margin-bottom: 0.4em; line-height: 1.65; }
+
 /* Loading spinner — hidden by default, visible when parent has .loading */
 .spinner {
     display: none;
@@ -1300,6 +1331,21 @@ details summary:hover { color: var(--primary); }
 .loading .spinner { display: inline-block; }
 .loading { pointer-events: none; opacity: 0.8; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Thinking dots — animated trailing dots for loading states */
+.thinking-dots::after {
+    content: '';
+    animation: dots 1.5s steps(4, end) infinite;
+    display: inline-block;
+    width: 1.5em;
+    text-align: left;
+}
+@keyframes dots {
+    0%  { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+}
 
 /* Responsive */
 @media (max-width: 640px) {
