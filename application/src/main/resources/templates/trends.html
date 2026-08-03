@@ -31,11 +31,11 @@
         <p class="text-sm text-gray-500 leading-relaxed">Keyword trend analysis across 30, 90, and 180-day windows. Rising trends show increasing frequency, fading trends show decline, and new trends are recently emerging keywords. Use the date range filter to focus on a specific period.</p>
     </div>
 
-    <!-- Run Trend Detection button (ADMIN only) -->
+    <!-- Prompt button (ADMIN only) -->
     <div sec:authorize="hasRole('ADMIN')" class="mb-6">
         <button id="detectBtn" onclick="runDetection()"
                 class="px-5 py-2 bg-green-600 text-white border-none rounded-md cursor-pointer text-sm hover:bg-green-700 transition-colors">
-            Run Trend Detection
+            Prompt
         </button>
         <span id="detectStatus" class="ml-3 text-sm text-gray-500"></span>
     </div>
@@ -55,7 +55,7 @@
             </div>
             <button type="submit"
                     class="px-4 py-1.5 bg-primary-600 text-white border-none rounded-md cursor-pointer text-sm hover:bg-primary-700 transition-colors">
-                Analyze
+                Prompt
             </button>
             <a th:href="@{/dashboard/trends}" class="text-sm text-gray-500 hover:text-primary-600 no-underline">Reset</a>
         </form>
@@ -68,7 +68,7 @@
     </div>
 
     <div th:unless="${hasSnapshot}" class="py-8 text-center text-gray-500">
-        <p>No trend data available yet. Click <b>Run Trend Detection</b> above or wait for the weekly run.</p>
+        <p>No trend data available yet. Click <b>Prompt</b> above to run detection or wait for the weekly run.</p>
     </div>
 
     <!-- Scoring Rubric legend -->
@@ -183,6 +183,13 @@
 
 </main>
 
+<div id="loadingOverlay" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center gap-3">
+        <div class="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+        <p class="text-sm font-semibold text-on-surface">Prompting<span class="thinking-dots"></span></p>
+    </div>
+</div>
+
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script th:if="${hasSnapshot}" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
@@ -223,6 +230,7 @@
         var status = document.getElementById('detectStatus');
         btn.disabled = true;
         status.textContent = 'Running trend detection...';
+        document.getElementById('loadingOverlay').classList.remove('hidden');
 
         var csrfMeta = document.querySelector('meta[name="_csrf"]');
         var csrfHeader = document.querySelector('meta[name="_csrf_header"]');
@@ -244,6 +252,7 @@
             .catch(function(err) {
                 status.textContent = 'Error: ' + err.message;
                 btn.disabled = false;
+                document.getElementById('loadingOverlay').classList.add('hidden');
             });
     }
 </script>

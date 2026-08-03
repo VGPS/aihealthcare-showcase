@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Competitive Intelligence Reports — list page with generation form.
+ *
+ * Displays a query form for generating new reports and a table of past
+ * reports with links to detail views. Tier-gated to SUBSCRIBER/DEMO/ADMIN.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-03
+ * @updated 2026-08-03
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Intel Reports')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Competitive Intelligence Reports</h1>
+    <p class="text-primary-200 text-sm mt-0.5">On-demand deep-dive analysis of companies and market segments in healthcare AI</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('intel')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Enter a company name or market segment to generate a comprehensive intelligence report with executive summary, strengths, weaknesses, competitive landscape, and outlook — all grounded in accessible harvested sources.</p>
+    </div>
+
+    <!-- Tier gate: upgrade prompt for FREE users -->
+    <div th:if="${!fullAccess}" class="bg-amber-50 border border-amber-200 rounded-lg p-6 mt-4 text-center">
+        <h2 class="text-lg font-semibold text-amber-800 mb-2">Subscriber Feature</h2>
+        <p class="text-sm text-amber-700 mb-4">Competitive intelligence reports are available to Subscriber-tier users.</p>
+        <a th:href="@{/pricing}" class="inline-block px-5 py-2 bg-primary-600 text-white rounded-md text-sm hover:bg-primary-700 transition-colors">
+            View Plans
+        </a>
+    </div>
+
+    <!-- Generate form (SUBSCRIBER/DEMO/ADMIN only) -->
+    <div th:if="${fullAccess}" class="bg-white rounded-lg shadow-sm p-5 mb-6 mt-4">
+        <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-4">
+            New Report
+        </h2>
+
+        <form id="intelForm" th:action="@{/research/intel/generate}" method="post" class="flex gap-3 items-end">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <div class="flex-1">
+                <label for="query" class="block text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Company or Market Segment</label>
+                <input id="query" name="query" type="text" required
+                       th:value="${query}"
+                       placeholder="e.g. Anthropic healthcare AI, radiology AI market, Tempus"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"/>
+            </div>
+            <button type="submit" id="generateBtn"
+                    class="px-5 py-2 bg-primary-600 text-white rounded-md text-sm font-medium hover:bg-primary-700 transition-colors whitespace-nowrap flex items-center gap-1">
+                <span class="spinner hidden border-2 border-white/30 border-t-white rounded-full w-4 h-4 animate-spin inline-block align-middle mr-1"></span>
+                <span id="btnLabel">Prompt</span>
+            </button>
+        </form>
+
+        <p class="text-xs text-gray-400 mt-2">The system gathers sources and produces a deep-dive analysis.</p>
+    </div>
+
+    <!-- Error message -->
+    <div th:if="${errorMessage}" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <p class="text-sm text-red-700" th:text="${errorMessage}">Error</p>
+    </div>
+
+    <!-- Past reports table -->
+    <div th:if="${fullAccess && reports != null && !reports.isEmpty()}" class="bg-white rounded-lg shadow-sm p-5">
+        <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-4">
+            Past Reports
+        </h2>
+
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="text-left py-2 text-xs uppercase tracking-wider text-gray-500 font-semibold">Query</th>
+                    <th class="text-left py-2 text-xs uppercase tracking-wider text-gray-500 font-semibold">Generated</th>
+                    <th class="text-center py-2 text-xs uppercase tracking-wider text-gray-500 font-semibold">Sources</th>
+                    <th class="text-left py-2 text-xs uppercase tracking-wider text-gray-500 font-semibold">By</th>
+                    <th class="text-right py-2"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="report : ${reports}" class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-2.5 font-medium text-on-surface" th:text="${report.query()}">Query text</td>
+                    <td class="py-2.5 text-gray-500" th:text="${reportDates[report.reportId()]}">Date</td>
+                    <td class="py-2.5 text-center">
+                        <span class="inline-block bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full text-xs font-semibold"
+                              th:text="${report.sourceCount()}">0</span>
+                    </td>
+                    <td class="py-2.5 text-gray-500 text-xs" th:text="${report.userEmail()}">user@example.com</td>
+                    <td class="py-2.5 text-right">
+                        <a th:href="@{/research/intel/{id}(id=${report.reportId()})}"
+                           class="text-primary-600 hover:text-primary-700 text-xs font-medium">View &rarr;</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${fullAccess && (reports == null || reports.isEmpty())}" class="text-center text-gray-400 text-sm mt-8">
+        No reports generated yet. Enter a query above to create your first one.
+    </div>
+
+</main>
+
+<!-- Full-screen centered loading overlay -->
+<div id="loadingOverlay" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center gap-3">
+        <div class="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+        <p class="text-sm font-semibold text-on-surface">Prompting<span class="thinking-dots"></span></p>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<script>
+    document.getElementById('intelForm').addEventListener('submit', function() {
+        var btn = document.getElementById('generateBtn');
+        var spinner = btn.querySelector('.spinner');
+        var label = document.getElementById('btnLabel');
+        if (spinner) spinner.classList.remove('hidden');
+        if (label) label.textContent = 'Prompting…';
+        btn.classList.add('loading');
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+    });
+</script>
+</body>
+</html>

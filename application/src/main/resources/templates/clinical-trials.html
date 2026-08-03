@@ -36,8 +36,9 @@
     <div sec:authorize="hasRole('ADMIN')" class="mb-6">
         <form th:action="@{/monitoring/clinical-trials-harvest}" method="post" class="inline">
             <button type="submit" id="harvestBtn"
-                    class="px-5 py-2 bg-blue-800 text-white border-none rounded-md cursor-pointer text-sm hover:bg-blue-900 transition-colors">
-                Run Clinical Trials Harvest
+                    class="px-5 py-2 bg-blue-800 text-white border-none rounded-md cursor-pointer text-sm hover:bg-blue-900 transition-colors flex items-center gap-1">
+                <span class="spinner hidden border-2 border-white/30 border-t-white rounded-full w-4 h-4 animate-spin inline-block align-middle mr-1"></span>
+                <span id="harvestLabel">Prompt</span>
             </button>
         </form>
     </div>
@@ -193,6 +194,27 @@
 
 </main>
 
+<div id="loadingOverlay" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center gap-3">
+        <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-800 rounded-full animate-spin"></div>
+        <p class="text-sm font-semibold text-on-surface">Prompting<span class="thinking-dots"></span></p>
+    </div>
+</div>
+
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+<script>
+    var harvestForm = document.querySelector('form[action*="clinical-trials-harvest"]');
+    if (harvestForm) {
+        harvestForm.addEventListener('submit', function() {
+            var btn = document.getElementById('harvestBtn');
+            var spinner = btn.querySelector('.spinner');
+            var label = document.getElementById('harvestLabel');
+            if (spinner) spinner.classList.remove('hidden');
+            if (label) label.textContent = 'Prompting…';
+            btn.classList.add('loading');
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        });
+    }
+</script>
 </body>
 </html>

@@ -19,6 +19,9 @@ import com.wgblackmon.aihealthcare.domain.service.CompanyClassifier;
 import com.wgblackmon.aihealthcare.domain.service.CompanyDeduplicator;
 import com.wgblackmon.aihealthcare.domain.service.CompanyDiscoveryService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyNewsletterRenderer;
+import com.wgblackmon.aihealthcare.domain.service.IntelReportService;
+import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.IntelReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyScrapingPort;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
 import com.wgblackmon.aihealthcare.domain.service.DigestNewsletterRenderer;
@@ -617,6 +620,36 @@ public class AppConfig {
                 new CompanyDeduplicator(),
                 new CompanyNewsletterRenderer());
         log.debug("companyDiscoveryService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link IntelReportService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.GenerateIntelReportUseCase}.
+     *
+     * <p>Reuses the existing COMBINED research pipeline for source gathering,
+     * then applies a specialized intel-report prompt for deep-dive synthesis.
+     *
+     * @param researchUseCase    existing research pipeline (auto-detected).
+     * @param aiReportPort       generic AI prompt-to-text port (auto-detected).
+     * @param intelReportPort    persistence port for intel reports (auto-detected).
+     * @param promptLoaderService template loader (auto-detected).
+     * @return The wired {@link IntelReportService} instance.
+     */
+    @Bean
+    public IntelReportService intelReportService(
+            ConductResearchUseCase researchUseCase,
+            AiReportPort aiReportPort,
+            IntelReportPort intelReportPort,
+            PromptLoaderService promptLoaderService) {
+        log.debug("intelReportService() | researchUseCase={}, aiReportPort={}, intelReportPort={}",
+                  researchUseCase.getClass().getSimpleName(),
+                  aiReportPort.getClass().getSimpleName(),
+                  intelReportPort.getClass().getSimpleName());
+        String template = promptLoaderService.load("intel-report.txt");
+        IntelReportService result = new IntelReportService(
+                researchUseCase, aiReportPort, intelReportPort, template);
+        log.debug("intelReportService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

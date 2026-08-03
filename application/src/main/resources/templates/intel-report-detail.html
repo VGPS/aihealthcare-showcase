@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Intel Report Detail page — renders a single competitive intelligence report.
+ *
+ * Displays report metadata (query, date, source count) and the full AI-generated
+ * HTML report content.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-03
+ * @updated 2026-08-03
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Intel Report — ' + ${report.query()})}" />
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Competitive Intelligence Report</h1>
+    <p class="text-primary-200 text-sm mt-0.5" th:text="${report.query()}">Subject</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('intel')}"></nav>
+
+<main class="max-w-4xl mx-auto px-4 py-6">
+
+    <!-- Breadcrumb -->
+    <div class="text-sm text-gray-500 mb-4">
+        <a th:href="@{/research/intel}" class="text-primary-600 hover:text-primary-700">Intel Reports</a>
+        &rsaquo; Report Detail
+    </div>
+
+    <!-- Metadata card -->
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-6">
+        <div class="grid grid-cols-[140px_1fr] gap-3 items-baseline">
+
+            <span class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Subject</span>
+            <span class="text-base font-semibold text-on-surface" th:text="${report.query()}">Query</span>
+
+            <span class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Generated</span>
+            <span class="text-sm text-on-surface" th:text="${generatedDate}">Date</span>
+
+            <span class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Sources</span>
+            <span>
+                <button type="button" onclick="toggleSources()"
+                        class="inline-flex items-center gap-1 bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full text-xs font-semibold hover:bg-primary-100 cursor-pointer border-none transition-colors">
+                    <span th:text="${report.sourceCount() + ' citations'}">0 citations</span>
+                    <span id="sourcesArrow" class="text-[10px] transition-transform">&#x25BC;</span>
+                </button>
+            </span>
+
+            <span class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Report ID</span>
+            <span class="font-mono text-xs text-gray-400 break-all" th:text="${report.reportId()}">uuid</span>
+        </div>
+    </div>
+
+    <!-- Expandable sources panel -->
+    <div id="sourcesPanel" class="hidden bg-white rounded-lg shadow-sm mb-6 overflow-hidden">
+        <div class="px-5 py-3 bg-gray-50 border-b border-gray-200">
+            <h3 class="text-sm font-semibold text-on-surface">Source Articles</h3>
+        </div>
+        <div th:if="${report.sources().isEmpty()}" class="px-5 py-4 text-sm text-gray-400 italic">
+            Source details not available for this report.
+        </div>
+        <table th:unless="${report.sources().isEmpty()}" class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 bg-gray-50/50">
+                    <th class="text-left py-2 px-4 text-xs uppercase tracking-wider text-gray-500 font-semibold w-10">#</th>
+                    <th class="text-left py-2 px-4 text-xs uppercase tracking-wider text-gray-500 font-semibold">Title</th>
+                    <th class="text-left py-2 px-4 text-xs uppercase tracking-wider text-gray-500 font-semibold w-36">Retrieved</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="source : ${report.sources()}" class="border-b border-gray-50 hover:bg-gray-50/50">
+                    <td class="py-2 px-4 text-gray-400 font-mono text-xs" th:text="'[' + ${source.citationNumber()} + ']'">[1]</td>
+                    <td class="py-2 px-4">
+                        <a th:if="${source.url() != null and !source.url().isBlank()}"
+                           th:href="${source.url()}" target="_blank" rel="noopener"
+                           class="text-primary-600 hover:underline font-medium leading-tight"
+                           th:text="${source.title()}">Title</a>
+                        <span th:if="${source.url() == null or source.url().isBlank()}"
+                              class="font-medium leading-tight text-on-surface"
+                              th:text="${source.title()}">Title</span>
+                        <div class="text-xs text-gray-400 mt-0.5 truncate max-w-lg"
+                             th:if="${source.url() != null}"
+                             th:text="${source.url()}">url</div>
+                    </td>
+                    <td class="py-2 px-4 text-xs text-gray-500 whitespace-nowrap"
+                        th:text="${sourceDates[source.citationNumber()]}">Date</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Report content -->
+    <div class="report-content bg-white rounded-lg shadow-sm p-6 mb-6 prose prose-sm max-w-none
+                prose-headings:text-on-surface prose-headings:font-display
+                prose-h2:text-lg prose-h2:border-b prose-h2:border-gray-200 prose-h2:pb-2 prose-h2:mt-6 prose-h2:mb-3
+                prose-p:text-gray-700
+                prose-li:text-gray-700
+                prose-strong:text-on-surface
+                prose-a:text-primary-600 prose-a:no-underline hover:prose-a:underline"
+         th:utext="${report.htmlContent()}">
+        Report content renders here.
+    </div>
+
+    <a class="inline-block mt-2 text-primary-600 hover:text-primary-700 text-sm"
+       th:href="@{/research/intel}">&larr; Back to Intel Reports</a>
+
+</main>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<script>
+    function toggleSources() {
+        var panel = document.getElementById('sourcesPanel');
+        var arrow = document.getElementById('sourcesArrow');
+        if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');
+            arrow.style.transform = 'rotate(180deg)';
+        } else {
+            panel.classList.add('hidden');
+            arrow.style.transform = '';
+        }
+    }
+</script>
+</body>
+</html>

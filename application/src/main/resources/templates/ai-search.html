@@ -200,10 +200,20 @@
 
 </main>
 
+<div id="loadingOverlay" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center gap-3">
+        <div class="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+        <p class="text-sm font-semibold text-on-surface">Prompting<span class="thinking-dots"></span></p>
+    </div>
+</div>
+
 <script>
     document.querySelector('form').addEventListener('submit', function() {
         var btn = document.getElementById('searchBtn');
         if (btn) btn.classList.add('loading');
+        var spinner = btn ? btn.querySelector('.spinner') : null;
+        if (spinner) spinner.classList.remove('hidden');
+        document.getElementById('loadingOverlay').classList.remove('hidden');
     });
 </script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>

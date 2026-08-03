@@ -35,7 +35,7 @@
     <div sec:authorize="hasRole('ADMIN')" class="mb-6">
         <button id="harvestBtn" onclick="runHarvest()"
                 class="px-5 py-2 bg-blue-800 text-white border-none rounded-md cursor-pointer text-sm hover:bg-blue-900 transition-colors">
-            Run Regulatory Harvest
+            Prompt
         </button>
         <span id="harvestStatus" class="ml-3 text-sm text-gray-500"></span>
     </div>
@@ -207,7 +207,7 @@ function runHarvest() {
     var btn = document.getElementById('harvestBtn');
     var status = document.getElementById('harvestStatus');
     btn.disabled = true;
-    btn.textContent = 'Harvesting...';
+    btn.textContent = 'Prompting…';
     status.textContent = '';
     fetch('/monitoring/regulatory/harvest', { method: 'POST' })
         .then(function(r) { return r.json(); })
@@ -220,7 +220,7 @@ function runHarvest() {
             status.textContent = 'Error: ' + err.message;
             status.style.color = '#c62828';
             btn.disabled = false;
-            btn.textContent = 'Run Regulatory Harvest';
+            btn.textContent = 'Prompt';
         });
 }
 </script>
