@@ -28,6 +28,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Pipeline management. Monitor, test, and manually trigger data pipelines. Each card shows the pipeline's schedule, status, and pre-flight check results. Use Dry Run to validate before executing.</p>
+    </div>
+
     <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
         <span class="text-gray-500 text-sm">
             <span th:text="${pipelineCount}">0</span> pipelines configured
@@ -120,6 +124,8 @@
     </div>
 
 </main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script th:inline="javascript">
 /*<![CDATA[*/

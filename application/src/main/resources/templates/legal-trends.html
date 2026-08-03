@@ -29,6 +29,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Legal trend analysis. Track emerging patterns in healthcare AI regulation, policy shifts, and enforcement actions over time.</p>
+    </div>
+
     <!-- Run Detection button (ADMIN only) -->
     <div sec:authorize="hasRole('ADMIN')" class="mb-6">
         <form th:action="@{/dashboard/legal/trends/detect}" method="post" style="display:inline">
@@ -170,6 +174,8 @@
     </div>
 
 </main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <!-- Toggle linked articles -->
 <script>

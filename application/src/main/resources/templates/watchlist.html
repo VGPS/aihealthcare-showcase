@@ -27,6 +27,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Your custom watchlist. Add keywords, companies, or topics to track, and receive alerts when new articles match your criteria. Manage your watchlist items and review recent matches below.</p>
+    </div>
+
     <!-- Flash messages -->
     <div th:if="${successMessage}" class="bg-green-50 text-green-800 px-4 py-3 rounded-lg mb-4">
         <span th:text="${successMessage}">Success</span>
@@ -176,5 +180,6 @@
 
 </main>
 
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

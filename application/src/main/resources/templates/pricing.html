@@ -24,6 +24,9 @@
 <nav th:replace="~{fragments/nav :: nav('pricing')}"></nav>
 
 <main class="max-w-7xl mx-auto px-4 py-6">
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Subscription plans. Compare features across tiers and choose the plan that fits your needs.</p>
+    </div>
     <div class="text-center mb-8">
         <h2 class="font-display text-2xl font-bold text-on-surface">Choose Your Plan</h2>
         <p class="text-sm text-on-surface-variant mt-1">AI-powered healthcare intelligence for professionals and teams</p>
@@ -124,6 +127,7 @@
         </table>
     </div>
 </main>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <input type="hidden" id="checkoutUrl" th:value="@{/api/v1/stripe/checkout}" />
 <script th:if="${stripeEnabled}">

@@ -26,6 +26,10 @@
 
 <main class="max-w-4xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Ask the Wiki. Query the knowledge base with natural language questions and receive AI-synthesized answers grounded in compiled wiki pages.</p>
+    </div>
+
     <!-- Breadcrumb -->
     <div class="text-sm text-gray-500 mb-4">
         <a th:href="@{/wiki}" class="text-primary-600 hover:text-primary-700">Wiki</a>
@@ -170,6 +174,8 @@
     </div>
 
 </main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
     document.querySelector('form').addEventListener('submit', function() {

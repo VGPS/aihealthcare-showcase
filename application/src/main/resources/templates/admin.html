@@ -28,6 +28,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Admin dashboard. Manage user accounts, view system status, and monitor platform health. Toggle user roles and account status from the user table below.</p>
+    </div>
+
     <!-- System Status -->
     <section class="mb-6">
         <div class="bg-white rounded-lg shadow-sm p-6 mb-5">
@@ -155,6 +159,8 @@
     </section>
 
 </main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script th:inline="javascript">

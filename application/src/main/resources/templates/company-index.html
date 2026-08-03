@@ -27,6 +27,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Company profiles. Browse AI healthcare companies with timeline events, related articles, and category classifications.</p>
+    </div>
+
     <!-- Flash messages -->
     <div th:if="${successMessage}" class="bg-green-50 text-green-800 px-4 py-3 rounded-lg mb-4">
         <span th:text="${successMessage}">Success</span>
@@ -95,6 +99,8 @@
     </div>
 
 </main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
 function filterCompanies(query) {

@@ -26,6 +26,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Search and filter the full article archive. Narrow results by topic, source tier, date range, or keyword. Click any article title to read the original source.</p>
+    </div>
+
     <div th:if="${accessDenied}" class="bg-white rounded-lg shadow-sm p-8 text-center">
         <strong class="text-on-surface">This topic is a Subscriber feature.</strong><br/>
         <span class="text-sm text-on-surface-variant">Upgrade to a Subscriber subscription to access New AI Healthcare Companies.</span><br/><br/>
@@ -68,5 +72,6 @@
         </table>
     </div>
 </main>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

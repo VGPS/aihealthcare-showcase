@@ -27,6 +27,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Keyword trend analysis across 30, 90, and 180-day windows. Rising trends show increasing frequency, fading trends show decline, and new trends are recently emerging keywords. Use the date range filter to focus on a specific period.</p>
+    </div>
+
     <!-- Run Trend Detection button (ADMIN only) -->
     <div sec:authorize="hasRole('ADMIN')" class="mb-6">
         <button id="detectBtn" onclick="runDetection()"
@@ -178,6 +182,8 @@
     </div>
 
 </main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script th:if="${hasSnapshot}" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script th:if="${hasSnapshot}" th:inline="javascript">
