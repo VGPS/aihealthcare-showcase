@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<!--
+/**
+ * AI Healthcare Company Directory — Perplexity-discovered companies.
+ *
+ * Displays companies discovered via the Perplexity API pipeline with
+ * sub-sector filtering, validation badges, and sortable columns.
+ * Shows funding stage, HQ location, founded year, and source citations.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-02
+ * @updated 2026-08-02
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('AI Healthcare Companies')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AI Healthcare Companies</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Perplexity-powered company intelligence directory</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('companies')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Stats bar -->
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3 mb-5">
+        <div class="bg-primary-50 border-l-4 border-primary-500 rounded p-3">
+            <div class="text-2xl font-bold text-on-surface" th:text="${companyCount}">0</div>
+            <div class="text-xs text-gray-500 uppercase tracking-wider mt-1">Companies</div>
+        </div>
+        <div class="bg-green-50 border-l-4 border-green-500 rounded p-3">
+            <div class="text-2xl font-bold text-on-surface" th:text="${validatedCount}">0</div>
+            <div class="text-xs text-gray-500 uppercase tracking-wider mt-1">Validated</div>
+        </div>
+        <div class="bg-blue-50 border-l-4 border-blue-500 rounded p-3">
+            <div class="text-2xl font-bold text-on-surface" th:text="${subSectors.size()}">0</div>
+            <div class="text-xs text-gray-500 uppercase tracking-wider mt-1">Sub-Sectors</div>
+        </div>
+    </div>
+
+    <!-- Sub-sector filter tabs -->
+    <div th:if="${!subSectors.isEmpty()}" class="flex gap-2 flex-wrap mb-5">
+        <a th:href="@{/dashboard/companies(sort=${sort})}"
+           class="px-3 py-1 rounded-full text-xs font-medium border"
+           th:classappend="${filter == null} ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'">
+            All
+        </a>
+        <a th:each="sector : ${subSectors}"
+           th:href="@{/dashboard/companies(filter=${sector},sort=${sort})}"
+           th:text="${sector}"
+           class="px-3 py-1 rounded-full text-xs font-medium border"
+           th:classappend="${filter != null && filter.equalsIgnoreCase(sector)} ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'">
+            Sector
+        </a>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${companies.isEmpty()}"
+         class="text-center py-12 text-gray-500">
+        <p class="text-lg mb-2">No companies discovered yet.</p>
+        <p class="text-sm">The Perplexity discovery pipeline runs weekly (Sunday 06:00 UTC).<br/>
+            Companies will appear here after the first successful run.</p>
+    </div>
+
+    <!-- Company table -->
+    <div th:unless="${companies.isEmpty()}" class="bg-white rounded-lg shadow-sm p-6">
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>Company
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='name')}"
+                           class="sort-arrow" th:classappend="${sort == 'name'} ? ' active'" title="Sort A-Z">&#8593;</a>
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='name_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'name_desc'} ? ' active'" title="Sort Z-A">&#8595;</a>
+                    </th>
+                    <th>Sub-Sector
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='sector')}"
+                           class="sort-arrow" th:classappend="${sort == 'sector'} ? ' active'" title="Sort A-Z">&#8593;</a>
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='sector_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'sector_desc'} ? ' active'" title="Sort Z-A">&#8595;</a>
+                    </th>
+                    <th>Funding
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='funding')}"
+                           class="sort-arrow" th:classappend="${sort == 'funding'} ? ' active'" title="Sort A-Z">&#8593;</a>
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='funding_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'funding_desc'} ? ' active'" title="Sort Z-A">&#8595;</a>
+                    </th>
+                    <th>Location
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='location')}"
+                           class="sort-arrow" th:classappend="${sort == 'location'} ? ' active'" title="Sort A-Z">&#8593;</a>
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='location_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'location_desc'} ? ' active'" title="Sort Z-A">&#8595;</a>
+                    </th>
+                    <th>Founded
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='founded')}"
+                           class="sort-arrow" th:classappend="${sort == 'founded'} ? ' active'" title="Oldest first">&#8593;</a>
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='founded_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'founded_desc'} ? ' active'" title="Newest first">&#8595;</a>
+                    </th>
+                    <th>Status</th>
+                    <th>Discovered
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='discovered')}"
+                           class="sort-arrow" th:classappend="${sort == 'discovered'} ? ' active'" title="Oldest first">&#8593;</a>
+                        <a th:href="@{/dashboard/companies(filter=${filter},sort='discovered_desc')}"
+                           class="sort-arrow" th:classappend="${sort == 'discovered_desc'} ? ' active'" title="Newest first">&#8595;</a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="company : ${companies}">
+                    <td>
+                        <div class="font-medium" th:text="${company.name()}">Company Name</div>
+                        <div th:if="${company.domain() != null}" class="text-xs text-gray-400">
+                            <a th:href="'https://' + ${company.domain()}" target="_blank"
+                               class="text-primary-600 hover:underline"
+                               th:text="${company.domain()}">domain.com</a>
+                        </div>
+                        <div th:if="${company.description() != null}"
+                             class="text-xs text-gray-500 mt-1 max-w-[300px] overflow-hidden text-ellipsis"
+                             th:text="${#strings.length(company.description()) > 120
+                                 ? #strings.substring(company.description(), 0, 120) + '...'
+                                 : company.description()}">Description</div>
+                    </td>
+                    <td>
+                        <span th:if="${company.subSector() != null}"
+                              class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800"
+                              th:text="${company.subSector()}">Sub-sector</span>
+                        <span th:if="${company.subSector() == null}" class="text-gray-400 text-xs">—</span>
+                    </td>
+                    <td class="text-sm">
+                        <div th:if="${company.fundingStage() != null}"
+                             class="font-medium" th:text="${company.fundingStage()}">Stage</div>
+                        <div th:if="${company.estimatedFunding() != null}"
+                             class="text-xs text-gray-500" th:text="${company.estimatedFunding()}">$0</div>
+                        <span th:if="${company.fundingStage() == null && company.estimatedFunding() == null}"
+                              class="text-gray-400 text-xs">—</span>
+                    </td>
+                    <td class="text-sm" th:text="${company.hqLocation() != null ? company.hqLocation() : '—'}">Location</td>
+                    <td class="text-sm text-center"
+                        th:text="${company.foundedYear() != null ? company.foundedYear() : '—'}">Year</td>
+                    <td class="text-center">
+                        <span th:if="${company.validated()}"
+                              class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800"
+                              title="Cross-validated against curated industry lists">Validated</span>
+                        <span th:unless="${company.validated()}"
+                              class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-500"
+                              title="Not yet validated against curated lists">Unverified</span>
+                    </td>
+                    <td class="text-xs text-gray-500 whitespace-nowrap"
+                        th:text="${discoveredDates[company.companyId()]}">Date</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+</body>
+</html>

@@ -211,3 +211,10 @@ SELECT 'wgblackmonall@gmail.com',
        '$2a$10$taZijieeow/bAdqr8xZI1exW78O00ns2G0eR3S9PfbgE/HIIMJXgG',
        'Bill Blackmon', 'ADMIN', true, 'SUBSCRIBER'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'wgblackmonall@gmail.com');
+
+-- Tester account: wku / wku123 — full ADMIN access for QA testing
+INSERT INTO app_users (email, password_hash, display_name, role, enabled, tier)
+SELECT 'wku',
+       '$2b$10$j4xZ61UCdUQE4clOJKhOX.tbA6pY/7SqVwyZj1P/o4VW2XrEQKwTW',
+       'WKU Tester', 'ADMIN', true, 'SUBSCRIBER'
+WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'wku');

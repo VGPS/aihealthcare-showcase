@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.ai.EmbeddingScheduler;
@@ -21,7 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller for manually triggering web monitoring harvests and
@@ -31,9 +34,9 @@ import java.util.List;
  * HuggingFace model discovery jobs, useful for testing and ad-hoc updates.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-19
- * @updated 2026-06-02
+ * @updated 2026-08-02
  */
 @Slf4j
 @RestController
@@ -48,6 +51,7 @@ public class WebMonitoringController {
     private final TopicSummaryGenerationService topicSummaryService;
     private final NewsTopicProperties newsTopicProperties;
     private final EmbeddingScheduler embeddingScheduler;
+    private final PerplexityCompanyDiscoveryService companyDiscoveryService;
 
     public WebMonitoringController(WebPageHarvester webPageHarvester,
                                    HuggingFaceHarvester huggingFaceHarvester,
@@ -56,7 +60,8 @@ public class WebMonitoringController {
                                    ArticleHarvestingPort articleHarvestingPort,
                                    TopicSummaryGenerationService topicSummaryService,
                                    NewsTopicProperties newsTopicProperties,
-                                   EmbeddingScheduler embeddingScheduler) {
+                                   EmbeddingScheduler embeddingScheduler,
+                                   PerplexityCompanyDiscoveryService companyDiscoveryService) {
         log.debug("WebMonitoringController() | webPageHarvester={}, huggingFaceHarvester={}, " +
                   "articleStoragePort={}, hashRepository={}",
                   webPageHarvester.getClass().getSimpleName(),
@@ -71,6 +76,7 @@ public class WebMonitoringController {
         this.topicSummaryService = topicSummaryService;
         this.newsTopicProperties = newsTopicProperties;
         this.embeddingScheduler = embeddingScheduler;
+        this.companyDiscoveryService = companyDiscoveryService;
     }
 
     /**
@@ -174,6 +180,24 @@ public class WebMonitoringController {
         String result = "Embedding run completed";
         log.info("triggerEmbedding() | {}", result);
         log.debug("triggerEmbedding() | return={}", result);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Manually triggers Perplexity-powered company discovery pipeline.
+     *
+     * @return JSON result with number of companies discovered
+     */
+    @PostMapping("/company-discovery")
+    public ResponseEntity<Map<String, Object>> triggerCompanyDiscovery() {
+        log.debug("triggerCompanyDiscovery() | (no args)");
+
+        int persisted = companyDiscoveryService.runDiscoveryCycle();
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("companiesDiscovered", persisted);
+        log.info("triggerCompanyDiscovery() | {} new companies persisted", persisted);
+        log.debug("triggerCompanyDiscovery() | return={}", result);
         return ResponseEntity.ok(result);
     }
 

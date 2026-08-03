@@ -102,7 +102,7 @@
                                   th:text="${watchlistLabels.get(match.itemId()) ?: 'Match'}">Label</span>
                             <span class="text-xs text-gray-400" th:text="${matchDates.get(match.matchId())}">Date</span>
                         </div>
-                        <p class="text-sm text-gray-700 line-clamp-2" th:text="${match.snippet()}">Snippet text...</p>
+                        <p class="text-sm text-gray-700 line-clamp-2" th:text="${matchSnippets.get(match.matchId()) ?: match.snippet()}">Snippet text...</p>
                     </div>
                 </div>
             </div>

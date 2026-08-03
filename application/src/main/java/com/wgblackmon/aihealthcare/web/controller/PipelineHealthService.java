@@ -24,9 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * tracking stores the last execution result per pipeline in memory.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-30
- * @updated 2026-07-31
+ * @updated 2026-08-02
  */
 @Slf4j
 @Service
@@ -37,6 +37,7 @@ public class PipelineHealthService {
     private final boolean isH2;
     private final String anthropicApiKey;
     private final String openaiApiKey;
+    private final String perplexityApiKey;
     private final java.nio.file.Path dotEnvPath;
     private final ConcurrentHashMap<String, PipelineRunRecord> lastRuns = new ConcurrentHashMap<>();
 
@@ -54,11 +55,12 @@ public class PipelineHealthService {
         this.dotEnvPath = dotEnvPath;
         this.anthropicApiKey = resolveKey(env, "ANTHROPIC_API_KEY", "spring.ai.anthropic.api-key");
         this.openaiApiKey = resolveKey(env, "OPENAI_API_KEY", "spring.ai.openai.api-key");
+        this.perplexityApiKey = resolveKey(env, "PERPLEXITY_API_KEY", "aihealthcare.perplexity.api-key");
         this.vectorStoreAvailable = vectorStoreProvider.getIfAvailable() != null;
         String dsUrl = env.getProperty("spring.datasource.url", "");
         this.isH2 = dsUrl.contains("jdbc:h2:");
-        log.debug("PipelineHealthService() | vectorStoreAvailable={}, isH2={}, anthropicKeyPresent={}, openaiKeyPresent={}",
-                  vectorStoreAvailable, isH2, isKeyUsable(anthropicApiKey), isKeyUsable(openaiApiKey));
+        log.debug("PipelineHealthService() | vectorStoreAvailable={}, isH2={}, anthropicKeyPresent={}, openaiKeyPresent={}, perplexityKeyPresent={}",
+                  vectorStoreAvailable, isH2, isKeyUsable(anthropicApiKey), isKeyUsable(openaiApiKey), isKeyUsable(perplexityApiKey));
     }
 
     /**
@@ -102,6 +104,12 @@ public class PipelineHealthService {
                 }
                 if (!isOpenAiKeyReady()) {
                     warnings.add("OPENAI_API_KEY not configured — embedding API will fail");
+                }
+                break;
+
+            case "company-discovery":
+                if (!isPerplexityKeyReady()) {
+                    warnings.add("PERPLEXITY_API_KEY not configured — company discovery will return 0 results");
                 }
                 break;
 
@@ -216,6 +224,12 @@ public class PipelineHealthService {
         return ready;
     }
 
+    private boolean isPerplexityKeyReady() {
+        boolean ready = isKeyUsable(perplexityApiKey);
+        log.debug("isPerplexityKeyReady() | keyPresent={}, ready={}", !perplexityApiKey.isBlank(), ready);
+        return ready;
+    }
+
     private boolean isOpenAiKeyReady() {
         boolean ready = isKeyUsable(openaiApiKey);
         log.debug("isOpenAiKeyReady() | keyPresent={}, ready={}", !openaiApiKey.isBlank(), ready);
@@ -292,6 +306,8 @@ public class PipelineHealthService {
                 return "Will embed un-embedded articles into vector store (new articles only)";
             case "market-intelligence":
                 return "Will generate monthly competitive landscape report via AI";
+            case "company-discovery":
+                return "Will discover AI healthcare companies via Perplexity API, extract structured fields, cross-validate, and persist new entries";
             default:
                 return "Ready to execute";
         }

@@ -44,6 +44,10 @@ import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
+import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryService;
+import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyResearchPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.PerplexityCitationPort;
 import com.wgblackmon.aihealthcare.domain.service.ClinicalTrialService;
 import com.wgblackmon.aihealthcare.domain.service.ClinicalTrialWatchlistMatcher;
 import com.wgblackmon.aihealthcare.domain.service.RegulatoryEventService;
@@ -862,6 +866,34 @@ public class AppConfig {
         log.debug("clinicalTrialWatchlistMatcher() | creating stateless service");
         ClinicalTrialWatchlistMatcher result = new ClinicalTrialWatchlistMatcher();
         log.debug("clinicalTrialWatchlistMatcher() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link PerplexityCompanyDiscoveryService} bean — orchestrates the
+     * Perplexity-powered company discovery pipeline: discover → dedup → extract →
+     * validate → persist.
+     *
+     * @param researchPort       Perplexity API adapter (auto-detected).
+     * @param companyPort        Company persistence adapter (auto-detected).
+     * @param citationPort       Citation audit trail adapter (auto-detected).
+     * @param maxCompaniesPerRun Maximum companies to process per discovery run.
+     * @return The wired {@link PerplexityCompanyDiscoveryService} instance.
+     */
+    @Bean
+    public PerplexityCompanyDiscoveryService perplexityCompanyDiscoveryService(
+            CompanyResearchPort researchPort,
+            HealthcareAiCompanyPort companyPort,
+            PerplexityCitationPort citationPort,
+            @Value("${aihealthcare.company-discovery.max-companies-per-run:30}") int maxCompaniesPerRun) {
+        log.debug("perplexityCompanyDiscoveryService() | researchPort={}, companyPort={}, citationPort={}, max={}",
+                researchPort.getClass().getSimpleName(),
+                companyPort.getClass().getSimpleName(),
+                citationPort.getClass().getSimpleName(),
+                maxCompaniesPerRun);
+        PerplexityCompanyDiscoveryService result = new PerplexityCompanyDiscoveryService(
+                researchPort, companyPort, citationPort, maxCompaniesPerRun);
+        log.debug("perplexityCompanyDiscoveryService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

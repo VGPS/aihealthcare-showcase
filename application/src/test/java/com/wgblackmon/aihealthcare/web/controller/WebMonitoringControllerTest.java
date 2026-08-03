@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.infrastructure.ai.EmbeddingScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
@@ -71,6 +72,9 @@ class WebMonitoringControllerTest {
 
     @MockBean
     private EmbeddingScheduler embeddingScheduler;
+
+    @MockBean
+    private PerplexityCompanyDiscoveryService companyDiscoveryService;
 
     @Test
     void triggerCompetitorHarvest_withChanges_returns200() throws Exception {
