@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Trend History Detail page — view a single past trend snapshot with
+ * rising/new keywords, bar chart, and linked articles.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-03
+ * @updated 2026-08-03
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Trend Snapshot')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Trend Snapshot</h1>
+    <p class="text-primary-200 text-sm mt-0.5" th:text="${generatedAt}">Date</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('trend-history')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Back link -->
+    <div class="mb-4">
+        <a th:href="@{/dashboard/trends/history}"
+           class="text-primary-600 no-underline text-sm hover:underline">
+            &larr; Back to Trend History
+        </a>
+    </div>
+
+    <!-- Snapshot meta -->
+    <div class="mb-6 text-gray-500 text-sm">
+        Snapshot generated: <span th:text="${generatedAt}">Date</span>
+        &nbsp;|&nbsp; <span th:text="${totalKeywords}">0</span> keywords tracked
+        &nbsp;|&nbsp; <span th:text="${windowDays}">30</span>-day window
+    </div>
+
+    <!-- Bar chart -->
+    <div th:if="${!chartLabels.isEmpty()}" class="mb-8">
+        <div style="position:relative; height:350px;">
+            <canvas id="snapshotChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Rising Topics -->
+    <section th:if="${!risingTopics.isEmpty()}" class="mb-8">
+        <div class="border-l-4 border-green-600 pl-3 mb-3">
+            <h2 class="font-display text-lg font-semibold text-green-600">&#x25B2; Rising Topics</h2>
+        </div>
+        <div th:each="signal : ${risingTopics}" class="py-2 border-b border-gray-200">
+            <div class="font-semibold text-[0.95rem]" th:text="${signal.keyword()}">keyword</div>
+            <div class="text-xs text-gray-500">
+                Last 30 days: <span th:text="${signal.current30d()}">0</span> articles
+                <span th:if="${signal.previous90d() > 0}">
+                    &nbsp;|&nbsp; Prior 31-90 days: <span th:text="${signal.previous90d()}">0</span>
+                </span>
+                <span th:if="${signal.direction().name() == 'NEW'}"
+                      class="ml-2 text-blue-800 font-semibold">
+                    &#x25B2; NEW
+                </span>
+                <span th:if="${signal.direction().name() == 'RISING' and signal.momentum() > 0 and signal.momentum() <= 99}"
+                      class="ml-2 text-green-600 font-semibold">
+                    &#x25B2;
+                    <span th:text="${#numbers.formatDecimal(signal.momentum(), 1, 1)}">0.0</span>x momentum
+                </span>
+            </div>
+            <!-- Trend summary -->
+            <div th:if="${signal.summary() != null}"
+                 class="mt-1.5 text-sm text-on-surface leading-relaxed px-3 py-2 bg-gray-50 rounded-md border-l-[3px] border-blue-800">
+                <strong>Summary:</strong> <span th:text="${signal.summary()}">Trend summary text</span>
+            </div>
+            <!-- Articles -->
+            <div th:if="${!signal.topArticles().isEmpty()}"
+                 class="mt-2 pl-3 border-l-[3px] border-green-400 bg-gray-50 rounded-r-md py-2 pr-3">
+                <details>
+                    <summary class="cursor-pointer text-sm font-semibold text-gray-500 hover:text-primary-600">
+                        <span th:text="${signal.topArticles().size()}">0</span> Related Articles
+                    </summary>
+                    <div class="mt-1.5">
+                        <div th:each="scored : ${signal.topArticles()}" class="mb-2.5 text-sm py-1.5">
+                            <div class="flex items-baseline gap-1.5 flex-wrap">
+                                <span th:if="${scored.score() >= 9}"
+                                      class="inline-block bg-blue-800 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
+                                      th:text="${scored.score()}">9</span>
+                                <span th:if="${scored.score() >= 7 and scored.score() <= 8}"
+                                      class="inline-block bg-green-600 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
+                                      th:text="${scored.score()}">7</span>
+                                <span th:if="${scored.score() >= 4 and scored.score() <= 6}"
+                                      class="inline-block bg-orange-500 text-white px-1.5 py-px rounded text-xs font-semibold shrink-0"
+                                      th:text="${scored.score()}">5</span>
+                                <a th:if="${scored.url() != null}"
+                                   th:href="${scored.url()}" th:text="${scored.title()}"
+                                   target="_blank" rel="noopener noreferrer"
+                                   class="text-primary-600 no-underline font-medium">Article title</a>
+                                <span th:if="${scored.url() == null}"
+                                      class="text-on-surface font-medium"
+                                      th:text="${scored.title()}">Article title</span>
+                            </div>
+                            <div class="mt-0.5 ml-7 text-xs text-gray-500 flex gap-2 flex-wrap items-center">
+                                <span th:if="${scored.sourceName() != null}"
+                                      class="bg-gray-100 px-1.5 py-px rounded font-medium"
+                                      th:text="${scored.sourceName()}">Publication</span>
+                                <span th:if="${articleDates.containsKey(scored.articleId())}"
+                                      th:text="${articleDates.get(scored.articleId())}">Date</span>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- New Topics -->
+    <section th:if="${!newTopics.isEmpty()}" class="mb-8">
+        <div class="border-l-4 border-blue-800 pl-3 mb-3">
+            <h2 class="font-display text-lg font-semibold text-blue-800">&#x2605; New Topics</h2>
+        </div>
+        <div th:each="signal : ${newTopics}" class="py-2 border-b border-gray-200">
+            <div class="font-semibold text-[0.95rem]" th:text="${signal.keyword()}">keyword</div>
+            <div class="text-xs text-gray-500">
+                Last 30 days: <span th:text="${signal.current30d()}">0</span> articles
+                <span class="ml-2 text-blue-800 font-semibold">&#x25B2; NEW</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Empty state -->
+    <div th:if="${risingTopics.isEmpty() and newTopics.isEmpty()}"
+         class="py-8 text-center text-gray-500">
+        <p>No rising or new topics were detected in this snapshot.</p>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script th:if="${!chartLabels.isEmpty()}" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script th:if="${!chartLabels.isEmpty()}" th:inline="javascript">
+    var chartLabels = /*[[${chartLabels}]]*/ [];
+    var chartData = /*[[${chartData}]]*/ [];
+
+    new Chart(document.getElementById('snapshotChart'), {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'Mentions (30 days)',
+                data: chartData,
+                backgroundColor: 'rgba(39, 174, 96, 0.7)',
+                borderColor: '#27ae60',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Rising Keywords — ' + /*[[${generatedAt}]]*/ '', font: { size: 14 } }
+            },
+            scales: {
+                x: { beginAtZero: true, ticks: { precision: 0 } },
+                y: { ticks: { autoSkip: false } }
+            }
+        }
+    });
+</script>
+</body>
+</html>

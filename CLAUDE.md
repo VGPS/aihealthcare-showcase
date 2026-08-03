@@ -80,7 +80,7 @@ AIHealthcare/
 | `AiSearchPort`              | `domain.port.outbound`               | AI model synthesis adapter interface                       |
 | `TrendSignal`               | `domain.model`                       | Keyword trend signal (30/90/180-day frequency + momentum)  |
 | `TrendSnapshot`             | `domain.model`                       | Point-in-time snapshot of rising/fading/new keyword trends |
-| `DetectTrendsUseCase`       | `domain.port.inbound`                | Inbound port — trend detection + latest snapshot retrieval |
+| `DetectTrendsUseCase`       | `domain.port.inbound`                | Inbound port — trend detection + latest/all snapshot retrieval |
 | `TrendSnapshotPort`         | `domain.port.outbound`               | Persist and query trend snapshots                          |
 | `RegulatoryEventType`       | `domain.model`                       | Enum: FDA_510K_CLEARANCE, DE_NOVO, PMA, CMS rules, etc.   |
 | `RegulatoryBody`            | `domain.model`                       | Enum: FDA, CMS, ONC, OTHER                                |
@@ -207,7 +207,18 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Regulatory Alert System (R-REG) — COMPLETE — 1081 tests passing**
+**Historical Trend Archive (T-HIST) — COMPLETE — 1416 tests passing**
+- [x] Domain: `DetectTrendsUseCase.getAllSnapshots()` added to inbound port
+- [x] Service: `TrendOrchestrationService.getAllSnapshots()` delegates to `TrendSnapshotPort.findAll()`
+- [x] Web: `TrendHistoryController` — `GET /dashboard/trends/history` (multi-line chart + timeline table), `GET /dashboard/trends/history/{epochMillis}` (snapshot detail)
+- [x] Web: `TrendRestController` — `GET /api/v1/trends/history` returns all snapshots as JSON
+- [x] DTO: `TrendSnapshotSummary` — lightweight record for timeline table
+- [x] Templates: `trend-history.html` (Chart.js multi-line chart + clickable snapshot table), `trend-history-detail.html` (bar chart + rising/new keyword cards with articles)
+- [x] Nav: "Trend History" link in Content dropdown
+- [x] Tier gating: FREE=4 snapshots, SUBSCRIBER/DEMO/ADMIN=full history
+- [x] Tests: `TrendHistoryControllerTest` (8), `TrendRestControllerTest` updated (+2)
+
+**Previously complete: Regulatory Alert System (R-REG) — COMPLETE — 1081 tests passing**
 - [x] Domain: `RegulatoryEventType` enum (10 values), `RegulatoryBody` enum, `RegulatoryEvent` record (13 fields)
 - [x] Ports: `MonitorRegulatoryEventsUseCase` inbound, `RegulatoryEventPort` + `RegulatoryHarvestingPort` outbound
 - [x] Services: `RegulatoryEventService` (harvest dedup + retrieval), `RegulatoryWatchlistMatcher` (pure domain, keyword/company/topic matching against events)
