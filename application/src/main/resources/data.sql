@@ -212,9 +212,16 @@ SELECT 'wgblackmonall@gmail.com',
        'Bill Blackmon', 'ADMIN', true, 'SUBSCRIBER'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'wgblackmonall@gmail.com');
 
--- Tester account: wku / wku123 — full ADMIN access for QA testing
+-- Tester account: wku@gmail.com / wku123 — full ADMIN access for QA testing
 INSERT INTO app_users (email, password_hash, display_name, role, enabled, tier)
-SELECT 'wku',
+SELECT 'wku@gmail.com',
        '$2b$10$j4xZ61UCdUQE4clOJKhOX.tbA6pY/7SqVwyZj1P/o4VW2XrEQKwTW',
        'WKU Tester', 'ADMIN', true, 'SUBSCRIBER'
-WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'wku');
+WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'wku@gmail.com');
+
+-- Robert Blackmon: robertblackmon@gmail.com / rib123 — full ADMIN access
+INSERT INTO app_users (email, password_hash, display_name, role, enabled, tier)
+SELECT 'robertblackmon@gmail.com',
+       '$2b$10$Z29vdt3HXJrUVDxjXoMqL./AsgaWWP0GUk4U/f/iQEfElZBpGYk/i',
+       'Robert Blackmon', 'ADMIN', true, 'SUBSCRIBER'
+WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'robertblackmon@gmail.com');
