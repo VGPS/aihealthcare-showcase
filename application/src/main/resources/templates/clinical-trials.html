@@ -28,6 +28,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Active clinical trials involving AI in healthcare. Browse trials by status, phase, sponsor, and condition. Data sourced from ClinicalTrials.gov and updated daily.</p>
+    </div>
+
     <!-- Run Harvest button (ADMIN only) -->
     <div sec:authorize="hasRole('ADMIN')" class="mb-6">
         <form th:action="@{/monitoring/clinical-trials-harvest}" method="post" class="inline">
@@ -189,5 +193,6 @@
 
 </main>
 
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

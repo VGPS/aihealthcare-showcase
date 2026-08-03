@@ -27,6 +27,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">FDA and CMS regulatory alerts. Browse recent 510(k) clearances, De Novo classifications, PMA approvals, and CMS rules affecting AI in healthcare. Filter by regulatory body using the tabs above.</p>
+    </div>
+
     <!-- Run Harvest button (ADMIN only) -->
     <div sec:authorize="hasRole('ADMIN')" class="mb-6">
         <button id="harvestBtn" onclick="runHarvest()"
@@ -195,6 +199,8 @@
     </div>
 
 </main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
 function runHarvest() {

@@ -30,6 +30,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">AI-powered research synthesis. Enter a question and select which AI models to query — each model independently analyzes relevant articles and generates a cited summary. Compare perspectives across Claude, GPT, Perplexity, and Gemini.</p>
+    </div>
+
     <!-- Upgrade banner for FREE-tier users -->
     <div th:if="${accessDenied}"
          class="bg-gradient-to-r from-primary-600 to-purple-600 text-white p-4 rounded-lg mb-6 flex items-center justify-between shadow-md">
@@ -202,5 +206,6 @@
         if (btn) btn.classList.add('loading');
     });
 </script>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

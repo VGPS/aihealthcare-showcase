@@ -28,6 +28,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Newsletter run history. View generated newsletter drafts with their status — click Edit to review and modify a draft before sending to subscribers.</p>
+    </div>
+
     <div th:if="${param.sent != null}" class="bg-green-50 text-green-800 border border-green-200 rounded-md px-5 py-3 mb-5 text-sm">
         Newsletter sent to <strong th:text="${param.count != null ? param.count[0] : '?'}">?</strong> subscribers successfully.
     </div>
@@ -100,5 +104,6 @@
     </div>
 
 </main>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

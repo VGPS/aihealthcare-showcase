@@ -26,6 +26,10 @@
 
 <main class="max-w-4xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Wiki compilation digest. Review the latest knowledge base compilation run — pages created or updated, contradictions detected, and processing warnings.</p>
+    </div>
+
     <!-- Breadcrumb -->
     <div class="text-sm text-gray-500 mb-4">
         <a th:href="@{/wiki}" class="text-primary-600 hover:text-primary-700">Wiki</a>
@@ -169,5 +173,6 @@
     </div>
 
 </main>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

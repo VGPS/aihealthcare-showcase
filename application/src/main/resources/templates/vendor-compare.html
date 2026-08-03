@@ -30,6 +30,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">AI vendor comparison. Select companies to compare and receive an AI-generated assessment of each vendor's strengths, weaknesses, and relevance to healthcare AI.</p>
+    </div>
+
     <!-- Search Form -->
     <div class="bg-white rounded-lg shadow-sm p-5 mb-6">
         <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-5">
@@ -259,6 +263,8 @@
     </div>
 
 </main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
     document.querySelector('form').addEventListener('submit', function() {

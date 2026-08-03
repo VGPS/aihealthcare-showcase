@@ -25,6 +25,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Your account profile. View your subscription tier, usage limits, and manage your subscription through the Stripe customer portal.</p>
+    </div>
+
     <!-- Account info card -->
     <div class="bg-white rounded-lg shadow-sm p-6 mb-5">
         <h2 class="font-display text-lg font-semibold text-on-surface mb-4">Account Information</h2>
@@ -106,6 +110,7 @@
         </div>
     </div>
 </main>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <meta name="user-email" th:content="${email}" />
 <script th:inline="javascript">

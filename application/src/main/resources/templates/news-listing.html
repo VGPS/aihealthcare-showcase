@@ -26,6 +26,10 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Browse all harvested articles grouped by topic. Use the table of contents to jump to a topic, click column headers to sort, and expand or collapse article groups. AI-generated summaries appear below each topic heading.</p>
+    </div>
+
     <div class="text-sm text-on-surface-variant mb-4" th:text="${totalArticles} + ' total articles'">0 total articles</div>
 
     <!-- Archive depth banner for FREE tier -->
@@ -147,5 +151,6 @@
     if (window.location.hash) openAndScroll(window.location.hash);
 })();
 </script>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>
