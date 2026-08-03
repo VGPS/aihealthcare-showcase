@@ -407,4 +407,14 @@ public class TrendOrchestrationService implements DetectTrendsUseCase {
         log.debug("getLatestSnapshot() | return={}", result.isPresent() ? "present" : "empty");
         return result;
     }
+
+    @Override
+    public List<TrendSnapshot> getAllSnapshots() {
+        log.debug("getAllSnapshots()");
+
+        List<TrendSnapshot> result = trendSnapshotPort.findAll();
+
+        log.debug("getAllSnapshots() | return={} snapshots", result.size());
+        return result;
+    }
 }

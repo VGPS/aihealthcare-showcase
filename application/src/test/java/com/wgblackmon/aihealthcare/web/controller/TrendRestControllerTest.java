@@ -23,9 +23,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link TrendRestController}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-08-03
  */
 @WebMvcTest(TrendRestController.class)
 class TrendRestControllerTest {
@@ -76,5 +76,28 @@ class TrendRestControllerTest {
         // In @WebMvcTest, SecurityConfig permitAll for /api/** isn't loaded
         mockMvc.perform(get("/api/v1/trends/latest"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    void getHistory_returnsSnapshotList() throws Exception {
+        TrendSnapshot snapshot = new TrendSnapshot(
+                Instant.now(), 30, List.of(), List.of(), List.of(), 25);
+        when(detectTrendsUseCase.getAllSnapshots()).thenReturn(List.of(snapshot));
+
+        mockMvc.perform(get("/api/v1/trends/history"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].totalKeywords").value(25));
+    }
+
+    @Test
+    @WithMockUser
+    void getHistory_returnsEmptyArray() throws Exception {
+        when(detectTrendsUseCase.getAllSnapshots()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/v1/trends/history"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 }

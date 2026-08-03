@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,11 +17,12 @@ import java.util.Optional;
  *
  * <p>{@code GET /api/v1/trends/latest} returns the most recent trend snapshot.
  * {@code POST /api/v1/trends/detect} triggers on-demand trend detection.
+ * {@code GET /api/v1/trends/history} returns all stored snapshots.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-08-03
  */
 @Slf4j
 @RestController
@@ -52,6 +54,21 @@ public class TrendRestController {
 
         log.debug("getLatest() | return=204");
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Returns all stored trend snapshots, ordered by generation time descending.
+     *
+     * @return 200 with list of snapshots (may be empty)
+     */
+    @GetMapping("/history")
+    public ResponseEntity<List<TrendSnapshot>> getHistory() {
+        log.debug("getHistory()");
+
+        List<TrendSnapshot> snapshots = detectTrendsUseCase.getAllSnapshots();
+
+        log.debug("getHistory() | return=200, count={}", snapshots.size());
+        return ResponseEntity.ok(snapshots);
     }
 
     /**

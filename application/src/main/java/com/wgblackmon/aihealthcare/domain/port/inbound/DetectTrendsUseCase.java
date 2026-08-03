@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.domain.port.inbound;
 
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,4 +33,11 @@ public interface DetectTrendsUseCase {
      * @return the latest snapshot, or empty if none exists
      */
     Optional<TrendSnapshot> getLatestSnapshot();
+
+    /**
+     * Returns all stored trend snapshots, ordered by generation time descending.
+     *
+     * @return all snapshots; empty list if none exist
+     */
+    List<TrendSnapshot> getAllSnapshots();
 }
