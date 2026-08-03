@@ -54,7 +54,7 @@ public class WatchlistMatchingService {
         Instant now = Instant.now();
 
         for (NewsArticle article : articles) {
-            String titleLower = article.title() != null ? article.title().toLowerCase() : "";
+            String titleLower = article.title() != null ? stripHtmlTags(article.title()).toLowerCase() : "";
             String bodyLower = article.bodyText() != null ? stripHtmlTags(article.bodyText()).toLowerCase() : "";
             String combined = titleLower + " " + bodyLower;
             String topicLower = article.topic() != null ? article.topic().toLowerCase() : "";
@@ -108,19 +108,17 @@ public class WatchlistMatchingService {
         if (text == null || text.isEmpty()) {
             return text;
         }
-        // First pass: remove actual HTML tags
         String stripped = text.replaceAll("<[^>]+>", " ");
-        // Decode HTML entities (may re-introduce angle brackets)
+        stripped = stripped.replaceAll("<[^>]*$", "");
         stripped = stripped.replace("&amp;", "&")
                           .replace("&lt;", "<")
                           .replace("&gt;", ">")
                           .replace("&quot;", "\"")
                           .replace("&#39;", "'")
                           .replace("&nbsp;", " ");
-        // Second pass: remove any tags created by entity decoding
         stripped = stripped.replaceAll("<[^>]+>", " ");
-        stripped = stripped.replaceAll("\\s+", " ").trim();
-        return stripped;
+        stripped = stripped.replaceAll("<[^>]*$", "");
+        return stripped.replaceAll("\\s+", " ").trim();
     }
 
     /**

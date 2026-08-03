@@ -123,10 +123,12 @@ public class WatchlistController {
         // Sort matches
         matches = sortMatches(matches, sort, itemLabels);
 
-        // Format match dates
+        // Format match dates + strip HTML from snippets
         Map<String, String> matchDates = new HashMap<>();
+        Map<String, String> matchSnippets = new HashMap<>();
         for (WatchlistMatch match : matches) {
             matchDates.put(match.matchId(), DISPLAY_FMT.format(match.matchedOn()));
+            matchSnippets.put(match.matchId(), stripHtml(match.snippet()));
         }
 
         model.addAttribute("companyItems", companyItems);
@@ -137,12 +139,30 @@ public class WatchlistController {
         model.addAttribute("matches", matches);
         model.addAttribute("matchCount", matches.size());
         model.addAttribute("matchDates", matchDates);
+        model.addAttribute("matchSnippets", matchSnippets);
         model.addAttribute("itemLabels", itemLabels);
         model.addAttribute("itemTypes", itemTypes);
         model.addAttribute("sort", sort);
 
         log.debug("index() | return=watchlist, items={}, matches={}", items.size(), matches.size());
         return "watchlist";
+    }
+
+    private String stripHtml(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+        String stripped = text.replaceAll("<[^>]+>", " ");
+        stripped = stripped.replaceAll("<[^>]*$", "");
+        stripped = stripped.replace("&amp;", "&")
+                          .replace("&lt;", "<")
+                          .replace("&gt;", ">")
+                          .replace("&quot;", "\"")
+                          .replace("&#39;", "'")
+                          .replace("&nbsp;", " ");
+        stripped = stripped.replaceAll("<[^>]+>", " ");
+        stripped = stripped.replaceAll("<[^>]*$", "");
+        return stripped.replaceAll("\\s+", " ").trim();
     }
 
     /**

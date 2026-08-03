@@ -154,6 +154,18 @@ aihealthcare:
     company-discovery-cron: "0 0 4 * * *"
 
   # ---------------------------------------------------------------------------
+  # Perplexity-powered company discovery pipeline — discovers AI healthcare
+  # companies via Perplexity API, extracts structured fields, cross-validates
+  # against curated lists (CB Insights, Rock Health), persists to DB.
+  # Schedule: weekly Sunday 06:00 UTC. Uses same PERPLEXITY_API_KEY.
+  # ---------------------------------------------------------------------------
+  company-discovery:
+    schedule: "0 0 6 * * SUN"
+    discovery-model: sonar-pro
+    extraction-model: sonar-pro
+    max-companies-per-run: 30
+
+  # ---------------------------------------------------------------------------
   # Wiki linter — automated quality checks on the knowledge base.
   # Runs after compilation to detect orphans, broken refs, stale pages, etc.
   # ---------------------------------------------------------------------------

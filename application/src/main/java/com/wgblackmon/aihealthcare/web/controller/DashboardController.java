@@ -66,7 +66,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.4
  * @since   2026-05-04
- * @updated 2026-08-01
+ * @updated 2026-08-02
  */
 @Slf4j
 @Controller
@@ -210,12 +210,15 @@ public class DashboardController {
         model.addAttribute("watchlistMatches", watchlistMatches);
         model.addAttribute("watchlistLabels", watchlistLabels);
         Map<String, String> matchDates = new HashMap<>();
+        Map<String, String> matchSnippets = new HashMap<>();
         for (WatchlistMatch match : watchlistMatches) {
             if (match.matchedOn() != null) {
                 matchDates.put(match.matchId(), SHORT_DATE_FMT.format(match.matchedOn()));
             }
+            matchSnippets.put(match.matchId(), stripHtml(match.snippet()));
         }
         model.addAttribute("matchDates", matchDates);
+        model.addAttribute("matchSnippets", matchSnippets);
 
         // --- Today's Headlines (top 8 articles from last 7 days, highest source weight) ---
         List<NewsArticle> recentArticles = articleIngestionPort.fetchRecentArticles(7);
@@ -634,6 +637,23 @@ public class DashboardController {
      * @param articles  mutable list to sort in-place
      * @param ascending true for oldest-first, false for newest-first
      */
+    private String stripHtml(String text) {
+        if (text == null || text.isEmpty()) {
+            return text;
+        }
+        String stripped = text.replaceAll("<[^>]+>", " ");
+        stripped = stripped.replaceAll("<[^>]*$", "");
+        stripped = stripped.replace("&amp;", "&")
+                          .replace("&lt;", "<")
+                          .replace("&gt;", ">")
+                          .replace("&quot;", "\"")
+                          .replace("&#39;", "'")
+                          .replace("&nbsp;", " ");
+        stripped = stripped.replaceAll("<[^>]+>", " ");
+        stripped = stripped.replaceAll("<[^>]*$", "");
+        return stripped.replaceAll("\\s+", " ").trim();
+    }
+
     private void sortByPublishedAt(List<NewsArticle> articles, boolean ascending) {
         log.debug("sortByPublishedAt() | size={}, ascending={}", articles.size(), ascending);
 

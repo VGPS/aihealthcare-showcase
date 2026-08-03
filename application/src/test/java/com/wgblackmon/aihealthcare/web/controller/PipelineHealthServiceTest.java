@@ -65,6 +65,8 @@ class PipelineHealthServiceTest {
         when(env.getProperty("spring.ai.anthropic.api-key", "")).thenReturn("");
         when(env.getProperty("OPENAI_API_KEY", "")).thenReturn("");
         when(env.getProperty("spring.ai.openai.api-key", "")).thenReturn("");
+        when(env.getProperty("PERPLEXITY_API_KEY", "")).thenReturn("");
+        when(env.getProperty("aihealthcare.perplexity.api-key", "")).thenReturn("");
         serviceNoKeys = new PipelineHealthService(env, withVs, null);
 
         // serviceWithAnthropicKey — Anthropic key present

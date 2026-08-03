@@ -166,7 +166,7 @@
                     </td>
                     <td th:text="${match.articleId()}" class="text-sm">Article ID</td>
                     <td class="text-xs text-gray-500 max-w-[300px] overflow-hidden text-ellipsis"
-                        th:text="${match.snippet() != null ? match.snippet() : '—'}">Snippet</td>
+                        th:text="${matchSnippets.get(match.matchId()) ?: '—'}">Snippet</td>
                     <td class="text-xs whitespace-nowrap"
                         th:text="${matchDates[match.matchId()]}">Date</td>
                 </tr>

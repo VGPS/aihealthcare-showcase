@@ -31,9 +31,9 @@ import java.util.Map;
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 2.1
  * @since   2026-07-30
- * @updated 2026-07-30
+ * @updated 2026-08-02
  */
 @Slf4j
 @Controller
@@ -280,6 +280,11 @@ public class AdminPipelineController {
                 "Generates monthly competitive landscape report via AI. Writes HTML to NotebookLMDirectory/summaries/.",
                 "Monthly 1st at 08:00 UTC", "MarketIntelligenceScheduler",
                 "/api/v1/market-intelligence/refresh", "POST", false, "~2 min", "High (LLM cost)"));
+
+        list.add(new PipelineInfo("company-discovery", "Company Discovery (Perplexity)",
+                "Discovers AI healthcare companies via Perplexity API: broad discovery, structured extraction, cross-validation. Deduplicates against DB.",
+                "Weekly Sunday 06:00 UTC", "CompanyDiscoveryScheduler",
+                "/api/v1/monitoring/company-discovery", "POST", false, "~5 min", "Medium (LLM)"));
 
         log.debug("buildPipelineList() | return={} pipelines", list.size());
         return list;
