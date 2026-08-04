@@ -1,0 +1,198 @@
+package com.wgblackmon.aihealthcare.web.controller;
+
+import com.wgblackmon.aihealthcare.domain.model.CompanySentiment;
+import com.wgblackmon.aihealthcare.domain.model.SentimentLabel;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
+import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeCompanySentimentUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+
+import java.security.Principal;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Thymeleaf controller that renders the company sentiment and risk dashboard.
+ *
+ * <p>Serves {@code GET /dashboard/risk} showing all tracked companies with
+ * their sentiment scores, risk summaries, and distribution breakdowns.
+ * Tier gating: FREE users see the top 5 companies; SUBSCRIBER/DEMO/ADMIN
+ * see all.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-03
+ * @updated 2026-08-03
+ */
+@Slf4j
+@Controller
+public class SentimentDashboardController {
+
+    private static final DateTimeFormatter DISPLAY_FMT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z")
+                    .withZone(ZoneId.of("America/New_York"));
+
+    private static final int FREE_COMPANY_LIMIT = 5;
+
+    private final AnalyzeCompanySentimentUseCase sentimentUseCase;
+    private final SubscriberPort subscriberPort;
+
+    public SentimentDashboardController(AnalyzeCompanySentimentUseCase sentimentUseCase,
+                                        SubscriberPort subscriberPort) {
+        log.debug("SentimentDashboardController() | sentimentUseCase={}, subscriberPort={}",
+                  sentimentUseCase, subscriberPort);
+        this.sentimentUseCase = sentimentUseCase;
+        this.subscriberPort = subscriberPort;
+    }
+
+    /**
+     * Renders the risk dashboard overview showing all company sentiments.
+     */
+    @GetMapping("/dashboard/risk")
+    public String riskDashboard(Principal principal, Model model) {
+        log.debug("riskDashboard() | principal={}", principal != null ? principal.getName() : "anonymous");
+
+        List<CompanySentiment> allSentiments = sentimentUseCase.getAll();
+        boolean fullAccess = hasFullAccess(principal);
+
+        List<CompanySentiment> sentiments;
+        if (fullAccess) {
+            sentiments = allSentiments;
+        } else {
+            sentiments = limitList(allSentiments, FREE_COMPANY_LIMIT);
+        }
+
+        // Build chart data
+        List<String> chartLabels = new ArrayList<>();
+        List<Double> chartScores = new ArrayList<>();
+        List<String> chartColors = new ArrayList<>();
+        for (CompanySentiment s : sentiments) {
+            chartLabels.add(s.companyName());
+            chartScores.add(s.sentimentScore());
+            chartColors.add(colorForSentiment(s.overallSentiment()));
+        }
+
+        // Build formatted dates map
+        List<String> formattedDates = new ArrayList<>();
+        for (CompanySentiment s : sentiments) {
+            formattedDates.add(DISPLAY_FMT.format(s.analyzedAt()));
+        }
+
+        // Summary counts
+        int positiveCompanies = 0;
+        int negativeCompanies = 0;
+        int mixedCompanies = 0;
+        int neutralCompanies = 0;
+        for (CompanySentiment s : allSentiments) {
+            switch (s.overallSentiment()) {
+                case POSITIVE: positiveCompanies++; break;
+                case NEGATIVE: negativeCompanies++; break;
+                case MIXED:    mixedCompanies++;    break;
+                case NEUTRAL:  neutralCompanies++;  break;
+            }
+        }
+
+        model.addAttribute("sentiments", sentiments);
+        model.addAttribute("totalCompanies", allSentiments.size());
+        model.addAttribute("positiveCompanies", positiveCompanies);
+        model.addAttribute("negativeCompanies", negativeCompanies);
+        model.addAttribute("mixedCompanies", mixedCompanies);
+        model.addAttribute("neutralCompanies", neutralCompanies);
+        model.addAttribute("chartLabels", chartLabels);
+        model.addAttribute("chartScores", chartScores);
+        model.addAttribute("chartColors", chartColors);
+        model.addAttribute("formattedDates", formattedDates);
+        model.addAttribute("fullAccess", fullAccess);
+        model.addAttribute("hasSentiments", !sentiments.isEmpty());
+        model.addAttribute("activePage", "risk");
+
+        log.debug("riskDashboard() | return=risk-dashboard ({} companies)", sentiments.size());
+        return "risk-dashboard";
+    }
+
+    /**
+     * Renders the detail page for a single company's sentiment breakdown.
+     */
+    @GetMapping("/dashboard/risk/{slug}")
+    public String companyRiskDetail(@PathVariable String slug, Principal principal, Model model) {
+        log.debug("companyRiskDetail() | slug={}, principal={}", slug,
+                  principal != null ? principal.getName() : "anonymous");
+
+        Optional<CompanySentiment> opt = sentimentUseCase.getBySlug(slug);
+        if (opt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company sentiment not found: " + slug);
+        }
+
+        CompanySentiment sentiment = opt.get();
+
+        // Doughnut chart data for article distribution
+        List<Integer> distributionData = new ArrayList<>();
+        distributionData.add(sentiment.positiveCount());
+        distributionData.add(sentiment.negativeCount());
+        distributionData.add(sentiment.mixedCount());
+        distributionData.add(sentiment.neutralCount());
+
+        model.addAttribute("sentiment", sentiment);
+        model.addAttribute("analyzedAt", DISPLAY_FMT.format(sentiment.analyzedAt()));
+        model.addAttribute("distributionData", distributionData);
+        model.addAttribute("activePage", "risk");
+
+        log.debug("companyRiskDetail() | return=risk-detail for {}", slug);
+        return "risk-detail";
+    }
+
+    private boolean hasFullAccess(Principal principal) {
+        if (principal == null) {
+            return false;
+        }
+        if (isAdmin(principal)) {
+            return true;
+        }
+        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
+        if (subscriber.isPresent()) {
+            SubscriptionTier tier = subscriber.get().tier();
+            return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO;
+        }
+        return false;
+    }
+
+    private boolean isAdmin(Principal principal) {
+        if (principal instanceof Authentication auth) {
+            for (GrantedAuthority authority : auth.getAuthorities()) {
+                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private List<CompanySentiment> limitList(List<CompanySentiment> list, int limit) {
+        if (list.size() <= limit) {
+            return list;
+        }
+        return new ArrayList<>(list.subList(0, limit));
+    }
+
+    private String colorForSentiment(SentimentLabel label) {
+        switch (label) {
+            case POSITIVE: return "#16a34a";
+            case NEGATIVE: return "#dc2626";
+            case MIXED:    return "#f59e0b";
+            case NEUTRAL:  return "#6b7280";
+            default:       return "#6b7280";
+        }
+    }
+}

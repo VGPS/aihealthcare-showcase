@@ -47,6 +47,14 @@ import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
+import com.wgblackmon.aihealthcare.domain.service.CompanySentimentService;
+import com.wgblackmon.aihealthcare.domain.service.FrameworkAnalysisService;
+import com.wgblackmon.aihealthcare.domain.model.FrameworkCompany;
+import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.CompanySentimentPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.FrameworkAnalysisPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.FrameworkLlmPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SentimentAnalysisPort;
 import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyResearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
@@ -107,6 +115,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -927,6 +936,68 @@ public class AppConfig {
         PerplexityCompanyDiscoveryService result = new PerplexityCompanyDiscoveryService(
                 researchPort, companyPort, citationPort, maxCompaniesPerRun);
         log.debug("perplexityCompanyDiscoveryService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link CompanySentimentService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeCompanySentimentUseCase}.
+     *
+     * @param companyProfilePort     Adapter implementing company profile persistence.
+     * @param articleIngestionPort   Adapter implementing article retrieval.
+     * @param sentimentAnalysisPort  Adapter implementing LLM sentiment classification.
+     * @param companySentimentPort   Adapter implementing sentiment persistence.
+     * @return The wired {@link CompanySentimentService} instance.
+     */
+    @Bean
+    public CompanySentimentService companySentimentService(
+            CompanyProfilePort companyProfilePort,
+            ArticleIngestionPort articleIngestionPort,
+            SentimentAnalysisPort sentimentAnalysisPort,
+            CompanySentimentPort companySentimentPort) {
+        log.debug("companySentimentService() | companyProfilePort={}, articleIngestionPort={}, sentimentAnalysisPort={}, companySentimentPort={}",
+                  companyProfilePort.getClass().getSimpleName(),
+                  articleIngestionPort.getClass().getSimpleName(),
+                  sentimentAnalysisPort.getClass().getSimpleName(),
+                  companySentimentPort.getClass().getSimpleName());
+        CompanySentimentService result = new CompanySentimentService(
+                companyProfilePort, articleIngestionPort,
+                sentimentAnalysisPort, companySentimentPort);
+        log.debug("companySentimentService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Wires the {@link FrameworkAnalysisService} — healthcare framework
+     * competitive analysis across configured companies.
+     *
+     * @param frameworkCompanyProperties  YAML-bound company configuration.
+     * @param articleIngestionPort        Adapter for fetching articles by topic.
+     * @param frameworkLlmPort            Adapter for LLM framework analysis.
+     * @param frameworkAnalysisPort       Adapter for persisting framework analyses.
+     * @return The wired {@link FrameworkAnalysisService} instance.
+     */
+    @Bean
+    public FrameworkAnalysisService frameworkAnalysisService(
+            FrameworkCompanyProperties frameworkCompanyProperties,
+            ArticleIngestionPort articleIngestionPort,
+            FrameworkLlmPort frameworkLlmPort,
+            FrameworkAnalysisPort frameworkAnalysisPort) {
+        log.debug("frameworkAnalysisService() | companies={}, articleIngestionPort={}, frameworkLlmPort={}, frameworkAnalysisPort={}",
+                  frameworkCompanyProperties.getCompanies().size(),
+                  articleIngestionPort.getClass().getSimpleName(),
+                  frameworkLlmPort.getClass().getSimpleName(),
+                  frameworkAnalysisPort.getClass().getSimpleName());
+
+        List<FrameworkCompany> companies = new ArrayList<>();
+        for (FrameworkCompanyProperties.CompanyEntry entry : frameworkCompanyProperties.getCompanies()) {
+            companies.add(new FrameworkCompany(
+                    entry.getSlug(), entry.getName(), entry.getUrl(), entry.getTopics()));
+        }
+
+        FrameworkAnalysisService result = new FrameworkAnalysisService(
+                companies, articleIngestionPort, frameworkLlmPort, frameworkAnalysisPort);
+        log.debug("frameworkAnalysisService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

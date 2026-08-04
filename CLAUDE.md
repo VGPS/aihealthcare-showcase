@@ -88,6 +88,18 @@ AIHealthcare/
 | `MonitorRegulatoryEventsUseCase` | `domain.port.inbound`           | Inbound port — regulatory event retrieval + harvest trigger |
 | `RegulatoryEventPort`       | `domain.port.outbound`               | Persist and query regulatory events                        |
 | `RegulatoryHarvestingPort`  | `domain.port.outbound`               | Harvest regulatory events from external APIs               |
+| `SentimentLabel`            | `domain.model`                       | Enum: POSITIVE, NEGATIVE, MIXED, NEUTRAL                   |
+| `ArticleSentiment`          | `domain.model`                       | Per-article sentiment: articleId, title, label, confidence, rationale |
+| `CompanySentiment`          | `domain.model`                       | Aggregated company sentiment: slug, score, counts, riskSummary |
+| `AnalyzeCompanySentimentUseCase` | `domain.port.inbound`           | Inbound port — company sentiment analysis + retrieval      |
+| `SentimentAnalysisPort`     | `domain.port.outbound`               | LLM-powered article sentiment classification               |
+| `CompanySentimentPort`      | `domain.port.outbound`               | Persist and query company sentiments                        |
+| `FrameworkAnalysis`         | `domain.model`                       | 10-field record: competitive analysis with 6 dimensions + strengths/weaknesses |
+| `FrameworkDimension`        | `domain.model`                       | Scored dimension (name, score 1-10, rationale)             |
+| `FrameworkCompany`          | `domain.model`                       | Config record: slug, name, url, topics for article matching |
+| `AnalyzeFrameworksUseCase`  | `domain.port.inbound`                | Inbound port — framework competitive analysis              |
+| `FrameworkAnalysisPort`     | `domain.port.outbound`               | Persist and query framework analyses                        |
+| `FrameworkLlmPort`          | `domain.port.outbound`               | LLM-powered 6-dimension competitive scoring                 |
 
 ### `NewsArticle` field inventory (11 fields)
 ```
@@ -149,6 +161,10 @@ mvn test -Dspring.profiles.active=ai-integration
 | `ArticleIngestionAdapter`| `infrastructure.ingestion`                 | DB-backed; queries `NewsArticleRepository` by topic |
 | `AiSummarizationAdapter` | `infrastructure.ai`                        | Spring AI `ChatClient` adapter                     |
 | `AppConfig`              | `infrastructure.config`                    | `@EnableScheduling` + `@EnableConfigurationProperties(FeedSourceProperties.class)` |
+| `StartupPipelineOrchestrator` | `infrastructure.scheduler`            | Sequences all 11 post-harvest pipelines; each step try-catch isolated |
+| `FrameworkCompanyProperties` | `infrastructure.config`                | `@ConfigurationProperties(prefix="aihealthcare.frameworks")` — YAML-only company config |
+| `FrameworkAnalysisLlmAdapter` | `infrastructure.ai`                   | ChatClient adapter: 6-dimension competitive scoring with structured parsing |
+| `FrameworkAnalysisPersistenceAdapter` | `infrastructure.persistence`  | JSON-serialized dimensions/strengths/weaknesses/recentDevelopments |
 
 ### Feed harvesting YAML shape
 ```yaml
@@ -207,7 +223,36 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Historical Trend Archive (T-HIST) — COMPLETE — 1416 tests passing**
+**Framework Competitive Analysis + Self-Maintaining Pipeline Orchestrator — COMPLETE — 1509 tests passing**
+- [x] Domain: `FrameworkAnalysis` record (10 fields), `FrameworkDimension` record (score 1-10 validation), `FrameworkCompany` config record
+- [x] Ports: `AnalyzeFrameworksUseCase` inbound (analyzeAll/getBySlug/getAll), `FrameworkAnalysisPort` + `FrameworkLlmPort` outbound
+- [x] Service: `FrameworkAnalysisService` — collects articles per company, dedupes by articleId, MIN_ARTICLES=3 threshold, 6-dimension LLM scoring
+- [x] Infrastructure: `FrameworkAnalysisLlmAdapter` (ChatClient structured parsing), `FrameworkAnalysisPersistenceAdapter` (JSON-serialized dimensions/strengths/weaknesses), `FrameworkCompanyProperties` (@ConfigurationProperties)
+- [x] Persistence: `FrameworkAnalysisEntity` (company_slug PK, JSON TEXT columns), `FrameworkAnalysisRepository`
+- [x] Web: `FrameworkDashboardController` at `GET /dashboard/frameworks` (radar chart + company cards) + `GET /dashboard/frameworks/{slug}` (detail with paragraph assessment)
+- [x] Web: `FrameworkRestController` at `GET /api/v1/frameworks`, `GET /api/v1/frameworks/{slug}`, `POST /api/v1/frameworks/analyze`
+- [x] Templates: `framework-analysis.html` (Chart.js radar chart + score cards), `framework-detail.html` (6-dimension breakdown + strengths/weaknesses)
+- [x] Nav: "Framework Analysis" link in Reference dropdown
+- [x] Config: `aihealthcare.frameworks.companies` YAML — adding companies is config-only, no code changes
+- [x] `StartupPipelineOrchestrator` — sequences ALL 11 post-harvest pipelines (competitor pages → HuggingFace → regulatory → clinical trials → embedding → framework analysis → company discovery → sentiment → trends → legal trends → research). Each step isolated in try-catch.
+- [x] `FeedHarvestScheduler` — `@PostConstruct` startup now cascades through full pipeline orchestrator; daily/industry harvests also trigger orchestrator
+- [x] Tests: `FrameworkAnalysisTest` (13), `FrameworkAnalysisServiceTest` (7), `FrameworkDashboardControllerTest` (6), `FrameworkRestControllerTest` (5), `FrameworkAnalysisLlmAdapterTest` (8), `FrameworkAnalysisPersistenceAdapterTest` (5)
+
+**Previously complete: Sentiment & Risk Scoring (S-SENT) — COMPLETE — 1465 tests passing**
+- [x] Domain: `SentimentLabel` enum (POSITIVE/NEGATIVE/MIXED/NEUTRAL), `ArticleSentiment` record, `CompanySentiment` record (12 fields)
+- [x] Ports: `AnalyzeCompanySentimentUseCase` inbound, `SentimentAnalysisPort` + `CompanySentimentPort` outbound
+- [x] Service: `CompanySentimentService` — loads company profiles, fetches articles, delegates to LLM for per-article classification, aggregates into company-level scores
+- [x] Infrastructure: `SentimentAnalysisAdapter` (ChatClient batch adapter with response parsing), `CompanySentimentEntity`, `CompanySentimentRepository`, `CompanySentimentAdapter` (JSON-serialized article sentiments)
+- [x] Prompt: `sentiment-analysis.txt` — structured SENTIMENT_RESULTS format with label/confidence/rationale
+- [x] Web: `SentimentDashboardController` at `GET /dashboard/risk` (overview + chart) + `GET /dashboard/risk/{slug}` (company detail with doughnut chart)
+- [x] Web: `SentimentRestController` at `GET /api/v1/sentiment`, `GET /api/v1/sentiment/{slug}`, `POST /api/v1/sentiment/analyze`
+- [x] Templates: `risk-dashboard.html` (horizontal bar chart + company cards with mini distribution bars), `risk-detail.html` (doughnut chart + article-level table)
+- [x] Nav: "Sentiment & Risk" link in Reference dropdown
+- [x] Tier gating: FREE=5 companies, SUBSCRIBER/DEMO/ADMIN=all
+- [x] AppConfig: `companySentimentService()` bean wiring 4 ports
+- [x] Tests: `CompanySentimentTest` (12), `CompanySentimentServiceTest` (10), `SentimentAnalysisAdapterTest` (8), `CompanySentimentAdapterTest` (5), `SentimentDashboardControllerTest` (8), `SentimentRestControllerTest` (6)
+
+**Previously complete: Historical Trend Archive (T-HIST) — COMPLETE — 1416 tests passing**
 - [x] Domain: `DetectTrendsUseCase.getAllSnapshots()` added to inbound port
 - [x] Service: `TrendOrchestrationService.getAllSnapshots()` delegates to `TrendSnapshotPort.findAll()`
 - [x] Web: `TrendHistoryController` — `GET /dashboard/trends/history` (multi-line chart + timeline table), `GET /dashboard/trends/history/{epochMillis}` (snapshot detail)

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Company Sentiment Detail page — per-article sentiment breakdown for a
+ * single company with doughnut chart and article-level results.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-03
+ * @updated 2026-08-03
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Company Risk Detail')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight" th:text="${sentiment.companyName() + ' — Sentiment Detail'}">Company Detail</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Article-level sentiment breakdown and risk assessment</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('risk')}"></nav>
+
+<main class="max-w-5xl mx-auto px-4 py-6">
+
+    <!-- Back link -->
+    <a href="/dashboard/risk" class="text-blue-600 hover:underline text-sm mb-4 inline-block">&larr; Back to Risk Dashboard</a>
+
+    <!-- Company overview card -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border-l-4"
+         th:classappend="${sentiment.overallSentiment().name() == 'POSITIVE' ? 'border-green-500' :
+                          (sentiment.overallSentiment().name() == 'NEGATIVE' ? 'border-red-500' :
+                          (sentiment.overallSentiment().name() == 'MIXED' ? 'border-yellow-500' : 'border-gray-400'))}">
+        <div class="flex justify-between items-start mb-3">
+            <h2 class="text-xl font-bold text-primary-800" th:text="${sentiment.companyName()}">Company</h2>
+            <span class="px-3 py-1 rounded text-sm font-bold text-white"
+                  th:classappend="${sentiment.overallSentiment().name() == 'POSITIVE' ? 'bg-green-600' :
+                                   (sentiment.overallSentiment().name() == 'NEGATIVE' ? 'bg-red-600' :
+                                   (sentiment.overallSentiment().name() == 'MIXED' ? 'bg-yellow-500' : 'bg-gray-500'))}"
+                  th:text="${sentiment.overallSentiment()}">POSITIVE</span>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center mb-4">
+            <div>
+                <div class="text-2xl font-bold" th:text="${#numbers.formatDecimal(sentiment.sentimentScore(), 1, 2)}">0.50</div>
+                <div class="text-xs text-gray-500">Score</div>
+            </div>
+            <div>
+                <div class="text-2xl font-bold" th:text="${sentiment.totalArticles()}">10</div>
+                <div class="text-xs text-gray-500">Articles</div>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-green-600" th:text="${sentiment.positiveCount()}">5</div>
+                <div class="text-xs text-gray-500">Positive</div>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-red-600" th:text="${sentiment.negativeCount()}">2</div>
+                <div class="text-xs text-gray-500">Negative</div>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-yellow-500" th:text="${sentiment.mixedCount()}">1</div>
+                <div class="text-xs text-gray-500">Mixed</div>
+            </div>
+        </div>
+        <p class="text-sm text-gray-600 mb-2" th:text="${sentiment.riskSummary()}">Risk summary</p>
+        <p class="text-xs text-gray-400" th:text="'Analyzed: ' + ${analyzedAt}">Jan 1, 2026</p>
+    </div>
+
+    <!-- Distribution chart -->
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-6">
+        <h3 class="text-lg font-semibold text-primary-800 mb-3">Sentiment Distribution</h3>
+        <div style="max-width: 350px; margin: 0 auto;">
+            <canvas id="distributionChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Article-level results table -->
+    <div class="bg-white rounded-lg shadow-sm p-5" th:if="${!sentiment.articleSentiments().isEmpty()}">
+        <h3 class="text-lg font-semibold text-primary-800 mb-3">Article-Level Sentiment</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b-2 border-gray-200 text-left">
+                        <th class="px-3 py-2">Article</th>
+                        <th class="px-3 py-2 text-center">Sentiment</th>
+                        <th class="px-3 py-2 text-center">Confidence</th>
+                        <th class="px-3 py-2">Rationale</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="a : ${sentiment.articleSentiments()}" class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="px-3 py-2 max-w-xs truncate" th:text="${a.title()}">Article title</td>
+                        <td class="px-3 py-2 text-center">
+                            <span class="px-2 py-0.5 rounded text-xs font-bold text-white"
+                                  th:classappend="${a.sentiment().name() == 'POSITIVE' ? 'bg-green-600' :
+                                                   (a.sentiment().name() == 'NEGATIVE' ? 'bg-red-600' :
+                                                   (a.sentiment().name() == 'MIXED' ? 'bg-yellow-500' : 'bg-gray-500'))}"
+                                  th:text="${a.sentiment()}">POSITIVE</span>
+                        </td>
+                        <td class="px-3 py-2 text-center" th:text="${#numbers.formatDecimal(a.confidence(), 1, 2)}">0.85</td>
+                        <td class="px-3 py-2 text-gray-600" th:text="${a.rationale()}">Rationale</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    var distData = /*[[${distributionData}]]*/ [0, 0, 0, 0];
+
+    new Chart(document.getElementById('distributionChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Positive', 'Negative', 'Mixed', 'Neutral'],
+            datasets: [{
+                data: distData,
+                backgroundColor: ['#16a34a', '#dc2626', '#f59e0b', '#6b7280'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+</body>
+</html>

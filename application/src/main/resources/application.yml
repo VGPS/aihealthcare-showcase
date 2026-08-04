@@ -960,3 +960,31 @@ aihealthcare:
     subscriber:
       archive-days: 0
       monthly-query-limit: 200
+
+  # ---------------------------------------------------------------------------
+  # Healthcare Framework Competitive Analysis — companies to track.
+  # Adding a new company here is all that's needed — zero code changes.
+  # Topics map to feed topic names in the article corpus.
+  # ---------------------------------------------------------------------------
+  frameworks:
+    companies:
+      - slug: anthropic
+        name: Anthropic
+        url: https://www.anthropic.com
+        topics:
+          - Anthropic Healthcare
+      - slug: openai
+        name: OpenAI
+        url: https://openai.com
+        topics:
+          - OpenAI Healthcare
+      - slug: google
+        name: Google
+        url: https://health.google
+        topics:
+          - Google Healthcare
+      - slug: amazon-web-services
+        name: Amazon Web Services
+        url: https://aws.amazon.com/health/
+        topics:
+          - Amazon Connect Health

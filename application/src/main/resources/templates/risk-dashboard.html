@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Company Sentiment & Risk Dashboard — AI-powered sentiment analysis
+ * for tracked AI healthcare companies.
+ *
+ * Displays sentiment scores, risk summaries, and distribution breakdowns
+ * with Chart.js bar chart visualization. Tier-gated: FREE sees top 5.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-03
+ * @updated 2026-08-03
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Sentiment & Risk Dashboard')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Sentiment & Risk Dashboard</h1>
+    <p class="text-primary-200 text-sm mt-0.5">AI-powered sentiment analysis across tracked healthcare AI companies</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('risk')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Company-level sentiment derived from recent news coverage. Scores range from −1.0 (very negative) to +1.0 (very positive). Click a company to see article-level detail.</p>
+    </div>
+
+    <!-- Trigger analysis button (ADMIN only) -->
+    <div sec:authorize="hasRole('ADMIN')" class="mb-6">
+        <button id="analyzeBtn" onclick="runAnalysis()"
+                class="px-5 py-2 bg-blue-800 text-white border-none rounded-md cursor-pointer text-sm hover:bg-blue-900 transition-colors">
+            Run Sentiment Analysis
+        </button>
+        <span id="analyzeStatus" class="ml-3 text-sm text-gray-500"></span>
+    </div>
+
+    <!-- Summary badges -->
+    <div class="flex gap-4 mb-6 flex-wrap" th:if="${hasSentiments}">
+        <div class="bg-gray-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold" th:text="${totalCompanies}">0</div>
+            <div class="text-xs text-gray-500">Companies Tracked</div>
+        </div>
+        <div class="bg-green-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-green-700" th:text="${positiveCompanies}">0</div>
+            <div class="text-xs text-gray-500">Positive</div>
+        </div>
+        <div class="bg-red-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-red-700" th:text="${negativeCompanies}">0</div>
+            <div class="text-xs text-gray-500">Negative</div>
+        </div>
+        <div class="bg-yellow-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-yellow-600" th:text="${mixedCompanies}">0</div>
+            <div class="text-xs text-gray-500">Mixed</div>
+        </div>
+        <div class="bg-gray-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-gray-500" th:text="${neutralCompanies}">0</div>
+            <div class="text-xs text-gray-500">Neutral</div>
+        </div>
+    </div>
+
+    <!-- Chart -->
+    <div th:if="${hasSentiments}" class="bg-white rounded-lg shadow-sm p-5 mb-8">
+        <h2 class="text-lg font-semibold text-primary-800 mb-3">Company Sentiment Scores</h2>
+        <div style="height: 400px;">
+            <canvas id="sentimentChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Company cards -->
+    <div th:if="${hasSentiments}" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div th:each="s, iter : ${sentiments}"
+             class="bg-white rounded-lg shadow-sm p-5 border-l-4"
+             th:classappend="${s.overallSentiment.name() == 'POSITIVE' ? 'border-green-500' :
+                              (s.overallSentiment.name() == 'NEGATIVE' ? 'border-red-500' :
+                              (s.overallSentiment.name() == 'MIXED' ? 'border-yellow-500' : 'border-gray-400'))}">
+            <div class="flex justify-between items-start mb-2">
+                <a th:href="@{/dashboard/risk/{slug}(slug=${s.companySlug})}"
+                   class="text-lg font-semibold text-primary-700 hover:underline" th:text="${s.companyName}">Company</a>
+                <span class="px-2 py-0.5 rounded text-xs font-bold text-white"
+                      th:classappend="${s.overallSentiment.name() == 'POSITIVE' ? 'bg-green-600' :
+                                       (s.overallSentiment.name() == 'NEGATIVE' ? 'bg-red-600' :
+                                       (s.overallSentiment.name() == 'MIXED' ? 'bg-yellow-500' : 'bg-gray-500'))}"
+                      th:text="${s.overallSentiment}">POSITIVE</span>
+            </div>
+            <div class="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                <span>Score: <strong th:text="${#numbers.formatDecimal(s.sentimentScore, 1, 2)}">0.50</strong></span>
+                <span th:text="${s.totalArticles} + ' articles'">10 articles</span>
+                <span class="text-xs text-gray-400" th:text="${formattedDates[__${iter.index}__]}">Jan 1, 2026</span>
+            </div>
+            <!-- Mini distribution bar -->
+            <div class="flex h-3 rounded-full overflow-hidden bg-gray-100 mb-3" th:if="${s.totalArticles > 0}">
+                <div class="bg-green-500" th:style="'width:' + ${(s.positiveCount * 100) / s.totalArticles} + '%'"></div>
+                <div class="bg-red-500" th:style="'width:' + ${(s.negativeCount * 100) / s.totalArticles} + '%'"></div>
+                <div class="bg-yellow-400" th:style="'width:' + ${(s.mixedCount * 100) / s.totalArticles} + '%'"></div>
+                <div class="bg-gray-300" th:style="'width:' + ${(s.neutralCount * 100) / s.totalArticles} + '%'"></div>
+            </div>
+            <p class="text-sm text-gray-600" th:text="${s.riskSummary}">Risk summary here</p>
+        </div>
+    </div>
+
+    <!-- Upgrade prompt for FREE tier -->
+    <div th:if="${!fullAccess && hasSentiments}" class="bg-blue-50 rounded-lg p-6 text-center mt-4">
+        <p class="text-blue-800 font-semibold mb-2">Viewing top 5 companies only</p>
+        <p class="text-sm text-blue-600 mb-4">Upgrade to Subscriber for full company sentiment coverage and article-level drill-down.</p>
+        <a href="/pricing" class="inline-block px-6 py-2 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition-colors">View Plans</a>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${!hasSentiments}" class="bg-gray-50 rounded-lg p-12 text-center">
+        <p class="text-gray-500 text-lg mb-2">No sentiment data available yet</p>
+        <p class="text-sm text-gray-400">Sentiment analysis runs after company profiles are discovered. Check back after the next analysis cycle.</p>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script th:if="${hasSentiments}" th:inline="javascript">
+    var labels = /*[[${chartLabels}]]*/ [];
+    var scores = /*[[${chartScores}]]*/ [];
+    var colors = /*[[${chartColors}]]*/ [];
+
+    new Chart(document.getElementById('sentimentChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Sentiment Score',
+                data: scores,
+                backgroundColor: colors,
+                borderRadius: 6,
+                barThickness: 40
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    min: -1.0,
+                    max: 1.0,
+                    grid: { color: '#f3f4f6' },
+                    ticks: {
+                        callback: function(v) { return v.toFixed(1); }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Sentiment Score (−1.0 negative  ←→  +1.0 positive)'
+                    }
+                },
+                y: {
+                    grid: { display: false }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return 'Score: ' + ctx.raw.toFixed(2);
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+<script sec:authorize="hasRole('ADMIN')">
+    function runAnalysis() {
+        var btn = document.getElementById('analyzeBtn');
+        var status = document.getElementById('analyzeStatus');
+        btn.disabled = true;
+        btn.textContent = 'Analyzing...';
+        status.textContent = 'Running sentiment analysis on all companies...';
+
+        fetch('/api/v1/sentiment/analyze', { method: 'POST' })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                status.textContent = 'Analysis complete — ' + data.length + ' companies scored. Refreshing...';
+                setTimeout(function() { location.reload(); }, 1500);
+            })
+            .catch(function(err) {
+                status.textContent = 'Error: ' + err.message;
+                btn.disabled = false;
+                btn.textContent = 'Run Sentiment Analysis';
+            });
+    }
+</script>
+</body>
+</html>

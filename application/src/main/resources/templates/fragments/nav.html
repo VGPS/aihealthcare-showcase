@@ -13,8 +13,8 @@
  *
  * activePage values: dashboard | news | newsletter | research | vendors | ai-search |
  *                    wiki | trends | trend-history | regulatory | legal | legal-trends |
- *                    clinical-trials | companies | watchlist | search | pricing | profile |
- *                    admin | admin-pipelines
+ *                    clinical-trials | companies | risk | frameworks | watchlist | search |
+ *                    pricing | profile | admin | admin-pipelines
  *
  * Nav groups: Dashboard | Content | Research | Legal | Reference | Account
  *
@@ -23,7 +23,7 @@
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-28
- * @updated 2026-08-01
+ * @updated 2026-08-03
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org"
@@ -54,7 +54,7 @@
     <!-- Research group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'research' || activePage == 'vendors' || activePage == 'ai-search' || activePage == 'search' || activePage == 'intel'} ? ' active'">
+                th:classappend="${activePage == 'research' || activePage == 'vendors' || activePage == 'ai-search' || activePage == 'search' || activePage == 'intel' || activePage == 'frameworks'} ? ' active'">
             Research ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
@@ -68,6 +68,8 @@
                th:classappend="${activePage == 'vendors'} ? ' active'">AI Healthcare Framework Compare</a>
             <a th:href="@{/research/intel}"
                th:classappend="${activePage == 'intel'} ? ' active'">Intel Reports</a>
+            <a th:href="@{/dashboard/frameworks}"
+               th:classappend="${activePage == 'frameworks'} ? ' active'">Framework Analysis</a>
         </div>
     </div>
 
@@ -90,7 +92,7 @@
     <!-- Reference group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'wiki' || activePage == 'clinical-trials' || activePage == 'companies'} ? ' active'">
+                th:classappend="${activePage == 'wiki' || activePage == 'clinical-trials' || activePage == 'companies' || activePage == 'risk'} ? ' active'">
             Reference ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
@@ -100,6 +102,8 @@
                th:classappend="${activePage == 'clinical-trials'} ? ' active'">Clinical Trials</a>
             <a th:href="@{/dashboard/companies}"
                th:classappend="${activePage == 'companies'} ? ' active'">Companies</a>
+            <a th:href="@{/dashboard/risk}"
+               th:classappend="${activePage == 'risk'} ? ' active'">Sentiment & Risk</a>
         </div>
     </div>
 
