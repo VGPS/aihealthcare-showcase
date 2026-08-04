@@ -1,0 +1,27 @@
+You are a healthcare industry analyst evaluating news sentiment toward a specific company.
+
+Company: {companyName}
+
+Classify each article's sentiment TOWARD THIS COMPANY as POSITIVE, NEGATIVE, MIXED, or NEUTRAL.
+
+Guidelines:
+- POSITIVE: Funding, partnerships, FDA clearances, product launches, growth, awards, positive clinical results
+- NEGATIVE: Layoffs, lawsuits, recalls, clinical failures, data breaches, regulatory warnings, executive departures
+- MIXED: Article contains both positive and negative signals about this company
+- NEUTRAL: Factual reporting without clear sentiment (industry roundups, market data, general mentions)
+
+For each article, provide:
+1. The sentiment label (POSITIVE, NEGATIVE, MIXED, or NEUTRAL)
+2. A confidence score from 0.0 to 1.0 (how confident you are in the classification)
+3. A one-sentence rationale explaining WHY this sentiment was assigned
+
+ARTICLES:
+{numberedArticleList}
+
+Respond in EXACTLY this format, one line per article:
+SENTIMENT_RESULTS:
+[1] POSITIVE | 0.85 | Company announced $50M Series B funding round
+[2] NEGATIVE | 0.90 | FDA issued warning letter about device safety concerns
+[3] NEUTRAL | 0.70 | Article mentions company in passing within industry overview
+
+Only include articles you can classify. Skip any that are completely unrelated to the company.

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Healthcare Framework Competitive Analysis — overview page showing radar
+ * chart comparison and scored dimension cards for all analyzed companies.
+ *
+ * Displays a multi-company radar chart, company cards with dimension
+ * progress bars, strengths/weaknesses lists, and links to per-company
+ * detail pages. ADMIN users can trigger analysis via REST endpoint.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-03
+ * @updated 2026-08-03
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Healthcare Framework Analysis')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Healthcare Framework Analysis</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Competitive intelligence across major healthcare AI platforms</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('frameworks')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Trigger analysis button (ADMIN only) -->
+    <div sec:authorize="hasRole('ADMIN')" class="mb-6">
+        <button id="analyzeBtn" onclick="runFrameworkAnalysis()"
+                class="px-5 py-2 bg-blue-800 text-white border-none rounded-md cursor-pointer text-sm hover:bg-blue-900 transition-colors">
+            Run Framework Analysis
+        </button>
+        <span id="analyzeStatus" class="ml-3 text-sm text-gray-500"></span>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${!hasAnalyses}" class="bg-gray-50 rounded-lg p-12 text-center">
+        <p class="text-gray-500 text-lg mb-2">No framework analyses available yet.</p>
+        <p class="text-sm text-gray-400">An admin can trigger analysis above.</p>
+    </div>
+
+    <!-- Radar Chart — all companies overlaid -->
+    <div th:if="${hasAnalyses}" class="bg-white rounded-lg shadow-sm p-5 mb-8">
+        <h2 class="text-lg font-semibold text-primary-800 mb-3">Multi-Company Comparison</h2>
+        <div style="height: 400px;">
+            <canvas id="radarChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Company Cards Grid -->
+    <div th:if="${hasAnalyses}" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div th:each="analysis : ${analyses}"
+             class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-primary-500">
+
+            <!-- Card header: company name + overall score -->
+            <div class="flex justify-between items-start mb-4">
+                <a th:href="@{/dashboard/frameworks/{slug}(slug=${analysis.companySlug()})}"
+                   class="text-lg font-semibold text-primary-700 hover:underline"
+                   th:text="${analysis.companyName()}">Company</a>
+                <div class="text-right">
+                    <div class="text-3xl font-bold text-primary-800">
+                        <span th:text="${analysis.overallScore()}">7</span><span class="text-lg text-gray-400">/10</span>
+                    </div>
+                    <div class="text-xs text-gray-400" th:text="${analyzedDates[analysis.companySlug()]}">Aug 3, 2026</div>
+                </div>
+            </div>
+
+            <!-- Dimension score bars -->
+            <div class="space-y-2 mb-4">
+                <div th:each="dim : ${analysis.dimensions()}" class="flex items-center gap-3">
+                    <span class="text-sm text-gray-600 w-40 truncate" th:text="${dim.name()}">Dimension</span>
+                    <div class="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                        <div class="h-3 rounded-full transition-all"
+                             th:style="'width:' + ${dim.score() * 10} + '%'"
+                             th:classappend="${dim.score() >= 7 ? 'bg-green-500' : (dim.score() >= 5 ? 'bg-yellow-400' : 'bg-red-500')}"></div>
+                    </div>
+                    <span class="text-sm font-semibold w-6 text-right"
+                          th:classappend="${dim.score() >= 7 ? 'text-green-600' : (dim.score() >= 5 ? 'text-yellow-600' : 'text-red-600')}"
+                          th:text="${dim.score()}">7</span>
+                </div>
+            </div>
+
+            <!-- Strengths -->
+            <div th:if="${!analysis.strengths().isEmpty()}" class="mb-3">
+                <h4 class="text-sm font-semibold text-gray-500 mb-1">Strengths</h4>
+                <ul class="space-y-1">
+                    <li th:each="s : ${analysis.strengths()}" class="text-sm text-gray-700 flex items-start gap-1.5">
+                        <span class="text-green-500 mt-0.5 shrink-0">&#x2713;</span>
+                        <span th:text="${s}">Strength item</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Weaknesses -->
+            <div th:if="${!analysis.weaknesses().isEmpty()}" class="mb-3">
+                <h4 class="text-sm font-semibold text-gray-500 mb-1">Weaknesses</h4>
+                <ul class="space-y-1">
+                    <li th:each="w : ${analysis.weaknesses()}" class="text-sm text-gray-700 flex items-start gap-1.5">
+                        <span class="text-red-500 mt-0.5 shrink-0">&#x2717;</span>
+                        <span th:text="${w}">Weakness item</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Footer: detail link + article count -->
+            <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+                <a th:href="@{/dashboard/frameworks/{slug}(slug=${analysis.companySlug()})}"
+                   class="text-sm text-blue-600 hover:underline">View Full Analysis &rarr;</a>
+                <span class="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full"
+                      th:text="${analysis.articleCount()} + ' articles'">12 articles</span>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script th:if="${hasAnalyses}" th:inline="javascript">
+    var companyNames = /*[[${companyNames}]]*/ [];
+    var dimensionNames = /*[[${dimensionNames}]]*/ [];
+    var companyScores = /*[[${companyScores}]]*/ [];
+    var chartColors = /*[[${chartColors}]]*/ [];
+
+    var datasets = [];
+    for (var i = 0; i < companyNames.length; i++) {
+        datasets.push({
+            label: companyNames[i],
+            data: companyScores[i],
+            borderColor: chartColors[i],
+            backgroundColor: chartColors[i].replace(')', ', 0.2)').replace('rgb(', 'rgba('),
+            fill: true,
+            pointBackgroundColor: chartColors[i],
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: chartColors[i]
+        });
+    }
+
+    new Chart(document.getElementById('radarChart'), {
+        type: 'radar',
+        data: {
+            labels: dimensionNames,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 10,
+                    ticks: {
+                        stepSize: 2,
+                        backdropColor: 'transparent'
+                    },
+                    grid: {
+                        color: '#e5e7eb'
+                    },
+                    angleLines: {
+                        color: '#e5e7eb'
+                    },
+                    pointLabels: {
+                        font: { size: 12 }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                }
+            }
+        }
+    });
+</script>
+<script>
+    function runFrameworkAnalysis() {
+        var btn = document.getElementById('analyzeBtn');
+        var status = document.getElementById('analyzeStatus');
+        btn.disabled = true;
+        btn.textContent = 'Analyzing...';
+        status.textContent = 'Running framework analysis on all companies...';
+
+        var csrfMeta = document.querySelector('meta[name="_csrf"]');
+        var csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+        var headers = {'Content-Type': 'application/json'};
+        if (csrfMeta && csrfHeader) {
+            headers[csrfHeader.getAttribute('content')] = csrfMeta.getAttribute('content');
+        }
+
+        fetch('/api/v1/frameworks/analyze', { method: 'POST', headers: headers })
+            .then(function(res) {
+                if (res.ok) { return res.json(); }
+                throw new Error('HTTP ' + res.status);
+            })
+            .then(function(data) {
+                status.textContent = 'Analysis complete. Refreshing...';
+                setTimeout(function() { location.reload(); }, 1500);
+            })
+            .catch(function(err) {
+                status.textContent = 'Error: ' + err.message;
+                btn.disabled = false;
+                btn.textContent = 'Run Framework Analysis';
+            });
+    }
+</script>
+</body>
+</html>

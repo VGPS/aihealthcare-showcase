@@ -1,14 +1,19 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeCompanySentimentUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DiscoverCompaniesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
+import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
 import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.infrastructure.ai.EmbeddingScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashRepository;
 import org.junit.jupiter.api.Test;
@@ -75,6 +80,21 @@ class WebMonitoringControllerTest {
 
     @MockBean
     private PerplexityCompanyDiscoveryService companyDiscoveryService;
+
+    @MockBean
+    private DiscoverCompaniesUseCase discoverCompaniesUseCase;
+
+    @MockBean
+    private CompanyProfilePort companyProfilePort;
+
+    @MockBean
+    private CompanyProfileService companyProfileService;
+
+    @MockBean
+    private NewsArticleRepository newsArticleRepository;
+
+    @MockBean
+    private AnalyzeCompanySentimentUseCase sentimentUseCase;
 
     @Test
     void triggerCompetitorHarvest_withChanges_returns200() throws Exception {

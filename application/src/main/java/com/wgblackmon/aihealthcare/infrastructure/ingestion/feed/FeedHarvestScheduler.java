@@ -17,6 +17,7 @@ import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.WatchlistMatchingService;
 import com.wgblackmon.aihealthcare.domain.service.WikiLintService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.StartupPipelineOrchestrator;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,7 @@ public class FeedHarvestScheduler {
     private final WatchlistMatchingService watchlistMatchingService;
     private final WatchlistPort watchlistPort;
     private final WatchlistMatchPort watchlistMatchPort;
+    private final StartupPipelineOrchestrator pipelineOrchestrator;
 
     public FeedHarvestScheduler(ArticleHarvestingPort harvestingPort,
                                 ArticleStoragePort articleStoragePort,
@@ -76,7 +78,8 @@ public class FeedHarvestScheduler {
                                 @Autowired(required = false) LintReportPort lintReportPort,
                                 @Autowired(required = false) WatchlistMatchingService watchlistMatchingService,
                                 @Autowired(required = false) WatchlistPort watchlistPort,
-                                @Autowired(required = false) WatchlistMatchPort watchlistMatchPort) {
+                                @Autowired(required = false) WatchlistMatchPort watchlistMatchPort,
+                                @Autowired(required = false) StartupPipelineOrchestrator pipelineOrchestrator) {
         log.debug("FeedHarvestScheduler() | harvestingPort={}, articleStoragePort={}, topicSummaryService={}, newsTopicProperties={}, knowledgeCompilationPort={}",
                   harvestingPort.getClass().getSimpleName(),
                   articleStoragePort.getClass().getSimpleName(),
@@ -94,6 +97,7 @@ public class FeedHarvestScheduler {
         this.watchlistMatchingService = watchlistMatchingService;
         this.watchlistPort = watchlistPort;
         this.watchlistMatchPort = watchlistMatchPort;
+        this.pipelineOrchestrator = pipelineOrchestrator;
     }
 
     /**
@@ -110,9 +114,9 @@ public class FeedHarvestScheduler {
             }
             log.info("harvestOnStartup() | {} articles harvested and saved", all.size());
             generateTopicSummaries();
-            // Wiki compilation skipped on startup — existing pages are persisted in DB;
-            // scheduled cron jobs handle incremental compilation going forward.
-            // Use POST /monitoring/wiki/compile for manual compilation.
+            if (pipelineOrchestrator != null) {
+                pipelineOrchestrator.runAllPipelines();
+            }
         } catch (Exception e) {
             log.warn("harvestOnStartup() | startup harvest failed — app continues normally", e);
         }
@@ -142,6 +146,9 @@ public class FeedHarvestScheduler {
         compileWikiPages(dailyArticles);
         lintWikiPages();
         matchWatchlistItems(dailyArticles);
+        if (pipelineOrchestrator != null) {
+            pipelineOrchestrator.runAllPipelines();
+        }
         log.debug("harvestDailyFeeds() | return=void");
     }
 
