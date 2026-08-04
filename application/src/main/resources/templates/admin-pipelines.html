@@ -10,7 +10,7 @@
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-30
- * @updated 2026-07-30
+ * @updated 2026-08-04
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -36,6 +36,7 @@
         <span class="text-gray-500 text-sm">
             <span th:text="${pipelineCount}">0</span> pipelines configured
             &nbsp;|&nbsp; Server time: <span th:text="${serverTime}">N/A</span>
+            &nbsp;|&nbsp; <span th:text="${#lists.size(recentEvents)}">0</span> recent runs tracked
         </span>
         <div class="flex items-center gap-3">
             <label class="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
@@ -120,6 +121,68 @@
                 </button>
                 <span th:id="'status-' + ${p.id()}" class="text-xs"></span>
             </div>
+        </div>
+    </div>
+
+    <!-- Pipeline Run History -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
+        <div class="border-b-2 border-gray-100 pb-3 mb-5">
+            <h2 class="font-display text-lg font-semibold text-on-surface">Pipeline Run History</h2>
+            <p class="text-xs text-gray-500 mt-1">Last 50 runs across all pipelines (persisted in database)</p>
+        </div>
+
+        <div th:if="${#lists.isEmpty(recentEvents)}" class="text-center py-8 text-gray-400 text-sm">
+            No pipeline runs recorded yet.
+        </div>
+
+        <div th:if="${!#lists.isEmpty(recentEvents)}" class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead>
+                <tr class="border-b-2 border-gray-300">
+                    <th class="p-2 font-semibold">Pipeline</th>
+                    <th class="p-2 font-semibold">Step</th>
+                    <th class="p-2 font-semibold">Status</th>
+                    <th class="p-2 font-semibold text-xs">Duration</th>
+                    <th class="p-2 font-semibold text-xs">Items</th>
+                    <th class="p-2 font-semibold text-xs">Source</th>
+                    <th class="p-2 font-semibold">Started</th>
+                    <th class="p-2 font-semibold">Error</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="event, iterStat : ${recentEvents}"
+                    class="border-b border-gray-100 hover:bg-gray-50"
+                    th:classappend="${iterStat.even} ? 'bg-gray-50/50' : ''">
+                    <td class="p-2 font-mono text-xs" th:text="${event.pipelineId()}">rss-feeds</td>
+                    <td class="p-2 text-xs" th:text="${event.stepName()}">RSS Feed Harvest</td>
+                    <td class="p-2">
+                        <span th:switch="${event.status().name()}">
+                            <span th:case="'SUCCESS'" class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">SUCCESS</span>
+                            <span th:case="'FAILED'" class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-semibold">FAILED</span>
+                            <span th:case="*" class="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold" th:text="${event.status().name()}">SKIPPED</span>
+                        </span>
+                    </td>
+                    <td class="p-2 text-xs text-gray-500" th:text="${event.durationMs() + 'ms'}">0ms</td>
+                    <td class="p-2 text-xs text-gray-500" th:text="${event.itemsProcessed()}">0</td>
+                    <td class="p-2">
+                        <span th:switch="${event.triggerSource()}">
+                            <span th:case="'ORCHESTRATOR'" class="inline-block bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-xs">ORCHESTRATOR</span>
+                            <span th:case="'MANUAL'" class="inline-block bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded text-xs">MANUAL</span>
+                            <span th:case="*" class="inline-block bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded text-xs" th:text="${event.triggerSource()}">SCHEDULER</span>
+                        </span>
+                    </td>
+                    <td class="p-2 text-xs text-gray-500" th:text="${eventTimestamps.getOrDefault(event.id(), '-')}">-</td>
+                    <td class="p-2 text-xs text-gray-500">
+                        <span th:if="${event.errorMessage() != null and event.errorMessage().length() > 80}"
+                              th:text="${event.errorMessage().substring(0, 80) + '...'}"
+                              th:title="${event.errorMessage()}">error</span>
+                        <span th:if="${event.errorMessage() != null and event.errorMessage().length() <= 80}"
+                              th:text="${event.errorMessage()}">error</span>
+                        <span th:if="${event.errorMessage() == null}">&#8212;</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 

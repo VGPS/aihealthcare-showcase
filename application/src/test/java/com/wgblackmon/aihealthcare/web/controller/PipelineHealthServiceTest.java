@@ -67,19 +67,19 @@ class PipelineHealthServiceTest {
         when(env.getProperty("spring.ai.openai.api-key", "")).thenReturn("");
         when(env.getProperty("PERPLEXITY_API_KEY", "")).thenReturn("");
         when(env.getProperty("aihealthcare.perplexity.api-key", "")).thenReturn("");
-        serviceNoKeys = new PipelineHealthService(env, withVs, null);
+        serviceNoKeys = new PipelineHealthService(env, withVs, null, null);
 
         // serviceWithAnthropicKey — Anthropic key present
         when(env.getProperty("ANTHROPIC_API_KEY", "")).thenReturn("sk-ant-real-key-123");
-        serviceWithAnthropicKey = new PipelineHealthService(env, withVs, null);
+        serviceWithAnthropicKey = new PipelineHealthService(env, withVs, null, null);
 
         // serviceWithoutVectorStore — no keys, no vector store
         when(env.getProperty("ANTHROPIC_API_KEY", "")).thenReturn("");
-        serviceWithoutVectorStore = new PipelineHealthService(env, withoutVs, null);
+        serviceWithoutVectorStore = new PipelineHealthService(env, withoutVs, null, null);
 
         // serviceWithOpenAiKey — OpenAI key present
         when(env.getProperty("OPENAI_API_KEY", "")).thenReturn("sk-real-openai-key");
-        serviceWithOpenAiKey = new PipelineHealthService(env, withVs, null);
+        serviceWithOpenAiKey = new PipelineHealthService(env, withVs, null, null);
     }
 
     // --- Pre-flight checks ---

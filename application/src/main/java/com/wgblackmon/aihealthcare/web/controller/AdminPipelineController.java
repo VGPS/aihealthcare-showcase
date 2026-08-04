@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -33,7 +35,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 2.1
  * @since   2026-07-30
- * @updated 2026-08-02
+ * @updated 2026-08-04
  */
 @Slf4j
 @Controller
@@ -96,6 +98,15 @@ public class AdminPipelineController {
             pipelineRegistry.put(p.id(), entry);
         }
 
+        // Recent pipeline run history (persisted in DB)
+        List<PipelineRunEvent> recentEvents = healthService.getRecentHistory(50);
+        Map<Long, String> eventTimestamps = new HashMap<>();
+        for (PipelineRunEvent event : recentEvents) {
+            if (event.startedAt() != null) {
+                eventTimestamps.put(event.id(), DISPLAY_FMT.format(event.startedAt()));
+            }
+        }
+
         model.addAttribute("pipelines", pipelineList);
         model.addAttribute("pipelineCount", pipelineList.size());
         model.addAttribute("serverTime", DISPLAY_FMT.format(Instant.now()));
@@ -104,8 +115,10 @@ public class AdminPipelineController {
         model.addAttribute("lastRunTimes", lastRunTimes);
         model.addAttribute("lastRunStatuses", lastRunStatuses);
         model.addAttribute("pipelineRegistry", pipelineRegistry);
+        model.addAttribute("recentEvents", recentEvents);
+        model.addAttribute("eventTimestamps", eventTimestamps);
 
-        log.debug("pipelines() | return=admin-pipelines, count={}", pipelineList.size());
+        log.debug("pipelines() | return=admin-pipelines, count={}, recentEvents={}", pipelineList.size(), recentEvents.size());
         return "admin-pipelines";
     }
 
