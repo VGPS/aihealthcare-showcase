@@ -92,4 +92,22 @@ class AnalystNoteAdapterTest {
         List<AnalystNote> result = adapter.findByUser("nobody@test.com");
         assertThat(result).isEmpty();
     }
+
+    @Test
+    void findByUserSince_returnsOnlyRecentNotes() {
+        Instant old = Instant.parse("2026-07-01T00:00:00Z");
+        Instant recent = Instant.parse("2026-08-04T12:00:00Z");
+        Instant cutoff = Instant.parse("2026-08-01T00:00:00Z");
+
+        adapter.save(new AnalystNote("n1", "user@test.com",
+                NoteTargetType.COMPANY, "co1", "Company 1",
+                "Old note", old, old));
+        adapter.save(new AnalystNote("n2", "user@test.com",
+                NoteTargetType.ARTICLE, "art-1", "Article 1",
+                "Recent note", recent, recent));
+
+        List<AnalystNote> result = adapter.findByUserSince("user@test.com", cutoff);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).noteId()).isEqualTo("n2");
+    }
 }

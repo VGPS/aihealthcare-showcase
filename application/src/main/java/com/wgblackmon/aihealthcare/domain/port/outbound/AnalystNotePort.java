@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.domain.port.outbound;
 import com.wgblackmon.aihealthcare.domain.model.AnalystNote;
 import com.wgblackmon.aihealthcare.domain.model.NoteTargetType;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +41,16 @@ public interface AnalystNotePort {
      * ordered by updatedAt descending.
      */
     List<AnalystNote> findByUserAndTarget(String email, NoteTargetType targetType, String targetId);
+
+    /**
+     * Returns notes for a user where updatedAt (or createdAt if never edited)
+     * is at or after the given timestamp, ordered by most recent first.
+     *
+     * @param email user email
+     * @param since cutoff timestamp (inclusive)
+     * @return notes modified since the given time
+     */
+    List<AnalystNote> findByUserSince(String email, Instant since);
 
     /**
      * Finds a single note by its ID.

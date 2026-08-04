@@ -931,6 +931,16 @@ aihealthcare:
     schedule: "0 0 0 * * *"
 
   # ---------------------------------------------------------------------------
+  # Personalized Daily Briefing — per-subscriber morning email.
+  # Schedule: daily at 07:30 UTC — runs AFTER the main harvest pipeline
+  # and AFTER the newsletter generation (midnight) and embedding (07:00).
+  # lookback-hours: how far back to look for new matches and notes.
+  # ---------------------------------------------------------------------------
+  briefing:
+    schedule: "0 30 7 * * *"
+    lookback-hours: 24
+
+  # ---------------------------------------------------------------------------
   # Stripe Billing — paid subscription management.
   # Set STRIPE_API_KEY and STRIPE_WEBHOOK_SECRET env vars.
   # In test mode, use Stripe test-mode keys (sk_test_... / whsec_test_...).

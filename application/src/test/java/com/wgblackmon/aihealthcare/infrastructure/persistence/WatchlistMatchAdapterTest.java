@@ -83,4 +83,22 @@ class WatchlistMatchAdapterTest {
         List<WatchlistMatch> result = matchAdapter.findByUser("nobody@test.com", 10);
         assertThat(result).isEmpty();
     }
+
+    @Test
+    void findByUserSince_returnsOnlyRecentMatches() {
+        Instant old = Instant.parse("2026-07-01T00:00:00Z");
+        Instant recent = Instant.parse("2026-08-04T12:00:00Z");
+        Instant cutoff = Instant.parse("2026-08-01T00:00:00Z");
+
+        WatchlistItem item = new WatchlistItem("w1", "user@test.com",
+                WatchlistItemType.KEYWORD, "FDA", "FDA", old);
+        itemAdapter.save(item);
+
+        matchAdapter.save(new WatchlistMatch("m1", "w1", "a1", old, "old match"));
+        matchAdapter.save(new WatchlistMatch("m2", "w1", "a2", recent, "recent match"));
+
+        List<WatchlistMatch> result = matchAdapter.findByUserSince("user@test.com", cutoff);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).matchId()).isEqualTo("m2");
+    }
 }

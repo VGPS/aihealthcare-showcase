@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,6 +111,34 @@ public class WatchlistMatchAdapter implements WatchlistMatchPort {
         }
 
         log.debug("findByItem() | return={} matches", result.size());
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<WatchlistMatch> findByUserSince(String email, Instant since) {
+        log.debug("findByUserSince() | email={}, since={}", email, since);
+
+        List<WatchlistItem> items = watchlistPort.findByUser(email);
+        if (items.isEmpty()) {
+            log.debug("findByUserSince() | return=0 matches (no watchlist items)");
+            return List.of();
+        }
+
+        List<String> itemIds = new ArrayList<>();
+        for (WatchlistItem item : items) {
+            itemIds.add(item.itemId());
+        }
+
+        List<WatchlistMatchEntity> entities =
+                matchRepository.findByItemIdInAndMatchedOnAfterOrderByMatchedOnDesc(itemIds, since);
+
+        List<WatchlistMatch> result = new ArrayList<>();
+        for (WatchlistMatchEntity entity : entities) {
+            result.add(toDomain(entity));
+        }
+
+        log.debug("findByUserSince() | return={} matches", result.size());
         return result;
     }
 

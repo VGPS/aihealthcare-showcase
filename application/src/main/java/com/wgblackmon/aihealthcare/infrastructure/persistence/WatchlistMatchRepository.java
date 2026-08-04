@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -23,6 +24,13 @@ public interface WatchlistMatchRepository extends JpaRepository<WatchlistMatchEn
      * Returns matches for a single item, ordered by matchedOn descending.
      */
     List<WatchlistMatchEntity> findByItemIdOrderByMatchedOnDesc(String itemId);
+
+    /**
+     * Returns matches for the given item IDs where matchedOn is after
+     * the given timestamp, ordered by matchedOn descending.
+     */
+    List<WatchlistMatchEntity> findByItemIdInAndMatchedOnAfterOrderByMatchedOnDesc(
+            List<String> itemIds, Instant since);
 
     /**
      * Checks if a match already exists for the given item and article.
