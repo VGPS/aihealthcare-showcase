@@ -53,13 +53,16 @@ If `BUILD FAILURE`, **STOP** and report failing tests. Do not proceed.
 
 Generate a commit message from the diff summary. Include only the delta — what changed, not what exists.
 
+Stage only project-relevant files (`.java`, `.html`, `.yml`, `.css`, `.md` under project dirs).
+**Never stage** `.env`, credentials, `NotebookLMDirectory/`, `BOOT-INF/`, `.idea/`, `node_modules/`,
+dump files, temp files, or `org/` (decompiled Spring classes). Use explicit file paths:
+
 ```bash
-git add -A
+git add <file1> <file2> ...
 git status
 ```
 
-Review staged files. **Do NOT stage** any file that could contain secrets (`.env`, credentials, keys).
-If suspicious files are staged, unstage them with `git reset HEAD <file>` and alert the user.
+Review staged files before committing.
 
 Then commit:
 

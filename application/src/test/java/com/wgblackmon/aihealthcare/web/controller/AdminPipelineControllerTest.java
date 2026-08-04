@@ -1,5 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
+import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 3.0
  * @since   2026-07-30
- * @updated 2026-07-30
+ * @updated 2026-08-04
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(AdminPipelineController.class)
@@ -56,6 +59,7 @@ class AdminPipelineControllerTest {
     void pipelinesRendersAdminPipelinesView() throws Exception {
         when(healthService.preFlightCheckAll(anyList())).thenReturn(Map.of());
         when(healthService.getAllLastRuns()).thenReturn(Map.of());
+        when(healthService.getRecentHistory(50)).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
@@ -69,6 +73,7 @@ class AdminPipelineControllerTest {
     void pipelinesContainsExpectedPipelineCount() throws Exception {
         when(healthService.preFlightCheckAll(anyList())).thenReturn(Map.of());
         when(healthService.getAllLastRuns()).thenReturn(Map.of());
+        when(healthService.getRecentHistory(50)).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
@@ -85,6 +90,7 @@ class AdminPipelineControllerTest {
 
         when(healthService.preFlightCheckAll(anyList())).thenReturn(Map.of());
         when(healthService.getAllLastRuns()).thenReturn(Map.of("rss-feeds", run));
+        when(healthService.getRecentHistory(50)).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
@@ -173,5 +179,37 @@ class AdminPipelineControllerTest {
         mockMvc.perform(get("/admin/pipelines/last-runs"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isEmpty());
+    }
+
+    // --- Run history ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void pipelinesIncludesRecentEvents() throws Exception {
+        PipelineRunEvent event = new PipelineRunEvent(
+                1L, "rss-feeds", "RSS Feed Harvest", PipelineStepStatus.SUCCESS,
+                Instant.now().minusSeconds(60), Instant.now(), 60000L, null, 42, "ORCHESTRATOR"
+        );
+
+        when(healthService.preFlightCheckAll(anyList())).thenReturn(Map.of());
+        when(healthService.getAllLastRuns()).thenReturn(Map.of());
+        when(healthService.getRecentHistory(50)).thenReturn(List.of(event));
+
+        mockMvc.perform(get("/admin/pipelines"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("recentEvents", "eventTimestamps"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void pipelinesHandlesEmptyHistory() throws Exception {
+        when(healthService.preFlightCheckAll(anyList())).thenReturn(Map.of());
+        when(healthService.getAllLastRuns()).thenReturn(Map.of());
+        when(healthService.getRecentHistory(50)).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/admin/pipelines"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin-pipelines"))
+                .andExpect(model().attributeExists("recentEvents", "eventTimestamps"));
     }
 }

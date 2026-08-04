@@ -1,5 +1,8 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
+import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
+import com.wgblackmon.aihealthcare.domain.port.outbound.PipelineRunEventPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.ObjectProvider;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-30
- * @updated 2026-08-02
+ * @updated 2026-08-04
  */
 @Slf4j
 @Service
@@ -39,28 +43,33 @@ public class PipelineHealthService {
     private final String openaiApiKey;
     private final String perplexityApiKey;
     private final java.nio.file.Path dotEnvPath;
+    private final PipelineRunEventPort pipelineRunEventPort;
     private final ConcurrentHashMap<String, PipelineRunRecord> lastRuns = new ConcurrentHashMap<>();
 
     @Autowired
     public PipelineHealthService(Environment env,
-                                 ObjectProvider<VectorStore> vectorStoreProvider) {
-        this(env, vectorStoreProvider, java.nio.file.Path.of(".env"));
+                                 ObjectProvider<VectorStore> vectorStoreProvider,
+                                 @Autowired(required = false) PipelineRunEventPort pipelineRunEventPort) {
+        this(env, vectorStoreProvider, java.nio.file.Path.of(".env"), pipelineRunEventPort);
     }
 
     PipelineHealthService(Environment env,
                           ObjectProvider<VectorStore> vectorStoreProvider,
-                          java.nio.file.Path dotEnvPath) {
-        log.debug("PipelineHealthService() | env={}, vectorStoreProvider={}", env, vectorStoreProvider);
+                          java.nio.file.Path dotEnvPath,
+                          PipelineRunEventPort pipelineRunEventPort) {
+        log.debug("PipelineHealthService() | env={}, vectorStoreProvider={}, pipelineRunEventPort={}",
+                env, vectorStoreProvider, pipelineRunEventPort);
         this.env = env;
         this.dotEnvPath = dotEnvPath;
+        this.pipelineRunEventPort = pipelineRunEventPort;
         this.anthropicApiKey = resolveKey(env, "ANTHROPIC_API_KEY", "spring.ai.anthropic.api-key");
         this.openaiApiKey = resolveKey(env, "OPENAI_API_KEY", "spring.ai.openai.api-key");
         this.perplexityApiKey = resolveKey(env, "PERPLEXITY_API_KEY", "aihealthcare.perplexity.api-key");
         this.vectorStoreAvailable = vectorStoreProvider.getIfAvailable() != null;
         String dsUrl = env.getProperty("spring.datasource.url", "");
         this.isH2 = dsUrl.contains("jdbc:h2:");
-        log.debug("PipelineHealthService() | vectorStoreAvailable={}, isH2={}, anthropicKeyPresent={}, openaiKeyPresent={}, perplexityKeyPresent={}",
-                  vectorStoreAvailable, isH2, isKeyUsable(anthropicApiKey), isKeyUsable(openaiApiKey), isKeyUsable(perplexityApiKey));
+        log.debug("PipelineHealthService() | vectorStoreAvailable={}, isH2={}, anthropicKeyPresent={}, openaiKeyPresent={}, perplexityKeyPresent={}, dbBackedTracking={}",
+                  vectorStoreAvailable, isH2, isKeyUsable(anthropicApiKey), isKeyUsable(openaiApiKey), isKeyUsable(perplexityApiKey), pipelineRunEventPort != null);
     }
 
     /**
@@ -157,6 +166,34 @@ public class PipelineHealthService {
     public void recordRun(String pipelineId, PipelineRunRecord record) {
         log.debug("recordRun() | pipelineId={}, record={}", pipelineId, record);
         lastRuns.put(pipelineId, record);
+        if (pipelineRunEventPort != null) {
+            try {
+                PipelineStepStatus status;
+                if ("SUCCESS".equals(record.status())) {
+                    status = PipelineStepStatus.SUCCESS;
+                } else if ("FAILED".equals(record.status())) {
+                    status = PipelineStepStatus.FAILED;
+                } else {
+                    status = PipelineStepStatus.SKIPPED;
+                }
+                String errorMessage = null;
+                if (record.errors() != null && !record.errors().isEmpty()) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < record.errors().size(); i++) {
+                        if (i > 0) sb.append("; ");
+                        sb.append(record.errors().get(i));
+                    }
+                    errorMessage = sb.toString();
+                }
+                PipelineRunEvent event = new PipelineRunEvent(
+                        null, pipelineId, pipelineId, status,
+                        record.startedAt(), record.completedAt(), record.durationMs(),
+                        errorMessage, record.itemsProcessed(), "MANUAL");
+                pipelineRunEventPort.save(event);
+            } catch (Exception e) {
+                log.warn("recordRun() | failed to persist pipeline event: {}", e.getMessage());
+            }
+        }
         log.debug("recordRun() | return=void");
     }
 
@@ -168,8 +205,20 @@ public class PipelineHealthService {
      */
     public PipelineRunRecord getLastRun(String pipelineId) {
         log.debug("getLastRun() | pipelineId={}", pipelineId);
+        if (pipelineRunEventPort != null) {
+            try {
+                List<PipelineRunEvent> events = pipelineRunEventPort.findByPipelineId(pipelineId, 1);
+                if (!events.isEmpty()) {
+                    PipelineRunRecord result = toRunRecord(events.get(0));
+                    log.debug("getLastRun() | return={} (from DB)", result);
+                    return result;
+                }
+            } catch (Exception e) {
+                log.warn("getLastRun() | DB lookup failed, falling back to cache: {}", e.getMessage());
+            }
+        }
         PipelineRunRecord result = lastRuns.get(pipelineId);
-        log.debug("getLastRun() | return={}", result);
+        log.debug("getLastRun() | return={} (from cache)", result);
         return result;
     }
 
@@ -180,8 +229,23 @@ public class PipelineHealthService {
      */
     public Map<String, PipelineRunRecord> getAllLastRuns() {
         log.debug("getAllLastRuns()");
+        if (pipelineRunEventPort != null) {
+            try {
+                Map<String, PipelineRunEvent> latestEvents = pipelineRunEventPort.findLatestPerPipeline();
+                if (!latestEvents.isEmpty()) {
+                    Map<String, PipelineRunRecord> result = new LinkedHashMap<>();
+                    for (Map.Entry<String, PipelineRunEvent> entry : latestEvents.entrySet()) {
+                        result.put(entry.getKey(), toRunRecord(entry.getValue()));
+                    }
+                    log.debug("getAllLastRuns() | return={} entries (from DB)", result.size());
+                    return result;
+                }
+            } catch (Exception e) {
+                log.warn("getAllLastRuns() | DB lookup failed, falling back to cache: {}", e.getMessage());
+            }
+        }
         Map<String, PipelineRunRecord> result = new LinkedHashMap<>(lastRuns);
-        log.debug("getAllLastRuns() | return={} entries", result.size());
+        log.debug("getAllLastRuns() | return={} entries (from cache)", result.size());
         return result;
     }
 
@@ -216,7 +280,52 @@ public class PipelineHealthService {
         return result;
     }
 
+    /**
+     * Returns recent pipeline run events from the DB for the history table.
+     * Returns an empty list if the DB port is not available.
+     *
+     * @param limit maximum number of events to return
+     * @return list of recent pipeline run events, newest first
+     */
+    public List<PipelineRunEvent> getRecentHistory(int limit) {
+        log.debug("getRecentHistory() | limit={}", limit);
+        if (pipelineRunEventPort == null) {
+            log.debug("getRecentHistory() | return=[] (port not available)");
+            return Collections.emptyList();
+        }
+        try {
+            List<PipelineRunEvent> result = pipelineRunEventPort.findRecent(limit);
+            log.debug("getRecentHistory() | return={} events", result.size());
+            return result;
+        } catch (Exception e) {
+            log.warn("getRecentHistory() | DB lookup failed: {}", e.getMessage());
+            log.debug("getRecentHistory() | return=[] (DB error)");
+            return Collections.emptyList();
+        }
+    }
+
     // --- private helpers ---
+
+    private PipelineRunRecord toRunRecord(PipelineRunEvent event) {
+        String status;
+        if (event.status() == PipelineStepStatus.SUCCESS) {
+            status = "SUCCESS";
+        } else if (event.status() == PipelineStepStatus.FAILED) {
+            status = "FAILED";
+        } else {
+            status = "SKIPPED";
+        }
+        List<String> errors;
+        if (event.errorMessage() != null && !event.errorMessage().isBlank()) {
+            errors = List.of(event.errorMessage());
+        } else {
+            errors = List.of();
+        }
+        int itemsFailed = (event.status() == PipelineStepStatus.FAILED) ? 1 : 0;
+        return new PipelineRunRecord(
+                event.pipelineId(), status, event.itemsProcessed(), itemsFailed,
+                errors, event.startedAt(), event.completedAt(), event.durationMs());
+    }
 
     private boolean isAnthropicKeyReady() {
         boolean ready = isKeyUsable(anthropicApiKey);

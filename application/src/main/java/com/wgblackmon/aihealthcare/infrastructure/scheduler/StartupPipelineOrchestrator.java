@@ -1,15 +1,21 @@
 package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
+import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
+import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeCompanySentimentUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeFrameworksUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectLegalTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.PipelineRunEventPort;
 import com.wgblackmon.aihealthcare.infrastructure.ai.EmbeddingScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebMonitoringScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.research.ResearchHarvestScheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.time.Instant;
 
 /**
  * Sequences all post-harvest analysis pipelines to run in succession.
@@ -36,7 +42,7 @@ import org.springframework.stereotype.Component;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-08-04
  */
 @Slf4j
 @Component
@@ -52,6 +58,7 @@ public class StartupPipelineOrchestrator {
     private final DetectTrendsUseCase detectTrendsUseCase;
     private final DetectLegalTrendsUseCase detectLegalTrendsUseCase;
     private final ResearchHarvestScheduler researchHarvestScheduler;
+    private final PipelineRunEventPort pipelineRunEventPort;
 
     public StartupPipelineOrchestrator(
             @Autowired(required = false) WebMonitoringScheduler webMonitoringScheduler,
@@ -63,13 +70,15 @@ public class StartupPipelineOrchestrator {
             @Autowired(required = false) AnalyzeCompanySentimentUseCase sentimentUseCase,
             @Autowired(required = false) DetectTrendsUseCase detectTrendsUseCase,
             @Autowired(required = false) DetectLegalTrendsUseCase detectLegalTrendsUseCase,
-            @Autowired(required = false) ResearchHarvestScheduler researchHarvestScheduler) {
+            @Autowired(required = false) ResearchHarvestScheduler researchHarvestScheduler,
+            @Autowired(required = false) PipelineRunEventPort pipelineRunEventPort) {
         log.debug("StartupPipelineOrchestrator() | initializing with {} available pipelines",
                 countNonNull(webMonitoringScheduler, regulatoryHarvestScheduler,
                         clinicalTrialHarvestScheduler, embeddingScheduler,
                         analyzeFrameworksUseCase, companyDiscoveryScheduler,
                         sentimentUseCase, detectTrendsUseCase,
-                        detectLegalTrendsUseCase, researchHarvestScheduler));
+                        detectLegalTrendsUseCase, researchHarvestScheduler,
+                        pipelineRunEventPort));
         this.webMonitoringScheduler = webMonitoringScheduler;
         this.regulatoryHarvestScheduler = regulatoryHarvestScheduler;
         this.clinicalTrialHarvestScheduler = clinicalTrialHarvestScheduler;
@@ -80,6 +89,7 @@ public class StartupPipelineOrchestrator {
         this.detectTrendsUseCase = detectTrendsUseCase;
         this.detectLegalTrendsUseCase = detectLegalTrendsUseCase;
         this.researchHarvestScheduler = researchHarvestScheduler;
+        this.pipelineRunEventPort = pipelineRunEventPort;
     }
 
     /**
@@ -163,11 +173,64 @@ public class StartupPipelineOrchestrator {
 
     private void runStep(String name, Runnable step) {
         log.info("runAllPipelines() | >>> {}", name);
+        Instant startedAt = Instant.now();
         try {
             step.run();
+            Instant completedAt = Instant.now();
             log.info("runAllPipelines() | <<< {} complete", name);
+            persistEvent(name, PipelineStepStatus.SUCCESS, startedAt, completedAt, null);
         } catch (Exception e) {
+            Instant completedAt = Instant.now();
             log.warn("runAllPipelines() | <<< {} FAILED — continuing: {}", name, e.getMessage());
+            persistEvent(name, PipelineStepStatus.FAILED, startedAt, completedAt, e.getMessage());
+        }
+    }
+
+    private void persistEvent(String stepName, PipelineStepStatus status,
+                              Instant startedAt, Instant completedAt, String errorMessage) {
+        if (pipelineRunEventPort == null) {
+            return;
+        }
+        try {
+            String pipelineId = toPipelineId(stepName);
+            long durationMs = Duration.between(startedAt, completedAt).toMillis();
+            PipelineRunEvent event = new PipelineRunEvent(
+                    null, pipelineId, stepName, status,
+                    startedAt, completedAt, durationMs,
+                    errorMessage, 0, "ORCHESTRATOR");
+            pipelineRunEventPort.save(event);
+        } catch (Exception e) {
+            log.warn("persistEvent() | failed to persist pipeline event for step={}: {}",
+                    stepName, e.getMessage());
+        }
+    }
+
+    private String toPipelineId(String stepName) {
+        switch (stepName) {
+            case "Competitor pages":
+                return "competitor";
+            case "HuggingFace models":
+                return "huggingface";
+            case "Regulatory events":
+                return "regulatory";
+            case "Clinical trials":
+                return "clinical-trials";
+            case "Vector embeddings":
+                return "embedding";
+            case "Framework analysis":
+                return "framework-analysis";
+            case "Company discovery":
+                return "company-discovery";
+            case "Sentiment analysis":
+                return "sentiment-analysis";
+            case "Trend detection":
+                return "trend-detection";
+            case "Legal trend detection":
+                return "legal-trends";
+            case "Research harvest":
+                return "research-harvest";
+            default:
+                return stepName.toLowerCase().replace(' ', '-');
         }
     }
 
