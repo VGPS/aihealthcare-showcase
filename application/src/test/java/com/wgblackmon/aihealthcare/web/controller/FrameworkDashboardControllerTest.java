@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkAnalysis;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkDimension;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeFrameworksUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,9 @@ class FrameworkDashboardControllerTest {
 
     @MockitoBean
     private SubscriberPort subscriberPort;
+
+    @MockitoBean
+    private AnalystNotePort analystNotePort;
 
     @Test
     @WithMockUser

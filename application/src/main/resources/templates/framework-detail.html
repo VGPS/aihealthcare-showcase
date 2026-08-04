@@ -147,6 +147,10 @@
 
     </div>
 
+    <!-- Analyst Notes (authenticated users only) -->
+    <div sec:authorize="isAuthenticated()"
+         th:insert="~{fragments/notes-inline :: notes('COMPANY', ${analysis.companySlug()}, ${analysis.companyName()}, ${analystNotes}, ${analystNoteDates}, ${returnUrl})}"></div>
+
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>

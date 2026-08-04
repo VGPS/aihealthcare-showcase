@@ -13,8 +13,8 @@
  *
  * activePage values: dashboard | news | newsletter | research | vendors | ai-search |
  *                    wiki | trends | trend-history | regulatory | legal | legal-trends |
- *                    clinical-trials | companies | risk | frameworks | watchlist | search |
- *                    pricing | profile | admin | admin-pipelines
+ *                    clinical-trials | companies | risk | frameworks | watchlist | notes |
+ *                    search | pricing | profile | admin | admin-pipelines
  *
  * Nav groups: Dashboard | Content | Research | Legal | Reference | Account
  *
@@ -23,7 +23,7 @@
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-28
- * @updated 2026-08-03
+ * @updated 2026-08-04
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org"
@@ -110,12 +110,14 @@
     <!-- Account group (right side) -->
     <div class="nav-group nav-group-right" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'watchlist' || activePage == 'pricing' || activePage == 'profile' || activePage == 'admin' || activePage == 'admin-pipelines' || activePage == 'newsletter'} ? ' active'">
+                th:classappend="${activePage == 'watchlist' || activePage == 'notes' || activePage == 'pricing' || activePage == 'profile' || activePage == 'admin' || activePage == 'admin-pipelines' || activePage == 'newsletter'} ? ' active'">
             Account ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown nav-dropdown-right">
             <a th:href="@{/watchlist}"
                th:classappend="${activePage == 'watchlist'} ? ' active'">Watchlist</a>
+            <a th:href="@{/notes}"
+               th:classappend="${activePage == 'notes'} ? ' active'">Notes</a>
             <a th:href="@{/pricing}"
                th:classappend="${activePage == 'pricing'} ? ' active'">Pricing</a>
             <a sec:authorize="isAuthenticated()" th:href="@{/profile}"

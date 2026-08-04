@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.CompanySentiment;
 import com.wgblackmon.aihealthcare.domain.model.SentimentLabel;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeCompanySentimentUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,9 @@ class SentimentDashboardControllerTest {
 
     @MockitoBean
     private NewsArticleRepository articleRepository;
+
+    @MockitoBean
+    private AnalystNotePort analystNotePort;
 
     @Test
     @WithMockUser

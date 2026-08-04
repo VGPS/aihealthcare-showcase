@@ -1,11 +1,14 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.AnalystNote;
 import com.wgblackmon.aihealthcare.domain.model.ArticleSentiment;
 import com.wgblackmon.aihealthcare.domain.model.CompanySentiment;
+import com.wgblackmon.aihealthcare.domain.model.NoteTargetType;
 import com.wgblackmon.aihealthcare.domain.model.SentimentLabel;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeCompanySentimentUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
@@ -42,7 +45,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-08-04
  */
 @Slf4j
 @Controller
@@ -52,20 +55,27 @@ public class SentimentDashboardController {
             DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z")
                     .withZone(ZoneId.of("America/New_York"));
 
+    private static final DateTimeFormatter NOTE_FMT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+                    .withZone(ZoneId.of("America/New_York"));
+
     private static final int FREE_COMPANY_LIMIT = 5;
 
     private final AnalyzeCompanySentimentUseCase sentimentUseCase;
     private final SubscriberPort subscriberPort;
     private final NewsArticleRepository articleRepository;
+    private final AnalystNotePort analystNotePort;
 
     public SentimentDashboardController(AnalyzeCompanySentimentUseCase sentimentUseCase,
                                         SubscriberPort subscriberPort,
-                                        NewsArticleRepository articleRepository) {
-        log.debug("SentimentDashboardController() | sentimentUseCase={}, subscriberPort={}, articleRepository={}",
-                  sentimentUseCase, subscriberPort, articleRepository);
+                                        NewsArticleRepository articleRepository,
+                                        AnalystNotePort analystNotePort) {
+        log.debug("SentimentDashboardController() | sentimentUseCase={}, subscriberPort={}, articleRepository={}, analystNotePort={}",
+                  sentimentUseCase, subscriberPort, articleRepository, analystNotePort);
         this.sentimentUseCase = sentimentUseCase;
         this.subscriberPort = subscriberPort;
         this.articleRepository = articleRepository;
+        this.analystNotePort = analystNotePort;
     }
 
     /**
@@ -217,7 +227,22 @@ public class SentimentDashboardController {
         model.addAttribute("sort", sort);
         model.addAttribute("activePage", "risk");
 
-        log.debug("companyRiskDetail() | return=risk-detail for {} ({} articles)", slug, sortedArticles.size());
+        // Load analyst notes for this company
+        List<AnalystNote> analystNotes = new ArrayList<>();
+        Map<String, String> analystNoteDates = new HashMap<>();
+        if (principal != null) {
+            analystNotes = analystNotePort.findByUserAndTarget(
+                    principal.getName(), NoteTargetType.COMPANY, slug);
+            for (AnalystNote note : analystNotes) {
+                Instant noteTime = note.updatedAt() != null ? note.updatedAt() : note.createdAt();
+                analystNoteDates.put(note.noteId(), NOTE_FMT.format(noteTime));
+            }
+        }
+        model.addAttribute("analystNotes", analystNotes);
+        model.addAttribute("analystNoteDates", analystNoteDates);
+        model.addAttribute("returnUrl", "/dashboard/risk/" + slug);
+
+        log.debug("companyRiskDetail() | return=risk-detail for {} ({} articles, {} notes)", slug, sortedArticles.size(), analystNotes.size());
         return "risk-detail";
     }
 
