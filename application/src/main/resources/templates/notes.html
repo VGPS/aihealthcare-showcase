@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Analyst Notes page — private annotations on companies, articles, events, trials, and wiki pages.
+ *
+ * Displays all user notes grouped by target type with add/edit/delete forms.
+ * Subscriber-only (SUBSCRIBER, DEMO, ADMIN).
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-04
+ * @updated 2026-08-04
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Analyst Notes')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Analyst Notes</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Private annotations on companies, articles, events, trials, and wiki pages</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('notes')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">Your private research notes. Attach annotations to any company, article, regulatory event, clinical trial, or wiki page. Notes are visible only to you.</p>
+    </div>
+
+    <!-- Flash messages -->
+    <div th:if="${successMessage}" class="bg-green-50 text-green-800 px-4 py-3 rounded-lg mb-4">
+        <span th:text="${successMessage}">Success</span>
+    </div>
+    <div th:if="${errorMessage}" class="bg-red-50 text-red-800 px-4 py-3 rounded-lg mb-4">
+        <span th:text="${errorMessage}">Error</span>
+    </div>
+
+    <!-- Add Note Form -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mb-5 border border-gray-200">
+        <h2 class="font-display text-lg font-semibold text-on-surface mb-3">Add Note</h2>
+        <form th:action="@{/notes}" method="post" class="space-y-3">
+            <div class="flex gap-3 flex-wrap items-end">
+                <div>
+                    <label for="targetType" class="text-xs text-gray-500">Target Type</label>
+                    <select id="targetType" name="targetType" class="block px-3 py-1.5 border border-gray-300 rounded-md text-sm">
+                        <option value="COMPANY">Company</option>
+                        <option value="ARTICLE">Article</option>
+                        <option value="REGULATORY_EVENT">Regulatory Event</option>
+                        <option value="CLINICAL_TRIAL">Clinical Trial</option>
+                        <option value="WIKI_PAGE">Wiki Page</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[150px]">
+                    <label for="targetId" class="text-xs text-gray-500">Target ID (slug, articleId, etc.)</label>
+                    <input type="text" id="targetId" name="targetId" required
+                           placeholder="e.g. tempus-ai, NCT06123456"
+                           class="block w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm"/>
+                </div>
+                <div class="flex-1 min-w-[150px]">
+                    <label for="targetLabel" class="text-xs text-gray-500">Display Label</label>
+                    <input type="text" id="targetLabel" name="targetLabel" required
+                           placeholder="e.g. Tempus AI, FDA 510(k) Clearance"
+                           class="block w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm"/>
+                </div>
+            </div>
+            <div>
+                <label for="content" class="text-xs text-gray-500">Note</label>
+                <textarea id="content" name="content" required rows="3"
+                          placeholder="Your analysis, observations, or research notes..."
+                          class="block w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm"></textarea>
+            </div>
+            <button type="submit" class="px-4 py-1.5 bg-primary-600 text-white rounded-md text-sm hover:bg-primary-700">
+                Add Note
+            </button>
+        </form>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="flex items-center gap-4 mb-4 text-sm text-gray-600">
+        <span th:text="${noteCount} + ' notes total'">0 notes total</span>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${noteCount == 0}" class="text-center py-12 text-gray-400">
+        <p class="text-lg">No notes yet</p>
+        <p class="text-sm mt-1">Add your first note above, or use the "My Notes" section on company, wiki, and other detail pages.</p>
+    </div>
+
+    <!-- Company Notes -->
+    <div th:if="${!companyNotes.isEmpty()}" class="mb-6">
+        <h3 class="font-display text-base font-semibold text-on-surface mb-3 flex items-center gap-2">
+            <span class="inline-block w-3 h-3 bg-blue-500 rounded-full"></span>
+            Companies
+            <span class="text-xs text-gray-400 font-normal" th:text="'(' + ${companyNotes.size()} + ')'"></span>
+        </h3>
+        <div class="space-y-3">
+            <div th:each="note : ${companyNotes}" th:replace="~{fragments/note-card :: noteCard(${note}, ${noteDates})}"></div>
+        </div>
+    </div>
+
+    <!-- Article Notes -->
+    <div th:if="${!articleNotes.isEmpty()}" class="mb-6">
+        <h3 class="font-display text-base font-semibold text-on-surface mb-3 flex items-center gap-2">
+            <span class="inline-block w-3 h-3 bg-green-500 rounded-full"></span>
+            Articles
+            <span class="text-xs text-gray-400 font-normal" th:text="'(' + ${articleNotes.size()} + ')'"></span>
+        </h3>
+        <div class="space-y-3">
+            <div th:each="note : ${articleNotes}" th:replace="~{fragments/note-card :: noteCard(${note}, ${noteDates})}"></div>
+        </div>
+    </div>
+
+    <!-- Regulatory Event Notes -->
+    <div th:if="${!regulatoryNotes.isEmpty()}" class="mb-6">
+        <h3 class="font-display text-base font-semibold text-on-surface mb-3 flex items-center gap-2">
+            <span class="inline-block w-3 h-3 bg-amber-500 rounded-full"></span>
+            Regulatory Events
+            <span class="text-xs text-gray-400 font-normal" th:text="'(' + ${regulatoryNotes.size()} + ')'"></span>
+        </h3>
+        <div class="space-y-3">
+            <div th:each="note : ${regulatoryNotes}" th:replace="~{fragments/note-card :: noteCard(${note}, ${noteDates})}"></div>
+        </div>
+    </div>
+
+    <!-- Clinical Trial Notes -->
+    <div th:if="${!clinicalTrialNotes.isEmpty()}" class="mb-6">
+        <h3 class="font-display text-base font-semibold text-on-surface mb-3 flex items-center gap-2">
+            <span class="inline-block w-3 h-3 bg-purple-500 rounded-full"></span>
+            Clinical Trials
+            <span class="text-xs text-gray-400 font-normal" th:text="'(' + ${clinicalTrialNotes.size()} + ')'"></span>
+        </h3>
+        <div class="space-y-3">
+            <div th:each="note : ${clinicalTrialNotes}" th:replace="~{fragments/note-card :: noteCard(${note}, ${noteDates})}"></div>
+        </div>
+    </div>
+
+    <!-- Wiki Page Notes -->
+    <div th:if="${!wikiNotes.isEmpty()}" class="mb-6">
+        <h3 class="font-display text-base font-semibold text-on-surface mb-3 flex items-center gap-2">
+            <span class="inline-block w-3 h-3 bg-indigo-500 rounded-full"></span>
+            Wiki Pages
+            <span class="text-xs text-gray-400 font-normal" th:text="'(' + ${wikiNotes.size()} + ')'"></span>
+        </h3>
+        <div class="space-y-3">
+            <div th:each="note : ${wikiNotes}" th:replace="~{fragments/note-card :: noteCard(${note}, ${noteDates})}"></div>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

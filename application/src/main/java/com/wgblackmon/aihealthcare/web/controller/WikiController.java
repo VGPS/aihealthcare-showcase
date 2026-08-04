@@ -1,12 +1,15 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
+import com.wgblackmon.aihealthcare.domain.model.AnalystNote;
 import com.wgblackmon.aihealthcare.domain.model.Contradiction;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.model.NoteTargetType;
 import com.wgblackmon.aihealthcare.domain.model.SourceRef;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.model.WikiPageType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.net.URI;
+import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -57,7 +61,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-18
+ * @updated 2026-08-04
  */
 @Slf4j
 @Controller
@@ -67,12 +71,17 @@ public class WikiController {
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm").withZone(ZoneOffset.UTC);
 
+    private static final DateTimeFormatter NOTE_FMT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+                    .withZone(java.time.ZoneId.of("America/New_York"));
+
     private final WikiQueryPort wikiQueryPort;
     private final WikiPageRepository pageRepository;
     private final WikiPageRevisionRepository revisionRepository;
     private final WikiContradictionRepository contradictionRepository;
     private final NewsArticleRepository articleRepository;
     private final List<AiSearchPort> aiSearchPorts;
+    private final AnalystNotePort analystNotePort;
     private final String baseUrl;
     private final Parser markdownParser;
     private final HtmlRenderer htmlRenderer;
@@ -83,15 +92,17 @@ public class WikiController {
                            WikiContradictionRepository contradictionRepository,
                            NewsArticleRepository articleRepository,
                            List<AiSearchPort> aiSearchPorts,
+                           AnalystNotePort analystNotePort,
                            @Value("${aihealthcare.base-url}") String baseUrl) {
         log.debug("WikiController() | wikiQueryPort={}, pageRepository={}, revisionRepository={}, "
-                + "contradictionRepository={}, articleRepository={}, aiSearchPortCount={}, baseUrl={}",
+                + "contradictionRepository={}, articleRepository={}, aiSearchPortCount={}, analystNotePort={}, baseUrl={}",
                 wikiQueryPort.getClass().getSimpleName(),
                 pageRepository.getClass().getSimpleName(),
                 revisionRepository.getClass().getSimpleName(),
                 contradictionRepository.getClass().getSimpleName(),
                 articleRepository.getClass().getSimpleName(),
                 aiSearchPorts.size(),
+                analystNotePort.getClass().getSimpleName(),
                 baseUrl);
         this.wikiQueryPort = wikiQueryPort;
         this.pageRepository = pageRepository;
@@ -99,6 +110,7 @@ public class WikiController {
         this.contradictionRepository = contradictionRepository;
         this.articleRepository = articleRepository;
         this.aiSearchPorts = aiSearchPorts;
+        this.analystNotePort = analystNotePort;
         this.baseUrl = baseUrl;
         this.markdownParser = Parser.builder().build();
         this.htmlRenderer = HtmlRenderer.builder().build();
@@ -166,8 +178,8 @@ public class WikiController {
      * @return view name "wiki-detail" or redirect to index if not found
      */
     @GetMapping("/{slug}")
-    public String wikiPage(@PathVariable String slug, Model model) {
-        log.debug("wikiPage() | slug={}", slug);
+    public String wikiPage(@PathVariable String slug, Model model, Principal principal) {
+        log.debug("wikiPage() | slug={}, principal={}", slug, principal != null ? principal.getName() : "anonymous");
 
         WikiPage page = wikiQueryPort.getPage(slug);
         if (page == null) {
@@ -280,8 +292,23 @@ public class WikiController {
         model.addAttribute("revisionTimestamps", revisionTimestamps);
         model.addAttribute("pageTimestamp", pageTimestamp);
 
-        log.debug("wikiPage() | return=wiki-detail (slug={}, sources={}, contradictions={})",
-                slug, page.sources().size(), contradictions.size());
+        // Load analyst notes if user is authenticated (wiki is public)
+        List<AnalystNote> analystNotes = new ArrayList<>();
+        Map<String, String> analystNoteDates = new HashMap<>();
+        if (principal != null) {
+            analystNotes = analystNotePort.findByUserAndTarget(
+                    principal.getName(), NoteTargetType.WIKI_PAGE, slug);
+            for (AnalystNote note : analystNotes) {
+                Instant noteTime = note.updatedAt() != null ? note.updatedAt() : note.createdAt();
+                analystNoteDates.put(note.noteId(), NOTE_FMT.format(noteTime));
+            }
+        }
+        model.addAttribute("analystNotes", analystNotes);
+        model.addAttribute("analystNoteDates", analystNoteDates);
+        model.addAttribute("returnUrl", "/wiki/" + slug);
+
+        log.debug("wikiPage() | return=wiki-detail (slug={}, sources={}, contradictions={}, notes={})",
+                slug, page.sources().size(), contradictions.size(), analystNotes.size());
         return "wiki-detail";
     }
 

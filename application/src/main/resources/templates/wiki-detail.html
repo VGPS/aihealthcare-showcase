@@ -147,6 +147,10 @@
         </div>
     </div>
 
+    <!-- Analyst Notes (authenticated users only — wiki is public) -->
+    <div sec:authorize="isAuthenticated()"
+         th:insert="~{fragments/notes-inline :: notes('WIKI_PAGE', ${page.slug()}, ${page.title()}, ${analystNotes}, ${analystNoteDates}, ${returnUrl})}"></div>
+
     <a class="inline-block mt-2 text-primary-600 hover:text-primary-700 text-sm"
        th:href="@{/wiki}">&larr; Back to Wiki Index</a>
 

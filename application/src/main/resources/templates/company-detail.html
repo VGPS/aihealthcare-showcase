@@ -168,6 +168,10 @@
         &nbsp;|&nbsp; Last updated: <span th:text="${updatedAt}">N/A</span>
     </div>
 
+    <!-- Analyst Notes (authenticated users only) -->
+    <div sec:authorize="isAuthenticated()"
+         th:insert="~{fragments/notes-inline :: notes('COMPANY', ${profile.slug()}, ${profile.name()}, ${analystNotes}, ${analystNoteDates}, ${returnUrl})}"></div>
+
     <div class="mt-4">
         <a th:href="@{/companies}" class="text-primary-600">&larr; Back to New Companies</a>
     </div>

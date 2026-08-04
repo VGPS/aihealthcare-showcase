@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Inline analyst notes fragment for embedding on detail pages.
+ *
+ * Renders existing notes for a specific target entity and an add-note form.
+ * Used on company-detail, risk-detail, framework-detail, and wiki-detail pages.
+ *
+ * Parameters:
+ *   targetType  — NoteTargetType enum name (e.g. "COMPANY", "WIKI_PAGE")
+ *   targetId    — the entity's slug, articleId, eventId, or trialId
+ *   targetLabel — human-readable name for display
+ *   notes       — List<AnalystNote> for this entity
+ *   noteDates   — Map<String, String> of noteId → formatted date
+ *   returnUrl   — URL to redirect back to after add/edit/delete
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-04
+ * @updated 2026-08-04
+ */
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="notes(targetType, targetId, targetLabel, notes, noteDates, returnUrl)"
+     class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mt-6">
+
+    <h3 class="font-display text-base font-semibold text-on-surface mb-3">My Notes</h3>
+
+    <!-- Existing notes -->
+    <div th:if="${notes != null && !notes.isEmpty()}" class="space-y-3 mb-4">
+        <div th:each="note : ${notes}"
+             class="bg-gray-50 rounded-md p-3 border border-gray-100"
+             x-data="{ editing: false }">
+
+            <!-- View mode -->
+            <div x-show="!editing">
+                <p class="text-sm text-gray-700 whitespace-pre-wrap" th:text="${note.content()}">Note content</p>
+                <div class="flex items-center justify-between mt-2">
+                    <span class="text-xs text-gray-400" th:text="${noteDates.get(note.noteId())}">date</span>
+                    <div class="flex gap-2">
+                        <button @click="editing = true"
+                                class="text-xs px-2 py-0.5 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">Edit</button>
+                        <form th:action="@{/notes/{id}/delete(id=${note.noteId()})}" method="post" class="inline">
+                            <input type="hidden" name="returnUrl" th:value="${returnUrl}"/>
+                            <button type="submit"
+                                    onclick="return confirm('Delete this note?')"
+                                    class="text-xs px-2 py-0.5 bg-red-50 text-red-600 rounded hover:bg-red-100">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit mode -->
+            <div x-show="editing" x-cloak>
+                <form th:action="@{/notes/{id}/edit(id=${note.noteId()})}" method="post">
+                    <input type="hidden" name="returnUrl" th:value="${returnUrl}"/>
+                    <textarea name="content" required rows="3"
+                              class="block w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm mb-2"
+                              th:text="${note.content()}"></textarea>
+                    <div class="flex gap-2">
+                        <button type="submit"
+                                class="text-xs px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700">Save</button>
+                        <button type="button" @click="editing = false"
+                                class="text-xs px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${notes == null || notes.isEmpty()}" class="text-sm text-gray-400 mb-4">
+        No notes yet. Add your first note below.
+    </div>
+
+    <!-- Add note form -->
+    <form th:action="@{/notes}" method="post" class="space-y-2">
+        <input type="hidden" name="targetType" th:value="${targetType}"/>
+        <input type="hidden" name="targetId" th:value="${targetId}"/>
+        <input type="hidden" name="targetLabel" th:value="${targetLabel}"/>
+        <input type="hidden" name="returnUrl" th:value="${returnUrl}"/>
+        <textarea name="content" required rows="2"
+                  placeholder="Add a note..."
+                  class="block w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm"></textarea>
+        <button type="submit"
+                class="text-xs px-3 py-1.5 bg-primary-600 text-white rounded hover:bg-primary-700">Add Note</button>
+    </form>
+</div>
+
+</html>

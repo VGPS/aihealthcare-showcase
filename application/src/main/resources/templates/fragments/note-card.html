@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="noteCard(note, noteDates)" class="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+     x-data="{ editing: false }">
+    <div class="flex items-start justify-between mb-2">
+        <div>
+            <span class="font-medium text-sm text-on-surface" th:text="${note.targetLabel()}">Target Label</span>
+            <span class="ml-2 text-xs px-2 py-0.5 rounded-full"
+                  th:classappend="${note.targetType().name() == 'COMPANY'} ? 'bg-blue-50 text-blue-700' :
+                                  (${note.targetType().name() == 'ARTICLE'} ? 'bg-green-50 text-green-700' :
+                                  (${note.targetType().name() == 'REGULATORY_EVENT'} ? 'bg-amber-50 text-amber-700' :
+                                  (${note.targetType().name() == 'CLINICAL_TRIAL'} ? 'bg-purple-50 text-purple-700' :
+                                  'bg-indigo-50 text-indigo-700')))"
+                  th:text="${note.targetType().name().replace('_', ' ')}">TYPE</span>
+        </div>
+        <span class="text-xs text-gray-400" th:text="${noteDates.get(note.noteId())}">date</span>
+    </div>
+
+    <!-- View mode -->
+    <div x-show="!editing">
+        <p class="text-sm text-gray-700 whitespace-pre-wrap" th:text="${note.content()}">Note content</p>
+        <div class="flex gap-2 mt-3">
+            <button @click="editing = true"
+                    class="text-xs px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Edit</button>
+            <form th:action="@{/notes/{id}/delete(id=${note.noteId()})}" method="post" class="inline">
+                <button type="submit"
+                        onclick="return confirm('Delete this note?')"
+                        class="text-xs px-3 py-1 bg-red-50 text-red-600 rounded hover:bg-red-100">Delete</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit mode -->
+    <div x-show="editing" x-cloak>
+        <form th:action="@{/notes/{id}/edit(id=${note.noteId()})}" method="post">
+            <textarea name="content" required rows="3"
+                      class="block w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm mb-2"
+                      th:text="${note.content()}"></textarea>
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="text-xs px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700">Save</button>
+                <button type="button" @click="editing = false"
+                        class="text-xs px-3 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

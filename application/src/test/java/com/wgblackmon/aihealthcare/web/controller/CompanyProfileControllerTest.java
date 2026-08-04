@@ -13,6 +13,7 @@ import com.wgblackmon.aihealthcare.domain.model.RegulatoryOutcomeStatus;
 import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DiscoverCompaniesUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
@@ -75,6 +76,9 @@ class CompanyProfileControllerTest {
 
     @MockitoBean
     private RegulatoryEventPort regulatoryEventPort;
+
+    @MockitoBean
+    private AnalystNotePort analystNotePort;
 
     @Test
     @WithMockUser

@@ -1,8 +1,11 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.AnalystNote;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkAnalysis;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkDimension;
+import com.wgblackmon.aihealthcare.domain.model.NoteTargetType;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeFrameworksUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -10,6 +13,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.security.Principal;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -29,7 +34,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-08-04
  */
 @Slf4j
 @Controller
@@ -39,18 +44,25 @@ public class FrameworkDashboardController {
             DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm")
                     .withZone(ZoneId.of("America/New_York"));
 
+    private static final DateTimeFormatter NOTE_FMT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+                    .withZone(ZoneId.of("America/New_York"));
+
     private static final List<String> CHART_COLORS = List.of(
             "#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899");
 
     private final AnalyzeFrameworksUseCase frameworksUseCase;
     private final SubscriberPort subscriberPort;
+    private final AnalystNotePort analystNotePort;
 
     public FrameworkDashboardController(AnalyzeFrameworksUseCase frameworksUseCase,
-                                        SubscriberPort subscriberPort) {
-        log.debug("FrameworkDashboardController() | frameworksUseCase={}, subscriberPort={}",
-                  frameworksUseCase, subscriberPort);
+                                        SubscriberPort subscriberPort,
+                                        AnalystNotePort analystNotePort) {
+        log.debug("FrameworkDashboardController() | frameworksUseCase={}, subscriberPort={}, analystNotePort={}",
+                  frameworksUseCase, subscriberPort, analystNotePort);
         this.frameworksUseCase = frameworksUseCase;
         this.subscriberPort = subscriberPort;
+        this.analystNotePort = analystNotePort;
     }
 
     /**
@@ -132,8 +144,8 @@ public class FrameworkDashboardController {
      * @return the "framework-detail" view name, or redirect if not found
      */
     @GetMapping("/dashboard/frameworks/{slug}")
-    public String frameworkDetail(@PathVariable String slug, Model model) {
-        log.debug("frameworkDetail() | slug={}", slug);
+    public String frameworkDetail(@PathVariable String slug, Model model, Principal principal) {
+        log.debug("frameworkDetail() | slug={}, principal={}", slug, principal != null ? principal.getName() : "anonymous");
 
         Optional<FrameworkAnalysis> opt = frameworksUseCase.getBySlug(slug);
         if (opt.isEmpty()) {
@@ -170,7 +182,22 @@ public class FrameworkDashboardController {
         model.addAttribute("analyzedAt", DISPLAY_FMT.format(analysis.analyzedAt()));
         model.addAttribute("activePage", "frameworks");
 
-        log.debug("frameworkDetail() | return=framework-detail for {}", slug);
+        // Load analyst notes for this company
+        List<AnalystNote> analystNotes = new ArrayList<>();
+        Map<String, String> analystNoteDates = new HashMap<>();
+        if (principal != null) {
+            analystNotes = analystNotePort.findByUserAndTarget(
+                    principal.getName(), NoteTargetType.COMPANY, slug);
+            for (AnalystNote note : analystNotes) {
+                Instant noteTime = note.updatedAt() != null ? note.updatedAt() : note.createdAt();
+                analystNoteDates.put(note.noteId(), NOTE_FMT.format(noteTime));
+            }
+        }
+        model.addAttribute("analystNotes", analystNotes);
+        model.addAttribute("analystNoteDates", analystNoteDates);
+        model.addAttribute("returnUrl", "/dashboard/frameworks/" + slug);
+
+        log.debug("frameworkDetail() | return=framework-detail for {}, noteCount={}", slug, analystNotes.size());
         return "framework-detail";
     }
 }

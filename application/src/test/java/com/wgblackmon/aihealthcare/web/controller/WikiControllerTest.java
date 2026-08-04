@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.model.SourceRef;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.model.WikiPageType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
@@ -79,6 +80,9 @@ class WikiControllerTest {
 
     @MockBean
     private AiSearchPort aiSearchPort;
+
+    @MockBean
+    private AnalystNotePort analystNotePort;
 
     private static final Instant NOW = Instant.parse("2026-07-04T10:00:00Z");
 

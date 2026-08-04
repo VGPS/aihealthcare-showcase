@@ -1,12 +1,15 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.AnalystNote;
 import com.wgblackmon.aihealthcare.domain.model.Company;
 import com.wgblackmon.aihealthcare.domain.model.CompanyDiscoveryResult;
 import com.wgblackmon.aihealthcare.domain.model.CompanyEvent;
 import com.wgblackmon.aihealthcare.domain.model.CompanyProfile;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.model.NoteTargetType;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DiscoverCompaniesUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URI;
+import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -41,7 +45,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-30
+ * @updated 2026-08-04
  */
 @Slf4j
 @Controller
@@ -51,27 +55,34 @@ public class CompanyProfileController {
             DateTimeFormatter.ofPattern("MMM d, yyyy")
                     .withZone(ZoneId.of("America/New_York"));
 
+    private static final DateTimeFormatter NOTE_FMT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+                    .withZone(ZoneId.of("America/New_York"));
+
     private final CompanyProfilePort companyProfilePort;
     private final CompanyEventPort companyEventPort;
     private final DiscoverCompaniesUseCase discoverCompaniesUseCase;
     private final CompanyProfileService companyProfileService;
     private final NewsArticleRepository newsArticleRepository;
     private final RegulatoryEventPort regulatoryEventPort;
+    private final AnalystNotePort analystNotePort;
 
     public CompanyProfileController(CompanyProfilePort companyProfilePort,
                                     CompanyEventPort companyEventPort,
                                     DiscoverCompaniesUseCase discoverCompaniesUseCase,
                                     CompanyProfileService companyProfileService,
                                     NewsArticleRepository newsArticleRepository,
-                                    RegulatoryEventPort regulatoryEventPort) {
-        log.debug("CompanyProfileController() | companyProfilePort={}, companyEventPort={}, discoverCompaniesUseCase={}, companyProfileService={}, newsArticleRepository={}, regulatoryEventPort={}",
-                  companyProfilePort, companyEventPort, discoverCompaniesUseCase, companyProfileService, newsArticleRepository, regulatoryEventPort);
+                                    RegulatoryEventPort regulatoryEventPort,
+                                    AnalystNotePort analystNotePort) {
+        log.debug("CompanyProfileController() | companyProfilePort={}, companyEventPort={}, discoverCompaniesUseCase={}, companyProfileService={}, newsArticleRepository={}, regulatoryEventPort={}, analystNotePort={}",
+                  companyProfilePort, companyEventPort, discoverCompaniesUseCase, companyProfileService, newsArticleRepository, regulatoryEventPort, analystNotePort);
         this.companyProfilePort = companyProfilePort;
         this.companyEventPort = companyEventPort;
         this.discoverCompaniesUseCase = discoverCompaniesUseCase;
         this.companyProfileService = companyProfileService;
         this.newsArticleRepository = newsArticleRepository;
         this.regulatoryEventPort = regulatoryEventPort;
+        this.analystNotePort = analystNotePort;
     }
 
     /**
@@ -179,8 +190,8 @@ public class CompanyProfileController {
      * @return the "company-detail" view name, or redirect to index if not found
      */
     @GetMapping("/companies/{slug}")
-    public String detail(@PathVariable String slug, Model model) {
-        log.debug("detail() | slug={}", slug);
+    public String detail(@PathVariable String slug, Model model, Principal principal) {
+        log.debug("detail() | slug={}, principal={}", slug, principal != null ? principal.getName() : "anonymous");
 
         Optional<CompanyProfile> profileOpt = companyProfilePort.findBySlug(slug);
         if (profileOpt.isEmpty()) {
@@ -248,8 +259,23 @@ public class CompanyProfileController {
         model.addAttribute("discoveredAt", DISPLAY_FMT.format(profile.firstDiscoveredAt()));
         model.addAttribute("updatedAt", DISPLAY_FMT.format(profile.lastUpdatedAt()));
 
-        log.debug("detail() | return=company-detail, eventCount={}, articleCount={}, regulatoryEventCount={}",
-                  events.size(), linkedArticles.size(), regulatoryEvents.size());
+        // Load analyst notes for this company
+        List<AnalystNote> analystNotes = new ArrayList<>();
+        Map<String, String> analystNoteDates = new HashMap<>();
+        if (principal != null) {
+            analystNotes = analystNotePort.findByUserAndTarget(
+                    principal.getName(), NoteTargetType.COMPANY, slug);
+            for (AnalystNote note : analystNotes) {
+                Instant noteTime = note.updatedAt() != null ? note.updatedAt() : note.createdAt();
+                analystNoteDates.put(note.noteId(), NOTE_FMT.format(noteTime));
+            }
+        }
+        model.addAttribute("analystNotes", analystNotes);
+        model.addAttribute("analystNoteDates", analystNoteDates);
+        model.addAttribute("returnUrl", "/companies/" + slug);
+
+        log.debug("detail() | return=company-detail, eventCount={}, articleCount={}, regulatoryEventCount={}, noteCount={}",
+                  events.size(), linkedArticles.size(), regulatoryEvents.size(), analystNotes.size());
         return "company-detail";
     }
 }
