@@ -10,6 +10,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -46,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-08-04
  */
 @Import(SecurityConfig.class)
 @WithMockUser
@@ -67,6 +68,9 @@ class WatchlistControllerTest {
 
     @MockitoBean
     private ApiKeyPort apiKeyPort;
+
+    @MockitoBean
+    private NewsArticleRepository articleRepository;
 
     private void stubSubscriberUser() {
         AppUser user = new AppUser("user", "hashed", "Test User", "USER", true,

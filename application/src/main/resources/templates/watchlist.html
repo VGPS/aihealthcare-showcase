@@ -9,7 +9,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-28
+ * @updated 2026-08-04
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -168,7 +168,15 @@
                         <div class="text-[0.7rem] text-gray-500"
                              th:text="${itemTypes[match.itemId()]}">TYPE</div>
                     </td>
-                    <td th:text="${match.articleId()}" class="text-sm">Article ID</td>
+                    <td class="text-sm max-w-[300px]">
+                        <a th:if="${articleUrls[match.articleId()] != null}"
+                           th:href="${articleUrls[match.articleId()]}"
+                           th:text="${articleTitles[match.articleId()] ?: match.articleId()}"
+                           target="_blank" class="text-primary-600 hover:underline"></a>
+                        <span th:if="${articleUrls[match.articleId()] == null}"
+                              th:text="${articleTitles[match.articleId()] ?: '(article not found)'}"
+                              class="text-gray-500"></span>
+                    </td>
                     <td class="text-xs text-gray-500 max-w-[300px] overflow-hidden text-ellipsis"
                         th:text="${matchSnippets.get(match.matchId()) ?: '—'}">Snippet</td>
                     <td class="text-xs whitespace-nowrap"

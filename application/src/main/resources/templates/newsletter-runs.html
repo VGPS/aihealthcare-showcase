@@ -10,7 +10,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2025-05-01
- * @updated 2026-07-28
+ * @updated 2026-08-04
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -38,6 +38,25 @@
 
     <div th:if="${param.error != null}" class="bg-red-50 text-red-800 border border-red-200 rounded-md px-5 py-3 mb-5 text-sm">
         Failed to send newsletter: <span th:text="${param.error[0]}">Unknown error</span>
+    </div>
+
+    <!-- Auto-Send Override -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-5 border border-gray-200 flex items-center justify-between">
+        <div>
+            <span class="text-sm font-medium text-on-surface">Daily Auto-Send</span>
+            <span class="text-xs text-gray-500 ml-2">Newsletters are automatically sent to subscribers at midnight UTC</span>
+        </div>
+        <form th:action="@{/newsletter/runs/auto-send/override}" method="post" class="flex items-center gap-3">
+            <input type="hidden" name="override" value="false"/>
+            <label class="flex items-center gap-2 cursor-pointer text-sm">
+                <input type="checkbox" name="override" value="true"
+                       th:checked="${autoSendOverride}"
+                       onchange="this.form.submit()"
+                       class="w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"/>
+                <span th:class="${autoSendOverride} ? 'text-amber-700 font-medium' : 'text-gray-600'">Override Auto Send Today</span>
+            </label>
+            <noscript><button type="submit" class="btn-search text-xs">Save</button></noscript>
+        </form>
     </div>
 
     <div class="bg-white rounded-lg shadow-sm p-6 mb-5">
