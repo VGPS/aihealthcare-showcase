@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -73,6 +74,19 @@ public class AnalystNoteAdapter implements AnalystNotePort {
             result.add(toDomain(entity));
         }
         log.debug("findByUserAndTarget() | return={} notes", result.size());
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AnalystNote> findByUserSince(String email, Instant since) {
+        log.debug("findByUserSince() | email={}, since={}", email, since);
+        List<AnalystNoteEntity> entities = repository.findByUserEmailSince(email, since);
+        List<AnalystNote> result = new ArrayList<>();
+        for (AnalystNoteEntity entity : entities) {
+            result.add(toDomain(entity));
+        }
+        log.debug("findByUserSince() | return={} notes", result.size());
         return result;
     }
 

@@ -51,7 +51,12 @@ import com.wgblackmon.aihealthcare.domain.service.CompanySentimentService;
 import com.wgblackmon.aihealthcare.domain.service.FrameworkAnalysisService;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkCompany;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanySentimentPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
+import com.wgblackmon.aihealthcare.domain.service.DailyBriefingRenderer;
+import com.wgblackmon.aihealthcare.domain.service.DailyBriefingService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FrameworkAnalysisPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FrameworkLlmPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SentimentAnalysisPort;
@@ -267,6 +272,40 @@ public class AppConfig {
         log.debug("digestNewsletterRenderer() | dailySummaryPort={}", dailySummaryPort.getClass().getSimpleName());
         DigestNewsletterRenderer result = new DigestNewsletterRenderer(dailySummaryPort);
         log.debug("digestNewsletterRenderer() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link DailyBriefingRenderer} for personalized daily briefing emails.
+     */
+    @Bean
+    public DailyBriefingRenderer dailyBriefingRenderer() {
+        log.debug("dailyBriefingRenderer() | creating stateless renderer");
+        DailyBriefingRenderer result = new DailyBriefingRenderer();
+        log.debug("dailyBriefingRenderer() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link DailyBriefingService} that orchestrates per-subscriber
+     * daily briefing assembly and delivery.
+     */
+    @Bean
+    public DailyBriefingService dailyBriefingService(
+            SubscriberPort subscriberPort,
+            WatchlistPort watchlistPort,
+            WatchlistMatchPort watchlistMatchPort,
+            CompanySentimentPort companySentimentPort,
+            AnalystNotePort analystNotePort,
+            NewsletterDeliveryPort newsletterDeliveryPort,
+            DailyBriefingRenderer dailyBriefingRenderer,
+            @Value("${aihealthcare.briefing.lookback-hours:24}") int lookbackHours) {
+        log.debug("dailyBriefingService() | lookbackHours={}", lookbackHours);
+        DailyBriefingService result = new DailyBriefingService(
+                subscriberPort, watchlistPort, watchlistMatchPort,
+                companySentimentPort, analystNotePort,
+                newsletterDeliveryPort, dailyBriefingRenderer, lookbackHours);
+        log.debug("dailyBriefingService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

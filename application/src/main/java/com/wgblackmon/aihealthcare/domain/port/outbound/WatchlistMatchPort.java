@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.domain.port.outbound;
 
 import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -43,6 +44,16 @@ public interface WatchlistMatchPort {
      * @return matches ordered by matchedOn descending
      */
     List<WatchlistMatch> findByItem(String itemId, int limit);
+
+    /**
+     * Returns matches for the user's watchlist items where matchedOn is
+     * at or after the given timestamp, ordered by matchedOn descending.
+     *
+     * @param email user email
+     * @param since cutoff timestamp (inclusive)
+     * @return matches since the given time
+     */
+    List<WatchlistMatch> findByUserSince(String email, Instant since);
 
     /**
      * Checks if a match already exists for the given item and article.
