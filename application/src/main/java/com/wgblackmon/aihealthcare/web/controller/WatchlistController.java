@@ -8,6 +8,8 @@ import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -42,7 +44,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-08-02
+ * @updated 2026-08-04
  */
 @Slf4j
 @Controller
@@ -57,17 +59,21 @@ public class WatchlistController {
     private final WatchlistPort watchlistPort;
     private final WatchlistMatchPort watchlistMatchPort;
     private final AppUserPort appUserPort;
+    private final NewsArticleRepository articleRepository;
 
     public WatchlistController(WatchlistPort watchlistPort,
                                 WatchlistMatchPort watchlistMatchPort,
-                                AppUserPort appUserPort) {
-        log.debug("WatchlistController() | watchlistPort={}, watchlistMatchPort={}, appUserPort={}",
+                                AppUserPort appUserPort,
+                                NewsArticleRepository articleRepository) {
+        log.debug("WatchlistController() | watchlistPort={}, watchlistMatchPort={}, appUserPort={}, articleRepository={}",
                 watchlistPort.getClass().getSimpleName(),
                 watchlistMatchPort.getClass().getSimpleName(),
-                appUserPort.getClass().getSimpleName());
+                appUserPort.getClass().getSimpleName(),
+                articleRepository.getClass().getSimpleName());
         this.watchlistPort = watchlistPort;
         this.watchlistMatchPort = watchlistMatchPort;
         this.appUserPort = appUserPort;
+        this.articleRepository = articleRepository;
     }
 
     /**
@@ -131,6 +137,23 @@ public class WatchlistController {
             matchSnippets.put(match.matchId(), stripHtml(match.snippet()));
         }
 
+        // Look up article titles and URLs for matched articles
+        Map<String, String> articleTitles = new HashMap<>();
+        Map<String, String> articleUrls = new HashMap<>();
+        if (!matches.isEmpty()) {
+            List<String> articleIds = new ArrayList<>();
+            for (WatchlistMatch match : matches) {
+                articleIds.add(match.articleId());
+            }
+            List<NewsArticleEntity> articles = articleRepository.findByArticleIdIn(articleIds);
+            for (NewsArticleEntity article : articles) {
+                articleTitles.put(article.getArticleId(), article.getTitle());
+                if (article.getUrl() != null) {
+                    articleUrls.put(article.getArticleId(), article.getUrl());
+                }
+            }
+        }
+
         model.addAttribute("companyItems", companyItems);
         model.addAttribute("keywordItems", keywordItems);
         model.addAttribute("topicItems", topicItems);
@@ -142,6 +165,8 @@ public class WatchlistController {
         model.addAttribute("matchSnippets", matchSnippets);
         model.addAttribute("itemLabels", itemLabels);
         model.addAttribute("itemTypes", itemTypes);
+        model.addAttribute("articleTitles", articleTitles);
+        model.addAttribute("articleUrls", articleUrls);
         model.addAttribute("sort", sort);
 
         log.debug("index() | return=watchlist, items={}, matches={}", items.size(), matches.size());

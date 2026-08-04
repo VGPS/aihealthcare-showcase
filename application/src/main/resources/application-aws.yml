@@ -37,6 +37,8 @@ spring:
 
 aihealthcare:
   base-url: https://app.bigskylabs.ai
+  startup:
+    harvest-enabled: false
   newsletter:
     from-address: ${NEWSLETTER_FROM_ADDRESS:noreply@health.bigskylabs.ai}
 

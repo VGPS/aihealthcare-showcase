@@ -1,8 +1,10 @@
 package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GenerateNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestArticlesUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterAutoSendPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +26,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link NewsletterGenerationScheduler}.
@@ -39,7 +42,7 @@ import static org.mockito.Mockito.verify;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-04-16
- * @updated 2026-05-22
+ * @updated 2026-08-04
  */
 @ExtendWith(MockitoExtension.class)
 class NewsletterGenerationSchedulerTest {
@@ -56,6 +59,12 @@ class NewsletterGenerationSchedulerTest {
     @Mock
     private GenerateNewsletterUseCase generateUseCase;
 
+    @Mock
+    private DeliverNewsletterUseCase deliverUseCase;
+
+    @Mock
+    private NewsletterAutoSendPort autoSendPort;
+
     private NewsletterGenerationScheduler scheduler;
 
     @BeforeEach
@@ -63,6 +72,8 @@ class NewsletterGenerationSchedulerTest {
         scheduler = new NewsletterGenerationScheduler(
                 ingestUseCase,
                 generateUseCase,
+                deliverUseCase,
+                autoSendPort,
                 TITLE,
                 TONE,
                 TOPIC,
@@ -120,6 +131,37 @@ class NewsletterGenerationSchedulerTest {
     void runDailyDraftGeneration_generateThrows_doesNotPropagate() {
         doThrow(new RuntimeException("generate failure"))
                 .when(generateUseCase).generate(anyString(), anyString(), anyString(), any(NewsletterTone.class), anyInt(), anyBoolean(), anyInt());
+
+        assertThatCode(() -> scheduler.runDailyDraftGeneration()).doesNotThrowAnyException();
+    }
+
+    // -------------------------------------------------------------------------
+    // Auto-send behavior
+    // -------------------------------------------------------------------------
+
+    @Test
+    void runDailyDraftGeneration_noOverride_autoSendsNewsletter() {
+        when(autoSendPort.isOverriddenForDate(any(LocalDate.class))).thenReturn(false);
+
+        scheduler.runDailyDraftGeneration();
+
+        verify(deliverUseCase).deliver(anyString());
+    }
+
+    @Test
+    void runDailyDraftGeneration_overrideActive_doesNotAutoSend() {
+        when(autoSendPort.isOverriddenForDate(any(LocalDate.class))).thenReturn(true);
+
+        scheduler.runDailyDraftGeneration();
+
+        verify(deliverUseCase, never()).deliver(anyString());
+    }
+
+    @Test
+    void runDailyDraftGeneration_deliveryThrows_doesNotPropagate() {
+        when(autoSendPort.isOverriddenForDate(any(LocalDate.class))).thenReturn(false);
+        doThrow(new RuntimeException("delivery failure"))
+                .when(deliverUseCase).deliver(anyString());
 
         assertThatCode(() -> scheduler.runDailyDraftGeneration()).doesNotThrowAnyException();
     }

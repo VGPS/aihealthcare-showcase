@@ -21,6 +21,7 @@ import com.wgblackmon.aihealthcare.infrastructure.scheduler.StartupPipelineOrche
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +50,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-10
- * @updated 2026-07-05
+ * @updated 2026-08-04
  */
 @Slf4j
 @Component
@@ -67,6 +68,9 @@ public class FeedHarvestScheduler {
     private final WatchlistPort watchlistPort;
     private final WatchlistMatchPort watchlistMatchPort;
     private final StartupPipelineOrchestrator pipelineOrchestrator;
+
+    @Value("${aihealthcare.startup.harvest-enabled:true}")
+    private boolean startupHarvestEnabled;
 
     public FeedHarvestScheduler(ArticleHarvestingPort harvestingPort,
                                 ArticleStoragePort articleStoragePort,
@@ -106,6 +110,10 @@ public class FeedHarvestScheduler {
      */
     @PostConstruct
     public void harvestOnStartup() {
+        if (!startupHarvestEnabled) {
+            log.info("harvestOnStartup() | startup harvest disabled (aihealthcare.startup.harvest-enabled=false) — relying on scheduled crons");
+            return;
+        }
         log.info("harvestOnStartup() | running full harvest on application startup");
         try {
             List<NewsArticle> all = harvestingPort.harvestAll();

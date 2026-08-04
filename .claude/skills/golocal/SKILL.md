@@ -25,11 +25,18 @@ mvn compile -q 2>&1
 
 If this produces any output, **STOP** and report every compilation error to the user. Do not proceed to the build step. List each error with file path and line number.
 
-### 3. Run tests
+### 3. Run selective tests
+
+Only run tests for changed files — NOT the full suite.
+
+Find changed Java files with `git diff --name-only HEAD -- '*.java'`, map each to its test
+counterpart (e.g. `FooService.java` → `FooServiceTest.java`), then run:
 
 ```bash
-mvn test 2>&1 | grep -E '^\[INFO\] (Tests run:|BUILD)|^\[ERROR\]' | tail -10
+mvn test -Dtest="TestClassA,TestClassB" 2>&1 | grep -E '^\[INFO\] (Tests run:|BUILD)|^\[ERROR\]' | tail -10
 ```
+
+If no test counterparts exist for the changed files, skip testing.
 
 If `BUILD FAILURE` appears, **STOP** and report:
 - Total tests run, failures, and errors
@@ -83,7 +90,7 @@ Should return `200`. If connection refused, wait 20 more seconds and retry once.
 Report a summary to the user:
 
 **Always include:**
-- Test count (e.g., "1403 tests passed")
+- Test count (e.g., "18 selective tests passed")
 - Build status (SUCCESS)
 - App status (running at `http://localhost:8080`)
 - Login URL: `http://localhost:8080/login`

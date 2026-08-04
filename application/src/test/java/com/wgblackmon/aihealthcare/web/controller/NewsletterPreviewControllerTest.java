@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.exception.RunNotFoundException;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRunStatus;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterAutoSendPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-05-18
- * @updated 2026-05-30
+ * @updated 2026-08-04
  */
 @Import(SecurityConfig.class)
 @WithMockUser(roles = "ADMIN")
@@ -57,6 +60,9 @@ class NewsletterPreviewControllerTest {
 
     @MockitoBean
     private DeliverNewsletterUseCase deliverUseCase;
+
+    @MockitoBean
+    private NewsletterAutoSendPort autoSendPort;
 
     private static final NewsletterRun SAMPLE_RUN = new NewsletterRun(
             "run-001",
@@ -76,7 +82,8 @@ class NewsletterPreviewControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("newsletter-runs"))
                 .andExpect(model().attributeExists("runs"))
-                .andExpect(model().attributeExists("runTimestamps"));
+                .andExpect(model().attributeExists("runTimestamps"))
+                .andExpect(model().attributeExists("autoSendOverride"));
     }
 
     @Test
@@ -121,6 +128,18 @@ class NewsletterPreviewControllerTest {
                 .andExpect(redirectedUrl("/newsletter/runs?sent=true&count=12"));
 
         verify(deliverUseCase).deliver("run-001");
+        verify(autoSendPort).setOverride(any(LocalDate.class), eq(false));
+    }
+
+    @Test
+    void toggleAutoSendOverride_setsOverrideAndRedirects() throws Exception {
+        mockMvc.perform(post("/newsletter/runs/auto-send/override")
+                        .param("override", "true")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/newsletter/runs"));
+
+        verify(autoSendPort).setOverride(any(LocalDate.class), eq(true));
     }
 
     @Test

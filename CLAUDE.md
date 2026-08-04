@@ -151,6 +151,31 @@ mvn test -Dspring.profiles.active=ai-integration
 
 ---
 
+## Testing Strategy — Selective Test Execution
+
+**Do NOT run the full test suite (`mvn test`) on every code change.** The suite has 1500+ tests
+and takes 30+ minutes. Run only tests relevant to the changed code.
+
+### Rules
+1. **After modifying code**, run only the test classes whose production counterparts changed:
+   ```bash
+   mvn test -Dtest="FooServiceTest,BarControllerTest"
+   ```
+2. **Mapping changed files to tests**: for each modified `.java` file, find its test counterpart.
+   - `FooService.java` → `FooServiceTest.java`
+   - `FooController.java` → `FooControllerTest.java`
+   - `FooAdapter.java` → `FooAdapterTest.java`
+   - Domain records/enums → test classes that use them (check `import` statements)
+3. **Template/CSS/YAML changes**: no test run needed unless a controller was also changed.
+4. **Full suite**: run `mvn test` only when:
+   - The user explicitly asks for it (e.g., `/test-run full`)
+   - A pre-release or pre-merge validation is needed
+   - A cross-cutting change affects many modules (e.g., security config, base class)
+5. **If no test counterpart exists** for a changed file, skip testing for that file.
+6. **Report** which tests were run and their pass/fail count.
+
+---
+
 ## Infrastructure Classes (Slice 1 additions)
 | Class                    | Package                                    | Notes                                              |
 |--------------------------|--------------------------------------------|----------------------------------------------------|

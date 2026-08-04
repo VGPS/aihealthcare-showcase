@@ -19,11 +19,18 @@ git status -s -- '*.java' '*.html' '*.yml' '*.sql' '*.css' '*.txt' '*.md' | grep
 git diff --stat
 ```
 
-### 2. Run tests
+### 2. Run selective tests
+
+Only run tests for changed files — NOT the full suite.
+
+Find changed Java files with `git diff --name-only HEAD -- '*.java'`, map each to its test
+counterpart (e.g. `FooService.java` → `FooServiceTest.java`), then run:
 
 ```bash
-mvn test 2>&1 | grep -E '^\[INFO\] (Tests run:|BUILD)' | tail -3
+mvn test -Dtest="TestClassA,TestClassB" 2>&1 | grep -E '^\[INFO\] (Tests run:|BUILD)|^\[ERROR\]' | tail -10
 ```
+
+If no test counterparts exist, skip testing.
 
 **STOP if tests fail.** Report the failure and do not commit.
 

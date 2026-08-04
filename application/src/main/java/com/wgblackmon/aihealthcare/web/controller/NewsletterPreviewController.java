@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRunStatus;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterAutoSendPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -40,7 +41,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-18
- * @updated 2026-08-02
+ * @updated 2026-08-04
  */
 @Slf4j
 @Controller
@@ -52,14 +53,18 @@ public class NewsletterPreviewController {
 
     private final NewsletterRunPort newsletterRunPort;
     private final DeliverNewsletterUseCase deliverUseCase;
+    private final NewsletterAutoSendPort autoSendPort;
 
     public NewsletterPreviewController(NewsletterRunPort newsletterRunPort,
-                                       DeliverNewsletterUseCase deliverUseCase) {
-        log.debug("NewsletterPreviewController() | newsletterRunPort={}, deliverUseCase={}",
+                                       DeliverNewsletterUseCase deliverUseCase,
+                                       NewsletterAutoSendPort autoSendPort) {
+        log.debug("NewsletterPreviewController() | newsletterRunPort={}, deliverUseCase={}, autoSendPort={}",
                   newsletterRunPort.getClass().getSimpleName(),
-                  deliverUseCase.getClass().getSimpleName());
+                  deliverUseCase.getClass().getSimpleName(),
+                  autoSendPort.getClass().getSimpleName());
         this.newsletterRunPort = newsletterRunPort;
         this.deliverUseCase    = deliverUseCase;
+        this.autoSendPort      = autoSendPort;
     }
 
     /**
@@ -84,11 +89,14 @@ public class NewsletterPreviewController {
             }
         }
 
+        boolean autoSendOverride = autoSendPort.isOverriddenForDate(LocalDate.now());
+
         model.addAttribute("runs", runs);
         model.addAttribute("runTimestamps", runTimestamps);
         model.addAttribute("sort", sort);
+        model.addAttribute("autoSendOverride", autoSendOverride);
 
-        log.debug("listRuns() | return=newsletter-runs (runCount={})", runs.size());
+        log.debug("listRuns() | return=newsletter-runs (runCount={}, autoSendOverride={})", runs.size(), autoSendOverride);
         return "newsletter-runs";
     }
 
@@ -198,7 +206,8 @@ public class NewsletterPreviewController {
 
     /**
      * Delivers the newsletter to all active subscribers and redirects to the
-     * run list with a success flash.
+     * run list with a success flash. Resets the auto-send override after
+     * successful delivery so subsequent days auto-send normally.
      *
      * @param runId the run identifier.
      * @return redirect to the run list.
@@ -209,7 +218,8 @@ public class NewsletterPreviewController {
 
         try {
             int count = deliverUseCase.deliver(runId);
-            log.info("sendNewsletter() | Newsletter sent: runId={}, count={}", runId, count);
+            autoSendPort.setOverride(LocalDate.now(), false);
+            log.info("sendNewsletter() | Newsletter sent: runId={}, count={}, override reset", runId, count);
             log.debug("sendNewsletter() | return=redirect (sent)");
             return "redirect:/newsletter/runs?sent=true&count=" + count;
         } catch (Exception e) {
@@ -217,5 +227,23 @@ public class NewsletterPreviewController {
             log.debug("sendNewsletter() | return=redirect (error)");
             return "redirect:/newsletter/runs?error=" + e.getMessage();
         }
+    }
+
+    /**
+     * Toggles the auto-send override for today. When checked, today's scheduled
+     * newsletter auto-send is suppressed. The override resets automatically when
+     * a newsletter is sent manually.
+     *
+     * @param override true to suppress auto-send, absent/false to allow it.
+     * @return redirect to the run list.
+     */
+    @PostMapping("/auto-send/override")
+    public String toggleAutoSendOverride(
+            @RequestParam(required = false, defaultValue = "false") boolean override) {
+        log.debug("toggleAutoSendOverride() | override={}", override);
+        autoSendPort.setOverride(LocalDate.now(), override);
+        log.info("toggleAutoSendOverride() | Auto-send override set to {} for {}", override, LocalDate.now());
+        log.debug("toggleAutoSendOverride() | return=redirect:/newsletter/runs");
+        return "redirect:/newsletter/runs";
     }
 }
