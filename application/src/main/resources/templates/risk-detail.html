@@ -74,34 +74,77 @@
         </div>
     </div>
 
-    <!-- Article-level results table -->
-    <div class="bg-white rounded-lg shadow-sm p-5" th:if="${!sentiment.articleSentiments().isEmpty()}">
-        <h3 class="text-lg font-semibold text-primary-800 mb-3">Article-Level Sentiment</h3>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b-2 border-gray-200 text-left">
-                        <th class="px-3 py-2">Article</th>
-                        <th class="px-3 py-2 text-center">Sentiment</th>
-                        <th class="px-3 py-2 text-center">Confidence</th>
-                        <th class="px-3 py-2">Rationale</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="a : ${sentiment.articleSentiments()}" class="border-b border-gray-100 hover:bg-gray-50">
-                        <td class="px-3 py-2 max-w-xs truncate" th:text="${a.title()}">Article title</td>
-                        <td class="px-3 py-2 text-center">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold text-white"
-                                  th:classappend="${a.sentiment().name() == 'POSITIVE' ? 'bg-green-600' :
-                                                   (a.sentiment().name() == 'NEGATIVE' ? 'bg-red-600' :
-                                                   (a.sentiment().name() == 'MIXED' ? 'bg-yellow-500' : 'bg-gray-500'))}"
-                                  th:text="${a.sentiment()}">POSITIVE</span>
-                        </td>
-                        <td class="px-3 py-2 text-center" th:text="${#numbers.formatDecimal(a.confidence(), 1, 2)}">0.85</td>
-                        <td class="px-3 py-2 text-gray-600" th:text="${a.rationale()}">Rationale</td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- Article-level results -->
+    <div class="bg-white rounded-lg shadow-sm p-5" th:if="${!sortedArticles.isEmpty()}">
+        <h3 class="text-lg font-semibold text-primary-800 mb-1">Article-Level Sentiment</h3>
+        <p class="text-xs text-gray-500 mb-4" th:text="${sortedArticles.size() + ' articles analyzed — click a row to expand'}">N articles</p>
+
+        <!-- Sort controls -->
+        <div class="flex gap-4 text-xs text-gray-500 mb-3 border-b pb-2">
+            <span class="font-semibold text-gray-700">Sort by:</span>
+            <span>
+                Title
+                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='title_asc')}"
+                   class="sort-arrow" th:classappend="${sort == 'title_asc' ? ' active' : ''}" title="A-Z">&#8593;</a>
+                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='title_desc')}"
+                   class="sort-arrow" th:classappend="${sort == 'title_desc' ? ' active' : ''}" title="Z-A">&#8595;</a>
+            </span>
+            <span>
+                Sentiment
+                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='sentiment_asc')}"
+                   class="sort-arrow" th:classappend="${sort == 'sentiment_asc' ? ' active' : ''}" title="A-Z">&#8593;</a>
+                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='sentiment_desc')}"
+                   class="sort-arrow" th:classappend="${sort == 'sentiment_desc' ? ' active' : ''}" title="Z-A">&#8595;</a>
+            </span>
+            <span>
+                Confidence
+                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='confidence_desc')}"
+                   class="sort-arrow" th:classappend="${sort == 'confidence_desc' ? ' active' : ''}" title="Highest">&#8593;</a>
+                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='confidence_asc')}"
+                   class="sort-arrow" th:classappend="${sort == 'confidence_asc' ? ' active' : ''}" title="Lowest">&#8595;</a>
+            </span>
+        </div>
+
+        <!-- Expandable article rows -->
+        <div th:each="a : ${sortedArticles}" class="border-b border-gray-100">
+            <details class="group">
+                <summary class="cursor-pointer flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors">
+                    <!-- Sentiment badge -->
+                    <span class="px-2 py-0.5 rounded text-xs font-bold text-white shrink-0"
+                          th:classappend="${a.sentiment().name() == 'POSITIVE' ? 'bg-green-600' :
+                                           (a.sentiment().name() == 'NEGATIVE' ? 'bg-red-600' :
+                                           (a.sentiment().name() == 'MIXED' ? 'bg-yellow-500' : 'bg-gray-500'))}"
+                          th:text="${a.sentiment()}">POSITIVE</span>
+                    <!-- Article title -->
+                    <span class="text-sm font-medium text-on-surface truncate flex-1" th:text="${a.title()}">Article title</span>
+                    <!-- Confidence -->
+                    <span class="text-xs text-gray-400 shrink-0" th:text="${#numbers.formatDecimal(a.confidence(), 1, 2)}">0.85</span>
+                    <!-- Expand chevron -->
+                    <svg class="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </summary>
+                <!-- Expanded detail -->
+                <div class="px-3 pb-3 pt-1 ml-8 text-sm">
+                    <!-- Article link -->
+                    <div th:if="${articleUrls.containsKey(a.articleId())}" class="mb-1.5">
+                        <a th:href="${articleUrls.get(a.articleId())}" target="_blank" rel="noopener noreferrer"
+                           class="text-primary-600 hover:underline font-medium text-sm">
+                            Open article &rarr;
+                        </a>
+                    </div>
+                    <!-- Publisher + date row -->
+                    <div class="flex gap-3 flex-wrap items-center text-xs text-gray-500 mb-2">
+                        <span th:if="${articleSources.containsKey(a.articleId())}"
+                              class="bg-gray-100 px-2 py-0.5 rounded font-medium"
+                              th:text="${articleSources.get(a.articleId())}">Publisher</span>
+                        <span th:if="${articleDates.containsKey(a.articleId())}"
+                              th:text="${articleDates.get(a.articleId())}">Published date</span>
+                    </div>
+                    <!-- Rationale -->
+                    <div th:if="${a.rationale() != null and !a.rationale().isBlank()}"
+                         class="text-sm text-gray-600 italic leading-relaxed"
+                         th:text="${a.rationale()}">Rationale text</div>
+                </div>
+            </details>
         </div>
     </div>
 
