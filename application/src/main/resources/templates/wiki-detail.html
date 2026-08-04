@@ -2,12 +2,12 @@
 <!--
 /**
  * Wiki page detail view — renders compiled wiki content with source provenance,
- * contradiction tracking, related page links, and revision history.
+ * contradiction tracking, and related page links.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-15
- * @updated 2026-07-28
+ * @updated 2026-08-03
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -145,27 +145,6 @@
                 Related Page
             </a>
         </div>
-    </div>
-
-    <!-- Revision history -->
-    <div class="bg-white rounded-lg shadow-sm p-5 mb-6" th:if="${!revisions.isEmpty()}">
-        <details class="mt-2">
-            <summary class="cursor-pointer text-sm font-semibold text-on-surface hover:text-primary-600 py-2"
-                     th:text="'Revision History (' + ${revisions.size()} + ' revisions)'">
-                Revision History
-            </summary>
-            <div class="mt-2">
-                <div class="flex items-center gap-3 py-2 border-b border-gray-100 text-sm"
-                     th:each="rev : ${revisions}">
-                    <span class="font-semibold text-primary-600 min-w-[3rem]"
-                          th:text="'Rev ' + ${rev.getRevision()}">Rev 1</span>
-                    <span class="text-gray-500"
-                          th:text="${revisionTimestamps.get(rev.getRevision())}">
-                        Jul 4, 2026
-                    </span>
-                </div>
-            </div>
-        </details>
     </div>
 
     <a class="inline-block mt-2 text-primary-600 hover:text-primary-700 text-sm"
