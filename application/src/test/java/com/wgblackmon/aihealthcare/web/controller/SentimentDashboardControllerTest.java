@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.CompanySentiment;
 import com.wgblackmon.aihealthcare.domain.model.SentimentLabel;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeCompanySentimentUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -41,6 +42,9 @@ class SentimentDashboardControllerTest {
 
     @MockitoBean
     private SubscriberPort subscriberPort;
+
+    @MockitoBean
+    private NewsArticleRepository articleRepository;
 
     @Test
     @WithMockUser
@@ -104,7 +108,12 @@ class SentimentDashboardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("risk-detail"))
                 .andExpect(model().attributeExists("sentiment"))
-                .andExpect(model().attributeExists("distributionData"));
+                .andExpect(model().attributeExists("distributionData"))
+                .andExpect(model().attributeExists("sortedArticles"))
+                .andExpect(model().attributeExists("articleUrls"))
+                .andExpect(model().attributeExists("articleSources"))
+                .andExpect(model().attributeExists("articleDates"))
+                .andExpect(model().attributeExists("sort"));
     }
 
     @Test
