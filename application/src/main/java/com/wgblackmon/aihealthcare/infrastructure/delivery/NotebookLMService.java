@@ -1,8 +1,12 @@
 package com.wgblackmon.aihealthcare.infrastructure.delivery;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleScoringPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.DigestSummaryPort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.ArticleContentEnricher;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -67,9 +71,9 @@ import java.util.Set;
  * }</pre>
  *
  * @author  Bill Blackmon
- * @version 7.0
+ * @version 8.0
  * @since   2026-04-13
- * @updated 2026-05-31
+ * @updated 2026-08-05
  */
 @Slf4j
 @Service
@@ -81,13 +85,18 @@ public class NotebookLMService {
     private static final DateTimeFormatter ARTICLE_DATE_FORMAT =
             DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneOffset.UTC);
 
+    private static final int BODY_PREVIEW_LENGTH = 200;
+
     private final String exportDirectory;
     private final String summariesDirectory;
     private final List<String> sourceOrder;
     private final ArticleContentEnricher contentEnricher;
+    private final ArticleScoringPort articleScoringPort;
+    private final DigestSummaryPort digestSummaryPort;
 
     /**
-     * Constructs the service with the configured directories and content enricher.
+     * Constructs the service with the configured directories, content enricher,
+     * and optional LLM ports for article scoring and summary generation.
      *
      * @param exportDirectory    Path to the directory where individual article files
      *                           are written.  Resolved from
@@ -103,18 +112,26 @@ public class NotebookLMService {
      *                           the configured ones.  Empty string disables ordering.
      * @param contentEnricher    Enricher that fetches page content for articles
      *                           with empty body text.
+     * @param articleScoringPort Optional LLM-based article scoring (null disables filtering).
+     * @param digestSummaryPort  Optional LLM-based digest summary generation (null disables).
      */
     public NotebookLMService(
             @Value("${aihealthcare.notebooklm.directory:NotebookLMDirectory}") String exportDirectory,
             @Value("${aihealthcare.notebooklm.summaries-directory:NotebookLMDirectory/summaries}") String summariesDirectory,
             @Value("${aihealthcare.notebooklm.source-order:}") String sourceOrderCsv,
-            ArticleContentEnricher contentEnricher) {
-        log.debug("NotebookLMService() | exportDirectory={}, summariesDirectory={}, sourceOrderCsv={}, contentEnricher={}",
-                  exportDirectory, summariesDirectory, sourceOrderCsv, contentEnricher.getClass().getSimpleName());
+            ArticleContentEnricher contentEnricher,
+            @Autowired(required = false) ArticleScoringPort articleScoringPort,
+            @Autowired(required = false) DigestSummaryPort digestSummaryPort) {
+        log.debug("NotebookLMService() | exportDirectory={}, summariesDirectory={}, sourceOrderCsv={}, contentEnricher={}, scoringPort={}, summaryPort={}",
+                  exportDirectory, summariesDirectory, sourceOrderCsv, contentEnricher.getClass().getSimpleName(),
+                  articleScoringPort != null ? articleScoringPort.getClass().getSimpleName() : "null",
+                  digestSummaryPort != null ? digestSummaryPort.getClass().getSimpleName() : "null");
         this.exportDirectory = exportDirectory;
         this.summariesDirectory = summariesDirectory;
         this.sourceOrder = parseSourceOrder(sourceOrderCsv);
         this.contentEnricher = contentEnricher;
+        this.articleScoringPort = articleScoringPort;
+        this.digestSummaryPort = digestSummaryPort;
     }
 
     /**
@@ -177,20 +194,31 @@ public class NotebookLMService {
         List<NewsArticle> filtered = filter(articles);
         log.info("export() | Articles after filtering: {} of {} kept", filtered.size(), articles.size());
 
+        // Deduplicate by title + calendar date
+        List<NewsArticle> deduped = deduplicateByTitleAndDate(filtered);
+        log.info("export() | Articles after dedup: {} of {} kept", deduped.size(), filtered.size());
+
+        // Score articles and filter out those rated <5 (if scoring port is available)
+        List<NewsArticle> scored = scoreAndFilter(deduped);
+        log.info("export() | Articles after score filter: {} of {} kept", scored.size(), deduped.size());
+
+        // Generate executive summary (if summary port is available)
+        String digestSummary = generateSummary(scored);
+
         // 1. Write the date-stamped plain-text summary (historical record)
-        String summaryContent = formatForNotebookLm(title, filtered);
+        String summaryContent = formatForNotebookLm(title, scored);
         Path summaryPath = writeSummaryFile(summaryContent);
         log.info("export() | Summary .txt written: {}", summaryPath.toAbsolutePath());
 
         // 2. Write the companion HTML summary (browser-readable historical record)
-        String htmlContent = formatForHtml(title, filtered);
+        String htmlContent = formatForHtml(title, scored, digestSummary);
         Path htmlPath = writeSummaryHtmlFile(htmlContent);
         log.info("export() | Summary .html written: {}", htmlPath.toAbsolutePath());
 
         // 3. Write individual per-article files (for NotebookLM indexing)
-        writeIndividualFiles(filtered);
+        writeIndividualFiles(scored);
 
-        log.info("export() | Wrote {} articles; summary at {}", filtered.size(), summaryPath.toAbsolutePath());
+        log.info("export() | Wrote {} articles; summary at {}", scored.size(), summaryPath.toAbsolutePath());
         log.debug("export() | return={}", summaryPath);
         return summaryPath;
     }
@@ -413,8 +441,8 @@ public class NotebookLMService {
      * @param articles The filtered articles to render.
      * @return A complete HTML document as a {@link String}.
      */
-    private String formatForHtml(String title, List<NewsArticle> articles) {
-        log.debug("formatForHtml() | title={}, articleCount={}", title, articles.size());
+    private String formatForHtml(String title, List<NewsArticle> articles, String digestSummary) {
+        log.debug("formatForHtml() | title={}, articleCount={}, hasSummary={}", title, articles.size(), digestSummary != null && !digestSummary.isBlank());
 
         // Group articles by source, preserving insertion order
         Map<String, List<NewsArticle>> bySource = new LinkedHashMap<>();
@@ -483,6 +511,17 @@ public class NotebookLMService {
         sb.append("             font-size: 0.75em; padding: 1px 7px; border-radius: 10px;\n");
         sb.append("             font-family: Arial, sans-serif; margin-left: 6px;\n");
         sb.append("             vertical-align: middle; }\n");
+        sb.append("    .article-body { font-size: 0.9em; color: #444; margin-top: 4px;\n");
+        sb.append("                    line-height: 1.5; font-family: Arial, sans-serif; }\n");
+        sb.append("    .summary-section { background: #f0f7ff; border: 1px solid #b8d4f0;\n");
+        sb.append("                       border-radius: 8px; padding: 20px 24px;\n");
+        sb.append("                       margin-bottom: 36px; }\n");
+        sb.append("    .summary-section h2 { font-size: 1.1em; color: #1a3a5c;\n");
+        sb.append("                          margin-bottom: 12px; font-family: Arial, sans-serif; }\n");
+        sb.append("    .summary-text { font-size: 0.95em; line-height: 1.6; color: #333; }\n");
+        sb.append("    .summary-text a { color: #2c5f8a; text-decoration: none;\n");
+        sb.append("                      font-weight: bold; }\n");
+        sb.append("    .summary-text a:hover { text-decoration: underline; }\n");
         sb.append("  </style>\n</head>\n<body>\n<div class=\"page\">\n");
 
         // Page heading
@@ -501,17 +540,29 @@ public class NotebookLMService {
         }
         sb.append("    </ul>\n  </div>\n\n");
 
+        // Executive summary section (if available)
+        if (digestSummary != null && !digestSummary.isBlank()) {
+            sb.append("  <div class=\"summary-section\">\n");
+            sb.append("    <h2>Today's Summary</h2>\n");
+            sb.append("    <div class=\"summary-text\">\n");
+            sb.append("      ").append(convertCitationsToLinks(digestSummary)).append("\n");
+            sb.append("    </div>\n");
+            sb.append("  </div>\n\n");
+        }
+
         // Article sections grouped by source (in display order)
+        int globalArticleIndex = 0;
         for (Map.Entry<String, List<NewsArticle>> entry : orderedEntries) {
             String anchorId = "src-" + sanitizeFilename(entry.getKey()).replace(" ", "-");
             sb.append("  <div class=\"source-block\" id=\"").append(escapeHtml(anchorId)).append("\">\n");
             sb.append("    <div class=\"source-header\">").append(escapeHtml(entry.getKey())).append("</div>\n");
 
             for (NewsArticle article : entry.getValue()) {
+                globalArticleIndex++;
                 String articleTitle = article.title() != null ? article.title() : "(no title)";
                 String url = article.url() != null ? article.url().toString() : "#";
 
-                sb.append("    <div class=\"article\">\n");
+                sb.append("    <div class=\"article\" id=\"article-").append(globalArticleIndex).append("\">\n");
                 sb.append("      <div class=\"article-title\"><a href=\"").append(escapeHtml(url))
                   .append("\" target=\"_blank\" rel=\"noopener\">")
                   .append(escapeHtml(articleTitle)).append("</a>");
@@ -522,6 +573,12 @@ public class NotebookLMService {
                 }
 
                 sb.append("</div>\n");
+
+                String bodyPreview = buildBodyPreview(article);
+                if (!bodyPreview.isEmpty()) {
+                    sb.append("      <div class=\"article-body\">").append(bodyPreview).append("</div>\n");
+                }
+
                 sb.append("    </div>\n");
             }
 
@@ -555,8 +612,6 @@ public class NotebookLMService {
 
         boolean hasAuthor = article.author() != null && !article.author().isBlank();
         boolean hasDate = article.publishedAt() != null;
-        String source = article.sourceName() != null && !article.sourceName().isBlank()
-                ? article.sourceName() : "";
 
         StringBuilder meta = new StringBuilder();
         if (hasAuthor) {
@@ -567,12 +622,6 @@ public class NotebookLMService {
         }
         if (hasDate) {
             meta.append(ARTICLE_DATE_FORMAT.format(article.publishedAt()));
-        }
-        if (!source.isEmpty()) {
-            if (meta.length() > 0) {
-                meta.append(" ");
-            }
-            meta.append(source);
         }
 
         String result = meta.toString();
@@ -704,6 +753,204 @@ public class NotebookLMService {
         String result = "<p>" + escaped + "</p>";
         log.debug("renderBodyAsHtml() | return=single-paragraph ({} chars)", result.length());
         return result;
+    }
+
+    /**
+     * Deduplicates articles by title (case-insensitive) + calendar date.
+     * Keeps the first occurrence when multiple articles share the same title
+     * on the same calendar day. Articles without a publishedAt date are treated
+     * as belonging to the same (null) day.
+     *
+     * @param articles the list to deduplicate
+     * @return a new list with duplicates removed
+     */
+    private List<NewsArticle> deduplicateByTitleAndDate(List<NewsArticle> articles) {
+        log.debug("deduplicateByTitleAndDate() | articleCount={}", articles.size());
+
+        Set<String> seen = new HashSet<>();
+        List<NewsArticle> result = new ArrayList<>();
+
+        for (NewsArticle article : articles) {
+            String titleKey = article.title() != null ? article.title().toLowerCase().trim() : "";
+            String dateKey = "";
+            if (article.publishedAt() != null) {
+                dateKey = LocalDate.ofInstant(article.publishedAt(), ZoneOffset.UTC).toString();
+            }
+            String dedupeKey = titleKey + "|" + dateKey;
+
+            if (!seen.contains(dedupeKey)) {
+                seen.add(dedupeKey);
+                result.add(article);
+            } else {
+                log.debug("deduplicateByTitleAndDate() | dropping duplicate: '{}' on {}", article.title(), dateKey);
+            }
+        }
+
+        log.debug("deduplicateByTitleAndDate() | return={} articles ({} removed)", result.size(), articles.size() - result.size());
+        return result;
+    }
+
+    /**
+     * Scores articles via LLM and filters out those rated below 5.
+     * If the scoring port is not available or the LLM call fails, returns
+     * the original list unchanged (graceful degradation).
+     *
+     * @param articles the enriched, deduped articles
+     * @return filtered list containing only articles scored >= 5
+     */
+    private List<NewsArticle> scoreAndFilter(List<NewsArticle> articles) {
+        log.debug("scoreAndFilter() | articleCount={}", articles.size());
+
+        if (articleScoringPort == null) {
+            log.debug("scoreAndFilter() | scoring port not available — skipping");
+            log.debug("scoreAndFilter() | return={} articles (unfiltered)", articles.size());
+            return articles;
+        }
+
+        if (articles.isEmpty()) {
+            log.debug("scoreAndFilter() | return=[] (empty input)");
+            return articles;
+        }
+
+        try {
+            List<ScoredArticle> scored = articleScoringPort.scoreArticles(
+                    articles,
+                    "AI in Healthcare",
+                    "Articles about artificial intelligence applications in healthcare, medical devices, clinical AI, and health tech business developments",
+                    5);
+
+            Set<String> passingIds = new HashSet<>();
+            for (ScoredArticle sa : scored) {
+                passingIds.add(sa.articleId());
+            }
+
+            List<NewsArticle> filtered = new ArrayList<>();
+            for (NewsArticle article : articles) {
+                if (passingIds.contains(article.articleId())) {
+                    filtered.add(article);
+                }
+            }
+
+            log.info("scoreAndFilter() | {} of {} articles passed score threshold >= 5",
+                     filtered.size(), articles.size());
+            log.debug("scoreAndFilter() | return={} articles", filtered.size());
+            return filtered;
+        } catch (Exception e) {
+            log.warn("scoreAndFilter() | scoring failed — returning unfiltered list: {}", e.getMessage());
+            log.debug("scoreAndFilter() | return={} articles (fallback)", articles.size());
+            return articles;
+        }
+    }
+
+    /**
+     * Generates an executive summary of the articles via LLM.
+     * Returns an empty string if the summary port is not available or fails.
+     *
+     * @param articles the scored/filtered articles
+     * @return summary text with [N] citations, or empty string
+     */
+    private String generateSummary(List<NewsArticle> articles) {
+        log.debug("generateSummary() | articleCount={}", articles.size());
+
+        if (digestSummaryPort == null) {
+            log.debug("generateSummary() | summary port not available — skipping");
+            log.debug("generateSummary() | return=empty");
+            return "";
+        }
+
+        if (articles.isEmpty()) {
+            log.debug("generateSummary() | return=empty (no articles)");
+            return "";
+        }
+
+        try {
+            String summary = digestSummaryPort.generateDigestSummary(articles);
+            log.info("generateSummary() | generated {} char summary", summary != null ? summary.length() : 0);
+            log.debug("generateSummary() | return={} chars", summary != null ? summary.length() : 0);
+            return summary != null ? summary : "";
+        } catch (Exception e) {
+            log.warn("generateSummary() | summary generation failed: {}", e.getMessage());
+            log.debug("generateSummary() | return=empty (error)");
+            return "";
+        }
+    }
+
+    /**
+     * Builds a truncated body text preview for display beneath article titles.
+     * Returns an empty string if the article has no meaningful body text.
+     *
+     * @param article the article to extract a preview from
+     * @return HTML-escaped preview text, or empty string
+     */
+    private String buildBodyPreview(NewsArticle article) {
+        log.debug("buildBodyPreview() | articleId={}", article.articleId());
+
+        String body = article.bodyText();
+        if (body == null || body.isBlank()) {
+            log.debug("buildBodyPreview() | return=empty (no body)");
+            return "";
+        }
+
+        // Strip HTML tags for preview
+        String plainText = body.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
+        if (plainText.length() <= BODY_PREVIEW_LENGTH) {
+            String result = escapeHtml(plainText);
+            log.debug("buildBodyPreview() | return={} chars (full)", result.length());
+            return result;
+        }
+
+        String truncated = plainText.substring(0, BODY_PREVIEW_LENGTH);
+        int lastSpace = truncated.lastIndexOf(' ');
+        if (lastSpace > BODY_PREVIEW_LENGTH / 2) {
+            truncated = truncated.substring(0, lastSpace);
+        }
+        String result = escapeHtml(truncated) + "...";
+        log.debug("buildBodyPreview() | return={} chars (truncated)", result.length());
+        return result;
+    }
+
+    /**
+     * Converts {@code [N]} citation markers in summary text to clickable anchor
+     * links pointing to the corresponding article cards in the page.
+     *
+     * @param summary the raw summary text with [N] markers
+     * @return summary with markers replaced by HTML anchor links
+     */
+    private String convertCitationsToLinks(String summary) {
+        log.debug("convertCitationsToLinks() | summaryLength={}", summary.length());
+
+        String escaped = escapeHtml(summary);
+
+        // Replace [N] patterns with anchor links
+        StringBuilder result = new StringBuilder();
+        int i = 0;
+        while (i < escaped.length()) {
+            if (escaped.charAt(i) == '[') {
+                int closeBracket = escaped.indexOf(']', i);
+                if (closeBracket > i + 1) {
+                    String inner = escaped.substring(i + 1, closeBracket);
+                    try {
+                        int num = Integer.parseInt(inner.trim());
+                        result.append("<a href=\"#article-").append(num).append("\">[").append(num).append("]</a>");
+                        i = closeBracket + 1;
+                        continue;
+                    } catch (NumberFormatException e) {
+                        // Not a citation number — pass through
+                    }
+                }
+            }
+            result.append(escaped.charAt(i));
+            i++;
+        }
+
+        // Convert newlines to paragraph breaks
+        String html = result.toString().replace("\n\n", "</p><p>").replace("\n", "<br>");
+        if (!html.startsWith("<p>")) {
+            html = "<p>" + html + "</p>";
+        }
+
+        log.debug("convertCitationsToLinks() | return={} chars", html.length());
+        return html;
     }
 
     /**

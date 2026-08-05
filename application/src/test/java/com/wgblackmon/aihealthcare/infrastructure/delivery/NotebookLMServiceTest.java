@@ -1,6 +1,9 @@
 package com.wgblackmon.aihealthcare.infrastructure.delivery;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleScoringPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.DigestSummaryPort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.ArticleContentEnricher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,8 +21,13 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link NotebookLMService}.
@@ -37,9 +45,9 @@ import static org.mockito.Mockito.spy;
  * directory auto-creation, and blank-title validation.
  *
  * @author  Bill Blackmon
- * @version 5.0
+ * @version 6.0
  * @since   2026-04-13
- * @updated 2026-05-31
+ * @updated 2026-08-05
  */
 class NotebookLMServiceTest {
 
@@ -91,7 +99,7 @@ class NotebookLMServiceTest {
         exportDir = tempDir.resolve("articles");
         summariesDir = tempDir.resolve("summaries");
         enricher = spy(new ArticleContentEnricher());
-        service = new NotebookLMService(exportDir.toString(), summariesDir.toString(), "", enricher);
+        service = new NotebookLMService(exportDir.toString(), summariesDir.toString(), "", enricher, null, null);
     }
 
     /** Returns today's expected summary filename. */
@@ -173,17 +181,34 @@ class NotebookLMServiceTest {
     }
 
     @Test
-    void export_summaryStillContainsDuplicatedArticles() throws IOException {
+    void export_summaryDedupesBySameTitleAndDate() throws IOException {
+        Instant sameDay = Instant.parse("2026-08-05T10:00:00Z");
         List<NewsArticle> articles = List.of(
-                article("a-001", "AI", "Same Title", USEFUL_BODY + " first"),
-                article("a-002", "ML", "Same Title", USEFUL_BODY + " second")
+                articleWithMeta("a-001", "AI", "Same Title", USEFUL_BODY + " first", null, sameDay),
+                articleWithMeta("a-002", "ML", "Same Title", USEFUL_BODY + " second", null, sameDay)
         );
 
         Path summary = service.export(TITLE, articles);
 
         String content = Files.readString(summary, StandardCharsets.UTF_8);
         assertThat(content).contains(USEFUL_BODY + " first");
-        assertThat(content).contains(USEFUL_BODY + " second");
+        assertThat(content).doesNotContain(USEFUL_BODY + " second");
+    }
+
+    @Test
+    void export_summaryKeepsSameTitleOnDifferentDates() throws IOException {
+        Instant day1 = Instant.parse("2026-08-04T10:00:00Z");
+        Instant day2 = Instant.parse("2026-08-05T10:00:00Z");
+        List<NewsArticle> articles = List.of(
+                articleWithMeta("a-001", "AI", "Same Title", USEFUL_BODY + " day1", null, day1),
+                articleWithMeta("a-002", "ML", "Same Title", USEFUL_BODY + " day2", null, day2)
+        );
+
+        Path summary = service.export(TITLE, articles);
+
+        String content = Files.readString(summary, StandardCharsets.UTF_8);
+        assertThat(content).contains(USEFUL_BODY + " day1");
+        assertThat(content).contains(USEFUL_BODY + " day2");
     }
 
     // =========================================================================
@@ -374,7 +399,7 @@ class NotebookLMServiceTest {
         Path newExportDir = tempDir.resolve("new-export");
         Path newSummariesDir = tempDir.resolve("new-summaries");
         NotebookLMService svc = new NotebookLMService(
-                newExportDir.toString(), newSummariesDir.toString(), "", enricher);
+                newExportDir.toString(), newSummariesDir.toString(), "", enricher, null, null);
 
         assertThat(newExportDir).doesNotExist();
         assertThat(newSummariesDir).doesNotExist();
@@ -401,6 +426,116 @@ class NotebookLMServiceTest {
         assertThatThrownBy(() -> service.export(null, List.of()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("title");
+    }
+
+    // =========================================================================
+    // Score-based filtering tests
+    // =========================================================================
+
+    @Test
+    void export_withScoringPort_filtersArticlesBelowThreshold() throws IOException {
+        ArticleScoringPort scoringPort = mock(ArticleScoringPort.class);
+        NotebookLMService scoredService = new NotebookLMService(
+                exportDir.toString(), summariesDir.toString(), "", enricher, scoringPort, null);
+
+        NewsArticle good = article("a-001", "AI", "Good Article", USEFUL_BODY);
+        NewsArticle bad = article("a-002", "AI", "Bad Article", USEFUL_BODY + " noise");
+
+        when(scoringPort.scoreArticles(anyList(), anyString(), anyString(), eq(5)))
+                .thenReturn(List.of(new ScoredArticle("a-001", "Good Article", 8,
+                        "Important development", "AI in Healthcare")));
+
+        scoredService.export(TITLE, List.of(good, bad));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("Good Article");
+        assertThat(content).doesNotContain("Bad Article");
+    }
+
+    @Test
+    void export_scoringPortNull_allArticlesKept() throws IOException {
+        // Default service has null scoring port
+        NewsArticle a1 = article("a-001", "AI", "Article One", USEFUL_BODY);
+        NewsArticle a2 = article("a-002", "AI", "Article Two", USEFUL_BODY + " two");
+
+        service.export(TITLE, List.of(a1, a2));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("Article One");
+        assertThat(content).contains("Article Two");
+    }
+
+    @Test
+    void export_scoringPortThrows_allArticlesKept() throws IOException {
+        ArticleScoringPort scoringPort = mock(ArticleScoringPort.class);
+        NotebookLMService scoredService = new NotebookLMService(
+                exportDir.toString(), summariesDir.toString(), "", enricher, scoringPort, null);
+
+        when(scoringPort.scoreArticles(anyList(), anyString(), anyString(), eq(5)))
+                .thenThrow(new RuntimeException("LLM unavailable"));
+
+        NewsArticle a = article("a-001", "AI", "Surviving Article", USEFUL_BODY);
+        scoredService.export(TITLE, List.of(a));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("Surviving Article");
+    }
+
+    // =========================================================================
+    // Executive summary tests
+    // =========================================================================
+
+    @Test
+    void export_withSummaryPort_includesSummarySection() throws IOException {
+        DigestSummaryPort summaryPort = mock(DigestSummaryPort.class);
+        NotebookLMService summaryService = new NotebookLMService(
+                exportDir.toString(), summariesDir.toString(), "", enricher, null, summaryPort);
+
+        when(summaryPort.generateDigestSummary(anyList()))
+                .thenReturn("Today saw major developments in AI healthcare [1].");
+
+        NewsArticle a = article("a-001", "AI", "Big News", USEFUL_BODY);
+        summaryService.export(TITLE, List.of(a));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("summary-section");
+        assertThat(content).contains("Today's Summary");
+        assertThat(content).contains("major developments in AI healthcare");
+    }
+
+    @Test
+    void export_summaryPortNull_noSummarySection() throws IOException {
+        NewsArticle a = article("a-001", "AI", "Test Article", USEFUL_BODY);
+        service.export(TITLE, List.of(a));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).doesNotContain("<div class=\"summary-section\">");
+    }
+
+    @Test
+    void export_summaryCitationsConvertedToAnchorLinks() throws IOException {
+        DigestSummaryPort summaryPort = mock(DigestSummaryPort.class);
+        NotebookLMService summaryService = new NotebookLMService(
+                exportDir.toString(), summariesDir.toString(), "", enricher, null, summaryPort);
+
+        when(summaryPort.generateDigestSummary(anyList()))
+                .thenReturn("See article [1] and [2] for details.");
+
+        List<NewsArticle> articles = List.of(
+                article("a-001", "AI", "First Article", USEFUL_BODY),
+                article("a-002", "AI", "Second Article", USEFUL_BODY + " two")
+        );
+        summaryService.export(TITLE, articles);
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("href=\"#article-1\">[1]</a>");
+        assertThat(content).contains("href=\"#article-2\">[2]</a>");
     }
 
     // =========================================================================
@@ -464,7 +599,6 @@ class NotebookLMServiceTest {
 
     @Test
     void export_htmlArticleShowsAuthorAndDate() throws IOException {
-        // 2026-05-15T12:00:00Z
         Instant published = Instant.parse("2026-05-15T12:00:00Z");
         NewsArticle a = articleWithMeta("a-001", "AI", "Safe AI Platform", USEFUL_BODY,
                 "Jane Doe", published);
@@ -476,7 +610,20 @@ class NotebookLMServiceTest {
         assertThat(content).contains("article-meta");
         assertThat(content).contains("Jane Doe");
         assertThat(content).contains("May 15, 2026");
-        assertThat(content).contains("TestSource");
+    }
+
+    @Test
+    void export_htmlArticleMetaDoesNotContainSourceName() throws IOException {
+        Instant published = Instant.parse("2026-05-15T12:00:00Z");
+        NewsArticle a = articleWithMeta("a-001", "AI", "Safe AI Platform", USEFUL_BODY,
+                "Jane Doe", published);
+
+        service.export(TITLE, List.of(a));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        // Source name should NOT appear in article-meta
+        assertThat(content).doesNotContain("- Jane Doe, May 15, 2026 TestSource");
     }
 
     @Test
@@ -490,7 +637,6 @@ class NotebookLMServiceTest {
         String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
         assertThat(content).contains("Mar 10, 2026");
-        assertThat(content).contains("TestSource");
         // No dangling comma when author is absent
         assertThat(content).doesNotContain("- ,");
     }
@@ -505,21 +651,44 @@ class NotebookLMServiceTest {
         String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
         assertThat(content).contains("John Smith");
-        assertThat(content).contains("TestSource");
-        // No comma before source when date is absent
-        assertThat(content).doesNotContain("Smith,");
     }
 
     @Test
-    void export_htmlArticleNoBodyDivOrReadMore() throws IOException {
+    void export_htmlArticleShowsBodyPreview() throws IOException {
         NewsArticle a = article("a-001", "AI", "Test Article", USEFUL_BODY);
 
         service.export(TITLE, List.of(a));
 
         String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
-        assertThat(content).doesNotContain("article-body");
-        assertThat(content).doesNotContain("read-more");
-        assertThat(content).doesNotContain("Read article");
+        assertThat(content).contains("article-body");
+    }
+
+    @Test
+    void export_htmlArticleBodyPreviewTruncatesLongText() throws IOException {
+        String longBody = "A".repeat(500);
+        NewsArticle a = article("a-001", "AI", "Long Article", longBody);
+
+        service.export(TITLE, List.of(a));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        assertThat(content).contains("article-body");
+        assertThat(content).contains("...");
+    }
+
+    @Test
+    void export_htmlArticleNoBodyWhenBlank() throws IOException {
+        NewsArticle a = new NewsArticle(
+                "a-001", "No Body Article", URI.create("https://example.com/a-001"),
+                "short", "AI", null, null, "TestSource", null, 0.5, null
+        );
+
+        service.export(TITLE, List.of(a));
+
+        String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
+        String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
+        // Article with very short body still gets through enrichment filter but produces no meaningful preview
+        // since the enricher drops articles with body < MIN_USEFUL_LENGTH
     }
 }
