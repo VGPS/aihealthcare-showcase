@@ -26,7 +26,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -164,6 +166,9 @@ public class LegalTimelineController {
                 combined.add(toEntry(entity));
             }
         }
+
+        // Deduplicate: same title on same day keeps only the latest timestamp
+        combined = deduplicateTimelineByTitleAndDay(combined);
 
         // Sort newest first
         combined.sort(Comparator.comparing(TimelineEntry::sortInstant).reversed());
@@ -333,4 +338,34 @@ public class LegalTimelineController {
             String sourceLabel,
             String snippet
     ) {}
+
+    private List<TimelineEntry> deduplicateTimelineByTitleAndDay(List<TimelineEntry> entries) {
+        log.debug("deduplicateTimelineByTitleAndDay() | inputSize={}", entries.size());
+
+        Map<String, TimelineEntry> bestByTitleDay = new LinkedHashMap<>();
+        List<TimelineEntry> noDate = new ArrayList<>();
+
+        for (TimelineEntry entry : entries) {
+            if (entry.title() == null || entry.title().isBlank()
+                    || entry.sortInstant() == null) {
+                noDate.add(entry);
+                continue;
+            }
+            String normalizedTitle = entry.title().toLowerCase().trim();
+            String dayStr = entry.sortInstant().toString().substring(0, 10);
+            String dayKey = normalizedTitle + "|" + dayStr;
+
+            TimelineEntry existing = bestByTitleDay.get(dayKey);
+            if (existing == null || entry.sortInstant().isAfter(existing.sortInstant())) {
+                bestByTitleDay.put(dayKey, entry);
+            }
+        }
+
+        List<TimelineEntry> result = new ArrayList<>(bestByTitleDay.values());
+        result.addAll(noDate);
+
+        log.debug("deduplicateTimelineByTitleAndDay() | return size={} (removed {})",
+                result.size(), entries.size() - result.size());
+        return result;
+    }
 }

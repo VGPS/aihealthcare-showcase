@@ -85,29 +85,21 @@
         <table class="w-full border-collapse" th:unless="${runs.isEmpty()}">
             <thead>
                 <tr>
-                    <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Timestamp (UTC)
-                        <a th:href="@{/research/runs(sort='timestamp')}"
-                           class="sort-arrow" th:classappend="${sort == 'timestamp'} ? ' active' : ''" title="Oldest first">&#8593;</a>
-                        <a th:href="@{/research/runs(sort='timestamp_desc')}"
-                           class="sort-arrow" th:classappend="${sort == 'timestamp_desc'} ? ' active' : ''" title="Newest first">&#8595;</a>
+                    <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Timestamp Date (UTC)
+                        <span class="sort-arrow" onclick="sortTable(this, 0, 'asc')" title="Oldest first">&#8593;</span>
+                        <span class="sort-arrow" onclick="sortTable(this, 0, 'desc')" title="Newest first">&#8595;</span>
                     </th>
                     <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Query
-                        <a th:href="@{/research/runs(sort='query')}"
-                           class="sort-arrow" th:classappend="${sort == 'query'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
-                        <a th:href="@{/research/runs(sort='query_desc')}"
-                           class="sort-arrow" th:classappend="${sort == 'query_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                        <span class="sort-arrow" onclick="sortTable(this, 1, 'asc')" title="Sort A-Z">&#8593;</span>
+                        <span class="sort-arrow" onclick="sortTable(this, 1, 'desc')" title="Sort Z-A">&#8595;</span>
                     </th>
                     <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Mode
-                        <a th:href="@{/research/runs(sort='mode')}"
-                           class="sort-arrow" th:classappend="${sort == 'mode'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
-                        <a th:href="@{/research/runs(sort='mode_desc')}"
-                           class="sort-arrow" th:classappend="${sort == 'mode_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                        <span class="sort-arrow" onclick="sortTable(this, 2, 'asc')" title="Sort A-Z">&#8593;</span>
+                        <span class="sort-arrow" onclick="sortTable(this, 2, 'desc')" title="Sort Z-A">&#8595;</span>
                     </th>
                     <th class="bg-gray-50 text-right px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Citations
-                        <a th:href="@{/research/runs(sort='citations')}"
-                           class="sort-arrow" th:classappend="${sort == 'citations'} ? ' active' : ''" title="Fewest first">&#8593;</a>
-                        <a th:href="@{/research/runs(sort='citations_desc')}"
-                           class="sort-arrow" th:classappend="${sort == 'citations_desc'} ? ' active' : ''" title="Most first">&#8595;</a>
+                        <span class="sort-arrow" onclick="sortTable(this, 3, 'asc')" title="Fewest first">&#8593;</span>
+                        <span class="sort-arrow" onclick="sortTable(this, 3, 'desc')" title="Most first">&#8595;</span>
                     </th>
                     <th class="bg-gray-50 text-left px-3 py-2 text-xs uppercase tracking-wider text-gray-600 font-semibold">Run ID</th>
                 </tr>
@@ -153,6 +145,37 @@
     </div>
 
 </main>
+<script th:inline="none">
+function sortTable(arrow, colIndex, direction) {
+    var table = arrow.closest('table');
+    var tbody = table.querySelector('tbody');
+    var rows = [];
+    var rowEls = tbody.querySelectorAll('tr');
+    for (var i = 0; i < rowEls.length; i++) { rows.push(rowEls[i]); }
+    var headerCells = table.querySelectorAll('thead th');
+    var headerText = headerCells[colIndex] ? headerCells[colIndex].textContent.trim().toLowerCase() : '';
+    var isDateCol = headerText.indexOf('date') >= 0 || headerText.indexOf('generated') >= 0
+        || headerText.indexOf('week') >= 0 || headerText.indexOf('discovered') >= 0
+        || headerText.indexOf('created') >= 0 || headerText.indexOf('matched') >= 0
+        || headerText.indexOf('timestamp') >= 0;
+    rows.sort(function(a, b) {
+        var valA = (a.cells[colIndex] ? a.cells[colIndex].textContent : '').trim().toLowerCase();
+        var valB = (b.cells[colIndex] ? b.cells[colIndex].textContent : '').trim().toLowerCase();
+        if (isDateCol) {
+            var dateA = (valA === 'unknown' || valA === '' || valA === '-') ? 0 : new Date(valA).getTime() || 0;
+            var dateB = (valB === 'unknown' || valB === '' || valB === '-') ? 0 : new Date(valB).getTime() || 0;
+            return direction === 'asc' ? dateA - dateB : dateB - dateA;
+        }
+        if (valA < valB) return direction === 'asc' ? -1 : 1;
+        if (valA > valB) return direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+    for (var j = 0; j < rows.length; j++) { tbody.appendChild(rows[j]); }
+    var arrows = table.querySelectorAll('.sort-arrow');
+    for (var k = 0; k < arrows.length; k++) { arrows[k].classList.remove('active'); }
+    arrow.classList.add('active');
+}
+</script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 </html>

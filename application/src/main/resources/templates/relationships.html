@@ -70,36 +70,26 @@
                 <thead>
                     <tr class="border-b border-gray-200 text-left text-gray-500 uppercase text-xs">
                         <th class="pb-2 pr-4">Type
-                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='type')}"
-                               class="sort-arrow" th:classappend="${sort == 'type'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
-                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='type_desc')}"
-                               class="sort-arrow" th:classappend="${sort == 'type_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                            <span class="sort-arrow" onclick="sortTable(this, 0, 'asc')" title="Sort A-Z">&#8593;</span>
+                            <span class="sort-arrow" onclick="sortTable(this, 0, 'desc')" title="Sort Z-A">&#8595;</span>
                         </th>
                         <th class="pb-2 pr-4">Source
-                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='source')}"
-                               class="sort-arrow" th:classappend="${sort == 'source'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
-                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='source_desc')}"
-                               class="sort-arrow" th:classappend="${sort == 'source_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                            <span class="sort-arrow" onclick="sortTable(this, 1, 'asc')" title="Sort A-Z">&#8593;</span>
+                            <span class="sort-arrow" onclick="sortTable(this, 1, 'desc')" title="Sort Z-A">&#8595;</span>
                         </th>
                         <th class="pb-2 pr-4"></th>
                         <th class="pb-2 pr-4">Target
-                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='target')}"
-                               class="sort-arrow" th:classappend="${sort == 'target'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
-                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='target_desc')}"
-                               class="sort-arrow" th:classappend="${sort == 'target_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                            <span class="sort-arrow" onclick="sortTable(this, 3, 'asc')" title="Sort A-Z">&#8593;</span>
+                            <span class="sort-arrow" onclick="sortTable(this, 3, 'desc')" title="Sort Z-A">&#8595;</span>
                         </th>
                         <th class="pb-2 pr-4">Summary</th>
                         <th class="pb-2 pr-4">Confidence
-                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='confidence')}"
-                               class="sort-arrow" th:classappend="${sort == 'confidence'} ? ' active' : ''" title="Sort low-high">&#8593;</a>
-                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='confidence_desc')}"
-                               class="sort-arrow" th:classappend="${sort == 'confidence_desc'} ? ' active' : ''" title="Sort high-low">&#8595;</a>
+                            <span class="sort-arrow" onclick="sortTable(this, 5, 'asc')" title="Sort low-high">&#8593;</span>
+                            <span class="sort-arrow" onclick="sortTable(this, 5, 'desc')" title="Sort high-low">&#8595;</span>
                         </th>
-                        <th class="pb-2">Detected
-                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='detected')}"
-                               class="sort-arrow" th:classappend="${sort == 'detected'} ? ' active' : ''" title="Oldest first">&#8593;</a>
-                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='detected_desc')}"
-                               class="sort-arrow" th:classappend="${sort == 'detected_desc'} ? ' active' : ''" title="Newest first">&#8595;</a>
+                        <th class="pb-2">Detected Date
+                            <span class="sort-arrow" onclick="sortTable(this, 6, 'asc')" title="Oldest first">&#8593;</span>
+                            <span class="sort-arrow" onclick="sortTable(this, 6, 'desc')" title="Newest first">&#8595;</span>
                         </th>
                     </tr>
                 </thead>
@@ -181,6 +171,35 @@ function toggleDetail(id) {
     if (row) {
         row.classList.toggle('hidden');
     }
+}
+function sortTable(arrow, colIndex, direction) {
+    var table = arrow.closest('table');
+    var tbody = table.querySelector('tbody');
+    var rows = [];
+    var rowEls = tbody.querySelectorAll('tr');
+    for (var i = 0; i < rowEls.length; i++) { rows.push(rowEls[i]); }
+    var headerCells = table.querySelectorAll('thead th');
+    var headerText = headerCells[colIndex] ? headerCells[colIndex].textContent.trim().toLowerCase() : '';
+    var isDateCol = headerText.indexOf('date') >= 0 || headerText.indexOf('generated') >= 0
+        || headerText.indexOf('week') >= 0 || headerText.indexOf('discovered') >= 0
+        || headerText.indexOf('created') >= 0 || headerText.indexOf('matched') >= 0
+        || headerText.indexOf('detected') >= 0;
+    rows.sort(function(a, b) {
+        var valA = (a.cells[colIndex] ? a.cells[colIndex].textContent : '').trim().toLowerCase();
+        var valB = (b.cells[colIndex] ? b.cells[colIndex].textContent : '').trim().toLowerCase();
+        if (isDateCol) {
+            var dateA = (valA === 'unknown' || valA === '' || valA === '-') ? 0 : new Date(valA).getTime() || 0;
+            var dateB = (valB === 'unknown' || valB === '' || valB === '-') ? 0 : new Date(valB).getTime() || 0;
+            return direction === 'asc' ? dateA - dateB : dateB - dateA;
+        }
+        if (valA < valB) return direction === 'asc' ? -1 : 1;
+        if (valA > valB) return direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+    for (var j = 0; j < rows.length; j++) { tbody.appendChild(rows[j]); }
+    var arrows = table.querySelectorAll('.sort-arrow');
+    for (var k = 0; k < arrows.length; k++) { arrows[k].classList.remove('active'); }
+    arrow.classList.add('active');
 }
 </script>
 

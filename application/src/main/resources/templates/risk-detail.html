@@ -84,29 +84,24 @@
             <span class="font-semibold text-gray-700">Sort by:</span>
             <span>
                 Title
-                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='title_asc')}"
-                   class="sort-arrow" th:classappend="${sort == 'title_asc' ? ' active' : ''}" title="A-Z">&#8593;</a>
-                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='title_desc')}"
-                   class="sort-arrow" th:classappend="${sort == 'title_desc' ? ' active' : ''}" title="Z-A">&#8595;</a>
+                <span class="sort-arrow" onclick="sortArticles('title', 'asc', this)" title="A-Z">&#8593;</span>
+                <span class="sort-arrow" onclick="sortArticles('title', 'desc', this)" title="Z-A">&#8595;</span>
             </span>
             <span>
                 Sentiment
-                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='sentiment_asc')}"
-                   class="sort-arrow" th:classappend="${sort == 'sentiment_asc' ? ' active' : ''}" title="A-Z">&#8593;</a>
-                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='sentiment_desc')}"
-                   class="sort-arrow" th:classappend="${sort == 'sentiment_desc' ? ' active' : ''}" title="Z-A">&#8595;</a>
+                <span class="sort-arrow" onclick="sortArticles('sentiment', 'asc', this)" title="A-Z">&#8593;</span>
+                <span class="sort-arrow" onclick="sortArticles('sentiment', 'desc', this)" title="Z-A">&#8595;</span>
             </span>
             <span>
                 Confidence
-                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='confidence_desc')}"
-                   class="sort-arrow" th:classappend="${sort == 'confidence_desc' ? ' active' : ''}" title="Highest">&#8593;</a>
-                <a th:href="@{/dashboard/risk/{slug}(slug=${sentiment.companySlug()},sort='confidence_asc')}"
-                   class="sort-arrow" th:classappend="${sort == 'confidence_asc' ? ' active' : ''}" title="Lowest">&#8595;</a>
+                <span class="sort-arrow" onclick="sortArticles('confidence', 'desc', this)" title="Highest">&#8593;</span>
+                <span class="sort-arrow" onclick="sortArticles('confidence', 'asc', this)" title="Lowest">&#8595;</span>
             </span>
         </div>
 
         <!-- Expandable article rows -->
-        <div th:each="a : ${sortedArticles}" class="border-b border-gray-100">
+        <div id="articleList">
+        <div th:each="a : ${sortedArticles}" class="border-b border-gray-100"
             <details class="group">
                 <summary class="cursor-pointer flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors">
                     <!-- Sentiment badge -->
@@ -146,6 +141,7 @@
                 </div>
             </details>
         </div>
+        </div><!-- /articleList -->
     </div>
 
     <!-- Analyst Notes (authenticated users only) -->
@@ -178,6 +174,40 @@
             }
         }
     });
+function sortArticles(field, direction, arrow) {
+    var container = document.getElementById('articleList');
+    if (!container) return;
+    var items = [];
+    var children = container.children;
+    for (var i = 0; i < children.length; i++) { items.push(children[i]); }
+    items.sort(function(a, b) {
+        var sumA = a.querySelector('summary');
+        var sumB = b.querySelector('summary');
+        var valA, valB;
+        if (field === 'title') {
+            var titleA = sumA.querySelectorAll('span')[1];
+            var titleB = sumB.querySelectorAll('span')[1];
+            valA = (titleA ? titleA.textContent : '').trim().toLowerCase();
+            valB = (titleB ? titleB.textContent : '').trim().toLowerCase();
+        } else if (field === 'sentiment') {
+            valA = sumA.querySelector('span').textContent.trim().toLowerCase();
+            valB = sumB.querySelector('span').textContent.trim().toLowerCase();
+        } else {
+            var confA = sumA.querySelectorAll('span')[2];
+            var confB = sumB.querySelectorAll('span')[2];
+            valA = parseFloat(confA ? confA.textContent : '0') || 0;
+            valB = parseFloat(confB ? confB.textContent : '0') || 0;
+            return direction === 'asc' ? valA - valB : valB - valA;
+        }
+        if (valA < valB) return direction === 'asc' ? -1 : 1;
+        if (valA > valB) return direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+    for (var j = 0; j < items.length; j++) { container.appendChild(items[j]); }
+    var arrows = document.querySelectorAll('.sort-arrow');
+    for (var k = 0; k < arrows.length; k++) { arrows[k].classList.remove('active'); }
+    arrow.classList.add('active');
+}
 </script>
 </body>
 </html>
