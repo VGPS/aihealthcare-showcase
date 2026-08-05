@@ -170,6 +170,39 @@ class DigestNewsletterRendererTest {
         assertThat(result.get().htmlContent()).contains("August 3, 2026");
     }
 
+    @Test
+    void buildDigest_stripsHtmlTagsAndEntitiesFromBody() {
+        String htmlBody = "<p>AI is transforming&nbsp;healthcare.&amp; More&lt;details&gt; here.</p>";
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(makeArticle("HTML Test", "https://example.com/html", htmlBody)));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        assertThat(result.get().htmlContent()).contains("AI is transforming healthcare.&amp; More");
+        assertThat(result.get().htmlContent()).doesNotContain("&nbsp;");
+        assertThat(result.get().htmlContent()).doesNotContain("<p>");
+    }
+
+    @Test
+    void buildDigest_bodyPreviewEndsAtSentenceBoundary() {
+        String longBody = "First sentence about AI in healthcare. "
+                + "Second sentence covers diagnostics and imaging. "
+                + "Third sentence discusses regulatory frameworks and compliance requirements. "
+                + "Fourth sentence about machine learning models and their applications in clinical settings. "
+                + "Fifth sentence that goes well beyond the character limit and should be cut off.";
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(makeArticle("Long Body", "https://example.com/long", longBody)));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String html = result.get().htmlContent();
+        assertThat(html).contains("First sentence about AI in healthcare.");
+        assertThat(html).doesNotContain("...");
+        assertThat(html).doesNotContain("Fifth sentence");
+    }
+
     private NewsArticle makeArticle(String title, String url, String body) {
         return new NewsArticle(
                 "art-" + title.hashCode(), title, URI.create(url),

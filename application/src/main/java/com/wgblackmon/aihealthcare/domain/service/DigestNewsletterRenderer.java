@@ -38,7 +38,7 @@ public class DigestNewsletterRenderer {
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy");
     private static final int LOOKBACK_DAYS = 3;
-    private static final int BODY_PREVIEW_MAX_CHARS = 200;
+    private static final int BODY_PREVIEW_MAX_CHARS = 300;
 
     private final ArticleIngestionPort articleIngestionPort;
 
@@ -203,12 +203,27 @@ public class DigestNewsletterRenderer {
             return "";
         }
 
-        String cleaned = body.replaceAll("<[^>]+>", "").replaceAll("\\s+", " ").trim();
+        String cleaned = body.replaceAll("<[^>]+>", "")
+                             .replaceAll("&nbsp;", " ")
+                             .replaceAll("&amp;", "&")
+                             .replaceAll("&lt;", "<")
+                             .replaceAll("&gt;", ">")
+                             .replaceAll("&quot;", "\"")
+                             .replaceAll("&#?\\w+;", " ")
+                             .replaceAll("\\s+", " ")
+                             .trim();
+
         String result;
         if (cleaned.length() <= BODY_PREVIEW_MAX_CHARS) {
             result = cleaned;
         } else {
-            result = cleaned.substring(0, BODY_PREVIEW_MAX_CHARS).trim() + "...";
+            String truncated = cleaned.substring(0, BODY_PREVIEW_MAX_CHARS);
+            int lastPeriod = truncated.lastIndexOf('.');
+            if (lastPeriod > BODY_PREVIEW_MAX_CHARS / 2) {
+                result = truncated.substring(0, lastPeriod + 1);
+            } else {
+                result = truncated.trim() + "...";
+            }
         }
 
         log.debug("buildBodyPreview() | return={} chars", result.length());
@@ -227,9 +242,23 @@ public class DigestNewsletterRenderer {
                 sb.append("\n   ").append(article.url().toString());
             }
             if (article.bodyText() != null && !article.bodyText().isBlank()) {
-                String cleaned = article.bodyText().replaceAll("<[^>]+>", "").replaceAll("\\s+", " ").trim();
+                String cleaned = article.bodyText().replaceAll("<[^>]+>", "")
+                        .replaceAll("&nbsp;", " ")
+                        .replaceAll("&amp;", "&")
+                        .replaceAll("&lt;", "<")
+                        .replaceAll("&gt;", ">")
+                        .replaceAll("&quot;", "\"")
+                        .replaceAll("&#?\\w+;", " ")
+                        .replaceAll("\\s+", " ")
+                        .trim();
                 if (cleaned.length() > BODY_PREVIEW_MAX_CHARS) {
-                    cleaned = cleaned.substring(0, BODY_PREVIEW_MAX_CHARS).trim() + "...";
+                    String truncated = cleaned.substring(0, BODY_PREVIEW_MAX_CHARS);
+                    int lastPeriod = truncated.lastIndexOf('.');
+                    if (lastPeriod > BODY_PREVIEW_MAX_CHARS / 2) {
+                        cleaned = truncated.substring(0, lastPeriod + 1);
+                    } else {
+                        cleaned = truncated.trim() + "...";
+                    }
                 }
                 sb.append("\n   ").append(cleaned);
             }
