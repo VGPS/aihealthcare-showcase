@@ -15,15 +15,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -444,32 +441,8 @@ public class NotebookLMService {
     private String formatForHtml(String title, List<NewsArticle> articles, String digestSummary) {
         log.debug("formatForHtml() | title={}, articleCount={}, hasSummary={}", title, articles.size(), digestSummary != null && !digestSummary.isBlank());
 
-        // Group articles by source, preserving insertion order
-        Map<String, List<NewsArticle>> bySource = new LinkedHashMap<>();
-        for (NewsArticle article : articles) {
-            String source = article.sourceName() != null && !article.sourceName().isBlank()
-                    ? article.sourceName() : "Unknown Source";
-            if (!bySource.containsKey(source)) {
-                bySource.put(source, new ArrayList<>());
-            }
-            bySource.get(source).add(article);
-        }
-
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM d, yyyy"));
         StringBuilder sb = new StringBuilder();
-
-        // Sort source blocks: configured order first, then alphabetically for the rest
-        List<Map.Entry<String, List<NewsArticle>>> orderedEntries = new ArrayList<>(bySource.entrySet());
-        orderedEntries.sort((a, b) -> {
-            int aIdx = sourceOrder.indexOf(a.getKey());
-            int bIdx = sourceOrder.indexOf(b.getKey());
-            int aRank = aIdx >= 0 ? aIdx : Integer.MAX_VALUE;
-            int bRank = bIdx >= 0 ? bIdx : Integer.MAX_VALUE;
-            if (aRank != bRank) {
-                return Integer.compare(aRank, bRank);
-            }
-            return a.getKey().compareTo(b.getKey());
-        });
 
         sb.append("<!DOCTYPE html>\n");
         sb.append("<html lang=\"en\">\n<head>\n");
@@ -487,9 +460,6 @@ public class NotebookLMService {
         sb.append("            font-family: Arial, sans-serif; }\n");
         sb.append("    .source-block { margin-bottom: 36px; border-radius: 8px;\n");
         sb.append("                    box-shadow: 0 2px 6px rgba(0,0,0,0.08); overflow: hidden; }\n");
-        sb.append("    .source-header { background: #2c5f8a; color: #fff; padding: 10px 18px;\n");
-        sb.append("                     font-family: Arial, sans-serif; font-size: 1em;\n");
-        sb.append("                     font-weight: bold; letter-spacing: 0.03em; }\n");
         sb.append("    .article { background: #fff; padding: 18px 22px;\n");
         sb.append("               border-top: 1px solid #e4eaf1; }\n");
         sb.append("    .article:first-of-type { border-top: none; }\n");
@@ -498,19 +468,6 @@ public class NotebookLMService {
         sb.append("    .article-title a:hover { color: #2c5f8a; text-decoration: underline; }\n");
         sb.append("    .article-meta { font-weight: normal; font-size: 0.85em; color: #666;\n");
         sb.append("                    font-family: Arial, sans-serif; }\n");
-        sb.append("    .toc { background: #fff; border: 1px solid #dce4ec; border-radius: 8px;\n");
-        sb.append("           padding: 20px 24px; margin-bottom: 36px; }\n");
-        sb.append("    .toc h2 { font-size: 1em; color: #2c5f8a; margin-bottom: 10px;\n");
-        sb.append("              font-family: Arial, sans-serif; }\n");
-        sb.append("    .toc ul { list-style: none; padding: 0; }\n");
-        sb.append("    .toc li { padding: 3px 0; font-family: Arial, sans-serif;\n");
-        sb.append("              font-size: 0.9em; }\n");
-        sb.append("    .toc li a { color: #2c5f8a; text-decoration: none; }\n");
-        sb.append("    .toc li a:hover { text-decoration: underline; }\n");
-        sb.append("    .badge { display: inline-block; background: #e8f0fa; color: #2c5f8a;\n");
-        sb.append("             font-size: 0.75em; padding: 1px 7px; border-radius: 10px;\n");
-        sb.append("             font-family: Arial, sans-serif; margin-left: 6px;\n");
-        sb.append("             vertical-align: middle; }\n");
         sb.append("    .article-body { font-size: 0.9em; color: #444; margin-top: 4px;\n");
         sb.append("                    line-height: 1.5; font-family: Arial, sans-serif; }\n");
         sb.append("    .summary-section { background: #f0f7ff; border: 1px solid #b8d4f0;\n");
@@ -527,18 +484,7 @@ public class NotebookLMService {
         // Page heading
         sb.append("  <h1>").append(escapeHtml(title)).append("</h1>\n");
         sb.append("  <div class=\"meta\">Generated ").append(date)
-          .append(" &bull; ").append(articles.size()).append(" articles across ")
-          .append(bySource.size()).append(" sources</div>\n\n");
-
-        // Table of contents (in display order)
-        sb.append("  <div class=\"toc\">\n    <h2>Sources</h2>\n    <ul>\n");
-        for (Map.Entry<String, List<NewsArticle>> entry : orderedEntries) {
-            String anchorId = "src-" + sanitizeFilename(entry.getKey()).replace(" ", "-");
-            sb.append("      <li><a href=\"#").append(escapeHtml(anchorId)).append("\">")
-              .append(escapeHtml(entry.getKey()))
-              .append("</a> <span class=\"badge\">").append(entry.getValue().size()).append("</span></li>\n");
-        }
-        sb.append("    </ul>\n  </div>\n\n");
+          .append(" &bull; ").append(articles.size()).append(" articles</div>\n\n");
 
         // Executive summary section (if available)
         if (digestSummary != null && !digestSummary.isBlank()) {
@@ -550,40 +496,34 @@ public class NotebookLMService {
             sb.append("  </div>\n\n");
         }
 
-        // Article sections grouped by source (in display order)
-        int globalArticleIndex = 0;
-        for (Map.Entry<String, List<NewsArticle>> entry : orderedEntries) {
-            String anchorId = "src-" + sanitizeFilename(entry.getKey()).replace(" ", "-");
-            sb.append("  <div class=\"source-block\" id=\"").append(escapeHtml(anchorId)).append("\">\n");
-            sb.append("    <div class=\"source-header\">").append(escapeHtml(entry.getKey())).append("</div>\n");
+        // Flat article list (no source grouping)
+        sb.append("  <div class=\"source-block\">\n");
+        int articleIndex = 0;
+        for (NewsArticle article : articles) {
+            articleIndex++;
+            String articleTitle = article.title() != null ? article.title() : "(no title)";
+            String url = article.url() != null ? article.url().toString() : "#";
 
-            for (NewsArticle article : entry.getValue()) {
-                globalArticleIndex++;
-                String articleTitle = article.title() != null ? article.title() : "(no title)";
-                String url = article.url() != null ? article.url().toString() : "#";
+            sb.append("    <div class=\"article\" id=\"article-").append(articleIndex).append("\">\n");
+            sb.append("      <div class=\"article-title\"><a href=\"").append(escapeHtml(url))
+              .append("\" target=\"_blank\" rel=\"noopener\">")
+              .append(escapeHtml(articleTitle)).append("</a>");
 
-                sb.append("    <div class=\"article\" id=\"article-").append(globalArticleIndex).append("\">\n");
-                sb.append("      <div class=\"article-title\"><a href=\"").append(escapeHtml(url))
-                  .append("\" target=\"_blank\" rel=\"noopener\">")
-                  .append(escapeHtml(articleTitle)).append("</a>");
-
-                String metaText = buildArticleMeta(article);
-                if (!metaText.isEmpty()) {
-                    sb.append(" <span class=\"article-meta\">- ").append(escapeHtml(metaText)).append("</span>");
-                }
-
-                sb.append("</div>\n");
-
-                String bodyPreview = buildBodyPreview(article);
-                if (!bodyPreview.isEmpty()) {
-                    sb.append("      <div class=\"article-body\">").append(bodyPreview).append("</div>\n");
-                }
-
-                sb.append("    </div>\n");
+            String metaText = buildArticleMeta(article);
+            if (!metaText.isEmpty()) {
+                sb.append(" <span class=\"article-meta\">- ").append(escapeHtml(metaText)).append("</span>");
             }
 
-            sb.append("  </div>\n\n");
+            sb.append("</div>\n");
+
+            String bodyPreview = buildBodyPreview(article);
+            if (!bodyPreview.isEmpty()) {
+                sb.append("      <div class=\"article-body\">").append(bodyPreview).append("</div>\n");
+            }
+
+            sb.append("    </div>\n");
         }
+        sb.append("  </div>\n\n");
 
         sb.append("</div>\n</body>\n</html>\n");
 

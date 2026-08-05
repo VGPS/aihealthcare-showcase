@@ -572,15 +572,16 @@ class NotebookLMServiceTest {
     }
 
     @Test
-    void export_htmlFileGroupsArticlesBySource() throws IOException {
+    void export_htmlFileListsArticlesFlat() throws IOException {
         NewsArticle a = article("a-001", "AI Diagnostics", "AI Detects Cancer", USEFUL_BODY);
 
         service.export(TITLE, List.of(a));
 
         String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
-        assertThat(content).contains("TestSource");
         assertThat(content).contains("AI Detects Cancer");
+        assertThat(content).contains("id=\"article-1\"");
+        assertThat(content).doesNotContain("source-header");
     }
 
     @Test
