@@ -361,18 +361,8 @@ public class DashboardController {
         List<NewsArticle> fetched = new ArrayList<>(
                 articleIngestionPort.fetchAllByTopic(topic));
 
-        // Sort newest-first so dedup keeps the most recent
-        sortByPublishedAt(fetched, false);
-
-        // Deduplicate by title — keep only the first (most recent) occurrence
-        List<NewsArticle> deduped = new ArrayList<>();
-        java.util.Set<String> seenTitles = new java.util.HashSet<>();
-        for (NewsArticle article : fetched) {
-            String normalizedTitle = article.title() != null ? article.title().toLowerCase().trim() : "";
-            if (!normalizedTitle.isEmpty() && seenTitles.add(normalizedTitle)) {
-                deduped.add(article);
-            }
-        }
+        // Deduplicate: same title on the same day keeps only the latest timestamp
+        List<NewsArticle> deduped = deduplicateByTitleAndDay(fetched);
         log.debug("articles() | deduped from {} to {} articles", fetched.size(), deduped.size());
 
         // Re-sort in the user's requested direction
@@ -439,12 +429,13 @@ public class DashboardController {
 
         for (String topic : topicNames) {
             List<NewsArticle> fetched = articleIngestionPort.fetchByTopicWithArchiveLimit(topic, archiveDays);
-            List<NewsArticle> articles = new ArrayList<>();
+            List<NewsArticle> filtered = new ArrayList<>();
             for (NewsArticle a : fetched) {
                 if (!"Anthropic Healthcare AI".equals(a.title())) {
-                    articles.add(a);
+                    filtered.add(a);
                 }
             }
+            List<NewsArticle> articles = deduplicateByTitleAndDay(filtered);
             // Extract titles, publications, and dates before sorting
             for (NewsArticle article : articles) {
                 if (article.publishedAt() != null) {
@@ -536,8 +527,9 @@ public class DashboardController {
                 pubFrom, pubTo);
 
         List<NewsArticle> articles = searchUseCase.search(criteria);
+        List<NewsArticle> deduped = deduplicateByTitleAndDay(articles);
 
-        List<NewsArticle> sorted = new ArrayList<>(articles);
+        List<NewsArticle> sorted = new ArrayList<>(deduped);
         sortByPublishedAt(sorted, "asc".equalsIgnoreCase(sortDate));
 
         model.addAttribute("articles", sorted);
@@ -735,5 +727,40 @@ public class DashboardController {
         }
 
         log.debug("sortArticles() | return=void");
+    }
+
+    /**
+     * Deduplicates articles that share the same title on the same calendar day (UTC),
+     * keeping only the article with the latest {@code publishedAt} timestamp per group.
+     * Articles with null title or null publishedAt are kept unconditionally.
+     */
+    private List<NewsArticle> deduplicateByTitleAndDay(List<NewsArticle> articles) {
+        log.debug("deduplicateByTitleAndDay() | inputSize={}", articles.size());
+
+        Map<String, NewsArticle> bestByTitleDay = new LinkedHashMap<>();
+        List<NewsArticle> noDate = new ArrayList<>();
+
+        for (NewsArticle article : articles) {
+            if (article.title() == null || article.title().isBlank()
+                    || article.publishedAt() == null) {
+                noDate.add(article);
+                continue;
+            }
+            String normalizedTitle = article.title().toLowerCase().trim();
+            String dayStr = article.publishedAt().toString().substring(0, 10);
+            String dayKey = normalizedTitle + "|" + dayStr;
+
+            NewsArticle existing = bestByTitleDay.get(dayKey);
+            if (existing == null || article.publishedAt().isAfter(existing.publishedAt())) {
+                bestByTitleDay.put(dayKey, article);
+            }
+        }
+
+        List<NewsArticle> result = new ArrayList<>(bestByTitleDay.values());
+        result.addAll(noDate);
+
+        log.debug("deduplicateByTitleAndDay() | return size={} (removed {})",
+                result.size(), articles.size() - result.size());
+        return result;
     }
 }

@@ -148,29 +148,28 @@ function sortTable(arrow, colIndex, direction) {
     for (var i = 0; i < rowEls.length; i++) {
         rows.push(rowEls[i]);
     }
-
+    var headerCells = table.querySelectorAll('thead th');
+    var headerText = headerCells[colIndex] ? headerCells[colIndex].textContent.trim().toLowerCase() : '';
+    var isDateCol = headerText.indexOf('date') >= 0 || headerText.indexOf('generated') >= 0
+        || headerText.indexOf('week') >= 0 || headerText.indexOf('discovered') >= 0
+        || headerText.indexOf('created') >= 0 || headerText.indexOf('matched') >= 0;
     rows.sort(function(a, b) {
         var cellA = a.cells[colIndex];
         var cellB = b.cells[colIndex];
         var valA = (cellA ? cellA.textContent : '').trim().toLowerCase();
         var valB = (cellB ? cellB.textContent : '').trim().toLowerCase();
-
-        if (colIndex === 2) {
-            var dateA = valA === 'unknown' ? 0 : new Date(valA).getTime() || 0;
-            var dateB = valB === 'unknown' ? 0 : new Date(valB).getTime() || 0;
+        if (isDateCol) {
+            var dateA = (valA === 'unknown' || valA === '' || valA === '-') ? 0 : new Date(valA).getTime() || 0;
+            var dateB = (valB === 'unknown' || valB === '' || valB === '-') ? 0 : new Date(valB).getTime() || 0;
             return direction === 'asc' ? dateA - dateB : dateB - dateA;
         }
-
         if (valA < valB) return direction === 'asc' ? -1 : 1;
         if (valA > valB) return direction === 'asc' ? 1 : -1;
         return 0;
     });
-
     for (var j = 0; j < rows.length; j++) {
         tbody.appendChild(rows[j]);
     }
-
-    // Update active state on sort arrows within this table only
     var arrows = table.querySelectorAll('.sort-arrow');
     for (var k = 0; k < arrows.length; k++) {
         arrows[k].classList.remove('active');
