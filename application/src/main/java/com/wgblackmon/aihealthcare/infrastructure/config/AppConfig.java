@@ -27,7 +27,7 @@ import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
 import com.wgblackmon.aihealthcare.domain.service.DigestNewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
 import com.wgblackmon.aihealthcare.domain.service.RegistrationService;
-import com.wgblackmon.aihealthcare.domain.port.outbound.DailySummaryPort;
+
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PasswordHashingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
@@ -272,15 +272,15 @@ public class AppConfig {
 
     /**
      * Creates the {@link DigestNewsletterRenderer} that builds the FREE-tier
-     * daily article digest by wrapping NotebookLM summary files in an email layout.
+     * daily article digest from recent RSS articles in the database.
      *
-     * @param dailySummaryPort Adapter that reads daily summary files (auto-detected).
+     * @param articleIngestionPort Port for fetching recent articles.
      * @return The wired {@link DigestNewsletterRenderer} instance.
      */
     @Bean
-    public DigestNewsletterRenderer digestNewsletterRenderer(DailySummaryPort dailySummaryPort) {
-        log.debug("digestNewsletterRenderer() | dailySummaryPort={}", dailySummaryPort.getClass().getSimpleName());
-        DigestNewsletterRenderer result = new DigestNewsletterRenderer(dailySummaryPort);
+    public DigestNewsletterRenderer digestNewsletterRenderer(ArticleIngestionPort articleIngestionPort) {
+        log.debug("digestNewsletterRenderer() | articleIngestionPort={}", articleIngestionPort.getClass().getSimpleName());
+        DigestNewsletterRenderer result = new DigestNewsletterRenderer(articleIngestionPort);
         log.debug("digestNewsletterRenderer() | return={}", result.getClass().getSimpleName());
         return result;
     }

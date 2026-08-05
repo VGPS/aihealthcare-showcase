@@ -1,16 +1,20 @@
 package com.wgblackmon.aihealthcare.domain.service;
 
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRunStatus;
-import com.wgblackmon.aihealthcare.domain.port.outbound.DailySummaryPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDate;
+import java.net.URI;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -18,44 +22,43 @@ import static org.mockito.Mockito.when;
  * Unit tests for {@link DigestNewsletterRenderer}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-07-20
- * @updated 2026-07-21
+ * @updated 2026-08-05
  */
 class DigestNewsletterRendererTest {
 
-    private DailySummaryPort dailySummaryPort;
+    private ArticleIngestionPort articleIngestionPort;
     private DigestNewsletterRenderer renderer;
 
     @BeforeEach
     void setUp() {
-        dailySummaryPort = mock(DailySummaryPort.class);
-        renderer = new DigestNewsletterRenderer(dailySummaryPort);
+        articleIngestionPort = mock(ArticleIngestionPort.class);
+        renderer = new DigestNewsletterRenderer(articleIngestionPort);
     }
 
     @Test
-    void buildDigest_withSummaryFile_wrapsInEmailLayout() {
-        when(dailySummaryPort.getHtmlSummary(any(LocalDate.class)))
-                .thenReturn(Optional.of("<h2>Today's Articles</h2><p>Content here</p>"));
-        when(dailySummaryPort.getTextSummary(any(LocalDate.class)))
-                .thenReturn(Optional.of("Today's articles in plain text"));
+    void buildDigest_withArticles_wrapsInEmailLayout() {
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(
+                        makeArticle("AI Diagnoses Cancer Early", "https://example.com/cancer", "Great article body"),
+                        makeArticle("New FDA Approval for AI", "https://example.com/fda", "FDA approved a new device")
+                ));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
         assertThat(result.get().htmlContent()).contains("News Articles From");
-        assertThat(result.get().htmlContent()).contains("Today's Articles");
+        assertThat(result.get().htmlContent()).contains("AI Diagnoses Cancer Early");
+        assertThat(result.get().htmlContent()).contains("New FDA Approval for AI");
         assertThat(result.get().htmlContent()).contains("Upgrade to Subscriber");
-        assertThat(result.get().plainTextContent()).isEqualTo("Today's articles in plain text");
         assertThat(result.get().status()).isEqualTo(NewsletterRunStatus.DRAFT);
     }
 
     @Test
-    void buildDigest_withSummaryFile_containsCtaFooter() {
-        when(dailySummaryPort.getHtmlSummary(any(LocalDate.class)))
-                .thenReturn(Optional.of("<p>Summary</p>"));
-        when(dailySummaryPort.getTextSummary(any(LocalDate.class)))
-                .thenReturn(Optional.of("Summary"));
+    void buildDigest_containsCtaAndFooterLinks() {
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(makeArticle("Test Article", "https://example.com/test", "Body")));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
 
@@ -70,34 +73,9 @@ class DigestNewsletterRendererTest {
     }
 
     @Test
-    void buildDigest_noSummaryToday_fallsBackToMostRecent() {
-        LocalDate recentDate = LocalDate.of(2026, 7, 19);
-        when(dailySummaryPort.getHtmlSummary(any(LocalDate.class)))
-                .thenReturn(Optional.empty());
-        when(dailySummaryPort.findMostRecentSummaryDate())
-                .thenReturn(Optional.of(recentDate));
-        when(dailySummaryPort.getHtmlSummary(recentDate))
-                .thenReturn(Optional.of("<p>Saturday's articles</p>"));
-        when(dailySummaryPort.getTextSummary(recentDate))
-                .thenReturn(Optional.of("Saturday's articles in text"));
-
-        Optional<NewsletterRun> result = renderer.buildDigest();
-
-        assertThat(result).isPresent();
-        assertThat(result.get().htmlContent()).contains("No new articles found");
-        assertThat(result.get().htmlContent()).contains("July 19, 2026");
-        assertThat(result.get().htmlContent()).contains("Saturday's articles");
-        assertThat(result.get().plainTextContent()).contains("No new articles found");
-        assertThat(result.get().plainTextContent()).contains("July 19, 2026");
-        assertThat(result.get().plainTextContent()).contains("Saturday's articles in text");
-    }
-
-    @Test
-    void buildDigest_noSummaryAtAll_returnsEmpty() {
-        when(dailySummaryPort.getHtmlSummary(any(LocalDate.class)))
-                .thenReturn(Optional.empty());
-        when(dailySummaryPort.findMostRecentSummaryDate())
-                .thenReturn(Optional.empty());
+    void buildDigest_noArticles_returnsEmpty() {
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of());
 
         Optional<NewsletterRun> result = renderer.buildDigest();
 
@@ -105,11 +83,41 @@ class DigestNewsletterRendererTest {
     }
 
     @Test
+    void buildDigest_deduplicatesByTitle() {
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(
+                        makeArticle("Same Title", "https://example.com/a", "Body A"),
+                        makeArticle("Same Title", "https://example.com/b", "Body B"),
+                        makeArticle("Different Title", "https://example.com/c", "Body C")
+                ));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        assertThat(result.get().title()).startsWith("2 News Articles From");
+    }
+
+    @Test
+    void buildDigest_filtersNonsenseTitles() {
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(
+                        makeArticle("https://perplexity.ai/search/abc123", "https://example.com/a", "Body"),
+                        makeArticle("www.example.com/page", "https://example.com/b", "Body"),
+                        makeArticle("Real AI Healthcare Article", "https://example.com/c", "Body")
+                ));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        assertThat(result.get().title()).startsWith("1 News Articles From");
+        assertThat(result.get().htmlContent()).contains("Real AI Healthcare Article");
+        assertThat(result.get().htmlContent()).doesNotContain("perplexity.ai");
+    }
+
+    @Test
     void buildDigest_runIdContainsDate() {
-        when(dailySummaryPort.getHtmlSummary(any(LocalDate.class)))
-                .thenReturn(Optional.of("<p>Content</p>"));
-        when(dailySummaryPort.getTextSummary(any(LocalDate.class)))
-                .thenReturn(Optional.of("Content"));
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(makeArticle("Test", "https://example.com/t", "Body")));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
 
@@ -119,16 +127,54 @@ class DigestNewsletterRendererTest {
     }
 
     @Test
-    void buildDigest_htmlSummaryPresent_textMissing_usesFallbackText() {
-        when(dailySummaryPort.getHtmlSummary(any(LocalDate.class)))
-                .thenReturn(Optional.of("<p>HTML content</p>"));
-        when(dailySummaryPort.getTextSummary(any(LocalDate.class)))
-                .thenReturn(Optional.empty());
+    void buildDigest_includesPlainTextVersion() {
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(
+                        makeArticle("AI in Surgery", "https://example.com/surgery", "Robots help surgeons"),
+                        makeArticle("Telehealth Expansion", "https://example.com/telehealth", "Remote care grows")
+                ));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
-        assertThat(result.get().htmlContent()).contains("HTML content");
-        assertThat(result.get().plainTextContent()).contains("View in a browser");
+        assertThat(result.get().plainTextContent()).contains("AI in Surgery");
+        assertThat(result.get().plainTextContent()).contains("example.com/surgery");
+        assertThat(result.get().plainTextContent()).contains("Telehealth Expansion");
+    }
+
+    @Test
+    void buildDigest_articleWithBodyPreview_showsInHtml() {
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(makeArticle("Article With Body", "https://example.com/body", "This is the body text preview")));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        assertThat(result.get().htmlContent()).contains("This is the body text preview");
+    }
+
+    @Test
+    void buildDigest_articleWithAuthorAndDate_showsMeta() {
+        NewsArticle article = new NewsArticle(
+                "a1", "Authored Article", URI.create("https://example.com/authored"),
+                "Body text", "AI Healthcare", "Dr. Smith", null,
+                "PubMed", "ACADEMIC", 0.9, Instant.parse("2026-08-03T10:00:00Z")
+        );
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(article));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        assertThat(result.get().htmlContent()).contains("Dr. Smith");
+        assertThat(result.get().htmlContent()).contains("August 3, 2026");
+    }
+
+    private NewsArticle makeArticle(String title, String url, String body) {
+        return new NewsArticle(
+                "art-" + title.hashCode(), title, URI.create(url),
+                body, "AI Healthcare", null, null,
+                "TestSource", "INDUSTRY", 0.5, Instant.now()
+        );
     }
 }

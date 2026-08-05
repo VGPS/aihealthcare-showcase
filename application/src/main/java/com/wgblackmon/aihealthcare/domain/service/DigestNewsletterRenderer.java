@@ -1,114 +1,89 @@
 package com.wgblackmon.aihealthcare.domain.service;
 
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRunStatus;
-import com.wgblackmon.aihealthcare.domain.port.outbound.DailySummaryPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
- * Renders the FREE-tier daily article digest newsletter by wrapping the
- * NotebookLM-generated HTML summary in an email-safe layout with a
- * "Subscribe for AI analysis" CTA footer.
+ * Renders the FREE-tier daily article digest newsletter by fetching recent
+ * RSS articles from the database and rendering them in an email-safe layout
+ * with a "Subscribe for AI analysis" CTA footer.
  *
- * <p>If no summary file exists for the current date, a minimal fallback
- * message is generated instead.
+ * <p>Sources articles directly from {@link ArticleIngestionPort} with a
+ * configurable lookback window (default 3 days). Articles are deduplicated
+ * by title and filtered to exclude URL-derived nonsense titles.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-07-20
  * @updated 2026-08-05
  */
 @Slf4j
 public class DigestNewsletterRenderer {
 
-    private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMMM d, yyyy");
     private static final DateTimeFormatter EMAIL_DATE_FMT =
             DateTimeFormatter.ofPattern("M/d/yyyy");
+    private static final DateTimeFormatter DISPLAY_FMT =
+            DateTimeFormatter.ofPattern("MMMM d, yyyy");
+    private static final int LOOKBACK_DAYS = 3;
+    private static final int BODY_PREVIEW_MAX_CHARS = 200;
 
-    private final DailySummaryPort dailySummaryPort;
+    private final ArticleIngestionPort articleIngestionPort;
 
-    public DigestNewsletterRenderer(DailySummaryPort dailySummaryPort) {
-        log.debug("DigestNewsletterRenderer() | dailySummaryPort={}", dailySummaryPort.getClass().getSimpleName());
-        this.dailySummaryPort = dailySummaryPort;
+    public DigestNewsletterRenderer(ArticleIngestionPort articleIngestionPort) {
+        log.debug("DigestNewsletterRenderer() | articleIngestionPort={}", articleIngestionPort.getClass().getSimpleName());
+        this.articleIngestionPort = articleIngestionPort;
     }
 
     /**
      * Builds a digest newsletter run for FREE-tier subscribers.
      *
-     * <p>Reads today's HTML summary from the daily summary port, wraps it
-     * in an email-safe layout, and returns a synthetic {@link NewsletterRun}
-     * suitable for delivery.
+     * <p>Fetches articles from the last {@value LOOKBACK_DAYS} days, deduplicates
+     * by title, filters out URL-derived nonsense titles, and renders them as
+     * an email-safe HTML newsletter.
      *
-     * <p>When no summary exists for today, falls back to the most recent
-     * available summary and prepends a "No new articles found" banner with
-     * the original summary date.  Returns {@link Optional#empty()} only when
-     * no summary files exist at all (within the lookback window).
-     *
-     * @return An optional newsletter run; empty if no summaries exist at all.
+     * @return An optional newsletter run; empty if no articles found.
      */
     public Optional<NewsletterRun> buildDigest() {
         log.debug("buildDigest() | (no args)");
 
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
-        String dateDisplay = today.format(DISPLAY_FMT);
 
-        Optional<String> htmlOpt = dailySummaryPort.getHtmlSummary(today);
-        Optional<String> textOpt = dailySummaryPort.getTextSummary(today);
+        List<NewsArticle> rawArticles = articleIngestionPort.fetchRecentArticles(LOOKBACK_DAYS);
+        log.info("buildDigest() | Fetched {} raw articles from last {} days", rawArticles.size(), LOOKBACK_DAYS);
 
-        String bodyHtml;
-        String bodyText;
+        List<NewsArticle> filtered = filterAndDedup(rawArticles);
+        log.info("buildDigest() | {} articles after filtering and dedup", filtered.size());
 
-        String styleBlock = "";
-
-        if (htmlOpt.isPresent()) {
-            String rawHtml = htmlOpt.get();
-            styleBlock = extractStyleBlock(rawHtml);
-            bodyHtml = extractBodyContent(rawHtml);
-            bodyText = textOpt.orElse("Today's AI Healthcare article digest. View in a browser for best experience.");
-        } else {
-            log.info("buildDigest() | No summary file for {} — searching for most recent", today);
-            Optional<LocalDate> recentDateOpt = dailySummaryPort.findMostRecentSummaryDate();
-
-            if (recentDateOpt.isEmpty()) {
-                log.info("buildDigest() | No recent summaries found — skipping digest");
-                log.debug("buildDigest() | return=Optional.empty()");
-                return Optional.empty();
-            }
-
-            LocalDate recentDate = recentDateOpt.get();
-            String recentDateDisplay = recentDate.format(DISPLAY_FMT);
-            log.info("buildDigest() | Falling back to most recent summary from {}", recentDate);
-
-            Optional<String> recentHtml = dailySummaryPort.getHtmlSummary(recentDate);
-            Optional<String> recentText = dailySummaryPort.getTextSummary(recentDate);
-
-            if (recentHtml.isPresent()) {
-                styleBlock = extractStyleBlock(recentHtml.get());
-            }
-            String banner = buildNoNewArticlesBanner(recentDateDisplay);
-            bodyHtml = banner + extractBodyContent(recentHtml.orElse(""));
-            bodyText = "No new articles found. Here is the most recent summary from " + recentDateDisplay + ".\n\n"
-                    + recentText.orElse("View in a browser for best experience.");
+        if (filtered.isEmpty()) {
+            log.info("buildDigest() | No articles found — skipping digest");
+            log.debug("buildDigest() | return=Optional.empty()");
+            return Optional.empty();
         }
 
-        bodyHtml = stripCitationLinks(bodyHtml);
-        int articleCount = countArticles(bodyHtml);
-        String wrappedHtml = wrapInEmailLayout(bodyHtml, today, articleCount, styleBlock);
+        String bodyHtml = renderArticleCards(filtered);
+        String wrappedHtml = wrapInEmailLayout(bodyHtml, today, filtered.size());
+        String plainText = renderPlainText(filtered);
 
         String emailDate = today.format(EMAIL_DATE_FMT);
         NewsletterRun result = new NewsletterRun(
                 "digest-" + today.format(DateTimeFormatter.ISO_LOCAL_DATE),
-                articleCount + " News Articles From " + emailDate,
+                filtered.size() + " News Articles From " + emailDate,
                 today,
                 wrappedHtml,
-                bodyText,
+                plainText,
                 NewsletterRunStatus.DRAFT,
                 Instant.now()
         );
@@ -117,90 +92,158 @@ public class DigestNewsletterRenderer {
         return Optional.of(result);
     }
 
-    private String buildNoNewArticlesBanner(String summaryDateDisplay) {
-        log.debug("buildNoNewArticlesBanner() | summaryDate={}", summaryDateDisplay);
-        String result = "<div style=\"background:#fff3cd; border:1px solid #ffc107; border-radius:6px; "
-                + "padding:12px 16px; margin-bottom:20px; font-size:0.95em; color:#856404;\">"
-                + "<strong>No new articles found.</strong> "
-                + "Here is the most recent summary from " + summaryDateDisplay + "."
-                + "</div>\n";
-        log.debug("buildNoNewArticlesBanner() | return={} chars", result.length());
-        return result;
-    }
+    private List<NewsArticle> filterAndDedup(List<NewsArticle> articles) {
+        log.debug("filterAndDedup() | inputSize={}", articles.size());
 
-    private String stripCitationLinks(String html) {
-        log.debug("stripCitationLinks() | inputLength={}", html.length());
-        String result = html;
-        int idx = 0;
-        while (idx < result.length()) {
-            int linkStart = result.indexOf("<a ", idx);
-            if (linkStart < 0) break;
-            int hrefPos = result.indexOf("href=\"#article-", linkStart);
-            int tagEnd = result.indexOf(">", linkStart);
-            if (hrefPos >= 0 && tagEnd >= 0 && hrefPos < tagEnd) {
-                int closeTag = result.indexOf("</a>", tagEnd);
-                if (closeTag >= 0) {
-                    result = result.substring(0, linkStart) + result.substring(closeTag + 4);
-                    continue;
-                }
+        Set<String> seenTitles = new HashSet<>();
+        List<NewsArticle> result = new ArrayList<>();
+
+        for (NewsArticle article : articles) {
+            String title = article.title();
+            if (title == null || title.isBlank()) {
+                continue;
             }
-            idx = tagEnd >= 0 ? tagEnd + 1 : linkStart + 3;
+            if (isNonsenseTitle(title)) {
+                continue;
+            }
+            String normalizedTitle = title.trim().toLowerCase();
+            if (seenTitles.contains(normalizedTitle)) {
+                continue;
+            }
+            seenTitles.add(normalizedTitle);
+            result.add(article);
         }
-        log.debug("stripCitationLinks() | return={} chars", result.length());
+
+        log.debug("filterAndDedup() | return={} articles", result.size());
         return result;
     }
 
-    private int countArticles(String html) {
-        log.debug("countArticles() | inputLength={}", html.length());
-        int count = 0;
-        int idx = 0;
-        while ((idx = html.indexOf("id=\"article-", idx)) >= 0) {
-            count++;
-            idx += 12;
-        }
-        log.debug("countArticles() | return={}", count);
-        return count;
+    private boolean isNonsenseTitle(String title) {
+        log.debug("isNonsenseTitle() | title={}", title);
+
+        String lower = title.trim().toLowerCase();
+        boolean nonsense = lower.startsWith("http://")
+                || lower.startsWith("https://")
+                || lower.startsWith("perplexity.ai/")
+                || lower.startsWith("www.")
+                || lower.matches("^[a-f0-9\\-]{20,}$");
+
+        log.debug("isNonsenseTitle() | return={}", nonsense);
+        return nonsense;
     }
 
-    private String extractStyleBlock(String html) {
-        log.debug("extractStyleBlock() | inputLength={}", html.length());
-        int styleStart = html.indexOf("<style");
-        if (styleStart < 0) {
-            log.debug("extractStyleBlock() | no <style> tag found, returning empty");
-            return "";
+    private String renderArticleCards(List<NewsArticle> articles) {
+        log.debug("renderArticleCards() | articleCount={}", articles.size());
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div style=\"margin-bottom:36px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.08); overflow:hidden;\">\n");
+
+        int index = 0;
+        for (NewsArticle article : articles) {
+            index++;
+            String articleTitle = article.title() != null ? article.title() : "(no title)";
+            String url = article.url() != null ? article.url().toString() : "#";
+
+            String borderTop = index == 1 ? "" : " border-top:1px solid #e4eaf1;";
+            sb.append("  <div id=\"article-").append(index)
+              .append("\" style=\"background:#fff; padding:18px 22px;").append(borderTop).append("\">\n");
+            sb.append("    <div style=\"font-size:1.05em; font-weight:bold; margin-bottom:6px;\">");
+            sb.append("<a href=\"").append(escapeHtml(url))
+              .append("\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a3a5c; text-decoration:underline;\">")
+              .append(escapeHtml(articleTitle)).append("</a>");
+
+            String meta = buildArticleMeta(article);
+            if (!meta.isEmpty()) {
+                sb.append(" <span style=\"font-weight:normal; font-size:0.85em; color:#666; font-family:Arial,sans-serif;\">- ")
+                  .append(escapeHtml(meta)).append("</span>");
+            }
+            sb.append("</div>\n");
+
+            String bodyPreview = buildBodyPreview(article);
+            if (!bodyPreview.isEmpty()) {
+                sb.append("    <div style=\"font-size:0.9em; color:#444; margin-top:4px; line-height:1.5; font-family:Arial,sans-serif;\">")
+                  .append(escapeHtml(bodyPreview)).append("</div>\n");
+            }
+
+            sb.append("  </div>\n");
         }
-        int styleEnd = html.indexOf("</style>", styleStart);
-        if (styleEnd < 0) {
-            log.debug("extractStyleBlock() | no </style> closing tag, returning empty");
-            return "";
-        }
-        String result = html.substring(styleStart, styleEnd + "</style>".length());
-        log.debug("extractStyleBlock() | return={} chars", result.length());
+        sb.append("</div>\n");
+
+        String result = sb.toString();
+        log.debug("renderArticleCards() | return={} chars", result.length());
         return result;
     }
 
-    private String extractBodyContent(String html) {
-        log.debug("extractBodyContent() | inputLength={}", html.length());
-        int bodyStart = html.indexOf("<body");
-        if (bodyStart < 0) {
-            log.debug("extractBodyContent() | no <body> tag found, returning as-is");
-            return html;
+    private String buildArticleMeta(NewsArticle article) {
+        log.debug("buildArticleMeta() | articleId={}", article.articleId());
+
+        StringBuilder meta = new StringBuilder();
+        if (article.author() != null && !article.author().isBlank()) {
+            meta.append(article.author());
         }
-        int contentStart = html.indexOf(">", bodyStart) + 1;
-        int bodyEnd = html.lastIndexOf("</body>");
+        if (article.publishedAt() != null) {
+            if (meta.length() > 0) {
+                meta.append(", ");
+            }
+            LocalDate pubDate = article.publishedAt().atZone(ZoneOffset.UTC).toLocalDate();
+            meta.append(pubDate.format(DISPLAY_FMT));
+        }
+
+        String result = meta.toString();
+        log.debug("buildArticleMeta() | return={}", result);
+        return result;
+    }
+
+    private String buildBodyPreview(NewsArticle article) {
+        log.debug("buildBodyPreview() | articleId={}", article.articleId());
+
+        String body = article.bodyText();
+        if (body == null || body.isBlank()) {
+            log.debug("buildBodyPreview() | return=(empty)");
+            return "";
+        }
+
+        String cleaned = body.replaceAll("<[^>]+>", "").replaceAll("\\s+", " ").trim();
         String result;
-        if (bodyEnd < 0) {
-            result = html.substring(contentStart).trim();
+        if (cleaned.length() <= BODY_PREVIEW_MAX_CHARS) {
+            result = cleaned;
         } else {
-            result = html.substring(contentStart, bodyEnd).trim();
+            result = cleaned.substring(0, BODY_PREVIEW_MAX_CHARS).trim() + "...";
         }
-        log.debug("extractBodyContent() | return={} chars", result.length());
+
+        log.debug("buildBodyPreview() | return={} chars", result.length());
         return result;
     }
 
-    private String wrapInEmailLayout(String bodyHtml, LocalDate today, int articleCount, String styleBlock) {
-        log.debug("wrapInEmailLayout() | bodyLength={}, today={}, articleCount={}, hasStyles={}",
-                  bodyHtml.length(), today, articleCount, !styleBlock.isEmpty());
+    private String renderPlainText(List<NewsArticle> articles) {
+        log.debug("renderPlainText() | articleCount={}", articles.size());
+
+        StringBuilder sb = new StringBuilder();
+        int index = 0;
+        for (NewsArticle article : articles) {
+            index++;
+            sb.append(index).append(". ").append(article.title());
+            if (article.url() != null) {
+                sb.append("\n   ").append(article.url().toString());
+            }
+            if (article.bodyText() != null && !article.bodyText().isBlank()) {
+                String cleaned = article.bodyText().replaceAll("<[^>]+>", "").replaceAll("\\s+", " ").trim();
+                if (cleaned.length() > BODY_PREVIEW_MAX_CHARS) {
+                    cleaned = cleaned.substring(0, BODY_PREVIEW_MAX_CHARS).trim() + "...";
+                }
+                sb.append("\n   ").append(cleaned);
+            }
+            sb.append("\n\n");
+        }
+
+        String result = sb.toString();
+        log.debug("renderPlainText() | return={} chars", result.length());
+        return result;
+    }
+
+    private String wrapInEmailLayout(String bodyHtml, LocalDate today, int articleCount) {
+        log.debug("wrapInEmailLayout() | bodyLength={}, today={}, articleCount={}",
+                  bodyHtml.length(), today, articleCount);
 
         String emailDate = today.format(EMAIL_DATE_FMT);
         String headerTitle = articleCount + " News Articles From " + emailDate;
@@ -211,9 +254,6 @@ public class DigestNewsletterRenderer {
         sb.append("  <meta charset=\"UTF-8\">\n");
         sb.append("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
         sb.append("  <title>").append(headerTitle).append("</title>\n");
-        if (!styleBlock.isEmpty()) {
-            sb.append("  ").append(styleBlock).append("\n");
-        }
         sb.append("</head>\n<body style=\"margin:0; padding:0; background:#f4f6f9; font-family:Arial,sans-serif;\">\n");
         sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f4f6f9;\">\n");
         sb.append("<tr><td align=\"center\" style=\"padding:20px 10px;\">\n");
@@ -255,4 +295,13 @@ public class DigestNewsletterRenderer {
         return result;
     }
 
+    private String escapeHtml(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("&", "&amp;")
+                   .replace("<", "&lt;")
+                   .replace(">", "&gt;")
+                   .replace("\"", "&quot;");
+    }
 }
