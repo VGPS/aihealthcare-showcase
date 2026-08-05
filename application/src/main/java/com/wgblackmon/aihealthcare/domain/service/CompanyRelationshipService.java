@@ -9,8 +9,10 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyRelationshipPort;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -84,15 +86,21 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
     public List<CompanyRelationship> detectRelationships() {
         List<NewsArticle> recentArticles = articleIngestionPort.fetchRecentArticles(SCAN_DAYS);
         List<CompanyRelationship> newRelationships = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
         Instant now = Instant.now();
 
         for (NewsArticle article : recentArticles) {
             String text = buildSearchText(article);
             List<CompanyRelationship> detected = extractRelationships(article, text, now);
             for (CompanyRelationship rel : detected) {
+                String dedupKey = rel.sourceCompany() + "|" + rel.targetCompany() + "|" + rel.relationshipType().name();
+                if (seen.contains(dedupKey)) {
+                    continue;
+                }
                 if (!relationshipPort.existsBySourceAndTargetAndType(
                         rel.sourceCompany(), rel.targetCompany(), rel.relationshipType().name())) {
                     newRelationships.add(rel);
+                    seen.add(dedupKey);
                 }
             }
         }
@@ -154,13 +162,13 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
             int hitCount = countPatternHits(text, patterns);
             double confidence = Math.min(1.0, 0.5 + (hitCount * 0.1));
 
-            String summary = sourceCompany + " " + keyword + " " + targetCompany;
+            String summary = article.title();
             CompanyRelationship rel = new CompanyRelationship(
                     UUID.randomUUID().toString(),
                     sourceCompany,
                     targetCompany,
                     type,
-                    article.articleId(),
+                    article.url().toString(),
                     summary,
                     confidence,
                     now

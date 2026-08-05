@@ -7,7 +7,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-05
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -69,17 +69,45 @@
             <table class="min-w-full text-sm">
                 <thead>
                     <tr class="border-b border-gray-200 text-left text-gray-500 uppercase text-xs">
-                        <th class="pb-2 pr-4">Type</th>
-                        <th class="pb-2 pr-4">Source</th>
+                        <th class="pb-2 pr-4">Type
+                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='type')}"
+                               class="sort-arrow" th:classappend="${sort == 'type'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='type_desc')}"
+                               class="sort-arrow" th:classappend="${sort == 'type_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                        </th>
+                        <th class="pb-2 pr-4">Source
+                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='source')}"
+                               class="sort-arrow" th:classappend="${sort == 'source'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='source_desc')}"
+                               class="sort-arrow" th:classappend="${sort == 'source_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                        </th>
                         <th class="pb-2 pr-4"></th>
-                        <th class="pb-2 pr-4">Target</th>
+                        <th class="pb-2 pr-4">Target
+                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='target')}"
+                               class="sort-arrow" th:classappend="${sort == 'target'} ? ' active' : ''" title="Sort A-Z">&#8593;</a>
+                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='target_desc')}"
+                               class="sort-arrow" th:classappend="${sort == 'target_desc'} ? ' active' : ''" title="Sort Z-A">&#8595;</a>
+                        </th>
                         <th class="pb-2 pr-4">Summary</th>
-                        <th class="pb-2 pr-4">Confidence</th>
-                        <th class="pb-2">Detected</th>
+                        <th class="pb-2 pr-4">Confidence
+                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='confidence')}"
+                               class="sort-arrow" th:classappend="${sort == 'confidence'} ? ' active' : ''" title="Sort low-high">&#8593;</a>
+                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='confidence_desc')}"
+                               class="sort-arrow" th:classappend="${sort == 'confidence_desc'} ? ' active' : ''" title="Sort high-low">&#8595;</a>
+                        </th>
+                        <th class="pb-2">Detected
+                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='detected')}"
+                               class="sort-arrow" th:classappend="${sort == 'detected'} ? ' active' : ''" title="Oldest first">&#8593;</a>
+                            <a th:href="@{/dashboard/relationships(company=${filterCompany},sort='detected_desc')}"
+                               class="sort-arrow" th:classappend="${sort == 'detected_desc'} ? ' active' : ''" title="Newest first">&#8595;</a>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="rel : ${relationships}" class="border-b border-gray-100 hover:bg-gray-50">
+                    <th:block th:each="rel : ${relationships}">
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                        th:data-relid="${rel.relationshipId}"
+                        onclick="toggleDetail(this.getAttribute('data-relid'))">
                         <td class="py-3 pr-4">
                             <span class="inline-block px-2 py-0.5 rounded text-xs font-medium"
                                   th:classappend="${rel.relationshipType == 'PARTNERSHIP'} ? 'bg-blue-100 text-blue-800' :
@@ -90,13 +118,54 @@
                                                   'bg-purple-100 text-purple-800'))))"
                                   th:text="${rel.relationshipType}">TYPE</span>
                         </td>
-                        <td class="py-3 pr-4 font-medium text-gray-900" th:text="${rel.sourceCompany}">Source</td>
+                        <td class="py-3 pr-4 font-medium">
+                            <a th:href="@{/dashboard/relationships(company=${rel.sourceCompany})}"
+                               class="text-primary-600 hover:text-primary-800 hover:underline"
+                               th:text="${rel.sourceCompany}" onclick="event.stopPropagation();">Source</a>
+                        </td>
                         <td class="py-3 pr-4 text-gray-400">→</td>
-                        <td class="py-3 pr-4 font-medium text-gray-900" th:text="${rel.targetCompany}">Target</td>
-                        <td class="py-3 pr-4 text-gray-600 max-w-md truncate" th:text="${rel.summary}">Summary</td>
+                        <td class="py-3 pr-4 font-medium">
+                            <a th:href="@{/dashboard/relationships(company=${rel.targetCompany})}"
+                               class="text-primary-600 hover:text-primary-800 hover:underline"
+                               th:text="${rel.targetCompany}" onclick="event.stopPropagation();">Target</a>
+                        </td>
+                        <td class="py-3 pr-4 text-gray-600 max-w-xs truncate" th:text="${rel.summary}">Summary</td>
                         <td class="py-3 pr-4 text-sm font-medium" th:text="${rel.confidence}">80%</td>
-                        <td class="py-3 text-gray-500 text-xs" th:text="${rel.detectedAt}">Date</td>
+                        <td class="py-3 text-gray-500 text-xs whitespace-nowrap">
+                            <span th:text="${rel.detectedAt}">Date</span>
+                            <span class="ml-2 text-gray-300">▼</span>
+                        </td>
                     </tr>
+                    <tr th:id="'detail-' + ${rel.relationshipId}" class="hidden bg-gray-50">
+                        <td colspan="7" class="px-6 py-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="font-medium text-gray-700">Summary:</span>
+                                    <p class="text-gray-600 mt-1" th:text="${rel.summary}">Full summary text</p>
+                                </div>
+                                <div>
+                                    <span class="font-medium text-gray-700">Evidence Article:</span>
+                                    <a th:if="${rel.evidenceArticleId != null and #strings.startsWith(rel.evidenceArticleId, 'http')}"
+                                       th:href="${rel.evidenceArticleId}" target="_blank" rel="noopener"
+                                       class="text-primary-600 hover:text-primary-800 hover:underline mt-1 font-mono text-xs block"
+                                       th:text="${rel.evidenceArticleId}">url</a>
+                                    <p th:unless="${rel.evidenceArticleId != null and #strings.startsWith(rel.evidenceArticleId, 'http')}"
+                                       class="text-gray-500 mt-1 font-mono text-xs" th:text="${rel.evidenceArticleId}">article-id</p>
+                                    <span class="font-medium text-gray-700 mt-2 block">Confidence:</span>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <div class="w-32 bg-gray-200 rounded-full h-2">
+                                            <div class="bg-primary-600 h-2 rounded-full"
+                                                 th:style="'width:' + ${rel.confidence}"></div>
+                                        </div>
+                                        <span class="text-gray-600" th:text="${rel.confidence}">80%</span>
+                                    </div>
+                                    <span class="font-medium text-gray-700 mt-2 block">Detected:</span>
+                                    <p class="text-gray-500 mt-1" th:text="${rel.detectedAt}">Date</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </th:block>
                 </tbody>
             </table>
         </div>
@@ -105,6 +174,15 @@
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+function toggleDetail(id) {
+    var row = document.getElementById('detail-' + id);
+    if (row) {
+        row.classList.toggle('hidden');
+    }
+}
+</script>
 
 </body>
 </html>
