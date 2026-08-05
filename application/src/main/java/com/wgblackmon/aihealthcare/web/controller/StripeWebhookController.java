@@ -1,6 +1,8 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.stripe.exception.SignatureVerificationException;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
 import com.stripe.model.Event;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
@@ -278,9 +280,9 @@ public class StripeWebhookController {
     }
 
     /**
-     * Extracts the customer email from a Subscription object's metadata.
-     * Stripe subscriptions carry the customer email in metadata if set during
-     * checkout, otherwise we fall back to null.
+     * Extracts the customer email from a Subscription object.  Checks metadata
+     * first (set during checkout via subscription_data), then falls back to
+     * retrieving the Stripe Customer object by ID.
      */
     private String extractEmailFromSubscription(Subscription subscription) {
         log.debug("extractEmailFromSubscription() | subscriptionId={}", subscription.getId());
@@ -288,6 +290,16 @@ public class StripeWebhookController {
         String email = null;
         if (subscription.getMetadata() != null) {
             email = subscription.getMetadata().get("customer_email");
+        }
+
+        if (email == null && subscription.getCustomer() != null) {
+            try {
+                Customer customer = Customer.retrieve(subscription.getCustomer());
+                email = customer.getEmail();
+                log.debug("extractEmailFromSubscription() | resolved email from Stripe Customer: {}", email);
+            } catch (StripeException e) {
+                log.warn("extractEmailFromSubscription() | Could not retrieve customer: {}", e.getMessage());
+            }
         }
 
         log.debug("extractEmailFromSubscription() | return={}", email);
