@@ -72,7 +72,7 @@ public class FeedHarvestScheduler {
     private final StartupPipelineOrchestrator pipelineOrchestrator;
     private final WebhookDispatcher webhookDispatcher;
 
-    @Value("${aihealthcare.startup.harvest-enabled:true}")
+    @Value("${aihealthcare.startup.harvest-enabled:false}")
     private boolean startupHarvestEnabled;
 
     public FeedHarvestScheduler(ArticleHarvestingPort harvestingPort,
