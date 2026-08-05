@@ -29,6 +29,8 @@ public class DigestNewsletterRenderer {
 
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy");
+    private static final DateTimeFormatter EMAIL_DATE_FMT =
+            DateTimeFormatter.ofPattern("M/d/yyyy");
 
     private final DailySummaryPort dailySummaryPort;
 
@@ -96,11 +98,14 @@ public class DigestNewsletterRenderer {
                     + recentText.orElse("View in a browser for best experience.");
         }
 
-        String wrappedHtml = wrapInEmailLayout(bodyHtml, dateDisplay, styleBlock);
+        bodyHtml = stripCitationLinks(bodyHtml);
+        int articleCount = countArticles(bodyHtml);
+        String wrappedHtml = wrapInEmailLayout(bodyHtml, today, articleCount, styleBlock);
 
+        String emailDate = today.format(EMAIL_DATE_FMT);
         NewsletterRun result = new NewsletterRun(
                 "digest-" + today.format(DateTimeFormatter.ISO_LOCAL_DATE),
-                "AI Healthcare Daily Digest — " + dateDisplay,
+                articleCount + " News Articles From " + emailDate,
                 today,
                 wrappedHtml,
                 bodyText,
@@ -121,6 +126,40 @@ public class DigestNewsletterRenderer {
                 + "</div>\n";
         log.debug("buildNoNewArticlesBanner() | return={} chars", result.length());
         return result;
+    }
+
+    private String stripCitationLinks(String html) {
+        log.debug("stripCitationLinks() | inputLength={}", html.length());
+        String result = html;
+        int idx = 0;
+        while (idx < result.length()) {
+            int linkStart = result.indexOf("<a ", idx);
+            if (linkStart < 0) break;
+            int hrefPos = result.indexOf("href=\"#article-", linkStart);
+            int tagEnd = result.indexOf(">", linkStart);
+            if (hrefPos >= 0 && tagEnd >= 0 && hrefPos < tagEnd) {
+                int closeTag = result.indexOf("</a>", tagEnd);
+                if (closeTag >= 0) {
+                    result = result.substring(0, linkStart) + result.substring(closeTag + 4);
+                    continue;
+                }
+            }
+            idx = tagEnd >= 0 ? tagEnd + 1 : linkStart + 3;
+        }
+        log.debug("stripCitationLinks() | return={} chars", result.length());
+        return result;
+    }
+
+    private int countArticles(String html) {
+        log.debug("countArticles() | inputLength={}", html.length());
+        int count = 0;
+        int idx = 0;
+        while ((idx = html.indexOf("id=\"article-", idx)) >= 0) {
+            count++;
+            idx += 12;
+        }
+        log.debug("countArticles() | return={}", count);
+        return count;
     }
 
     private String extractStyleBlock(String html) {
@@ -159,15 +198,19 @@ public class DigestNewsletterRenderer {
         return result;
     }
 
-    private String wrapInEmailLayout(String bodyHtml, String dateDisplay, String styleBlock) {
-        log.debug("wrapInEmailLayout() | bodyLength={}, date={}, hasStyles={}", bodyHtml.length(), dateDisplay, !styleBlock.isEmpty());
+    private String wrapInEmailLayout(String bodyHtml, LocalDate today, int articleCount, String styleBlock) {
+        log.debug("wrapInEmailLayout() | bodyLength={}, today={}, articleCount={}, hasStyles={}",
+                  bodyHtml.length(), today, articleCount, !styleBlock.isEmpty());
+
+        String emailDate = today.format(EMAIL_DATE_FMT);
+        String headerTitle = articleCount + " News Articles From " + emailDate;
 
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html>\n");
         sb.append("<html lang=\"en\">\n<head>\n");
         sb.append("  <meta charset=\"UTF-8\">\n");
         sb.append("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
-        sb.append("  <title>AI Healthcare Daily Digest</title>\n");
+        sb.append("  <title>").append(headerTitle).append("</title>\n");
         if (!styleBlock.isEmpty()) {
             sb.append("  ").append(styleBlock).append("\n");
         }
@@ -178,8 +221,7 @@ public class DigestNewsletterRenderer {
 
         // Header
         sb.append("<tr><td style=\"background:#1a1a2e; color:white; padding:20px 24px; border-radius:8px 8px 0 0;\">\n");
-        sb.append("  <h1 style=\"margin:0; font-size:1.3em;\">AI Healthcare Daily Digest</h1>\n");
-        sb.append("  <p style=\"margin:4px 0 0; font-size:0.85em; opacity:0.7;\">").append(dateDisplay).append("</p>\n");
+        sb.append("  <h1 style=\"margin:0; font-size:1.3em; color:white;\">").append(headerTitle).append("</h1>\n");
         sb.append("</td></tr>\n");
 
         // Body content
@@ -195,11 +237,15 @@ public class DigestNewsletterRenderer {
         sb.append("  </p>\n");
         sb.append("  <a href=\"https://app.bigskylabs.ai/pricing\" style=\"display:inline-block; background:#0066cc; color:white; ");
         sb.append("padding:10px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9em;\">Upgrade to Subscriber — $39/mo</a>\n");
+        sb.append("  <span style=\"display:inline-block; margin-left:12px;\">");
+        sb.append("<a href=\"https://app.bigskylabs.ai/demo\" style=\"display:inline-block; background:#28a745; color:white; ");
+        sb.append("padding:10px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9em;\">Free 7 Day Demo</a></span>\n");
         sb.append("</td></tr>\n");
 
-        // Footer
+        // Footer with unsubscribe
         sb.append("<tr><td style=\"padding:16px 24px; text-align:center; font-size:0.75em; color:#999; border-radius:0 0 8px 8px;\">\n");
-        sb.append("  You are receiving this because you signed up for the free AI Healthcare digest.\n");
+        sb.append("  You are receiving this because you signed up for the free AI Healthcare digest.<br>\n");
+        sb.append("  <a href=\"https://app.bigskylabs.ai/unsubscribe\" style=\"color:#999; text-decoration:underline; font-size:0.9em;\">Unsubscribe</a>\n");
         sb.append("</td></tr>\n");
 
         sb.append("</table>\n</td></tr>\n</table>\n</body>\n</html>\n");

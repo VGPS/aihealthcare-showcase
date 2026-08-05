@@ -43,7 +43,7 @@ class DigestNewsletterRendererTest {
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
-        assertThat(result.get().htmlContent()).contains("AI Healthcare Daily Digest");
+        assertThat(result.get().htmlContent()).contains("News Articles From");
         assertThat(result.get().htmlContent()).contains("Today's Articles");
         assertThat(result.get().htmlContent()).contains("Upgrade to Subscriber");
         assertThat(result.get().plainTextContent()).isEqualTo("Today's articles in plain text");
@@ -63,6 +63,10 @@ class DigestNewsletterRendererTest {
         assertThat(result.get().htmlContent()).contains("Want deeper AI analysis?");
         assertThat(result.get().htmlContent()).contains("$39/mo");
         assertThat(result.get().htmlContent()).contains("pricing");
+        assertThat(result.get().htmlContent()).contains("Free 7 Day Demo");
+        assertThat(result.get().htmlContent()).contains("app.bigskylabs.ai/demo");
+        assertThat(result.get().htmlContent()).contains("Unsubscribe");
+        assertThat(result.get().htmlContent()).contains("app.bigskylabs.ai/unsubscribe");
     }
 
     @Test
@@ -111,7 +115,7 @@ class DigestNewsletterRendererTest {
 
         assertThat(result).isPresent();
         assertThat(result.get().runId()).startsWith("digest-");
-        assertThat(result.get().title()).contains("Daily Digest");
+        assertThat(result.get().title()).contains("News Articles From");
     }
 
     @Test
