@@ -203,6 +203,31 @@ class DigestNewsletterRendererTest {
         assertThat(html).doesNotContain("Fifth sentence");
     }
 
+    @Test
+    void buildDigest_excludesCompetitorAndHuggingfaceTiers() {
+        NewsArticle competitor = new NewsArticle(
+                "c1", "Perplexity Homepage", URI.create("https://perplexity.ai"),
+                "AI for the curious", "Competitor", null, null,
+                "Perplexity", "COMPETITOR", 0.5, Instant.now()
+        );
+        NewsArticle huggingface = new NewsArticle(
+                "h1", "HF Model XYZ", URI.create("https://huggingface.co/model"),
+                "Model card", "HuggingFace", null, null,
+                "HuggingFace", "HUGGINGFACE", 0.5, Instant.now()
+        );
+        NewsArticle realArticle = makeArticle("Real Healthcare Article", "https://example.com/real", "Real content");
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(competitor, huggingface, realArticle));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        assertThat(result.get().title()).startsWith("1 News Articles From");
+        assertThat(result.get().htmlContent()).contains("Real Healthcare Article");
+        assertThat(result.get().htmlContent()).doesNotContain("Perplexity Homepage");
+        assertThat(result.get().htmlContent()).doesNotContain("HF Model XYZ");
+    }
+
     private NewsArticle makeArticle(String title, String url, String body) {
         return new NewsArticle(
                 "art-" + title.hashCode(), title, URI.create(url),
