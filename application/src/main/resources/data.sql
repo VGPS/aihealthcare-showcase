@@ -232,3 +232,33 @@ SELECT 'enterprise@test.com',
        '$2a$10$e382iCnQT8GJWFpwiW9ANuSEgNUNuKb5vHtm6zPMU5K87xe9Cqf56',
        'Enterprise Tester', 'USER', true, 'ENTERPRISE'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'enterprise@test.com');
+
+-- ---------------------------------------------------------------------------
+-- Fix company_relationships: replace UUID evidence_article_ids with actual
+-- article URLs by joining back to news_articles table.
+-- ---------------------------------------------------------------------------
+UPDATE company_relationships cr
+SET evidence_article_id = (
+    SELECT CAST(na.url AS VARCHAR(500))
+    FROM news_articles na
+    WHERE na.article_id = cr.evidence_article_id
+)
+WHERE EXISTS (
+    SELECT 1 FROM news_articles na WHERE na.article_id = cr.evidence_article_id
+)
+AND cr.evidence_article_id NOT LIKE 'http%';
+
+-- ---------------------------------------------------------------------------
+-- Fix company_relationships: replace concatenated fragment summaries with
+-- the actual article title by joining on evidence URL.
+-- ---------------------------------------------------------------------------
+UPDATE company_relationships cr
+SET summary = (
+    SELECT na.title
+    FROM news_articles na
+    WHERE CAST(na.url AS VARCHAR(2048)) = cr.evidence_article_id
+)
+WHERE EXISTS (
+    SELECT 1 FROM news_articles na
+    WHERE CAST(na.url AS VARCHAR(2048)) = cr.evidence_article_id
+);

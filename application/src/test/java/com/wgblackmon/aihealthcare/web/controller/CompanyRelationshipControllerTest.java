@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-05
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(CompanyRelationshipController.class)
@@ -88,6 +88,25 @@ class CompanyRelationshipControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("relationships"))
                 .andExpect(model().attribute("filterCompany", "Google"));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /dashboard/relationships deduplicates by source+target+type")
+    void relationshipsPage_withDuplicates_deduplicates() throws Exception {
+        Instant now = Instant.now();
+        CompanyRelationship rel1 = new CompanyRelationship("r1", "Care It", "Electronic Health Records",
+                CompanyRelationshipType.INTEGRATION, "a1", "Care It integrates with Electronic Health Records",
+                0.6, now);
+        CompanyRelationship rel2 = new CompanyRelationship("r2", "Care It", "Electronic Health Records",
+                CompanyRelationshipType.INTEGRATION, "a2", "Care It integrates with Electronic Health Records",
+                0.6, now);
+        when(mapRelationshipsUseCase.getAllRelationships()).thenReturn(List.of(rel1, rel2));
+
+        mockMvc.perform(get("/dashboard/relationships"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("relationships"))
+                .andExpect(model().attribute("totalRelationships", 1));
     }
 
     @Test
