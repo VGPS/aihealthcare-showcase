@@ -449,76 +449,53 @@ public class NotebookLMService {
         sb.append("  <meta charset=\"UTF-8\">\n");
         sb.append("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
         sb.append("  <title>").append(escapeHtml(title)).append("</title>\n");
-        sb.append("  <style>\n");
-        sb.append("    * { box-sizing: border-box; margin: 0; padding: 0; }\n");
-        sb.append("    body { font-family: Georgia, 'Times New Roman', serif; background: #f4f6f9;\n");
-        sb.append("           color: #1a1a2e; padding: 32px 16px; }\n");
-        sb.append("    .page { max-width: 960px; margin: 0 auto; }\n");
-        sb.append("    h1 { font-size: 1.9em; color: #1a3a5c; border-bottom: 3px solid #2c5f8a;\n");
-        sb.append("         padding-bottom: 12px; margin-bottom: 6px; }\n");
-        sb.append("    .meta { color: #666; font-size: 0.88em; margin-bottom: 36px;\n");
-        sb.append("            font-family: Arial, sans-serif; }\n");
-        sb.append("    .source-block { margin-bottom: 36px; border-radius: 8px;\n");
-        sb.append("                    box-shadow: 0 2px 6px rgba(0,0,0,0.08); overflow: hidden; }\n");
-        sb.append("    .article { background: #fff; padding: 18px 22px;\n");
-        sb.append("               border-top: 1px solid #e4eaf1; }\n");
-        sb.append("    .article:first-of-type { border-top: none; }\n");
-        sb.append("    .article-title { font-size: 1.05em; font-weight: bold; margin-bottom: 6px; }\n");
-        sb.append("    .article-title a { color: #1a3a5c; text-decoration: underline; }\n");
-        sb.append("    .article-title a:hover { color: #2c5f8a; text-decoration: underline; }\n");
-        sb.append("    .article-meta { font-weight: normal; font-size: 0.85em; color: #666;\n");
-        sb.append("                    font-family: Arial, sans-serif; }\n");
-        sb.append("    .article-body { font-size: 0.9em; color: #444; margin-top: 4px;\n");
-        sb.append("                    line-height: 1.5; font-family: Arial, sans-serif; }\n");
-        sb.append("    .summary-section { background: #f0f7ff; border: 1px solid #b8d4f0;\n");
-        sb.append("                       border-radius: 8px; padding: 20px 24px;\n");
-        sb.append("                       margin-bottom: 36px; }\n");
-        sb.append("    .summary-section h2 { font-size: 1.1em; color: #1a3a5c;\n");
-        sb.append("                          margin-bottom: 12px; font-family: Arial, sans-serif; }\n");
-        sb.append("    .summary-text { font-size: 0.95em; line-height: 1.6; color: #333; }\n");
-        sb.append("    .summary-text a { color: #2c5f8a; text-decoration: none;\n");
-        sb.append("                      font-weight: bold; }\n");
-        sb.append("    .summary-text a:hover { text-decoration: underline; }\n");
-        sb.append("  </style>\n</head>\n<body>\n<div class=\"page\">\n");
+        sb.append("</head>\n<body style=\"font-family:Georgia,'Times New Roman',serif; background:#f4f6f9; color:#1a1a2e; padding:32px 16px; margin:0;\">\n");
+        sb.append("<div style=\"max-width:960px; margin:0 auto;\">\n");
 
         // Page heading
-        sb.append("  <h1>").append(escapeHtml(title)).append("</h1>\n");
-        sb.append("  <div class=\"meta\">Generated ").append(date)
+        sb.append("  <h1 style=\"font-size:1.9em; color:#1a3a5c; border-bottom:3px solid #2c5f8a; padding-bottom:12px; margin:0 0 6px;\">")
+          .append(escapeHtml(title)).append("</h1>\n");
+        sb.append("  <div style=\"color:#666; font-size:0.88em; margin-bottom:36px; font-family:Arial,sans-serif;\">Generated ").append(date)
           .append(" &bull; ").append(articles.size()).append(" articles</div>\n\n");
 
         // Executive summary section (if available)
         if (digestSummary != null && !digestSummary.isBlank()) {
-            sb.append("  <div class=\"summary-section\">\n");
-            sb.append("    <h2>Today's Summary</h2>\n");
-            sb.append("    <div class=\"summary-text\">\n");
+            sb.append("  <div style=\"background:#f0f7ff; border:1px solid #b8d4f0; border-radius:8px; padding:20px 24px; margin-bottom:36px;\">\n");
+            sb.append("    <h2 style=\"font-size:1.1em; color:#1a3a5c; margin:0 0 12px; font-family:Arial,sans-serif;\">Today's Summary</h2>\n");
+            sb.append("    <div style=\"font-size:0.95em; line-height:1.6; color:#333;\">\n");
             sb.append("      ").append(convertCitationsToLinks(digestSummary)).append("\n");
             sb.append("    </div>\n");
             sb.append("  </div>\n\n");
         }
 
         // Flat article list (no source grouping)
-        sb.append("  <div class=\"source-block\">\n");
+        sb.append("  <div style=\"margin-bottom:36px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.08); overflow:hidden;\">\n");
         int articleIndex = 0;
         for (NewsArticle article : articles) {
             articleIndex++;
             String articleTitle = article.title() != null ? article.title() : "(no title)";
             String url = article.url() != null ? article.url().toString() : "#";
 
-            sb.append("    <div class=\"article\" id=\"article-").append(articleIndex).append("\">\n");
-            sb.append("      <div class=\"article-title\"><a href=\"").append(escapeHtml(url))
-              .append("\" target=\"_blank\" rel=\"noopener\">")
+            String borderTop = articleIndex == 1 ? "" : " border-top:1px solid #e4eaf1;";
+            sb.append("    <div id=\"article-").append(articleIndex)
+              .append("\" style=\"background:#fff; padding:18px 22px;").append(borderTop).append("\">\n");
+            sb.append("      <div style=\"font-size:1.05em; font-weight:bold; margin-bottom:6px;\">")
+              .append("<a href=\"").append(escapeHtml(url))
+              .append("\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a3a5c; text-decoration:underline;\">")
               .append(escapeHtml(articleTitle)).append("</a>");
 
             String metaText = buildArticleMeta(article);
             if (!metaText.isEmpty()) {
-                sb.append(" <span class=\"article-meta\">- ").append(escapeHtml(metaText)).append("</span>");
+                sb.append(" <span style=\"font-weight:normal; font-size:0.85em; color:#666; font-family:Arial,sans-serif;\">- ")
+                  .append(escapeHtml(metaText)).append("</span>");
             }
 
             sb.append("</div>\n");
 
             String bodyPreview = buildBodyPreview(article);
             if (!bodyPreview.isEmpty()) {
-                sb.append("      <div class=\"article-body\">").append(bodyPreview).append("</div>\n");
+                sb.append("      <div style=\"font-size:0.9em; color:#444; margin-top:4px; line-height:1.5; font-family:Arial,sans-serif;\">")
+                  .append(bodyPreview).append("</div>\n");
             }
 
             sb.append("    </div>\n");
@@ -871,7 +848,9 @@ public class NotebookLMService {
                     String inner = escaped.substring(i + 1, closeBracket);
                     try {
                         int num = Integer.parseInt(inner.trim());
-                        result.append("<a href=\"#article-").append(num).append("\">[").append(num).append("]</a>");
+                        result.append("<a href=\"#article-").append(num)
+                              .append("\" style=\"color:#2c5f8a; text-decoration:none; font-weight:bold;\">[")
+                              .append(num).append("]</a>");
                         i = closeBracket + 1;
                         continue;
                     } catch (NumberFormatException e) {
