@@ -63,8 +63,12 @@ public class DigestNewsletterRenderer {
         String bodyHtml;
         String bodyText;
 
+        String styleBlock = "";
+
         if (htmlOpt.isPresent()) {
-            bodyHtml = extractBodyContent(htmlOpt.get());
+            String rawHtml = htmlOpt.get();
+            styleBlock = extractStyleBlock(rawHtml);
+            bodyHtml = extractBodyContent(rawHtml);
             bodyText = textOpt.orElse("Today's AI Healthcare article digest. View in a browser for best experience.");
         } else {
             log.info("buildDigest() | No summary file for {} — searching for most recent", today);
@@ -83,13 +87,16 @@ public class DigestNewsletterRenderer {
             Optional<String> recentHtml = dailySummaryPort.getHtmlSummary(recentDate);
             Optional<String> recentText = dailySummaryPort.getTextSummary(recentDate);
 
+            if (recentHtml.isPresent()) {
+                styleBlock = extractStyleBlock(recentHtml.get());
+            }
             String banner = buildNoNewArticlesBanner(recentDateDisplay);
             bodyHtml = banner + extractBodyContent(recentHtml.orElse(""));
             bodyText = "No new articles found. Here is the most recent summary from " + recentDateDisplay + ".\n\n"
                     + recentText.orElse("View in a browser for best experience.");
         }
 
-        String wrappedHtml = wrapInEmailLayout(bodyHtml, dateDisplay);
+        String wrappedHtml = wrapInEmailLayout(bodyHtml, dateDisplay, styleBlock);
 
         NewsletterRun result = new NewsletterRun(
                 "digest-" + today.format(DateTimeFormatter.ISO_LOCAL_DATE),
@@ -116,6 +123,23 @@ public class DigestNewsletterRenderer {
         return result;
     }
 
+    private String extractStyleBlock(String html) {
+        log.debug("extractStyleBlock() | inputLength={}", html.length());
+        int styleStart = html.indexOf("<style");
+        if (styleStart < 0) {
+            log.debug("extractStyleBlock() | no <style> tag found, returning empty");
+            return "";
+        }
+        int styleEnd = html.indexOf("</style>", styleStart);
+        if (styleEnd < 0) {
+            log.debug("extractStyleBlock() | no </style> closing tag, returning empty");
+            return "";
+        }
+        String result = html.substring(styleStart, styleEnd + "</style>".length());
+        log.debug("extractStyleBlock() | return={} chars", result.length());
+        return result;
+    }
+
     private String extractBodyContent(String html) {
         log.debug("extractBodyContent() | inputLength={}", html.length());
         int bodyStart = html.indexOf("<body");
@@ -135,8 +159,8 @@ public class DigestNewsletterRenderer {
         return result;
     }
 
-    private String wrapInEmailLayout(String bodyHtml, String dateDisplay) {
-        log.debug("wrapInEmailLayout() | bodyLength={}, date={}", bodyHtml.length(), dateDisplay);
+    private String wrapInEmailLayout(String bodyHtml, String dateDisplay, String styleBlock) {
+        log.debug("wrapInEmailLayout() | bodyLength={}, date={}, hasStyles={}", bodyHtml.length(), dateDisplay, !styleBlock.isEmpty());
 
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html>\n");
@@ -144,6 +168,9 @@ public class DigestNewsletterRenderer {
         sb.append("  <meta charset=\"UTF-8\">\n");
         sb.append("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
         sb.append("  <title>AI Healthcare Daily Digest</title>\n");
+        if (!styleBlock.isEmpty()) {
+            sb.append("  ").append(styleBlock).append("\n");
+        }
         sb.append("</head>\n<body style=\"margin:0; padding:0; background:#f4f6f9; font-family:Arial,sans-serif;\">\n");
         sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f4f6f9;\">\n");
         sb.append("<tr><td align=\"center\" style=\"padding:20px 10px;\">\n");
