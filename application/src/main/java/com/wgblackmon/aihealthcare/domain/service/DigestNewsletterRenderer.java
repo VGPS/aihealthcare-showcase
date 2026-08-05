@@ -99,6 +99,10 @@ public class DigestNewsletterRenderer {
         List<NewsArticle> result = new ArrayList<>();
 
         for (NewsArticle article : articles) {
+            String tier = article.sourceTier();
+            if (tier != null && (tier.equals("COMPETITOR") || tier.equals("HUGGINGFACE"))) {
+                continue;
+            }
             String title = article.title();
             if (title == null || title.isBlank()) {
                 continue;
