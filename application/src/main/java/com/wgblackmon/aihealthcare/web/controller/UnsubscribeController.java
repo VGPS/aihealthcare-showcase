@@ -1,6 +1,10 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.stripe.model.Subscription;
+import com.wgblackmon.aihealthcare.domain.model.AppUser;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
+import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -20,20 +24,30 @@ import java.util.Optional;
  * <p>This endpoint is publicly accessible (no authentication required) so
  * recipients can unsubscribe without logging in.
  *
+ * <p>On unsubscribe, three events fire:
+ * <ol>
+ *   <li>Subscriber record deactivated ({@code active=false}, tier reverted to FREE, Stripe IDs cleared)</li>
+ *   <li>Stripe subscription cancelled (if one exists)</li>
+ *   <li>AppUser tier downgraded to FREE (if a login account exists)</li>
+ * </ol>
+ *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-31
- * @updated 2026-07-31
+ * @updated 2026-08-05
  */
 @Slf4j
 @Controller
 public class UnsubscribeController {
 
     private final SubscriberPort subscriberPort;
+    private final AppUserPort appUserPort;
 
-    public UnsubscribeController(SubscriberPort subscriberPort) {
-        log.debug("UnsubscribeController() | subscriberPort={}", subscriberPort.getClass().getSimpleName());
+    public UnsubscribeController(SubscriberPort subscriberPort, AppUserPort appUserPort) {
+        log.debug("UnsubscribeController() | subscriberPort={}, appUserPort={}",
+                subscriberPort.getClass().getSimpleName(), appUserPort.getClass().getSimpleName());
         this.subscriberPort = subscriberPort;
+        this.appUserPort = appUserPort;
     }
 
     /**
@@ -66,17 +80,74 @@ public class UnsubscribeController {
         }
 
         Subscriber sub = subscriberOpt.get();
+
+        // 1. Cancel Stripe subscription if one exists
+        cancelStripeSubscription(sub);
+
+        // 2. Deactivate subscriber record — revert to FREE, clear Stripe IDs
         Subscriber deactivated = new Subscriber(
-                sub.email(), sub.name(), false, sub.subscribedAt(), sub.tier(),
-                sub.unsubscribeToken(), sub.stripeCustomerId(), sub.stripeSubscriptionId());
+                sub.email(), sub.name(), false, sub.subscribedAt(), SubscriptionTier.FREE,
+                sub.unsubscribeToken(), null, null);
         subscriberPort.save(deactivated);
+        log.info("unsubscribe() | Subscriber deactivated: email={}", sub.email());
+
+        // 3. Downgrade AppUser tier to FREE if a login account exists
+        downgradeAppUser(sub.email());
 
         model.addAttribute("success", true);
         model.addAttribute("message", "You have been successfully unsubscribed.");
         model.addAttribute("email", sub.email());
 
-        log.info("unsubscribe() | Unsubscribed: email={}", sub.email());
         log.debug("unsubscribe() | return=unsubscribe");
         return "unsubscribe";
+    }
+
+    private void cancelStripeSubscription(Subscriber sub) {
+        log.debug("cancelStripeSubscription() | email={}, stripeSubscriptionId={}",
+                sub.email(), sub.stripeSubscriptionId());
+
+        if (sub.stripeSubscriptionId() == null || sub.stripeSubscriptionId().isBlank()) {
+            log.debug("cancelStripeSubscription() | No Stripe subscription to cancel");
+            log.debug("cancelStripeSubscription() | return=void");
+            return;
+        }
+
+        try {
+            Subscription subscription = Subscription.retrieve(sub.stripeSubscriptionId());
+            subscription.cancel();
+            log.info("cancelStripeSubscription() | Cancelled Stripe subscription: {}",
+                    sub.stripeSubscriptionId());
+        } catch (Exception e) {
+            log.warn("cancelStripeSubscription() | Failed to cancel Stripe subscription {}: {}",
+                    sub.stripeSubscriptionId(), e.getMessage());
+        }
+
+        log.debug("cancelStripeSubscription() | return=void");
+    }
+
+    private void downgradeAppUser(String email) {
+        log.debug("downgradeAppUser() | email={}", email);
+
+        Optional<AppUser> userOpt = appUserPort.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            log.debug("downgradeAppUser() | No AppUser account found for email={}", email);
+            log.debug("downgradeAppUser() | return=void");
+            return;
+        }
+
+        AppUser user = userOpt.get();
+        if (user.tier() == SubscriptionTier.FREE) {
+            log.debug("downgradeAppUser() | Already FREE tier, no change needed");
+            log.debug("downgradeAppUser() | return=void");
+            return;
+        }
+
+        AppUser downgraded = new AppUser(
+                user.email(), user.passwordHash(), user.displayName(),
+                user.role(), user.enabled(), SubscriptionTier.FREE, null);
+        appUserPort.save(downgraded);
+        log.info("downgradeAppUser() | Downgraded to FREE: email={}, previousTier={}", email, user.tier());
+
+        log.debug("downgradeAppUser() | return=void");
     }
 }
