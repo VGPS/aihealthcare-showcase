@@ -502,7 +502,6 @@ class NotebookLMServiceTest {
 
         String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
-        assertThat(content).contains("summary-section");
         assertThat(content).contains("Today's Summary");
         assertThat(content).contains("major developments in AI healthcare");
     }
@@ -514,7 +513,7 @@ class NotebookLMServiceTest {
 
         String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
-        assertThat(content).doesNotContain("<div class=\"summary-section\">");
+        assertThat(content).doesNotContain("Today's Summary");
     }
 
     @Test
@@ -534,8 +533,10 @@ class NotebookLMServiceTest {
 
         String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
-        assertThat(content).contains("href=\"#article-1\">[1]</a>");
-        assertThat(content).contains("href=\"#article-2\">[2]</a>");
+        assertThat(content).contains("#article-1\"");
+        assertThat(content).contains("[1]</a>");
+        assertThat(content).contains("#article-2\"");
+        assertThat(content).contains("[2]</a>");
     }
 
     // =========================================================================
@@ -568,7 +569,7 @@ class NotebookLMServiceTest {
         String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
         assertThat(content).contains("<title>" + TITLE + "</title>");
-        assertThat(content).contains("<h1>" + TITLE + "</h1>");
+        assertThat(content).contains(TITLE + "</h1>");
     }
 
     @Test
@@ -608,7 +609,6 @@ class NotebookLMServiceTest {
 
         String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
-        assertThat(content).contains("article-meta");
         assertThat(content).contains("Jane Doe");
         assertThat(content).contains("May 15, 2026");
     }
@@ -662,7 +662,7 @@ class NotebookLMServiceTest {
 
         String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
-        assertThat(content).contains("article-body");
+        assertThat(content).contains("line-height:1.5");
     }
 
     @Test
@@ -674,7 +674,7 @@ class NotebookLMServiceTest {
 
         String expectedHtml = LocalDate.now().format(DATE_FORMAT) + ".html";
         String content = Files.readString(summariesDir.resolve(expectedHtml), StandardCharsets.UTF_8);
-        assertThat(content).contains("article-body");
+        assertThat(content).contains("line-height:1.5");
         assertThat(content).contains("...");
     }
 

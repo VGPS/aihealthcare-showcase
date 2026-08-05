@@ -22,7 +22,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-21
+ * @updated 2026-08-05
  */
 @Slf4j
 public class DigestNewsletterRenderer {
@@ -64,7 +64,7 @@ public class DigestNewsletterRenderer {
         String bodyText;
 
         if (htmlOpt.isPresent()) {
-            bodyHtml = htmlOpt.get();
+            bodyHtml = extractBodyContent(htmlOpt.get());
             bodyText = textOpt.orElse("Today's AI Healthcare article digest. View in a browser for best experience.");
         } else {
             log.info("buildDigest() | No summary file for {} — searching for most recent", today);
@@ -84,7 +84,7 @@ public class DigestNewsletterRenderer {
             Optional<String> recentText = dailySummaryPort.getTextSummary(recentDate);
 
             String banner = buildNoNewArticlesBanner(recentDateDisplay);
-            bodyHtml = banner + recentHtml.orElse("");
+            bodyHtml = banner + extractBodyContent(recentHtml.orElse(""));
             bodyText = "No new articles found. Here is the most recent summary from " + recentDateDisplay + ".\n\n"
                     + recentText.orElse("View in a browser for best experience.");
         }
@@ -113,6 +113,25 @@ public class DigestNewsletterRenderer {
                 + "Here is the most recent summary from " + summaryDateDisplay + "."
                 + "</div>\n";
         log.debug("buildNoNewArticlesBanner() | return={} chars", result.length());
+        return result;
+    }
+
+    private String extractBodyContent(String html) {
+        log.debug("extractBodyContent() | inputLength={}", html.length());
+        int bodyStart = html.indexOf("<body");
+        if (bodyStart < 0) {
+            log.debug("extractBodyContent() | no <body> tag found, returning as-is");
+            return html;
+        }
+        int contentStart = html.indexOf(">", bodyStart) + 1;
+        int bodyEnd = html.lastIndexOf("</body>");
+        String result;
+        if (bodyEnd < 0) {
+            result = html.substring(contentStart).trim();
+        } else {
+            result = html.substring(contentStart, bodyEnd).trim();
+        }
+        log.debug("extractBodyContent() | return={} chars", result.length());
         return result;
     }
 
