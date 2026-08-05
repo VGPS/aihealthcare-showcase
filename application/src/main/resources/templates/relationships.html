@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Company Relationship Graph — partnerships, acquisitions, investments,
+ * and integrations detected across AI healthcare articles.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-04
+ * @updated 2026-08-04
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Company Relationships')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Company Relationship Graph</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Partnerships, acquisitions, investments, and integrations in AI Healthcare</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('relationships')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div th:each="entry : ${typeCounts}" class="bg-white rounded-lg shadow-card p-4 text-center">
+            <div class="text-2xl font-bold text-primary-600" th:text="${entry.value}">0</div>
+            <div class="text-xs text-gray-500 uppercase mt-1" th:text="${entry.key}">TYPE</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-card p-4 text-center">
+            <div class="text-2xl font-bold text-gray-700" th:text="${totalRelationships}">0</div>
+            <div class="text-xs text-gray-500 uppercase mt-1">Total</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-card p-4 text-center">
+            <div class="text-2xl font-bold text-indigo-600" th:text="${companyCount}">0</div>
+            <div class="text-xs text-gray-500 uppercase mt-1">Companies</div>
+        </div>
+    </div>
+
+    <!-- Company Filter -->
+    <div class="bg-white rounded-lg shadow-card p-4 mb-6">
+        <form th:action="@{/dashboard/relationships}" method="get" class="flex items-center gap-3">
+            <label for="company" class="text-sm font-medium text-gray-700">Filter by company:</label>
+            <select id="company" name="company" class="border border-gray-300 rounded px-3 py-1.5 text-sm">
+                <option value="">All Companies</option>
+                <option th:each="name : ${companyNames}" th:value="${name}" th:text="${name}"
+                        th:selected="${name == filterCompany}">Company</option>
+            </select>
+            <button type="submit" class="bg-primary-600 text-white px-4 py-1.5 rounded text-sm hover:bg-primary-700">
+                Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Relationships Table -->
+    <div class="bg-white rounded-lg shadow-card p-6">
+        <h2 class="text-xl font-semibold text-primary-700 mb-4">Detected Relationships</h2>
+
+        <div th:if="${#lists.isEmpty(relationships)}" class="text-gray-500 text-sm py-8 text-center">
+            No company relationships detected yet. Relationships are detected automatically during pipeline runs.
+        </div>
+
+        <div th:unless="${#lists.isEmpty(relationships)}" class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="border-b border-gray-200 text-left text-gray-500 uppercase text-xs">
+                        <th class="pb-2 pr-4">Type</th>
+                        <th class="pb-2 pr-4">Source</th>
+                        <th class="pb-2 pr-4"></th>
+                        <th class="pb-2 pr-4">Target</th>
+                        <th class="pb-2 pr-4">Summary</th>
+                        <th class="pb-2 pr-4">Confidence</th>
+                        <th class="pb-2">Detected</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="rel : ${relationships}" class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-3 pr-4">
+                            <span class="inline-block px-2 py-0.5 rounded text-xs font-medium"
+                                  th:classappend="${rel.relationshipType == 'PARTNERSHIP'} ? 'bg-blue-100 text-blue-800' :
+                                                  (${rel.relationshipType == 'ACQUISITION'} ? 'bg-red-100 text-red-800' :
+                                                  (${rel.relationshipType == 'INVESTMENT'} ? 'bg-green-100 text-green-800' :
+                                                  (${rel.relationshipType == 'COMPETITOR'} ? 'bg-orange-100 text-orange-800' :
+                                                  (${rel.relationshipType == 'SUPPLIER'} ? 'bg-yellow-100 text-yellow-800' :
+                                                  'bg-purple-100 text-purple-800'))))"
+                                  th:text="${rel.relationshipType}">TYPE</span>
+                        </td>
+                        <td class="py-3 pr-4 font-medium text-gray-900" th:text="${rel.sourceCompany}">Source</td>
+                        <td class="py-3 pr-4 text-gray-400">→</td>
+                        <td class="py-3 pr-4 font-medium text-gray-900" th:text="${rel.targetCompany}">Target</td>
+                        <td class="py-3 pr-4 text-gray-600 max-w-md truncate" th:text="${rel.summary}">Summary</td>
+                        <td class="py-3 pr-4 text-sm font-medium" th:text="${rel.confidence}">80%</td>
+                        <td class="py-3 text-gray-500 text-xs" th:text="${rel.detectedAt}">Date</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

@@ -1,8 +1,11 @@
 package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
+import com.wgblackmon.aihealthcare.domain.model.WebhookEventType;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
+import com.wgblackmon.aihealthcare.infrastructure.delivery.WebhookDispatcher;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -25,10 +28,13 @@ import org.springframework.stereotype.Component;
 public class TrendDetectionScheduler {
 
     private final DetectTrendsUseCase detectTrendsUseCase;
+    private final WebhookDispatcher webhookDispatcher;
 
-    public TrendDetectionScheduler(DetectTrendsUseCase detectTrendsUseCase) {
+    public TrendDetectionScheduler(DetectTrendsUseCase detectTrendsUseCase,
+                                    @Autowired(required = false) WebhookDispatcher webhookDispatcher) {
         log.debug("TrendDetectionScheduler() | detectTrendsUseCase={}", detectTrendsUseCase);
         this.detectTrendsUseCase = detectTrendsUseCase;
+        this.webhookDispatcher = webhookDispatcher;
     }
 
     /**
@@ -43,6 +49,19 @@ public class TrendDetectionScheduler {
 
             log.info("runWeeklyTrendDetection() | snapshot saved: rising={}, total={}",
                      snapshot.risingTopics().size(), snapshot.totalKeywords());
+
+            if (webhookDispatcher != null && !snapshot.risingTopics().isEmpty()) {
+                try {
+                    webhookDispatcher.dispatch(
+                            WebhookEventType.TREND_ALERT,
+                            snapshot.risingTopics().size() + " Rising Trend" + (snapshot.risingTopics().size() == 1 ? "" : "s") + " Detected",
+                            "Weekly trend analysis found " + snapshot.risingTopics().size() + " rising and " + snapshot.fadingTopics().size() + " fading keywords across " + snapshot.totalKeywords() + " tracked terms.",
+                            "/dashboard/trends"
+                    );
+                } catch (Exception we) {
+                    log.warn("runWeeklyTrendDetection() | webhook dispatch failed: {}", we.getMessage());
+                }
+            }
         } catch (Exception e) {
             log.error("runWeeklyTrendDetection() | trend detection failed", e);
         }

@@ -29,7 +29,7 @@ class TrendDetectionSchedulerTest {
     @BeforeEach
     void setUp() {
         detectTrendsUseCase = mock(DetectTrendsUseCase.class);
-        scheduler = new TrendDetectionScheduler(detectTrendsUseCase);
+        scheduler = new TrendDetectionScheduler(detectTrendsUseCase, null);
     }
 
     @Test

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-26
- * @updated 2026-07-20
+ * @updated 2026-08-04
  */
 @Slf4j
 @Component
@@ -28,6 +28,7 @@ public class TierLimitProperties {
     private TierConfig subscriber = new TierConfig();
     private TierConfig demo = new TierConfig();
     private TierConfig freePending = new TierConfig();
+    private TierConfig enterprise = new TierConfig();
 
     public TierConfig getFree()                            { return free; }
     public void setFree(TierConfig free)                   { this.free = free; }
@@ -40,6 +41,9 @@ public class TierLimitProperties {
 
     public TierConfig getFreePending()                     { return freePending; }
     public void setFreePending(TierConfig freePending)     { this.freePending = freePending; }
+
+    public TierConfig getEnterprise()                      { return enterprise; }
+    public void setEnterprise(TierConfig enterprise)       { this.enterprise = enterprise; }
 
     /**
      * Nested config for a single tier's limits.

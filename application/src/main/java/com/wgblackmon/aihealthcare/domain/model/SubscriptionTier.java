@@ -4,7 +4,7 @@ package com.wgblackmon.aihealthcare.domain.model;
  * Subscription tier that determines what newsletter content a subscriber receives
  * and what platform features are available.
  *
- * <p>Four tiers are supported:
+ * <p>Five tiers are supported:
  * <ul>
  *   <li>{@code DEMO} — full site access for 7 days; same feature limits as
  *       SUBSCRIBER.  Expires at the timestamp in {@code AppUser.demoExpiresAt}.</li>
@@ -14,6 +14,8 @@ package com.wgblackmon.aihealthcare.domain.model;
  *       ({@code app_users.enabled = false}).</li>
  *   <li>{@code SUBSCRIBER} — $39/month paid tier; full newsletter, full archive,
  *       semantic search, higher AI query allowance, and model choice.</li>
+ *   <li>{@code ENTERPRISE} — enterprise API tier; highest query limits (2000/month),
+ *       10 API keys, premium API access for integration into customer systems.</li>
  * </ul>
  *
  * <p>Billing and payment processing are handled externally by Stripe Billing.
@@ -23,7 +25,7 @@ package com.wgblackmon.aihealthcare.domain.model;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-05-23
- * @updated 2026-07-20
+ * @updated 2026-08-04
  */
 public enum SubscriptionTier {
 
@@ -37,5 +39,8 @@ public enum SubscriptionTier {
     FREE,
 
     /** Paid tier — full newsletter, full archive, semantic search, higher query limits. */
-    SUBSCRIBER
+    SUBSCRIBER,
+
+    /** Enterprise API tier — highest query limits, 10 API keys, premium API access. */
+    ENTERPRISE
 }

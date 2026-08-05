@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-03
- * @updated 2026-07-03
+ * @updated 2026-08-04
  */
 @DataJpaTest
 @Import(ApiKeyAdapter.class)
@@ -77,5 +77,29 @@ class ApiKeyAdapterTest {
     @DisplayName("existsById returns false for unknown id")
     void existsById_unknownId_returnsFalse() {
         assertThat(adapter.existsById("nonexistent")).isFalse();
+    }
+
+    @Test
+    @DisplayName("countByOwnerEmail returns correct count")
+    void countByOwnerEmail_returnsCount() {
+        adapter.save(createKey("k1", "alice@test.com", "Key A", "hash-a"));
+        adapter.save(createKey("k2", "alice@test.com", "Key B", "hash-b"));
+        adapter.save(createKey("k3", "bob@test.com", "Key C", "hash-c"));
+
+        assertThat(adapter.countByOwnerEmail("alice@test.com")).isEqualTo(2);
+        assertThat(adapter.countByOwnerEmail("bob@test.com")).isEqualTo(1);
+        assertThat(adapter.countByOwnerEmail("nobody@test.com")).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("findById returns key when present")
+    void findById_returnsKey() {
+        adapter.save(createKey("k1", "user@test.com", "My Key", "hash-abc"));
+
+        Optional<ApiKey> found = adapter.findById("k1");
+        assertThat(found).isPresent();
+        assertThat(found.get().name()).isEqualTo("My Key");
+
+        assertThat(adapter.findById("nonexistent")).isEmpty();
     }
 }

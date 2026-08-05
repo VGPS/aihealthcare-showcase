@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Deal Signals Dashboard — funding, acquisitions, partnerships, IPOs,
+ * and product launches detected in healthcare AI articles.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-04
+ * @updated 2026-08-04
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Deal Signals')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Deal Signals</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Funding, acquisitions, partnerships, and launches in AI Healthcare</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('deals')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div th:each="entry : ${typeCounts}" class="bg-white rounded-lg shadow-card p-4 text-center">
+            <div class="text-2xl font-bold text-primary-600" th:text="${entry.value}">0</div>
+            <div class="text-xs text-gray-500 uppercase mt-1" th:text="${entry.key}">TYPE</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-card p-4 text-center">
+            <div class="text-2xl font-bold text-gray-700" th:text="${totalSignals}">0</div>
+            <div class="text-xs text-gray-500 uppercase mt-1">Total</div>
+        </div>
+    </div>
+
+    <!-- Signals Table -->
+    <div class="bg-white rounded-lg shadow-card p-6">
+        <h2 class="text-xl font-semibold text-primary-700 mb-4">Recent Signals</h2>
+
+        <div th:if="${#lists.isEmpty(signals)}" class="text-gray-500 text-sm py-8 text-center">
+            No deal signals detected yet. Signals are detected automatically during pipeline runs.
+        </div>
+
+        <div th:unless="${#lists.isEmpty(signals)}" class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="border-b border-gray-200 text-left text-gray-500 uppercase text-xs">
+                        <th class="pb-2 pr-4">Type</th>
+                        <th class="pb-2 pr-4">Title</th>
+                        <th class="pb-2 pr-4">Company</th>
+                        <th class="pb-2 pr-4">Confidence</th>
+                        <th class="pb-2">Detected</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="signal : ${signals}" class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-3 pr-4">
+                            <span class="inline-block px-2 py-0.5 rounded text-xs font-medium"
+                                  th:classappend="${signal.signalType == 'FUNDING'} ? 'bg-green-100 text-green-800' :
+                                                  (${signal.signalType == 'ACQUISITION'} ? 'bg-red-100 text-red-800' :
+                                                  (${signal.signalType == 'PARTNERSHIP'} ? 'bg-blue-100 text-blue-800' :
+                                                  (${signal.signalType == 'IPO'} ? 'bg-purple-100 text-purple-800' :
+                                                  'bg-yellow-100 text-yellow-800')))"
+                                  th:text="${signal.signalType}">TYPE</span>
+                        </td>
+                        <td class="py-3 pr-4 max-w-md">
+                            <div class="font-medium text-gray-900 truncate" th:text="${signal.title}">Title</div>
+                            <div class="text-xs text-gray-500 mt-0.5 truncate" th:text="${signal.summary}">Summary</div>
+                        </td>
+                        <td class="py-3 pr-4 text-gray-600" th:text="${signal.companyName}">Company</td>
+                        <td class="py-3 pr-4">
+                            <span class="text-sm font-medium" th:text="${signal.confidence}">85%</span>
+                        </td>
+                        <td class="py-3 text-gray-500 text-xs" th:text="${signal.detectedAt}">Date</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

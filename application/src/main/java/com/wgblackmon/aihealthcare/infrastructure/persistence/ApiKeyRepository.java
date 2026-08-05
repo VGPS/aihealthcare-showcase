@@ -11,11 +11,13 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-03
- * @updated 2026-07-03
+ * @updated 2026-08-04
  */
 public interface ApiKeyRepository extends JpaRepository<ApiKeyEntity, String> {
 
     Optional<ApiKeyEntity> findByKeyHash(String keyHash);
 
     List<ApiKeyEntity> findAllByOwnerEmail(String ownerEmail);
+
+    int countByOwnerEmail(String ownerEmail);
 }

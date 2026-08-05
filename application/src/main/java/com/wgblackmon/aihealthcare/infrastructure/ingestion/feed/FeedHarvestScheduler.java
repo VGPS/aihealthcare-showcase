@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.model.LintReport;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistItem;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
+import com.wgblackmon.aihealthcare.domain.model.WebhookEventType;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
@@ -17,6 +18,7 @@ import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.WatchlistMatchingService;
 import com.wgblackmon.aihealthcare.domain.service.WikiLintService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
+import com.wgblackmon.aihealthcare.infrastructure.delivery.WebhookDispatcher;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.StartupPipelineOrchestrator;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +70,7 @@ public class FeedHarvestScheduler {
     private final WatchlistPort watchlistPort;
     private final WatchlistMatchPort watchlistMatchPort;
     private final StartupPipelineOrchestrator pipelineOrchestrator;
+    private final WebhookDispatcher webhookDispatcher;
 
     @Value("${aihealthcare.startup.harvest-enabled:true}")
     private boolean startupHarvestEnabled;
@@ -83,7 +86,8 @@ public class FeedHarvestScheduler {
                                 @Autowired(required = false) WatchlistMatchingService watchlistMatchingService,
                                 @Autowired(required = false) WatchlistPort watchlistPort,
                                 @Autowired(required = false) WatchlistMatchPort watchlistMatchPort,
-                                @Autowired(required = false) StartupPipelineOrchestrator pipelineOrchestrator) {
+                                @Autowired(required = false) StartupPipelineOrchestrator pipelineOrchestrator,
+                                @Autowired(required = false) WebhookDispatcher webhookDispatcher) {
         log.debug("FeedHarvestScheduler() | harvestingPort={}, articleStoragePort={}, topicSummaryService={}, newsTopicProperties={}, knowledgeCompilationPort={}",
                   harvestingPort.getClass().getSimpleName(),
                   articleStoragePort.getClass().getSimpleName(),
@@ -102,6 +106,7 @@ public class FeedHarvestScheduler {
         this.watchlistPort = watchlistPort;
         this.watchlistMatchPort = watchlistMatchPort;
         this.pipelineOrchestrator = pipelineOrchestrator;
+        this.webhookDispatcher = webhookDispatcher;
     }
 
     /**
@@ -289,12 +294,37 @@ public class FeedHarvestScheduler {
 
             if (!newMatches.isEmpty()) {
                 watchlistMatchPort.saveAll(newMatches);
+                notifyWatchlistMatches(newMatches.size());
             }
             log.info("matchWatchlistItems() | {} new matches from {} candidates", newMatches.size(), matches.size());
         } catch (Exception e) {
             log.warn("matchWatchlistItems() | watchlist matching failed — harvest continues", e);
         }
         log.debug("matchWatchlistItems() | return=void");
+    }
+
+    /**
+     * Dispatches webhook notifications for new watchlist matches.
+     * No-ops if the webhook dispatcher is not configured.
+     */
+    private void notifyWatchlistMatches(int matchCount) {
+        log.debug("notifyWatchlistMatches() | matchCount={}", matchCount);
+        if (webhookDispatcher == null) {
+            log.debug("notifyWatchlistMatches() | webhookDispatcher not configured — skipping");
+            log.debug("notifyWatchlistMatches() | return=void");
+            return;
+        }
+        try {
+            webhookDispatcher.dispatch(
+                    WebhookEventType.WATCHLIST_MATCH,
+                    matchCount + " New Watchlist Match" + (matchCount == 1 ? "" : "es"),
+                    matchCount + " article" + (matchCount == 1 ? "" : "s") + " matched your watchlist items. Check your watchlist for details.",
+                    "/watchlist"
+            );
+        } catch (Exception e) {
+            log.warn("notifyWatchlistMatches() | webhook dispatch failed: {}", e.getMessage());
+        }
+        log.debug("notifyWatchlistMatches() | return=void");
     }
 
     /**

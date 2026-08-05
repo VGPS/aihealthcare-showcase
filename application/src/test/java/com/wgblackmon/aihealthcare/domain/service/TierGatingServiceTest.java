@@ -27,10 +27,11 @@ class TierGatingServiceTest {
     private static final TierLimits SUBSCRIBER_LIMITS    = new TierLimits(0, 200);
     private static final TierLimits DEMO_LIMITS          = new TierLimits(0, 200);
     private static final TierLimits FREE_PENDING_LIMITS  = new TierLimits(0, 0);
+    private static final TierLimits ENTERPRISE_LIMITS    = new TierLimits(0, 2000);
 
     @BeforeEach
     void setUp() {
-        service = new TierGatingService(FREE_LIMITS, SUBSCRIBER_LIMITS, DEMO_LIMITS, FREE_PENDING_LIMITS);
+        service = new TierGatingService(FREE_LIMITS, SUBSCRIBER_LIMITS, DEMO_LIMITS, FREE_PENDING_LIMITS, ENTERPRISE_LIMITS);
     }
 
     @Test
@@ -111,5 +112,23 @@ class TierGatingServiceTest {
     @Test
     void monthlyQueryLimitFor_subscriberTier_returns200() {
         assertThat(service.monthlyQueryLimitFor(SubscriptionTier.SUBSCRIBER)).isEqualTo(200);
+    }
+
+    @Test
+    void getLimits_enterpriseTier_returnsEnterpriseLimits() {
+        TierLimits result = service.getLimits(SubscriptionTier.ENTERPRISE);
+
+        assertThat(result.archiveDays()).isEqualTo(0);
+        assertThat(result.monthlyQueryLimit()).isEqualTo(2000);
+    }
+
+    @Test
+    void archiveDaysFor_enterpriseTier_returns0() {
+        assertThat(service.archiveDaysFor(SubscriptionTier.ENTERPRISE)).isEqualTo(0);
+    }
+
+    @Test
+    void monthlyQueryLimitFor_enterpriseTier_returns2000() {
+        assertThat(service.monthlyQueryLimitFor(SubscriptionTier.ENTERPRISE)).isEqualTo(2000);
     }
 }

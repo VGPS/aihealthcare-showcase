@@ -32,7 +32,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * @author  Bill Blackmon
  * @version 1.3
  * @since   2026-05-28
- * @updated 2026-07-04
+ * @updated 2026-08-04
  */
 @Slf4j
 @Configuration
@@ -70,6 +70,8 @@ public class SecurityConfig {
                                  "/pricing", "/error").permitAll()
                 .requestMatchers("/api/**").permitAll()
                 .requestMatchers("/monitoring/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/developer").permitAll()
                 .requestMatchers("/wiki", "/wiki/**").permitAll()
                 .requestMatchers("/stripe/**").permitAll()
                 .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
@@ -90,7 +92,8 @@ public class SecurityConfig {
                 .accessDeniedPage("/access-denied")
             )
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**", "/monitoring/**", "/stripe/**")
+                .ignoringRequestMatchers("/api/**", "/monitoring/**", "/stripe/**",
+                                        "/swagger-ui/**", "/v3/api-docs/**")
             );
 
         SecurityFilterChain result = http.build();

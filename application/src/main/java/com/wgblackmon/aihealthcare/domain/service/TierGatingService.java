@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Domain service that evaluates feature access and usage limits per subscription tier.
  *
- * <p>Holds the configured {@link TierLimits} for each of the four tiers (DEMO,
- * FREE_PENDING, FREE, SUBSCRIBER) and provides simple predicate methods that
+ * <p>Holds the configured {@link TierLimits} for each of the five tiers (DEMO,
+ * FREE_PENDING, FREE, SUBSCRIBER, ENTERPRISE) and provides simple predicate methods that
  * controllers and services can call to decide whether a subscriber is allowed
  * to perform a gated action (e.g. an AI research query).
  *
@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-05-26
- * @updated 2026-07-20
+ * @updated 2026-08-04
  */
 @Slf4j
 public class TierGatingService {
@@ -28,15 +28,18 @@ public class TierGatingService {
     private final TierLimits subscriberLimits;
     private final TierLimits demoLimits;
     private final TierLimits freePendingLimits;
+    private final TierLimits enterpriseLimits;
 
     public TierGatingService(TierLimits freeLimits, TierLimits subscriberLimits,
-                             TierLimits demoLimits, TierLimits freePendingLimits) {
-        log.debug("TierGatingService() | freeLimits={}, subscriberLimits={}, demoLimits={}, freePendingLimits={}",
-                  freeLimits, subscriberLimits, demoLimits, freePendingLimits);
+                             TierLimits demoLimits, TierLimits freePendingLimits,
+                             TierLimits enterpriseLimits) {
+        log.debug("TierGatingService() | freeLimits={}, subscriberLimits={}, demoLimits={}, freePendingLimits={}, enterpriseLimits={}",
+                  freeLimits, subscriberLimits, demoLimits, freePendingLimits, enterpriseLimits);
         this.freeLimits         = freeLimits;
         this.subscriberLimits   = subscriberLimits;
         this.demoLimits         = demoLimits;
         this.freePendingLimits  = freePendingLimits;
+        this.enterpriseLimits   = enterpriseLimits;
     }
 
     /**
@@ -51,6 +54,8 @@ public class TierGatingService {
         TierLimits result;
         if (tier == SubscriptionTier.SUBSCRIBER) {
             result = subscriberLimits;
+        } else if (tier == SubscriptionTier.ENTERPRISE) {
+            result = enterpriseLimits;
         } else if (tier == SubscriptionTier.DEMO) {
             result = demoLimits;
         } else if (tier == SubscriptionTier.FREE_PENDING) {
