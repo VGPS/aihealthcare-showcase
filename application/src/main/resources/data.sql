@@ -225,3 +225,10 @@ SELECT 'robertblackmon@gmail.com',
        '$2b$10$Z29vdt3HXJrUVDxjXoMqL./AsgaWWP0GUk4U/f/iQEfElZBpGYk/i',
        'Robert Blackmon', 'ADMIN', true, 'SUBSCRIBER'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'robertblackmon@gmail.com');
+
+-- Enterprise test user: enterprise@test.com / enterprise123 — ENTERPRISE tier for QA
+INSERT INTO app_users (email, password_hash, display_name, role, enabled, tier)
+SELECT 'enterprise@test.com',
+       '$2a$10$e382iCnQT8GJWFpwiW9ANuSEgNUNuKb5vHtm6zPMU5K87xe9Cqf56',
+       'Enterprise Tester', 'USER', true, 'ENTERPRISE'
+WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'enterprise@test.com');
