@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -21,6 +22,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -35,9 +37,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link AdminPipelineController}.
  *
  * @author  Bill Blackmon
- * @version 3.0
+ * @version 3.1
  * @since   2026-07-30
- * @updated 2026-08-04
+ * @updated 2026-08-05
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(AdminPipelineController.class)
@@ -51,6 +53,9 @@ class AdminPipelineControllerTest {
 
     @MockitoBean
     private PipelineHealthService healthService;
+
+    @MockitoBean
+    private NewsletterGenerationScheduler newsletterScheduler;
 
     // --- Page rendering ---
 
@@ -77,7 +82,7 @@ class AdminPipelineControllerTest {
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("pipelineCount", 15));
+                .andExpect(model().attribute("pipelineCount", 16));
     }
 
     @Test
@@ -211,5 +216,37 @@ class AdminPipelineControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin-pipelines"))
                 .andExpect(model().attributeExists("recentEvents", "eventTimestamps"));
+    }
+
+    // --- Newsletter generate-and-send endpoint ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void generateAndSendNewsletterReturnsSuccess() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/newsletter/generate-and-send").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.message").value("Newsletter generated and sent"));
+
+        verify(newsletterScheduler).runDailyDraftGeneration();
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void generateAndSendNewsletterReturnsFailureOnException() throws Exception {
+        doThrow(new RuntimeException("SMTP connection refused"))
+                .when(newsletterScheduler).runDailyDraftGeneration();
+
+        mockMvc.perform(post("/admin/pipelines/newsletter/generate-and-send").with(csrf()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.message").value("SMTP connection refused"));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void generateAndSendNewsletterReturns403ForNonAdmin() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/newsletter/generate-and-send").with(csrf()))
+                .andExpect(status().isForbidden());
     }
 }

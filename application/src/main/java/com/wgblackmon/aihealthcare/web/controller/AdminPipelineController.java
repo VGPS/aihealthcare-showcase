@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -33,9 +34,9 @@ import java.util.Map;
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 2.1
+ * @version 2.2
  * @since   2026-07-30
- * @updated 2026-08-04
+ * @updated 2026-08-05
  */
 @Slf4j
 @Controller
@@ -51,10 +52,14 @@ public class AdminPipelineController {
                     .withZone(ZoneId.of("America/New_York"));
 
     private final PipelineHealthService healthService;
+    private final NewsletterGenerationScheduler newsletterScheduler;
 
-    public AdminPipelineController(PipelineHealthService healthService) {
-        log.debug("AdminPipelineController() | healthService={}", healthService);
+    public AdminPipelineController(PipelineHealthService healthService,
+                                   NewsletterGenerationScheduler newsletterScheduler) {
+        log.debug("AdminPipelineController() | healthService={}, newsletterScheduler={}",
+                  healthService, newsletterScheduler);
         this.healthService = healthService;
+        this.newsletterScheduler = newsletterScheduler;
     }
 
     /**
@@ -207,6 +212,43 @@ public class AdminPipelineController {
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * Manually triggers the full newsletter pipeline: ingest, generate, deliver.
+     * Bypasses the auto-send override check — always sends.
+     *
+     * @return JSON result with draftId and recipient count
+     */
+    @PostMapping("/newsletter/generate-and-send")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> generateAndSendNewsletter() {
+        log.debug("generateAndSendNewsletter()");
+
+        Instant start = Instant.now();
+        try {
+            newsletterScheduler.runDailyDraftGeneration();
+
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "SUCCESS");
+            result.put("message", "Newsletter generated and sent");
+            result.put("durationMs", durationMs);
+
+            log.info("generateAndSendNewsletter() | Newsletter pipeline completed in {}ms", durationMs);
+            log.debug("generateAndSendNewsletter() | return={}", result);
+            return ResponseEntity.ok(result);
+        } catch (Exception ex) {
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "FAILED");
+            result.put("message", ex.getMessage());
+            result.put("durationMs", durationMs);
+
+            log.error("generateAndSendNewsletter() | Pipeline failed: {}", ex.getMessage(), ex);
+            log.debug("generateAndSendNewsletter() | return={}", result);
+            return ResponseEntity.internalServerError().body(result);
+        }
+    }
+
     private String formatRunSummary(PipelineHealthService.PipelineRunRecord run) {
         if ("SUCCESS".equals(run.status())) {
             return "OK in " + run.durationMs() + "ms";
@@ -293,6 +335,11 @@ public class AdminPipelineController {
                 "Generates monthly competitive landscape report via AI. Writes HTML to NotebookLMDirectory/summaries/.",
                 "Monthly 1st at 08:00 UTC", "MarketIntelligenceScheduler",
                 "/api/v1/market-intelligence/refresh", "POST", false, "~2 min", "High (LLM cost)"));
+
+        list.add(new PipelineInfo("newsletter-send", "Newsletter Generate & Send",
+                "Runs the full newsletter pipeline on demand: ingest today's articles, generate draft via AI, and deliver to all active subscribers. Use this if the scheduled run failed.",
+                "Daily midnight UTC", "NewsletterGenerationScheduler",
+                "/admin/pipelines/newsletter/generate-and-send", "POST", true, "~30 sec", "High (LLM cost)"));
 
         list.add(new PipelineInfo("company-discovery", "Company Discovery (Perplexity)",
                 "Discovers AI healthcare companies via Perplexity API: broad discovery, structured extraction, cross-validation. Deduplicates against DB.",

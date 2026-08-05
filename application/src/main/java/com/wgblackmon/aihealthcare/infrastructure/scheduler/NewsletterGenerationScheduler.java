@@ -50,7 +50,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-04-16
- * @updated 2026-08-04
+ * @updated 2026-08-05
  */
 @Slf4j
 @Component
@@ -121,10 +121,10 @@ public class NewsletterGenerationScheduler {
             // Auto-send unless overridden for today
             if (autoSendPort != null && autoSendPort.isOverriddenForDate(weekOf)) {
                 log.info("runDailyDraftGeneration() | Auto-send overridden for {} — draft left for manual review at /newsletter/runs/{}/edit",
-                         weekOf, runId);
+                         weekOf, draftId);
             } else if (deliverUseCase != null) {
-                int count = deliverUseCase.deliver(runId);
-                log.info("runDailyDraftGeneration() | Newsletter auto-sent to {} recipients: runId={}", count, runId);
+                int count = deliverUseCase.deliver(draftId);
+                log.info("runDailyDraftGeneration() | Newsletter auto-sent to {} recipients: draftId={}", count, draftId);
             } else {
                 log.warn("runDailyDraftGeneration() | DeliverNewsletterUseCase not available — draft created but not sent");
             }
