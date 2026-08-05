@@ -1,13 +1,18 @@
 package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
+import com.wgblackmon.aihealthcare.domain.model.DealSignal;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
+import com.wgblackmon.aihealthcare.domain.model.WebhookEventType;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeCompanySentimentUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeFrameworksUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DetectDealSignalsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.MapCompanyRelationshipsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectLegalTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PipelineRunEventPort;
 import com.wgblackmon.aihealthcare.infrastructure.ai.EmbeddingScheduler;
+import com.wgblackmon.aihealthcare.infrastructure.delivery.WebhookDispatcher;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebMonitoringScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.research.ResearchHarvestScheduler;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +64,9 @@ public class StartupPipelineOrchestrator {
     private final DetectLegalTrendsUseCase detectLegalTrendsUseCase;
     private final ResearchHarvestScheduler researchHarvestScheduler;
     private final PipelineRunEventPort pipelineRunEventPort;
+    private final WebhookDispatcher webhookDispatcher;
+    private final DetectDealSignalsUseCase detectDealSignalsUseCase;
+    private final MapCompanyRelationshipsUseCase mapRelationshipsUseCase;
 
     public StartupPipelineOrchestrator(
             @Autowired(required = false) WebMonitoringScheduler webMonitoringScheduler,
@@ -71,7 +79,10 @@ public class StartupPipelineOrchestrator {
             @Autowired(required = false) DetectTrendsUseCase detectTrendsUseCase,
             @Autowired(required = false) DetectLegalTrendsUseCase detectLegalTrendsUseCase,
             @Autowired(required = false) ResearchHarvestScheduler researchHarvestScheduler,
-            @Autowired(required = false) PipelineRunEventPort pipelineRunEventPort) {
+            @Autowired(required = false) PipelineRunEventPort pipelineRunEventPort,
+            @Autowired(required = false) WebhookDispatcher webhookDispatcher,
+            @Autowired(required = false) DetectDealSignalsUseCase detectDealSignalsUseCase,
+            @Autowired(required = false) MapCompanyRelationshipsUseCase mapRelationshipsUseCase) {
         log.debug("StartupPipelineOrchestrator() | initializing with {} available pipelines",
                 countNonNull(webMonitoringScheduler, regulatoryHarvestScheduler,
                         clinicalTrialHarvestScheduler, embeddingScheduler,
@@ -90,6 +101,9 @@ public class StartupPipelineOrchestrator {
         this.detectLegalTrendsUseCase = detectLegalTrendsUseCase;
         this.researchHarvestScheduler = researchHarvestScheduler;
         this.pipelineRunEventPort = pipelineRunEventPort;
+        this.webhookDispatcher = webhookDispatcher;
+        this.detectDealSignalsUseCase = detectDealSignalsUseCase;
+        this.mapRelationshipsUseCase = mapRelationshipsUseCase;
     }
 
     /**
@@ -148,6 +162,26 @@ public class StartupPipelineOrchestrator {
             }
         });
 
+        runStep("Deal signal detection", () -> {
+            if (detectDealSignalsUseCase != null) {
+                java.util.List<DealSignal> signals = detectDealSignalsUseCase.detectSignals();
+                if (webhookDispatcher != null && !signals.isEmpty()) {
+                    webhookDispatcher.dispatch(
+                            WebhookEventType.WATCHLIST_MATCH,
+                            signals.size() + " Deal Signal" + (signals.size() == 1 ? "" : "s") + " Detected",
+                            "Detected " + signals.size() + " new deal signal" + (signals.size() == 1 ? "" : "s") + " in recent articles.",
+                            "/dashboard/deals"
+                    );
+                }
+            }
+        });
+
+        runStep("Company relationships", () -> {
+            if (mapRelationshipsUseCase != null) {
+                mapRelationshipsUseCase.detectRelationships();
+            }
+        });
+
         runStep("Trend detection", () -> {
             if (detectTrendsUseCase != null) {
                 detectTrendsUseCase.detectTrends();
@@ -168,6 +202,20 @@ public class StartupPipelineOrchestrator {
 
         long elapsed = (System.currentTimeMillis() - start) / 1000;
         log.info("runAllPipelines() | full pipeline cascade complete in {}s", elapsed);
+
+        if (webhookDispatcher != null) {
+            try {
+                webhookDispatcher.dispatch(
+                        WebhookEventType.PIPELINE_COMPLETE,
+                        "Pipeline Run Complete",
+                        "All 11 data pipelines completed in " + elapsed + " seconds.",
+                        "/admin/pipeline"
+                );
+            } catch (Exception e) {
+                log.warn("runAllPipelines() | webhook dispatch failed: {}", e.getMessage());
+            }
+        }
+
         log.debug("runAllPipelines() | return=void");
     }
 
@@ -223,6 +271,10 @@ public class StartupPipelineOrchestrator {
                 return "company-discovery";
             case "Sentiment analysis":
                 return "sentiment-analysis";
+            case "Deal signal detection":
+                return "deal-signals";
+            case "Company relationships":
+                return "company-relationships";
             case "Trend detection":
                 return "trend-detection";
             case "Legal trend detection":

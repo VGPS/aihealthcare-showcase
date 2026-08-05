@@ -114,6 +114,17 @@ logging:
     org.springframework.web: INFO
 
 # -----------------------------------------------------------------------------
+# springdoc — Swagger UI for self-service API documentation.
+# -----------------------------------------------------------------------------
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+# -----------------------------------------------------------------------------
 # Feed harvesting — sources configured here in application.yml for Slice 2a.
 # Each entry maps to a FeedSourceConfig record.
 # -----------------------------------------------------------------------------
@@ -970,6 +981,15 @@ aihealthcare:
     subscriber:
       archive-days: 0
       monthly-query-limit: 200
+    enterprise:
+      archive-days: 0
+      monthly-query-limit: 2000
+
+  # ---------------------------------------------------------------------------
+  # Enterprise API rate limiting.
+  # ---------------------------------------------------------------------------
+  api:
+    rate-limit-per-minute: 60
 
   # ---------------------------------------------------------------------------
   # Healthcare Framework Competitive Analysis — companies to track.

@@ -3,12 +3,15 @@ package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistItem;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
+import com.wgblackmon.aihealthcare.domain.model.WebhookEventType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.domain.service.RegulatoryWatchlistMatcher;
+import com.wgblackmon.aihealthcare.infrastructure.delivery.WebhookDispatcher;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -37,12 +40,14 @@ public class RegulatoryHarvestScheduler {
     private final WatchlistPort watchlistPort;
     private final WatchlistMatchPort watchlistMatchPort;
     private final RegulatoryWatchlistMatcher regulatoryWatchlistMatcher;
+    private final WebhookDispatcher webhookDispatcher;
 
     public RegulatoryHarvestScheduler(RegulatoryHarvestingPort regulatoryHarvestingPort,
                                       RegulatoryEventPort regulatoryEventPort,
                                       WatchlistPort watchlistPort,
                                       WatchlistMatchPort watchlistMatchPort,
-                                      RegulatoryWatchlistMatcher regulatoryWatchlistMatcher) {
+                                      RegulatoryWatchlistMatcher regulatoryWatchlistMatcher,
+                                      @Autowired(required = false) WebhookDispatcher webhookDispatcher) {
         log.debug("RegulatoryHarvestScheduler() | regulatoryHarvestingPort={}, regulatoryEventPort={}, " +
                   "watchlistPort={}, watchlistMatchPort={}, regulatoryWatchlistMatcher={}",
                   regulatoryHarvestingPort, regulatoryEventPort,
@@ -52,6 +57,7 @@ public class RegulatoryHarvestScheduler {
         this.watchlistPort = watchlistPort;
         this.watchlistMatchPort = watchlistMatchPort;
         this.regulatoryWatchlistMatcher = regulatoryWatchlistMatcher;
+        this.webhookDispatcher = webhookDispatcher;
     }
 
     /**
@@ -85,6 +91,18 @@ public class RegulatoryHarvestScheduler {
             if (!newEvents.isEmpty()) {
                 regulatoryEventPort.saveAll(newEvents);
                 log.info("runDailyRegulatoryHarvest() | saved {} new events", newEvents.size());
+                if (webhookDispatcher != null) {
+                    try {
+                        webhookDispatcher.dispatch(
+                                WebhookEventType.REGULATORY_ALERT,
+                                newEvents.size() + " New Regulatory Event" + (newEvents.size() == 1 ? "" : "s"),
+                                newEvents.size() + " new regulatory event" + (newEvents.size() == 1 ? " was" : "s were") + " detected from FDA/CMS sources.",
+                                "/dashboard/regulatory"
+                        );
+                    } catch (Exception e) {
+                        log.warn("runDailyRegulatoryHarvest() | webhook dispatch failed: {}", e.getMessage());
+                    }
+                }
             }
 
             // Step 3: Match new events against watchlists

@@ -15,7 +15,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-03
- * @updated 2026-07-03
+ * @updated 2026-08-04
  */
 public interface ApiKeyPort {
 
@@ -43,4 +43,14 @@ public interface ApiKeyPort {
      * Checks whether an API key with the given ID exists.
      */
     boolean existsById(String id);
+
+    /**
+     * Finds an API key by its ID.
+     */
+    Optional<ApiKey> findById(String id);
+
+    /**
+     * Returns the number of API keys owned by the given email.
+     */
+    int countByOwnerEmail(String ownerEmail);
 }

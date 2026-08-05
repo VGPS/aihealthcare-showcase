@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.exception.ApiKeyCreationException;
 import com.wgblackmon.aihealthcare.domain.exception.ApiKeyNotFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.DuplicateSubscriberException;
 import com.wgblackmon.aihealthcare.domain.exception.DuplicateUserException;
@@ -135,6 +136,15 @@ public class GlobalExceptionHandler {
         ErrorResponse body = new ErrorResponse("NOT_FOUND", ex.getMessage());
         log.debug("handleApiKeyNotFound() | return=404");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(ApiKeyCreationException.class)
+    public ResponseEntity<ErrorResponse> handleApiKeyCreation(ApiKeyCreationException ex) {
+        log.debug("handleApiKeyCreation() | ex={}", ex.getMessage());
+        log.warn("handleApiKeyCreation() | reason={}", ex.getReason());
+        ErrorResponse body = new ErrorResponse("FORBIDDEN", ex.getReason());
+        log.debug("handleApiKeyCreation() | return=403");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
     }
 
     /**

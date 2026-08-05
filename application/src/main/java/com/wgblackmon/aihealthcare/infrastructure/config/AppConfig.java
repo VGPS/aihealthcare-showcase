@@ -47,7 +47,14 @@ import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
+import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyRelationshipPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.DealSignalPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.TeamPort;
+import com.wgblackmon.aihealthcare.domain.service.TeamManagementService;
+import com.wgblackmon.aihealthcare.domain.service.CompanyRelationshipService;
 import com.wgblackmon.aihealthcare.domain.service.CompanySentimentService;
+import com.wgblackmon.aihealthcare.domain.service.DataExportService;
+import com.wgblackmon.aihealthcare.domain.service.DealSignalDetectionService;
 import com.wgblackmon.aihealthcare.domain.service.FrameworkAnalysisService;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkCompany;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
@@ -203,7 +210,10 @@ public class AppConfig {
         TierLimits freePendingLimits = new TierLimits(
                 props.getFreePending().getArchiveDays(),
                 props.getFreePending().getMonthlyQueryLimit());
-        TierGatingService result = new TierGatingService(freeLimits, subscriberLimits, demoLimits, freePendingLimits);
+        TierLimits enterpriseLimits = new TierLimits(
+                props.getEnterprise().getArchiveDays(),
+                props.getEnterprise().getMonthlyQueryLimit());
+        TierGatingService result = new TierGatingService(freeLimits, subscriberLimits, demoLimits, freePendingLimits, enterpriseLimits);
         log.debug("tierGatingService() | return={}", result.getClass().getSimpleName());
         return result;
     }
@@ -1046,5 +1056,117 @@ public class AppConfig {
             @Qualifier("anthropicChatModel") ChatModel anthropicChatModel) {
         log.debug("primaryChatModel() | anthropicChatModel={}", anthropicChatModel.getClass().getSimpleName());
         return anthropicChatModel;
+    }
+
+    /**
+     * Creates the in-memory API rate limiter with configurable requests-per-minute.
+     *
+     * @param maxPerMinute maximum requests per minute per API key (default 60).
+     * @return The configured {@link RateLimiter} instance.
+     */
+    @Bean
+    public RateLimiter apiRateLimiter(
+            @Value("${aihealthcare.api.rate-limit-per-minute:60}") int maxPerMinute) {
+        log.debug("apiRateLimiter() | maxPerMinute={}", maxPerMinute);
+        RateLimiter result = new RateLimiter(maxPerMinute);
+        log.debug("apiRateLimiter() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Wires the {@link DealSignalDetectionService} — keyword-based deal signal
+     * detection in recently harvested articles.
+     *
+     * @param articleIngestionPort Adapter for fetching recent articles.
+     * @param dealSignalPort       Adapter for persisting deal signals.
+     * @return The wired {@link DealSignalDetectionService} instance.
+     */
+    @Bean
+    public DealSignalDetectionService dealSignalDetectionService(
+            ArticleIngestionPort articleIngestionPort,
+            DealSignalPort dealSignalPort) {
+        log.debug("dealSignalDetectionService() | articleIngestionPort={}, dealSignalPort={}",
+                  articleIngestionPort.getClass().getSimpleName(),
+                  dealSignalPort.getClass().getSimpleName());
+        DealSignalDetectionService result = new DealSignalDetectionService(articleIngestionPort, dealSignalPort);
+        log.debug("dealSignalDetectionService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Wires the {@link TeamManagementService} — multi-tenant team account management.
+     *
+     * @param teamPort Adapter for persisting teams and members.
+     * @return The wired {@link TeamManagementService} instance.
+     */
+    @Bean
+    public TeamManagementService teamManagementService(TeamPort teamPort) {
+        log.debug("teamManagementService() | teamPort={}", teamPort.getClass().getSimpleName());
+        TeamManagementService result = new TeamManagementService(teamPort);
+        log.debug("teamManagementService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Wires the {@link CompanyRelationshipService} — keyword-based inter-company
+     * relationship extraction from recently harvested articles.
+     *
+     * @param articleIngestionPort     Adapter for fetching recent articles.
+     * @param companyRelationshipPort  Adapter for persisting relationships.
+     * @return The wired {@link CompanyRelationshipService} instance.
+     */
+    @Bean
+    public CompanyRelationshipService companyRelationshipService(
+            ArticleIngestionPort articleIngestionPort,
+            CompanyRelationshipPort companyRelationshipPort) {
+        log.debug("companyRelationshipService() | articleIngestionPort={}, companyRelationshipPort={}",
+                  articleIngestionPort.getClass().getSimpleName(),
+                  companyRelationshipPort.getClass().getSimpleName());
+        CompanyRelationshipService result = new CompanyRelationshipService(articleIngestionPort, companyRelationshipPort);
+        log.debug("companyRelationshipService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Wires the {@link DataExportService} — CSV/JSON/PDF data export with optional
+     * white-label branding for enterprise customers.
+     *
+     * @param articleIngestionPort      Adapter for fetching recent articles.
+     * @param dealSignalPort            Adapter for fetching deal signals.
+     * @param companyRelationshipPort   Adapter for fetching company relationships.
+     * @return The wired {@link DataExportService} instance.
+     */
+    @Bean
+    public DataExportService dataExportService(
+            ArticleIngestionPort articleIngestionPort,
+            DealSignalPort dealSignalPort,
+            CompanyRelationshipPort companyRelationshipPort) {
+        log.debug("dataExportService() | articleIngestionPort={}, dealSignalPort={}, companyRelationshipPort={}",
+                  articleIngestionPort.getClass().getSimpleName(),
+                  dealSignalPort.getClass().getSimpleName(),
+                  companyRelationshipPort.getClass().getSimpleName());
+        DataExportService result = new DataExportService(articleIngestionPort, dealSignalPort, companyRelationshipPort);
+        log.debug("dataExportService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Registers the {@link ApiRateLimitFilter} as a servlet filter on {@code /api/*}
+     * paths. Registered via {@link FilterRegistrationBean} to avoid modifying
+     * {@link SecurityConfig}'s constructor signature.
+     *
+     * @param rateLimiter the rate limiter bean.
+     * @return The filter registration bean.
+     */
+    @Bean
+    public FilterRegistrationBean<ApiRateLimitFilter> apiRateLimitFilterRegistration(
+            RateLimiter rateLimiter) {
+        log.debug("apiRateLimitFilterRegistration() | rateLimiter={}", rateLimiter.getClass().getSimpleName());
+        FilterRegistrationBean<ApiRateLimitFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new ApiRateLimitFilter(rateLimiter));
+        registration.addUrlPatterns("/api/*");
+        registration.setOrder(1);
+        log.debug("apiRateLimitFilterRegistration() | return=FilterRegistrationBean");
+        return registration;
     }
 }

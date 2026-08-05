@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Developer Portal — API key management, usage stats, docs, and code examples.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-04
+ * @updated 2026-08-04
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Developer Portal')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Developer Portal</h1>
+    <p class="text-primary-200 text-sm mt-0.5">API keys, usage stats, and integration docs</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('developer')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Authentication & Getting Started -->
+    <div class="bg-white rounded-lg shadow-card p-6 mb-6">
+        <h2 class="text-xl font-semibold text-primary-700 mb-3">Getting Started</h2>
+        <p class="text-sm text-gray-600 mb-4">
+            The AIHealthcare REST API provides programmatic access to articles, trends, sentiment,
+            regulatory alerts, and AI-powered search. Authenticate with an API key sent in the
+            <code class="bg-gray-100 px-1 rounded text-sm">X-API-Key</code> header.
+        </p>
+        <div class="bg-gray-50 rounded p-4 border border-gray-200">
+            <p class="text-sm font-mono text-gray-700">
+                curl -H "X-API-Key: aih_your_key_here" https://app.bigskylabs.ai/api/v1/articles?topic=AI&amp;limit=10
+            </p>
+        </div>
+        <div class="mt-4">
+            <a href="/swagger-ui.html" target="_blank"
+               class="inline-flex items-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition">
+                Swagger UI &rarr;
+            </a>
+        </div>
+    </div>
+
+    <!-- API Keys Section (authenticated only) -->
+    <div th:if="${authenticated}" class="bg-white rounded-lg shadow-card p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold text-primary-700">Your API Keys</h2>
+            <span class="text-sm text-gray-500"
+                  th:text="${keyCount} + ' / ' + ${maxKeys} + ' keys'"></span>
+        </div>
+
+        <!-- Tier gate message for FREE users -->
+        <div th:if="${!canCreateKeys}" class="bg-amber-50 border border-amber-200 rounded p-4 mb-4">
+            <p class="text-sm text-amber-800">
+                API key creation requires a <strong>Subscriber</strong> or <strong>Enterprise</strong> plan.
+                <a th:href="@{/pricing}" class="text-primary-600 underline">Upgrade now</a>.
+            </p>
+        </div>
+
+        <!-- Create key form -->
+        <div th:if="${canCreateKeys}" class="mb-4" x-data="{ creating: false, keyName: '', newKey: '' }">
+            <div x-show="!creating">
+                <button @click="creating = true"
+                        class="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition"
+                        th:disabled="${keyCount >= maxKeys}">
+                    + Create API Key
+                </button>
+                <span th:if="${keyCount >= maxKeys}" class="text-sm text-red-600 ml-2">
+                    Key limit reached for your tier
+                </span>
+            </div>
+            <div x-show="creating" x-cloak class="flex gap-2 items-center">
+                <input x-model="keyName" type="text" placeholder="Key name (e.g. Production)"
+                       class="border border-gray-300 rounded-md px-3 py-2 text-sm flex-1">
+                <button @click="
+                    fetch('/api/v1/keys', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: keyName })
+                    })
+                    .then(r => r.json())
+                    .then(data => { newKey = data.rawKey; })
+                    .catch(() => alert('Failed to create key'))
+                " class="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700">Create</button>
+                <button @click="creating = false; keyName = ''" class="text-gray-500 text-sm hover:text-gray-700">Cancel</button>
+            </div>
+            <div x-show="newKey" x-cloak class="mt-3 bg-green-50 border border-green-200 rounded p-4">
+                <p class="text-sm font-semibold text-green-800 mb-1">Key created! Copy it now — it won't be shown again.</p>
+                <code class="text-sm font-mono bg-white px-2 py-1 rounded border" x-text="newKey"></code>
+            </div>
+        </div>
+
+        <!-- Key table -->
+        <table th:if="${!keys.isEmpty()}" class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 text-left text-gray-500">
+                    <th class="py-2 pr-4">Name</th>
+                    <th class="py-2 pr-4">Prefix</th>
+                    <th class="py-2 pr-4">Status</th>
+                    <th class="py-2 pr-4">Created</th>
+                    <th class="py-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="key : ${keys}" class="border-b border-gray-100">
+                    <td class="py-2 pr-4 font-medium" th:text="${key.name()}"></td>
+                    <td class="py-2 pr-4 font-mono text-gray-500" th:text="${key.keyPrefix()} + '...'"></td>
+                    <td class="py-2 pr-4">
+                        <span th:if="${key.active()}" class="text-green-600 font-medium">Active</span>
+                        <span th:unless="${key.active()}" class="text-red-600 font-medium">Inactive</span>
+                    </td>
+                    <td class="py-2 pr-4 text-gray-500" th:text="${key.createdAt()}"></td>
+                    <td class="py-2">
+                        <button th:attr="onclick='deleteKey(\'' + ${key.id()} + '\')'"
+                                class="text-red-500 hover:text-red-700 text-sm">Delete</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p th:if="${keys.isEmpty()}" class="text-sm text-gray-500 italic">No API keys created yet.</p>
+    </div>
+
+    <!-- Login prompt for unauthenticated -->
+    <div th:unless="${authenticated}" class="bg-white rounded-lg shadow-card p-6 mb-6">
+        <h2 class="text-xl font-semibold text-primary-700 mb-3">API Keys</h2>
+        <p class="text-sm text-gray-600">
+            <a th:href="@{/login}" class="text-primary-600 underline">Log in</a> to manage your API keys and view usage stats.
+        </p>
+    </div>
+
+    <!-- Usage Stats (authenticated only) -->
+    <div th:if="${authenticated}" class="bg-white rounded-lg shadow-card p-6 mb-6">
+        <h2 class="text-xl font-semibold text-primary-700 mb-3">Usage This Month</h2>
+        <div class="flex items-center gap-4">
+            <div class="flex-1">
+                <div class="bg-gray-200 rounded-full h-4 overflow-hidden">
+                    <div class="bg-primary-600 h-full rounded-full transition-all"
+                         th:style="'width: ' + ${usagePct} + '%'"></div>
+                </div>
+            </div>
+            <span class="text-sm font-medium text-gray-600"
+                  th:text="${queriesUsed} + ' / ' + ${queryLimit} + ' queries'"></span>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">
+            Tier: <strong th:text="${tier}"></strong> |
+            Resets on the 1st of each month
+        </p>
+    </div>
+
+    <!-- Rate Limits -->
+    <div class="bg-white rounded-lg shadow-card p-6 mb-6">
+        <h2 class="text-xl font-semibold text-primary-700 mb-3">Rate Limits</h2>
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 text-left text-gray-500">
+                    <th class="py-2 pr-4">Limit Type</th>
+                    <th class="py-2 pr-4">Value</th>
+                    <th class="py-2">Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4 font-medium">Per-minute</td>
+                    <td class="py-2 pr-4" th:text="${rateLimitPerMinute} + ' requests'"></td>
+                    <td class="py-2 text-gray-500">Per API key, sliding window</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4 font-medium">Monthly queries</td>
+                    <td class="py-2 pr-4">Subscriber: 200 | Enterprise: 2000</td>
+                    <td class="py-2 text-gray-500">AI-powered search and research calls</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="text-xs text-gray-500 mt-3">
+            Rate-limited responses return HTTP 429 with a <code class="bg-gray-100 px-1 rounded">Retry-After</code> header.
+            The <code class="bg-gray-100 px-1 rounded">X-RateLimit-Remaining</code> response header shows remaining requests.
+        </p>
+    </div>
+
+    <!-- Code Examples -->
+    <div class="bg-white rounded-lg shadow-card p-6 mb-6" x-data="{ tab: 'curl' }">
+        <h2 class="text-xl font-semibold text-primary-700 mb-3">Code Examples</h2>
+        <div class="flex gap-2 mb-4">
+            <button @click="tab = 'curl'" :class="tab === 'curl' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700'"
+                    class="px-3 py-1 rounded-md text-sm font-medium transition">curl</button>
+            <button @click="tab = 'python'" :class="tab === 'python' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700'"
+                    class="px-3 py-1 rounded-md text-sm font-medium transition">Python</button>
+            <button @click="tab = 'java'" :class="tab === 'java' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700'"
+                    class="px-3 py-1 rounded-md text-sm font-medium transition">Java</button>
+        </div>
+
+        <div x-show="tab === 'curl'" class="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+<pre># List recent articles
+curl -H "X-API-Key: aih_your_key" \
+  "https://app.bigskylabs.ai/api/v1/articles?topic=AI&amp;limit=10"
+
+# Get latest trend snapshot
+curl -H "X-API-Key: aih_your_key" \
+  "https://app.bigskylabs.ai/api/v1/trends/latest"
+
+# Get sentiment for a company
+curl -H "X-API-Key: aih_your_key" \
+  "https://app.bigskylabs.ai/api/v1/sentiment/tempus-ai"
+
+# AI-powered search
+curl -H "X-API-Key: aih_your_key" \
+  "https://app.bigskylabs.ai/api/v1/search/ai?q=FDA+clearance+AI+diagnostics&amp;topK=10"</pre>
+        </div>
+
+        <div x-show="tab === 'python'" x-cloak class="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+<pre>import requests
+
+API_KEY = "aih_your_key"
+BASE = "https://app.bigskylabs.ai/api/v1"
+headers = {"X-API-Key": API_KEY}
+
+# Get articles
+resp = requests.get(f"{BASE}/articles", headers=headers,
+                    params={"topic": "AI", "limit": 10})
+articles = resp.json()
+
+# Get sentiment
+resp = requests.get(f"{BASE}/sentiment/tempus-ai", headers=headers)
+sentiment = resp.json()
+
+# AI search
+resp = requests.get(f"{BASE}/search/ai", headers=headers,
+                    params={"q": "FDA clearance AI diagnostics", "topK": 10})
+results = resp.json()</pre>
+        </div>
+
+        <div x-show="tab === 'java'" x-cloak class="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-sm overflow-x-auto">
+<pre>HttpClient client = HttpClient.newHttpClient();
+
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://app.bigskylabs.ai/api/v1/articles?topic=AI&amp;limit=10"))
+    .header("X-API-Key", "aih_your_key")
+    .GET()
+    .build();
+
+HttpResponse&lt;String&gt; response = client.send(request,
+    HttpResponse.BodyHandlers.ofString());
+
+System.out.println(response.body());</pre>
+        </div>
+    </div>
+
+    <!-- Available Endpoints -->
+    <div class="bg-white rounded-lg shadow-card p-6 mb-6">
+        <h2 class="text-xl font-semibold text-primary-700 mb-3">Available Endpoints</h2>
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-gray-200 text-left text-gray-500">
+                    <th class="py-2 pr-4">Method</th>
+                    <th class="py-2 pr-4">Endpoint</th>
+                    <th class="py-2">Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4"><span class="text-green-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/articles</td>
+                    <td class="py-2 text-gray-600">List articles by topic</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4"><span class="text-green-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/trends/latest</td>
+                    <td class="py-2 text-gray-600">Latest keyword trend snapshot</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4"><span class="text-green-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/sentiment</td>
+                    <td class="py-2 text-gray-600">All company sentiments</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4"><span class="text-green-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/sentiment/{slug}</td>
+                    <td class="py-2 text-gray-600">Sentiment for a specific company</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4"><span class="text-green-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/frameworks</td>
+                    <td class="py-2 text-gray-600">Competitive framework analyses</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4"><span class="text-green-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/search/ai</td>
+                    <td class="py-2 text-gray-600">AI-powered multi-model search</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4"><span class="text-green-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/runs</td>
+                    <td class="py-2 text-gray-600">Newsletter run history</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="text-xs text-gray-500 mt-3">
+            See the full list in <a href="/swagger-ui.html" target="_blank" class="text-primary-600 underline">Swagger UI</a>.
+        </p>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+function deleteKey(id) {
+    if (!confirm('Delete this API key? This cannot be undone.')) return;
+    fetch('/api/v1/keys/' + id, { method: 'DELETE' })
+        .then(r => { if (r.ok) location.reload(); else alert('Failed to delete key'); })
+        .catch(() => alert('Failed to delete key'));
+}
+</script>
+
+</body>
+</html>

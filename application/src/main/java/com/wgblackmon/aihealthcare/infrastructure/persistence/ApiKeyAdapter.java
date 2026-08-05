@@ -18,7 +18,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-03
- * @updated 2026-07-03
+ * @updated 2026-08-04
  */
 @Slf4j
 @Component
@@ -75,6 +75,26 @@ public class ApiKeyAdapter implements ApiKeyPort {
         log.debug("existsById() | id={}", id);
         boolean result = repository.existsById(id);
         log.debug("existsById() | return={}", result);
+        return result;
+    }
+
+    @Override
+    public Optional<ApiKey> findById(String id) {
+        log.debug("findById() | id={}", id);
+        Optional<ApiKeyEntity> entity = repository.findById(id);
+        Optional<ApiKey> result = Optional.empty();
+        if (entity.isPresent()) {
+            result = Optional.of(toDomain(entity.get()));
+        }
+        log.debug("findById() | return={}", result.isPresent() ? "found" : "empty");
+        return result;
+    }
+
+    @Override
+    public int countByOwnerEmail(String ownerEmail) {
+        log.debug("countByOwnerEmail() | ownerEmail={}", ownerEmail);
+        int result = repository.countByOwnerEmail(ownerEmail);
+        log.debug("countByOwnerEmail() | return={}", result);
         return result;
     }
 
