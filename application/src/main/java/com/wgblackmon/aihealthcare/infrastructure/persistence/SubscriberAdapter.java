@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * JPA-backed adapter implementing {@link SubscriberPort}.
@@ -120,7 +121,12 @@ public class SubscriberAdapter implements SubscriberPort {
         entity.setActive(subscriber.active());
         entity.setSubscribedAt(subscriber.subscribedAt());
         entity.setTier(subscriber.tier().name());
-        entity.setUnsubscribeToken(subscriber.unsubscribeToken());
+        String token = subscriber.unsubscribeToken();
+        if (token == null || token.isBlank()) {
+            token = UUID.randomUUID().toString();
+            log.info("toEntity() | Generated missing unsubscribe token for email={}", subscriber.email());
+        }
+        entity.setUnsubscribeToken(token);
         entity.setStripeCustomerId(subscriber.stripeCustomerId());
         entity.setStripeSubscriptionId(subscriber.stripeSubscriptionId());
 
