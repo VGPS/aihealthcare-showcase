@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-07-22 | Reflects Regulatory Alert System slice (1081 tests passing)
+> Last updated: 2026-08-06 | Reflects LLM-Enhanced Deal Signal Alerts slice (DS-1)
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -93,6 +93,9 @@ api  ──▶  web   (generated DTOs imported here only)
 | — | Trend Detection — weekly keyword frequency analysis (rising/fading/new) with UI + REST | 965 |
 | W-WATCH | Custom Watchlists — subscriber watchlist with keyword/company/topic matching + scheduler integration | 1021 |
 | R-REG | Regulatory Alert System — FDA 510(k)/De Novo + CMS rules harvesting, watchlist integration, tier-gated UI | 1081 |
+| — | Sentiment & Risk Scoring — LLM-powered company sentiment classification | 1465 |
+| — | Framework Competitive Analysis + Pipeline Orchestrator | 1509 |
+| DS-1 | LLM-Enhanced Deal Signal Alerts — cross-referenced context, detail page, type filtering, tier gating | 1509+ |
 
 ---
 
@@ -137,6 +140,7 @@ Spring AI `ChatClient` is wrapped by AI adapters, all in `infrastructure.ai`:
 | `PerplexityAiSearchAdapter` | `AiSearchPort` | Perplexity Sonar synthesis via RestClient |
 | `GeminiAiSearchAdapter` | `AiSearchPort` | Google Gemini synthesis via RestClient |
 | `WikiCompilationAdapter` | `KnowledgeCompilationPort` | LLM wiki compilation — articles → pages/contradictions |
+| `DealClassificationAdapter` | `DealClassificationPort` | LLM deal classification — batch articles → confirmed DealSignals with extracted fields |
 
 Unit tests inject mock ports — no real AI calls outside `@Profile("ai-integration")`.
 
@@ -151,6 +155,7 @@ Prompt templates (`application/src/main/resources/prompts/`):
 - `topic-summary.txt` — 3-sentence topic summary from article titles
 - `ai-search-synthesis.txt` — multi-model AI search synthesis with `[N]` citations
 - `wiki-compile.txt` — structured wiki compilation (PAGE/CONTRADICTION/WARNING sections)
+- `deal-classification.txt` — batch deal classification (TYPE/AMOUNT/COMPANY/COUNTERPARTY/CONFIDENCE/SUMMARY/ANALYSIS)
 
 ---
 
@@ -218,6 +223,8 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /dashboard/trends` | `TrendController` | `trends.html` — keyword trend analysis (rising/fading/new) |
 | `GET /watchlist` | `WatchlistController` | `watchlist.html` — subscriber watchlist with keyword/company/topic items + matches |
 | `GET /dashboard/regulatory` | `RegulatoryController` | `regulatory.html` — FDA/CMS regulatory alerts with filter tabs + tier gating |
+| `GET /dashboard/deals` | `DealSignalController` | `deals.html` — deal signals with type filter, tier gating |
+| `GET /dashboard/deals/{signalId}` | `DealSignalController` | `deals-detail.html` — cross-referenced deal context (sentiment, framework, regulatory, profile) |
 
 ---
 
@@ -246,6 +253,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | POST | `/api/v1/companies/discover` | `CompanyDiscoveryController` |
 | POST | `/monitoring/wiki/compile` | `WikiCompilationController` |
 | GET/POST | `/api/v1/trends/latest`, `/api/v1/trends/detect` | `TrendRestController` |
+| GET/GET/POST | `/api/v1/deals`, `/api/v1/deals/{signalId}`, `/api/v1/deals/detect` | `DealSignalRestController` |
 
 ---
 

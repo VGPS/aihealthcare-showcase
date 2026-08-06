@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.infrastructure.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.wgblackmon.aihealthcare.domain.model.DocumentIngestionResult;
 import com.wgblackmon.aihealthcare.domain.model.ResearchMode;
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestDocumentsUseCase;
@@ -48,23 +49,26 @@ import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyRelationshipPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.CompanySentimentPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.DealClassificationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DealSignalPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.FrameworkAnalysisPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TeamPort;
 import com.wgblackmon.aihealthcare.domain.service.TeamManagementService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyRelationshipService;
 import com.wgblackmon.aihealthcare.domain.service.CompanySentimentService;
 import com.wgblackmon.aihealthcare.domain.service.DataExportService;
+import com.wgblackmon.aihealthcare.domain.service.DealEnrichmentService;
 import com.wgblackmon.aihealthcare.domain.service.DealSignalDetectionService;
 import com.wgblackmon.aihealthcare.domain.service.FrameworkAnalysisService;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkCompany;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
-import com.wgblackmon.aihealthcare.domain.port.outbound.CompanySentimentPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.domain.service.DailyBriefingRenderer;
 import com.wgblackmon.aihealthcare.domain.service.DailyBriefingService;
-import com.wgblackmon.aihealthcare.domain.port.outbound.FrameworkAnalysisPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FrameworkLlmPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SentimentAnalysisPort;
 import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryService;
@@ -81,7 +85,6 @@ import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import com.wgblackmon.aihealthcare.domain.service.TrendOrchestrationService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialPort;
-import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.LegalTrendSnapshotPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSnapshotPort;
@@ -1074,21 +1077,38 @@ public class AppConfig {
     }
 
     /**
-     * Wires the {@link DealSignalDetectionService} — keyword-based deal signal
-     * detection in recently harvested articles.
-     *
-     * @param articleIngestionPort Adapter for fetching recent articles.
-     * @param dealSignalPort       Adapter for persisting deal signals.
-     * @return The wired {@link DealSignalDetectionService} instance.
+     * Wires the {@link DealEnrichmentService} — cross-references deal signals
+     * with sentiment, framework, regulatory, and company profile data.
+     */
+    @Bean
+    public DealEnrichmentService dealEnrichmentService(
+            @Autowired(required = false) CompanySentimentPort companySentimentPort,
+            @Autowired(required = false) FrameworkAnalysisPort frameworkAnalysisPort,
+            @Autowired(required = false) RegulatoryEventPort regulatoryEventPort,
+            @Autowired(required = false) CompanyProfilePort companyProfilePort) {
+        log.debug("dealEnrichmentService()");
+        DealEnrichmentService result = new DealEnrichmentService(
+                companySentimentPort, frameworkAnalysisPort, regulatoryEventPort, companyProfilePort);
+        log.debug("dealEnrichmentService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Wires the {@link DealSignalDetectionService} — keyword + LLM deal signal
+     * detection in recently harvested articles with cross-ref enrichment.
      */
     @Bean
     public DealSignalDetectionService dealSignalDetectionService(
             ArticleIngestionPort articleIngestionPort,
-            DealSignalPort dealSignalPort) {
-        log.debug("dealSignalDetectionService() | articleIngestionPort={}, dealSignalPort={}",
+            DealSignalPort dealSignalPort,
+            @Autowired(required = false) DealClassificationPort dealClassificationPort,
+            DealEnrichmentService dealEnrichmentService) {
+        log.debug("dealSignalDetectionService() | articleIngestionPort={}, dealSignalPort={}, classificationPort={}",
                   articleIngestionPort.getClass().getSimpleName(),
-                  dealSignalPort.getClass().getSimpleName());
-        DealSignalDetectionService result = new DealSignalDetectionService(articleIngestionPort, dealSignalPort);
+                  dealSignalPort.getClass().getSimpleName(),
+                  dealClassificationPort != null ? dealClassificationPort.getClass().getSimpleName() : "null");
+        DealSignalDetectionService result = new DealSignalDetectionService(
+                articleIngestionPort, dealSignalPort, dealClassificationPort, dealEnrichmentService);
         log.debug("dealSignalDetectionService() | return={}", result.getClass().getSimpleName());
         return result;
     }

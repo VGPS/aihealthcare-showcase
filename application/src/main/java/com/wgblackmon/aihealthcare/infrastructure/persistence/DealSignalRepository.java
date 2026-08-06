@@ -11,11 +11,13 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-06
  */
 public interface DealSignalRepository extends JpaRepository<DealSignalEntity, String> {
 
     List<DealSignalEntity> findAllByOrderByDetectedAtDesc(Pageable pageable);
 
     boolean existsByArticleId(String articleId);
+
+    List<DealSignalEntity> findBySignalTypeOrderByDetectedAtDesc(String signalType, Pageable pageable);
 }

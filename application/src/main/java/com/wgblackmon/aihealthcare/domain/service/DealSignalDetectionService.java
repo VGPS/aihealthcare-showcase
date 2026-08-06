@@ -1,33 +1,37 @@
 package com.wgblackmon.aihealthcare.domain.service;
 
+import com.wgblackmon.aihealthcare.domain.model.DealContext;
 import com.wgblackmon.aihealthcare.domain.model.DealSignal;
 import com.wgblackmon.aihealthcare.domain.model.DealSignalType;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectDealSignalsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.DealClassificationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DealSignalPort;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 /**
- * Pure domain service that detects business deal signals in recently
- * harvested articles using keyword matching and confidence scoring.
+ * Domain service that detects business deal signals in recently harvested
+ * articles using keyword matching with optional LLM refinement.
  *
  * <p>Scans articles from the last 7 days for funding, acquisition,
- * partnership, IPO, and product launch signals. Each detected signal
- * is persisted and available for webhook notification dispatch.
- *
- * <p>No LLM dependency — uses keyword matching for fast, deterministic
- * detection. Confidence is based on keyword density in the article text.
+ * partnership, IPO, and product launch signals. When a
+ * {@link DealClassificationPort} is available, keyword-matched candidates
+ * are sent to the LLM for confirmation, enriched with deal amount,
+ * counterparty, and analysis. Without the LLM port, falls back to
+ * keyword-only detection.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-06
  */
 public class DealSignalDetectionService implements DetectDealSignalsUseCase {
 
@@ -63,24 +67,89 @@ public class DealSignalDetectionService implements DetectDealSignalsUseCase {
 
     private final ArticleIngestionPort articleIngestionPort;
     private final DealSignalPort dealSignalPort;
+    private final DealClassificationPort classificationPort;
+    private final DealEnrichmentService enrichmentService;
 
     public DealSignalDetectionService(ArticleIngestionPort articleIngestionPort,
-                                       DealSignalPort dealSignalPort) {
+                                       DealSignalPort dealSignalPort,
+                                       DealClassificationPort classificationPort,
+                                       DealEnrichmentService enrichmentService) {
         this.articleIngestionPort = articleIngestionPort;
         this.dealSignalPort = dealSignalPort;
+        this.classificationPort = classificationPort;
+        this.enrichmentService = enrichmentService;
     }
 
     @Override
     public List<DealSignal> detectSignals() {
         List<NewsArticle> recentArticles = articleIngestionPort.fetchRecentArticles(SCAN_DAYS);
-        List<DealSignal> newSignals = new ArrayList<>();
+        List<NewsArticle> candidates = new ArrayList<>();
         Instant now = Instant.now();
 
         for (NewsArticle article : recentArticles) {
             if (dealSignalPort.existsByArticleId(article.articleId())) {
                 continue;
             }
+            String text = buildSearchText(article);
+            if (hasKeywordMatch(text)) {
+                candidates.add(article);
+            }
+        }
 
+        List<DealSignal> newSignals;
+        if (classificationPort != null && !candidates.isEmpty()) {
+            newSignals = classificationPort.classifyDeals(candidates);
+        } else {
+            newSignals = keywordClassify(candidates, now);
+        }
+
+        List<DealSignal> deduped = deduplicateByCompanyTypeAndDay(newSignals);
+
+        if (!deduped.isEmpty()) {
+            dealSignalPort.saveAll(deduped);
+        }
+
+        return deduped;
+    }
+
+    @Override
+    public List<DealSignal> getRecentSignals(int limit) {
+        return dealSignalPort.findRecent(limit);
+    }
+
+    @Override
+    public DealSignal getSignalById(String signalId) {
+        return dealSignalPort.findById(signalId);
+    }
+
+    @Override
+    public List<DealSignal> getSignalsByType(DealSignalType type, int limit) {
+        return dealSignalPort.findByType(type.name(), limit);
+    }
+
+    @Override
+    public DealContext getSignalWithContext(String signalId) {
+        DealSignal signal = dealSignalPort.findById(signalId);
+        if (signal == null) {
+            return null;
+        }
+        if (enrichmentService == null) {
+            return new DealContext(signal, null, null, List.of(), null);
+        }
+        return enrichmentService.enrich(signal);
+    }
+
+    private boolean hasKeywordMatch(String text) {
+        return countKeywordHits(text, FUNDING_KEYWORDS) > 0
+                || countKeywordHits(text, ACQUISITION_KEYWORDS) > 0
+                || countKeywordHits(text, PARTNERSHIP_KEYWORDS) > 0
+                || countKeywordHits(text, IPO_KEYWORDS) > 0
+                || countKeywordHits(text, PRODUCT_LAUNCH_KEYWORDS) > 0;
+    }
+
+    private List<DealSignal> keywordClassify(List<NewsArticle> candidates, Instant now) {
+        List<DealSignal> signals = new ArrayList<>();
+        for (NewsArticle article : candidates) {
             String text = buildSearchText(article);
             DealSignalType bestType = null;
             double bestConfidence = 0.0;
@@ -123,6 +192,7 @@ public class DealSignalDetectionService implements DetectDealSignalsUseCase {
 
             if (bestType != null && bestConfidence >= 0.5) {
                 String summary = buildSummary(bestType, article.title());
+                String sourceUrl = article.url() != null ? article.url().toString() : null;
                 DealSignal signal = new DealSignal(
                         UUID.randomUUID().toString(),
                         article.articleId(),
@@ -131,22 +201,16 @@ public class DealSignalDetectionService implements DetectDealSignalsUseCase {
                         extractCompanyHint(article),
                         summary,
                         bestConfidence,
-                        now
+                        now,
+                        null,
+                        null,
+                        sourceUrl,
+                        null
                 );
-                newSignals.add(signal);
+                signals.add(signal);
             }
         }
-
-        if (!newSignals.isEmpty()) {
-            dealSignalPort.saveAll(newSignals);
-        }
-
-        return newSignals;
-    }
-
-    @Override
-    public List<DealSignal> getRecentSignals(int limit) {
-        return dealSignalPort.findRecent(limit);
+        return signals;
     }
 
     private String buildSearchText(NewsArticle article) {
@@ -195,5 +259,21 @@ public class DealSignalDetectionService implements DetectDealSignalsUseCase {
             return article.topic();
         }
         return "Unknown";
+    }
+
+    private List<DealSignal> deduplicateByCompanyTypeAndDay(List<DealSignal> signals) {
+        Map<String, DealSignal> bestByKey = new LinkedHashMap<>();
+        for (DealSignal signal : signals) {
+            String company = signal.companyName() != null
+                    ? signal.companyName().toLowerCase(Locale.ENGLISH).trim() : "";
+            String dayStr = signal.detectedAt().toString().substring(0, 10);
+            String key = company + "|" + signal.signalType().name() + "|" + dayStr;
+
+            DealSignal existing = bestByKey.get(key);
+            if (existing == null || signal.confidence() > existing.confidence()) {
+                bestByKey.put(key, signal);
+            }
+        }
+        return new ArrayList<>(bestByKey.values());
     }
 }

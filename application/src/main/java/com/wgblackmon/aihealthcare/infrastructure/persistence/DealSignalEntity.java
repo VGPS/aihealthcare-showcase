@@ -13,7 +13,7 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-06
  */
 @Entity
 @Table(name = "deal_signals")
@@ -44,6 +44,18 @@ public class DealSignalEntity {
     @Column(name = "detected_at", nullable = false)
     private Instant detectedAt;
 
+    @Column(name = "deal_amount", length = 100)
+    private String dealAmount;
+
+    @Column(name = "counterparty_name", length = 500)
+    private String counterpartyName;
+
+    @Column(name = "source_url", length = 2048)
+    private String sourceUrl;
+
+    @Column(name = "llm_analysis", columnDefinition = "TEXT")
+    private String llmAnalysis;
+
     public DealSignalEntity() {}
 
     public String getSignalId()                          { return signalId; }
@@ -69,4 +81,16 @@ public class DealSignalEntity {
 
     public Instant getDetectedAt()                       { return detectedAt; }
     public void setDetectedAt(Instant detectedAt)        { this.detectedAt = detectedAt; }
+
+    public String getDealAmount()                        { return dealAmount; }
+    public void setDealAmount(String dealAmount)          { this.dealAmount = dealAmount; }
+
+    public String getCounterpartyName()                  { return counterpartyName; }
+    public void setCounterpartyName(String counterpartyName) { this.counterpartyName = counterpartyName; }
+
+    public String getSourceUrl()                         { return sourceUrl; }
+    public void setSourceUrl(String sourceUrl)            { this.sourceUrl = sourceUrl; }
+
+    public String getLlmAnalysis()                       { return llmAnalysis; }
+    public void setLlmAnalysis(String llmAnalysis)        { this.llmAnalysis = llmAnalysis; }
 }

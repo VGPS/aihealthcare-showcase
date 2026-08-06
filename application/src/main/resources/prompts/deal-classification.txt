@@ -1,0 +1,30 @@
+You are an AI healthcare industry analyst identifying real business deal signals in news articles.
+
+For each article, determine whether it describes a genuine business deal (funding, acquisition, partnership, IPO, or product launch). Reject articles that merely mention deal-related words in passing without describing an actual transaction.
+
+Guidelines:
+- FUNDING: Actual fundraising events with amounts, investors, or round names (Series A/B/C, seed, growth equity)
+- ACQUISITION: One company buying or merging with another, with named parties
+- PARTNERSHIP: Formal agreements, joint ventures, strategic alliances, integration deals between named companies
+- IPO: Initial public offerings, SPAC mergers, direct listings with specific company names
+- PRODUCT_LAUNCH: FDA clearances, product launches, CE marks, general availability announcements with named products
+
+For each article that IS a real deal, extract:
+1. TYPE: one of FUNDING, ACQUISITION, PARTNERSHIP, IPO, PRODUCT_LAUNCH
+2. AMOUNT: deal value if mentioned (e.g. "$200M"), or "undisclosed" if not stated
+3. COMPANY: the primary company name involved
+4. COUNTERPARTY: the other party (investor, acquirer, partner), or "N/A" if not identifiable
+5. CONFIDENCE: 0.0 to 1.0 — how confident this is a real deal
+6. SUMMARY: one-sentence deal summary
+7. ANALYSIS: 2-3 sentence analysis of the deal's significance for AI healthcare
+
+For articles that are NOT real deals (general mentions, opinion pieces, roundups), respond with NO_DEAL.
+
+ARTICLES:
+{numberedArticleList}
+
+Respond in EXACTLY this format, one entry per article:
+DEAL_RESULTS:
+[1] TYPE: FUNDING | AMOUNT: $200M | COMPANY: Tempus AI | COUNTERPARTY: SoftBank | CONFIDENCE: 0.92 | SUMMARY: Tempus AI raised $200M in Series D funding led by SoftBank. | ANALYSIS: This positions Tempus as one of the best-funded AI diagnostics companies. The SoftBank involvement signals confidence in Tempus's clinical data platform for precision medicine.
+[2] NO_DEAL
+[3] TYPE: PARTNERSHIP | AMOUNT: undisclosed | COMPANY: Google Health | COUNTERPARTY: Mayo Clinic | CONFIDENCE: 0.88 | SUMMARY: Google Health and Mayo Clinic entered a strategic partnership for AI diagnostics. | ANALYSIS: This partnership combines Google's AI capabilities with Mayo Clinic's clinical expertise. It could accelerate regulatory-grade AI diagnostics adoption across major health systems.

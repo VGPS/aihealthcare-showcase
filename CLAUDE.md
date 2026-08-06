@@ -100,6 +100,8 @@ AIHealthcare/
 | `AnalyzeFrameworksUseCase`  | `domain.port.inbound`                | Inbound port — framework competitive analysis              |
 | `FrameworkAnalysisPort`     | `domain.port.outbound`               | Persist and query framework analyses                        |
 | `FrameworkLlmPort`          | `domain.port.outbound`               | LLM-powered 6-dimension competitive scoring                 |
+| `DealContext`               | `domain.model`                       | Enrichment wrapper: DealSignal + sentiment/framework/regulatory/profile |
+| `DealClassificationPort`    | `domain.port.outbound`               | LLM-powered deal classification from candidate articles     |
 
 ### `NewsArticle` field inventory (11 fields)
 ```
@@ -190,6 +192,8 @@ and takes 30+ minutes. Run only tests relevant to the changed code.
 | `FrameworkCompanyProperties` | `infrastructure.config`                | `@ConfigurationProperties(prefix="aihealthcare.frameworks")` — YAML-only company config |
 | `FrameworkAnalysisLlmAdapter` | `infrastructure.ai`                   | ChatClient adapter: 6-dimension competitive scoring with structured parsing |
 | `FrameworkAnalysisPersistenceAdapter` | `infrastructure.persistence`  | JSON-serialized dimensions/strengths/weaknesses/recentDevelopments |
+| `DealClassificationAdapter` | `infrastructure.ai`                    | ChatClient adapter: batch deal classification with structured DEAL_RESULTS parsing |
+| `DealEnrichmentService`      | `domain.service`                      | Pure domain: cross-references deals against sentiment/framework/regulatory/company profiles |
 
 ### Feed harvesting YAML shape
 ```yaml
@@ -248,7 +252,25 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Framework Competitive Analysis + Self-Maintaining Pipeline Orchestrator — COMPLETE — 1509 tests passing**
+**LLM-Enhanced Deal Signal Alerts (DS-1) — COMPLETE — 70 selective tests passing**
+- [x] Domain: `DealSignal` extended from 8→12 fields (added `dealAmount`, `counterpartyName`, `sourceUrl`, `llmAnalysis` — all nullable)
+- [x] Domain: `DealContext` enrichment wrapper record (signal + sentiment + framework + regulatoryEvents + companyProfile)
+- [x] Domain: `DealClassificationPort` outbound port — `classifyDeals(List<NewsArticle>)` for LLM deal confirmation
+- [x] Ports: `DetectDealSignalsUseCase` — added `getSignalById`, `getSignalsByType`, `getSignalWithContext`
+- [x] Ports: `DealSignalPort` — added `findById`, `findByType`
+- [x] Service: `DealSignalDetectionService` — keyword pre-filter + optional LLM refinement (nullable `DealClassificationPort`), graceful fallback to keyword-only
+- [x] Service: `DealEnrichmentService` — pure domain service cross-referencing deals against sentiment, framework, regulatory, and company profile data via fuzzy slug matching
+- [x] Infrastructure: `DealClassificationAdapter` — ChatClient adapter with batch processing (10 articles/call), structured `DEAL_RESULTS:` response parsing
+- [x] Prompt: `deal-classification.txt` — structured LLM prompt extracting TYPE/AMOUNT/COMPANY/COUNTERPARTY/CONFIDENCE/SUMMARY/ANALYSIS
+- [x] Persistence: `DealSignalEntity` — 4 new columns (`deal_amount`, `counterparty_name`, `source_url`, `llm_analysis`), `DealSignalRepository` — `findBySignalTypeOrderByDetectedAtDesc`
+- [x] Persistence: `DealSignalAdapter` — updated `toEntity`/`toDomain` for new fields, added `findById`/`findByType`
+- [x] Web: `DealSignalController` — filter bar by type, tier gating (FREE=10, SUBSCRIBER/DEMO/ADMIN=100), detail page at `GET /dashboard/deals/{signalId}`
+- [x] Web: `DealSignalRestController` — type filter param, detail endpoint at `GET /api/v1/deals/{signalId}` returning DealContext JSON
+- [x] Templates: `deals.html` rewritten (filter pills, amount/counterparty columns, clickable titles, tier gate prompt), `deals-detail.html` (new — cross-reference cards for sentiment, framework, regulatory, company profile)
+- [x] Config: `AppConfig` — `dealEnrichmentService()` bean wiring 4 nullable ports, `dealSignalDetectionService()` updated with optional `DealClassificationPort`
+- [x] Tests: `DealSignalTest` (10), `DealSignalDetectionServiceTest` (11), `DealEnrichmentServiceTest` (8), `DealClassificationAdapterTest` (8), `DealSignalAdapterTest` (9), `DealSignalControllerTest` (7), `DealSignalRestControllerTest` (7), `DataExportServiceTest` (10)
+
+**Previously complete: Framework Competitive Analysis + Self-Maintaining Pipeline Orchestrator — COMPLETE — 1509 tests passing**
 - [x] Domain: `FrameworkAnalysis` record (10 fields), `FrameworkDimension` record (score 1-10 validation), `FrameworkCompany` config record
 - [x] Ports: `AnalyzeFrameworksUseCase` inbound (analyzeAll/getBySlug/getAll), `FrameworkAnalysisPort` + `FrameworkLlmPort` outbound
 - [x] Service: `FrameworkAnalysisService` — collects articles per company, dedupes by articleId, MIN_ARTICLES=3 threshold, 6-dimension LLM scoring

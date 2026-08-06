@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.domain.service;
 
+import com.wgblackmon.aihealthcare.domain.model.DealContext;
 import com.wgblackmon.aihealthcare.domain.model.DealSignal;
 import com.wgblackmon.aihealthcare.domain.model.DealSignalType;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
@@ -45,7 +46,7 @@ class DealSignalDetectionServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new DealSignalDetectionService(articleIngestionPort, dealSignalPort);
+        service = new DealSignalDetectionService(articleIngestionPort, dealSignalPort, null, null);
     }
 
     private NewsArticle article(String id, String title, String body) {
@@ -142,12 +143,65 @@ class DealSignalDetectionServiceTest {
     @Test
     void getRecentSignals_delegatesToPort() {
         DealSignal signal = new DealSignal("s1", "a1", "Title",
-                DealSignalType.FUNDING, "Company", "Summary", 0.8, Instant.now());
+                DealSignalType.FUNDING, "Company", "Summary", 0.8, Instant.now(),
+                null, null, null, null);
         when(dealSignalPort.findRecent(10)).thenReturn(List.of(signal));
 
         List<DealSignal> result = service.getRecentSignals(10);
 
         assertThat(result).hasSize(1);
         verify(dealSignalPort).findRecent(10);
+    }
+
+    @Test
+    void getSignalById_delegatesToPort() {
+        DealSignal signal = new DealSignal("s1", "a1", "Title",
+                DealSignalType.FUNDING, "Company", "Summary", 0.8, Instant.now(),
+                "$50M", "Investor", null, null);
+        when(dealSignalPort.findById("s1")).thenReturn(signal);
+
+        DealSignal result = service.getSignalById("s1");
+
+        assertThat(result).isNotNull();
+        assertThat(result.signalId()).isEqualTo("s1");
+        verify(dealSignalPort).findById("s1");
+    }
+
+    @Test
+    void getSignalsByType_delegatesToPort() {
+        DealSignal signal = new DealSignal("s1", "a1", "Title",
+                DealSignalType.FUNDING, "Company", "Summary", 0.8, Instant.now(),
+                null, null, null, null);
+        when(dealSignalPort.findByType("FUNDING", 10)).thenReturn(List.of(signal));
+
+        List<DealSignal> result = service.getSignalsByType(DealSignalType.FUNDING, 10);
+
+        assertThat(result).hasSize(1);
+        verify(dealSignalPort).findByType("FUNDING", 10);
+    }
+
+    @Test
+    void getSignalWithContext_nullSignal_returnsNull() {
+        when(dealSignalPort.findById("missing")).thenReturn(null);
+
+        DealContext result = service.getSignalWithContext("missing");
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void getSignalWithContext_noEnrichmentService_returnsBasicContext() {
+        DealSignal signal = new DealSignal("s1", "a1", "Title",
+                DealSignalType.FUNDING, "Company", "Summary", 0.8, Instant.now(),
+                null, null, null, null);
+        when(dealSignalPort.findById("s1")).thenReturn(signal);
+
+        DealContext result = service.getSignalWithContext("s1");
+
+        assertThat(result).isNotNull();
+        assertThat(result.signal()).isEqualTo(signal);
+        assertThat(result.sentiment()).isNull();
+        assertThat(result.framework()).isNull();
+        assertThat(result.regulatoryEvents()).isEmpty();
     }
 }

@@ -35,7 +35,8 @@ class DealSignalAdapterTest {
 
     private DealSignal signal(String id, String articleId, DealSignalType type) {
         return new DealSignal(id, articleId, "Title " + id, type,
-                "Company", "Summary", 0.75, Instant.now());
+                "Company", "Summary", 0.75, Instant.now(),
+                null, null, null, null);
     }
 
     @Test
@@ -53,8 +54,10 @@ class DealSignalAdapterTest {
         Instant later = Instant.parse("2026-06-01T00:00:00Z");
 
         adapter.saveAll(List.of(
-                new DealSignal("s1", "a1", "Old", DealSignalType.FUNDING, "Co", "Sum", 0.5, earlier),
-                new DealSignal("s2", "a2", "New", DealSignalType.IPO, "Co", "Sum", 0.8, later)
+                new DealSignal("s1", "a1", "Old", DealSignalType.FUNDING, "Co", "Sum", 0.5, earlier,
+                        null, null, null, null),
+                new DealSignal("s2", "a2", "New", DealSignalType.IPO, "Co", "Sum", 0.8, later,
+                        "$100M", "Investor", "https://example.com", "Analysis")
         ));
 
         List<DealSignal> result = adapter.findRecent(10);
@@ -84,5 +87,49 @@ class DealSignalAdapterTest {
     @Test
     void existsByArticleId_falseWhenMissing() {
         assertThat(adapter.existsByArticleId("nonexistent")).isFalse();
+    }
+
+    @Test
+    void findById_existingSignal_returnsSignal() {
+        adapter.saveAll(List.of(signal("s1", "a1", DealSignalType.FUNDING)));
+        DealSignal result = adapter.findById("s1");
+        assertThat(result).isNotNull();
+        assertThat(result.signalId()).isEqualTo("s1");
+    }
+
+    @Test
+    void findById_missingSignal_returnsNull() {
+        DealSignal result = adapter.findById("nonexistent");
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void findByType_returnsFilteredSignals() {
+        adapter.saveAll(List.of(
+                signal("s1", "a1", DealSignalType.FUNDING),
+                signal("s2", "a2", DealSignalType.ACQUISITION),
+                signal("s3", "a3", DealSignalType.FUNDING)
+        ));
+
+        List<DealSignal> result = adapter.findByType("FUNDING", 10);
+        assertThat(result).hasSize(2);
+        for (DealSignal s : result) {
+            assertThat(s.signalType()).isEqualTo(DealSignalType.FUNDING);
+        }
+    }
+
+    @Test
+    void saveAll_persistsOptionalFields() {
+        DealSignal withFields = new DealSignal("s10", "a10", "Title", DealSignalType.FUNDING,
+                "Tempus", "Summary", 0.9, Instant.now(),
+                "$200M", "SoftBank", "https://example.com/art", "LLM analysis text");
+        adapter.saveAll(List.of(withFields));
+
+        DealSignal loaded = adapter.findById("s10");
+        assertThat(loaded).isNotNull();
+        assertThat(loaded.dealAmount()).isEqualTo("$200M");
+        assertThat(loaded.counterpartyName()).isEqualTo("SoftBank");
+        assertThat(loaded.sourceUrl()).isEqualTo("https://example.com/art");
+        assertThat(loaded.llmAnalysis()).isEqualTo("LLM analysis text");
     }
 }
