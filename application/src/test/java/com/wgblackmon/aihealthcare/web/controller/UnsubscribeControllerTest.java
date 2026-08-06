@@ -21,7 +21,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -32,9 +34,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * The endpoint is publicly accessible (no authentication required).
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-07-31
- * @updated 2026-08-05
+ * @updated 2026-08-06
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(controllers = {UnsubscribeController.class, GlobalExceptionHandler.class})
@@ -120,6 +122,56 @@ class UnsubscribeControllerTest {
         when(subscriberPort.findByUnsubscribeToken("bad-token")).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/unsubscribe").param("token", "bad-token"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("unsubscribe"))
+                .andExpect(model().attribute("success", false));
+    }
+
+    @Test
+    void unsubscribe_validToken_passesTokenAndDowngradedFalse() throws Exception {
+        Subscriber sub = new Subscriber("test@example.com", "Test User", true,
+                Instant.now(), SubscriptionTier.SUBSCRIBER, "abc-123", null, null);
+        when(subscriberPort.findByUnsubscribeToken("abc-123")).thenReturn(Optional.of(sub));
+        when(appUserPort.findByEmail("test@example.com")).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/unsubscribe").param("token", "abc-123"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("token", "abc-123"))
+                .andExpect(model().attribute("downgraded", false));
+    }
+
+    @Test
+    void downgrade_validToken_reactivatesAsFree() throws Exception {
+        Subscriber sub = new Subscriber("test@example.com", "Test User", false,
+                Instant.now(), SubscriptionTier.FREE, "abc-123", null, null);
+        when(subscriberPort.findByUnsubscribeToken("abc-123")).thenReturn(Optional.of(sub));
+
+        mockMvc.perform(post("/unsubscribe/downgrade").param("token", "abc-123").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("unsubscribe"))
+                .andExpect(model().attribute("success", true))
+                .andExpect(model().attribute("downgraded", true));
+
+        ArgumentCaptor<Subscriber> captor = ArgumentCaptor.forClass(Subscriber.class);
+        verify(subscriberPort).save(captor.capture());
+        Subscriber saved = captor.getValue();
+        assertThat(saved.active()).isTrue();
+        assertThat(saved.tier()).isEqualTo(SubscriptionTier.FREE);
+    }
+
+    @Test
+    void downgrade_missingToken_showsError() throws Exception {
+        mockMvc.perform(post("/unsubscribe/downgrade").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("unsubscribe"))
+                .andExpect(model().attribute("success", false));
+    }
+
+    @Test
+    void downgrade_invalidToken_showsError() throws Exception {
+        when(subscriberPort.findByUnsubscribeToken("bad-token")).thenReturn(Optional.empty());
+
+        mockMvc.perform(post("/unsubscribe/downgrade").param("token", "bad-token").with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("unsubscribe"))
                 .andExpect(model().attribute("success", false));

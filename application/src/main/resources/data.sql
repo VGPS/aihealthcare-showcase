@@ -191,6 +191,16 @@ SELECT 'dshihtzu@gmail.com', 'D Shihtzu', true, CURRENT_TIMESTAMP, 'SUBSCRIBER',
        'f9e8d7c6-b5a4-3210-fedc-ba9876543210'
 WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'dshihtzu@gmail.com');
 
+INSERT INTO subscribers (email, name, active, subscribed_at, tier, unsubscribe_token)
+SELECT 'demo@gmail.com', 'Demo User', true, CURRENT_TIMESTAMP, 'SUBSCRIBER',
+       'ddddd000-1111-2222-3333-444444444444'
+WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'demo@gmail.com');
+
+INSERT INTO subscribers (email, name, active, subscribed_at, tier, unsubscribe_token)
+SELECT 'wku@gmail.com', 'WKU Tester', true, CURRENT_TIMESTAMP, 'SUBSCRIBER',
+       'eeeee000-aaaa-bbbb-cccc-dddddddddddd'
+WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'wku@gmail.com');
+
 -- ---------------------------------------------------------------------------
 -- Seed application users for local development and testing (Slice 29).
 -- Passwords: admin@gmail.com / admin123, demo@gmail.com / demo123

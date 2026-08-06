@@ -27,6 +27,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyScrapingPort;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
 import com.wgblackmon.aihealthcare.domain.service.DigestNewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
+import com.wgblackmon.aihealthcare.domain.service.SampleNewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.RegistrationService;
 
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
@@ -285,6 +286,18 @@ public class AppConfig {
         log.debug("digestNewsletterRenderer() | articleIngestionPort={}", articleIngestionPort.getClass().getSimpleName());
         DigestNewsletterRenderer result = new DigestNewsletterRenderer(articleIngestionPort);
         log.debug("digestNewsletterRenderer() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link SampleNewsletterRenderer} that builds complimentary
+     * sample newsletter issues for prospect outreach.
+     */
+    @Bean
+    public SampleNewsletterRenderer sampleNewsletterRenderer(ArticleIngestionPort articleIngestionPort) {
+        log.debug("sampleNewsletterRenderer() | articleIngestionPort={}", articleIngestionPort.getClass().getSimpleName());
+        SampleNewsletterRenderer result = new SampleNewsletterRenderer(articleIngestionPort);
+        log.debug("sampleNewsletterRenderer() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

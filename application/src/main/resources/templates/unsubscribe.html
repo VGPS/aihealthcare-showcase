@@ -1,59 +1,140 @@
 <!DOCTYPE html>
 <!--
 /**
- * Unsubscribe confirmation page — shown after clicking an email unsubscribe link.
+ * Soft-landing unsubscribe page — confirms unsubscribe with downgrade
+ * option (free weekly digest) and optional one-click feedback.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-07-31
- * @updated 2026-07-31
+ * @updated 2026-08-06
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Unsubscribe — AI Healthcare Intelligence</title>
-    <link rel="stylesheet" th:href="@{/css/tailwind.css}"/>
+<head th:replace="~{fragments/head :: head('Unsubscribe')}">
 </head>
 
-<body class="bg-surface font-sans text-on-surface min-h-screen flex items-center justify-center">
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
 
-<div class="max-w-md w-full mx-auto px-6 py-12">
-    <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AI Healthcare Intelligence</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Subscription Management</p>
+</header>
 
-        <!-- Success state -->
+<main class="flex-1 flex items-center justify-center px-4 py-12">
+    <div class="max-w-lg w-full">
+
+        <!-- Success state — soft landing -->
         <div th:if="${success}">
-            <div class="text-green-600 text-5xl mb-4">&#10003;</div>
-            <h1 class="font-display text-xl font-semibold text-on-surface mb-2">Unsubscribed</h1>
-            <p class="text-on-surface-variant text-sm mb-6" th:text="${message}">
-                You have been successfully unsubscribed.
-            </p>
-            <p class="text-on-surface-variant text-xs mb-4">
-                <span th:text="${email}">user@example.com</span> will no longer receive newsletters.
-            </p>
-            <a th:href="@{/register}"
-               class="text-primary-600 hover:text-primary-700 text-sm font-medium underline">
-                Changed your mind? Re-subscribe
-            </a>
+            <div class="bg-white rounded-lg shadow-card p-8 text-center mb-6">
+                <div class="text-green-600 text-5xl mb-4">&#10003;</div>
+                <h2 class="font-display text-xl font-semibold text-on-surface mb-2">You've Been Unsubscribed</h2>
+                <p class="text-on-surface-variant text-sm mb-2" th:text="${message}">
+                    You have been successfully unsubscribed.
+                </p>
+                <p class="text-on-surface-variant text-xs">
+                    <span th:text="${email}">user@example.com</span> will no longer receive emails from us.
+                </p>
+            </div>
+
+            <!-- Downgrade option — only show if not already downgraded -->
+            <div th:unless="${downgraded}" class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                <h3 class="font-display text-base font-semibold text-blue-900 mb-2">Not ready to leave entirely?</h3>
+                <p class="text-sm text-blue-800 mb-4">
+                    Get our <strong>free weekly digest</strong> instead — a curated summary of the top
+                    AI healthcare headlines, delivered once a week. No platform access, no cost, no commitment.
+                </p>
+                <form th:action="@{/unsubscribe/downgrade}" method="post" class="text-center">
+                    <input type="hidden" name="token" th:value="${token}"/>
+                    <button type="submit"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md text-sm transition-colors">
+                        Switch to Free Weekly Digest
+                    </button>
+                </form>
+            </div>
+
+            <!-- Downgrade confirmation -->
+            <div th:if="${downgraded}" class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6 text-center">
+                <div class="text-green-600 text-3xl mb-2">&#9993;</div>
+                <h3 class="font-display text-base font-semibold text-green-900 mb-1">You're on the Free Digest</h3>
+                <p class="text-sm text-green-800">
+                    You'll receive a weekly summary of top AI healthcare headlines.
+                    No other emails. You can unsubscribe from the digest at any time.
+                </p>
+            </div>
+
+            <!-- Feedback -->
+            <div class="bg-white rounded-lg shadow-card p-6 mb-6">
+                <h3 class="text-sm font-semibold text-on-surface mb-3">Mind telling us why? <span class="text-on-surface-variant font-normal">(optional)</span></h3>
+                <div class="flex flex-wrap gap-2" id="feedbackPills">
+                    <button onclick="selectFeedback(this, 'too_expensive')"
+                            class="feedback-pill px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
+                        Too expensive
+                    </button>
+                    <button onclick="selectFeedback(this, 'not_relevant')"
+                            class="feedback-pill px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
+                        Not relevant to me
+                    </button>
+                    <button onclick="selectFeedback(this, 'too_many_emails')"
+                            class="feedback-pill px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
+                        Too many emails
+                    </button>
+                    <button onclick="selectFeedback(this, 'found_alternative')"
+                            class="feedback-pill px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
+                        Found an alternative
+                    </button>
+                    <button onclick="selectFeedback(this, 'temporary')"
+                            class="feedback-pill px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
+                        Just taking a break
+                    </button>
+                </div>
+                <div id="feedbackThanks" class="hidden text-xs text-green-600 mt-3 font-medium">
+                    Thanks for letting us know.
+                </div>
+            </div>
+
+            <!-- Re-subscribe link -->
+            <div class="text-center text-sm text-on-surface-variant">
+                Changed your mind?
+                <a th:href="@{/register}" class="text-primary-600 hover:text-primary-700 font-medium underline">
+                    Re-subscribe anytime
+                </a>
+            </div>
         </div>
 
         <!-- Error state -->
         <div th:unless="${success}">
-            <div class="text-red-500 text-5xl mb-4">&#10007;</div>
-            <h1 class="font-display text-xl font-semibold text-on-surface mb-2">Unsubscribe Failed</h1>
-            <p class="text-on-surface-variant text-sm mb-6" th:text="${message}">
-                This unsubscribe link is invalid or has already been used.
-            </p>
-            <a th:href="@{/login}"
-               class="text-primary-600 hover:text-primary-700 text-sm font-medium underline">
-                Log in to manage your subscription
-            </a>
+            <div class="bg-white rounded-lg shadow-card p-8 text-center">
+                <div class="text-red-500 text-5xl mb-4">&#10007;</div>
+                <h2 class="font-display text-xl font-semibold text-on-surface mb-2">Unsubscribe Failed</h2>
+                <p class="text-on-surface-variant text-sm mb-6" th:text="${message}">
+                    This unsubscribe link is invalid or has already been used.
+                </p>
+                <a th:href="@{/login}"
+                   class="text-primary-600 hover:text-primary-700 text-sm font-medium underline">
+                    Log in to manage your subscription
+                </a>
+            </div>
         </div>
 
     </div>
-</div>
+</main>
 
+<script th:inline="none">
+function selectFeedback(pill, reason) {
+    var pills = document.querySelectorAll('.feedback-pill');
+    for (var i = 0; i < pills.length; i++) {
+        pills[i].classList.remove('bg-primary-600', 'text-white', 'border-primary-600');
+        pills[i].classList.add('bg-gray-50', 'text-gray-600', 'border-gray-200');
+    }
+    pill.classList.remove('bg-gray-50', 'text-gray-600', 'border-gray-200');
+    pill.classList.add('bg-primary-600', 'text-white', 'border-primary-600');
+    document.getElementById('feedbackThanks').classList.remove('hidden');
+
+    var img = new Image();
+    img.src = '/api/v1/feedback/unsubscribe?reason=' + encodeURIComponent(reason);
+}
+</script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 </body>

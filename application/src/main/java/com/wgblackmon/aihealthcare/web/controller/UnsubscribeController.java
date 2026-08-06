@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Optional;
@@ -32,9 +33,9 @@ import java.util.Optional;
  * </ol>
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-07-31
- * @updated 2026-08-05
+ * @updated 2026-08-06
  */
 @Slf4j
 @Controller
@@ -97,8 +98,53 @@ public class UnsubscribeController {
         model.addAttribute("success", true);
         model.addAttribute("message", "You have been successfully unsubscribed.");
         model.addAttribute("email", sub.email());
+        model.addAttribute("token", token);
+        model.addAttribute("downgraded", false);
 
         log.debug("unsubscribe() | return=unsubscribe");
+        return "unsubscribe";
+    }
+
+    /**
+     * Downgrades an unsubscribed user to the free weekly digest.
+     * Re-activates the subscriber record with FREE tier so they
+     * receive the digest email but nothing else.
+     */
+    @PostMapping("/unsubscribe/downgrade")
+    public String downgradeToDigest(@RequestParam(value = "token", required = false) String token,
+                                     Model model) {
+        log.debug("downgradeToDigest() | token={}", token);
+
+        if (token == null || token.isBlank()) {
+            model.addAttribute("success", false);
+            model.addAttribute("message", "Invalid request.");
+            log.debug("downgradeToDigest() | return=unsubscribe (missing token)");
+            return "unsubscribe";
+        }
+
+        Optional<Subscriber> subscriberOpt = subscriberPort.findByUnsubscribeToken(token);
+        if (subscriberOpt.isEmpty()) {
+            model.addAttribute("success", false);
+            model.addAttribute("message", "This link is no longer valid.");
+            log.debug("downgradeToDigest() | return=unsubscribe (not found)");
+            return "unsubscribe";
+        }
+
+        Subscriber sub = subscriberOpt.get();
+
+        Subscriber reactivated = new Subscriber(
+                sub.email(), sub.name(), true, sub.subscribedAt(), SubscriptionTier.FREE,
+                sub.unsubscribeToken(), null, null);
+        subscriberPort.save(reactivated);
+        log.info("downgradeToDigest() | Re-activated as FREE digest: email={}", sub.email());
+
+        model.addAttribute("success", true);
+        model.addAttribute("message", "You've been switched to the free weekly digest.");
+        model.addAttribute("email", sub.email());
+        model.addAttribute("token", token);
+        model.addAttribute("downgraded", true);
+
+        log.debug("downgradeToDigest() | return=unsubscribe");
         return "unsubscribe";
     }
 
