@@ -181,12 +181,14 @@ WHERE NOT EXISTS (SELECT 1 FROM prompt_variants WHERE variant_id = 'summarize-v3
 -- ---------------------------------------------------------------------------
 -- Seed newsletter subscribers for local development and testing.
 -- ---------------------------------------------------------------------------
-INSERT INTO subscribers (email, name, active, subscribed_at, tier)
-SELECT 'wgblackmonall@gmail.com', 'Bill Blackmon', true, CURRENT_TIMESTAMP, 'SUBSCRIBER'
+INSERT INTO subscribers (email, name, active, subscribed_at, tier, unsubscribe_token)
+SELECT 'wgblackmonall@gmail.com', 'Bill Blackmon', true, CURRENT_TIMESTAMP, 'SUBSCRIBER',
+       'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'wgblackmonall@gmail.com');
 
-INSERT INTO subscribers (email, name, active, subscribed_at, tier)
-SELECT 'dshihtzu@gmail.com', 'D Shihtzu', true, CURRENT_TIMESTAMP, 'SUBSCRIBER'
+INSERT INTO subscribers (email, name, active, subscribed_at, tier, unsubscribe_token)
+SELECT 'dshihtzu@gmail.com', 'D Shihtzu', true, CURRENT_TIMESTAMP, 'SUBSCRIBER',
+       'f9e8d7c6-b5a4-3210-fedc-ba9876543210'
 WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'dshihtzu@gmail.com');
 
 -- ---------------------------------------------------------------------------
@@ -208,7 +210,7 @@ WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'demo@gmail.com');
 
 INSERT INTO app_users (email, password_hash, display_name, role, enabled, tier)
 SELECT 'wgblackmonall@gmail.com',
-       '$2a$10$taZijieeow/bAdqr8xZI1exW78O00ns2G0eR3S9PfbgE/HIIMJXgG',
+       '$2a$10$RC8gPpxg1DG4sbfWRHUZsusWG2QuWIw1ak.Vz0cJnjiac/.WQ2MsG',
        'Bill Blackmon', 'ADMIN', true, 'SUBSCRIBER'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'wgblackmonall@gmail.com');
 
