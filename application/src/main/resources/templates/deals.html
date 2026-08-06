@@ -3,11 +3,12 @@
 /**
  * Deal Signals Dashboard — funding, acquisitions, partnerships, IPOs,
  * and product launches detected in healthcare AI articles.
+ * Supports type filtering, tier gating, and drill-down to detail view.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-06
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -26,6 +27,41 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <!-- Filter Bar -->
+    <div class="bg-white rounded-lg shadow-card p-4 mb-6 flex flex-wrap items-center gap-3">
+        <span class="text-sm text-gray-500 font-medium">Filter by type:</span>
+        <a th:href="@{/dashboard/deals}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterType == null} ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'">
+            All
+        </a>
+        <a th:href="@{/dashboard/deals(type='FUNDING')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterType == 'FUNDING'} ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800 hover:bg-green-200'">
+            Funding
+        </a>
+        <a th:href="@{/dashboard/deals(type='ACQUISITION')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterType == 'ACQUISITION'} ? 'bg-red-600 text-white' : 'bg-red-100 text-red-800 hover:bg-red-200'">
+            Acquisition
+        </a>
+        <a th:href="@{/dashboard/deals(type='PARTNERSHIP')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterType == 'PARTNERSHIP'} ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'">
+            Partnership
+        </a>
+        <a th:href="@{/dashboard/deals(type='IPO')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterType == 'IPO'} ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-800 hover:bg-purple-200'">
+            IPO
+        </a>
+        <a th:href="@{/dashboard/deals(type='PRODUCT_LAUNCH')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterType == 'PRODUCT_LAUNCH'} ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'">
+            Product Launch
+        </a>
+    </div>
+
     <!-- Summary Cards -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div th:each="entry : ${typeCounts}" class="bg-white rounded-lg shadow-card p-4 text-center">
@@ -36,6 +72,15 @@
             <div class="text-2xl font-bold text-gray-700" th:text="${totalSignals}">0</div>
             <div class="text-xs text-gray-500 uppercase mt-1">Total</div>
         </div>
+    </div>
+
+    <!-- Tier Gate Message -->
+    <div th:if="${!fullAccess}" class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <p class="text-sm text-amber-800">
+            Showing the <strong>10 most recent</strong> deal signals.
+            <a th:href="@{/pricing}" class="text-primary-600 underline font-medium">Upgrade to Subscriber</a>
+            for full access to all signals and cross-referenced deal analysis.
+        </p>
     </div>
 
     <!-- Signals Table -->
@@ -50,11 +95,27 @@
             <table class="min-w-full text-sm">
                 <thead>
                     <tr class="border-b border-gray-200 text-left text-gray-500 uppercase text-xs">
-                        <th class="pb-2 pr-4">Type</th>
-                        <th class="pb-2 pr-4">Title</th>
-                        <th class="pb-2 pr-4">Company</th>
-                        <th class="pb-2 pr-4">Confidence</th>
-                        <th class="pb-2">Detected</th>
+                        <th class="pb-2 pr-4">Type
+                            <span class="sort-arrow" onclick="sortTable(this, 0, 'asc')" title="A-Z">&#8593;</span><span class="sort-arrow" onclick="sortTable(this, 0, 'desc')" title="Z-A">&#8595;</span>
+                        </th>
+                        <th class="pb-2 pr-4">Title
+                            <span class="sort-arrow" onclick="sortTable(this, 1, 'asc')" title="A-Z">&#8593;</span><span class="sort-arrow" onclick="sortTable(this, 1, 'desc')" title="Z-A">&#8595;</span>
+                        </th>
+                        <th class="pb-2 pr-4">Company
+                            <span class="sort-arrow" onclick="sortTable(this, 2, 'asc')" title="A-Z">&#8593;</span><span class="sort-arrow" onclick="sortTable(this, 2, 'desc')" title="Z-A">&#8595;</span>
+                        </th>
+                        <th class="pb-2 pr-4">Counterparty
+                            <span class="sort-arrow" onclick="sortTable(this, 3, 'asc')" title="A-Z">&#8593;</span><span class="sort-arrow" onclick="sortTable(this, 3, 'desc')" title="Z-A">&#8595;</span>
+                        </th>
+                        <th class="pb-2 pr-4">Amount
+                            <span class="sort-arrow" onclick="sortTable(this, 4, 'asc')" title="Low-High">&#8593;</span><span class="sort-arrow" onclick="sortTable(this, 4, 'desc')" title="High-Low">&#8595;</span>
+                        </th>
+                        <th class="pb-2 pr-4">Confidence
+                            <span class="sort-arrow" onclick="sortTable(this, 5, 'asc')" title="Low-High">&#8593;</span><span class="sort-arrow" onclick="sortTable(this, 5, 'desc')" title="High-Low">&#8595;</span>
+                        </th>
+                        <th class="pb-2">Detected
+                            <span class="sort-arrow" onclick="sortTable(this, 6, 'asc')" title="Oldest first">&#8593;</span><span class="sort-arrow" onclick="sortTable(this, 6, 'desc')" title="Newest first">&#8595;</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -69,10 +130,18 @@
                                   th:text="${signal.signalType}">TYPE</span>
                         </td>
                         <td class="py-3 pr-4 max-w-md">
-                            <div class="font-medium text-gray-900 truncate" th:text="${signal.title}">Title</div>
+                            <a th:href="@{/dashboard/deals/{id}(id=${signal.signalId})}"
+                               class="font-medium text-primary-600 hover:text-primary-800 truncate block">
+                                <span th:text="${signal.title}">Title</span>
+                            </a>
                             <div class="text-xs text-gray-500 mt-0.5 truncate" th:text="${signal.summary}">Summary</div>
                         </td>
                         <td class="py-3 pr-4 text-gray-600" th:text="${signal.companyName}">Company</td>
+                        <td class="py-3 pr-4 text-gray-500 text-xs" th:text="${signal.counterpartyName ?: '—'}">—</td>
+                        <td class="py-3 pr-4">
+                            <span th:if="${signal.dealAmount != null}" class="text-sm font-semibold text-green-700" th:text="${signal.dealAmount}">$200M</span>
+                            <span th:if="${signal.dealAmount == null}" class="text-xs text-gray-400">—</span>
+                        </td>
                         <td class="py-3 pr-4">
                             <span class="text-sm font-medium" th:text="${signal.confidence}">85%</span>
                         </td>
@@ -85,6 +154,37 @@
 
 </main>
 
+<script th:inline="none">
+function sortTable(arrow, colIndex, direction) {
+    var table = arrow.closest('table');
+    var tbody = table.querySelector('tbody');
+    var rows = [];
+    var rowEls = tbody.querySelectorAll('tr');
+    for (var i = 0; i < rowEls.length; i++) { rows.push(rowEls[i]); }
+    var headerCells = table.querySelectorAll('thead th');
+    var headerText = headerCells[colIndex] ? headerCells[colIndex].textContent.trim().toLowerCase() : '';
+    var isDateCol = headerText.indexOf('date') >= 0 || headerText.indexOf('generated') >= 0
+        || headerText.indexOf('week') >= 0 || headerText.indexOf('discovered') >= 0
+        || headerText.indexOf('created') >= 0 || headerText.indexOf('matched') >= 0
+        || headerText.indexOf('detected') >= 0;
+    rows.sort(function(a, b) {
+        var valA = (a.cells[colIndex] ? a.cells[colIndex].textContent : '').trim().toLowerCase();
+        var valB = (b.cells[colIndex] ? b.cells[colIndex].textContent : '').trim().toLowerCase();
+        if (isDateCol) {
+            var dateA = (valA === 'unknown' || valA === '' || valA === '-') ? 0 : new Date(valA).getTime() || 0;
+            var dateB = (valB === 'unknown' || valB === '' || valB === '-') ? 0 : new Date(valB).getTime() || 0;
+            return direction === 'asc' ? dateA - dateB : dateB - dateA;
+        }
+        if (valA < valB) return direction === 'asc' ? -1 : 1;
+        if (valA > valB) return direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+    for (var j = 0; j < rows.length; j++) { tbody.appendChild(rows[j]); }
+    var arrows = table.querySelectorAll('.sort-arrow');
+    for (var k = 0; k < arrows.length; k++) { arrows[k].classList.remove('active'); }
+    arrow.classList.add('active');
+}
+</script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 </body>

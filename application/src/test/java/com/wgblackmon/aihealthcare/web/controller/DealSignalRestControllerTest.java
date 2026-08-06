@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.DealContext;
 import com.wgblackmon.aihealthcare.domain.model.DealSignal;
 import com.wgblackmon.aihealthcare.domain.model.DealSignalType;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectDealSignalsUseCase;
@@ -16,6 +17,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.verify;
@@ -55,14 +57,17 @@ class DealSignalRestControllerTest {
     @DisplayName("GET /api/v1/deals returns recent signals")
     void getRecentSignals_returnsJson() throws Exception {
         DealSignal signal = new DealSignal("s1", "a1", "Funding News",
-                DealSignalType.FUNDING, "Acme", "Summary", 0.85, Instant.now());
+                DealSignalType.FUNDING, "Acme", "Summary", 0.85, Instant.now(),
+                "$100M", "VC Fund", null, null);
         when(detectDealSignalsUseCase.getRecentSignals(50)).thenReturn(List.of(signal));
 
         mockMvc.perform(get("/api/v1/deals"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].signalId").value("s1"))
                 .andExpect(jsonPath("$[0].signalType").value("FUNDING"))
-                .andExpect(jsonPath("$[0].companyName").value("Acme"));
+                .andExpect(jsonPath("$[0].companyName").value("Acme"))
+                .andExpect(jsonPath("$[0].dealAmount").value("$100M"))
+                .andExpect(jsonPath("$[0].counterpartyName").value("VC Fund"));
     }
 
     @Test
@@ -84,7 +89,8 @@ class DealSignalRestControllerTest {
     @DisplayName("POST /api/v1/deals/detect triggers detection")
     void triggerDetection_returnsCount() throws Exception {
         DealSignal signal = new DealSignal("s1", "a1", "IPO News",
-                DealSignalType.IPO, "Co", "Summary", 0.7, Instant.now());
+                DealSignalType.IPO, "Co", "Summary", 0.7, Instant.now(),
+                null, null, null, null);
         when(detectDealSignalsUseCase.detectSignals()).thenReturn(List.of(signal));
 
         mockMvc.perform(post("/api/v1/deals/detect").with(csrf()))
@@ -100,5 +106,47 @@ class DealSignalRestControllerTest {
         mockMvc.perform(get("/api/v1/deals"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /api/v1/deals with type filter returns filtered results")
+    void getRecentSignals_withTypeFilter_filtersResults() throws Exception {
+        DealSignal signal = new DealSignal("s1", "a1", "IPO News",
+                DealSignalType.IPO, "Co", "Summary", 0.7, Instant.now(),
+                null, null, null, null);
+        when(detectDealSignalsUseCase.getSignalsByType(DealSignalType.IPO, 50))
+                .thenReturn(List.of(signal));
+
+        mockMvc.perform(get("/api/v1/deals").param("type", "IPO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].signalType").value("IPO"));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /api/v1/deals/{signalId} returns deal context")
+    void getSignalDetail_existingSignal_returnsContext() throws Exception {
+        DealSignal signal = new DealSignal("s1", "a1", "Funding",
+                DealSignalType.FUNDING, "Co", "Summary", 0.9, Instant.now(),
+                "$50M", null, null, "Analysis");
+        DealContext context = new DealContext(signal, null, null, Collections.emptyList(), null);
+        when(detectDealSignalsUseCase.getSignalWithContext("s1")).thenReturn(context);
+
+        mockMvc.perform(get("/api/v1/deals/s1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.signal.signalId").value("s1"))
+                .andExpect(jsonPath("$.hasSentiment").value(false))
+                .andExpect(jsonPath("$.regulatoryEventCount").value(0));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /api/v1/deals/{signalId} missing returns 404")
+    void getSignalDetail_missingSignal_returns404() throws Exception {
+        when(detectDealSignalsUseCase.getSignalWithContext("missing")).thenReturn(null);
+
+        mockMvc.perform(get("/api/v1/deals/missing"))
+                .andExpect(status().isNotFound());
     }
 }

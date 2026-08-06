@@ -10,7 +10,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-06
  */
 public interface DealSignalPort {
 
@@ -19,4 +19,8 @@ public interface DealSignalPort {
     List<DealSignal> findRecent(int limit);
 
     boolean existsByArticleId(String articleId);
+
+    DealSignal findById(String signalId);
+
+    List<DealSignal> findByType(String signalType, int limit);
 }

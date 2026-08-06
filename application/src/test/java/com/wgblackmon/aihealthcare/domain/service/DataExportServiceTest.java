@@ -98,7 +98,8 @@ class DataExportServiceTest {
     void exportDeals_csv_returnsValidCsv() {
         DealSignal signal = new DealSignal(
                 "ds1", "art1", "Funding Round", DealSignalType.FUNDING,
-                "Acme Health", "Series B", 0.85, Instant.now());
+                "Acme Health", "Series B", 0.85, Instant.now(),
+                null, null, null, null);
         when(dealSignalPort.findRecent(50)).thenReturn(List.of(signal));
 
         DataExportRequest request = new DataExportRequest("deals", ExportFormat.CSV, 50, null);
@@ -115,7 +116,8 @@ class DataExportServiceTest {
     void exportDeals_json_returnsValidJson() {
         DealSignal signal = new DealSignal(
                 "ds2", "art2", "Acquisition", DealSignalType.ACQUISITION,
-                "BigCo", "Acquired startup", 0.9, Instant.now());
+                "BigCo", "Acquired startup", 0.9, Instant.now(),
+                null, null, null, null);
         when(dealSignalPort.findRecent(50)).thenReturn(List.of(signal));
 
         DataExportRequest request = new DataExportRequest("deals", ExportFormat.JSON, 50, null);

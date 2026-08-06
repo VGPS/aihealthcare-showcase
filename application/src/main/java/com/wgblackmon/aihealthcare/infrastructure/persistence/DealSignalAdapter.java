@@ -16,7 +16,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-06
  */
 @Slf4j
 @Component
@@ -60,6 +60,29 @@ public class DealSignalAdapter implements DealSignalPort {
         return result;
     }
 
+    @Override
+    public DealSignal findById(String signalId) {
+        log.debug("findById() | signalId={}", signalId);
+        DealSignal result = repository.findById(signalId)
+                .map(this::toDomain)
+                .orElse(null);
+        log.debug("findById() | return={}", result != null ? result.signalId() : "null");
+        return result;
+    }
+
+    @Override
+    public List<DealSignal> findByType(String signalType, int limit) {
+        log.debug("findByType() | signalType={}, limit={}", signalType, limit);
+        List<DealSignalEntity> entities = repository.findBySignalTypeOrderByDetectedAtDesc(
+                signalType, PageRequest.of(0, limit));
+        List<DealSignal> result = new ArrayList<>();
+        for (DealSignalEntity entity : entities) {
+            result.add(toDomain(entity));
+        }
+        log.debug("findByType() | return={} signals", result.size());
+        return result;
+    }
+
     private DealSignalEntity toEntity(DealSignal signal) {
         DealSignalEntity entity = new DealSignalEntity();
         entity.setSignalId(signal.signalId());
@@ -70,6 +93,10 @@ public class DealSignalAdapter implements DealSignalPort {
         entity.setSummary(signal.summary());
         entity.setConfidence(signal.confidence());
         entity.setDetectedAt(signal.detectedAt());
+        entity.setDealAmount(signal.dealAmount());
+        entity.setCounterpartyName(signal.counterpartyName());
+        entity.setSourceUrl(signal.sourceUrl());
+        entity.setLlmAnalysis(signal.llmAnalysis());
         return entity;
     }
 
@@ -82,7 +109,11 @@ public class DealSignalAdapter implements DealSignalPort {
                 entity.getCompanyName(),
                 entity.getSummary(),
                 entity.getConfidence(),
-                entity.getDetectedAt()
+                entity.getDetectedAt(),
+                entity.getDealAmount(),
+                entity.getCounterpartyName(),
+                entity.getSourceUrl(),
+                entity.getLlmAnalysis()
         );
     }
 }

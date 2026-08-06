@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Deal Signal Detail — individual deal view with LLM analysis and
+ * cross-referenced context (sentiment, framework, regulatory, company profile).
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-06
+ * @updated 2026-08-06
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Deal Detail')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Deal Signal Detail</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Cross-referenced deal intelligence</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('deals')}"></nav>
+
+<main class="max-w-5xl mx-auto px-4 py-6">
+
+    <!-- Back link -->
+    <a th:href="@{/dashboard/deals}" class="text-blue-600 hover:underline text-sm mb-4 inline-block">&larr; Back to Deal Signals</a>
+
+    <!-- Deal Header Card -->
+    <div class="bg-white rounded-lg shadow-card p-6 mb-6 border-l-4"
+         th:classappend="${signal.signalType == 'FUNDING'} ? 'border-green-500' :
+                         (${signal.signalType == 'ACQUISITION'} ? 'border-red-500' :
+                         (${signal.signalType == 'PARTNERSHIP'} ? 'border-blue-500' :
+                         (${signal.signalType == 'IPO'} ? 'border-purple-500' :
+                         'border-yellow-500')))">
+
+        <div class="flex flex-wrap justify-between items-start mb-4">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-xl font-bold text-primary-800" th:text="${signal.title}">Deal Title</h2>
+                <p class="text-sm text-gray-500 mt-1" th:text="${signal.summary}">Summary</p>
+            </div>
+            <span class="inline-block px-3 py-1 rounded text-sm font-bold text-white ml-4 shrink-0"
+                  th:classappend="${signal.signalType == 'FUNDING'} ? 'bg-green-600' :
+                                  (${signal.signalType == 'ACQUISITION'} ? 'bg-red-600' :
+                                  (${signal.signalType == 'PARTNERSHIP'} ? 'bg-blue-600' :
+                                  (${signal.signalType == 'IPO'} ? 'bg-purple-600' :
+                                  'bg-yellow-600')))"
+                  th:text="${signal.signalType}">TYPE</span>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+                <span class="text-gray-500">Company</span>
+                <p class="font-semibold text-gray-900" th:text="${signal.companyName}">Company</p>
+            </div>
+            <div>
+                <span class="text-gray-500">Counterparty</span>
+                <p class="font-semibold text-gray-900" th:text="${signal.counterpartyName ?: '—'}">—</p>
+            </div>
+            <div>
+                <span class="text-gray-500">Deal Amount</span>
+                <p class="font-semibold text-green-700" th:text="${signal.dealAmount ?: 'Undisclosed'}">—</p>
+            </div>
+            <div>
+                <span class="text-gray-500">Confidence</span>
+                <p class="font-semibold text-gray-900" th:text="${signal.confidence}">85%</p>
+            </div>
+        </div>
+
+        <div class="mt-4 flex items-center gap-4 text-xs text-gray-500">
+            <span>Detected: <span th:text="${signal.detectedAt}">Date</span></span>
+            <a th:if="${signal.sourceUrl != null}" th:href="${signal.sourceUrl}" target="_blank"
+               class="text-primary-600 hover:underline">View Source Article &rarr;</a>
+        </div>
+    </div>
+
+    <!-- LLM Analysis -->
+    <div th:if="${signal.llmAnalysis != null}" class="bg-white rounded-lg shadow-card p-6 mb-6">
+        <h3 class="text-lg font-semibold text-primary-700 mb-3">AI Analysis</h3>
+        <p class="text-gray-700 leading-relaxed" th:text="${signal.llmAnalysis}">Analysis text</p>
+    </div>
+
+    <!-- Cross-Reference Cards -->
+    <h3 class="text-lg font-semibold text-primary-700 mb-4">Cross-Referenced Context</h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+
+        <!-- Sentiment Card -->
+        <div class="bg-white rounded-lg shadow-card p-5">
+            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-3">Sentiment & Risk</h4>
+            <div th:if="${sentiment != null}">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="px-2 py-0.5 rounded text-xs font-bold text-white"
+                          th:classappend="${sentiment.overallSentiment().name() == 'POSITIVE'} ? 'bg-green-600' :
+                                          (${sentiment.overallSentiment().name() == 'NEGATIVE'} ? 'bg-red-600' :
+                                          (${sentiment.overallSentiment().name() == 'MIXED'} ? 'bg-yellow-500' : 'bg-gray-500'))"
+                          th:text="${sentiment.overallSentiment().name()}">POSITIVE</span>
+                    <span class="text-xl font-bold" th:text="${#numbers.formatDecimal(sentiment.sentimentScore(), 1, 2)}">0.75</span>
+                </div>
+                <p class="text-sm text-gray-600" th:text="${sentiment.riskSummary()}">Risk summary</p>
+                <p class="text-xs text-gray-400 mt-2">
+                    Based on <span th:text="${sentiment.totalArticles()}">0</span> articles
+                    (<span th:text="${sentiment.positiveCount()}">0</span> positive,
+                    <span th:text="${sentiment.negativeCount()}">0</span> negative)
+                </p>
+            </div>
+            <p th:if="${sentiment == null}" class="text-sm text-gray-400">No sentiment data available for this company.</p>
+        </div>
+
+        <!-- Framework Card -->
+        <div class="bg-white rounded-lg shadow-card p-5">
+            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-3">Framework Analysis</h4>
+            <div th:if="${framework != null}">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-xl font-bold text-primary-700" th:text="${framework.overallScore}">7</span>
+                    <span class="text-sm text-gray-500">/ 10 overall score</span>
+                </div>
+                <p th:if="${framework.overallAssessment != null}" class="text-sm text-gray-600 line-clamp-3" th:text="${framework.overallAssessment}">Assessment</p>
+                <p class="text-xs text-gray-400 mt-2">
+                    Analyzed from <span th:text="${framework.articleCount}">0</span> articles
+                </p>
+            </div>
+            <p th:if="${framework == null}" class="text-sm text-gray-400">No framework analysis available for this company.</p>
+        </div>
+
+        <!-- Regulatory Card -->
+        <div class="bg-white rounded-lg shadow-card p-5">
+            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-3">Regulatory Events</h4>
+            <div th:if="${!regulatoryEvents.isEmpty()}">
+                <p class="text-sm text-gray-700 mb-2">
+                    <span class="font-bold text-primary-700" th:text="${regulatoryEvents.size()}">0</span>
+                    related regulatory event(s)
+                </p>
+                <ul class="space-y-2">
+                    <li th:each="event, iterStat : ${regulatoryEvents}" th:if="${iterStat.index < 5}"
+                        class="text-xs text-gray-600 border-l-2 border-gray-200 pl-3">
+                        <span class="font-medium" th:text="${event.eventType().name()}">TYPE</span>
+                        — <span th:text="${event.title()}">Title</span>
+                    </li>
+                </ul>
+                <a th:if="${regulatoryEvents.size() > 5}" th:href="@{/dashboard/regulatory}"
+                   class="text-xs text-primary-600 hover:underline mt-2 inline-block">View all &rarr;</a>
+            </div>
+            <p th:if="${regulatoryEvents.isEmpty()}" class="text-sm text-gray-400">No related regulatory events found.</p>
+        </div>
+
+        <!-- Company Profile Card -->
+        <div class="bg-white rounded-lg shadow-card p-5">
+            <h4 class="text-sm font-semibold text-gray-500 uppercase mb-3">Company Profile</h4>
+            <div th:if="${companyProfile != null}">
+                <p class="font-semibold text-gray-900" th:text="${companyProfile.name()}">Name</p>
+                <p th:if="${companyProfile.description() != null}" class="text-sm text-gray-600 mt-1 line-clamp-3" th:text="${companyProfile.description()}">Description</p>
+                <div class="flex flex-wrap gap-1 mt-2">
+                    <span th:each="cat : ${companyProfile.categories()}"
+                          class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs" th:text="${cat}">Category</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">
+                    <span th:text="${companyProfile.articleCount()}">0</span> linked articles
+                    — Trend: <span th:text="${companyProfile.trendDirection().name()}">STABLE</span>
+                </p>
+            </div>
+            <p th:if="${companyProfile == null}" class="text-sm text-gray-400">No company profile found. This company may not yet be tracked.</p>
+        </div>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>
