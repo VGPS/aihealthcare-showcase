@@ -349,7 +349,7 @@ Newsletter drafting (WikiQueryPort)
 Domain records (`domain.model`): `WikiPageType`, `SourceRef`, `WikiPage`, `Contradiction`, `CompilationReport`.
 Ports (`domain.port.outbound`): `KnowledgeCompilationPort`, `WikiQueryPort`.
 
-Adapter implementations deferred to Slice W2.  See `docs/ROADMAP.md` for the full wiki roadmap.
+Adapter implementations completed in Slice W2.
 
 ---
 

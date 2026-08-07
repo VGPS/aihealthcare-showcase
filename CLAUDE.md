@@ -684,9 +684,7 @@ context ("this reverses the FDA's March guidance").  Three ownership layers:
 | `KnowledgeCompilationPort` | `domain.port.outbound` | `compileNewSources(List<NewsArticle>)` → `CompilationReport` |
 | `WikiQueryPort` | `domain.port.outbound` | `findRelevantPages(query, maxResults)`, `getPage(slug)`, `recentContradictions(since)` |
 
-Compilation will run after harvest via the existing `@Scheduled` trigger (wiring deferred to Slice W2).
-
-See `docs/ROADMAP.md` for wiki slice roadmap (W2–W8).
+Compilation will run after harvest via the existing `@Scheduled` trigger (wired in Slice W2).
 
 ---
 

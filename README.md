@@ -312,7 +312,6 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Component | Technology | Version |
 |-----------|------------|---------|
 | Cloud Provider | AWS (EC2, SES, Secrets Manager) | — |
-| Containerization | Docker (PostgreSQL + MailHog) | — |
 | Code Generation | Lombok (@Slf4j, @Data) | — |
 | Architecture | Hexagonal / Ports-and-Adapters | — |
 | Scheduling | Spring @Scheduled (11 externalized cron jobs) | — |
@@ -321,30 +320,12 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 
 - **Java 17+**
 - **Maven 3.8+**
-- **Docker** (for PostgreSQL and MailHog)
+- **PostgreSQL 16** with PGVector extension
 - **API Key** — at least one of `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`
 
 ## Getting Started
 
-### 1. Start Infrastructure (Docker)
-
-```bash
-# PostgreSQL + PGVector (relational DB + vector store)
-docker run -d --name aihealthcare-postgres \
-  -e POSTGRES_USER=admin \
-  -e POSTGRES_PASSWORD=1454 \
-  -e POSTGRES_DB=aihealthcaredb \
-  -p 5432:5432 \
-  pgvector/pgvector:pg16
-
-# MailHog (dev email catcher — view captured emails at http://localhost:8025)
-docker run -d --name aihealthcare-mailhog \
-  -p 1025:1025 \
-  -p 8025:8025 \
-  mailhog/mailhog
-```
-
-### 2. Set Environment Variables
+### 1. Set Environment Variables
 
 ```bash
 export ANTHROPIC_API_KEY=your-key-here
@@ -356,7 +337,7 @@ export PERPLEXITY_API_KEY=your-key-here    # Perplexity research pipeline + Sona
 export GEMINI_API_KEY=your-key-here        # Google Gemini AI search synthesis
 ```
 
-### 3. Build and Run
+### 2. Build and Run
 
 ```bash
 # Build and run tests
