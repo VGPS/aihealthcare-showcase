@@ -1,6 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.infrastructure.config.MarketIntelligenceScheduler;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.MarketIntelligenceScheduler;
 import com.wgblackmon.aihealthcare.web.dto.MarketIntelligenceRefreshResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

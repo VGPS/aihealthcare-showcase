@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 
 import java.time.Instant;
 import java.time.ZoneId;

@@ -1,6 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.infrastructure.config.MarketIntelligenceScheduler;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.MarketIntelligenceScheduler;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
