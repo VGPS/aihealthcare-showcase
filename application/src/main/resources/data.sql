@@ -203,7 +203,6 @@ WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'wku@gmail.com');
 
 -- ---------------------------------------------------------------------------
 -- Seed application users for local development and testing (Slice 29).
--- Passwords: admin@gmail.com / admin123, demo@gmail.com / demo123
 -- Hashes generated with BCrypt (cost factor 10).
 -- ---------------------------------------------------------------------------
 INSERT INTO app_users (email, password_hash, display_name, role, enabled, tier)
@@ -224,21 +223,21 @@ SELECT 'wgblackmonall@gmail.com',
        'Bill Blackmon', 'ADMIN', true, 'SUBSCRIBER'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'wgblackmonall@gmail.com');
 
--- Tester account: wku@gmail.com / wku123 — full ADMIN access for QA testing
+-- Tester account — full ADMIN access for QA testing
 INSERT INTO app_users (email, password_hash, display_name, role, enabled, tier)
 SELECT 'wku@gmail.com',
        '$2b$10$j4xZ61UCdUQE4clOJKhOX.tbA6pY/7SqVwyZj1P/o4VW2XrEQKwTW',
        'WKU Tester', 'ADMIN', true, 'SUBSCRIBER'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'wku@gmail.com');
 
--- Robert Blackmon: robertblackmon@gmail.com / rib123 — full ADMIN access
+-- Robert Blackmon — full ADMIN access
 INSERT INTO app_users (email, password_hash, display_name, role, enabled, tier)
 SELECT 'robertblackmon@gmail.com',
        '$2b$10$Z29vdt3HXJrUVDxjXoMqL./AsgaWWP0GUk4U/f/iQEfElZBpGYk/i',
        'Robert Blackmon', 'ADMIN', true, 'SUBSCRIBER'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'robertblackmon@gmail.com');
 
--- Enterprise test user: enterprise@test.com / enterprise123 — ENTERPRISE tier for QA
+-- Enterprise test user — ENTERPRISE tier for QA
 INSERT INTO app_users (email, password_hash, display_name, role, enabled, tier)
 SELECT 'enterprise@test.com',
        '$2a$10$e382iCnQT8GJWFpwiW9ANuSEgNUNuKb5vHtm6zPMU5K87xe9Cqf56',

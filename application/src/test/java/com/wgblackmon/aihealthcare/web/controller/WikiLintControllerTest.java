@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @updated 2026-07-05
  */
 @Import(SecurityConfig.class)
-@WithMockUser
+@WithMockUser(roles = "ADMIN")
 @WebMvcTest(WikiLintController.class)
 class WikiLintControllerTest {
 

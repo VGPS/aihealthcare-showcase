@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -28,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @WebMvcTest(DataExportController.class)
 @Import(SecurityConfig.class)
+@WithMockUser
 class DataExportControllerTest {
 
     @Autowired
@@ -73,14 +76,12 @@ class DataExportControllerTest {
     }
 
     @Test
-    void unauthenticated_isPermitted() throws Exception {
-        DataExportResult result = new DataExportResult("data", "file.csv", "text/csv", 0);
-        when(exportDataUseCase.export(any(DataExportRequest.class))).thenReturn(result);
-
+    @WithAnonymousUser
+    void unauthenticated_redirectsToLogin() throws Exception {
         mockMvc.perform(get("/api/v1/export")
                         .param("type", "articles")
                         .param("format", "CSV"))
-                .andExpect(status().isOk());
+                .andExpect(status().is3xxRedirection());
     }
 
     @Test

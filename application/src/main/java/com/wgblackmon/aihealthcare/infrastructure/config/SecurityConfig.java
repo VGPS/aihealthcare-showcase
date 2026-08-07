@@ -16,10 +16,10 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * Spring Security configuration for session-based form login with role-based
  * access control.
  *
- * <p>Protects all Thymeleaf UI pages behind authentication while leaving
- * REST API endpoints ({@code /api/**}), webhook receivers ({@code /stripe/**}),
- * internal monitoring triggers ({@code /monitoring/**}), and the public
- * pricing page ({@code /pricing}) open.
+ * <p>Protects all Thymeleaf UI pages behind authentication. REST API
+ * endpoints ({@code /api/**}) require either session auth or a valid
+ * {@code X-API-Key} header (except the Stripe webhook). Monitoring
+ * triggers ({@code /monitoring/**}) require {@code ADMIN} role.
  *
  * <p>Admin-only pages ({@code /admin/**}, {@code /newsletter/runs/**}) require
  * the {@code ADMIN} role. All other authenticated pages are accessible to any
@@ -30,9 +30,9 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * session exists ({@code /api/**}, {@code /monitoring/**}, {@code /stripe/**}).
  *
  * @author  Bill Blackmon
- * @version 1.3
+ * @version 1.4
  * @since   2026-05-28
- * @updated 2026-08-04
+ * @updated 2026-08-06
  */
 @Slf4j
 @Configuration
@@ -68,8 +68,10 @@ public class SecurityConfig {
                 .requestMatchers("/login", "/register", "/choose-path", "/unsubscribe", "/unsubscribe/downgrade",
                                  "/css/**", "/js/**", "/webjars/**",
                                  "/pricing", "/error").permitAll()
-                .requestMatchers("/api/**").permitAll()
-                .requestMatchers("/monitoring/**").permitAll()
+                .requestMatchers("/api/v1/stripe/webhook").permitAll()
+                .requestMatchers("/api/v1/feedback/**").permitAll()
+                .requestMatchers("/api/**").authenticated()
+                .requestMatchers("/monitoring/**").hasRole("ADMIN")
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/developer").permitAll()
                 .requestMatchers("/wiki", "/wiki/**").permitAll()
