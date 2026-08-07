@@ -52,7 +52,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-10
- * @updated 2026-08-04
+ * @updated 2026-08-07
  */
 @Slf4j
 @Component
@@ -143,24 +143,28 @@ public class FeedHarvestScheduler {
     @Scheduled(cron = "${aihealthcare.harvest.daily-cron}", zone = "UTC")
     public void harvestDailyFeeds() {
         log.debug("harvestDailyFeeds() | starting daily ACADEMIC + REGULATORY harvest");
-        List<NewsArticle> all = harvestingPort.harvestAll();
+        try {
+            List<NewsArticle> all = harvestingPort.harvestAll();
 
-        List<NewsArticle> dailyArticles = new ArrayList<>();
-        for (NewsArticle article : all) {
-            if ("ACADEMIC".equals(article.sourceTier()) ||
-                "REGULATORY".equals(article.sourceTier())) {
-                dailyArticles.add(article);
+            List<NewsArticle> dailyArticles = new ArrayList<>();
+            for (NewsArticle article : all) {
+                if ("ACADEMIC".equals(article.sourceTier()) ||
+                    "REGULATORY".equals(article.sourceTier())) {
+                    dailyArticles.add(article);
+                }
             }
-        }
 
-        log.info("harvestDailyFeeds() | {} ACADEMIC/REGULATORY articles harvested", dailyArticles.size());
-        routeForProcessing(dailyArticles);
-        generateTopicSummaries();
-        compileWikiPages(dailyArticles);
-        lintWikiPages();
-        matchWatchlistItems(dailyArticles);
-        if (pipelineOrchestrator != null) {
-            pipelineOrchestrator.runAllPipelines();
+            log.info("harvestDailyFeeds() | {} ACADEMIC/REGULATORY articles harvested", dailyArticles.size());
+            routeForProcessing(dailyArticles);
+            generateTopicSummaries();
+            compileWikiPages(dailyArticles);
+            lintWikiPages();
+            matchWatchlistItems(dailyArticles);
+            if (pipelineOrchestrator != null) {
+                pipelineOrchestrator.runAllPipelines();
+            }
+        } catch (Exception e) {
+            log.error("harvestDailyFeeds() | scheduler exception", e);
         }
         log.debug("harvestDailyFeeds() | return=void");
     }
@@ -172,21 +176,25 @@ public class FeedHarvestScheduler {
     @Scheduled(fixedRateString = "${aihealthcare.harvest.industry-rate-ms}")
     public void harvestIndustryFeeds() {
         log.debug("harvestIndustryFeeds() | starting 4-hour INDUSTRY harvest");
-        List<NewsArticle> all = harvestingPort.harvestAll();
+        try {
+            List<NewsArticle> all = harvestingPort.harvestAll();
 
-        List<NewsArticle> industryArticles = new ArrayList<>();
-        for (NewsArticle article : all) {
-            if ("INDUSTRY".equals(article.sourceTier())) {
-                industryArticles.add(article);
+            List<NewsArticle> industryArticles = new ArrayList<>();
+            for (NewsArticle article : all) {
+                if ("INDUSTRY".equals(article.sourceTier())) {
+                    industryArticles.add(article);
+                }
             }
-        }
 
-        log.info("harvestIndustryFeeds() | {} INDUSTRY articles harvested", industryArticles.size());
-        routeForProcessing(industryArticles);
-        generateTopicSummaries();
-        compileWikiPages(industryArticles);
-        lintWikiPages();
-        matchWatchlistItems(industryArticles);
+            log.info("harvestIndustryFeeds() | {} INDUSTRY articles harvested", industryArticles.size());
+            routeForProcessing(industryArticles);
+            generateTopicSummaries();
+            compileWikiPages(industryArticles);
+            lintWikiPages();
+            matchWatchlistItems(industryArticles);
+        } catch (Exception e) {
+            log.error("harvestIndustryFeeds() | scheduler exception", e);
+        }
         log.debug("harvestIndustryFeeds() | return=void");
     }
 

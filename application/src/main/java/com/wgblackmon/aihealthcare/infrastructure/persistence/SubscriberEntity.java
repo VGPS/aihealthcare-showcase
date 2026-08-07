@@ -22,7 +22,7 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-04-13
- * @updated 2026-07-31
+ * @updated 2026-08-07
  */
 @Entity
 @Table(name = "subscribers")
@@ -44,7 +44,7 @@ public class SubscriberEntity {
     @Column(name = "tier", nullable = false, length = 20)
     private String tier = "FREE";
 
-    @Column(name = "unsubscribe_token", length = 36, unique = true)
+    @Column(name = "unsubscribe_token", length = 36, unique = true, nullable = false)
     private String unsubscribeToken;
 
     @Column(name = "stripe_customer_id", length = 255)
