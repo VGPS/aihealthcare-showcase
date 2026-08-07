@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-08-06 | Reflects LLM-Enhanced Deal Signal Alerts slice (DS-1)
+> Last updated: 2026-08-07 | Reflects Day 7 QA — v1 final
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -320,7 +320,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**1081 tests** across 141 test classes — all pass with `mvn test` (no live AI or network calls).
+**1,837 tests** across 249 test classes — all pass with `mvn test` (no live AI or network calls).
 
 ---
 
