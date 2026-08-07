@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Generic error page — replaces Spring Boot's Whitelabel Error Page.
+ *
+ * Displays the HTTP status code and error message in a branded card
+ * matching the application's Tailwind styling. Handles 404, 500, and
+ * any other unhandled error status.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-07
+ * @updated 2026-08-07
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Error')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
+    <p class="text-primary-200 text-sm mt-0.5">AI-in-Healthcare Intelligence Platform</p>
+</header>
+
+<main class="flex-1 flex items-center justify-center px-4 py-12">
+    <div class="text-center">
+        <div class="text-6xl font-bold text-gray-300 mb-2" th:text="${status ?: '500'}">500</div>
+        <h2 class="font-display text-xl font-semibold text-on-surface mb-2"
+            th:text="${error ?: 'Unexpected Error'}">Unexpected Error</h2>
+        <p class="text-sm text-on-surface-variant mb-5"
+           th:text="${message ?: 'Something went wrong. Please try again or return to the dashboard.'}">
+            Something went wrong.
+        </p>
+        <a th:href="@{/dashboard}"
+           class="text-primary-600 hover:text-primary-700 font-semibold text-sm">Back to Dashboard</a>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

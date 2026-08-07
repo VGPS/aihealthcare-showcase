@@ -22,7 +22,7 @@ import jakarta.persistence.Table;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-11
+ * @updated 2026-08-07
  */
 @Entity
 @Table(name = "topics")
@@ -32,8 +32,10 @@ public class TopicEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String slug;
 
     @Column(name = "prompt_context", columnDefinition = "TEXT")

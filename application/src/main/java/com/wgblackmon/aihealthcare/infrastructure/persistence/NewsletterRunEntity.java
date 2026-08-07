@@ -30,7 +30,7 @@ import java.time.LocalDate;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-04-11
+ * @updated 2026-08-07
  */
 @Entity
 @Table(name = "newsletter_runs")
@@ -51,6 +51,7 @@ public class NewsletterRunEntity {
     private String plainTextContent;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private NewsletterRunStatus status;
 
     private Instant generatedAt;

@@ -38,7 +38,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-07-30
+ * @updated 2026-08-07
  */
 @Slf4j
 @Component
@@ -69,10 +69,17 @@ public class EmbeddingScheduler {
     @Scheduled(cron = "${aihealthcare.embedding.schedule}")
     public void embedArticles() {
         log.debug("embedArticles() | starting embedding run");
+        try {
+            embedArticlesInternal();
+        } catch (Exception e) {
+            log.error("embedArticles() | scheduler exception", e);
+        }
+        log.debug("embedArticles() | return=void");
+    }
 
+    private void embedArticlesInternal() {
         if (vectorStore == null) {
             log.warn("embedArticles() | VectorStore not available — skipping");
-            log.debug("embedArticles() | return=void (no vector store)");
             return;
         }
 
@@ -127,8 +134,6 @@ public class EmbeddingScheduler {
         }
         log.info("embedArticles() | Completed — {} of {} new articles embedded",
                  totalEmbedded, documents.size());
-
-        log.debug("embedArticles() | return=void");
     }
 
     /**

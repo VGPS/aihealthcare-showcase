@@ -28,7 +28,7 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-07-30
+ * @updated 2026-08-07
  */
 @Entity
 @Table(name = "news_articles")
@@ -38,10 +38,10 @@ public class NewsArticleEntity {
     @Column(name = "article_id", length = 1024)
     private String articleId;
 
-    @Column(length = 1024)
+    @Column(length = 1024, nullable = false)
     private String title;
 
-    @Column(length = 2048)
+    @Column(length = 2048, nullable = false)
     private String url;
 
     @Column(columnDefinition = "TEXT")

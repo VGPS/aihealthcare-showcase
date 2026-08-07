@@ -324,36 +324,54 @@ For each page, check:
 
 ### 5.1 Database Integrity
 
-- [ ] Check for orphaned records (foreign key violations)
-- [ ] Check for duplicate articles (same URL, different articleId)
-- [ ] Check for articles with null/blank titles still in DB
-- [ ] Check for subscribers with null unsubscribe tokens
-- [ ] Verify `data.sql` seeds are idempotent (re-run safe)
-- [ ] Check entity field lengths match DB column constraints
+- [x] Check for orphaned records (foreign key violations) — zero FK relationships by design (flat-table architecture), no orphan risk at DB level
+- [x] Check for duplicate articles (same URL, different articleId) — app-level dedup via `existsByUrl()` in `ArticleStorageAdapter`; no `unique=true` on VARCHAR(2048) url column (PostgreSQL limitation)
+- [x] Check for articles with null/blank titles still in DB — **FIXED**: added `nullable=false` on `NewsArticleEntity.title` and `.url`
+- [x] Check for subscribers with null unsubscribe tokens — **FIXED**: added `nullable=false` on `SubscriberEntity.unsubscribeToken`
+- [x] Verify `data.sql` seeds are idempotent (re-run safe) — all INSERTs use `WHERE NOT EXISTS` guards
+- [x] Check entity field lengths match DB column constraints — **FIXED**: added `@Column(nullable=false)` to `TopicEntity.name`, `.slug`; `NewsletterRunEntity.status`
 
 ### 5.2 Error Handling
 
-- [ ] Hit a non-existent URL → custom error page (not Whitelabel)
-- [ ] Hit `/dashboard/deals/nonexistent-id` → graceful 404 or error
-- [ ] Hit `/wiki/nonexistent-slug` → graceful handling
-- [ ] Submit invalid form data → validation error (not 500)
-- [ ] Trigger pipeline when no articles exist → graceful empty state
-- [ ] AI adapter timeout → graceful fallback (not 500)
+- [x] Hit a non-existent URL → custom error page (not Whitelabel) — **FIXED**: created `error.html` branded template; verified renders 404 with correct status/message
+- [x] Hit `/dashboard/deals/nonexistent-id` → graceful 404 or error — returns 302 redirect to `/dashboard/deals` (controller handles gracefully)
+- [x] Hit `/wiki/nonexistent-slug` → graceful handling — returns 302 redirect to `/wiki` (controller handles gracefully)
+- [x] Submit invalid form data → validation error (not 500) — manual validation at service layer (no `@Valid` annotations — accepted risk)
+- [x] Trigger pipeline when no articles exist → graceful empty state — `StartupPipelineOrchestrator` each step try-catch isolated
+- [x] AI adapter timeout → graceful fallback (not 500) — all AI adapters have catch-and-log patterns; verified in code review
 
 ### 5.3 Concurrency & Scheduling
 
-- [ ] Verify no two schedulers conflict (overlapping harvest windows)
-- [ ] Verify `StartupPipelineOrchestrator` try-catch isolation works
-- [ ] Verify article dedup under concurrent harvests
-- [ ] Verify `@PostConstruct` startup behavior matches AWS profile expectations
+- [x] Verify no two schedulers conflict (overlapping harvest windows) — single-thread scheduler serializes all jobs; cron overlaps at 04:00/05:00/08:00 queue sequentially
+- [x] Verify `StartupPipelineOrchestrator` try-catch isolation works — code review confirms each of 11 steps wrapped in individual try-catch
+- [x] Verify article dedup under concurrent harvests — single-thread scheduler prevents concurrent harvests; `existsByUrl()` check at app level
+- [x] Verify `@PostConstruct` startup behavior matches AWS profile expectations — defaults to disabled (`harvest-enabled=false`); AWS profile explicitly off
+- [x] **FIXED**: Added top-level try-catch to 4 scheduler methods: `FeedHarvestScheduler.harvestDailyFeeds()`, `.harvestIndustryFeeds()`, `DemoExpirationScheduler.expireExpiredDemos()`, `EmbeddingScheduler.embedArticles()` — prevents scheduler thread death
 
 ### 5.4 Performance Spot Checks
 
-- [ ] Dashboard page load time < 3 seconds
-- [ ] Article search response time < 2 seconds
-- [ ] News listing with 1000+ articles — pagination or performance OK?
-- [ ] Deal signals page with 500+ signals — sort performance OK?
-- [ ] Wiki index with 100+ pages — search/filter performance OK?
+- [x] Dashboard page load time < 3 seconds — **0.31s** (PASS)
+- [x] Article search response time < 2 seconds — **0.08s** (PASS)
+- [x] News listing with 1000+ articles — **1.31s** (PASS, no pagination but acceptable)
+- [x] Deal signals page with 500+ signals — **0.20s** (PASS)
+- [x] Wiki index with 100+ pages — **3.48s** on cold start, **2.28s** warm (borderline, acceptable)
+- [x] Sentiment dashboard — **0.18s**, Frameworks — **0.17s**, Regulatory — **0.10s**, Trends — **0.19s** (all PASS)
+
+### Day 5 Findings
+
+| # | Severity | Finding | Status |
+|---|----------|---------|--------|
+| F1 | **HIGH** | 4 scheduler methods missing top-level try-catch — unhandled exception kills scheduler thread (`FeedHarvestScheduler.harvestDailyFeeds/IndustryFeeds`, `DemoExpirationScheduler.expireExpiredDemos`, `EmbeddingScheduler.embedArticles`) | **FIXED** — added outer try-catch to all 4 methods |
+| F2 | **HIGH** | No custom `error.html` — `ResponseStatusException(NOT_FOUND)` from 3 controllers renders Whitelabel Error Page (exposes framework internals) | **FIXED** — created branded `error.html` template with status/message/back-link |
+| F3 | **HIGH** | 6 critical entity fields allow null at DB level: `news_articles.title`, `.url`, `subscribers.unsubscribe_token`, `topics.name`, `.slug`, `newsletter_runs.status` | **FIXED** — added `nullable=false` to all 6 `@Column` annotations |
+| F4 | MEDIUM | Single-thread scheduler (16 triggers, 1 thread) — long-running job blocks all subsequent ones. Adding `ThreadPoolTaskScheduler` would introduce concurrency risk for TOCTOU race in `ArticleStorageAdapter`. | Accepted risk — not worth refactoring without broader concurrency work |
+| F5 | MEDIUM | `@RestControllerAdvice` (`GlobalExceptionHandler`) returns JSON for exceptions from Thymeleaf controllers. Browsers get branded `error.html` via Spring Boot's `BasicErrorController`; JSON-first clients get JSON. | Accepted — dual-stack behavior is functional |
+| F6 | LOW | No `unique=true` on `news_articles.url` (VARCHAR 2048) — PostgreSQL unique index on such long columns is problematic. App-level dedup via `existsByUrl()` is sufficient for single-thread scheduler. | Accepted risk — documented |
+| F7 | LOW | 18+ unbounded `findAll()` calls across adapters — future scaling concern, not a current bug | Accepted — document for post-launch optimization |
+| F8 | LOW | Zero `@Valid` annotations on DTOs — manual service-layer validation works but is inconsistent | Accepted — cross-cutting change for future slice |
+| F9 | INFO | `data.sql` is fully idempotent with `WHERE NOT EXISTS` guards | No fix needed |
+| F10 | INFO | `StartupPipelineOrchestrator` properly isolates each of 11 steps in try-catch | No fix needed |
+| F11 | INFO | Wiki page load (3.48s cold start) is borderline on 3s target but acceptable for first-hit after restart | Monitor in production |
 
 ---
 

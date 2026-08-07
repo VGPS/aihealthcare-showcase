@@ -23,7 +23,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-20
+ * @updated 2026-08-07
  */
 @Slf4j
 @Component
@@ -50,36 +50,39 @@ public class DemoExpirationScheduler {
     @Scheduled(cron = "${aihealthcare.demo.expiration-cron:0 0 2 * * *}")
     public void expireExpiredDemos() {
         log.debug("expireExpiredDemos() | (no args)");
+        try {
+            Instant now = Instant.now();
+            List<AppUser> expiredUsers = appUserPort.findByTierAndDemoExpiresAtBefore("DEMO", now);
 
-        Instant now = Instant.now();
-        List<AppUser> expiredUsers = appUserPort.findByTierAndDemoExpiresAtBefore("DEMO", now);
+            log.info("expireExpiredDemos() | found {} expired DEMO users", expiredUsers.size());
 
-        log.info("expireExpiredDemos() | found {} expired DEMO users", expiredUsers.size());
+            int transitioned = 0;
+            for (AppUser user : expiredUsers) {
+                try {
+                    AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
+                            user.role(), user.enabled(), SubscriptionTier.FREE_PENDING, user.demoExpiresAt());
+                    appUserPort.save(updated);
 
-        int transitioned = 0;
-        for (AppUser user : expiredUsers) {
-            try {
-                AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
-                        user.role(), user.enabled(), SubscriptionTier.FREE_PENDING, user.demoExpiresAt());
-                appUserPort.save(updated);
+                    Optional<Subscriber> subOpt = subscriberPort.findByEmail(user.email());
+                    if (subOpt.isPresent()) {
+                        Subscriber sub = subOpt.get();
+                        Subscriber updatedSub = new Subscriber(sub.email(), sub.name(), sub.active(),
+                                sub.subscribedAt(), SubscriptionTier.FREE_PENDING,
+                                sub.unsubscribeToken(), sub.stripeCustomerId(), sub.stripeSubscriptionId());
+                        subscriberPort.save(updatedSub);
+                    }
 
-                Optional<Subscriber> subOpt = subscriberPort.findByEmail(user.email());
-                if (subOpt.isPresent()) {
-                    Subscriber sub = subOpt.get();
-                    Subscriber updatedSub = new Subscriber(sub.email(), sub.name(), sub.active(),
-                            sub.subscribedAt(), SubscriptionTier.FREE_PENDING,
-                            sub.unsubscribeToken(), sub.stripeCustomerId(), sub.stripeSubscriptionId());
-                    subscriberPort.save(updatedSub);
+                    transactionalEmailPort.sendDemoExpiration(user.email(), user.displayName());
+                    transitioned++;
+                } catch (Exception e) {
+                    log.error("expireExpiredDemos() | failed to transition user: {}", user.email(), e);
                 }
-
-                transactionalEmailPort.sendDemoExpiration(user.email(), user.displayName());
-                transitioned++;
-            } catch (Exception e) {
-                log.error("expireExpiredDemos() | failed to transition user: {}", user.email(), e);
             }
-        }
 
-        log.info("expireExpiredDemos() | transitioned {} users to FREE_PENDING", transitioned);
+            log.info("expireExpiredDemos() | transitioned {} users to FREE_PENDING", transitioned);
+        } catch (Exception e) {
+            log.error("expireExpiredDemos() | scheduler exception", e);
+        }
         log.debug("expireExpiredDemos() | return=void");
     }
 }
