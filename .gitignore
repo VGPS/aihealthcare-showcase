@@ -48,3 +48,9 @@ build/
 ### IntelliJ run configs (may contain env vars with secrets) ###
 .idea/runConfigurations/
 .idea/dataSources.xml
+
+### Stale docs removed from repo ###
+SESSION_LOG.md
+docs/SESSION_LOG.md
+docs/ROADMAP.md
+docs/code-flow-diagrams.md
