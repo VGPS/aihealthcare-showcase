@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.CountByLabel;
 import com.wgblackmon.aihealthcare.domain.model.IngestionAnalytics;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GetAnalyticsUseCase;
@@ -36,7 +37,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-05-31
- * @updated 2026-08-01
+ * @updated 2026-08-07
  */
 @Slf4j
 @Controller
@@ -147,7 +148,7 @@ public class AdminController {
         log.debug("toggleEnabled() | email={}, principal={}", email, principal.getName());
 
         if (email.equals(principal.getName())) {
-            log.warn("toggleEnabled() | admin attempted to toggle own account: {}", email);
+            log.warn("toggleEnabled() | admin attempted to toggle own account: {}", LogSanitizer.maskEmail(email));
             redirectAttributes.addFlashAttribute("errorMessage", "You cannot enable/disable your own account.");
             log.debug("toggleEnabled() | return=redirect:/admin (self-action blocked)");
             return "redirect:/admin";
@@ -155,7 +156,7 @@ public class AdminController {
 
         Optional<AppUser> existing = appUserPort.findByEmail(email);
         if (existing.isEmpty()) {
-            log.warn("toggleEnabled() | user not found: {}", email);
+            log.warn("toggleEnabled() | user not found: {}", LogSanitizer.maskEmail(email));
             redirectAttributes.addFlashAttribute("errorMessage", "User not found: " + email);
             log.debug("toggleEnabled() | return=redirect:/admin (not found)");
             return "redirect:/admin";
@@ -193,7 +194,7 @@ public class AdminController {
         log.debug("changeRole() | email={}, role={}, principal={}", email, role, principal.getName());
 
         if (email.equals(principal.getName())) {
-            log.warn("changeRole() | admin attempted to change own role: {}", email);
+            log.warn("changeRole() | admin attempted to change own role: {}", LogSanitizer.maskEmail(email));
             redirectAttributes.addFlashAttribute("errorMessage", "You cannot change your own role.");
             log.debug("changeRole() | return=redirect:/admin (self-action blocked)");
             return "redirect:/admin";
@@ -201,7 +202,7 @@ public class AdminController {
 
         Optional<AppUser> existing = appUserPort.findByEmail(email);
         if (existing.isEmpty()) {
-            log.warn("changeRole() | user not found: {}", email);
+            log.warn("changeRole() | user not found: {}", LogSanitizer.maskEmail(email));
             redirectAttributes.addFlashAttribute("errorMessage", "User not found: " + email);
             log.debug("changeRole() | return=redirect:/admin (not found)");
             return "redirect:/admin";

@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.ModelInfo;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
@@ -52,7 +53,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-06-02
- * @updated 2026-07-20
+ * @updated 2026-08-07
  */
 @Slf4j
 @Controller
@@ -131,7 +132,7 @@ public class AiSearchController {
 
             if (!tierGatingService.canQuery(usage)) {
                 log.warn("search() | Monthly query limit reached: email={}, used={}, limit={}",
-                         email, usage.queryCount(), usage.queryLimit());
+                         LogSanitizer.maskEmail(email), usage.queryCount(), usage.queryLimit());
                 model.addAttribute("limitReached", true);
                 model.addAttribute("used", usage.queryCount());
                 model.addAttribute("limit", usage.queryLimit());

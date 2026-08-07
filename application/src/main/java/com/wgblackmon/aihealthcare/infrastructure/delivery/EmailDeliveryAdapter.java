@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.delivery;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
 import jakarta.mail.MessagingException;
@@ -36,7 +37,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-04-13
+ * @updated 2026-08-07
  */
 @Slf4j
 @Component
@@ -77,7 +78,7 @@ public class EmailDeliveryAdapter implements NewsletterDeliveryPort {
                 log.debug("deliver() | Sent to email={}", recipient.email());
             } catch (MessagingException | MailException ex) {
                 failureCount++;
-                log.error("deliver() | Failed to send to email={}: {}", recipient.email(), ex.getMessage());
+                log.error("deliver() | Failed to send to email={}: {}", LogSanitizer.maskEmail(recipient.email()), ex.getMessage());
             }
         }
 

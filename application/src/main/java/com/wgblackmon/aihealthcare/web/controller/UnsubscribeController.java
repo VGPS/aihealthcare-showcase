@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.stripe.model.Subscription;
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
@@ -35,7 +36,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-07-31
- * @updated 2026-08-06
+ * @updated 2026-08-07
  */
 @Slf4j
 @Controller
@@ -75,7 +76,7 @@ public class UnsubscribeController {
         if (subscriberOpt.isEmpty()) {
             model.addAttribute("success", false);
             model.addAttribute("message", "This unsubscribe link is invalid or has already been used.");
-            log.warn("unsubscribe() | No subscriber found for token={}", token);
+            log.warn("unsubscribe() | No subscriber found for token=[REDACTED]");
             log.debug("unsubscribe() | return=unsubscribe (not found)");
             return "unsubscribe";
         }
@@ -90,7 +91,7 @@ public class UnsubscribeController {
                 sub.email(), sub.name(), false, sub.subscribedAt(), SubscriptionTier.FREE,
                 sub.unsubscribeToken(), null, null);
         subscriberPort.save(deactivated);
-        log.info("unsubscribe() | Subscriber deactivated: email={}", sub.email());
+        log.info("unsubscribe() | Subscriber deactivated: email={}", LogSanitizer.maskEmail(sub.email()));
 
         // 3. Downgrade AppUser tier to FREE if a login account exists
         downgradeAppUser(sub.email());
@@ -136,7 +137,7 @@ public class UnsubscribeController {
                 sub.email(), sub.name(), true, sub.subscribedAt(), SubscriptionTier.FREE,
                 sub.unsubscribeToken(), null, null);
         subscriberPort.save(reactivated);
-        log.info("downgradeToDigest() | Re-activated as FREE digest: email={}", sub.email());
+        log.info("downgradeToDigest() | Re-activated as FREE digest: email={}", LogSanitizer.maskEmail(sub.email()));
 
         model.addAttribute("success", true);
         model.addAttribute("message", "You've been switched to the free weekly digest.");
@@ -192,7 +193,7 @@ public class UnsubscribeController {
                 user.email(), user.passwordHash(), user.displayName(),
                 user.role(), user.enabled(), SubscriptionTier.FREE, null);
         appUserPort.save(downgraded);
-        log.info("downgradeAppUser() | Downgraded to FREE: email={}, previousTier={}", email, user.tier());
+        log.info("downgradeAppUser() | Downgraded to FREE: email={}, previousTier={}", LogSanitizer.maskEmail(email), user.tier());
 
         log.debug("downgradeAppUser() | return=void");
     }

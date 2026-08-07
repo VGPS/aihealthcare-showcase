@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.exception.ApiKeyCreationException;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.exception.ApiKeyNotFoundException;
 import com.wgblackmon.aihealthcare.domain.exception.DuplicateSubscriberException;
 import com.wgblackmon.aihealthcare.domain.exception.DuplicateUserException;
@@ -41,7 +42,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-04
- * @updated 2026-07-03
+ * @updated 2026-08-07
  */
 @Slf4j
 @RestControllerAdvice
@@ -80,7 +81,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateSubscriberException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateSubscriber(DuplicateSubscriberException ex) {
         log.debug("handleDuplicateSubscriber() | ex={}", ex.getMessage());
-        log.warn("handleDuplicateSubscriber() | Duplicate subscriber: email={}", ex.getEmail());
+        log.warn("handleDuplicateSubscriber() | Duplicate subscriber: email={}", LogSanitizer.maskEmail(ex.getEmail()));
         ErrorResponse body = new ErrorResponse("CONFLICT", ex.getMessage());
         log.debug("handleDuplicateSubscriber() | return=409");
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
@@ -93,7 +94,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SubscriberNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleSubscriberNotFound(SubscriberNotFoundException ex) {
         log.debug("handleSubscriberNotFound() | ex={}", ex.getMessage());
-        log.warn("handleSubscriberNotFound() | Subscriber not found: email={}", ex.getEmail());
+        log.warn("handleSubscriberNotFound() | Subscriber not found: email={}", LogSanitizer.maskEmail(ex.getEmail()));
         ErrorResponse body = new ErrorResponse("NOT_FOUND", ex.getMessage());
         log.debug("handleSubscriberNotFound() | return=404");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
@@ -154,7 +155,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateUserException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateUser(DuplicateUserException ex) {
         log.debug("handleDuplicateUser() | ex={}", ex.getMessage());
-        log.warn("handleDuplicateUser() | Duplicate user: email={}", ex.getEmail());
+        log.warn("handleDuplicateUser() | Duplicate user: email={}", LogSanitizer.maskEmail(ex.getEmail()));
         ErrorResponse body = new ErrorResponse("CONFLICT", ex.getMessage());
         log.debug("handleDuplicateUser() | return=409");
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);

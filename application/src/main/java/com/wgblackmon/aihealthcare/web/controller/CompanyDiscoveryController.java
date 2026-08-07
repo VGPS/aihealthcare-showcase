@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.Company;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.CompanyDiscoveryResult;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
@@ -37,7 +38,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-07
- * @updated 2026-07-20
+ * @updated 2026-08-07
  */
 @Slf4j
 @RestController
@@ -74,7 +75,7 @@ public class CompanyDiscoveryController {
         // Tier gating — SUBSCRIBER only
         SubscriptionTier tier = resolveTier(subscriberEmail);
         if (tier != SubscriptionTier.SUBSCRIBER) {
-            log.warn("discover() | access denied — tier={} for email={}", tier, subscriberEmail);
+            log.warn("discover() | access denied — tier={} for email={}", tier, LogSanitizer.maskEmail(subscriberEmail));
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("error", "Company discovery is a Subscriber-only feature");
             body.put("tier", tier.name());

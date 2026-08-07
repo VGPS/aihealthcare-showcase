@@ -40,7 +40,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-07
  */
 @Slf4j
 @RestController
@@ -233,8 +233,14 @@ public class WebhookController {
     }
 
     private boolean isAdmin(Principal principal) {
-        // Spring Security prefixes roles with ROLE_
-        return principal instanceof org.springframework.security.authentication.UsernamePasswordAuthenticationToken auth
-                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (!(principal instanceof org.springframework.security.authentication.UsernamePasswordAuthenticationToken auth)) {
+            return false;
+        }
+        for (var authority : auth.getAuthorities()) {
+            if ("ROLE_ADMIN".equals(authority.getAuthority())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

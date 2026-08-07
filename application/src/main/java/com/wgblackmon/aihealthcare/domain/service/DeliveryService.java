@@ -35,7 +35,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-07-21
+ * @updated 2026-08-07
  */
 @Slf4j
 public class DeliveryService implements ManageSubscribersUseCase, DeliverNewsletterUseCase {
@@ -171,7 +171,7 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
 
         Optional<Subscriber> existing = subscriberPort.findByEmail(email);
         if (existing.isPresent()) {
-            log.warn("addSubscriber() | Duplicate subscription attempt for email={}", email);
+            log.warn("addSubscriber() | Duplicate subscription attempt for email={}", LogSanitizer.maskEmail(email));
             throw new DuplicateSubscriberException(email);
         }
 
@@ -179,7 +179,7 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
                 UUID.randomUUID().toString(), null, null);
         subscriberPort.save(subscriber);
 
-        log.info("addSubscriber() | Subscriber added: email={}", email);
+        log.info("addSubscriber() | Subscriber added: email={}", LogSanitizer.maskEmail(email));
         log.debug("addSubscriber() | return={}", subscriber);
         return subscriber;
     }
@@ -196,13 +196,13 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
 
         Optional<Subscriber> existing = subscriberPort.findByEmail(email);
         if (existing.isEmpty()) {
-            log.warn("removeSubscriber() | No subscriber found for email={}", email);
+            log.warn("removeSubscriber() | No subscriber found for email={}", LogSanitizer.maskEmail(email));
             throw new SubscriberNotFoundException(email);
         }
 
         subscriberPort.deleteByEmail(email);
 
-        log.info("removeSubscriber() | Subscriber removed: email={}", email);
+        log.info("removeSubscriber() | Subscriber removed: email={}", LogSanitizer.maskEmail(email));
         log.debug("removeSubscriber() | return=void");
     }
 

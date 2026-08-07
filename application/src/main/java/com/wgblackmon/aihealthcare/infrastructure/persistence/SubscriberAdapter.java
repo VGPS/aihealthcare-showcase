@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-04-13
- * @updated 2026-07-31
+ * @updated 2026-08-07
  */
 @Slf4j
 @Component
@@ -124,7 +125,7 @@ public class SubscriberAdapter implements SubscriberPort {
         String token = subscriber.unsubscribeToken();
         if (token == null || token.isBlank()) {
             token = UUID.randomUUID().toString();
-            log.info("toEntity() | Generated missing unsubscribe token for email={}", subscriber.email());
+            log.info("toEntity() | Generated missing unsubscribe token for email={}", LogSanitizer.maskEmail(subscriber.email()));
         }
         entity.setUnsubscribeToken(token);
         entity.setStripeCustomerId(subscriber.stripeCustomerId());
@@ -142,7 +143,7 @@ public class SubscriberAdapter implements SubscriberPort {
             tier = SubscriptionTier.valueOf(entity.getTier());
         } catch (IllegalArgumentException e) {
             log.warn("toDomain() | Unknown tier='{}' for email={}, defaulting to FREE",
-                     entity.getTier(), entity.getEmail());
+                     entity.getTier(), LogSanitizer.maskEmail(entity.getEmail()));
             tier = SubscriptionTier.FREE;
         }
 

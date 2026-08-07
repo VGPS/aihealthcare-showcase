@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.infrastructure.config.StripeProperties;
 import com.wgblackmon.aihealthcare.web.dto.CheckoutRequest;
 import com.wgblackmon.aihealthcare.web.dto.CheckoutResponse;
@@ -36,7 +37,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-23
- * @updated 2026-07-18
+ * @updated 2026-08-07
  */
 @Slf4j
 @RestController
@@ -105,8 +106,8 @@ public class StripeCheckoutController {
             Session session = Session.create(params);
 
             CheckoutResponse response = new CheckoutResponse(session.getUrl());
-            log.info("createCheckoutSession() | Checkout session created: email={}, sessionId={}",
-                     request.email(), session.getId());
+            log.info("createCheckoutSession() | Checkout session created: email={}, sessionId=[REDACTED]",
+                     LogSanitizer.maskEmail(request.email()));
             log.debug("createCheckoutSession() | return={}", response);
             return ResponseEntity.ok(response);
 
