@@ -42,10 +42,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-19
- * @updated 2026-05-22
+ * @updated 2026-08-07
  */
 @Import(SecurityConfig.class)
-@WithMockUser
+@WithMockUser(roles = "ADMIN")
 @WebMvcTest(WebMonitoringController.class)
 class WebMonitoringControllerTest {
 
@@ -212,5 +212,12 @@ class WebMonitoringControllerTest {
                 .andExpect(status().isOk());
 
         verify(embeddingScheduler).embedArticles();
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void monitoringEndpoints_nonAdmin_returns403() throws Exception {
+        mockMvc.perform(post("/api/v1/monitoring/harvest"))
+                .andExpect(status().isForbidden());
     }
 }
