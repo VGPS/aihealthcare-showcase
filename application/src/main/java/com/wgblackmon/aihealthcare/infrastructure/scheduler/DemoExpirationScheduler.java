@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
@@ -75,7 +76,7 @@ public class DemoExpirationScheduler {
                     transactionalEmailPort.sendDemoExpiration(user.email(), user.displayName());
                     transitioned++;
                 } catch (Exception e) {
-                    log.error("expireExpiredDemos() | failed to transition user: {}", user.email(), e);
+                    log.error("expireExpiredDemos() | failed to transition user: {}", LogSanitizer.maskEmail(user.email()), e);
                 }
             }
 

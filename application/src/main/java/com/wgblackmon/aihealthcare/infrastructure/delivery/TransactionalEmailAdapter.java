@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.delivery;
 
 import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Component;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-31
- * @updated 2026-08-01
+ * @updated 2026-08-07
  */
 @Slf4j
 @Component
@@ -122,9 +123,9 @@ public class TransactionalEmailAdapter implements TransactionalEmailPort {
             helper.setSubject(subject);
             helper.setText(plain, html);
             mailSender.send(message);
-            log.info("sendEmail() | Transactional email sent: to={}, subject={}", to, subject);
+            log.info("sendEmail() | Transactional email sent: to={}, subject={}", LogSanitizer.maskEmail(to), subject);
         } catch (MessagingException | MailException e) {
-            log.error("sendEmail() | Failed to send transactional email: to={}, error={}", to, e.getMessage());
+            log.error("sendEmail() | Failed to send transactional email: to={}, error={}", LogSanitizer.maskEmail(to), e.getMessage());
         }
 
         log.debug("sendEmail() | return=void");

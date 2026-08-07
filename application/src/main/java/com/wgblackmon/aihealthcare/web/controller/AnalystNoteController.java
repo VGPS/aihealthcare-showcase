@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.AnalystNote;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
 import com.wgblackmon.aihealthcare.domain.model.NoteTargetType;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
@@ -39,7 +40,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-07
  */
 @Slf4j
 @Controller
@@ -155,7 +156,7 @@ public class AnalystNoteController {
             analystNotePort.save(note);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Note added to \"" + targetLabel + "\"");
-            log.info("addNote() | saved note for targetType={}, targetId={}, user={}", type, targetId, email);
+            log.info("addNote() | saved note for targetType={}, targetId={}, user={}", type, targetId, LogSanitizer.maskEmail(email));
         } catch (Exception e) {
             log.error("addNote() | failed to add note", e);
             redirectAttributes.addFlashAttribute("errorMessage",
@@ -214,7 +215,7 @@ public class AnalystNoteController {
             );
             analystNotePort.save(updated);
             redirectAttributes.addFlashAttribute("successMessage", "Note updated");
-            log.info("editNote() | updated note noteId={}, user={}", noteId, email);
+            log.info("editNote() | updated note noteId={}, user={}", noteId, LogSanitizer.maskEmail(email));
         } catch (Exception e) {
             log.error("editNote() | failed to edit note", e);
             redirectAttributes.addFlashAttribute("errorMessage",

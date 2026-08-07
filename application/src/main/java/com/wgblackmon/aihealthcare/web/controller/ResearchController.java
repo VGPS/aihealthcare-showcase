@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.ResearchAnswer;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.ResearchMode;
 import com.wgblackmon.aihealthcare.domain.model.ResearchRequest;
 import com.wgblackmon.aihealthcare.domain.model.ResearchSection;
@@ -50,7 +51,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-05-04
- * @updated 2026-05-26
+ * @updated 2026-08-07
  */
 @Slf4j
 @RestController
@@ -111,7 +112,7 @@ public class ResearchController {
 
             if (!tierGatingService.canQuery(usage)) {
                 log.warn("research() | Monthly query limit reached: email={}, used={}, limit={}",
-                         subscriberEmail, usage.queryCount(), usage.queryLimit());
+                         LogSanitizer.maskEmail(subscriberEmail), usage.queryCount(), usage.queryLimit());
                 Map<String, Object> body = new LinkedHashMap<>();
                 body.put("error", "Monthly query limit reached");
                 body.put("used", usage.queryCount());

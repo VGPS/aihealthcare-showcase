@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageSubscribersUseCase;
 import com.wgblackmon.aihealthcare.web.dto.SubscriberRequest;
 import com.wgblackmon.aihealthcare.web.dto.SubscriberResponse;
@@ -38,7 +39,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-13
- * @updated 2026-05-23
+ * @updated 2026-08-07
  */
 @Slf4j
 @RestController
@@ -72,7 +73,7 @@ public class SubscriberController {
                 request.email(), request.name());
 
         SubscriberResponse response = toResponse(subscriber);
-        log.info("addSubscriber() | Subscriber registered: email={}", subscriber.email());
+        log.info("addSubscriber() | Subscriber registered: email={}", LogSanitizer.maskEmail(subscriber.email()));
         log.debug("addSubscriber() | return={}", response);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -117,7 +118,7 @@ public class SubscriberController {
 
         manageSubscribersUseCase.removeSubscriber(email);
 
-        log.info("removeSubscriber() | Subscriber removed: email={}", email);
+        log.info("removeSubscriber() | Subscriber removed: email={}", LogSanitizer.maskEmail(email));
         log.debug("removeSubscriber() | return=204");
         return ResponseEntity.noContent().build();
     }

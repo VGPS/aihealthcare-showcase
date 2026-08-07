@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
@@ -30,7 +31,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-06
- * @updated 2026-08-06
+ * @updated 2026-08-07
  */
 @Slf4j
 @RestController
@@ -90,7 +91,7 @@ public class SampleNewsletterController {
         recipients.add(recipient);
 
         deliveryPort.deliver(run.get(), recipients);
-        log.info("send() | Sample newsletter sent to {}", email);
+        log.info("send() | Sample newsletter sent to {}", LogSanitizer.maskEmail(email));
 
         log.debug("send() | return=200");
         return ResponseEntity.ok(Map.of("sent", true, "email", email));

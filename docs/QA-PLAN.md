@@ -379,26 +379,38 @@ For each page, check:
 
 ### 6.1 Logging Audit
 
-- [ ] Spot-check 10 services for entry/exit logging compliance (CONVENTIONS.md)
-- [ ] Verify no PII logged (email addresses, tokens in INFO/WARN)
-- [ ] Verify log levels appropriate (DEBUG for trace, INFO for business events)
-- [ ] Check for missing `@Slf4j` annotations on concrete classes
+- [x] Spot-check 10 services for entry/exit logging compliance (CONVENTIONS.md) — all 10 checked services comply with entry/exit pattern
+- [x] Verify no PII logged (email addresses, tokens in INFO/WARN) — **FIXED**: created `LogSanitizer.maskEmail()` utility, applied to 40 log calls across 21 files; unsubscribe token and Stripe IDs fully redacted to `[REDACTED]`
+- [x] Verify log levels appropriate (DEBUG for trace, INFO for business events) — compliant; PII now only in DEBUG level
+- [x] Check for missing `@Slf4j` annotations on concrete classes — 25 domain services use Lombok `@Slf4j` (domain purity violation, deferred to future slice)
 
 ### 6.2 Convention Compliance
 
-- [ ] Spot-check 10 files for class header Javadoc (`@author`, `@since`, `@updated`)
-- [ ] Verify no Streams usage (grep for `.stream()`, `.collect()`, `.map(`)
-- [ ] Verify domain module has zero Spring/Lombok imports
-- [ ] Verify constructor injection only (grep for `@Autowired`)
-- [ ] Verify all data carriers are records (not POJOs with getters/setters)
+- [x] Spot-check 10 files for class header Javadoc (`@author`, `@since`, `@updated`) — all checked files compliant
+- [x] Verify no Streams usage (grep for `.stream()`, `.collect()`, `.map(`) — **FIXED**: 1 violation in `WebhookController:238` replaced with for-loop
+- [x] Verify domain module has zero Spring/Lombok imports — Lombok `@Slf4j` in 25 domain services (accepted, see L1 below); zero Spring/Jakarta imports
+- [x] Verify constructor injection only (grep for `@Autowired`) — all `@Autowired` are on constructor parameters (`required=false` for optional deps), none on fields
+- [x] Verify all data carriers are records (not POJOs with getters/setters) — all domain model types are records
 
 ### 6.3 Email & Communication
 
-- [ ] Verify all outgoing emails use `newsletter@bigskylabs.ai` as from address
-- [ ] Verify no personal email addresses appear in any template or email
-- [ ] Verify unsubscribe link is present in every email type
-- [ ] Verify CAN-SPAM compliance (physical address, one-click unsubscribe)
-- [ ] Check email rendering in Gmail, Outlook, Apple Mail (or Litmus)
+- [x] Verify all outgoing emails use `newsletter@bigskylabs.ai` as from address — from-address configured via `aihealthcare.newsletter.from-address` (local: `newsletter@aihealthcare.local`, AWS: `noreply@health.bigskylabs.ai`)
+- [x] Verify no personal email addresses appear in any template or email — all templates use `newsletter@bigskylabs.ai`; `data.sql` seed data has personal emails (acceptable, not user-facing)
+- [x] Verify unsubscribe link is present in every email type — bulk newsletter emails have unsubscribe; transactional emails (welcome, expiration, admin) do not (CAN-SPAM exempt)
+- [x] Verify CAN-SPAM compliance (physical address, one-click unsubscribe) — no physical address in emails (pre-launch decision needed); unsubscribe link present in marketing emails; no `List-Unsubscribe` header
+- [x] ~~Check email rendering in Gmail, Outlook, Apple Mail~~ — deferred (requires live SMTP and email client testing)
+
+### Day 6 Findings
+
+| # | Severity | Finding | Status |
+|---|----------|---------|--------|
+| F1 | **HIGH** | 40 `log.info/warn/error` calls logged raw email addresses (PII) across 21 files. Unsubscribe token and Stripe customer/session IDs also exposed. | **FIXED** — created `LogSanitizer.maskEmail()` (domain utility, JDK-only), applied to all 40 calls. Token and Stripe IDs redacted to `[REDACTED]`. |
+| F2 | **LOW** | 1 `.stream().anyMatch()` usage in `WebhookController:238` — prohibited by no-streams convention | **FIXED** — replaced with for-loop |
+| F3 | MEDIUM | 25 domain service classes import `lombok.extern.slf4j.Slf4j` — violates domain purity convention ("domain module has zero Lombok imports") | Deferred — replacing with `System.Logger` across 25 files is too disruptive for QA day. Future dedicated slice. |
+| F4 | MEDIUM | No CAN-SPAM physical mailing address in any email template | Deferred — requires business decision on mailing address. Pre-launch checklist item. |
+| F5 | LOW | Transactional emails (welcome, demo expiration, admin notification) have no unsubscribe link | Accepted — CAN-SPAM exempts transactional/relationship emails |
+| F6 | LOW | No `List-Unsubscribe` header on any emails | Deferred — deliverability optimization for future slice |
+| F7 | LOW | 7 constructors have redundant bare `@Autowired` (Spring auto-discovers single constructor) | Accepted — harmless noise, not a convention violation |
 
 ---
 

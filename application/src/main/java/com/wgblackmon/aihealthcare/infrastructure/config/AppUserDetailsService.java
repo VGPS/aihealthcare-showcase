@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.config;
 
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.User;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Component;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-28
- * @updated 2026-05-28
+ * @updated 2026-08-07
  */
 @Slf4j
 @Component
@@ -50,7 +51,7 @@ public class AppUserDetailsService implements UserDetailsService {
 
         AppUser appUser = appUserPort.findByEmail(email)
                 .orElseThrow(() -> {
-                    log.warn("loadUserByUsername() | user not found: {}", email);
+                    log.warn("loadUserByUsername() | user not found: {}", LogSanitizer.maskEmail(email));
                     return new UsernameNotFoundException("User not found: " + email);
                 });
 

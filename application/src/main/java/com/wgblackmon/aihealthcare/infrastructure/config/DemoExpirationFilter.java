@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.config;
 
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
@@ -33,7 +34,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-20
+ * @updated 2026-08-07
  */
 @Slf4j
 public class DemoExpirationFilter extends OncePerRequestFilter {
@@ -96,7 +97,7 @@ public class DemoExpirationFilter extends OncePerRequestFilter {
 
         // Redirect FREE_PENDING users to choose-path
         if (user.tier() == SubscriptionTier.FREE_PENDING) {
-            log.info("doFilterInternal() | FREE_PENDING user redirected to choose-path: {}", email);
+            log.info("doFilterInternal() | FREE_PENDING user redirected to choose-path: {}", LogSanitizer.maskEmail(email));
             response.sendRedirect(request.getContextPath() + "/choose-path");
             return;
         }
@@ -106,7 +107,7 @@ public class DemoExpirationFilter extends OncePerRequestFilter {
                 && user.demoExpiresAt() != null
                 && Instant.now().isAfter(user.demoExpiresAt())) {
 
-            log.info("doFilterInternal() | DEMO expired for user: {}", email);
+            log.info("doFilterInternal() | DEMO expired for user: {}", LogSanitizer.maskEmail(email));
 
             // Transition app user to FREE_PENDING
             AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),

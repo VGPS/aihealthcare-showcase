@@ -8,6 +8,7 @@ import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
@@ -49,7 +50,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-23
- * @updated 2026-08-06
+ * @updated 2026-08-07
  */
 @Slf4j
 @RestController
@@ -156,7 +157,7 @@ public class StripeWebhookController {
         String stripeSubscriptionId = session.getSubscription();
         upsertSubscriber(email, tier, stripeCustomerId, stripeSubscriptionId);
         reEnableAppUser(email, tier);
-        log.info("handleCheckoutCompleted() | New paid subscriber: email={}, tier={}, customerId={}", email, tier, stripeCustomerId);
+        log.info("handleCheckoutCompleted() | New paid subscriber: email={}, tier={}, customerId=[REDACTED]", LogSanitizer.maskEmail(email), tier);
         log.debug("handleCheckoutCompleted() | return=void");
     }
 
@@ -186,7 +187,7 @@ public class StripeWebhookController {
         String stripeCustomerId = subscription.getCustomer();
         String stripeSubscriptionId = subscription.getId();
         upsertSubscriber(email, tier, stripeCustomerId, stripeSubscriptionId);
-        log.info("handleSubscriptionUpdated() | Subscription changed: email={}, tier={}", email, tier);
+        log.info("handleSubscriptionUpdated() | Subscription changed: email={}, tier={}", LogSanitizer.maskEmail(email), tier);
         log.debug("handleSubscriptionUpdated() | return=void");
     }
 
@@ -207,7 +208,7 @@ public class StripeWebhookController {
         }
 
         upsertSubscriber(email, SubscriptionTier.FREE, null, null);
-        log.info("handleSubscriptionDeleted() | Subscription cancelled: email={}, reverted to FREE", email);
+        log.info("handleSubscriptionDeleted() | Subscription cancelled: email={}, reverted to FREE", LogSanitizer.maskEmail(email));
         log.debug("handleSubscriptionDeleted() | return=void");
     }
 
@@ -229,7 +230,7 @@ public class StripeWebhookController {
             AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
                     user.role(), true, tier, user.demoExpiresAt());
             appUserPort.save(updated);
-            log.info("reEnableAppUser() | Re-enabled app_user: email={}, tier={}", email, tier);
+            log.info("reEnableAppUser() | Re-enabled app_user: email={}, tier={}", LogSanitizer.maskEmail(email), tier);
         } else {
             log.debug("reEnableAppUser() | No app_user found for email={} — skipping", email);
         }

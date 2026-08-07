@@ -28,7 +28,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-08-01
+ * @updated 2026-08-07
  */
 @Slf4j
 public class RegistrationService implements RegisterUserUseCase {
@@ -60,11 +60,11 @@ public class RegistrationService implements RegisterUserUseCase {
         log.debug("register() | email={}, displayName={}", email, displayName);
 
         if (appUserPort.findByEmail(email).isPresent()) {
-            log.warn("register() | duplicate app user: {}", email);
+            log.warn("register() | duplicate app user: {}", LogSanitizer.maskEmail(email));
             throw new DuplicateUserException(email);
         }
         if (subscriberPort.findByEmail(email).isPresent()) {
-            log.warn("register() | duplicate subscriber: {}", email);
+            log.warn("register() | duplicate subscriber: {}", LogSanitizer.maskEmail(email));
             throw new DuplicateUserException(email);
         }
 

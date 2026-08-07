@@ -4,6 +4,7 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.billingportal.Session;
 import com.stripe.param.billingportal.SessionCreateParams;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.StripeProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-31
- * @updated 2026-07-31
+ * @updated 2026-08-07
  */
 @Slf4j
 @RestController
@@ -77,7 +78,7 @@ public class StripePortalController {
 
         Optional<Subscriber> subOpt = subscriberPort.findByEmail(email);
         if (subOpt.isEmpty() || subOpt.get().stripeCustomerId() == null || subOpt.get().stripeCustomerId().isBlank()) {
-            log.warn("createPortalSession() | No Stripe customer ID for email={}", email);
+            log.warn("createPortalSession() | No Stripe customer ID for email={}", LogSanitizer.maskEmail(email));
             Map<String, String> err = new LinkedHashMap<>();
             err.put("error", "No Stripe subscription found for this account");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);

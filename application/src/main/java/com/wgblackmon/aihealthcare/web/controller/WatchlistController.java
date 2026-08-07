@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistItem;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistItemType;
@@ -44,7 +45,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-08-04
+ * @updated 2026-08-07
  */
 @Slf4j
 @Controller
@@ -263,7 +264,7 @@ public class WatchlistController {
             watchlistPort.save(item);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Added \"" + displayLabel + "\" to your watchlist");
-            log.info("addItem() | saved watchlist item: type={}, value={}, user={}", type, value, email);
+            log.info("addItem() | saved watchlist item: type={}, value={}, user={}", type, value, LogSanitizer.maskEmail(email));
         } catch (Exception e) {
             log.error("addItem() | failed to add watchlist item", e);
             redirectAttributes.addFlashAttribute("errorMessage",
