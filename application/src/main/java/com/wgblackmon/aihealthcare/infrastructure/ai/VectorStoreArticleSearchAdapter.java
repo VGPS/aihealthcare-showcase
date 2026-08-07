@@ -26,7 +26,7 @@ import java.util.Optional;
  * {@code articleId} in its metadata; this adapter resolves that ID back to a
  * full {@link NewsArticle} domain record by querying {@link NewsArticleRepository}.
  *
- * <p>If the vector store is empty (e.g., the {@link EmbeddingScheduler} has not
+ * <p>If the vector store is empty (e.g., the {@link com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler} has not
  * yet run, or the OpenAI API key is invalid), {@link #findSimilar} returns an
  * empty list — callers must handle this gracefully.
  *

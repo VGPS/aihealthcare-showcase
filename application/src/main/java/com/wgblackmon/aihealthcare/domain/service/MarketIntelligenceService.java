@@ -23,7 +23,7 @@ import java.util.Optional;
  *
  * <p>This service intentionally performs no file I/O — writing the report to disk is an
  * infrastructure concern handled by callers in {@code infrastructure.config}
- * ({@link com.wgblackmon.aihealthcare.infrastructure.config.MarketIntelligenceScheduler}).
+ * ({@link com.wgblackmon.aihealthcare.infrastructure.scheduler.MarketIntelligenceScheduler}).
  * This separation keeps this service testable without a filesystem or Spring context.
  *
  * <p>This class is not annotated with {@code @Service} — it is wired as a bean

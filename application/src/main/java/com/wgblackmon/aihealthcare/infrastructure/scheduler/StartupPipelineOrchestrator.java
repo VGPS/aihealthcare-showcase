@@ -11,7 +11,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.MapCompanyRelationshipsUs
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectLegalTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PipelineRunEventPort;
-import com.wgblackmon.aihealthcare.infrastructure.ai.EmbeddingScheduler;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.delivery.WebhookDispatcher;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebMonitoringScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.research.ResearchHarvestScheduler;

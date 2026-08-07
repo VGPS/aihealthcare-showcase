@@ -5,7 +5,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
-import com.wgblackmon.aihealthcare.infrastructure.ai.EmbeddingScheduler;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.delivery.NotebookLMService;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;

@@ -1,4 +1,4 @@
-package com.wgblackmon.aihealthcare.web.controller;
+package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

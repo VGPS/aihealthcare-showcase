@@ -28,7 +28,7 @@ import java.util.Map;
  * <p>This adapter is only registered when a {@link VectorStore} bean is present.
  * In the {@code h2} test profile the pgvector auto-configuration is excluded, so
  * this bean is absent and the controller is unavailable — consistent with the
- * behaviour of {@link EmbeddingScheduler} and {@link VectorStoreArticleSearchAdapter}.
+ * behaviour of {@link com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler} and {@link VectorStoreArticleSearchAdapter}.
  *
  * @author  Bill Blackmon
  * @version 1.0

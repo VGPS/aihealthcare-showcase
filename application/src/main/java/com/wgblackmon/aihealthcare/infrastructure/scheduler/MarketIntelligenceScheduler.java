@@ -1,4 +1,4 @@
-package com.wgblackmon.aihealthcare.infrastructure.config;
+package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
 import com.wgblackmon.aihealthcare.domain.model.MarketIntelligenceReport;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GenerateMarketIntelligenceUseCase;
