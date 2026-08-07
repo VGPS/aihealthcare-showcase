@@ -19,7 +19,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * <p>Protects all Thymeleaf UI pages behind authentication. REST API
  * endpoints ({@code /api/**}) require either session auth or a valid
  * {@code X-API-Key} header (except the Stripe webhook). Monitoring
- * triggers ({@code /monitoring/**}) require {@code ADMIN} role.
+ * triggers ({@code /monitoring/**} and {@code /api/v1/monitoring/**})
+ * require {@code ADMIN} role.
  *
  * <p>Admin-only pages ({@code /admin/**}, {@code /newsletter/runs/**}) require
  * the {@code ADMIN} role. All other authenticated pages are accessible to any
@@ -32,7 +33,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * @author  Bill Blackmon
  * @version 1.4
  * @since   2026-05-28
- * @updated 2026-08-06
+ * @updated 2026-08-07
  */
 @Slf4j
 @Configuration
@@ -70,6 +71,7 @@ public class SecurityConfig {
                                  "/pricing", "/error").permitAll()
                 .requestMatchers("/api/v1/stripe/webhook").permitAll()
                 .requestMatchers("/api/v1/feedback/**").permitAll()
+                .requestMatchers("/api/v1/monitoring/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()
                 .requestMatchers("/monitoring/**").hasRole("ADMIN")
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
