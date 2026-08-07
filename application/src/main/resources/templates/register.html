@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <!--
 /**
- * Registration page — centered card layout with Tailwind CSS.
+ * Registration page — mini landing page with value proposition + signup form.
  *
- * 7-day demo signup form. No nav bar (unauthenticated). CSRF token is
- * auto-injected by Spring Security into the POST form via th:action.
+ * Serves as the primary entry point for new users arriving from the resume,
+ * LinkedIn, or external links. Shows platform capabilities above the fold
+ * before presenting the 7-day demo signup form. No nav bar (unauthenticated).
+ * CSRF token is auto-injected by Spring Security into the POST form via th:action.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-15
- * @updated 2026-07-28
+ * @updated 2026-08-07
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
@@ -19,71 +21,229 @@
 <body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
 
 <!-- Header -->
-<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
-    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
-    <p class="text-primary-200 text-sm mt-0.5">AI-in-Healthcare Intelligence Platform</p>
+<header class="bg-primary-600 text-white px-6 py-5 shadow-md">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="font-display text-3xl font-bold tracking-tight">AIHealthcare</h1>
+        <p class="text-primary-200 text-sm mt-1">AI-Powered Healthcare Intelligence Platform</p>
+    </div>
 </header>
 
-<!-- Centered register card -->
-<main class="flex-1 flex items-center justify-center px-4 py-12">
-    <div class="w-full max-w-md">
-        <div class="bg-white rounded-lg shadow-lg p-8">
-            <h2 class="font-display text-xl font-semibold text-on-surface mb-1">Start Your Free Trial</h2>
-            <p class="text-sm text-on-surface-variant mb-5">
-                <span class="inline-block bg-accent-200 text-accent-700 text-xs font-bold px-2 py-0.5 rounded-pill mr-1">7-DAY DEMO</span><br/>
-                Full access to the platform for 7 days. No credit card required.
-            </p>
+<main class="flex-1">
 
-            <!-- Error alert -->
-            <div th:if="${error}"
-                 class="bg-red-50 border-l-4 border-red-500 text-red-800 text-sm p-3 mb-4 rounded"
-                 th:text="${error}">
-                Error message
+    <!-- Hero section -->
+    <section class="bg-gradient-to-b from-primary-600 to-primary-700 text-white px-4 py-10">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-3">
+                Healthcare AI Intelligence<br/>Delivered Daily
+            </h2>
+            <p class="text-primary-100 text-lg max-w-2xl mx-auto leading-relaxed">
+                Automated research, regulatory alerts, competitive analysis, and trend detection
+                across the AI-in-healthcare industry &mdash; powered by 5 LLM providers and 57+ data sources.
+            </p>
+        </div>
+    </section>
+
+    <!-- Feature highlights + form side by side -->
+    <section class="max-w-6xl mx-auto px-4 py-10">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+
+            <!-- Left: features -->
+            <div>
+                <h3 class="font-display text-xl font-bold text-on-surface mb-5">What You Get With Your Free Trial</h3>
+
+                <div class="space-y-4">
+                    <!-- Feature 1 -->
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-9 h-9 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-lg font-bold">1</div>
+                        <div>
+                            <h4 class="font-semibold text-on-surface text-sm">Multi-Model AI Search</h4>
+                            <p class="text-sm text-on-surface-variant">Query across Claude, GPT, Gemini, and Perplexity simultaneously. Get synthesized answers with numbered citation references from real healthcare AI articles.</p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-9 h-9 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-lg font-bold">2</div>
+                        <div>
+                            <h4 class="font-semibold text-on-surface text-sm">Regulatory Alerts</h4>
+                            <p class="text-sm text-on-surface-variant">Automated FDA 510(k) clearances, De Novo authorizations, and CMS rules harvested daily from openFDA and the Federal Register. Set custom watchlists for instant matching.</p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-9 h-9 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-lg font-bold">3</div>
+                        <div>
+                            <h4 class="font-semibold text-on-surface text-sm">Sentiment &amp; Risk Scoring</h4>
+                            <p class="text-sm text-on-surface-variant">LLM-powered sentiment analysis on every article, aggregated into company-level risk dashboards. Track which companies are trending positive or negative.</p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 4 -->
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-9 h-9 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-lg font-bold">4</div>
+                        <div>
+                            <h4 class="font-semibold text-on-surface text-sm">Competitive Framework Analysis</h4>
+                            <p class="text-sm text-on-surface-variant">6-dimension scoring (clinical validation, regulatory positioning, market adoption, technology depth, data assets, partnerships) with radar chart visualization for every tracked company.</p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 5 -->
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-9 h-9 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-lg font-bold">5</div>
+                        <div>
+                            <h4 class="font-semibold text-on-surface text-sm">Deal Signal Detection</h4>
+                            <p class="text-sm text-on-surface-variant">LLM-enhanced identification of M&amp;A activity, partnerships, funding rounds, and licensing deals with extracted amounts, counterparties, and cross-referenced company context.</p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 6 -->
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-9 h-9 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-lg font-bold">6</div>
+                        <div>
+                            <h4 class="font-semibold text-on-surface text-sm">Trend Detection &amp; Knowledge Wiki</h4>
+                            <p class="text-sm text-on-surface-variant">Weekly keyword frequency analysis across 30/90/180-day windows. LLM-compiled knowledge wiki with source provenance, revision history, and automatic contradiction detection.</p>
+                        </div>
+                    </div>
+
+                    <!-- Feature 7 -->
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 w-9 h-9 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-lg font-bold">7</div>
+                        <div>
+                            <h4 class="font-semibold text-on-surface text-sm">Daily AI Newsletter</h4>
+                            <p class="text-sm text-on-surface-variant">Automated newsletter drafts summarizing the day's most important AI healthcare developments, grouped by topic with attributed sources. Full newsletter for subscribers, digest for free users.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats bar -->
+                <div class="mt-6 grid grid-cols-3 gap-3">
+                    <div class="bg-gray-50 rounded-lg p-3 text-center">
+                        <div class="text-xl font-bold text-primary-700">57+</div>
+                        <div class="text-xs text-on-surface-variant">Data Sources</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3 text-center">
+                        <div class="text-xl font-bold text-primary-700">5</div>
+                        <div class="text-xs text-on-surface-variant">LLM Providers</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-3 text-center">
+                        <div class="text-xl font-bold text-primary-700">48</div>
+                        <div class="text-xs text-on-surface-variant">Dashboard Pages</div>
+                    </div>
+                </div>
+
+                <!-- Data sources -->
+                <div class="mt-5">
+                    <p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Ingesting From</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">PubMed</span>
+                        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">openFDA</span>
+                        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">Federal Register</span>
+                        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">HuggingFace</span>
+                        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">Healthcare Dive</span>
+                        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">Beckers</span>
+                        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">Google News</span>
+                        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">Perplexity</span>
+                        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">Y Combinator</span>
+                        <span class="inline-block bg-blue-50 text-blue-700 text-xs px-2 py-0.5 rounded-full">ClinicalTrials.gov</span>
+                    </div>
+                </div>
             </div>
 
-            <form th:action="@{/register}" method="post" class="space-y-4">
-                <div class="flex flex-col gap-1">
-                    <label for="email" class="text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="email" name="email"
-                           th:value="${email}"
-                           placeholder="you@example.com" required autofocus
-                           class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+            <!-- Right: signup form card -->
+            <div>
+                <div class="bg-white rounded-lg shadow-lg p-8 border border-outline-variant sticky top-6">
+                    <h2 class="font-display text-xl font-semibold text-on-surface mb-1">Start Your Free 7-Day Trial</h2>
+                    <p class="text-sm text-on-surface-variant mb-5">
+                        Full access to every feature. No credit card required.
+                    </p>
+
+                    <!-- Error alert -->
+                    <div th:if="${error}"
+                         class="bg-red-50 border-l-4 border-red-500 text-red-800 text-sm p-3 mb-4 rounded"
+                         th:text="${error}">
+                        Error message
+                    </div>
+
+                    <form th:action="@{/register}" method="post" class="space-y-4">
+                        <div class="flex flex-col gap-1">
+                            <label for="email" class="text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" id="email" name="email"
+                                   th:value="${email}"
+                                   placeholder="you@example.com" required autofocus
+                                   class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label for="displayName" class="text-sm font-medium text-gray-700">Display Name</label>
+                            <input type="text" id="displayName" name="displayName"
+                                   th:value="${displayName}"
+                                   placeholder="Your name" required
+                                   class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label for="password" class="text-sm font-medium text-gray-700">Password</label>
+                            <input type="password" id="password" name="password"
+                                   placeholder="Choose a password" required
+                                   class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label for="confirmPassword" class="text-sm font-medium text-gray-700">Confirm Password</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword"
+                                   placeholder="Confirm your password" required
+                                   class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                        </div>
+
+                        <button type="submit"
+                                class="w-full bg-accent-600 hover:bg-accent-700 text-white font-semibold py-2.5 rounded-md text-sm transition-colors">
+                            Start Free Trial
+                        </button>
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <p class="text-xs text-on-surface-variant">
+                            Your trial includes full access to all 48 dashboard pages,
+                            200 AI research queries, regulatory alerts, sentiment analysis,
+                            competitive frameworks, deal signals, and the daily newsletter.
+                        </p>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-outline-variant text-center text-sm text-on-surface-variant">
+                        Already have an account?
+                        <a th:href="@{/login}" class="text-primary-600 hover:text-primary-700 font-medium">Sign in</a>
+                    </div>
                 </div>
+            </div>
 
-                <div class="flex flex-col gap-1">
-                    <label for="displayName" class="text-sm font-medium text-gray-700">Display Name</label>
-                    <input type="text" id="displayName" name="displayName"
-                           th:value="${displayName}"
-                           placeholder="Your name" required
-                           class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+        </div>
+    </section>
+
+    <!-- Who it's for -->
+    <section class="bg-gray-50 px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="font-display text-lg font-bold text-on-surface text-center mb-5">Built For Healthcare AI Professionals</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white rounded-lg p-5 shadow-sm text-center">
+                    <div class="text-2xl mb-2">&#x1F4CA;</div>
+                    <h4 class="font-semibold text-sm text-on-surface mb-1">Analysts &amp; Investors</h4>
+                    <p class="text-xs text-on-surface-variant">Track deal signals, company sentiment, competitive frameworks, and market trends across the healthcare AI landscape.</p>
                 </div>
-
-                <div class="flex flex-col gap-1">
-                    <label for="password" class="text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="password" name="password"
-                           placeholder="Choose a password" required
-                           class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                <div class="bg-white rounded-lg p-5 shadow-sm text-center">
+                    <div class="text-2xl mb-2">&#x2696;</div>
+                    <h4 class="font-semibold text-sm text-on-surface mb-1">Regulatory &amp; Compliance</h4>
+                    <p class="text-xs text-on-surface-variant">Automated FDA and CMS alert harvesting with custom watchlists. Never miss a 510(k) clearance or policy change.</p>
                 </div>
-
-                <div class="flex flex-col gap-1">
-                    <label for="confirmPassword" class="text-sm font-medium text-gray-700">Confirm Password</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword"
-                           placeholder="Confirm your password" required
-                           class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-primary-600"/>
+                <div class="bg-white rounded-lg p-5 shadow-sm text-center">
+                    <div class="text-2xl mb-2">&#x1F52C;</div>
+                    <h4 class="font-semibold text-sm text-on-surface mb-1">Researchers &amp; Executives</h4>
+                    <p class="text-xs text-on-surface-variant">AI-synthesized research from PubMed, industry news, and startup directories. Daily briefings with source attribution.</p>
                 </div>
-
-                <button type="submit"
-                        class="w-full bg-accent-600 hover:bg-accent-700 text-white font-semibold py-2.5 rounded-md text-sm transition-colors">
-                    Create Account
-                </button>
-            </form>
-
-            <div class="mt-5 text-center text-sm text-on-surface-variant">
-                Already have an account?
-                <a th:href="@{/login}" class="text-primary-600 hover:text-primary-700 font-medium">Sign in</a>
             </div>
         </div>
-    </div>
+    </section>
+
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
