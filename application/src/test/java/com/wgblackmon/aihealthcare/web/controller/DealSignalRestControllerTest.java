@@ -99,13 +99,10 @@ class DealSignalRestControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/deals unauthenticated still accessible (API is permitAll)")
-    void getRecentSignals_unauthenticated_isPermitted() throws Exception {
-        when(detectDealSignalsUseCase.getRecentSignals(50)).thenReturn(List.of());
-
+    @DisplayName("GET /api/v1/deals unauthenticated redirects to login")
+    void getRecentSignals_unauthenticated_redirectsToLogin() throws Exception {
         mockMvc.perform(get("/api/v1/deals"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andExpect(status().is3xxRedirection());
     }
 
     @Test

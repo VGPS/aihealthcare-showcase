@@ -92,12 +92,9 @@ class CompanyRelationshipRestControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/relationships unauthenticated is permitted (API permitAll)")
-    void getAllRelationships_unauthenticated_isPermitted() throws Exception {
-        when(mapRelationshipsUseCase.getAllRelationships()).thenReturn(List.of());
-
+    @DisplayName("GET /api/v1/relationships unauthenticated redirects to login")
+    void getAllRelationships_unauthenticated_redirectsToLogin() throws Exception {
         mockMvc.perform(get("/api/v1/relationships"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andExpect(status().is3xxRedirection());
     }
 }

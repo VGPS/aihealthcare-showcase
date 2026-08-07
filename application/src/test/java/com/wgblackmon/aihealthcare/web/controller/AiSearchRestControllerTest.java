@@ -125,18 +125,12 @@ class AiSearchRestControllerTest {
     }
 
     // -------------------------------------------------------------------------
-    // Unauthenticated — API is permitAll
+    // Unauthenticated — API requires auth
     // -------------------------------------------------------------------------
 
     @Test
-    void aiSearch_noAuth_stillPermitted() throws Exception {
-        AiSearchResult result = new AiSearchResult(
-                "s3", "test", List.of(), List.of(), Instant.now());
-        when(aiSearchUseCase.search(eq("test"), eq(10), isNull())).thenReturn(result);
-
+    void aiSearch_noAuth_redirectsToLogin() throws Exception {
         mockMvc.perform(get("/api/v1/search/ai").param("q", "test"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.query", is("test")))
-                .andExpect(jsonPath("$.articleCount", is(0)));
+                .andExpect(status().is3xxRedirection());
     }
 }

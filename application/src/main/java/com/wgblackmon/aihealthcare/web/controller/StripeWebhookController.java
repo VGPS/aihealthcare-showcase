@@ -49,7 +49,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-23
- * @updated 2026-07-20
+ * @updated 2026-08-06
  */
 @Slf4j
 @RestController
@@ -91,19 +91,20 @@ public class StripeWebhookController {
                                  .body("Stripe integration not configured");
         }
 
+        if (stripeProperties.getWebhookSecret() == null
+                || stripeProperties.getWebhookSecret().isBlank()) {
+            log.error("handleWebhook() | STRIPE_WEBHOOK_SECRET is not configured — rejecting webhook");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body("Webhook secret not configured");
+        }
+
         Event event;
-        if (stripeProperties.getWebhookSecret() != null
-                && !stripeProperties.getWebhookSecret().isBlank()) {
-            try {
-                event = Webhook.constructEvent(payload, stripeSignature,
-                                               stripeProperties.getWebhookSecret());
-            } catch (SignatureVerificationException e) {
-                log.warn("handleWebhook() | Signature verification failed: {}", e.getMessage());
-                return ResponseEntity.badRequest().body("Invalid signature");
-            }
-        } else {
-            log.warn("handleWebhook() | No webhook secret configured — skipping signature verification");
-            event = Event.GSON.fromJson(payload, Event.class);
+        try {
+            event = Webhook.constructEvent(payload, stripeSignature,
+                                           stripeProperties.getWebhookSecret());
+        } catch (SignatureVerificationException e) {
+            log.warn("handleWebhook() | Signature verification failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("Invalid signature");
         }
 
         String eventType = event.getType();

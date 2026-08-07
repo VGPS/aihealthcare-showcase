@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @updated 2026-07-30
  */
 @Import(SecurityConfig.class)
-@WithMockUser
+@WithMockUser(roles = "ADMIN")
 @WebMvcTest(LegalBackfillController.class)
 class LegalBackfillControllerTest {
 

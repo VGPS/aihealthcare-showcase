@@ -35,6 +35,14 @@ spring:
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
 
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true
+        same-site: lax
+        http-only: true
+
 aihealthcare:
   base-url: https://app.bigskylabs.ai
   startup:

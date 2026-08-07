@@ -384,12 +384,72 @@ Use this format for each issue found:
 
 ---
 
+## Day 1 Results (2026-08-06)
+
+### [SEC-1] /monitoring/** and /api/** fully public
+- **Severity:** CRITICAL
+- **Location:** SecurityConfig.java:71-72
+- **Found in:** Day 1, Section 1.1
+- **Description:** All REST and monitoring endpoints were `permitAll`. Anyone could trigger harvests, send emails, run LLM pipelines (incurring costs), and export data.
+- **Fix:** `/monitoring/**` now requires ADMIN role; `/api/**` now requires `authenticated()` (session OR API key); only `/api/v1/stripe/webhook` remains public.
+- **Status:** FIXED
+
+### [SEC-2] Stripe webhook skipped signature verification
+- **Severity:** HIGH
+- **Location:** StripeWebhookController.java:104-107
+- **Found in:** Day 1, Section 1.3
+- **Description:** When `STRIPE_WEBHOOK_SECRET` was not configured, the controller accepted and processed raw JSON without signature verification — allowing forged webhook events.
+- **Fix:** Webhook now rejects with 500 if webhook secret is not configured. Signature verification is always enforced.
+- **Status:** FIXED
+
+### [SEC-3] Plaintext passwords in data.sql comments
+- **Severity:** HIGH
+- **Location:** data.sql:206, 227, 234, 241
+- **Found in:** Day 1, Section 1.3
+- **Description:** SQL comments revealed plaintext passwords for all seed accounts (admin123, demo123, wku123, rib123, enterprise123).
+- **Fix:** Removed all plaintext password hints from comments.
+- **Status:** FIXED
+
+### [SEC-4] No session cookie Secure flag in production
+- **Severity:** MEDIUM
+- **Location:** application-aws.yml (missing config)
+- **Found in:** Day 1, Section 1.4
+- **Description:** No `server.servlet.session.cookie` configuration existed. Session cookies were sent over HTTP in production (HTTPS termination at ALB, but explicit Secure flag is defense-in-depth).
+- **Fix:** Added `secure: true`, `same-site: lax`, `http-only: true` to `application-aws.yml`.
+- **Status:** FIXED
+
+### [SEC-5] th:utext XSS vectors — LLM-generated HTML
+- **Severity:** LOW (Accepted Risk)
+- **Location:** wiki-detail.html:64, intel-report-detail.html:105, framework-detail.html:49
+- **Found in:** Day 1, Section 1.2
+- **Description:** Three templates render LLM-generated HTML with `th:utext`. The risk is indirect prompt injection via scraped articles that could inject HTML/JS into LLM output. Mitigated by: (1) content is AI-generated, not user-submitted; (2) pages are behind authentication; (3) LLM output is generally not executable HTML.
+- **Status:** ACCEPTED — by design for rendered markdown and AI reports
+
+### [SEC-6] TinyMCE raw HTML storage
+- **Severity:** LOW (Accepted Risk)
+- **Location:** NewsletterPreviewController.java:195
+- **Found in:** Day 1, Section 1.2
+- **Description:** Newsletter editor stores raw HTML from TinyMCE without Jsoup sanitization. Stored XSS risk if admin account is compromised.
+- **Status:** ACCEPTED — admin-only page, admin trust model
+
+### Verified Safe
+- `.env` is in `.gitignore` — no secrets in source control
+- `application*.yml` uses `${ENV_VAR}` placeholders — no hardcoded API keys
+- `WebPageHarvester` extracts text via Jsoup — no raw HTML stored in articles
+- `safeReturnUrl()` blocks open redirects (requires `/` prefix)
+- `/unsubscribe/downgrade` POST has CSRF protection (not in CSRF ignore list)
+- Spring Security defaults provide session fixation protection
+- `HttpOnly` cookie flag defaults to `true`
+- Login/registration flows use hardcoded redirects, no user-controlled redirect URLs
+
+---
+
 ## Known Issues to Investigate First
 
 These were identified during the inventory audit:
 
-1. **SECURITY** — All `/api/**` and `/monitoring/**` endpoints are `permitAll` — anyone can trigger harvests, send emails, export data
-2. **SECURITY** — `/monitoring/sample-newsletter/send` can send emails to arbitrary addresses without auth
+1. ~~**SECURITY** — All `/api/**` and `/monitoring/**` endpoints are `permitAll`~~ **FIXED (SEC-1)**
+2. ~~**SECURITY** — `/monitoring/sample-newsletter/send` can send emails to arbitrary addresses without auth~~ **FIXED (SEC-1 — now requires ADMIN)**
 3. **STRUCTURE** — `PipelineHealthService` is in `web/controller/` package (should be service/infrastructure)
 4. **STRUCTURE** — `MarketIntelligenceScheduler` is in `infrastructure/config/` (should be `infrastructure/scheduler/`)
 5. **STRUCTURE** — `EmbeddingScheduler` is in `infrastructure/ai/` (should be `infrastructure/scheduler/`)
