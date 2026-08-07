@@ -17,11 +17,13 @@ import com.wgblackmon.aihealthcare.infrastructure.config.StripeProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -50,7 +52,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-23
- * @updated 2026-08-07
+ * @updated 2026-08-08
  */
 @Slf4j
 @RestController
@@ -79,6 +81,14 @@ public class StripeWebhookController {
      * @param stripeSignature   {@code Stripe-Signature} header for verification.
      * @return 200 OK on success, 400 on bad signature, 500 on processing error.
      */
+    @GetMapping("/webhook")
+    public RedirectView webhookBrowserRedirect() {
+        log.debug("webhookBrowserRedirect() | GET request — redirecting to dashboard");
+        RedirectView result = new RedirectView("/dashboard");
+        log.debug("webhookBrowserRedirect() | return={}", result.getUrl());
+        return result;
+    }
+
     @PostMapping("/webhook")
     public ResponseEntity<String> handleWebhook(
             @RequestBody String payload,
