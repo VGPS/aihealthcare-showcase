@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<!--
+/**
+ * About page — public portfolio and platform showcase.
+ *
+ * Serves as a professional showcase for potential employers and subscribers.
+ * Describes the platform's architecture, capabilities, tech stack, and the
+ * engineering decisions behind it. Publicly accessible (no auth required).
+ * Includes nav bar for authenticated users.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-07
+ * @updated 2026-08-07
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('About')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
+
+<!-- Header -->
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+        <div>
+            <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
+            <p class="text-primary-200 text-sm mt-0.5">AI-Powered Healthcare Intelligence Platform</p>
+        </div>
+        <div class="flex gap-3">
+            <a sec:authorize="!isAuthenticated()" th:href="@{/register}"
+               class="bg-white text-primary-700 font-semibold text-sm px-4 py-2 rounded-md hover:bg-primary-50 transition-colors">
+                Try Free
+            </a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/dashboard}"
+               class="bg-white text-primary-700 font-semibold text-sm px-4 py-2 rounded-md hover:bg-primary-50 transition-colors">
+                Dashboard
+            </a>
+        </div>
+    </div>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('about')}"></nav>
+
+<main class="flex-1">
+
+    <!-- Hero -->
+    <section class="bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 text-white px-4 py-14">
+        <div class="max-w-4xl mx-auto text-center">
+            <p class="text-primary-200 text-sm font-semibold uppercase tracking-widest mb-2">Built by</p>
+            <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight mb-3">Bill Blackmon</h2>
+            <p class="text-primary-100 text-lg">Senior AI Platform Engineer</p>
+            <p class="text-primary-200 text-sm mt-4 max-w-2xl mx-auto leading-relaxed">
+                I built AIHealthcare from the ground up to demonstrate what a single engineer can deliver
+                with modern Spring Boot, Spring AI, and disciplined hexagonal architecture. Every line of
+                code, every architectural decision, and every test in this 590-class codebase is mine.
+            </p>
+            <div class="mt-6 flex justify-center gap-4 flex-wrap">
+                <a href="mailto:newsletter@bigskylabs.ai"
+                   class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-md transition-colors border border-white/20">
+                    <span>&#9993;</span> newsletter@bigskylabs.ai
+                </a>
+                <a href="https://github.com/VGPS/AIHealthcare" target="_blank" rel="noopener"
+                   class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-md transition-colors border border-white/20">
+                    GitHub
+                </a>
+                <a href="https://www.linkedin.com/in/wgblackmon/" target="_blank" rel="noopener"
+                   class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-sm px-4 py-2 rounded-md transition-colors border border-white/20">
+                    LinkedIn
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Platform at a Glance -->
+    <section class="max-w-6xl mx-auto px-4 py-10">
+        <h3 class="font-display text-2xl font-bold text-on-surface text-center mb-8">Platform at a Glance</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-5 text-center">
+                <div class="text-3xl font-bold text-primary-700">1,837</div>
+                <div class="text-sm text-on-surface-variant mt-1">Automated Tests</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-5 text-center">
+                <div class="text-3xl font-bold text-primary-700">57+</div>
+                <div class="text-sm text-on-surface-variant mt-1">Data Sources</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-5 text-center">
+                <div class="text-3xl font-bold text-primary-700">5</div>
+                <div class="text-sm text-on-surface-variant mt-1">LLM Providers</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-5 text-center">
+                <div class="text-3xl font-bold text-primary-700">48</div>
+                <div class="text-sm text-on-surface-variant mt-1">Dashboard Pages</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-5 text-center">
+                <div class="text-3xl font-bold text-primary-700">590</div>
+                <div class="text-sm text-on-surface-variant mt-1">Java Classes</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-5 text-center">
+                <div class="text-3xl font-bold text-primary-700">103</div>
+                <div class="text-sm text-on-surface-variant mt-1">Domain Models</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-5 text-center">
+                <div class="text-3xl font-bold text-primary-700">18</div>
+                <div class="text-sm text-on-surface-variant mt-1">Prompt Templates</div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-5 text-center">
+                <div class="text-3xl font-bold text-primary-700">11</div>
+                <div class="text-sm text-on-surface-variant mt-1">Pipeline Steps</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What This Platform Does -->
+    <section class="bg-gray-50 px-4 py-10">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="font-display text-2xl font-bold text-on-surface mb-4">What This Platform Does</h3>
+            <p class="text-on-surface-variant leading-relaxed mb-4">
+                AIHealthcare is a fully automated intelligence platform that monitors the AI-in-healthcare
+                industry 24/7. Every day, it harvests articles from PubMed, openFDA, the Federal Register,
+                HuggingFace, Healthcare Dive, Beckers, Google News, Perplexity, Y Combinator, and 47 other
+                sources. Then it runs an 11-step pipeline that:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <div class="bg-white rounded-lg p-4 border border-outline-variant flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-sm font-bold">1</div>
+                    <p class="text-sm text-on-surface-variant"><span class="font-semibold text-on-surface">Scrapes and deduplicates</span> articles from RSS, web pages, and APIs with SHA-256 change detection</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-outline-variant flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-sm font-bold">2</div>
+                    <p class="text-sm text-on-surface-variant"><span class="font-semibold text-on-surface">Classifies sentiment</span> on every article with LLM confidence scores and rationale</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-outline-variant flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-sm font-bold">3</div>
+                    <p class="text-sm text-on-surface-variant"><span class="font-semibold text-on-surface">Scores companies</span> across 6 competitive dimensions with radar chart visualization</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-outline-variant flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-sm font-bold">4</div>
+                    <p class="text-sm text-on-surface-variant"><span class="font-semibold text-on-surface">Detects deal signals</span> (M&amp;A, funding, partnerships) with extracted amounts and counterparties</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-outline-variant flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-sm font-bold">5</div>
+                    <p class="text-sm text-on-surface-variant"><span class="font-semibold text-on-surface">Harvests regulatory events</span> from FDA and CMS, matching against subscriber watchlists</p>
+                </div>
+                <div class="bg-white rounded-lg p-4 border border-outline-variant flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary-100 text-primary-700 rounded-lg flex items-center justify-center text-sm font-bold">6</div>
+                    <p class="text-sm text-on-surface-variant"><span class="font-semibold text-on-surface">Compiles a knowledge wiki</span> with source provenance, contradiction detection, and revision history</p>
+                </div>
+            </div>
+            <p class="text-on-surface-variant leading-relaxed">
+                The output: a daily AI-generated newsletter, searchable dashboards for every dimension of
+                the industry, and a multi-model AI search engine that queries Claude, GPT, Gemini, and
+                Perplexity simultaneously with numbered citation references.
+            </p>
+        </div>
+    </section>
+
+    <!-- Architecture Showcase -->
+    <section class="max-w-4xl mx-auto px-4 py-10">
+        <h3 class="font-display text-2xl font-bold text-on-surface mb-4">Architecture: Why It Matters</h3>
+        <p class="text-on-surface-variant leading-relaxed mb-6">
+            This isn't a demo app bolted together with tutorials. It's a production system built on
+            hexagonal architecture (ports and adapters) with a framework-free domain layer. The
+            architecture enforces a rule: <strong>business logic never depends on infrastructure.</strong>
+        </p>
+
+        <div class="bg-gray-900 text-gray-100 rounded-lg p-5 font-mono text-sm leading-relaxed mb-6 overflow-x-auto">
+            <pre>
+web (70 controllers)  ──>  application (use cases)  ──>  domain (103 models + 92 ports)
+                                                                  ^
+                    infrastructure/* (adapters) ──────────────────+
+                    - ai/          9 Spring AI adapters (Claude, GPT, Gemini, Perplexity, Bedrock)
+                    - ingestion/   RSS, web scraping, HuggingFace, PubMed, FDA, Perplexity
+                    - persistence/ 41 JPA entities, repositories, storage adapters
+                    - delivery/    Email (SES), NotebookLM export, transactional emails
+                    - scheduler/   Pipeline orchestrator, 11 externalized cron jobs</pre>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-white rounded-lg p-5 shadow-sm border border-outline-variant">
+                <h4 class="font-semibold text-on-surface mb-2">Swap Anything</h4>
+                <p class="text-sm text-on-surface-variant">
+                    Switch from Claude to GPT? Add a new data source? Change the database? Each change
+                    is a single adapter — zero domain modifications. I've done this live with 5 LLM
+                    providers.
+                </p>
+            </div>
+            <div class="bg-white rounded-lg p-5 shadow-sm border border-outline-variant">
+                <h4 class="font-semibold text-on-surface mb-2">Pipeline Isolation</h4>
+                <p class="text-sm text-on-surface-variant">
+                    The 11-step pipeline orchestrator wraps each step in try-catch. If sentiment analysis
+                    fails, trend detection still runs. If the FDA API is down, the newsletter still generates.
+                    No cascade failures.
+                </p>
+            </div>
+            <div class="bg-white rounded-lg p-5 shadow-sm border border-outline-variant">
+                <h4 class="font-semibold text-on-surface mb-2">Config-Driven</h4>
+                <p class="text-sm text-on-surface-variant">
+                    Add a company to competitive analysis? One YAML entry. Add a data source? One YAML
+                    block. Add a news topic? One config line. The system is designed to grow without code changes.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Built to Be Repurposed -->
+    <section class="bg-primary-50 px-4 py-10">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="font-display text-2xl font-bold text-on-surface mb-4">Built to Be Repurposed</h3>
+            <p class="text-on-surface-variant leading-relaxed mb-5">
+                The engine behind AIHealthcare is vertical-agnostic. The domain layer contains zero
+                healthcare-specific logic. All industry knowledge lives in configuration: YAML feed
+                definitions, prompt templates, and company lists. To create <strong>AI Finance</strong>,
+                <strong>AI Legal</strong>, or <strong>AI Energy</strong>, you swap the config:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white rounded-lg p-5 shadow-sm text-center">
+                    <div class="text-2xl mb-2 text-primary-600 font-bold">YAML</div>
+                    <h4 class="font-semibold text-sm text-on-surface mb-1">Feed Sources</h4>
+                    <p class="text-xs text-on-surface-variant">57+ RSS feeds, APIs, and scraping targets — all defined in application.yml. Swap them for SEC filings, legal databases, or energy APIs.</p>
+                </div>
+                <div class="bg-white rounded-lg p-5 shadow-sm text-center">
+                    <div class="text-2xl mb-2 text-primary-600 font-bold">TXT</div>
+                    <h4 class="font-semibold text-sm text-on-surface mb-1">Prompt Templates</h4>
+                    <p class="text-xs text-on-surface-variant">18 externalized prompts control all AI behavior. Change the domain expertise without touching Java code.</p>
+                </div>
+                <div class="bg-white rounded-lg p-5 shadow-sm text-center">
+                    <div class="text-2xl mb-2 text-primary-600 font-bold">CFG</div>
+                    <h4 class="font-semibold text-sm text-on-surface mb-1">Company Lists</h4>
+                    <p class="text-xs text-on-surface-variant">Competitive analysis companies, watchlist defaults, and topic groups — all config-driven. No code changes to track a new industry.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="max-w-4xl mx-auto px-4 py-10">
+        <h3 class="font-display text-2xl font-bold text-on-surface text-center mb-6">Tech Stack</h3>
+        <div class="flex flex-wrap justify-center gap-2">
+            <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1.5 rounded-full">Java 17</span>
+            <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1.5 rounded-full">Spring Boot 3.4.5</span>
+            <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1.5 rounded-full">Spring AI 1.0.0</span>
+            <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1.5 rounded-full">Spring Security 6</span>
+            <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1.5 rounded-full">Spring Data JPA</span>
+            <span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full">PostgreSQL 16</span>
+            <span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full">PGVector</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">Anthropic Claude</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">OpenAI GPT</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">Google Gemini</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">Perplexity Sonar</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">AWS Bedrock</span>
+            <span class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1.5 rounded-full">Stripe Billing</span>
+            <span class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1.5 rounded-full">Amazon SES</span>
+            <span class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1.5 rounded-full">AWS EC2</span>
+            <span class="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-full">Thymeleaf</span>
+            <span class="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-full">Tailwind CSS</span>
+            <span class="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-full">Chart.js</span>
+            <span class="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-full">TinyMCE</span>
+            <span class="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-full">Swagger UI</span>
+            <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1.5 rounded-full">Rome RSS</span>
+            <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1.5 rounded-full">Jsoup</span>
+            <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1.5 rounded-full">PDFBox</span>
+            <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1.5 rounded-full">CommonMark</span>
+            <span class="inline-block bg-red-100 text-red-800 text-xs font-semibold px-3 py-1.5 rounded-full">JUnit 5</span>
+            <span class="inline-block bg-red-100 text-red-800 text-xs font-semibold px-3 py-1.5 rounded-full">Mockito</span>
+            <span class="inline-block bg-red-100 text-red-800 text-xs font-semibold px-3 py-1.5 rounded-full">AssertJ</span>
+            <span class="inline-block bg-red-100 text-red-800 text-xs font-semibold px-3 py-1.5 rounded-full">MockMvc</span>
+        </div>
+    </section>
+
+    <!-- What I'm Looking For -->
+    <section class="bg-gray-50 px-4 py-10">
+        <div class="max-w-4xl mx-auto text-center">
+            <h3 class="font-display text-2xl font-bold text-on-surface mb-4">What I Bring</h3>
+            <p class="text-on-surface-variant leading-relaxed max-w-2xl mx-auto mb-6">
+                I'm a senior Java/Spring engineer who builds complete, production-grade systems — not
+                prototypes. I write comprehensive tests, think in architecture, and ship features that
+                work end-to-end from database to UI.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                <div class="bg-white rounded-lg p-5 shadow-sm">
+                    <h4 class="font-semibold text-on-surface mb-2">Full-Stack Delivery</h4>
+                    <p class="text-sm text-on-surface-variant">
+                        This entire platform — domain models, AI integrations, persistence layer,
+                        REST APIs, 48-page UI, email delivery, Stripe billing, AWS deployment —
+                        is the work of one engineer.
+                    </p>
+                </div>
+                <div class="bg-white rounded-lg p-5 shadow-sm">
+                    <h4 class="font-semibold text-on-surface mb-2">AI-Native Engineering</h4>
+                    <p class="text-sm text-on-surface-variant">
+                        Real experience integrating 5 LLM providers at production scale. Prompt
+                        engineering with evaluation frameworks, not just API calls. Cost-conscious
+                        design with caching, batching, and model selection.
+                    </p>
+                </div>
+                <div class="bg-white rounded-lg p-5 shadow-sm">
+                    <h4 class="font-semibold text-on-surface mb-2">Quality Mindset</h4>
+                    <p class="text-sm text-on-surface-variant">
+                        1,837 tests aren't decoration. They're how I ship with confidence. Every
+                        feature has tests. Every adapter is mocked. Every controller has MockMvc
+                        coverage. The 7-day QA audit found zero critical bugs.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <a href="mailto:newsletter@bigskylabs.ai"
+                   class="inline-block bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm px-6 py-3 rounded-md transition-colors">
+                    Get In Touch
+                </a>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>
