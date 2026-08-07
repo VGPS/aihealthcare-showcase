@@ -23,7 +23,7 @@
 
 ---
 
-## Day 1 — Security Audit
+## Day 1 — Security Audit ✅ COMPLETE (7d04042)
 
 ### 1.1 Authentication & Authorization Gaps
 
@@ -33,37 +33,37 @@ it only validates requests that *include* an `X-API-Key` header — requests wit
 pass through unauthenticated.
 
 **Audit checklist:**
-- [ ] Review every `/api/**` endpoint — which ones should require authentication?
-- [ ] Categorize endpoints: public (pricing, wiki) vs protected (deals, sentiment, frameworks)
-- [ ] Decide: should REST endpoints require either session auth OR API key?
-- [ ] Review `ApiKeyAuthenticationFilter` — does it reject keyless requests or pass them through?
-- [ ] Verify `/monitoring/**` endpoints are admin-only (currently `permitAll` — anyone can trigger harvests, send sample newsletters, compile wikis)
-- [ ] Verify `/stripe/webhook` validates Stripe signatures (not just `permitAll`)
-- [ ] Check if `/unsubscribe/downgrade` POST is CSRF-protected (it should be, since it's not in the CSRF ignore list)
+- [x] Review every `/api/**` endpoint — which ones should require authentication? → ALL except Stripe webhook + feedback
+- [x] Categorize endpoints: public (pricing, wiki) vs protected (deals, sentiment, frameworks) → DONE
+- [x] Decide: should REST endpoints require either session auth OR API key? → YES, enforced
+- [x] Review `ApiKeyAuthenticationFilter` — does it reject keyless requests or pass them through? → Pass-through, but `authenticated()` rule now blocks
+- [x] Verify `/monitoring/**` endpoints are admin-only → FIXED: now `hasRole("ADMIN")`
+- [x] Verify `/stripe/webhook` validates Stripe signatures → FIXED: rejects if secret missing
+- [x] Check if `/unsubscribe/downgrade` POST is CSRF-protected → YES, confirmed safe
 
 ### 1.2 Input Validation & Injection
 
-- [ ] Audit all `@RequestParam` and `@PathVariable` inputs for injection risks
-- [ ] Check Thymeleaf templates for unescaped output (`th:utext` vs `th:text`) — XSS vectors
-- [ ] Review `data.sql` seed data — any secrets or PII in source control?
-- [ ] Check all ChatClient/RestClient calls for prompt injection vectors (user input → LLM prompt)
-- [ ] Review `WebPageHarvester` — does it sanitize scraped HTML before storage?
-- [ ] Review `NewsletterPreviewController` — TinyMCE editor saves raw HTML; is it sanitized?
+- [x] Audit all `@RequestParam` and `@PathVariable` inputs for injection risks → No SQL injection vectors; all use JPA parameterized queries
+- [x] Check Thymeleaf templates for unescaped output (`th:utext` vs `th:text`) — XSS vectors → 3 instances, all LLM-generated content (accepted risk, see SEC-5)
+- [x] Review `data.sql` seed data — any secrets or PII in source control? → FIXED: removed plaintext password comments
+- [x] Check all ChatClient/RestClient calls for prompt injection vectors → User queries flow to LLM prompts by design; no escalation risk
+- [x] Review `WebPageHarvester` — does it sanitize scraped HTML before storage? → YES, extracts text via Jsoup
+- [x] Review `NewsletterPreviewController` — TinyMCE editor saves raw HTML; is it sanitized? → Admin-only, accepted risk (SEC-6)
 
 ### 1.3 Secrets & Configuration
 
-- [ ] Grep codebase for hardcoded API keys, passwords, tokens
-- [ ] Verify `.env` is in `.gitignore`
-- [ ] Review `application.yml` and `application-aws.yml` for leaked credentials
-- [ ] Check if BCrypt password hashes in `data.sql` correspond to known weak passwords
-- [ ] Verify Stripe webhook signature validation is actually enforced
+- [x] Grep codebase for hardcoded API keys, passwords, tokens → None found; all use `${ENV_VAR}` placeholders
+- [x] Verify `.env` is in `.gitignore` → YES
+- [x] Review `application.yml` and `application-aws.yml` for leaked credentials → Clean; `password: 1454` is local dev DB only
+- [x] Check if BCrypt password hashes in `data.sql` correspond to known weak passwords → YES (admin123, demo123); plaintext hints removed
+- [x] Verify Stripe webhook signature validation is actually enforced → FIXED
 
 ### 1.4 CSRF & Session Security
 
-- [ ] Map all POST/PUT/DELETE endpoints and verify CSRF protection is appropriate
-- [ ] Check session fixation protection (Spring Security default should handle this)
-- [ ] Review cookie settings — HttpOnly, Secure, SameSite flags
-- [ ] Check for open redirect vulnerabilities in login/registration flows
+- [x] Map all POST/PUT/DELETE endpoints and verify CSRF protection is appropriate → CSRF enabled for browser paths, disabled for `/api/**` + `/monitoring/**` + `/stripe/**`
+- [x] Check session fixation protection → Spring Security default handles this
+- [x] Review cookie settings — HttpOnly, Secure, SameSite flags → FIXED: added to `application-aws.yml`
+- [x] Check for open redirect vulnerabilities in login/registration flows → Safe; `safeReturnUrl()` requires `/` prefix, all other redirects are hardcoded
 
 ---
 
