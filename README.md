@@ -47,37 +47,45 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 
 ### Resume / LinkedIn Feature Bullets
 
-- **Multi-Source Article Harvesting** — Automated ingestion pipeline scraping 57+ RSS, web, and API sources across academic, regulatory, and industry tiers with URL-based deduplication
-- **AI Newsletter Generation** — Daily automated drafts with topic-grouped sections, attributed sources, and TinyMCE WYSIWYG editing with tier-aware content gating
-- **Multi-Model AI Search** — Fan-out synthesis across Claude, GPT, Perplexity Sonar, and Gemini with numbered `[N]` citation references and model selection checkboxes
-- **Staged Research Pipeline** — AI-planned query decomposition with multi-source retrieval, citation assembly, and synthesized answers persisted for audit trail
-- **LLM-Compiled Knowledge Wiki** — AI synthesizes articles into a persistent, versioned wiki with provenance tracking, cross-references, and orphan/stale-ref linting
-- **Contradiction Detection** — Automated "Reversal Watch" flags when new evidence contradicts prior wiki claims with side-by-side comparison and date filtering
-- **Regulatory Alert System** — Automated FDA 510(k)/De Novo clearance and CMS rule harvesting from openFDA and Federal Register APIs with watchlist integration
-- **Sentiment & Risk Scoring** — LLM-powered per-article sentiment classification (POSITIVE/NEGATIVE/MIXED/NEUTRAL) aggregated into company-level risk scores with doughnut chart visualization
-- **Framework Competitive Analysis** — Config-driven 6-dimension competitive scoring with radar charts, add companies via YAML only, no code changes required
-- **LLM-Enhanced Deal Signal Alerts** — Keyword pre-filter + LLM refinement pipeline extracting deal type, amount, counterparty, and confidence with cross-referenced context cards
-- **Company Intelligence Profiles** — Persistent company pages with real news article linking, event timelines, trend indicators, and external homepage links
-- **Company Relationship Mapping** — Visual relationship network between companies showing partnerships, acquisitions, integrations, and competitive dynamics
-- **Custom Watchlists** — Subscriber-defined keyword, company, and topic watchlists with automated matching against new articles and regulatory events
-- **Trend Detection & History** — Weekly keyword frequency analysis across 30/90/180-day windows with multi-line historical trend charts and clickable snapshot details
-- **Legal Timeline** — Unified chronological view merging legal articles, policy events, and regulatory actions into a single navigable timeline
-- **Clinical Trial Monitoring** — AI-related clinical trial tracking with status, phase, and company linkage
-- **Prompt Evaluation Framework** — LLM-as-judge scoring across 5 quality dimensions with A/B variant comparison for prompt optimization
-- **Vendor Competitive Analysis** — AI-driven strengths/weaknesses assessment using Doc Frequency and TF-IDF relevance scoring algorithms
-- **Company Discovery Pipeline** — Scrapes YC and startup directories, classifies by healthcare AI subcategory, deduplicates, and renders reports
-- **Vector Semantic Search** — PGVector-powered similarity search across the full article archive for contextual retrieval
-- **RAG-Enhanced Summarization** — Retrieval-augmented generation enriches newsletter sections with relevant archived context
-- **Webhook Notifications** — Configurable webhook channels (Slack, Teams, custom) with event-type subscriptions and test delivery verification
-- **Self-Maintaining Pipeline Orchestrator** — 11-step post-harvest pipeline with per-step try-catch isolation ensuring no single failure breaks the chain
-- **Data Export** — CSV and structured export of articles, companies, trends, and deal signals for external analysis tools
-- **What Changed Digest** — Weekly activity dashboard showing new pages, updates, and contradictions with configurable time windows
-- **Evidence Grade Classification** — Automatic source credibility badges (Peer-Reviewed, Regulatory, Industry) with color-coded provenance
-- **Subscription Tier Gating** — 4-tier access model (DEMO/FREE_PENDING/FREE/SUBSCRIBER) with Stripe Billing, usage metering, and feature-level gating
-- **Role-Based Access Control** — Spring Security with ADMIN/USER roles, session-based authentication, and per-page authorization
-- **Hexagonal Architecture** — Framework-free domain with 103 model records, 92 port interfaces, and pluggable adapters; swap AI providers or databases with zero domain changes
-- **PII Masking** — LogSanitizer utility masks emails across 40+ log statements; branded error pages replace Spring Boot defaults
-- **1,509+ Automated Tests** — Comprehensive test suite across 249 test classes spanning domain, web, persistence, and infrastructure layers with no live AI calls
+**Platform & Architecture**
+- Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 17, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 103 domain model records, 92 port interfaces, and 70 controllers — framework-free domain layer enables swapping AI providers with zero business logic changes
+- Wrote **1,509+ automated tests** across 249 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+
+**Multi-Model AI Integration**
+- Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
+- Built **18 externalized prompt templates** powering newsletter summarization, sentiment analysis, framework scoring, deal classification, wiki compilation, trend extraction, and LLM-as-judge evaluation across 5 quality dimensions
+
+**Data Pipeline & Ingestion**
+- Engineered an **11-step self-maintaining pipeline orchestrator** that sequences competitor scraping, regulatory harvesting, article embedding, framework analysis, sentiment scoring, trend detection, and wiki compilation — each step isolated with try-catch to prevent cascade failures
+- Automated ingestion from **57+ configurable data sources** (RSS via Rome, web scraping via Jsoup, openFDA/Federal Register APIs, HuggingFace model API, PubMed E-utilities, Perplexity Sonar) with URL-based deduplication and SHA-256 change detection
+- Implemented **PGVector-powered semantic search** with Spring AI vector store for contextual article retrieval and RAG-enhanced newsletter summarization
+
+**Intelligence & Analytics**
+- Developed **LLM-powered sentiment analysis** classifying per-article sentiment (POSITIVE/NEGATIVE/MIXED/NEUTRAL) with confidence scores and rationale, aggregated into company-level risk dashboards with Chart.js doughnut and bar chart visualization
+- Built **config-driven 6-dimension competitive framework analysis** (clinical validation, regulatory positioning, market adoption, technology depth, data assets, partnerships) with radar chart visualization — add companies via YAML, no code changes required
+- Created **LLM-enhanced deal signal detection** pipeline with keyword pre-filter + batch LLM classification extracting deal type, amount, counterparty, and confidence, enriched with cross-referenced sentiment/framework/regulatory/company context
+- Implemented **weekly trend detection** across 30/90/180-day rolling windows identifying rising, fading, and emerging healthcare AI keywords with multi-line historical trend charts
+
+**Regulatory & Compliance**
+- Built automated **FDA 510(k)/De Novo clearance and CMS rule harvesting** from openFDA and Federal Register APIs with deduplication, watchlist matching, and tier-gated display
+- Developed subscriber-defined **custom watchlists** (keyword, company, topic) with automated matching against incoming articles and regulatory events
+
+**Knowledge Management**
+- Architected an **LLM-compiled knowledge wiki** that synthesizes harvested articles into persistent, versioned pages with source provenance tracking, cross-references, contradiction detection ("Reversal Watch"), and orphan/stale-ref linting
+- Built a **company intelligence platform** with persistent profiles, real article linking, event timelines, relationship mapping (partnerships, acquisitions, competitive dynamics), and trend indicators
+
+**Newsletter & Content Delivery**
+- Developed **automated daily newsletter generation** with AI-summarized topic sections, TinyMCE 7.9.0 WYSIWYG editing, and tier-routed delivery (SUBSCRIBER=full newsletter, FREE=digest summary) via Spring Boot Mail + Amazon SES
+- Built a **staged research pipeline** with AI-planned query decomposition, multi-source retrieval (Perplexity API + PostgreSQL), citation assembly, and synthesized research answers persisted for audit trail
+
+**SaaS & Monetization**
+- Implemented **4-tier subscription model** (DEMO/FREE_PENDING/FREE/SUBSCRIBER) with **Stripe Billing** integration (SDK 28.2.0), Checkout sessions, customer portal, webhook signature verification, and per-feature usage metering
+- Built **Spring Security 6** session-based authentication with ADMIN/USER roles, BCrypt password hashing, tier-based feature gating, and API key authentication for REST endpoints
+- Delivered **48-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
+
+**Security & Operations**
+- Applied **PII masking** via domain-pure LogSanitizer utility across 40+ log statements, preventing email exposure in production logs
+- Deployed to **AWS EC2** with Amazon SES email delivery, externalized cron scheduling (11 configurable jobs), and profile-based configuration (dev/aws/prod)
 
 ## What It Does
 
@@ -206,26 +214,108 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Framework | Spring Boot 3.4.5, Java 17 |
-| AI | Spring AI 1.0.0 (Anthropic Claude, OpenAI GPT, Perplexity Sonar, Google Gemini) |
-| Relational DB | PostgreSQL 16 |
-| Vector Store | PGVector (PostgreSQL extension) |
-| RSS Parsing | Rome 2.1.0 |
-| Web Scraping | Jsoup 1.18.3 |
-| Document Parsing | PDFBox 3.0.3, POI-OOXML 5.3.0 |
-| Newsletter Editor | TinyMCE 7.9.0 (WebJar) |
-| Charts | Chart.js (radar, doughnut, bar, multi-line trend charts) |
-| Authentication | Spring Security 6 (session-based form login, BCrypt) |
-| Billing | Stripe Billing (webhooks + checkout + customer portal) |
-| Email (dev) | MailHog (SMTP trap) |
-| Email (prod) | Amazon SES |
-| UI | Thymeleaf + Tailwind CSS + Spring Security extras |
-| Build | Maven |
-| Markdown Render | CommonMark 0.24.0 (wiki content) |
-| Caching | Caffeine (TTL-based AI search result caching) |
-| Testing | JUnit 5 + AssertJ + Mockito (1,509+ tests across 249 classes) |
+### Core Framework
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Application Framework | Spring Boot | 3.4.5 |
+| Language | Java (LTS) | 17 |
+| Build Tool | Apache Maven | 3.8+ |
+| Dependency Management | Spring AI BOM | 1.0.0 |
+
+### AI / LLM Integration
+| Component | Technology | Version |
+|-----------|------------|---------|
+| AI Framework | Spring AI | 1.0.0 |
+| Anthropic Claude | spring-ai-starter-model-anthropic | 1.0.0 |
+| OpenAI GPT | spring-ai-starter-model-openai | 1.0.0 |
+| AWS Bedrock | spring-ai-starter-model-bedrock-converse (Nova/Titan) | 1.0.0 |
+| Perplexity Sonar | RestClient direct integration | — |
+| Google Gemini | RestClient direct integration | — |
+| Vector Store | spring-ai-starter-vector-store-pgvector | 1.0.0 |
+| Prompt Templates | 18 externalized prompt files | — |
+
+### Data & Persistence
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Relational DB | PostgreSQL | 16 |
+| Vector Store | PGVector (PostgreSQL extension) | — |
+| ORM | Spring Data JPA / Hibernate | — |
+| Test DB | H2 (in-memory, @DataJpaTest) | — |
+| Schema | 41 JPA entities across 20+ tables | — |
+
+### Web & UI
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Server-Side Rendering | Thymeleaf | — |
+| CSS Framework | Tailwind CSS | — |
+| Newsletter Editor | TinyMCE (WebJar) | 7.9.0 |
+| Charts & Visualization | Chart.js (radar, doughnut, bar, multi-line) | — |
+| Markdown Rendering | CommonMark | 0.24.0 |
+| API Documentation | springdoc-openapi / Swagger UI | 2.8.6 |
+| Security Templating | thymeleaf-extras-springsecurity6 | — |
+
+### Security & Auth
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Authentication | Spring Security 6 (session-based form login) | — |
+| Password Hashing | BCrypt | — |
+| Authorization | Role-based (ADMIN/USER) + tier-based (4-tier) | — |
+| API Auth | X-API-Key header authentication | — |
+| CSRF Protection | Spring Security CSRF tokens | — |
+
+### Billing & Payments
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Payment Processing | Stripe Billing | SDK 28.2.0 |
+| Checkout | Stripe Checkout (hosted) | — |
+| Customer Portal | Stripe Customer Portal | — |
+| Webhooks | Stripe webhook signature verification | — |
+| JSON Serialization | Gson (Stripe SDK dependency) | — |
+
+### Data Ingestion & Scraping
+| Component | Technology | Version |
+|-----------|------------|---------|
+| RSS/Atom Parsing | Rome | 2.1.0 |
+| Web Scraping | Jsoup (HTML parsing + CSS selectors) | 1.18.3 |
+| PDF Parsing | Apache PDFBox | 3.0.3 |
+| DOCX Parsing | Apache POI-OOXML | 5.3.0 |
+| External APIs | openFDA, Federal Register, HuggingFace, PubMed E-utilities, Perplexity | — |
+
+### Email & Delivery
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Mail Framework | Spring Boot Mail (JavaMailSender) | — |
+| Dev SMTP | MailHog (SMTP trap at localhost:1025) | — |
+| Prod SMTP | Amazon SES (STARTTLS) | — |
+| Transactional Email | Welcome, demo expiration, admin notifications | — |
+| Newsletter Delivery | Tier-routed (SUBSCRIBER=full, FREE=digest) | — |
+
+### Caching & Performance
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Cache Framework | Spring Cache | — |
+| Cache Provider | Caffeine (TTL-based in-memory) | — |
+| Use Case | AI search result caching | — |
+
+### Testing
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Test Framework | JUnit 5 | — |
+| Assertions | AssertJ | — |
+| Mocking | Mockito | — |
+| Security Testing | spring-security-test (@WithMockUser) | — |
+| Web Testing | MockMvc (@WebMvcTest slices) | — |
+| Persistence Testing | @DataJpaTest (H2 in-memory) | — |
+| Coverage | 1,509+ tests across 249 test classes | — |
+
+### Infrastructure & DevOps
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Cloud Provider | AWS (EC2, SES, Secrets Manager) | — |
+| Containerization | Docker (PostgreSQL + MailHog) | — |
+| Code Generation | Lombok (@Slf4j, @Data) | — |
+| Architecture | Hexagonal / Ports-and-Adapters | — |
+| Scheduling | Spring @Scheduled (11 externalized cron jobs) | — |
 
 ## Prerequisites
 
