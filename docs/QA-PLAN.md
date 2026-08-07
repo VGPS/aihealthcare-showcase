@@ -414,26 +414,54 @@ For each page, check:
 
 ---
 
-## Day 7 — Fixes, Retesting & Documentation
+## Day 7 — Fixes, Retesting & Documentation ✅ COMPLETE (2026-08-07)
 
 ### 7.1 Fix All Issues Found
 
-- [ ] Prioritize: security fixes > data integrity > bugs > UI > dead code
-- [ ] Fix each issue with a targeted commit
-- [ ] Run selective tests after each fix
+No open issues remain. All Days 1-6 findings were resolved in-day:
+- 5 security fixes (SEC-1 through SEC-4, Day 4 F1)
+- 7 structural/dead-code fixes (DC-1 through DC-7)
+- 1 UI fix (UI-1)
+- 3 data integrity fixes (Day 5 F1-F3)
+- 2 cross-cutting fixes (Day 6 F1-F2)
+- 1 regression fix: `RegistrationControllerTest` updated for register page redesign
 
 ### 7.2 Regression Testing
 
-- [ ] Run full test suite (`mvn test`) — all tests pass
-- [ ] Re-test any page/flow where fixes were applied
-- [ ] Deploy to EC2 and verify production behavior
+- [x] `mvn compile` — BUILD SUCCESS
+- [x] `mvn test` — BUILD SUCCESS — 1,837 tests across 249 test classes, 0 failures, 0 errors
+- [x] JavaDoc generation — `mvn javadoc:javadoc` — site generated at `target/reports/apidocs/` (5 warnings, 0 errors)
+- [x] Deploy to EC2 and verify production behavior
 
-### 7.3 Update Documentation
+### 7.3 Documentation Updates
 
-- [ ] Update `CLAUDE.md` with any new conventions or findings
-- [ ] Update `architecture.md` if structural changes were made
-- [ ] Archive this QA plan with completion status
-- [ ] Document any known issues that were deferred
+- [x] Added `maven-javadoc-plugin` 3.11.2 to `pom.xml` — generates JavaDoc HTML via `mvn javadoc:javadoc`
+- [x] Updated `architecture.md` — test count corrected to 1,837 tests across 249 classes; header date updated
+- [x] `CLAUDE.md` verified current — DS-1 slice correctly shown as latest
+- [x] QA plan archived with completion status and deferred issues summary (below)
+
+---
+
+## Deferred Issues — Known for Post-v1
+
+These issues were identified during QA Days 1-6 and explicitly deferred. They are
+not bugs — each has an accepted rationale documented in its respective Day section.
+
+| # | Category | Description | Rationale | Day |
+|---|----------|-------------|-----------|-----|
+| D1 | Domain Purity | 25 domain services import Lombok `@Slf4j` | Replacing with `System.Logger` across 25 files too disruptive for QA | 6 |
+| D2 | Compliance | No CAN-SPAM physical mailing address in emails | Requires business decision on mailing address | 6 |
+| D3 | Deliverability | No `List-Unsubscribe` header on marketing emails | Future deliverability optimization | 6 |
+| D4 | Style | 7 constructors have redundant bare `@Autowired` | Harmless; Spring auto-discovers single constructor | 6 |
+| D5 | Scalability | Single-thread scheduler pool (16 triggers, 1 thread) | Adding threads introduces TOCTOU race in ArticleStorageAdapter | 5 |
+| D6 | UX | `@RestControllerAdvice` returns JSON for Thymeleaf errors | Browsers get branded error.html via BasicErrorController | 5 |
+| D7 | Data | No `unique` constraint on `news_articles.url` (VARCHAR 2048) | PostgreSQL unique index on long VARCHAR is problematic; app-level dedup sufficient | 5 |
+| D8 | Scalability | 18+ unbounded `findAll()` calls across adapters | Future scaling concern; not a current-load bug | 5 |
+| D9 | Validation | Zero `@Valid` annotations on DTOs | Manual service-layer validation works; cross-cutting change for future | 5 |
+| D10 | Security | 3 `th:utext` XSS vectors in LLM-rendered templates | Content is AI-generated, not user-submitted; pages behind auth | 1 |
+| D11 | Testing | FeedHarvestScheduler — complex scheduler, no direct test | Covered transitively by pipeline integration tests | 2 |
+| D12 | Testing | 4 AI adapters untested (require live API keys) | `@Profile("ai-integration")` only; not CI-testable | 2 |
+| D13 | Testing | E2E flows requiring Stripe/SMTP deferred | Require live third-party services | 4 |
 
 ---
 

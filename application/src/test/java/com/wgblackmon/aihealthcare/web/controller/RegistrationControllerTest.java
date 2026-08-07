@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-20
+ * @updated 2026-08-07
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(RegistrationController.class)
@@ -54,7 +54,7 @@ class RegistrationControllerTest {
         mockMvc.perform(get("/register"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("register"))
-                .andExpect(content().string(containsString("Start Your Free Trial")));
+                .andExpect(content().string(containsString("Start Your Free 7-Day Trial")));
     }
 
     @Test
