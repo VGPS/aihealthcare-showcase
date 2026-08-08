@@ -299,6 +299,10 @@ aihealthcare:
         - "HuggingFace Healthcare LLMs"
         - "New AI Healthcare Companies"
         - "Health Data Utilities"
+        - "Ambient Clinical Documentation"
+        - "Clinical GenAI and RAG"
+        - "AI Governance and Safety"
+        - "AI Agents for Administrative Workflows"
 
   # ---------------------------------------------------------------------------
   # News listing — ordered topic headers shown on GET /dashboard/news.
@@ -306,6 +310,10 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   news:
     topics:
+      - "Ambient Clinical Documentation"
+      - "Clinical GenAI and RAG"
+      - "AI Governance and Safety"
+      - "AI Agents for Administrative Workflows"
       - "AI Healthcare Software Development"
       - "Healthcare Outsourcing and Jobs Layoffs"
       - "AI Healthcare Government Policy"
@@ -824,6 +832,106 @@ aihealthcare:
         tier: ACADEMIC
         base-weight: 0.85
         max-items: 15
+      # -----------------------------------------------------------------
+      # Ambient Clinical Documentation — AI scribes, clinical note
+      # generation, chart summarization, coding-support documentation.
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Google News Ambient Clinical Documentation
+        topic: Ambient Clinical Documentation
+        url: https://news.google.com/rss/search?q=ambient+clinical+documentation+AI+scribe+medical+notes&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.7
+        max-items: 20
+      - topic-id: 1
+        name: PubMed Ambient Clinical Documentation
+        topic: Ambient Clinical Documentation
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=ambient+clinical+documentation+artificial+intelligence&format=rss
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      - topic-id: 1
+        name: Google News AI Medical Scribe
+        topic: Ambient Clinical Documentation
+        url: https://news.google.com/rss/search?q=AI+medical+scribe+clinical+note+generation+EHR&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 20
+      # -----------------------------------------------------------------
+      # Clinical GenAI and RAG — retrieval-augmented generation for
+      # evidence-grounded clinical assistants with citations.
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Google News Clinical GenAI RAG
+        topic: Clinical GenAI and RAG
+        url: https://news.google.com/rss/search?q=clinical+generative+AI+RAG+healthcare+LLM&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.7
+        max-items: 20
+      - topic-id: 1
+        name: PubMed Clinical RAG
+        topic: Clinical GenAI and RAG
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=retrieval+augmented+generation+clinical+healthcare&format=rss
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      - topic-id: 1
+        name: Google News Healthcare LLM Decision Support
+        topic: Clinical GenAI and RAG
+        url: https://news.google.com/rss/search?q=healthcare+LLM+evidence+grounded+clinical+decision+support&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 20
+      # -----------------------------------------------------------------
+      # AI Governance and Safety — model evaluation, hallucination
+      # monitoring, audit logs, bias detection, compliance.
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Google News AI Healthcare Governance
+        topic: AI Governance and Safety
+        url: https://news.google.com/rss/search?q=AI+healthcare+governance+safety+model+evaluation&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.7
+        max-items: 20
+      - topic-id: 1
+        name: PubMed AI Healthcare Safety
+        topic: AI Governance and Safety
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=artificial+intelligence+healthcare+safety+governance+evaluation&format=rss
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      - topic-id: 1
+        name: Google News AI Medical Compliance
+        topic: AI Governance and Safety
+        url: https://news.google.com/rss/search?q=AI+medical+hallucination+bias+audit+compliance+healthcare&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 20
+      # -----------------------------------------------------------------
+      # AI Agents for Administrative Workflows — scheduling, prior
+      # authorization, coding, billing, inbox management, navigation.
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Google News AI Healthcare Admin Workflows
+        topic: AI Agents for Administrative Workflows
+        url: https://news.google.com/rss/search?q=AI+agents+healthcare+administrative+workflow+automation&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.7
+        max-items: 20
+      - topic-id: 1
+        name: PubMed AI Healthcare Admin Automation
+        topic: AI Agents for Administrative Workflows
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=artificial+intelligence+healthcare+administrative+automation&format=rss
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      - topic-id: 1
+        name: Google News AI Prior Auth Coding Billing
+        topic: AI Agents for Administrative Workflows
+        url: https://news.google.com/rss/search?q=AI+prior+authorization+medical+coding+billing+scheduling+healthcare&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.65
+        max-items: 20
       # -----------------------------------------------------------------
       # HuggingFace model discovery
       # -----------------------------------------------------------------

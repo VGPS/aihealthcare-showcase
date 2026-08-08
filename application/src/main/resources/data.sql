@@ -219,7 +219,7 @@ WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'demo@gmail.com');
 
 INSERT INTO app_users (email, password_hash, display_name, role, enabled, tier)
 SELECT 'wgblackmonall@gmail.com',
-       '$2a$10$RC8gPpxg1DG4sbfWRHUZsusWG2QuWIw1ak.Vz0cJnjiac/.WQ2MsG',
+       '$2b$10$nTtFY0TV/cB8/K0W5mEj2.YMg.EQhOrX.vBHAv0FkxYJtXx5g/fNa',
        'Bill Blackmon', 'ADMIN', true, 'SUBSCRIBER'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'wgblackmonall@gmail.com');
 
