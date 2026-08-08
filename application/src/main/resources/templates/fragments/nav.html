@@ -14,9 +14,10 @@
  * activePage values: dashboard | news | newsletter | research | vendors | ai-search |
  *                    wiki | trends | trend-history | regulatory | legal | legal-trends |
  *                    clinical-trials | companies | risk | frameworks | watchlist | notes |
- *                    relationships | search | pricing | about | profile | developer | webhooks | admin | admin-pipelines
+ *                    relationships | search | pricing | about | profile | developer | webhooks | admin | admin-pipelines |
+ *                    intelligence
  *
- * Nav groups: Dashboard | Content | Research | Legal | Reference | Account
+ * Nav groups: Claude AI (admin) | Dashboard | Content | Research | Legal | Reference | Account
  *
  * Legal group contains Legal Timeline + Regulatory (moved from Reference).
  *
@@ -29,6 +30,11 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <nav th:fragment="nav(activePage)" class="nav-bar">
+
+    <!-- Claude AI (admin-only, far left) -->
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/intelligence}"
+       th:classappend="${activePage == 'intelligence'} ? ' active'"
+       class="nav-link" style="color: #a78bfa; font-weight: 600;">⚕ Claude AI</a>
 
     <!-- Dashboard (standalone) -->
     <a th:href="@{/dashboard}"

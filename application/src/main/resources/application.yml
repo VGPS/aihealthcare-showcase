@@ -125,6 +125,14 @@ springdoc:
     operations-sorter: alpha
 
 # -----------------------------------------------------------------------------
+# Claude Intelligence Service — separate Spring Boot app (port 8081)
+# Used by IntelligenceConsoleController to proxy admin test requests.
+# -----------------------------------------------------------------------------
+claude:
+  intelligence:
+    base-url: ${CLAUDE_INTELLIGENCE_URL:http://localhost:8081}
+
+# -----------------------------------------------------------------------------
 # Feed harvesting — sources configured here in application.yml for Slice 2a.
 # Each entry maps to a FeedSourceConfig record.
 # -----------------------------------------------------------------------------
