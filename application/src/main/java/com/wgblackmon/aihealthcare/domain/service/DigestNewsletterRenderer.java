@@ -295,6 +295,10 @@ public class DigestNewsletterRenderer {
         // Header
         sb.append("<tr><td style=\"background:#1a1a2e; color:white; padding:20px 24px; border-radius:8px 8px 0 0;\">\n");
         sb.append("  <h1 style=\"margin:0; font-size:1.3em; color:white;\">").append(headerTitle).append("</h1>\n");
+        sb.append("  <p style=\"margin:8px 0 0; font-size:0.85em; color:#b0b8c8; line-height:1.4;\">");
+        sb.append("AIHealthcare Intelligence is a weekly briefing on AI in healthcare &mdash; sourced from 69 feeds, ");
+        sb.append("scored by five LLMs, and curated for decision-makers tracking regulatory, clinical, and commercial developments.");
+        sb.append("</p>\n");
         sb.append("</td></tr>\n");
 
         // Body content
@@ -309,7 +313,7 @@ public class DigestNewsletterRenderer {
         sb.append("    Subscribe for full AI-powered newsletters with expert synthesis, vendor comparisons, and research insights.\n");
         sb.append("  </p>\n");
         sb.append("  <a href=\"https://app.bigskylabs.ai/pricing\" style=\"display:inline-block; background:#0066cc; color:white; ");
-        sb.append("padding:10px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9em;\">Upgrade to Subscriber — $39/mo</a>\n");
+        sb.append("padding:10px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9em;\">Upgrade to Subscriber — $19/mo</a>\n");
         sb.append("  <span style=\"display:inline-block; margin-left:12px;\">");
         sb.append("<a href=\"https://app.bigskylabs.ai/demo\" style=\"display:inline-block; background:#28a745; color:white; ");
         sb.append("padding:10px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9em;\">Free 7 Day Demo</a></span>\n");

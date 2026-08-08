@@ -12,7 +12,7 @@ package com.wgblackmon.aihealthcare.domain.model;
  *       must choose FREE (email-only) or SUBSCRIBER (paid).  No app access.</li>
  *   <li>{@code FREE} — email-only daily newsletter; no app login
  *       ({@code app_users.enabled = false}).</li>
- *   <li>{@code SUBSCRIBER} — $39/month paid tier; full newsletter, full archive,
+ *   <li>{@code SUBSCRIBER} — $19/month paid tier; full newsletter, full archive,
  *       semantic search, higher AI query allowance, and model choice.</li>
  *   <li>{@code ENTERPRISE} — enterprise API tier; highest query limits (2000/month),
  *       10 API keys, premium API access for integration into customer systems.</li>
