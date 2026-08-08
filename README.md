@@ -2,7 +2,7 @@
 
 A production AI-powered market intelligence platform for the healthcare industry. Harvests, analyzes, and synthesizes data from 69 sources using 6 LLM providers, delivering actionable intelligence through 30+ dashboard pages.
 
-**Live at [app.bigskylabs.ai](https://app.bigskylabs.ai)**
+**Live at [app.bigskylabs.ai](https://app.bigskylabs.ai)** | **[JavaDoc (1,337 pages)](https://vgps.github.io/aihealthcare-showcase/)**
 
 ---
 
@@ -298,5 +298,6 @@ Payments via Stripe with webhook-driven tier upgrades and subscription managemen
 
 - Platform: [app.bigskylabs.ai](https://app.bigskylabs.ai)
 - About: [app.bigskylabs.ai/about](https://app.bigskylabs.ai/about)
+- JavaDoc: [vgps.github.io/aihealthcare-showcase](https://vgps.github.io/aihealthcare-showcase/) (1,337 pages)
 - LinkedIn: [linkedin.com/in/wgblackmon](https://www.linkedin.com/in/wgblackmon/)
 - GitHub: [github.com/VGPS](https://github.com/VGPS)
