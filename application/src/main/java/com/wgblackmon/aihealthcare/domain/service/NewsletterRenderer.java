@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-07-05
+ * @updated 2026-08-08
  */
 @Slf4j
 public class NewsletterRenderer {
@@ -74,6 +74,10 @@ public class NewsletterRenderer {
             .append("</h1>")
             .append("<p style=\"margin: 8px 0 0; font-size: 13px; color: #a0a0b8;\">")
             .append("Week of ").append(draft.weekOf())
+            .append("</p>")
+            .append("<p style=\"margin: 8px 0 0; font-size: 12px; color: #a0a0b8; line-height: 1.4;\">")
+            .append("AIHealthcare Intelligence is a weekly briefing on AI in healthcare &mdash; sourced from 69 feeds, ")
+            .append("scored by five LLMs, and curated for decision-makers tracking regulatory, clinical, and commercial developments.")
             .append("</p>")
             .append("</td></tr>");
 

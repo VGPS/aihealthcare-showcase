@@ -64,7 +64,7 @@ class DigestNewsletterRendererTest {
 
         assertThat(result).isPresent();
         assertThat(result.get().htmlContent()).contains("Want deeper AI analysis?");
-        assertThat(result.get().htmlContent()).contains("$39/mo");
+        assertThat(result.get().htmlContent()).contains("$19/mo");
         assertThat(result.get().htmlContent()).contains("pricing");
         assertThat(result.get().htmlContent()).contains("Free 7 Day Demo");
         assertThat(result.get().htmlContent()).contains("app.bigskylabs.ai/demo");

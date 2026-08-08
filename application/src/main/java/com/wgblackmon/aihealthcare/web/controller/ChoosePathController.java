@@ -23,7 +23,7 @@ import java.util.Optional;
  * They can choose between:
  * <ul>
  *   <li><b>FREE</b> — disables app login, keeps subscriber active for email delivery</li>
- *   <li><b>SUBSCRIBER</b> — redirects to Stripe checkout for $39/month payment</li>
+ *   <li><b>SUBSCRIBER</b> — redirects to Stripe checkout for $19/month payment</li>
  * </ul>
  *
  * @author  Bill Blackmon
