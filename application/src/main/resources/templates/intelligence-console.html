@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Claude AI Intelligence Console — admin test page for MCP-powered
+ * medical coding (ICD-10) and CMS coverage lookup endpoints.
+ *
+ * Proxies requests to the Claude Intelligence Service (port 8081).
+ * JSON results are rendered client-side with Alpine.js.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-08
+ * @updated 2026-08-08
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Claude AI Console')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Claude AI Intelligence Console</h1>
+    <p class="text-purple-200 text-sm mt-0.5">
+        MCP-powered ICD-10 coding &amp; CMS coverage — connected to
+        <span class="font-mono text-xs bg-purple-800 px-2 py-0.5 rounded" th:text="${baseUrl}">http://localhost:8081</span>
+    </p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('intelligence')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6" x-data="{ activeTab: '[[${activeTab}]]' }">
+
+    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
+        <p class="text-sm text-gray-500 leading-relaxed">
+            Test the Claude Healthcare Intelligence Service endpoints.
+            Requests are proxied server-side to the Claude service.
+            Each query calls Anthropic's hosted MCP servers for ICD-10 or CMS data,
+            then Claude synthesizes the clinical analysis.
+        </p>
+    </div>
+
+    <!-- Tab buttons -->
+    <div class="flex gap-2 mb-6">
+        <button @click="activeTab = 'coding'"
+                :class="activeTab === 'coding' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50'"
+                class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors shadow-sm border border-gray-200">
+            ICD-10 Medical Coding
+        </button>
+        <button @click="activeTab = 'coverage'"
+                :class="activeTab === 'coverage' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-indigo-50'"
+                class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors shadow-sm border border-gray-200">
+            CMS Coverage Lookup
+        </button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- ICD-10 CODING TAB                                              -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div x-show="activeTab === 'coding'" x-cloak>
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border-l-4 border-purple-500">
+            <h2 class="font-display text-lg font-semibold text-on-surface mb-4">ICD-10 Code Classification</h2>
+            <p class="text-sm text-gray-500 mb-4">
+                Enter a clinical description and Claude will search the ICD-10-CM database
+                via MCP, then select the most appropriate diagnosis codes with confidence levels.
+            </p>
+
+            <form th:action="@{/admin/intelligence/coding}" method="post" class="space-y-4">
+                <div>
+                    <label for="clinicalDescription" class="block text-sm font-medium text-gray-700 mb-1">
+                        Clinical Description <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="clinicalDescription" name="clinicalDescription" rows="3" required
+                              th:text="${codingInput}"
+                              placeholder="e.g., Patient presents with acute chest pain radiating to left arm, shortness of breath, and diaphoresis"
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"></textarea>
+                </div>
+                <div>
+                    <label for="codingCtx" class="block text-sm font-medium text-gray-700 mb-1">
+                        Patient Context <span class="text-gray-400">(optional)</span>
+                    </label>
+                    <input type="text" id="codingCtx" name="context" th:value="${codingContext}"
+                           placeholder="e.g., 65-year-old male with history of hypertension and diabetes"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"/>
+                </div>
+                <button type="submit"
+                        class="px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors text-sm">
+                    Classify Codes
+                </button>
+            </form>
+        </div>
+
+        <!-- Coding Error -->
+        <div th:if="${codingError}" class="bg-red-50 border-l-4 border-red-500 rounded-lg p-5 mb-6">
+            <h3 class="text-red-800 font-semibold text-sm mb-1">Error</h3>
+            <p class="text-red-700 text-sm" th:text="${codingError}">Error message</p>
+            <p class="text-red-500 text-xs mt-2">Make sure the Claude Intelligence Service is running on the configured port.</p>
+        </div>
+
+        <!-- Coding Results -->
+        <div th:if="${codingResult}" class="space-y-4" x-data="{ result: null }"
+             x-init="try { result = JSON.parse(document.getElementById('codingJson').textContent) } catch(e) {}">
+            <script type="application/json" id="codingJson" th:text="${codingResult}"></script>
+
+            <template x-if="result">
+                <div>
+                    <!-- Codes table -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-4 border-l-4 border-green-500">
+                        <h3 class="font-display text-lg font-semibold text-on-surface mb-4">
+                            ICD-10 Codes
+                            <span class="text-sm font-normal text-gray-500"
+                                  x-text="'(' + (result.codes?.length || 0) + ' matched)'"></span>
+                        </h3>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                <tr class="border-b-2 border-gray-100 text-left">
+                                    <th class="py-2 px-3 font-semibold text-gray-600">Code</th>
+                                    <th class="py-2 px-3 font-semibold text-gray-600">Description</th>
+                                    <th class="py-2 px-3 font-semibold text-gray-600">Category</th>
+                                    <th class="py-2 px-3 font-semibold text-gray-600">Confidence</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <template x-for="code in (result.codes || [])" :key="code.code">
+                                    <tr class="border-b border-gray-50 hover:bg-gray-50">
+                                        <td class="py-2 px-3 font-mono font-semibold text-purple-700" x-text="code.code"></td>
+                                        <td class="py-2 px-3" x-text="code.description"></td>
+                                        <td class="py-2 px-3 text-gray-500 text-xs" x-text="code.category"></td>
+                                        <td class="py-2 px-3">
+                                            <span :class="{
+                                                'bg-green-100 text-green-800': code.confidence === 'HIGH',
+                                                'bg-yellow-100 text-yellow-800': code.confidence === 'MEDIUM',
+                                                'bg-red-100 text-red-800': code.confidence === 'LOW'
+                                            }" class="px-2 py-0.5 rounded-full text-xs font-semibold"
+                                                  x-text="code.confidence"></span>
+                                        </td>
+                                    </tr>
+                                </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Analysis -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-300">
+                        <h3 class="font-display text-base font-semibold text-on-surface mb-3">Clinical Analysis</h3>
+                        <div class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap prose prose-sm max-w-none"
+                             x-text="result.rawAnalysis"></div>
+                        <div class="mt-3 text-xs text-gray-400" x-text="'Queried at: ' + result.queriedAt"></div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- CMS COVERAGE TAB                                               -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div x-show="activeTab === 'coverage'" x-cloak>
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border-l-4 border-indigo-500">
+            <h2 class="font-display text-lg font-semibold text-on-surface mb-4">CMS Coverage Policy Lookup</h2>
+            <p class="text-sm text-gray-500 mb-4">
+                Enter a procedure or service description and Claude will search the CMS National Coverage
+                Determination (NCD) database via MCP, then determine coverage status with policy references.
+            </p>
+
+            <form th:action="@{/admin/intelligence/coverage}" method="post" class="space-y-4">
+                <div>
+                    <label for="procedureDescription" class="block text-sm font-medium text-gray-700 mb-1">
+                        Procedure / Service <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="procedureDescription" name="procedureDescription" rows="2" required
+                              th:text="${coverageInput}"
+                              placeholder="e.g., Cardiac catheterization with coronary angiography"
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="coverageCtx" class="block text-sm font-medium text-gray-700 mb-1">
+                            Patient Context <span class="text-gray-400">(optional)</span>
+                        </label>
+                        <input type="text" id="coverageCtx" name="patientContext" th:value="${coverageContext}"
+                               placeholder="e.g., 65-year-old male with acute MI symptoms"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+                    </div>
+                    <div>
+                        <label for="payerType" class="block text-sm font-medium text-gray-700 mb-1">Payer Type</label>
+                        <select id="payerType" name="payerType"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <option value="MEDICARE_B" th:selected="${coveragePayerType == 'MEDICARE_B' or coveragePayerType == null}">Medicare Part B</option>
+                            <option value="MEDICARE_A" th:selected="${coveragePayerType == 'MEDICARE_A'}">Medicare Part A</option>
+                            <option value="MEDICAID" th:selected="${coveragePayerType == 'MEDICAID'}">Medicaid</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit"
+                        class="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors text-sm">
+                    Check Coverage
+                </button>
+            </form>
+        </div>
+
+        <!-- Coverage Error -->
+        <div th:if="${coverageError}" class="bg-red-50 border-l-4 border-red-500 rounded-lg p-5 mb-6">
+            <h3 class="text-red-800 font-semibold text-sm mb-1">Error</h3>
+            <p class="text-red-700 text-sm" th:text="${coverageError}">Error message</p>
+            <p class="text-red-500 text-xs mt-2">Make sure the Claude Intelligence Service is running on the configured port.</p>
+        </div>
+
+        <!-- Coverage Results -->
+        <div th:if="${coverageResult}" class="space-y-4" x-data="{ result: null }"
+             x-init="try { result = JSON.parse(document.getElementById('coverageJson').textContent) } catch(e) {}">
+            <script type="application/json" id="coverageJson" th:text="${coverageResult}"></script>
+
+            <template x-if="result">
+                <div>
+                    <!-- Status banner -->
+                    <div class="rounded-lg shadow-sm p-5 mb-4"
+                         :class="{
+                             'bg-green-50 border-l-4 border-green-500': result.coverageStatus === 'COVERED',
+                             'bg-red-50 border-l-4 border-red-500': result.coverageStatus === 'NOT_COVERED',
+                             'bg-yellow-50 border-l-4 border-yellow-500': result.coverageStatus === 'CONDITIONAL',
+                             'bg-gray-50 border-l-4 border-gray-400': result.coverageStatus === 'UNKNOWN'
+                         }">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl font-bold"
+                                  :class="{
+                                      'text-green-700': result.coverageStatus === 'COVERED',
+                                      'text-red-700': result.coverageStatus === 'NOT_COVERED',
+                                      'text-yellow-700': result.coverageStatus === 'CONDITIONAL',
+                                      'text-gray-600': result.coverageStatus === 'UNKNOWN'
+                                  }"
+                                  x-text="result.coverageStatus"></span>
+                        </div>
+                    </div>
+
+                    <!-- Policy references -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 mb-4" x-show="result.policyReferences?.length > 0">
+                        <h3 class="font-display text-base font-semibold text-on-surface mb-3">Policy References</h3>
+                        <div class="space-y-2">
+                            <template x-for="policy in (result.policyReferences || [])" :key="policy.policyId">
+                                <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                    <span class="font-mono text-sm font-semibold text-indigo-700 whitespace-nowrap"
+                                          x-text="policy.policyId"></span>
+                                    <div>
+                                        <div class="text-sm font-medium" x-text="policy.title"></div>
+                                        <div class="text-xs text-gray-500" x-text="policy.relevantSection"></div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Conditions & Limitations -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-white rounded-lg shadow-sm p-5" x-show="result.conditions?.length > 0">
+                            <h3 class="font-display text-sm font-semibold text-green-700 mb-2">Conditions for Coverage</h3>
+                            <ul class="text-sm text-gray-700 space-y-1">
+                                <template x-for="c in (result.conditions || [])">
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-green-500 mt-0.5">&#10003;</span>
+                                        <span x-text="c"></span>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm p-5" x-show="result.limitations?.length > 0">
+                            <h3 class="font-display text-sm font-semibold text-amber-700 mb-2">Limitations</h3>
+                            <ul class="text-sm text-gray-700 space-y-1">
+                                <template x-for="l in (result.limitations || [])">
+                                    <li class="flex items-start gap-2">
+                                        <span class="text-amber-500 mt-0.5">&#9888;</span>
+                                        <span x-text="l"></span>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Analysis -->
+                    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-300">
+                        <h3 class="font-display text-base font-semibold text-on-surface mb-3">Coverage Analysis</h3>
+                        <div class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap prose prose-sm max-w-none"
+                             x-text="result.rawAnalysis"></div>
+                        <div class="mt-3 text-xs text-gray-400" x-text="'Queried at: ' + result.queriedAt"></div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+</main>
+
+</body>
+</html>
