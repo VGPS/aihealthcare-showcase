@@ -665,7 +665,7 @@
     .badge { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 0.25rem; background: #f1f5f9; color: #475569; }
 </style>
 
-<script>
+<script th:inline="none">
     const PROXY = '/admin/intelligence/api/v1/intelligence';
     let lastVerificationData = null;
     let lastSynthesisData = null;
