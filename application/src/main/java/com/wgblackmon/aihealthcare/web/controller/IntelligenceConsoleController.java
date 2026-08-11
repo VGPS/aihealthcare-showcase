@@ -37,14 +37,19 @@ public class IntelligenceConsoleController {
 
     private final RestClient restClient;
     private final String baseUrl;
+    private final String apiKey;
 
     public IntelligenceConsoleController(
-            @Value("${claude.intelligence.base-url:http://localhost:8081}") String baseUrl) {
+            @Value("${claude.intelligence.base-url:http://localhost:8081}") String baseUrl,
+            @Value("${intelligence.api-key:}") String apiKey) {
         log.debug("IntelligenceConsoleController() | baseUrl={}", baseUrl);
         this.baseUrl = baseUrl;
-        this.restClient = RestClient.builder()
-                .baseUrl(baseUrl)
-                .build();
+        this.apiKey = apiKey;
+        RestClient.Builder builder = RestClient.builder().baseUrl(baseUrl);
+        if (apiKey != null && !apiKey.isBlank()) {
+            builder.defaultHeader("X-API-Key", apiKey);
+        }
+        this.restClient = builder.build();
     }
 
     @GetMapping

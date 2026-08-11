@@ -131,6 +131,8 @@ springdoc:
 claude:
   intelligence:
     base-url: ${CLAUDE_INTELLIGENCE_URL:http://localhost:8081}
+intelligence:
+  api-key: ${INTELLIGENCE_API_KEY:}
 
 # -----------------------------------------------------------------------------
 # Feed harvesting — sources configured here in application.yml for Slice 2a.
