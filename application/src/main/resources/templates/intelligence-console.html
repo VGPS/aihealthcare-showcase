@@ -729,11 +729,16 @@
         return text.replace(/\\'/g, "'").replace(/\\"/g, '"').replace(/\\'(\w)/g, "'$1").replace(/(\w)\\'/g, "$1'");
     }
     function formatMarkdown(text) {
-        const parts = cleanText(text).split(/\*\*/);
+        let cleaned = cleanText(text);
+        cleaned = cleaned.replace(/^####\s+(.+)$/gm, '<strong style="font-size:0.85rem;">$1</strong>');
+        cleaned = cleaned.replace(/^###\s+(.+)$/gm, '<strong style="font-size:0.9rem;">$1</strong>');
+        cleaned = cleaned.replace(/^##\s+(.+)$/gm, '<strong style="font-size:0.95rem;">$1</strong>');
+        cleaned = cleaned.replace(/^#\s+(.+)$/gm, '<strong style="font-size:1rem;">$1</strong>');
+        const parts = cleaned.split(/\*\*/);
         let html = '';
         for (let i = 0; i < parts.length; i++) {
-            if (i % 2 === 1) html += '<strong>' + esc(parts[i]) + '</strong>';
-            else html += esc(parts[i]);
+            if (i % 2 === 1) html += '<strong>' + parts[i] + '</strong>';
+            else html += parts[i];
         }
         return html;
     }
@@ -913,14 +918,14 @@
         if (data.conversationId) html += '<div class="meta-line">Session: ' + esc(data.conversationId) + '</div>';
         html += renderProseBlock(data.answer);
         if (data.sources && data.sources.length > 0) {
-            html += '<h3>Sources (' + data.sources.length + ')</h3>';
-            for (const s of data.sources) {
+            html += '<h3>Cited Sources (' + data.sources.length + ')</h3>';
+            for (let i = 0; i < data.sources.length; i++) {
+                const s = data.sources[i];
                 html += '<div class="data-card"><div class="card-title">';
+                html += '<span style="color:#6b7280;margin-right:0.5rem;">[' + (i + 1) + ']</span>';
                 if (s.url) html += '<a class="source-link" href="' + esc(s.url) + '" target="_blank">' + esc(s.title || s.id) + '</a>';
                 else html += esc(s.title || s.id || 'Source');
-                html += '</div>';
-                if (s.type) html += '<div class="card-detail">' + esc(s.type) + '</div>';
-                html += '</div>';
+                html += '</div></div>';
             }
         }
         return html;
