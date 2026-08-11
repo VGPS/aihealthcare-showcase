@@ -347,6 +347,11 @@ public class AdminPipelineController {
                 "Weekly Sunday 06:00 UTC", "CompanyDiscoveryScheduler",
                 "/api/v1/monitoring/company-discovery", "POST", false, "~5 min", "Medium (LLM)"));
 
+        list.add(new PipelineInfo("wiki-gap-analysis", "Wiki Gap Analysis",
+                "Analyzes recent articles against wiki coverage to identify knowledge gaps with specific article references. Requires AI API key.",
+                "Weekly after wiki lint", "FeedHarvestScheduler",
+                "/monitoring/wiki/gap-analysis", "POST", false, "~2 min", "High (LLM cost)"));
+
         log.debug("buildPipelineList() | return={} pipelines", list.size());
         return list;
     }

@@ -429,7 +429,7 @@
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">Browse the curated knowledge base — vetted, structured reference material on companies, technologies, regulatory pathways, and market dynamics. This content feeds into every cross-domain intelligence report automatically.</p>
                 <p class="text-xs text-gray-400 mt-1">Searches compiled wiki pages by keyword (title/tags) and optional page type filter. Wiki content is injected as a 7th domain in cross-domain synthesis and verification.</p>
-                <p class="text-xs text-amber-500 mt-1">Wiki search returns in a few seconds. Ask Wiki and Knowledge Gap Analysis take 30–60 seconds.</p>
+                <p class="text-xs text-amber-500 mt-1">Wiki search returns in a few seconds. Ask Wiki takes 30–60 seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-teal-500">
                 <h2 class="font-display text-lg font-semibold mb-4">Wiki Search</h2>
@@ -478,37 +478,6 @@
                 <div class="ic-report" id="wiki-ask-report"></div>
             </div>
 
-            <!-- Knowledge Gap Analysis -->
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-teal-500 mt-4">
-                <div class="flex items-center gap-2 mb-4">
-                    <h2 class="font-display text-lg font-semibold">Knowledge Gap Analysis</h2>
-                    <span class="px-2 py-0.5 bg-teal-500 text-white text-xs font-semibold rounded-full">ADVANCED</span>
-                </div>
-                <div class="w-48">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Days Back</label>
-                    <input type="number" id="wiki-gap-days" value="30" min="1" max="365" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
-                </div>
-                <div class="flex items-center gap-3 mt-4">
-                    <button onclick="sendWikiGaps(this)" class="ic-btn ic-btn-teal">Prompt</button>
-                    <span class="ic-spinner" id="wiki-gap-spinner"></span>
-                </div>
-                <div class="text-xs text-gray-400 mt-2" id="wiki-gap-timing"></div>
-                <div class="ic-report" id="wiki-gap-report"></div>
-            </div>
-
-            <!-- Wiki Freshness -->
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-teal-500 mt-4">
-                <div class="flex items-center gap-2 mb-4">
-                    <h2 class="font-display text-lg font-semibold">Wiki Freshness Scoring</h2>
-                    <span class="px-2 py-0.5 bg-teal-500 text-white text-xs font-semibold rounded-full">ADVANCED</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button onclick="sendWikiFreshness(this)" class="ic-btn ic-btn-teal">Prompt</button>
-                    <span class="ic-spinner" id="wiki-fresh-spinner"></span>
-                </div>
-                <div class="text-xs text-gray-400 mt-2" id="wiki-fresh-timing"></div>
-                <div class="ic-report" id="wiki-fresh-report"></div>
-            </div>
         </div>
 
         <!-- ═══ DAILY BRIEFS ═══ -->
@@ -913,13 +882,6 @@
         if (!q) return;
         richApiCall('/wiki/ask', 'POST', { question: q }, 'wiki-ask-report', 'wiki-ask-spinner', 'wiki-ask-timing', btn, renderWikiAsk);
     }
-    function sendWikiGaps(btn) {
-        const days = document.getElementById('wiki-gap-days').value;
-        richApiCall('/wiki/gaps?daysBack=' + days, 'POST', null, 'wiki-gap-report', 'wiki-gap-spinner', 'wiki-gap-timing', btn, renderWikiGaps);
-    }
-    function sendWikiFreshness(btn) {
-        richApiCall('/wiki/freshness', 'GET', null, 'wiki-fresh-report', 'wiki-fresh-spinner', 'wiki-fresh-timing', btn, renderWikiFreshness);
-    }
     function fetchReports(btn) {
         const days = document.getElementById('reports-days').value;
         richApiCall('/synthesis/reports?days=' + days, 'GET', null, 'reports-report', 'reports-spinner', 'reports-timing', btn, renderReportList);
@@ -1305,49 +1267,6 @@
         return html;
     }
 
-    function renderWikiGaps(data) {
-        let html = '';
-        const ts = data.analyzedAt ? new Date(data.analyzedAt).toLocaleString() : '';
-        if (ts) html += '<div class="meta-line">' + ts + '</div>';
-        html += '<div class="meta-line">' + (data.totalArticlesAnalyzed || 0) + ' articles analyzed &middot; ' + (data.totalWikiPages || 0) + ' wiki pages</div>';
-        if (data.gaps && data.gaps.length > 0) {
-            html += '<h3>Knowledge Gaps (' + data.gaps.length + ')</h3>';
-            for (const g of data.gaps) {
-                html += '<div class="data-card"><span class="status-badge" style="background:#7c3aed;color:white;">' + (g.articleCount || '?') + ' articles</span>';
-                html += '<div class="card-title">' + esc(g.topic) + '</div>';
-                if (g.recommendation) html += '<div class="card-detail">' + formatMarkdown(g.recommendation) + '</div>';
-                html += '</div>';
-            }
-        } else {
-            html += '<div class="popular-empty">No knowledge gaps identified.</div>';
-        }
-        if (data.summary) { html += '<h3>Assessment</h3>'; html += renderProseBlock(data.summary); }
-        return html;
-    }
-
-    function renderWikiFreshness(data) {
-        let html = '';
-        const ts = data.analyzedAt ? new Date(data.analyzedAt).toLocaleString() : '';
-        if (ts) html += '<div class="meta-line">' + ts + '</div>';
-        html += '<div class="meta-line">' + (data.totalPages || 0) + ' pages: ';
-        html += '<span style="color:#dc2626;">' + (data.staleCount || 0) + ' stale</span> &middot; ';
-        html += '<span style="color:#ea580c;">' + (data.agingCount || 0) + ' aging</span> &middot; ';
-        html += '<span style="color:#16a34a;">' + (data.freshCount || 0) + ' fresh</span></div>';
-        if (data.pages && data.pages.length > 0) {
-            for (const p of data.pages) {
-                html += '<div class="data-card">';
-                const statusColor = p.status === 'STALE' ? '#dc2626' : p.status === 'AGING' ? '#ea580c' : '#16a34a';
-                html += '<span class="status-badge" style="background:' + statusColor + ';color:white;">' + esc(p.status) + '</span>';
-                if (p.pageType) html += '<span class="code-badge">' + esc(p.pageType) + '</span>';
-                html += '<div class="card-title">' + esc(p.title) + '</div>';
-                const meta = [];
-                if (p.compiledAt) meta.push('compiled: ' + new Date(p.compiledAt).toLocaleDateString());
-                meta.push(p.recentArticleCount + ' article(s) published since');
-                html += '<div class="card-detail">' + meta.join(' &middot; ') + '</div></div>';
-            }
-        }
-        return html;
-    }
 
     function renderReportList(data) {
         if (!Array.isArray(data) || data.length === 0) return '<div class="popular-empty">No scheduled reports found for this time window.</div>';

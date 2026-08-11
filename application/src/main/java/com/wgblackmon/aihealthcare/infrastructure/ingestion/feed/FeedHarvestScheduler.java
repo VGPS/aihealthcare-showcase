@@ -16,8 +16,11 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.WatchlistMatchingService;
+import com.wgblackmon.aihealthcare.domain.service.WikiGapAnalysisService;
 import com.wgblackmon.aihealthcare.domain.service.WikiLintService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import com.wgblackmon.aihealthcare.infrastructure.delivery.WebhookDispatcher;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.StartupPipelineOrchestrator;
 import jakarta.annotation.PostConstruct;
@@ -71,6 +74,8 @@ public class FeedHarvestScheduler {
     private final WatchlistMatchPort watchlistMatchPort;
     private final StartupPipelineOrchestrator pipelineOrchestrator;
     private final WebhookDispatcher webhookDispatcher;
+    private final WikiGapAnalysisService wikiGapAnalysisService;
+    private final WikiPageRepository wikiPageRepository;
 
     @Value("${aihealthcare.startup.harvest-enabled:false}")
     private boolean startupHarvestEnabled;
@@ -87,7 +92,9 @@ public class FeedHarvestScheduler {
                                 @Autowired(required = false) WatchlistPort watchlistPort,
                                 @Autowired(required = false) WatchlistMatchPort watchlistMatchPort,
                                 @Autowired(required = false) StartupPipelineOrchestrator pipelineOrchestrator,
-                                @Autowired(required = false) WebhookDispatcher webhookDispatcher) {
+                                @Autowired(required = false) WebhookDispatcher webhookDispatcher,
+                                @Autowired(required = false) WikiGapAnalysisService wikiGapAnalysisService,
+                                @Autowired(required = false) WikiPageRepository wikiPageRepository) {
         log.debug("FeedHarvestScheduler() | harvestingPort={}, articleStoragePort={}, topicSummaryService={}, newsTopicProperties={}, knowledgeCompilationPort={}",
                   harvestingPort.getClass().getSimpleName(),
                   articleStoragePort.getClass().getSimpleName(),
@@ -107,6 +114,8 @@ public class FeedHarvestScheduler {
         this.watchlistMatchPort = watchlistMatchPort;
         this.pipelineOrchestrator = pipelineOrchestrator;
         this.webhookDispatcher = webhookDispatcher;
+        this.wikiGapAnalysisService = wikiGapAnalysisService;
+        this.wikiPageRepository = wikiPageRepository;
     }
 
     /**
@@ -159,6 +168,7 @@ public class FeedHarvestScheduler {
             generateTopicSummaries();
             compileWikiPages(dailyArticles);
             lintWikiPages();
+            analyzeWikiGaps(dailyArticles);
             matchWatchlistItems(dailyArticles);
             if (pipelineOrchestrator != null) {
                 pipelineOrchestrator.runAllPipelines();
@@ -191,6 +201,7 @@ public class FeedHarvestScheduler {
             generateTopicSummaries();
             compileWikiPages(industryArticles);
             lintWikiPages();
+            analyzeWikiGaps(industryArticles);
             matchWatchlistItems(industryArticles);
         } catch (Exception e) {
             log.error("harvestIndustryFeeds() | scheduler exception", e);
@@ -265,6 +276,30 @@ public class FeedHarvestScheduler {
             log.warn("lintWikiPages() | wiki lint failed — harvest continues", e);
         }
         log.debug("lintWikiPages() | return=void");
+    }
+
+    /**
+     * Runs wiki gap analysis on the given articles.
+     * Failures are caught so the harvest pipeline is never interrupted.
+     * No-ops gracefully if the gap analysis service is not configured.
+     *
+     * @param articles articles to analyze against wiki coverage
+     */
+    private void analyzeWikiGaps(List<NewsArticle> articles) {
+        log.debug("analyzeWikiGaps() | articles={}", articles.size());
+        if (wikiGapAnalysisService == null || wikiPageRepository == null) {
+            log.debug("analyzeWikiGaps() | gap analysis dependencies not configured — skipping");
+            log.debug("analyzeWikiGaps() | return=void");
+            return;
+        }
+        try {
+            List<WikiPageEntity> allPages = wikiPageRepository.findAll();
+            wikiGapAnalysisService.runGapAnalysis(articles, allPages);
+            log.info("analyzeWikiGaps() | gap analysis complete");
+        } catch (Exception e) {
+            log.warn("analyzeWikiGaps() | gap analysis failed — harvest continues", e);
+        }
+        log.debug("analyzeWikiGaps() | return=void");
     }
 
     /**

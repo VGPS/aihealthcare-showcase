@@ -111,7 +111,13 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
 import com.wgblackmon.aihealthcare.infrastructure.ai.WikiCompilationAdapter;
+import com.wgblackmon.aihealthcare.infrastructure.ai.WikiGapAnalysisAdapter;
+import com.wgblackmon.aihealthcare.infrastructure.ai.WikiGapResponseParser;
 import com.wgblackmon.aihealthcare.infrastructure.ai.WikiResponseParser;
+import com.wgblackmon.aihealthcare.domain.port.outbound.WikiGapAnalysisPort;
+import com.wgblackmon.aihealthcare.domain.service.WikiGapAnalysisService;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiGapRunRepository;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiGapItemRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiContradictionRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionRepository;
@@ -905,6 +911,48 @@ public class AppConfig {
                 contradictionRepository, revisionRepository,
                 responseParser, wikiCompilePrompt);
         log.debug("wikiCompilationAdapter() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link WikiGapAnalysisAdapter} bean that implements
+     * {@link WikiGapAnalysisPort} — the LLM-powered wiki gap analysis pipeline.
+     *
+     * @param chatClientBuilder   Auto-configured ChatClient builder.
+     * @param promptLoaderService Template loader for prompt files.
+     * @return The wired {@link WikiGapAnalysisAdapter} instance.
+     */
+    @Bean
+    public WikiGapAnalysisAdapter wikiGapAnalysisAdapter(
+            ChatClient.Builder chatClientBuilder,
+            PromptLoaderService promptLoaderService) {
+        log.debug("wikiGapAnalysisAdapter() | wiring wiki gap analysis pipeline");
+        String gapPrompt = promptLoaderService.load("wiki-gap-analysis.txt");
+        WikiGapResponseParser parser = new WikiGapResponseParser();
+        WikiGapAnalysisAdapter result = new WikiGapAnalysisAdapter(
+                chatClientBuilder, parser, gapPrompt);
+        log.debug("wikiGapAnalysisAdapter() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link WikiGapAnalysisService} bean — orchestrates gap
+     * analysis, persistence, and the approval workflow.
+     *
+     * @param gapAnalysisPort  The LLM adapter for gap detection.
+     * @param runRepository    Gap run persistence.
+     * @param itemRepository   Gap item persistence.
+     * @return The wired {@link WikiGapAnalysisService} instance.
+     */
+    @Bean
+    public WikiGapAnalysisService wikiGapAnalysisService(
+            WikiGapAnalysisPort gapAnalysisPort,
+            WikiGapRunRepository runRepository,
+            WikiGapItemRepository itemRepository) {
+        log.debug("wikiGapAnalysisService() | wiring gap analysis service");
+        WikiGapAnalysisService result = new WikiGapAnalysisService(
+                gapAnalysisPort, runRepository, itemRepository);
+        log.debug("wikiGapAnalysisService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 
