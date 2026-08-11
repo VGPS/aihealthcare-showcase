@@ -96,6 +96,7 @@ public class EmbeddingScheduler {
             String content = buildContent(entity);
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("articleId", entity.getArticleId());
+            metadata.put("title",     entity.getTitle() != null ? entity.getTitle() : "");
             metadata.put("topic",     entity.getTopic());
             metadata.put("url",       entity.getUrl() != null ? entity.getUrl() : "");
             String docId = UUID.nameUUIDFromBytes(
