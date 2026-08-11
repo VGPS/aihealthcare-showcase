@@ -1,325 +1,1459 @@
 <!DOCTYPE html>
 <!--
 /**
- * Claude AI Intelligence Console — clinical tools for ICD-10 medical
- * coding and CMS coverage lookup, with link to full Intelligence Console.
+ * Clinical Intelligence Console — full 13-tab admin console proxying all
+ * endpoints from the Claude Intelligence Service (port 8081).
  *
- * Proxies requests to the Claude Intelligence Service (port 8081).
- * JSON results are rendered client-side with Alpine.js.
+ * AJAX calls route through /admin/intelligence/api/** generic proxy.
+ * CSRF token from head fragment meta tags included in all requests.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 2.0
  * @since   2026-08-08
- * @updated 2026-08-10
+ * @updated 2026-08-11
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/head :: head('Claude AI Console')}">
+<head th:replace="~{fragments/head :: head('Clinical Intelligence Console')}">
 </head>
 <body class="bg-surface font-sans text-on-surface">
 
 <header class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white px-6 py-4 shadow-md">
-    <h1 class="font-display text-2xl font-bold tracking-tight">Clinical Intelligence Tools</h1>
+    <h1 class="font-display text-2xl font-bold tracking-tight">Clinical Intelligence Console</h1>
     <p class="text-purple-200 text-sm mt-0.5">
-        Instant ICD-10 coding and CMS coverage decisions — powered by Claude AI
+        Cross-domain intelligence, clinical tools, and AI-audited analysis — powered by Claude AI
     </p>
 </header>
 
 <nav th:replace="~{fragments/nav :: nav('intelligence')}"></nav>
 
-<main class="max-w-7xl mx-auto px-4 py-6" x-data="{ activeTab: '[[${activeTab}]]' }">
+<div class="flex" style="height: calc(100vh - 130px);" x-data="intelligenceConsole()">
 
-    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
-        <p class="text-sm text-gray-600 leading-relaxed">
-            Two tools clinicians use every day: translate symptoms into billing codes and check whether
-            a procedure is covered before you order it. Describe the clinical scenario in plain English
-            and get an answer in seconds.
-        </p>
-    </div>
+    <!-- Sidebar -->
+    <nav class="w-56 flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto">
+        <div class="py-3">
+            <div class="px-4 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider">Intelligence</div>
+            <button @click="switchTab('chat')" :class="tab==='chat' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Source-Grounded Q&amp;A</button>
+            <button @click="switchTab('analyze')" :class="tab==='analyze' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Market Briefing</button>
+            <button @click="switchTab('synthesis')" :class="tab==='synthesis' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Cross-Domain Synthesis</button>
+            <button @click="switchTab('platform-race')" :class="tab==='platform-race' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Platform Race</button>
+            <button @click="switchTab('verify')" :class="tab==='verify' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">AI Audit</button>
 
-    <!-- Full Console banner -->
-    <div class="max-w-7xl mx-auto px-4 pb-4">
-        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4 flex items-center justify-between">
-            <div>
-                <h3 class="text-sm font-semibold text-purple-800">Full Intelligence Console Available</h3>
-                <p class="text-xs text-purple-600 mt-0.5">
-                    Cross-domain intelligence reports, AI-verified analysis, clinical trials, provider lookup,
-                    research literature, trend tracking, and more.
-                </p>
+            <div class="px-4 py-1.5 mt-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Clinical Reference</div>
+            <button @click="switchTab('coding')" :class="tab==='coding' ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">ICD-10 Coding</button>
+            <button @click="switchTab('coverage')" :class="tab==='coverage' ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">CMS Coverage</button>
+            <button @click="switchTab('npi')" :class="tab==='npi' ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Provider Lookup</button>
+            <button @click="switchTab('trials')" :class="tab==='trials' ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Clinical Trials</button>
+            <button @click="switchTab('literature')" :class="tab==='literature' ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Research Literature</button>
+
+            <div class="px-4 py-1.5 mt-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Knowledge Base</div>
+            <button @click="switchTab('wiki')" :class="tab==='wiki' ? 'bg-teal-50 text-teal-700 border-l-2 border-teal-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Wiki</button>
+
+            <div class="px-4 py-1.5 mt-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Monitoring</div>
+            <button @click="switchTab('reports')" :class="tab==='reports' ? 'bg-amber-50 text-amber-700 border-l-2 border-amber-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Daily Briefs</button>
+            <button @click="switchTab('trending')" :class="tab==='trending' ? 'bg-amber-50 text-amber-700 border-l-2 border-amber-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Trend Tracking</button>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="flex-1 overflow-y-auto p-6">
+
+        <!-- ═══ CHAT ═══ -->
+        <div x-show="tab==='chat'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Get answers grounded in 69 curated healthcare intelligence feeds — not internet search results, not training data. Every claim traces back to a specific source article you can verify.</p>
+                <p class="text-xs text-gray-400 mt-1">Retrieval-augmented generation (RAG) via pgvector similarity search. Your question is matched against stored documents; the most relevant passages are sent to Claude as context.</p>
             </div>
-            <a th:href="${baseUrl}" target="_blank" rel="noopener"
-               class="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 transition-colors whitespace-nowrap">
-                Open Full Console
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-            </a>
-        </div>
-    </div>
-
-    <!-- Tab buttons -->
-    <div class="flex gap-2 mb-6">
-        <button @click="activeTab = 'coding'"
-                :class="activeTab === 'coding' ? 'bg-purple-600 text-white' : 'bg-white text-gray-700 hover:bg-purple-50'"
-                class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors shadow-sm border border-gray-200">
-            ICD-10 Medical Coding
-        </button>
-        <button @click="activeTab = 'coverage'"
-                :class="activeTab === 'coverage' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 hover:bg-indigo-50'"
-                class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors shadow-sm border border-gray-200">
-            CMS Coverage Lookup
-        </button>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- ICD-10 CODING TAB                                              -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div x-show="activeTab === 'coding'" x-cloak>
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border-l-4 border-purple-500">
-            <h2 class="font-display text-lg font-semibold text-on-surface mb-4">ICD-10 Code Classification</h2>
-            <p class="text-sm text-gray-600 mb-3">
-                Describe symptoms or a diagnosis in plain English and get the correct ICD-10-CM codes back
-                — no memorization, no manual lookup. Each result includes the matched code, its clinical
-                category, and a confidence level so you know exactly how strong the match is.
-            </p>
-            <p class="text-xs text-gray-400 mb-4">
-                Powered by Claude AI querying the ICD-10-CM database in real time. Results are not cached
-                — every query reflects the current code set.
-            </p>
-
-            <form th:action="@{/admin/intelligence/coding}" method="post" class="space-y-4">
-                <div>
-                    <label for="clinicalDescription" class="block text-sm font-medium text-gray-700 mb-1">
-                        Clinical Description <span class="text-red-500">*</span>
-                    </label>
-                    <textarea id="clinicalDescription" name="clinicalDescription" rows="3" required
-                              th:text="${codingInput}"
-                              placeholder="e.g., Patient presents with acute chest pain radiating to left arm, shortness of breath, and diaphoresis"
-                              class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"></textarea>
-                </div>
-                <div>
-                    <label for="codingCtx" class="block text-sm font-medium text-gray-700 mb-1">
-                        Patient Context <span class="text-gray-400">(optional)</span>
-                    </label>
-                    <input type="text" id="codingCtx" name="context" th:value="${codingContext}"
-                           placeholder="e.g., 65-year-old male with history of hypertension and diabetes"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"/>
-                </div>
-                <button type="submit"
-                        class="px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                    Prompt
-                </button>
-            </form>
-        </div>
-
-        <!-- Coding Error -->
-        <div th:if="${codingError}" class="bg-red-50 border-l-4 border-red-500 rounded-lg p-5 mb-6">
-            <h3 class="text-red-800 font-semibold text-sm mb-1">Error</h3>
-            <p class="text-red-700 text-sm" th:text="${codingError}">Error message</p>
-            <p class="text-red-500 text-xs mt-2">Make sure the Claude Intelligence Service is running on the configured port.</p>
-        </div>
-
-        <!-- Coding Results -->
-        <div th:if="${codingResult}" class="space-y-4" x-data="{ result: null }"
-             x-init="try { result = JSON.parse(document.getElementById('codingJson').textContent) } catch(e) {}">
-            <script type="application/json" id="codingJson" th:text="${codingResult}"></script>
-
-            <template x-if="result">
-                <div>
-                    <!-- Codes table -->
-                    <div class="bg-white rounded-lg shadow-sm p-6 mb-4 border-l-4 border-green-500">
-                        <h3 class="font-display text-lg font-semibold text-on-surface mb-4">
-                            ICD-10 Codes
-                            <span class="text-sm font-normal text-gray-500"
-                                  x-text="'(' + (result.codes?.length || 0) + ' matched)'"></span>
-                        </h3>
-
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm">
-                                <thead>
-                                <tr class="border-b-2 border-gray-100 text-left">
-                                    <th class="py-2 px-3 font-semibold text-gray-600">Code</th>
-                                    <th class="py-2 px-3 font-semibold text-gray-600">Description</th>
-                                    <th class="py-2 px-3 font-semibold text-gray-600">Category</th>
-                                    <th class="py-2 px-3 font-semibold text-gray-600">Confidence</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <template x-for="code in (result.codes || [])" :key="code.code">
-                                    <tr class="border-b border-gray-50 hover:bg-gray-50">
-                                        <td class="py-2 px-3 font-mono font-semibold text-purple-700" x-text="code.code"></td>
-                                        <td class="py-2 px-3" x-text="code.description"></td>
-                                        <td class="py-2 px-3 text-gray-500 text-xs" x-text="code.category"></td>
-                                        <td class="py-2 px-3">
-                                            <span :class="{
-                                                'bg-green-100 text-green-800': code.confidence === 'HIGH',
-                                                'bg-yellow-100 text-yellow-800': code.confidence === 'MEDIUM',
-                                                'bg-red-100 text-red-800': code.confidence === 'LOW'
-                                            }" class="px-2 py-0.5 rounded-full text-xs font-semibold"
-                                                  x-text="code.confidence"></span>
-                                        </td>
-                                    </tr>
-                                </template>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Analysis -->
-                    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-300">
-                        <h3 class="font-display text-base font-semibold text-on-surface mb-3">Clinical Analysis</h3>
-                        <div class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap prose prose-sm max-w-none"
-                             x-text="result.rawAnalysis"></div>
-                        <div class="mt-3 text-xs text-gray-400" x-text="'Queried at: ' + result.queriedAt"></div>
-                    </div>
-                </div>
-            </template>
-        </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- CMS COVERAGE TAB                                               -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <div x-show="activeTab === 'coverage'" x-cloak>
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6 border-l-4 border-indigo-500">
-            <h2 class="font-display text-lg font-semibold text-on-surface mb-4">CMS Coverage Policy Lookup</h2>
-            <p class="text-sm text-gray-600 mb-3">
-                Before you order a procedure, know whether it's covered. Describe the service and patient
-                context, and get a clear coverage determination — COVERED, CONDITIONAL, or NOT COVERED —
-                with the specific policy references and conditions that apply.
-            </p>
-            <p class="text-xs text-gray-400 mb-4">
-                Powered by Claude AI querying CMS National Coverage Determinations (NCDs) in real time.
-                Supports Medicare Part A, Part B, and Medicaid payer types.
-            </p>
-
-            <form th:action="@{/admin/intelligence/coverage}" method="post" class="space-y-4">
-                <div>
-                    <label for="procedureDescription" class="block text-sm font-medium text-gray-700 mb-1">
-                        Procedure / Service <span class="text-red-500">*</span>
-                    </label>
-                    <textarea id="procedureDescription" name="procedureDescription" rows="2" required
-                              th:text="${coverageInput}"
-                              placeholder="e.g., Cardiac catheterization with coronary angiography"
-                              class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
+                <h2 class="font-display text-lg font-semibold mb-4">Source-Grounded Q&amp;A</h2>
+                <div class="space-y-3">
                     <div>
-                        <label for="coverageCtx" class="block text-sm font-medium text-gray-700 mb-1">
-                            Patient Context <span class="text-gray-400">(optional)</span>
-                        </label>
-                        <input type="text" id="coverageCtx" name="patientContext" th:value="${coverageContext}"
-                               placeholder="e.g., 65-year-old male with acute MI symptoms"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Question</label>
+                        <textarea id="chat-question" rows="3" placeholder="Ask about healthcare AI..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendChat(this)" class="ic-btn">Prompt</button>
+                    <span class="ic-spinner" id="chat-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="chat-timing"></div>
+                <div class="ic-report" id="chat-report"></div>
+            </div>
+        </div>
+
+        <!-- ═══ ANALYSIS ═══ -->
+        <div x-show="tab==='analyze'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Get a market intelligence briefing on any healthcare AI topic. Pulls from structured datasets — regulatory filings, company sentiment scores, and market trend signals — to build a multi-dimensional assessment.</p>
+                <p class="text-xs text-gray-400 mt-1">Queries structured data across articles, regulatory events, company sentiment, and market trends. Claude synthesizes the combined evidence into a single narrative analysis.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
+                <h2 class="font-display text-lg font-semibold mb-4">Market Intelligence Briefing</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                        <input type="text" id="analyze-topic" placeholder="e.g., AI diagnostics in radiology" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
                     <div>
-                        <label for="payerType" class="block text-sm font-medium text-gray-700 mb-1">Payer Type</label>
-                        <select id="payerType" name="payerType"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                            <option value="MEDICARE_B" th:selected="${coveragePayerType == 'MEDICARE_B' or coveragePayerType == null}">Medicare Part B</option>
-                            <option value="MEDICARE_A" th:selected="${coveragePayerType == 'MEDICARE_A'}">Medicare Part A</option>
-                            <option value="MEDICAID" th:selected="${coveragePayerType == 'MEDICAID'}">Medicaid</option>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Depth</label>
+                        <select id="analyze-depth" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+                            <option value="deep">Deep</option>
+                            <option value="brief">Brief</option>
                         </select>
                     </div>
                 </div>
-                <button type="submit"
-                        class="px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors text-sm">
-                    Prompt
-                </button>
-            </form>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendAnalysis(this)" class="ic-btn">Prompt</button>
+                    <span class="ic-spinner" id="analyze-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="analyze-timing"></div>
+                <div class="ic-report" id="analyze-report"></div>
+            </div>
         </div>
 
-        <!-- Coverage Error -->
-        <div th:if="${coverageError}" class="bg-red-50 border-l-4 border-red-500 rounded-lg p-5 mb-6">
-            <h3 class="text-red-800 font-semibold text-sm mb-1">Error</h3>
-            <p class="text-red-700 text-sm" th:text="${coverageError}">Error message</p>
-            <p class="text-red-500 text-xs mt-2">Make sure the Claude Intelligence Service is running on the configured port.</p>
-        </div>
-
-        <!-- Coverage Results -->
-        <div th:if="${coverageResult}" class="space-y-4" x-data="{ result: null }"
-             x-init="try { result = JSON.parse(document.getElementById('coverageJson').textContent) } catch(e) {}">
-            <script type="application/json" id="coverageJson" th:text="${coverageResult}"></script>
-
-            <template x-if="result">
-                <div>
-                    <!-- Status banner -->
-                    <div class="rounded-lg shadow-sm p-5 mb-4"
-                         :class="{
-                             'bg-green-50 border-l-4 border-green-500': result.coverageStatus === 'COVERED',
-                             'bg-red-50 border-l-4 border-red-500': result.coverageStatus === 'NOT_COVERED',
-                             'bg-yellow-50 border-l-4 border-yellow-500': result.coverageStatus === 'CONDITIONAL',
-                             'bg-gray-50 border-l-4 border-gray-400': result.coverageStatus === 'UNKNOWN'
-                         }">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl font-bold"
-                                  :class="{
-                                      'text-green-700': result.coverageStatus === 'COVERED',
-                                      'text-red-700': result.coverageStatus === 'NOT_COVERED',
-                                      'text-yellow-700': result.coverageStatus === 'CONDITIONAL',
-                                      'text-gray-600': result.coverageStatus === 'UNKNOWN'
-                                  }"
-                                  x-text="result.coverageStatus"></span>
-                        </div>
+        <!-- ═══ SYNTHESIS ═══ -->
+        <div x-show="tab==='synthesis'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">An FDA clearance doesn't just affect compliance — it reshapes M&amp;A pipelines, shifts investor sentiment, and creates new competitive dynamics. This report fuses seven intelligence domains into one narrative with cross-domain connections and leading indicators.</p>
+                <p class="text-xs text-gray-400 mt-1">Seven parallel queries (articles, regulatory, deals, sentiment, frameworks, trends, wiki) assemble structured context. Claude identifies cross-domain causation.</p>
+                <p class="text-xs text-amber-500 mt-1">This report typically takes 1-2 minutes to generate.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
+                <h2 class="font-display text-lg font-semibold mb-4">Cross-Domain Intelligence Report</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                        <input type="text" id="synthesis-topic" placeholder="e.g., AI diagnostics radiology" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
-
-                    <!-- Policy references -->
-                    <div class="bg-white rounded-lg shadow-sm p-6 mb-4" x-show="result.policyReferences?.length > 0">
-                        <h3 class="font-display text-base font-semibold text-on-surface mb-3">Policy References</h3>
-                        <div class="space-y-2">
-                            <template x-for="policy in (result.policyReferences || [])" :key="policy.policyId">
-                                <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                                    <span class="font-mono text-sm font-semibold text-indigo-700 whitespace-nowrap"
-                                          x-text="policy.policyId"></span>
-                                    <div>
-                                        <div class="text-sm font-medium" x-text="policy.title"></div>
-                                        <div class="text-xs text-gray-500" x-text="policy.relevantSection"></div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Days Back</label>
+                        <input type="number" id="synthesis-days" value="30" min="1" max="365" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
                     </div>
-
-                    <!-- Conditions & Limitations -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div class="bg-white rounded-lg shadow-sm p-5" x-show="result.conditions?.length > 0">
-                            <h3 class="font-display text-sm font-semibold text-green-700 mb-2">Conditions for Coverage</h3>
-                            <ul class="text-sm text-gray-700 space-y-1">
-                                <template x-for="c in (result.conditions || [])">
-                                    <li class="flex items-start gap-2">
-                                        <span class="text-green-500 mt-0.5">&#10003;</span>
-                                        <span x-text="c"></span>
-                                    </li>
-                                </template>
-                            </ul>
-                        </div>
-                        <div class="bg-white rounded-lg shadow-sm p-5" x-show="result.limitations?.length > 0">
-                            <h3 class="font-display text-sm font-semibold text-amber-700 mb-2">Limitations</h3>
-                            <ul class="text-sm text-gray-700 space-y-1">
-                                <template x-for="l in (result.limitations || [])">
-                                    <li class="flex items-start gap-2">
-                                        <span class="text-amber-500 mt-0.5">&#9888;</span>
-                                        <span x-text="l"></span>
-                                    </li>
-                                </template>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Analysis -->
-                    <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-300">
-                        <h3 class="font-display text-base font-semibold text-on-surface mb-3">Coverage Analysis</h3>
-                        <div class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap prose prose-sm max-w-none"
-                             x-text="result.rawAnalysis"></div>
-                        <div class="mt-3 text-xs text-gray-400" x-text="'Queried at: ' + result.queriedAt"></div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Depth</label>
+                        <select id="synthesis-depth" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+                            <option value="deep">Deep</option>
+                            <option value="brief">Brief</option>
+                        </select>
                     </div>
                 </div>
-            </template>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendSynthesis(this)" class="ic-btn">Prompt</button>
+                    <span class="ic-spinner" id="synthesis-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="synthesis-timing"></div>
+                <div class="ic-report" id="synthesis-report"></div>
+                <div class="flex gap-2 mt-3" id="synthesis-export-row" style="display:none;">
+                    <button onclick="exportSynthesisDoc()" class="ic-btn-export">Export DOC</button>
+                    <button onclick="exportSynthesisTxt()" class="ic-btn-export">Export TXT</button>
+                    <button onclick="exportJson(lastSynthesisData, 'synthesis')" class="ic-btn-export">Export JSON</button>
+                </div>
+            </div>
         </div>
-    </div>
 
-</main>
+        <!-- ═══ PLATFORM RACE ═══ -->
+        <div x-show="tab==='platform-race'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Which AI platform is winning in healthcare? This vendor-neutral analysis compares Anthropic, OpenAI, Google, and Microsoft across recent news, deal activity, regulatory filings, and competitive positioning. No vendor spin — just evidence-based competitive intelligence.</p>
+                <p class="text-xs text-gray-400 mt-1">Queries articles, deals, regulatory events, and framework analyses filtered by vendor-specific keywords. Claude produces a vendor-neutral comparative assessment.</p>
+                <p class="text-xs text-amber-500 mt-1">This report typically takes 1-2 minutes to generate.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
+                <h2 class="font-display text-lg font-semibold mb-4">AI Platform Race Tracker</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Days Back</label>
+                        <input type="number" id="race-days" value="30" min="1" max="365" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Depth</label>
+                        <select id="race-depth" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+                            <option value="deep">Deep</option>
+                            <option value="brief">Brief</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendPlatformRace(this)" class="ic-btn">Prompt</button>
+                    <span class="ic-spinner" id="race-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="race-timing"></div>
+                <div class="ic-report" id="race-report"></div>
+            </div>
+        </div>
+
+        <!-- ═══ AI AUDIT (VERIFICATION) ═══ -->
+        <div x-show="tab==='verify'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">One AI writes the intelligence report, then a completely independent AI audits every claim against the same raw evidence. You get a confidence-scored result — confirmed facts, disputed claims, and gaps — so you know exactly what to trust.</p>
+                <p class="text-xs text-gray-400 mt-1">Claude generates the synthesis; then a second model independently evaluates every claim against the source data. Claims are classified as confirmed, disputed, or gap.</p>
+                <p class="text-xs text-amber-500 mt-1">This audit typically takes 2-3 minutes.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
+                <h2 class="font-display text-lg font-semibold mb-4">AI Audit of Market Intelligence</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                        <input type="text" id="verify-topic" placeholder="e.g., AI diagnostics radiology" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Days Back</label>
+                        <input type="number" id="verify-days" value="30" min="1" max="365" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Depth</label>
+                        <select id="verify-depth" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+                            <option value="deep">Deep</option>
+                            <option value="brief">Brief</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Independent Auditor</label>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+                            <input type="radio" name="verifier" value="openai" checked class="accent-purple-600">
+                            <span>OpenAI GPT-4o</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+                            <input type="radio" name="verifier" value="gemini" class="accent-purple-600">
+                            <span>Google Gemini 2.0 Flash</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+                            <input type="radio" name="verifier" value="bedrock-nova" class="accent-purple-600">
+                            <span>AWS Nova Pro</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendVerification(this)" class="ic-btn">Prompt</button>
+                    <span class="ic-spinner" id="verify-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="verify-timing"></div>
+                <div class="ic-report" id="verify-report"></div>
+                <div class="flex gap-2 mt-3" id="export-row" style="display:none;">
+                    <button onclick="exportAuditDoc()" class="ic-btn-export">Export DOC</button>
+                    <button onclick="exportAuditTxt()" class="ic-btn-export">Export TXT</button>
+                    <button onclick="exportJson(lastVerificationData, 'ai-audit')" class="ic-btn-export">Export JSON</button>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 mt-4">
+                <h2 class="font-display text-base font-semibold mb-2">Popular Queries</h2>
+                <p class="text-xs text-gray-500 mb-3">Topics others have audited — click to view the cached result.</p>
+                <div id="popular-queries" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
+            </div>
+        </div>
+
+        <!-- ═══ ICD-10 CODING ═══ -->
+        <div x-show="tab==='coding'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Describe symptoms or a diagnosis in plain English and get the correct ICD-10-CM codes back — no memorization, no manual lookup. Results include clinical context so you understand why each code was suggested.</p>
+                <p class="text-xs text-gray-400 mt-1">Queries the official ICD-10 code database via Model Context Protocol (MCP). Claude interprets the clinical description and matches it against the coding taxonomy.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
+                <h2 class="font-display text-lg font-semibold mb-4">ICD-10 Medical Coding</h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Clinical Description</label>
+                        <textarea id="coding-description" rows="3" placeholder="e.g., acute chest pain with shortness of breath" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Patient Context <span class="text-gray-400">(optional)</span></label>
+                        <input type="text" id="coding-context" placeholder="e.g., 65 year old male, history of hypertension" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendCoding(this)" class="ic-btn ic-btn-indigo">Prompt</button>
+                    <span class="ic-spinner" id="coding-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="coding-timing"></div>
+                <div class="ic-report" id="coding-report"></div>
+            </div>
+        </div>
+
+        <!-- ═══ CMS COVERAGE ═══ -->
+        <div x-show="tab==='coverage'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Before you order a procedure, know whether it's covered. Enter a procedure description and get a clear answer on Medicare and Medicaid coverage — including conditions, limitations, and specific CMS policy references.</p>
+                <p class="text-xs text-gray-400 mt-1">Queries federal CMS coverage databases via Model Context Protocol (MCP). Claude summarizes the coverage determination with applicable conditions and policy citations.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
+                <h2 class="font-display text-lg font-semibold mb-4">CMS Coverage Lookup</h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Procedure Description</label>
+                        <textarea id="coverage-procedure" rows="2" placeholder="e.g., Cardiac catheterization with coronary angiography" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Payer Type</label>
+                            <select id="coverage-payer" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                <option value="MEDICARE_B">Medicare Part B</option>
+                                <option value="MEDICARE_A">Medicare Part A</option>
+                                <option value="MEDICAID">Medicaid</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Patient Context <span class="text-gray-400">(optional)</span></label>
+                            <input type="text" id="coverage-context" placeholder="e.g., outpatient setting" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendCoverage(this)" class="ic-btn ic-btn-indigo">Prompt</button>
+                    <span class="ic-spinner" id="coverage-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="coverage-timing"></div>
+                <div class="ic-report" id="coverage-report"></div>
+            </div>
+        </div>
+
+        <!-- ═══ NPI ═══ -->
+        <div x-show="tab==='npi'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Look up any healthcare provider in the United States — verify credentials, find specialists by location, or confirm an NPI number for referrals and billing.</p>
+                <p class="text-xs text-gray-400 mt-1">Queries the CMS NPPES (National Plan and Provider Enumeration System) database via Model Context Protocol (MCP).</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
+                <h2 class="font-display text-lg font-semibold mb-4">NPI Provider Registry</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Provider Name</label>
+                        <input type="text" id="npi-name" placeholder="e.g., Smith" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">NPI Number</label>
+                        <input type="text" id="npi-number" placeholder="e.g., 1234567890" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                        <input type="text" id="npi-state" placeholder="e.g., TX" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Specialty</label>
+                        <input type="text" id="npi-specialty" placeholder="e.g., Cardiology" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendNpi(this)" class="ic-btn ic-btn-indigo">Prompt</button>
+                    <span class="ic-spinner" id="npi-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="npi-timing"></div>
+                <div class="ic-report" id="npi-report"></div>
+            </div>
+        </div>
+
+        <!-- ═══ CLINICAL TRIALS ═══ -->
+        <div x-show="tab==='trials'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Find clinical trials that matter to your practice, patients, or investment thesis. Search by condition, intervention, phase, or status. Sourced directly from the federal ClinicalTrials.gov registry.</p>
+                <p class="text-xs text-gray-400 mt-1">Queries the ClinicalTrials.gov federal database via Model Context Protocol (MCP). Claude summarizes matching studies with enrollment, phase, status, and sponsor details.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
+                <h2 class="font-display text-lg font-semibold mb-4">Clinical Trials Search</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+                        <input type="text" id="trials-condition" placeholder="e.g., lung cancer" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Intervention</label>
+                        <input type="text" id="trials-intervention" placeholder="e.g., AI diagnostic" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="trials-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <option value="">Any</option>
+                            <option value="Recruiting">Recruiting</option>
+                            <option value="Active">Active</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phase</label>
+                        <select id="trials-phase" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <option value="">Any</option>
+                            <option value="Phase 1">Phase 1</option>
+                            <option value="Phase 2">Phase 2</option>
+                            <option value="Phase 3">Phase 3</option>
+                            <option value="Phase 4">Phase 4</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendTrials(this)" class="ic-btn ic-btn-indigo">Prompt</button>
+                    <span class="ic-spinner" id="trials-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="trials-timing"></div>
+                <div class="ic-report" id="trials-report"></div>
+            </div>
+        </div>
+
+        <!-- ═══ LITERATURE ═══ -->
+        <div x-show="tab==='literature'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Search the world's largest biomedical research database. PubMed indexes over 37 million citations from peer-reviewed journals — find the published evidence behind any clinical question.</p>
+                <p class="text-xs text-gray-400 mt-1">Queries the National Library of Medicine's PubMed database via Model Context Protocol (MCP). Claude summarizes matching publications with citation details and key findings.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
+                <h2 class="font-display text-lg font-semibold mb-4">PubMed Literature Search</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Search Query</label>
+                        <input type="text" id="lit-query" placeholder="e.g., deep learning radiology diagnosis" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Max Results</label>
+                        <input type="number" id="lit-max" value="10" min="1" max="50" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendLiterature(this)" class="ic-btn ic-btn-indigo">Prompt</button>
+                    <span class="ic-spinner" id="literature-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="literature-timing"></div>
+                <div class="ic-report" id="literature-report"></div>
+            </div>
+        </div>
+
+        <!-- ═══ WIKI ═══ -->
+        <div x-show="tab==='wiki'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Browse the curated knowledge base — vetted, structured reference material on companies, technologies, regulatory pathways, and market dynamics. This content feeds into every cross-domain intelligence report automatically.</p>
+                <p class="text-xs text-gray-400 mt-1">Searches compiled wiki pages by keyword (title/tags) and optional page type filter. Wiki content is injected as a 7th domain in cross-domain synthesis and verification.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-teal-500">
+                <h2 class="font-display text-lg font-semibold mb-4">Wiki Search</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Keyword</label>
+                        <input type="text" id="wiki-keyword" placeholder="e.g., FDA clearance, AI diagnostics" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Page Type</label>
+                        <select id="wiki-page-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+                            <option value="">All Types</option>
+                            <option value="ENTITY">Entity</option>
+                            <option value="CONCEPT">Concept</option>
+                            <option value="COMPARISON">Comparison</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Slug (direct lookup)</label>
+                    <input type="text" id="wiki-slug" placeholder="e.g., ai-diagnostics" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendWiki(this)" class="ic-btn ic-btn-teal">Prompt</button>
+                    <span class="ic-spinner" id="wiki-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="wiki-timing"></div>
+                <div class="ic-report" id="wiki-report"></div>
+            </div>
+
+            <!-- Ask Wiki -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-teal-500 mt-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="font-display text-lg font-semibold">Ask Wiki (Claude-Synthesized)</h2>
+                    <span class="px-2 py-0.5 bg-teal-500 text-white text-xs font-semibold rounded-full">ADVANCED</span>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Question</label>
+                    <textarea id="wiki-question" rows="2" placeholder="Ask a question and get a Claude-synthesized answer grounded in wiki pages..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendWikiAsk(this)" class="ic-btn ic-btn-teal">Prompt</button>
+                    <span class="ic-spinner" id="wiki-ask-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="wiki-ask-timing"></div>
+                <div class="ic-report" id="wiki-ask-report"></div>
+            </div>
+
+            <!-- Knowledge Gap Analysis -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-teal-500 mt-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="font-display text-lg font-semibold">Knowledge Gap Analysis</h2>
+                    <span class="px-2 py-0.5 bg-teal-500 text-white text-xs font-semibold rounded-full">ADVANCED</span>
+                </div>
+                <div class="w-48">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Days Back</label>
+                    <input type="number" id="wiki-gap-days" value="30" min="1" max="365" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendWikiGaps(this)" class="ic-btn ic-btn-teal">Prompt</button>
+                    <span class="ic-spinner" id="wiki-gap-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="wiki-gap-timing"></div>
+                <div class="ic-report" id="wiki-gap-report"></div>
+            </div>
+
+            <!-- Wiki Freshness -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-teal-500 mt-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <h2 class="font-display text-lg font-semibold">Wiki Freshness Scoring</h2>
+                    <span class="px-2 py-0.5 bg-teal-500 text-white text-xs font-semibold rounded-full">ADVANCED</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="sendWikiFreshness(this)" class="ic-btn ic-btn-teal">Prompt</button>
+                    <span class="ic-spinner" id="wiki-fresh-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="wiki-fresh-timing"></div>
+                <div class="ic-report" id="wiki-fresh-report"></div>
+            </div>
+        </div>
+
+        <!-- ═══ DAILY BRIEFS ═══ -->
+        <div x-show="tab==='reports'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Intelligence that arrives before you ask for it. The system generates cross-domain reports on preconfigured topics every morning. Reports are retained for 30 days.</p>
+                <p class="text-xs text-gray-400 mt-1">Same cross-domain synthesis engine, executed automatically on a daily cron schedule. Results are persisted with configurable retention.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500">
+                <h2 class="font-display text-lg font-semibold mb-4">Scheduled Synthesis Reports</h2>
+                <div class="w-48">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Days Back</label>
+                    <input type="number" id="reports-days" value="7" min="1" max="30" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="fetchReports(this)" class="ic-btn ic-btn-amber">Prompt</button>
+                    <span class="ic-spinner" id="reports-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="reports-timing"></div>
+                <div class="ic-report" id="reports-report"></div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500 mt-4">
+                <h2 class="font-display text-lg font-semibold mb-4">Latest Report by Topic</h2>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                    <input type="text" id="reports-topic" placeholder="e.g., AI healthcare diagnostics" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="fetchLatestReport(this)" class="ic-btn ic-btn-amber">Prompt</button>
+                    <span class="ic-spinner" id="latest-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="latest-timing"></div>
+                <div class="ic-report" id="latest-report"></div>
+            </div>
+        </div>
+
+        <!-- ═══ TREND TRACKING ═══ -->
+        <div x-show="tab==='trending'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">See how a topic's landscape has changed over time — rising or falling data points, new cross-domain connections, shifting leading indicators. If you've been tracking a topic for weeks, this is where you see whether the story is strengthening or fading.</p>
+                <p class="text-xs text-gray-400 mt-1">Every synthesis (manual or scheduled) is stored as a timestamped snapshot. This view queries the history and computes trend deltas between the oldest and newest runs.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500">
+                <h2 class="font-display text-lg font-semibold mb-4">Synthesis Trending</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                        <input type="text" id="trending-topic" placeholder="e.g., AI healthcare diagnostics" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Days Back</label>
+                        <input type="number" id="trending-days" value="90" min="1" max="365" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button id="trending-btn" onclick="fetchTrending(this)" class="ic-btn ic-btn-amber">Prompt</button>
+                    <span class="ic-spinner" id="trending-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="trending-timing"></div>
+                <div id="trending-topics-panel" class="mt-3"></div>
+                <div class="ic-report" id="trending-report"></div>
+                <div class="flex gap-2 mt-3" id="trending-export-row" style="display:none;">
+                    <button onclick="exportTrendingDoc()" class="ic-btn-export">Export DOC</button>
+                    <button onclick="exportTrendingTxt()" class="ic-btn-export">Export TXT</button>
+                    <button onclick="exportJson(lastTrendingData, 'trending')" class="ic-btn-export">Export JSON</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<style>
+    .ic-btn {
+        @apply px-6 py-2.5 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors text-sm;
+    }
+    .ic-btn.working { opacity: 0.7; pointer-events: none; }
+    .ic-btn.working::after { content: '....'; animation: dots 1.5s steps(4, end) infinite; }
+    @keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } 100% { content: '....'; } }
+    .ic-btn-indigo { @apply bg-indigo-600 hover:bg-indigo-700; }
+    .ic-btn-teal { @apply bg-teal-600 hover:bg-teal-700; }
+    .ic-btn-amber { @apply bg-amber-600 hover:bg-amber-700; }
+    .ic-btn-export {
+        @apply px-4 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors;
+    }
+    .ic-spinner { display: none; }
+    .ic-spinner.active {
+        display: inline-block;
+        width: 18px; height: 18px;
+        border: 2px solid #e5e7eb; border-top-color: #7c3aed;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .ic-report { margin-top: 1rem; }
+    .ic-report.visible { display: block; }
+    .ic-report.error { color: #dc2626; white-space: pre-wrap; font-size: 0.85rem; background: #fef2f2; padding: 1rem; border-radius: 0.5rem; }
+    .ic-report h3 { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin: 1rem 0 0.4rem 0; }
+    .ic-report p { font-size: 0.85rem; color: #334155; line-height: 1.6; margin-bottom: 0.5rem; }
+    .ic-report .meta-line { font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem; }
+    .ic-report .data-card {
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem;
+        padding: 0.75rem 1rem; margin-bottom: 0.5rem;
+    }
+    .ic-report .card-title { font-weight: 600; font-size: 0.88rem; color: #1e293b; }
+    .ic-report .card-detail { font-size: 0.8rem; color: #64748b; margin-top: 0.2rem; }
+    .ic-report .code-badge {
+        display: inline-block; background: #ede9fe; color: #6d28d9;
+        padding: 0.1rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;
+        font-weight: 600; font-family: 'JetBrains Mono', monospace; margin-right: 0.4rem;
+    }
+    .ic-report .status-badge {
+        display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px;
+        font-size: 0.72rem; font-weight: 600;
+    }
+    .ic-report .status-badge.covered { background: #dcfce7; color: #166534; }
+    .ic-report .status-badge.not-covered { background: #fef2f2; color: #991b1b; }
+    .ic-report .status-badge.partial { background: #fef9c3; color: #854d0e; }
+    .ic-report .claim-card {
+        border-left: 3px solid #e2e8f0; padding: 0.6rem 0.8rem;
+        margin-bottom: 0.5rem; border-radius: 0 0.4rem 0.4rem 0; background: #f8fafc;
+    }
+    .ic-report .claim-card.confirmed { border-left-color: #22c55e; }
+    .ic-report .claim-card.disputed { border-left-color: #ef4444; }
+    .ic-report .claim-card.gap { border-left-color: #3b82f6; }
+    .ic-report .claim-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+    .ic-report .claim-label.confirmed { color: #16a34a; }
+    .ic-report .claim-label.disputed { color: #dc2626; }
+    .ic-report .claim-label.gap { color: #2563eb; }
+    .ic-report .claim-text { font-size: 0.85rem; color: #1e293b; }
+    .ic-report .claim-detail { font-size: 0.8rem; color: #64748b; margin-top: 0.2rem; }
+    .ic-report .confidence-bar { margin: 0.5rem 0; }
+    .ic-report .bar-bg { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 0.25rem; }
+    .ic-report .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+    .ic-report .source-link { color: #6d28d9; text-decoration: underline; }
+    .ic-report .source-link:hover { color: #4c1d95; }
+    .popular-card {
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem;
+        padding: 0.6rem 0.8rem; cursor: pointer; transition: all 0.15s;
+    }
+    .popular-card:hover { background: #f1f5f9; border-color: #7c3aed; }
+    .popular-topic { font-weight: 600; font-size: 0.85rem; color: #1e293b; }
+    .popular-meta { font-size: 0.75rem; color: #64748b; display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.2rem; }
+    .popular-empty { font-size: 0.82rem; color: #94a3b8; padding: 0.75rem 0; }
+    .badge { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 0.25rem; background: #f1f5f9; color: #475569; }
+</style>
+
+<script>
+    const PROXY = '/admin/intelligence/api/v1/intelligence';
+    let lastVerificationData = null;
+    let lastSynthesisData = null;
+    let lastTrendingData = null;
+
+    function intelligenceConsole() {
+        return {
+            tab: '[[${activeTab}]]',
+            switchTab(name) {
+                this.tab = name;
+                if (name === 'verify') loadPopularQueries();
+                if (name === 'trending') loadTrendingTopics();
+            }
+        };
+    }
+
+    function getCsrfHeaders() {
+        const headers = { 'Content-Type': 'application/json' };
+        const csrfMeta = document.querySelector('meta[name="_csrf"]');
+        const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+        if (csrfMeta && csrfHeaderMeta) {
+            headers[csrfHeaderMeta.content] = csrfMeta.content;
+        }
+        return headers;
+    }
+
+    async function richApiCall(url, method, body, reportId, spinnerId, timingId, btnEl, renderFn, opts) {
+        opts = opts || {};
+        const spinner = document.getElementById(spinnerId);
+        const report = document.getElementById(reportId);
+        const timing = document.getElementById(timingId);
+        spinner.classList.add('active');
+        if (btnEl) btnEl.classList.add('working');
+        report.className = 'ic-report';
+        report.innerHTML = '';
+        timing.textContent = '';
+        const start = performance.now();
+        try {
+            const fetchOpts = { method, headers: getCsrfHeaders() };
+            if (body) fetchOpts.body = JSON.stringify(body);
+            const resp = await fetch(PROXY + url, fetchOpts);
+            const elapsed = ((performance.now() - start) / 1000).toFixed(2);
+            const data = await resp.json();
+            if (!resp.ok) {
+                report.textContent = JSON.stringify(data, null, 2);
+                report.className = 'ic-report visible error';
+            } else {
+                report.innerHTML = renderFn(data);
+                report.className = 'ic-report visible';
+                if (opts.onSuccess) opts.onSuccess(data);
+            }
+            timing.textContent = resp.status + ' ' + resp.statusText + ' in ' + elapsed + 's';
+        } catch (e) {
+            const elapsed = ((performance.now() - start) / 1000).toFixed(2);
+            report.textContent = 'Error: ' + e.message;
+            report.className = 'ic-report visible error';
+            timing.textContent = 'Failed in ' + elapsed + 's';
+        }
+        spinner.classList.remove('active');
+        if (btnEl) btnEl.classList.remove('working');
+        if (opts.onComplete) opts.onComplete();
+    }
+
+    /* ── Utility ── */
+    function esc(str) { const d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
+    function escAttr(str) { return str.replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+    function cleanText(text) {
+        if (!text) return '';
+        return text.replace(/\\'/g, "'").replace(/\\"/g, '"').replace(/\\'(\w)/g, "'$1").replace(/(\w)\\'/g, "$1'");
+    }
+    function formatMarkdown(text) {
+        const parts = cleanText(text).split(/\*\*/);
+        let html = '';
+        for (let i = 0; i < parts.length; i++) {
+            if (i % 2 === 1) html += '<strong>' + esc(parts[i]) + '</strong>';
+            else html += esc(parts[i]);
+        }
+        return html;
+    }
+    function stripMarkdown(text) { return cleanText(text).replace(/\*\*/g, ''); }
+    function slugify(text) { return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').substring(0, 40); }
+    function timeAgo(isoString) {
+        if (!isoString) return '';
+        const diff = Date.now() - new Date(isoString).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return 'just now';
+        if (mins < 60) return mins + 'm ago';
+        const hrs = Math.floor(mins / 60);
+        if (hrs < 24) return hrs + 'h ago';
+        return Math.floor(hrs / 24) + 'd ago';
+    }
+
+    function renderProseBlock(text) {
+        const cleaned = cleanText(text || '');
+        if (!cleaned) return '';
+        let html = '';
+        const paragraphs = cleaned.split(/\n{2,}/);
+        for (const p of paragraphs) { const t = p.trim(); if (t) html += '<p>' + formatMarkdown(t) + '</p>'; }
+        return html;
+    }
+    function renderBulletList(items, title) {
+        if (!items || items.length === 0) return '';
+        let html = '<h3>' + esc(title) + ' (' + items.length + ')</h3><ul style="margin:0 0 0.75rem 1.25rem;padding:0;">';
+        for (const item of items) html += '<li style="font-size:0.85rem;margin-bottom:0.3rem;">' + formatMarkdown(item) + '</li>';
+        return html + '</ul>';
+    }
+
+    /* ── Send Functions ── */
+    function sendChat(btn) {
+        const q = document.getElementById('chat-question').value.trim();
+        if (!q) return;
+        richApiCall('/chat', 'POST', { question: q }, 'chat-report', 'chat-spinner', 'chat-timing', btn, renderChat);
+    }
+    function sendAnalysis(btn) {
+        const topic = document.getElementById('analyze-topic').value.trim();
+        if (!topic) return;
+        richApiCall('/analyze', 'POST', { topic, depth: document.getElementById('analyze-depth').value },
+            'analyze-report', 'analyze-spinner', 'analyze-timing', btn, renderAnalysis);
+    }
+    function sendSynthesis(btn) {
+        const topic = document.getElementById('synthesis-topic').value.trim();
+        if (!topic) return;
+        lastSynthesisData = null;
+        document.getElementById('synthesis-export-row').style.display = 'none';
+        richApiCall('/synthesis', 'POST', {
+            topic, daysBack: parseInt(document.getElementById('synthesis-days').value),
+            depth: document.getElementById('synthesis-depth').value
+        }, 'synthesis-report', 'synthesis-spinner', 'synthesis-timing', btn, renderSynthesis, {
+            onSuccess: function(data) { lastSynthesisData = data; document.getElementById('synthesis-export-row').style.display = 'flex'; }
+        });
+    }
+    function sendPlatformRace(btn) {
+        richApiCall('/platform-race', 'POST', {
+            daysBack: parseInt(document.getElementById('race-days').value),
+            depth: document.getElementById('race-depth').value
+        }, 'race-report', 'race-spinner', 'race-timing', btn, renderPlatformRace);
+    }
+    function sendVerification(btn) {
+        const topic = document.getElementById('verify-topic').value.trim();
+        if (!topic) return;
+        lastVerificationData = null;
+        showExportButtons(false);
+        richApiCall('/verify', 'POST', {
+            topic, daysBack: parseInt(document.getElementById('verify-days').value),
+            depth: document.getElementById('verify-depth').value,
+            verifier: document.querySelector('input[name="verifier"]:checked').value
+        }, 'verify-report', 'verify-spinner', 'verify-timing', btn, renderVerification, {
+            onSuccess: function(data) { lastVerificationData = data; showExportButtons(true); },
+            onComplete: function() { loadPopularQueries(); }
+        });
+    }
+    function sendCoding(btn) {
+        const desc = document.getElementById('coding-description').value.trim();
+        if (!desc) return;
+        const ctx = document.getElementById('coding-context').value.trim();
+        richApiCall('/coding', 'POST', { clinicalDescription: desc, context: ctx || null },
+            'coding-report', 'coding-spinner', 'coding-timing', btn, renderCoding);
+    }
+    function sendCoverage(btn) {
+        const proc = document.getElementById('coverage-procedure').value.trim();
+        if (!proc) return;
+        richApiCall('/coverage', 'POST', {
+            procedureDescription: proc,
+            patientContext: document.getElementById('coverage-context').value.trim() || null,
+            payerType: document.getElementById('coverage-payer').value
+        }, 'coverage-report', 'coverage-spinner', 'coverage-timing', btn, renderCoverage);
+    }
+    function sendNpi(btn) {
+        const body = {};
+        const n = document.getElementById('npi-name').value.trim();
+        const num = document.getElementById('npi-number').value.trim();
+        const st = document.getElementById('npi-state').value.trim();
+        const sp = document.getElementById('npi-specialty').value.trim();
+        if (n) body.providerName = n;
+        if (num) body.npiNumber = num;
+        if (st) body.state = st;
+        if (sp) body.specialty = sp;
+        if (Object.keys(body).length === 0) return;
+        richApiCall('/npi', 'POST', body, 'npi-report', 'npi-spinner', 'npi-timing', btn, renderNpi);
+    }
+    function sendTrials(btn) {
+        const body = {};
+        const c = document.getElementById('trials-condition').value.trim();
+        const i = document.getElementById('trials-intervention').value.trim();
+        const s = document.getElementById('trials-status').value;
+        const p = document.getElementById('trials-phase').value;
+        if (c) body.condition = c;
+        if (i) body.intervention = i;
+        if (s) body.status = s;
+        if (p) body.phase = p;
+        if (Object.keys(body).length === 0) return;
+        richApiCall('/trials', 'POST', body, 'trials-report', 'trials-spinner', 'trials-timing', btn, renderTrials);
+    }
+    function sendLiterature(btn) {
+        const q = document.getElementById('lit-query').value.trim();
+        if (!q) return;
+        richApiCall('/literature', 'POST', { query: q, maxResults: parseInt(document.getElementById('lit-max').value) },
+            'literature-report', 'literature-spinner', 'literature-timing', btn, renderLiterature);
+    }
+    function sendWiki(btn) {
+        const keyword = document.getElementById('wiki-keyword').value.trim();
+        const pageType = document.getElementById('wiki-page-type').value;
+        const slug = document.getElementById('wiki-slug').value.trim();
+        if (!keyword && !pageType && !slug) return;
+        const body = {};
+        if (keyword) body.keyword = keyword;
+        if (pageType) body.pageType = pageType;
+        if (slug) body.slug = slug;
+        richApiCall('/wiki', 'POST', body, 'wiki-report', 'wiki-spinner', 'wiki-timing', btn, renderWiki);
+    }
+    function sendWikiAsk(btn) {
+        const q = document.getElementById('wiki-question').value.trim();
+        if (!q) return;
+        richApiCall('/wiki/ask', 'POST', { question: q }, 'wiki-ask-report', 'wiki-ask-spinner', 'wiki-ask-timing', btn, renderWikiAsk);
+    }
+    function sendWikiGaps(btn) {
+        const days = document.getElementById('wiki-gap-days').value;
+        richApiCall('/wiki/gaps?daysBack=' + days, 'POST', null, 'wiki-gap-report', 'wiki-gap-spinner', 'wiki-gap-timing', btn, renderWikiGaps);
+    }
+    function sendWikiFreshness(btn) {
+        richApiCall('/wiki/freshness', 'GET', null, 'wiki-fresh-report', 'wiki-fresh-spinner', 'wiki-fresh-timing', btn, renderWikiFreshness);
+    }
+    function fetchReports(btn) {
+        const days = document.getElementById('reports-days').value;
+        richApiCall('/synthesis/reports?days=' + days, 'GET', null, 'reports-report', 'reports-spinner', 'reports-timing', btn, renderReportList);
+    }
+    function fetchLatestReport(btn) {
+        const topic = document.getElementById('reports-topic').value.trim();
+        if (!topic) return;
+        richApiCall('/synthesis/reports/latest?topic=' + encodeURIComponent(topic), 'GET', null,
+            'latest-report', 'latest-spinner', 'latest-timing', btn, renderSynthesis);
+    }
+    function fetchTrending(btn) {
+        const topic = document.getElementById('trending-topic').value.trim();
+        if (!topic) return;
+        const days = document.getElementById('trending-days').value || 90;
+        lastTrendingData = null;
+        document.getElementById('trending-export-row').style.display = 'none';
+        richApiCall('/synthesis/trending?topic=' + encodeURIComponent(topic) + '&days=' + days, 'GET', null,
+            'trending-report', 'trending-spinner', 'trending-timing', btn, renderTrending, {
+                onSuccess: function(data) {
+                    if (data.snapshots && data.snapshots.length > 0) {
+                        lastTrendingData = data;
+                        document.getElementById('trending-export-row').style.display = 'flex';
+                    }
+                }
+            });
+    }
+
+    /* ── Render Functions ── */
+    function renderChat(data) {
+        let html = '';
+        if (data.conversationId) html += '<div class="meta-line">Session: ' + esc(data.conversationId) + '</div>';
+        html += renderProseBlock(data.answer);
+        if (data.sources && data.sources.length > 0) {
+            html += '<h3>Sources (' + data.sources.length + ')</h3>';
+            for (const s of data.sources) {
+                html += '<div class="data-card"><div class="card-title">';
+                if (s.url) html += '<a class="source-link" href="' + esc(s.url) + '" target="_blank">' + esc(s.title || s.id) + '</a>';
+                else html += esc(s.title || s.id || 'Source');
+                html += '</div>';
+                if (s.type) html += '<div class="card-detail">' + esc(s.type) + '</div>';
+                html += '</div>';
+            }
+        }
+        return html;
+    }
+
+    function renderAnalysis(data) {
+        let html = '';
+        const ts = data.analyzedAt ? new Date(data.analyzedAt).toLocaleString() : '';
+        html += '<div class="meta-line"><strong>' + esc(data.subject || '') + '</strong>';
+        if (ts) html += ' &middot; ' + ts;
+        html += ' &middot; ' + (data.articleCount || 0) + ' articles consulted';
+        if (data.dataDomainsUsed && data.dataDomainsUsed.length > 0) html += ' &middot; Domains: ' + data.dataDomainsUsed.map(d => esc(d)).join(', ');
+        html += '</div>';
+        if (data.summary) { html += '<h3>Summary</h3>'; html += renderProseBlock(data.summary); }
+        if (data.domainFindings && data.domainFindings.length > 0) {
+            html += '<h3>Domain Findings (' + data.domainFindings.length + ')</h3>';
+            for (const df of data.domainFindings) {
+                html += '<div class="data-card"><div class="claim-label" style="color:#7c3aed;">' + esc(df.domain) + ' &middot; ' + df.dataPoints + ' data points</div>';
+                if (df.findings && df.findings.length > 0) {
+                    html += '<ul style="margin:0.25rem 0 0 1.25rem;padding:0;">';
+                    for (const f of df.findings) html += '<li style="font-size:0.83rem;margin-bottom:0.2rem;">' + formatMarkdown(f) + '</li>';
+                    html += '</ul>';
+                }
+                html += '</div>';
+            }
+        }
+        html += renderBulletList(data.keyRisks, 'Key Risks');
+        html += renderBulletList(data.opportunities, 'Opportunities');
+        return html;
+    }
+
+    function renderSynthesis(data) {
+        let html = '';
+        const ts = data.synthesizedAt ? new Date(data.synthesizedAt).toLocaleString() : '';
+        html += '<div class="meta-line"><strong>' + esc(data.topic) + '</strong>';
+        if (ts) html += ' &middot; ' + ts;
+        html += ' &middot; ' + data.dataPointsCounted + ' data points consulted</div>';
+        const narrative = cleanText(data.narrative || '');
+        if (narrative) {
+            html += '<h3>Synthesis Narrative</h3>';
+            for (const p of narrative.split(/\n{2,}|\n---\n?/)) { const t = p.trim(); if (t && t !== '---') html += '<p>' + esc(t) + '</p>'; }
+        }
+        if (data.crossDomainLinks && data.crossDomainLinks.length > 0) {
+            html += '<h3>Cross-Domain Links (' + data.crossDomainLinks.length + ')</h3><ul style="margin:0 0 0.75rem 1.25rem;padding:0;">';
+            for (const link of data.crossDomainLinks) {
+                const conf = link.confidence || '';
+                const confColor = conf === 'HIGH' ? '#166534' : conf === 'LOW' ? '#dc2626' : '#64748b';
+                html += '<li style="margin-bottom:0.5rem;font-size:0.85rem;"><strong>' + esc(link.fromDomain) + ' &rarr; ' + esc(link.toDomain) + '</strong>';
+                if (conf) html += ' <span class="badge" style="color:' + confColor + ';">' + esc(conf) + '</span>';
+                html += '<div style="color:#64748b;margin-top:0.15rem;">' + formatMarkdown(link.connection) + '</div></li>';
+            }
+            html += '</ul>';
+        }
+        if (data.leadingIndicators && data.leadingIndicators.length > 0) {
+            html += '<h3>Leading Indicators (' + data.leadingIndicators.length + ')</h3><ul style="margin:0 0 0.75rem 1.25rem;padding:0;">';
+            for (const ind of data.leadingIndicators) html += '<li style="margin-bottom:0.5rem;font-size:0.85rem;">' + formatMarkdown(ind) + '</li>';
+            html += '</ul>';
+        }
+        if (data.domainSummaries && data.domainSummaries.length > 0) {
+            html += '<h3>Domain Summaries (' + data.domainSummaries.length + ')</h3>';
+            for (const ds of data.domainSummaries) {
+                html += '<div class="claim-card confirmed" style="border-left-color:#7c3aed;"><div class="claim-label" style="color:#7c3aed;">' + esc(ds.domain) + ' &middot; ' + ds.dataPoints + ' data points</div>';
+                if (ds.highlights && ds.highlights.length > 0) {
+                    html += '<ul style="margin:0.25rem 0 0 1.25rem;padding:0;">';
+                    for (const h of ds.highlights) html += '<li style="font-size:0.83rem;margin-bottom:0.2rem;">' + formatMarkdown(h) + '</li>';
+                    html += '</ul>';
+                }
+                html += '</div>';
+            }
+        }
+        return html;
+    }
+
+    function renderVerification(data) {
+        let html = '';
+        const status = data.verificationStatus || 'UNKNOWN';
+        const ts = data.verifiedAt ? new Date(data.verifiedAt).toLocaleString() : '';
+        html += '<div class="meta-line"><strong>' + esc(data.topic) + '</strong>';
+        if (ts) html += ' &middot; ' + ts;
+        html += '</div>';
+        if (status === 'VERIFIED') html += '<div class="meta-line" style="color:#166534;">Audited independently by ' + esc(data.verifierModel || 'GPT-4o') + '.</div>';
+        else if (status === 'UNAVAILABLE') html += '<div class="meta-line" style="color:#dc2626;">The independent auditor (' + esc(data.verifierModel || 'unknown') + ') could not be reached. Synthesis below is unaudited.</div>';
+        if (status === 'VERIFIED' && data.overallConfidence > 0) {
+            const pct = Math.round(data.overallConfidence * 100);
+            const color = pct >= 75 ? '#22c55e' : pct >= 50 ? '#eab308' : '#dc2626';
+            html += '<div class="confidence-bar"><span style="font-size:0.8rem;font-weight:600;">Confidence: ' + pct + '%</span>';
+            html += '<div class="bar-bg"><div class="bar-fill" style="width:' + pct + '%;background:' + color + ';"></div></div></div>';
+        }
+        const narrative = cleanText(data.originalNarrative || '');
+        if (narrative) {
+            html += '<h3>Synthesis Narrative</h3>';
+            for (const p of narrative.split(/\n{2,}|\n---\n?/)) { const t = p.trim(); if (t && t !== '---') html += '<p>' + esc(t) + '</p>'; }
+        }
+        if (data.confirmedClaims && data.confirmedClaims.length > 0) {
+            html += '<h3>Confirmed Claims (' + data.confirmedClaims.length + ')</h3>';
+            for (const c of data.confirmedClaims) {
+                html += '<div class="claim-card confirmed"><div class="claim-label confirmed">Confirmed</div>';
+                html += '<div class="claim-text">' + esc(cleanText(c.claim)) + '</div>';
+                if (c.reasoning) html += '<div class="claim-detail">' + esc(cleanText(c.reasoning)) + '</div>';
+                html += '</div>';
+            }
+        }
+        if (data.disputedClaims && data.disputedClaims.length > 0) {
+            html += '<h3>Disputed Claims (' + data.disputedClaims.length + ')</h3>';
+            for (const d of data.disputedClaims) {
+                html += '<div class="claim-card disputed"><div class="claim-label disputed">Disputed</div>';
+                html += '<div class="claim-text">' + esc(cleanText(d.claim)) + '</div>';
+                if (d.claudePosition) html += '<div class="claim-detail">Claude: ' + esc(cleanText(d.claudePosition)) + '</div>';
+                if (d.verifierPosition) html += '<div class="claim-detail">' + esc(data.verifierModel || 'Verifier') + ': ' + esc(cleanText(d.verifierPosition)) + '</div>';
+                html += '</div>';
+            }
+        }
+        if (data.gaps && data.gaps.length > 0) {
+            html += '<h3>Gaps (' + data.gaps.length + ')</h3>';
+            for (const g of data.gaps) {
+                html += '<div class="claim-card gap"><div class="claim-label gap">Gap (' + esc(g.source || 'verifier') + ')</div>';
+                html += '<div class="claim-text">' + esc(cleanText(g.insight)) + '</div></div>';
+            }
+        }
+        return html;
+    }
+
+    function renderPlatformRace(data) {
+        let html = '';
+        const ts = data.analyzedAt ? new Date(data.analyzedAt).toLocaleString() : '';
+        html += '<div class="meta-line">';
+        if (ts) html += ts + ' &middot; ';
+        html += (data.dataPointsCounted || 0) + ' data points analyzed</div>';
+        if (data.narrative) { html += '<h3>Analysis</h3>'; html += renderProseBlock(data.narrative); }
+        if (data.vendors && data.vendors.length > 0) {
+            html += '<h3>Vendor Profiles (' + data.vendors.length + ')</h3>';
+            for (const v of data.vendors) {
+                html += '<div class="data-card"><div class="card-title">' + esc(v.vendor) + '</div>';
+                if (v.status) html += '<div class="card-detail" style="margin-bottom:0.4rem;">' + formatMarkdown(v.status) + '</div>';
+                if (v.strengths && v.strengths.length > 0) {
+                    html += '<div style="font-size:0.78rem;font-weight:600;color:#166534;margin-top:0.3rem;">Strengths</div><ul style="margin:0.15rem 0 0.3rem 1.25rem;padding:0;">';
+                    for (const s of v.strengths) html += '<li style="font-size:0.82rem;margin-bottom:0.15rem;">' + formatMarkdown(s) + '</li>';
+                    html += '</ul>';
+                }
+                if (v.weaknesses && v.weaknesses.length > 0) {
+                    html += '<div style="font-size:0.78rem;font-weight:600;color:#dc2626;margin-top:0.3rem;">Weaknesses</div><ul style="margin:0.15rem 0 0.3rem 1.25rem;padding:0;">';
+                    for (const w of v.weaknesses) html += '<li style="font-size:0.82rem;margin-bottom:0.15rem;">' + formatMarkdown(w) + '</li>';
+                    html += '</ul>';
+                }
+                if (v.recentActivity && v.recentActivity.length > 0) {
+                    html += '<div style="font-size:0.78rem;font-weight:600;color:#7c3aed;margin-top:0.3rem;">Recent Activity</div><ul style="margin:0.15rem 0 0 1.25rem;padding:0;">';
+                    for (const a of v.recentActivity) html += '<li style="font-size:0.82rem;margin-bottom:0.15rem;">' + formatMarkdown(a) + '</li>';
+                    html += '</ul>';
+                }
+                html += '</div>';
+            }
+        }
+        html += renderBulletList(data.recentMoves, 'Recent Moves');
+        html += renderBulletList(data.keyDifferentiators, 'Key Differentiators');
+        return html;
+    }
+
+    function renderCoding(data) {
+        let html = '';
+        const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
+        if (ts) html += '<div class="meta-line">' + ts + '</div>';
+        if (data.codes && data.codes.length > 0) {
+            html += '<h3>ICD-10 Codes (' + data.codes.length + ')</h3>';
+            for (const c of data.codes) {
+                html += '<div class="data-card"><span class="code-badge">' + esc(c.code) + '</span><strong>' + esc(c.description || '') + '</strong>';
+                if (c.category) html += '<div class="card-detail">Category: ' + esc(c.category) + '</div>';
+                if (c.confidence) {
+                    const confColor = c.confidence === 'HIGH' ? '#166534' : c.confidence === 'LOW' ? '#dc2626' : '#64748b';
+                    html += '<div class="card-detail">Confidence: <span style="font-weight:600;color:' + confColor + ';">' + esc(c.confidence) + '</span></div>';
+                }
+                html += '</div>';
+            }
+        }
+        if (data.rawAnalysis) { html += '<h3>Analysis</h3>'; html += renderProseBlock(data.rawAnalysis); }
+        return html;
+    }
+
+    function renderCoverage(data) {
+        let html = '';
+        const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
+        html += '<div class="meta-line">';
+        if (ts) html += ts + ' &middot; ';
+        const status = (data.coverageStatus || 'UNKNOWN').toUpperCase();
+        const statusClass = status.includes('COVERED') && !status.includes('NOT') ? 'covered' : status.includes('NOT') ? 'not-covered' : 'partial';
+        html += 'Coverage: <span class="status-badge ' + statusClass + '">' + esc(status) + '</span></div>';
+        html += renderBulletList(data.conditions, 'Conditions');
+        html += renderBulletList(data.limitations, 'Limitations');
+        if (data.policyReferences && data.policyReferences.length > 0) {
+            html += '<h3>Policy References (' + data.policyReferences.length + ')</h3>';
+            for (const pr of data.policyReferences) {
+                html += '<div class="data-card"><div class="card-title">';
+                if (pr.url) html += '<a class="source-link" href="' + esc(pr.url) + '" target="_blank">' + esc(pr.title || pr.policyId) + '</a>';
+                else html += esc(pr.title || pr.policyId || 'Policy');
+                html += '</div>';
+                if (pr.policyId && pr.title) html += '<div class="card-detail"><span class="code-badge">' + esc(pr.policyId) + '</span></div>';
+                if (pr.relevantSection) html += '<div class="card-detail">' + formatMarkdown(pr.relevantSection) + '</div>';
+                html += '</div>';
+            }
+        }
+        if (data.rawAnalysis) { html += '<h3>Analysis</h3>'; html += renderProseBlock(data.rawAnalysis); }
+        return html;
+    }
+
+    function renderNpi(data) {
+        let html = '';
+        const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
+        if (ts) html += '<div class="meta-line">' + ts + '</div>';
+        if (data.providers && data.providers.length > 0) {
+            html += '<h3>Providers (' + data.providers.length + ')</h3>';
+            for (const p of data.providers) {
+                html += '<div class="data-card">';
+                if (p.npiNumber) html += '<span class="code-badge">' + esc(p.npiNumber) + '</span>';
+                html += '<strong>' + esc(p.name || '') + '</strong>';
+                const details = [];
+                if (p.providerType) details.push(p.providerType);
+                if (p.specialty) details.push(p.specialty);
+                if (p.state) details.push(p.state);
+                if (p.status) details.push('Status: ' + p.status);
+                if (details.length > 0) html += '<div class="card-detail">' + details.map(d => esc(d)).join(' &middot; ') + '</div>';
+                html += '</div>';
+            }
+        }
+        if (data.rawAnalysis) { html += '<h3>Analysis</h3>'; html += renderProseBlock(data.rawAnalysis); }
+        return html;
+    }
+
+    function renderTrials(data) {
+        let html = '';
+        const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
+        if (ts) html += '<div class="meta-line">' + ts + '</div>';
+        if (data.trials && data.trials.length > 0) {
+            html += '<h3>Clinical Trials (' + data.trials.length + ')</h3>';
+            for (const t of data.trials) {
+                html += '<div class="data-card">';
+                if (t.nctId) html += '<span class="code-badge">' + esc(t.nctId) + '</span>';
+                if (t.phase) html += '<span class="status-badge" style="background:#ede9fe;color:#6d28d9;">' + esc(t.phase) + '</span> ';
+                if (t.status) {
+                    const sc = t.status === 'Recruiting' ? '#166534' : t.status === 'Completed' ? '#7c3aed' : '#64748b';
+                    html += '<span class="status-badge" style="background:' + sc + '20;color:' + sc + ';">' + esc(t.status) + '</span>';
+                }
+                html += '<div class="card-title" style="margin-top:0.35rem;">' + esc(t.title || '') + '</div>';
+                const details = [];
+                if (t.conditions) details.push('Conditions: ' + t.conditions);
+                if (t.interventions) details.push('Interventions: ' + t.interventions);
+                if (t.sponsor) details.push('Sponsor: ' + t.sponsor);
+                if (t.startDate) details.push('Start: ' + t.startDate);
+                if (details.length > 0) html += '<div class="card-detail">' + details.map(d => esc(d)).join('<br>') + '</div>';
+                html += '</div>';
+            }
+        }
+        if (data.rawAnalysis) { html += '<h3>Analysis</h3>'; html += renderProseBlock(data.rawAnalysis); }
+        return html;
+    }
+
+    function renderLiterature(data) {
+        let html = '';
+        const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
+        if (ts) html += '<div class="meta-line">' + ts + '</div>';
+        if (data.articles && data.articles.length > 0) {
+            html += '<h3>Articles (' + data.articles.length + ')</h3>';
+            for (const a of data.articles) {
+                html += '<div class="data-card">';
+                if (a.pmid) html += '<span class="code-badge">PMID ' + esc(a.pmid) + '</span>';
+                html += '<div class="card-title">' + esc(a.title || '') + '</div>';
+                const details = [];
+                if (a.authors) details.push(esc(a.authors));
+                if (a.journal) details.push('<em>' + esc(a.journal) + '</em>');
+                if (a.publicationDate) details.push(esc(a.publicationDate));
+                if (details.length > 0) html += '<div class="card-detail">' + details.join(' &middot; ') + '</div>';
+                if (a.abstractText) {
+                    const abs = cleanText(a.abstractText);
+                    html += '<div class="card-detail" style="margin-top:0.35rem;font-style:italic;">' + esc(abs.length > 300 ? abs.substring(0, 300) + '...' : abs) + '</div>';
+                }
+                html += '</div>';
+            }
+        }
+        if (data.rawAnalysis) { html += '<h3>Analysis</h3>'; html += renderProseBlock(data.rawAnalysis); }
+        return html;
+    }
+
+    function renderWiki(data) {
+        let html = '';
+        const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
+        if (ts) html += '<div class="meta-line">' + ts + '</div>';
+        html += '<div class="meta-line">' + (data.totalCount || 0) + ' page(s) found</div>';
+        if (data.pages && data.pages.length > 0) {
+            for (const p of data.pages) {
+                html += '<div class="data-card">';
+                if (p.pageType) html += '<span class="code-badge">' + esc(p.pageType) + '</span>';
+                html += '<div class="card-title">' + esc(p.title || p.slug) + '</div>';
+                const meta = [];
+                if (p.slug) meta.push('slug: ' + p.slug);
+                if (p.compiledAt) meta.push('compiled: ' + new Date(p.compiledAt).toLocaleDateString());
+                if (meta.length > 0) html += '<div class="card-detail">' + meta.join(' &middot; ') + '</div>';
+                if (p.tags) html += '<div class="card-detail" style="margin-top:0.2rem;">Tags: ' + esc(p.tags) + '</div>';
+                if (p.contentMarkdown) {
+                    const content = cleanText(p.contentMarkdown);
+                    html += '<div class="card-detail" style="margin-top:0.35rem;">' + formatMarkdown(content.length > 500 ? content.substring(0, 500) + '...' : content) + '</div>';
+                }
+                if (p.relatedSlugs) html += '<div class="card-detail" style="margin-top:0.2rem;font-size:0.8rem;color:#94a3b8;">Related: ' + esc(p.relatedSlugs) + '</div>';
+                html += '</div>';
+            }
+        } else {
+            html += '<div class="popular-empty">No wiki pages match your search criteria.</div>';
+        }
+        return html;
+    }
+
+    function renderWikiAsk(data) {
+        let html = '';
+        if (data.question) html += '<div class="meta-line">Q: ' + esc(data.question) + '</div>';
+        html += '<div class="meta-line">' + (data.pagesSearched || 0) + ' wiki page(s) searched</div>';
+        html += renderProseBlock(data.answer);
+        if (data.citations && data.citations.length > 0) {
+            html += '<h3>Sources (' + data.citations.length + ')</h3>';
+            for (const c of data.citations) {
+                html += '<div class="data-card" style="padding:0.5rem 0.75rem;">';
+                if (c.pageType) html += '<span class="code-badge">' + esc(c.pageType) + '</span>';
+                html += '<span style="font-weight:600;">' + esc(c.title) + '</span>';
+                if (c.slug) html += ' <span style="color:#94a3b8;font-size:0.8rem;">(' + esc(c.slug) + ')</span>';
+                html += '</div>';
+            }
+        }
+        return html;
+    }
+
+    function renderWikiGaps(data) {
+        let html = '';
+        const ts = data.analyzedAt ? new Date(data.analyzedAt).toLocaleString() : '';
+        if (ts) html += '<div class="meta-line">' + ts + '</div>';
+        html += '<div class="meta-line">' + (data.totalArticlesAnalyzed || 0) + ' articles analyzed &middot; ' + (data.totalWikiPages || 0) + ' wiki pages</div>';
+        if (data.gaps && data.gaps.length > 0) {
+            html += '<h3>Knowledge Gaps (' + data.gaps.length + ')</h3>';
+            for (const g of data.gaps) {
+                html += '<div class="data-card"><span class="status-badge" style="background:#7c3aed;color:white;">' + (g.articleCount || '?') + ' articles</span>';
+                html += '<div class="card-title">' + esc(g.topic) + '</div>';
+                if (g.recommendation) html += '<div class="card-detail">' + formatMarkdown(g.recommendation) + '</div>';
+                html += '</div>';
+            }
+        } else {
+            html += '<div class="popular-empty">No knowledge gaps identified.</div>';
+        }
+        if (data.summary) { html += '<h3>Assessment</h3>'; html += renderProseBlock(data.summary); }
+        return html;
+    }
+
+    function renderWikiFreshness(data) {
+        let html = '';
+        const ts = data.analyzedAt ? new Date(data.analyzedAt).toLocaleString() : '';
+        if (ts) html += '<div class="meta-line">' + ts + '</div>';
+        html += '<div class="meta-line">' + (data.totalPages || 0) + ' pages: ';
+        html += '<span style="color:#dc2626;">' + (data.staleCount || 0) + ' stale</span> &middot; ';
+        html += '<span style="color:#ea580c;">' + (data.agingCount || 0) + ' aging</span> &middot; ';
+        html += '<span style="color:#16a34a;">' + (data.freshCount || 0) + ' fresh</span></div>';
+        if (data.pages && data.pages.length > 0) {
+            for (const p of data.pages) {
+                html += '<div class="data-card">';
+                const statusColor = p.status === 'STALE' ? '#dc2626' : p.status === 'AGING' ? '#ea580c' : '#16a34a';
+                html += '<span class="status-badge" style="background:' + statusColor + ';color:white;">' + esc(p.status) + '</span>';
+                if (p.pageType) html += '<span class="code-badge">' + esc(p.pageType) + '</span>';
+                html += '<div class="card-title">' + esc(p.title) + '</div>';
+                const meta = [];
+                if (p.compiledAt) meta.push('compiled: ' + new Date(p.compiledAt).toLocaleDateString());
+                meta.push(p.recentArticleCount + ' article(s) published since');
+                html += '<div class="card-detail">' + meta.join(' &middot; ') + '</div></div>';
+            }
+        }
+        return html;
+    }
+
+    function renderReportList(data) {
+        if (!Array.isArray(data) || data.length === 0) return '<div class="popular-empty">No scheduled reports found for this time window.</div>';
+        let html = '<div class="meta-line">' + data.length + ' report(s) found</div>';
+        for (const r of data) {
+            html += '<div class="data-card"><div class="card-title">' + esc(r.topic || 'Unknown') + '</div>';
+            const meta = [];
+            if (r.synthesizedAt) meta.push(new Date(r.synthesizedAt).toLocaleString());
+            if (r.dataPointsCounted) meta.push(r.dataPointsCounted + ' data points');
+            if (meta.length > 0) html += '<div class="card-detail">' + meta.join(' &middot; ') + '</div>';
+            if (r.narrative) {
+                const narrative = cleanText(r.narrative);
+                html += '<div class="card-detail" style="margin-top:0.35rem;">' + esc(narrative.length > 200 ? narrative.substring(0, 200) + '...' : narrative) + '</div>';
+            }
+            html += '</div>';
+        }
+        return html;
+    }
+
+    function renderTrending(data) {
+        if (!data.snapshots || data.snapshots.length === 0) return '<div class="popular-empty">No snapshots found for "' + esc(data.topic) + '" in this time window.</div>';
+        let html = '';
+        const s = data.trendSummary;
+        html += '<div style="margin-bottom:1rem;"><strong>' + esc(data.topic) + '</strong> — ' + s.totalSnapshots + ' snapshot' + (s.totalSnapshots !== 1 ? 's' : '') + '</div>';
+        for (const snap of data.snapshots) {
+            const dt = new Date(snap.synthesizedAt);
+            const bgColor = snap.source === 'scheduled' ? '#166534' : '#64748b';
+            html += '<div style="border-left:3px solid #7c3aed;padding:0.5rem 0.75rem;margin-bottom:0.75rem;border-radius:0 6px 6px 0;background:#f8fafc;">';
+            html += '<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">';
+            html += '<span style="font-weight:600;font-size:0.85rem;">' + dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString() + '</span>';
+            html += '<span class="badge" style="color:white;background:' + bgColor + ';">' + esc(snap.source) + '</span></div>';
+            if (snap.leadingIndicators && snap.leadingIndicators.length > 0) {
+                html += '<div style="font-weight:600;font-size:0.82rem;margin:0.4rem 0 0.25rem 0;">Leading Indicators (' + snap.leadingIndicators.length + ')</div>';
+                html += '<ul style="margin:0 0 0 1.25rem;padding:0;">';
+                for (const ind of snap.leadingIndicators) html += '<li style="font-size:0.78rem;color:#64748b;margin-bottom:0.3rem;">' + formatMarkdown(ind) + '</li>';
+                html += '</ul>';
+            }
+            html += '</div>';
+        }
+        return html;
+    }
+
+    /* ── Popular Queries ── */
+    async function loadPopularQueries() {
+        const container = document.getElementById('popular-queries');
+        try {
+            const resp = await fetch(PROXY + '/verify/popular?limit=10', { headers: getCsrfHeaders() });
+            if (!resp.ok) return;
+            const queries = await resp.json();
+            if (queries.length === 0) { container.innerHTML = '<div class="popular-empty">No queries yet — run an audit to start building the list.</div>'; return; }
+            let html = '';
+            for (const q of queries) {
+                const pct = q.confidence > 0 ? Math.round(q.confidence * 100) + '% confidence' : '';
+                html += '<div class="popular-card" onclick="loadCachedResult(\'' + escAttr(q.topic) + '\')">';
+                html += '<div class="popular-topic">' + esc(q.topic) + '</div>';
+                html += '<div class="popular-meta"><span>' + q.queryCount + ' quer' + (q.queryCount === 1 ? 'y' : 'ies') + '</span>';
+                if (pct) html += '<span class="badge">' + pct + '</span>';
+                html += '<span>' + esc(q.verifierModel) + '</span><span>' + timeAgo(q.lastQueried) + '</span></div></div>';
+            }
+            container.innerHTML = html;
+        } catch (e) { container.innerHTML = '<div class="popular-empty">Could not load popular queries.</div>'; }
+    }
+
+    async function loadCachedResult(topic) {
+        const report = document.getElementById('verify-report');
+        const timing = document.getElementById('verify-timing');
+        report.className = 'ic-report'; report.innerHTML = '';
+        timing.textContent = 'Loading cached result...';
+        lastVerificationData = null; showExportButtons(false);
+        try {
+            const resp = await fetch(PROXY + '/verify/cached?topic=' + encodeURIComponent(topic), { headers: getCsrfHeaders() });
+            if (!resp.ok) { timing.textContent = 'No cached result — enter the topic above and click Prompt.'; document.getElementById('verify-topic').value = topic; return; }
+            const data = await resp.json();
+            report.innerHTML = renderVerification(data);
+            report.className = 'ic-report visible';
+            timing.textContent = 'Cached result for "' + topic + '"';
+            lastVerificationData = data; showExportButtons(true);
+        } catch (e) { timing.textContent = 'Error loading cached result.'; }
+    }
+
+    function showExportButtons(show) { document.getElementById('export-row').style.display = show ? 'flex' : 'none'; }
+
+    /* ── Trending Topics ── */
+    async function loadTrendingTopics() {
+        const panel = document.getElementById('trending-topics-panel');
+        try {
+            const resp = await fetch(PROXY + '/synthesis/trending/topics', { headers: getCsrfHeaders() });
+            if (!resp.ok) { panel.innerHTML = ''; return; }
+            const topics = await resp.json();
+            if (topics.length === 0) { panel.innerHTML = '<div class="popular-empty">No synthesis snapshots yet — run a Cross-Domain Synthesis to start tracking trends.</div>'; return; }
+            let html = '<div style="margin-bottom:0.5rem;font-weight:600;font-size:0.85rem;color:#64748b;">Known Topics</div><div class="flex flex-wrap gap-1.5">';
+            for (const t of topics) html += '<span class="badge cursor-pointer hover:bg-gray-200 px-2 py-1" onclick="document.getElementById(\'trending-topic\').value=\'' + escAttr(t) + '\';fetchTrending(document.getElementById(\'trending-btn\'));">' + esc(t) + '</span>';
+            html += '</div>';
+            panel.innerHTML = html;
+        } catch (e) { panel.innerHTML = ''; }
+    }
+
+    /* ── Export Functions ── */
+    function downloadDocFile(filename, htmlContent, title) {
+        const doc = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + esc(title) + '</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1a1a1a;margin:1in;}h1{font-size:16pt;color:#6d28d9;margin-bottom:6pt;}h2{font-size:13pt;color:#6d28d9;margin-top:12pt;margin-bottom:4pt;}h3{font-size:11pt;color:#333;margin-top:10pt;margin-bottom:4pt;}p{margin:4pt 0;line-height:1.4;}ul{margin:4pt 0 8pt 18pt;}li{margin-bottom:4pt;line-height:1.3;}.meta{font-size:9pt;color:#666;margin-bottom:8pt;}.badge{display:inline-block;background:#ede9fe;color:#6d28d9;padding:1pt 6pt;border-radius:3pt;font-size:9pt;font-weight:bold;}.badge-disputed{background:#fef2f2;color:#dc2626;}.badge-gap{background:#eff6ff;color:#2563eb;}</style></head><body>' + htmlContent + '</body></html>';
+        const blob = new Blob(['\ufeff' + doc], { type: 'application/msword' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+    }
+    function downloadTextFile(filename, text) {
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+    }
+    function exportJson(data, prefix) {
+        if (!data) return;
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = prefix + '-' + slugify(data.topic) + '.json'; a.click(); URL.revokeObjectURL(a.href);
+    }
+
+    function exportSynthesisDoc() {
+        if (!lastSynthesisData) return; const d = lastSynthesisData;
+        let h = '<h1>Cross-Domain Synthesis: ' + esc(d.topic) + '</h1><p class="meta">' + (d.synthesizedAt ? new Date(d.synthesizedAt).toLocaleString() : '') + '</p>';
+        if (d.narrative) { for (const p of cleanText(d.narrative).split(/\n{2,}|\n---\n?/)) { const t = p.trim(); if (t && t !== '---') h += '<p>' + esc(t) + '</p>'; } }
+        if (d.crossDomainLinks && d.crossDomainLinks.length > 0) { h += '<h2>Cross-Domain Links</h2><ul>'; for (const l of d.crossDomainLinks) { h += '<li><strong>' + esc(l.fromDomain) + ' &rarr; ' + esc(l.toDomain) + '</strong>'; if (l.confidence) h += ' <span class="badge">' + esc(l.confidence) + '</span>'; h += '<br>' + esc(cleanText(l.connection)) + '</li>'; } h += '</ul>'; }
+        if (d.leadingIndicators && d.leadingIndicators.length > 0) { h += '<h2>Leading Indicators</h2><ul>'; for (const i of d.leadingIndicators) h += '<li>' + esc(stripMarkdown(i)) + '</li>'; h += '</ul>'; }
+        if (d.domainSummaries && d.domainSummaries.length > 0) { h += '<h2>Domain Summaries</h2>'; for (const ds of d.domainSummaries) { h += '<h3>' + esc(ds.domain) + ' (' + ds.dataPoints + ')</h3>'; if (ds.highlights) { h += '<ul>'; for (const hl of ds.highlights) h += '<li>' + esc(stripMarkdown(hl)) + '</li>'; h += '</ul>'; } } }
+        downloadDocFile('synthesis-' + slugify(d.topic) + '.doc', h, 'Synthesis: ' + d.topic);
+    }
+    function exportSynthesisTxt() {
+        if (!lastSynthesisData) return; const d = lastSynthesisData;
+        let t = 'CROSS-DOMAIN SYNTHESIS: ' + d.topic + '\nGenerated: ' + (d.synthesizedAt ? new Date(d.synthesizedAt).toLocaleString() : 'N/A') + '\n' + '='.repeat(60) + '\n\n';
+        if (d.narrative) t += stripMarkdown(d.narrative) + '\n\n';
+        if (d.crossDomainLinks && d.crossDomainLinks.length > 0) { t += 'CROSS-DOMAIN LINKS\n' + '-'.repeat(40) + '\n'; for (const l of d.crossDomainLinks) { t += '  * ' + l.fromDomain + ' -> ' + l.toDomain; if (l.confidence) t += ' [' + l.confidence + ']'; t += '\n    ' + stripMarkdown(l.connection) + '\n\n'; } }
+        if (d.leadingIndicators && d.leadingIndicators.length > 0) { t += 'LEADING INDICATORS\n' + '-'.repeat(40) + '\n'; for (const i of d.leadingIndicators) t += '  * ' + stripMarkdown(i) + '\n'; t += '\n'; }
+        if (d.domainSummaries && d.domainSummaries.length > 0) { t += 'DOMAIN SUMMARIES\n' + '-'.repeat(40) + '\n'; for (const ds of d.domainSummaries) { t += '  ' + ds.domain.toUpperCase() + ' (' + ds.dataPoints + ' data points)\n'; if (ds.highlights) { for (const h of ds.highlights) t += '    - ' + stripMarkdown(h) + '\n'; } t += '\n'; } }
+        downloadTextFile('synthesis-' + slugify(d.topic) + '.txt', t);
+    }
+
+    function exportAuditDoc() {
+        if (!lastVerificationData) return; const d = lastVerificationData;
+        let h = '<h1>AI Audit: ' + esc(d.topic) + '</h1><p class="meta">';
+        if (d.verifiedAt) h += new Date(d.verifiedAt).toLocaleString() + '<br>';
+        h += 'Status: ' + esc(d.verificationStatus || 'UNKNOWN');
+        if (d.verifierModel) h += ' &middot; Verified by: ' + esc(d.verifierModel);
+        if (d.overallConfidence > 0) h += ' &middot; Confidence: ' + Math.round(d.overallConfidence * 100) + '%';
+        h += '</p>';
+        if (d.originalNarrative) { h += '<h2>Synthesis Narrative</h2>'; for (const p of cleanText(d.originalNarrative).split(/\n{2,}|\n---\n?/)) { const t = p.trim(); if (t && t !== '---') h += '<p>' + esc(t) + '</p>'; } }
+        if (d.confirmedClaims && d.confirmedClaims.length > 0) { h += '<h2>Confirmed (' + d.confirmedClaims.length + ')</h2><ul>'; for (const c of d.confirmedClaims) { h += '<li><span class="badge">Confirmed</span> ' + esc(stripMarkdown(c.claim)); if (c.reasoning) h += '<br><em>' + esc(stripMarkdown(c.reasoning)) + '</em>'; h += '</li>'; } h += '</ul>'; }
+        if (d.disputedClaims && d.disputedClaims.length > 0) { h += '<h2>Disputed (' + d.disputedClaims.length + ')</h2><ul>'; for (const c of d.disputedClaims) { h += '<li><span class="badge badge-disputed">Disputed</span> ' + esc(stripMarkdown(c.claim)); if (c.claudePosition) h += '<br>Claude: ' + esc(stripMarkdown(c.claudePosition)); if (c.verifierPosition) h += '<br>' + esc(d.verifierModel || 'Verifier') + ': ' + esc(stripMarkdown(c.verifierPosition)); h += '</li>'; } h += '</ul>'; }
+        if (d.gaps && d.gaps.length > 0) { h += '<h2>Gaps (' + d.gaps.length + ')</h2><ul>'; for (const g of d.gaps) h += '<li><span class="badge badge-gap">Gap</span> ' + esc(stripMarkdown(g.insight)) + '</li>'; h += '</ul>'; }
+        downloadDocFile('ai-audit-' + slugify(d.topic) + '.doc', h, 'AI Audit: ' + d.topic);
+    }
+    function exportAuditTxt() {
+        if (!lastVerificationData) return; const d = lastVerificationData;
+        let t = 'AI AUDIT: ' + d.topic + '\nStatus: ' + (d.verificationStatus || 'UNKNOWN') + '\n';
+        if (d.verifierModel) t += 'Verified by: ' + d.verifierModel + '\n';
+        if (d.verifiedAt) t += 'Date: ' + new Date(d.verifiedAt).toLocaleString() + '\n';
+        if (d.overallConfidence > 0) t += 'Confidence: ' + Math.round(d.overallConfidence * 100) + '%\n';
+        t += '='.repeat(60) + '\n\n';
+        if (d.originalNarrative) { t += 'SYNTHESIS NARRATIVE\n' + '-'.repeat(40) + '\n' + stripMarkdown(d.originalNarrative) + '\n\n'; }
+        if (d.confirmedClaims && d.confirmedClaims.length > 0) { t += 'CONFIRMED CLAIMS (' + d.confirmedClaims.length + ')\n' + '-'.repeat(40) + '\n'; for (const c of d.confirmedClaims) { t += '  * ' + stripMarkdown(c.claim) + '\n'; if (c.reasoning) t += '    Reasoning: ' + stripMarkdown(c.reasoning) + '\n'; t += '\n'; } }
+        if (d.disputedClaims && d.disputedClaims.length > 0) { t += 'DISPUTED CLAIMS (' + d.disputedClaims.length + ')\n' + '-'.repeat(40) + '\n'; for (const c of d.disputedClaims) { t += '  * ' + stripMarkdown(c.claim) + '\n'; if (c.claudePosition) t += '    Claude: ' + stripMarkdown(c.claudePosition) + '\n'; if (c.verifierPosition) t += '    ' + (d.verifierModel || 'Verifier') + ': ' + stripMarkdown(c.verifierPosition) + '\n'; t += '\n'; } }
+        if (d.gaps && d.gaps.length > 0) { t += 'GAPS (' + d.gaps.length + ')\n' + '-'.repeat(40) + '\n'; for (const g of d.gaps) t += '  * [' + (g.source || 'verifier') + '] ' + stripMarkdown(g.insight) + '\n\n'; }
+        downloadTextFile('ai-audit-' + slugify(d.topic) + '.txt', t);
+    }
+
+    function exportTrendingDoc() {
+        if (!lastTrendingData) return; const d = lastTrendingData;
+        let h = '<h1>Synthesis Trending: ' + esc(d.topic) + '</h1><p class="meta">' + d.snapshots.length + ' snapshot(s)</p>';
+        for (const snap of d.snapshots) { const dt = new Date(snap.synthesizedAt); h += '<h3>' + dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString() + ' <span class="badge">' + esc(snap.source) + '</span></h3>'; if (snap.leadingIndicators && snap.leadingIndicators.length > 0) { h += '<ul>'; for (const i of snap.leadingIndicators) h += '<li>' + esc(stripMarkdown(i)) + '</li>'; h += '</ul>'; } }
+        downloadDocFile('trending-' + slugify(d.topic) + '.doc', h, 'Trending: ' + d.topic);
+    }
+    function exportTrendingTxt() {
+        if (!lastTrendingData) return; const d = lastTrendingData;
+        let t = 'SYNTHESIS TRENDING: ' + d.topic + '\n' + d.snapshots.length + ' snapshot(s)\n' + '='.repeat(60) + '\n\n';
+        for (const snap of d.snapshots) { const dt = new Date(snap.synthesizedAt); t += dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString() + ' [' + snap.source + ']\n'; if (snap.leadingIndicators && snap.leadingIndicators.length > 0) { for (const i of snap.leadingIndicators) t += '  * ' + stripMarkdown(i) + '\n'; } t += '-'.repeat(40) + '\n\n'; }
+        downloadTextFile('trending-' + slugify(d.topic) + '.txt', t);
+    }
+</script>
 
 </body>
 </html>

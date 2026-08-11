@@ -1,30 +1,34 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestClient;
 
 /**
  * Admin test console for the Claude Healthcare Intelligence Service.
  *
- * <p>Provides a Thymeleaf UI at {@code /admin/intelligence} for testing
- * ICD-10 medical coding and CMS coverage lookup endpoints on the separate
- * Claude Intelligence Service (port 8081). Proxies requests server-side
- * via {@link RestClient} to avoid CORS issues.
+ * <p>Provides a Thymeleaf UI at {@code /admin/intelligence} with all 13 tabs
+ * covering the full Claude Intelligence Service endpoint surface. Generic REST
+ * proxy at {@code /admin/intelligence/api/**} forwards AJAX requests to the
+ * Claude service, enabling the full console behind Spring Security admin auth.
  *
  * <p>Admin-only — protected by SecurityConfig's {@code /admin/**} rule.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-08-08
- * @updated 2026-08-08
+ * @updated 2026-08-11
  */
 @Slf4j
 @Controller
@@ -47,7 +51,7 @@ public class IntelligenceConsoleController {
     public String console(Model model) {
         log.debug("console() | rendering intelligence console");
         model.addAttribute("baseUrl", baseUrl);
-        model.addAttribute("activeTab", "coding");
+        model.addAttribute("activeTab", "chat");
         log.debug("console() | return=intelligence-console");
         return "intelligence-console";
     }
@@ -118,6 +122,55 @@ public class IntelligenceConsoleController {
 
         log.debug("runCoverage() | return=intelligence-console");
         return "intelligence-console";
+    }
+
+    @PostMapping("/api/**")
+    @ResponseBody
+    public ResponseEntity<String> proxyPost(HttpServletRequest request,
+                                             @RequestBody(required = false) String body) {
+        String forwardPath = request.getRequestURI().substring("/admin/intelligence".length());
+        log.debug("proxyPost() | path={}", forwardPath);
+        try {
+            String result = restClient.post()
+                    .uri(forwardPath)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body != null ? body : "")
+                    .retrieve()
+                    .body(String.class);
+            log.debug("proxyPost() | return=200, length={}", result != null ? result.length() : 0);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(result);
+        } catch (Exception e) {
+            log.error("proxyPost() | path={}, error={}", forwardPath, e.getMessage());
+            return ResponseEntity.status(502)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"error\":\"Claude Intelligence Service error: " + escapeJson(e.getMessage()) + "\"}");
+        }
+    }
+
+    @GetMapping("/api/**")
+    @ResponseBody
+    public ResponseEntity<String> proxyGet(HttpServletRequest request) {
+        String forwardPath = request.getRequestURI().substring("/admin/intelligence".length());
+        String queryString = request.getQueryString();
+        String fullPath = queryString != null ? forwardPath + "?" + queryString : forwardPath;
+        log.debug("proxyGet() | path={}", fullPath);
+        try {
+            String result = restClient.get()
+                    .uri(fullPath)
+                    .retrieve()
+                    .body(String.class);
+            log.debug("proxyGet() | return=200, length={}", result != null ? result.length() : 0);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(result);
+        } catch (Exception e) {
+            log.error("proxyGet() | path={}, error={}", fullPath, e.getMessage());
+            return ResponseEntity.status(502)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body("{\"error\":\"Claude Intelligence Service error: " + escapeJson(e.getMessage()) + "\"}");
+        }
     }
 
     private String buildCodingJson(String clinicalDescription, String context) {
