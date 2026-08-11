@@ -769,12 +769,12 @@
     function sendChat(btn) {
         const q = document.getElementById('chat-question').value.trim();
         if (!q) return;
-        richApiCall('/chat', 'POST', { question: q }, 'chat-report', 'chat-spinner', 'chat-timing', btn, renderChat);
+        richApiCall('/chat', 'POST', { query: q }, 'chat-report', 'chat-spinner', 'chat-timing', btn, renderChat);
     }
     function sendAnalysis(btn) {
         const topic = document.getElementById('analyze-topic').value.trim();
         if (!topic) return;
-        richApiCall('/analyze', 'POST', { topic, depth: document.getElementById('analyze-depth').value },
+        richApiCall('/analyze', 'POST', { subject: topic, depth: document.getElementById('analyze-depth').value },
             'analyze-report', 'analyze-spinner', 'analyze-timing', btn, renderAnalysis);
     }
     function sendSynthesis(btn) {
