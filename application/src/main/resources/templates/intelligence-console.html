@@ -641,6 +641,14 @@
     .ic-report .claim-label.gap { color: #2563eb; }
     .ic-report .claim-text { font-size: 0.85rem; color: #1e293b; }
     .ic-report .claim-detail { font-size: 0.8rem; color: #64748b; margin-top: 0.2rem; }
+    .ic-report { scroll-behavior: smooth; }
+    .cite-link {
+        color: #7c3aed; text-decoration: none; font-weight: 600; font-size: 0.8rem;
+        cursor: pointer; border-bottom: 1px dotted #7c3aed;
+    }
+    .cite-link:hover { color: #6d28d9; border-bottom-style: solid; }
+    .data-card.cite-highlight { animation: citeFlash 2s ease-out; }
+    @keyframes citeFlash { 0% { background: #ede9fe; } 100% { background: #f8fafc; } }
     .ic-report .confidence-bar { margin: 0.5rem 0; }
     .ic-report .bar-bg { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 0.25rem; }
     .ic-report .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
@@ -753,6 +761,19 @@
         const hrs = Math.floor(mins / 60);
         if (hrs < 24) return hrs + 'h ago';
         return Math.floor(hrs / 24) + 'd ago';
+    }
+
+    function linkCitations(html, prefix) {
+        return html.replace(/\[(\d+)\]/g, function(match, n) {
+            return '<a class="cite-link" href="#' + prefix + '-source-' + n + '" onclick="highlightSource(\'' + prefix + '-source-' + n + '\')">' + match + '</a>';
+        });
+    }
+    function highlightSource(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('cite-highlight');
+        void el.offsetWidth;
+        el.classList.add('cite-highlight');
     }
 
     function renderProseBlock(text) {
@@ -916,12 +937,12 @@
     function renderChat(data) {
         let html = '';
         if (data.conversationId) html += '<div class="meta-line">Session: ' + esc(data.conversationId) + '</div>';
-        html += renderProseBlock(data.answer);
+        html += linkCitations(renderProseBlock(data.answer), 'chat');
         if (data.sources && data.sources.length > 0) {
             html += '<h3>Cited Sources (' + data.sources.length + ')</h3>';
             for (let i = 0; i < data.sources.length; i++) {
                 const s = data.sources[i];
-                html += '<div class="data-card"><div class="card-title">';
+                html += '<div class="data-card" id="chat-source-' + (i + 1) + '"><div class="card-title">';
                 html += '<span style="color:#6b7280;margin-right:0.5rem;">[' + (i + 1) + ']</span>';
                 if (s.url) html += '<a class="source-link" href="' + esc(s.url) + '" target="_blank">' + esc(s.title || s.id) + '</a>';
                 else html += esc(s.title || s.id || 'Source');
@@ -939,26 +960,28 @@
         html += ' &middot; ' + (data.articleCount || 0) + ' articles consulted';
         if (data.dataDomainsUsed && data.dataDomainsUsed.length > 0) html += ' &middot; Domains: ' + data.dataDomainsUsed.map(d => esc(d)).join(', ');
         html += '</div>';
-        if (data.summary) { html += '<h3>Summary</h3>'; html += renderProseBlock(data.summary); }
+        if (data.summary) { html += '<h3>Summary</h3>'; html += linkCitations(renderProseBlock(data.summary), 'analysis'); }
         if (data.domainFindings && data.domainFindings.length > 0) {
             html += '<h3>Domain Findings</h3>';
             for (const df of data.domainFindings) {
                 html += '<div class="data-card"><div class="claim-label" style="color:#7c3aed;text-transform:capitalize;">' + esc(df.domain) + '</div>';
                 if (df.findings && df.findings.length > 0) {
                     html += '<ul style="margin:0.25rem 0 0 1.25rem;padding:0;">';
-                    for (const f of df.findings) html += '<li style="font-size:0.83rem;margin-bottom:0.2rem;">' + formatMarkdown(f) + '</li>';
+                    for (const f of df.findings) html += '<li style="font-size:0.83rem;margin-bottom:0.2rem;">' + linkCitations(formatMarkdown(f), 'analysis') + '</li>';
                     html += '</ul>';
                 }
                 html += '</div>';
             }
         }
-        html += renderBulletList(data.keyRisks, 'Key Risks');
-        html += renderBulletList(data.opportunities, 'Opportunities');
+        let risksHtml = renderBulletList(data.keyRisks, 'Key Risks');
+        let oppsHtml = renderBulletList(data.opportunities, 'Opportunities');
+        html += linkCitations(risksHtml, 'analysis');
+        html += linkCitations(oppsHtml, 'analysis');
         if (data.sources && data.sources.length > 0) {
             html += '<h3>Cited Sources (' + data.sources.length + ')</h3>';
             for (let i = 0; i < data.sources.length; i++) {
                 const s = data.sources[i];
-                html += '<div class="data-card"><div class="card-title">';
+                html += '<div class="data-card" id="analysis-source-' + (i + 1) + '"><div class="card-title">';
                 html += '<span style="color:#6b7280;margin-right:0.5rem;">[' + (i + 1) + ']</span>';
                 if (s.url) html += '<a class="source-link" href="' + esc(s.url) + '" target="_blank">' + esc(s.title) + '</a>';
                 else html += esc(s.title || 'Source');
