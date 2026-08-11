@@ -28,7 +28,7 @@
 
 <nav th:replace="~{fragments/nav :: nav('intelligence')}"></nav>
 
-<div class="flex" style="height: calc(100vh - 130px);" x-data="intelligenceConsole()">
+<div class="flex" style="height: calc(100vh - 130px);" x-data="intelligenceConsole()" th:data-initial-tab="${activeTab}">
 
     <!-- Sidebar -->
     <nav class="w-56 flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto">
@@ -64,6 +64,7 @@
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">Get answers grounded in 69 curated healthcare intelligence feeds — not internet search results, not training data. Every claim traces back to a specific source article you can verify.</p>
                 <p class="text-xs text-gray-400 mt-1">Retrieval-augmented generation (RAG) via pgvector similarity search. Your question is matched against stored documents; the most relevant passages are sent to Claude as context.</p>
+                <p class="text-xs text-amber-500 mt-1">Responses typically take 15–30 seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
                 <h2 class="font-display text-lg font-semibold mb-4">Source-Grounded Q&amp;A</h2>
@@ -87,6 +88,7 @@
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">Get a market intelligence briefing on any healthcare AI topic. Pulls from structured datasets — regulatory filings, company sentiment scores, and market trend signals — to build a multi-dimensional assessment.</p>
                 <p class="text-xs text-gray-400 mt-1">Queries structured data across articles, regulatory events, company sentiment, and market trends. Claude synthesizes the combined evidence into a single narrative analysis.</p>
+                <p class="text-xs text-amber-500 mt-1">This briefing typically takes 30–60 seconds to generate.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
                 <h2 class="font-display text-lg font-semibold mb-4">Market Intelligence Briefing</h2>
@@ -250,6 +252,7 @@
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">Describe symptoms or a diagnosis in plain English and get the correct ICD-10-CM codes back — no memorization, no manual lookup. Results include clinical context so you understand why each code was suggested.</p>
                 <p class="text-xs text-gray-400 mt-1">Queries the official ICD-10 code database via Model Context Protocol (MCP). Claude interprets the clinical description and matches it against the coding taxonomy.</p>
+                <p class="text-xs text-amber-500 mt-1">Results typically take 15–30 seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
                 <h2 class="font-display text-lg font-semibold mb-4">ICD-10 Medical Coding</h2>
@@ -277,6 +280,7 @@
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">Before you order a procedure, know whether it's covered. Enter a procedure description and get a clear answer on Medicare and Medicaid coverage — including conditions, limitations, and specific CMS policy references.</p>
                 <p class="text-xs text-gray-400 mt-1">Queries federal CMS coverage databases via Model Context Protocol (MCP). Claude summarizes the coverage determination with applicable conditions and policy citations.</p>
+                <p class="text-xs text-amber-500 mt-1">Results typically take 15–30 seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
                 <h2 class="font-display text-lg font-semibold mb-4">CMS Coverage Lookup</h2>
@@ -314,6 +318,7 @@
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">Look up any healthcare provider in the United States — verify credentials, find specialists by location, or confirm an NPI number for referrals and billing.</p>
                 <p class="text-xs text-gray-400 mt-1">Queries the CMS NPPES (National Plan and Provider Enumeration System) database via Model Context Protocol (MCP).</p>
+                <p class="text-xs text-amber-500 mt-1">Results typically take 10–20 seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
                 <h2 class="font-display text-lg font-semibold mb-4">NPI Provider Registry</h2>
@@ -349,6 +354,7 @@
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">Find clinical trials that matter to your practice, patients, or investment thesis. Search by condition, intervention, phase, or status. Sourced directly from the federal ClinicalTrials.gov registry.</p>
                 <p class="text-xs text-gray-400 mt-1">Queries the ClinicalTrials.gov federal database via Model Context Protocol (MCP). Claude summarizes matching studies with enrollment, phase, status, and sponsor details.</p>
+                <p class="text-xs text-amber-500 mt-1">Results typically take 15–30 seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
                 <h2 class="font-display text-lg font-semibold mb-4">Clinical Trials Search</h2>
@@ -395,6 +401,7 @@
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">Search the world's largest biomedical research database. PubMed indexes over 37 million citations from peer-reviewed journals — find the published evidence behind any clinical question.</p>
                 <p class="text-xs text-gray-400 mt-1">Queries the National Library of Medicine's PubMed database via Model Context Protocol (MCP). Claude summarizes matching publications with citation details and key findings.</p>
+                <p class="text-xs text-amber-500 mt-1">Results typically take 15–30 seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
                 <h2 class="font-display text-lg font-semibold mb-4">PubMed Literature Search</h2>
@@ -422,6 +429,7 @@
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">Browse the curated knowledge base — vetted, structured reference material on companies, technologies, regulatory pathways, and market dynamics. This content feeds into every cross-domain intelligence report automatically.</p>
                 <p class="text-xs text-gray-400 mt-1">Searches compiled wiki pages by keyword (title/tags) and optional page type filter. Wiki content is injected as a 7th domain in cross-domain synthesis and verification.</p>
+                <p class="text-xs text-amber-500 mt-1">Wiki search returns in a few seconds. Ask Wiki and Knowledge Gap Analysis take 30–60 seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-teal-500">
                 <h2 class="font-display text-lg font-semibold mb-4">Wiki Search</h2>
@@ -508,6 +516,7 @@
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">Intelligence that arrives before you ask for it. The system generates cross-domain reports on preconfigured topics every morning. Reports are retained for 30 days.</p>
                 <p class="text-xs text-gray-400 mt-1">Same cross-domain synthesis engine, executed automatically on a daily cron schedule. Results are persisted with configurable retention.</p>
+                <p class="text-xs text-amber-500 mt-1">Retrieving stored reports typically takes a few seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500">
                 <h2 class="font-display text-lg font-semibold mb-4">Scheduled Synthesis Reports</h2>
@@ -542,6 +551,7 @@
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">See how a topic's landscape has changed over time — rising or falling data points, new cross-domain connections, shifting leading indicators. If you've been tracking a topic for weeks, this is where you see whether the story is strengthening or fading.</p>
                 <p class="text-xs text-gray-400 mt-1">Every synthesis (manual or scheduled) is stored as a timestamped snapshot. This view queries the history and computes trend deltas between the oldest and newest runs.</p>
+                <p class="text-xs text-amber-500 mt-1">Retrieving trend data typically takes a few seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500">
                 <h2 class="font-display text-lg font-semibold mb-4">Synthesis Trending</h2>
@@ -675,7 +685,7 @@
 
     function intelligenceConsole() {
         return {
-            tab: '[[${activeTab}]]',
+            tab: document.querySelector('[data-initial-tab]')?.getAttribute('data-initial-tab') || 'chat',
             switchTab(name) {
                 this.tab = name;
                 if (name === 'verify') loadPopularQueries();
