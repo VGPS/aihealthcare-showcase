@@ -122,6 +122,12 @@ public class PipelineHealthService {
                 }
                 break;
 
+            case "wiki-gap-analysis":
+                if (!isAnthropicKeyReady()) {
+                    warnings.add("ANTHROPIC_API_KEY not configured — gap analysis will fail");
+                }
+                break;
+
             case "rss-feeds":
             case "competitor":
             case "huggingface":
@@ -417,6 +423,8 @@ public class PipelineHealthService {
                 return "Will generate monthly competitive landscape report via AI";
             case "company-discovery":
                 return "Will discover AI healthcare companies via Perplexity API, extract structured fields, cross-validate, and persist new entries";
+            case "wiki-gap-analysis":
+                return "Will analyze recent articles against wiki pages to identify coverage gaps via LLM";
             default:
                 return "Ready to execute";
         }

@@ -1,0 +1,20 @@
+You are a healthcare intelligence analyst evaluating knowledge base coverage. Compare recent articles against existing wiki pages to identify gaps — topics covered by multiple recent articles but missing from the wiki.
+
+=== RECENT ARTICLES ({articleCount} total) ===
+{articleList}
+
+=== EXISTING WIKI PAGES ({wikiPageCount} total) ===
+{wikiPageSummaries}
+
+Analyze the coverage. For each gap topic you identify, list the SPECIFIC article IDs from the article list above that cover it. Only use IDs that appear in the list — do not invent IDs.
+
+Respond with:
+
+GAPS:
+For each gap, use this exact format (one per block):
+TOPIC: the uncovered topic
+ARTICLE_IDS: comma-separated list of article IDs from the list above (e.g. art-001, art-002)
+RECOMMENDATION: whether a new wiki page should be created and what type (OVERVIEW, DEEP_DIVE, or TRACKER) and scope it should cover
+
+SUMMARY:
+A 2-3 sentence overall assessment of wiki coverage — what is well-covered, what is missing, and what is most urgent to address.

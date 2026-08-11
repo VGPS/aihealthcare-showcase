@@ -178,7 +178,7 @@ class RomeFeedHarvesterTest {
     @Test
     @DisplayName("FeedHarvestScheduler constructs successfully with both ports")
     void feedHarvestScheduler_constructionWithBothPorts_doesNotThrow() {
-        FeedHarvestScheduler scheduler = new FeedHarvestScheduler(harvester, mockArticleStoragePort, mockTopicSummaryService, mockNewsTopicProperties, null, null, null, null, null, null, null, null, null);
+        FeedHarvestScheduler scheduler = new FeedHarvestScheduler(harvester, mockArticleStoragePort, mockTopicSummaryService, mockNewsTopicProperties, null, null, null, null, null, null, null, null, null, null, null);
 
         assertThat(scheduler).isNotNull();
     }

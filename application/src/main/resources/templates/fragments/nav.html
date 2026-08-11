@@ -120,7 +120,7 @@
     <!-- Account group (right side) -->
     <div class="nav-group nav-group-right" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'watchlist' || activePage == 'notes' || activePage == 'pricing' || activePage == 'about' || activePage == 'profile' || activePage == 'developer' || activePage == 'admin' || activePage == 'admin-pipelines' || activePage == 'newsletter'} ? ' active'">
+                th:classappend="${activePage == 'watchlist' || activePage == 'notes' || activePage == 'pricing' || activePage == 'about' || activePage == 'profile' || activePage == 'developer' || activePage == 'admin' || activePage == 'admin-pipelines' || activePage == 'admin-wiki-gaps' || activePage == 'newsletter'} ? ' active'">
             Account ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown nav-dropdown-right">
@@ -144,6 +144,8 @@
                th:classappend="${activePage == 'newsletter'} ? ' active'">Newsletter Runs</a>
             <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/pipelines}"
                th:classappend="${activePage == 'admin-pipelines'} ? ' active'">Pipelines</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/wiki-gaps}"
+               th:classappend="${activePage == 'admin-wiki-gaps'} ? ' active'">Wiki Gaps</a>
         </div>
     </div>
 
