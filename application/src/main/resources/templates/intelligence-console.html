@@ -941,9 +941,9 @@
         html += '</div>';
         if (data.summary) { html += '<h3>Summary</h3>'; html += renderProseBlock(data.summary); }
         if (data.domainFindings && data.domainFindings.length > 0) {
-            html += '<h3>Domain Findings (' + data.domainFindings.length + ')</h3>';
+            html += '<h3>Domain Findings</h3>';
             for (const df of data.domainFindings) {
-                html += '<div class="data-card"><div class="claim-label" style="color:#7c3aed;">' + esc(df.domain) + ' &middot; ' + df.dataPoints + ' data points</div>';
+                html += '<div class="data-card"><div class="claim-label" style="color:#7c3aed;text-transform:capitalize;">' + esc(df.domain) + '</div>';
                 if (df.findings && df.findings.length > 0) {
                     html += '<ul style="margin:0.25rem 0 0 1.25rem;padding:0;">';
                     for (const f of df.findings) html += '<li style="font-size:0.83rem;margin-bottom:0.2rem;">' + formatMarkdown(f) + '</li>';
@@ -954,6 +954,22 @@
         }
         html += renderBulletList(data.keyRisks, 'Key Risks');
         html += renderBulletList(data.opportunities, 'Opportunities');
+        if (data.sources && data.sources.length > 0) {
+            html += '<h3>Cited Sources (' + data.sources.length + ')</h3>';
+            for (let i = 0; i < data.sources.length; i++) {
+                const s = data.sources[i];
+                html += '<div class="data-card"><div class="card-title">';
+                html += '<span style="color:#6b7280;margin-right:0.5rem;">[' + (i + 1) + ']</span>';
+                if (s.url) html += '<a class="source-link" href="' + esc(s.url) + '" target="_blank">' + esc(s.title) + '</a>';
+                else html += esc(s.title || 'Source');
+                html += '</div>';
+                let detail = '';
+                if (s.sourceName) detail += esc(s.sourceName);
+                if (s.publishedAt) { if (detail) detail += ' &middot; '; detail += new Date(s.publishedAt).toLocaleDateString(); }
+                if (detail) html += '<div class="card-detail">' + detail + '</div>';
+                html += '</div>';
+            }
+        }
         return html;
     }
 
