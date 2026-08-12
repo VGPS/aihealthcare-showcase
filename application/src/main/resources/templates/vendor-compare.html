@@ -11,7 +11,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-02-01
- * @updated 2026-07-28
+ * @updated 2026-08-12
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -19,6 +19,15 @@
 <head th:replace="~{fragments/head :: head('Vendor Compare')}">
 </head>
 
+<style>
+    .cite-link {
+        color: #7c3aed; text-decoration: none; font-weight: 600; font-size: 0.8rem;
+        cursor: pointer; border-bottom: 1px dotted #7c3aed;
+    }
+    .cite-link:hover { color: #6d28d9; border-bottom-style: solid; }
+    .source-row.cite-highlight { animation: citeFlash 2s ease-out; }
+    @keyframes citeFlash { 0% { background: #ede9fe; } 100% { background: transparent; } }
+</style>
 <body class="bg-surface font-sans text-on-surface">
 
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
@@ -163,8 +172,8 @@
                         <h4 class="text-xs font-semibold uppercase tracking-wider text-green-700 mb-2">Strengths</h4>
                         <ul th:if="${!vendor.strengths().isEmpty()}" class="space-y-1">
                             <li th:each="s : ${vendor.strengths()}"
-                                th:text="${s}"
-                                class="text-xs text-gray-600 pl-4 relative before:content-['+'] before:absolute before:left-0 before:text-green-600 before:font-bold">
+                                th:utext="${s}"
+                                class="synthesis-text text-xs text-gray-600 pl-4 relative before:content-['+'] before:absolute before:left-0 before:text-green-600 before:font-bold">
                             </li>
                         </ul>
                         <span th:if="${vendor.strengths().isEmpty()}"
@@ -176,8 +185,8 @@
                         <h4 class="text-xs font-semibold uppercase tracking-wider text-red-600 mb-2">Weaknesses</h4>
                         <ul th:if="${!vendor.weaknesses().isEmpty()}" class="space-y-1">
                             <li th:each="w : ${vendor.weaknesses()}"
-                                th:text="${w}"
-                                class="text-xs text-gray-600 pl-4 relative before:content-['−'] before:absolute before:left-0 before:text-red-500 before:font-bold">
+                                th:utext="${w}"
+                                class="synthesis-text text-xs text-gray-600 pl-4 relative before:content-['−'] before:absolute before:left-0 before:text-red-500 before:font-bold">
                             </li>
                         </ul>
                         <span th:if="${vendor.weaknesses().isEmpty()}"
@@ -216,7 +225,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="c : ${citations}" class="hover:bg-gray-50">
+                    <tr th:each="c : ${citations}" th:id="'source-' + ${c.citationNumber()}" class="source-row hover:bg-gray-50">
                         <td class="ref-num px-3 py-2 border-b border-gray-100 text-sm align-middle font-bold text-primary-600 whitespace-nowrap"
                             th:text="${c.citationNumber()}">1</td>
                         <td class="ref-title px-3 py-2 border-b border-gray-100 text-sm align-middle">
@@ -281,6 +290,24 @@
         if (spinner) spinner.classList.remove('hidden');
         document.getElementById('loadingOverlay').classList.remove('hidden');
     });
+
+    function highlightSource(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.remove('cite-highlight');
+        void el.offsetWidth;
+        el.classList.add('cite-highlight');
+    }
+
+    (function linkCitations() {
+        var els = document.querySelectorAll('.synthesis-text');
+        for (var i = 0; i < els.length; i++) {
+            els[i].innerHTML = els[i].innerHTML.replace(/\[(\d+)\]/g, function(match, n) {
+                return '<a class="cite-link" href="#source-' + n + '" onclick="highlightSource(\'source-' + n + '\'); return false;">' + match + '</a>';
+            });
+        }
+    })();
 
     function sortByColumn(colClass, dir) {
         var tbody = document.querySelector('table tbody');
