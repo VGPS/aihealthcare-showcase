@@ -705,6 +705,8 @@
         if (btnEl) btnEl.classList.add('working');
         report.className = 'ic-report';
         report.innerHTML = '';
+        var autoExportRow = document.getElementById(reportId + '-auto-export');
+        if (autoExportRow) autoExportRow.style.display = 'none';
         timing.textContent = '';
         const start = performance.now();
         try {
@@ -719,6 +721,7 @@
             } else {
                 report.innerHTML = renderFn(data);
                 report.className = 'ic-report visible';
+                if (opts.exportTitle) showAutoExport(reportId, data, opts.exportTitle);
                 if (opts.onSuccess) opts.onSuccess(data);
             }
             timing.textContent = resp.status + ' ' + resp.statusText + ' in ' + elapsed + 's';
@@ -799,13 +802,15 @@
     function sendChat(btn) {
         const q = document.getElementById('chat-question').value.trim();
         if (!q) return;
-        richApiCall('/chat', 'POST', { query: q }, 'chat-report', 'chat-spinner', 'chat-timing', btn, renderChat);
+        richApiCall('/chat', 'POST', { query: q }, 'chat-report', 'chat-spinner', 'chat-timing', btn, renderChat,
+            { exportTitle: 'Source-Grounded Q&A' });
     }
     function sendAnalysis(btn) {
         const topic = document.getElementById('analyze-topic').value.trim();
         if (!topic) return;
         richApiCall('/analyze', 'POST', { subject: topic, depth: document.getElementById('analyze-depth').value },
-            'analyze-report', 'analyze-spinner', 'analyze-timing', btn, renderAnalysis);
+            'analyze-report', 'analyze-spinner', 'analyze-timing', btn, renderAnalysis,
+            { exportTitle: 'Market Briefing' });
     }
     function sendSynthesis(btn) {
         const topic = document.getElementById('synthesis-topic').value.trim();
@@ -823,7 +828,8 @@
         richApiCall('/platform-race', 'POST', {
             daysBack: parseInt(document.getElementById('race-days').value),
             depth: document.getElementById('race-depth').value
-        }, 'race-report', 'race-spinner', 'race-timing', btn, renderPlatformRace);
+        }, 'race-report', 'race-spinner', 'race-timing', btn, renderPlatformRace,
+            { exportTitle: 'AI Platform Race' });
     }
     function sendVerification(btn) {
         const topic = document.getElementById('verify-topic').value.trim();
@@ -844,7 +850,8 @@
         if (!desc) return;
         const ctx = document.getElementById('coding-context').value.trim();
         richApiCall('/coding', 'POST', { clinicalDescription: desc, context: ctx || null },
-            'coding-report', 'coding-spinner', 'coding-timing', btn, renderCoding);
+            'coding-report', 'coding-spinner', 'coding-timing', btn, renderCoding,
+            { exportTitle: 'ICD-10 Medical Coding' });
     }
     function sendCoverage(btn) {
         const proc = document.getElementById('coverage-procedure').value.trim();
@@ -853,7 +860,8 @@
             procedureDescription: proc,
             patientContext: document.getElementById('coverage-context').value.trim() || null,
             payerType: document.getElementById('coverage-payer').value
-        }, 'coverage-report', 'coverage-spinner', 'coverage-timing', btn, renderCoverage);
+        }, 'coverage-report', 'coverage-spinner', 'coverage-timing', btn, renderCoverage,
+            { exportTitle: 'CMS Coverage' });
     }
     function sendNpi(btn) {
         const body = {};
@@ -866,7 +874,8 @@
         if (st) body.state = st;
         if (sp) body.specialty = sp;
         if (Object.keys(body).length === 0) return;
-        richApiCall('/npi', 'POST', body, 'npi-report', 'npi-spinner', 'npi-timing', btn, renderNpi);
+        richApiCall('/npi', 'POST', body, 'npi-report', 'npi-spinner', 'npi-timing', btn, renderNpi,
+            { exportTitle: 'NPI Provider Lookup' });
     }
     function sendTrials(btn) {
         const body = {};
@@ -879,13 +888,15 @@
         if (s) body.status = s;
         if (p) body.phase = p;
         if (Object.keys(body).length === 0) return;
-        richApiCall('/trials', 'POST', body, 'trials-report', 'trials-spinner', 'trials-timing', btn, renderTrials);
+        richApiCall('/trials', 'POST', body, 'trials-report', 'trials-spinner', 'trials-timing', btn, renderTrials,
+            { exportTitle: 'Clinical Trials' });
     }
     function sendLiterature(btn) {
         const q = document.getElementById('lit-query').value.trim();
         if (!q) return;
         richApiCall('/literature', 'POST', { query: q, maxResults: parseInt(document.getElementById('lit-max').value) },
-            'literature-report', 'literature-spinner', 'literature-timing', btn, renderLiterature);
+            'literature-report', 'literature-spinner', 'literature-timing', btn, renderLiterature,
+            { exportTitle: 'PubMed Literature' });
     }
     function sendWiki(btn) {
         const keyword = document.getElementById('wiki-keyword').value.trim();
@@ -894,22 +905,26 @@
         const body = {};
         if (keyword) body.keyword = keyword;
         if (pageType) body.pageType = pageType;
-        richApiCall('/wiki', 'POST', body, 'wiki-report', 'wiki-spinner', 'wiki-timing', btn, renderWiki);
+        richApiCall('/wiki', 'POST', body, 'wiki-report', 'wiki-spinner', 'wiki-timing', btn, renderWiki,
+            { exportTitle: 'Wiki Search' });
     }
     function sendWikiAsk(btn) {
         const q = document.getElementById('wiki-question').value.trim();
         if (!q) return;
-        richApiCall('/wiki/ask', 'POST', { question: q }, 'wiki-ask-report', 'wiki-ask-spinner', 'wiki-ask-timing', btn, renderWikiAsk);
+        richApiCall('/wiki/ask', 'POST', { question: q }, 'wiki-ask-report', 'wiki-ask-spinner', 'wiki-ask-timing', btn, renderWikiAsk,
+            { exportTitle: 'Ask Wiki' });
     }
     function fetchReports(btn) {
         const days = document.getElementById('reports-days').value;
-        richApiCall('/synthesis/reports?days=' + days, 'GET', null, 'reports-report', 'reports-spinner', 'reports-timing', btn, renderReportList);
+        richApiCall('/synthesis/reports?days=' + days, 'GET', null, 'reports-report', 'reports-spinner', 'reports-timing', btn, renderReportList,
+            { exportTitle: 'Scheduled Reports' });
     }
     function fetchLatestReport(btn) {
         const topic = document.getElementById('reports-topic').value.trim();
         if (!topic) return;
         richApiCall('/synthesis/reports/latest?topic=' + encodeURIComponent(topic), 'GET', null,
-            'latest-report', 'latest-spinner', 'latest-timing', btn, renderSynthesis);
+            'latest-report', 'latest-spinner', 'latest-timing', btn, renderSynthesis,
+            { exportTitle: 'Latest Report' });
     }
     function fetchTrending(btn) {
         const topic = document.getElementById('trending-topic').value.trim();
@@ -1397,7 +1412,51 @@
         } catch (e) { panel.innerHTML = ''; }
     }
 
-    /* ── Export Functions ── */
+    /* ── Generic Auto-Export (DOC / TXT / JSON for any tab) ── */
+    function showAutoExport(reportId, data, title) {
+        var id = reportId + '-auto-export';
+        var row = document.getElementById(id);
+        if (!row) {
+            row = document.createElement('div');
+            row.id = id;
+            row.className = 'flex gap-2 mt-3';
+            row.innerHTML =
+                '<button class="ic-btn-export" onclick="exportReportDoc(\'' + reportId + '\')">Export DOC</button>' +
+                '<button class="ic-btn-export" onclick="exportReportTxt(\'' + reportId + '\')">Export TXT</button>' +
+                '<button class="ic-btn-export" onclick="exportReportJson(\'' + reportId + '\')">Export JSON</button>';
+            document.getElementById(reportId).parentNode.appendChild(row);
+        }
+        var el = document.getElementById(reportId);
+        el._lastData = data;
+        el._exportTitle = title;
+        row.style.display = 'flex';
+    }
+    function exportReportDoc(reportId) {
+        var el = document.getElementById(reportId);
+        if (!el || !el._lastData) return;
+        var title = el._exportTitle || 'Report';
+        var name = el._lastData.topic || el._lastData.subject || el._lastData.question || el._lastData.keyword || 'export';
+        downloadDocFile(slugify(title) + '-' + slugify(name) + '.doc', '<h1>' + esc(title) + '</h1>' + el.innerHTML, title);
+    }
+    function exportReportTxt(reportId) {
+        var el = document.getElementById(reportId);
+        if (!el) return;
+        var title = el._exportTitle || 'Report';
+        var name = (el._lastData && (el._lastData.topic || el._lastData.subject || el._lastData.question || el._lastData.keyword)) || 'export';
+        var t = title.toUpperCase() + '\n' + '='.repeat(60) + '\n\n' + el.textContent.trim() + '\n';
+        downloadTextFile(slugify(title) + '-' + slugify(name) + '.txt', t);
+    }
+    function exportReportJson(reportId) {
+        var el = document.getElementById(reportId);
+        if (!el || !el._lastData) return;
+        var title = el._exportTitle || 'report';
+        var name = el._lastData.topic || el._lastData.subject || el._lastData.question || el._lastData.keyword || 'export';
+        var json = JSON.stringify(el._lastData, null, 2);
+        var blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+        var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = slugify(title) + '-' + slugify(name) + '.json'; a.click(); URL.revokeObjectURL(a.href);
+    }
+
+    /* ── Custom Export Functions ── */
     function downloadDocFile(filename, htmlContent, title) {
         const doc = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>' + esc(title) + '</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1a1a1a;margin:1in;}h1{font-size:16pt;color:#6d28d9;margin-bottom:6pt;}h2{font-size:13pt;color:#6d28d9;margin-top:12pt;margin-bottom:4pt;}h3{font-size:11pt;color:#333;margin-top:10pt;margin-bottom:4pt;}p{margin:4pt 0;line-height:1.4;}ul{margin:4pt 0 8pt 18pt;}li{margin-bottom:4pt;line-height:1.3;}.meta{font-size:9pt;color:#666;margin-bottom:8pt;}.badge{display:inline-block;background:#ede9fe;color:#6d28d9;padding:1pt 6pt;border-radius:3pt;font-size:9pt;font-weight:bold;}.badge-disputed{background:#fef2f2;color:#dc2626;}.badge-gap{background:#eff6ff;color:#2563eb;}</style></head><body>' + htmlContent + '</body></html>';
         const blob = new Blob(['\ufeff' + doc], { type: 'application/msword' });
