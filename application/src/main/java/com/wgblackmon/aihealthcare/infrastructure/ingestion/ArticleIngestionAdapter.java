@@ -19,7 +19,7 @@ import java.util.List;
  *
  * <p>Queries the {@code news_articles} table for articles whose topic
  * <em>contains</em> the given keyword (case-insensitive), optionally
- * filtered to articles created within the last {@code daysBack} days.
+ * filtered to articles published within the last {@code daysBack} days.
  * The {@code daysBack} value is read from
  * {@code aihealthcare.articles.days-back} in {@code application.yml}
  * and defaults to {@code 7}.  Set to {@code 0} to disable date filtering.
@@ -60,8 +60,8 @@ public class ArticleIngestionAdapter implements ArticleIngestionPort {
         List<NewsArticleEntity> entities;
         if (daysBack > 0) {
             Instant cutoff = Instant.now().minus(daysBack, ChronoUnit.DAYS);
-            log.debug("fetchArticles() | using date filter: cutoff={}", cutoff);
-            entities = repository.findByTopicContainingIgnoreCaseAndCreatedAtAfter(topic, cutoff);
+            log.debug("fetchArticles() | using publishedAt filter: cutoff={}", cutoff);
+            entities = repository.findByTopicContainingIgnoreCaseAndPublishedAtAfter(topic, cutoff);
         } else {
             log.debug("fetchArticles() | daysBack=0, no date filter applied");
             entities = repository.findByTopicContainingIgnoreCase(topic);
@@ -101,8 +101,8 @@ public class ArticleIngestionAdapter implements ArticleIngestionPort {
         List<NewsArticleEntity> entities;
         if (archiveDays > 0) {
             Instant cutoff = Instant.now().minus(archiveDays, ChronoUnit.DAYS);
-            log.debug("fetchByTopicWithArchiveLimit() | using date filter: cutoff={}", cutoff);
-            entities = repository.findByTopicContainingIgnoreCaseAndCreatedAtAfter(topic, cutoff);
+            log.debug("fetchByTopicWithArchiveLimit() | using publishedAt filter: cutoff={}", cutoff);
+            entities = repository.findByTopicContainingIgnoreCaseAndPublishedAtAfter(topic, cutoff);
         } else {
             log.debug("fetchByTopicWithArchiveLimit() | archiveDays=0, no date filter applied");
             entities = repository.findByTopicContainingIgnoreCase(topic);

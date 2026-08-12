@@ -63,6 +63,17 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, 
             String topic, Instant cutoff);
 
     /**
+     * Finds articles whose topic contains the given keyword (case-insensitive)
+     * and that were published on or after the given cutoff instant.
+     *
+     * @param topic   substring to match against the topic column (case-insensitive)
+     * @param cutoff  only articles published at or after this instant are returned
+     * @return list of matching entities; empty if none found
+     */
+    List<NewsArticleEntity> findByTopicContainingIgnoreCaseAndPublishedAtAfter(
+            String topic, Instant cutoff);
+
+    /**
      * Finds articles whose topic contains the given keyword (case-insensitive),
      * with no date restriction.
      *

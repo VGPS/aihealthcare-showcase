@@ -150,6 +150,7 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   articles:
     days-back: 1
+    max-age-days: 30
 
   # ---------------------------------------------------------------------------
   # Harvest scheduling — consolidated daily pipeline (all times UTC).
@@ -449,6 +450,13 @@ aihealthcare:
           - AI
           - machine learning
           - digital health
+      - topic-id: 1
+        name: HealthExec AI
+        topic: General AI Healthcare News
+        url: https://healthexec.com/topics/artificial-intelligence
+        tier: INDUSTRY
+        base-weight: 0.7
+        max-items: 20
       # -----------------------------------------------------------------
       # AI Healthcare Software Development
       # -----------------------------------------------------------------
