@@ -10,7 +10,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-08-12
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -91,7 +91,9 @@
             </div>
             <div class="flex items-center gap-4 text-sm text-gray-600 mb-3">
                 <span>Score: <strong th:text="${#numbers.formatDecimal(s.sentimentScore, 1, 2)}">0.50</strong></span>
-                <span th:text="${s.totalArticles} + ' articles'">10 articles</span>
+                <a href="javascript:void(0)" class="text-primary-600 hover:underline font-medium cursor-pointer"
+                   th:onclick="'toggleArticles(\'' + ${s.companySlug} + '\')'"
+                   th:text="${s.totalArticles} + ' articles'">10 articles</a>
                 <span class="text-xs text-gray-400" th:text="${formattedDates[__${iter.index}__]}">Jan 1, 2026</span>
             </div>
             <!-- Mini distribution bar -->
@@ -102,6 +104,39 @@
                 <div class="bg-gray-300" th:style="'width:' + ${(s.neutralCount * 100) / s.totalArticles} + '%'"></div>
             </div>
             <p class="text-sm text-gray-600" th:text="${s.riskSummary}">Risk summary here</p>
+
+            <!-- Expandable article details -->
+            <div th:id="'articles-' + ${s.companySlug}" class="article-expansion" style="display:none;">
+                <div class="border-t border-gray-200 mt-3 pt-3">
+                    <div th:each="a : ${s.articleSentiments}" class="mb-3 pb-3 border-b border-gray-100 last:border-b-0">
+                        <div class="flex items-start gap-2 mb-1">
+                            <span class="px-2 py-0.5 rounded text-xs font-bold text-white shrink-0"
+                                  th:classappend="${a.sentiment.name() == 'POSITIVE' ? 'bg-green-600' :
+                                                   (a.sentiment.name() == 'NEGATIVE' ? 'bg-red-600' :
+                                                   (a.sentiment.name() == 'MIXED' ? 'bg-yellow-500' : 'bg-gray-500'))}"
+                                  th:text="${a.sentiment}">POSITIVE</span>
+                            <span th:if="${articleUrls.containsKey(a.articleId())}">
+                                <a th:href="${articleUrls.get(a.articleId())}" target="_blank" rel="noopener noreferrer"
+                                   class="text-primary-600 hover:underline font-medium text-sm" th:text="${a.title}">Title</a>
+                            </span>
+                            <span th:unless="${articleUrls.containsKey(a.articleId())}"
+                                  class="text-sm font-medium text-gray-800" th:text="${a.title}">Title</span>
+                        </div>
+                        <div class="flex gap-3 flex-wrap items-center text-xs text-gray-500 ml-0 mb-1">
+                            <span th:if="${articleSources.containsKey(a.articleId())}"
+                                  class="bg-gray-100 px-2 py-0.5 rounded font-medium"
+                                  th:text="${articleSources.get(a.articleId())}">Publisher</span>
+                            <span th:if="${articleDates.containsKey(a.articleId())}"
+                                  th:text="${articleDates.get(a.articleId())}">Published date</span>
+                            <span class="text-gray-400" th:text="'Confidence: ' + ${#numbers.formatDecimal(a.confidence, 1, 2)}">Confidence: 0.85</span>
+                        </div>
+                        <p th:if="${a.rationale() != null and !a.rationale().isBlank()}"
+                           class="text-sm text-gray-600 italic leading-relaxed mt-1" th:text="${a.rationale()}">Rationale</p>
+                    </div>
+                    <button class="mt-2 px-4 py-1.5 bg-primary-600 text-white rounded text-xs font-semibold hover:bg-primary-700 transition-colors"
+                            th:onclick="'exportArticles(\'' + ${s.companyName} + '\', \'' + ${s.companySlug} + '\')'">Save As Doc</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -173,6 +208,40 @@
             }
         }
     });
+</script>
+<script>
+    function toggleArticles(slug) {
+        var el = document.getElementById('articles-' + slug);
+        if (el) {
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+    }
+
+    function exportArticles(companyName, slug) {
+        var el = document.getElementById('articles-' + slug);
+        if (!el) return;
+        var lines = [companyName + ' — Article Sentiment Report', ''];
+        var items = el.querySelectorAll('.mb-3.pb-3');
+        for (var i = 0; i < items.length; i++) {
+            var badge = items[i].querySelector('.rounded.text-xs.font-bold');
+            var titleEl = items[i].querySelector('.font-medium.text-sm') || items[i].querySelector('.font-medium.text-gray-800');
+            var meta = items[i].querySelectorAll('.text-xs.text-gray-500 span, .text-xs.text-gray-400');
+            var rationale = items[i].querySelector('.italic');
+            lines.push((i + 1) + '. ' + (titleEl ? titleEl.textContent.trim() : ''));
+            lines.push('   Sentiment: ' + (badge ? badge.textContent.trim() : ''));
+            var metaParts = [];
+            for (var j = 0; j < meta.length; j++) { metaParts.push(meta[j].textContent.trim()); }
+            if (metaParts.length > 0) lines.push('   ' + metaParts.join(' | '));
+            if (rationale) lines.push('   ' + rationale.textContent.trim());
+            lines.push('');
+        }
+        var blob = new Blob([lines.join('\n')], {type: 'text/plain'});
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = companyName.replace(/[^a-zA-Z0-9]/g, '_') + '_articles.txt';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
 </script>
 <script sec:authorize="hasRole('ADMIN')">
     function runAnalysis() {
