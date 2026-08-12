@@ -342,6 +342,11 @@ public class AdminPipelineController {
                 "Daily midnight UTC", "NewsletterGenerationScheduler",
                 "/admin/pipelines/newsletter/generate-and-send", "POST", true, "~30 sec", "High (LLM cost)"));
 
+        list.add(new PipelineInfo("research-harvest", "Research Harvest (Perplexity)",
+                "Runs the COMBINED research pipeline (Perplexity + Google) for all configured topics. Persists new articles to DB.",
+                "Daily 06:00 & 12:00 UTC", "ResearchHarvestScheduler",
+                "/api/v1/monitoring/research-harvest", "POST", false, "~5 min", "Medium (LLM)"));
+
         list.add(new PipelineInfo("company-discovery", "Company Discovery (Perplexity)",
                 "Discovers AI healthcare companies via Perplexity API: broad discovery, structured extraction, cross-validation. Deduplicates against DB.",
                 "Weekly Sunday 06:00 UTC", "CompanyDiscoveryScheduler",

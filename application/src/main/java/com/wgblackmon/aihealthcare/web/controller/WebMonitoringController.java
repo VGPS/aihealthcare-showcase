@@ -18,6 +18,7 @@ import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
+import com.wgblackmon.aihealthcare.infrastructure.research.ResearchHarvestScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashEntity;
@@ -71,6 +72,7 @@ public class WebMonitoringController {
     private final CompanyProfileService companyProfileService;
     private final NewsArticleRepository newsArticleRepository;
     private final AnalyzeCompanySentimentUseCase sentimentUseCase;
+    private final ResearchHarvestScheduler researchHarvestScheduler;
 
     public WebMonitoringController(WebPageHarvester webPageHarvester,
                                    HuggingFaceHarvester huggingFaceHarvester,
@@ -85,7 +87,8 @@ public class WebMonitoringController {
                                    CompanyProfilePort companyProfilePort,
                                    CompanyProfileService companyProfileService,
                                    NewsArticleRepository newsArticleRepository,
-                                   AnalyzeCompanySentimentUseCase sentimentUseCase) {
+                                   AnalyzeCompanySentimentUseCase sentimentUseCase,
+                                   ResearchHarvestScheduler researchHarvestScheduler) {
         log.debug("WebMonitoringController() | webPageHarvester={}, huggingFaceHarvester={}, " +
                   "articleStoragePort={}, hashRepository={}",
                   webPageHarvester.getClass().getSimpleName(),
@@ -106,6 +109,7 @@ public class WebMonitoringController {
         this.companyProfileService = companyProfileService;
         this.newsArticleRepository = newsArticleRepository;
         this.sentimentUseCase = sentimentUseCase;
+        this.researchHarvestScheduler = researchHarvestScheduler;
     }
 
     /**
@@ -151,6 +155,22 @@ public class WebMonitoringController {
         log.info("triggerHuggingFaceHarvest() | {} models discovered", models.size());
         log.debug("triggerHuggingFaceHarvest() | return={}", response);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Manually triggers the Perplexity research harvest for all configured topics.
+     *
+     * @return confirmation with topic count
+     */
+    @PostMapping("/research-harvest")
+    public ResponseEntity<Map<String, Object>> triggerResearchHarvest() {
+        log.debug("triggerResearchHarvest() | (no args)");
+        researchHarvestScheduler.harvestResearchTopics();
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("status", "complete");
+        result.put("message", "Research harvest completed for all configured topics");
+        log.debug("triggerResearchHarvest() | return={}", result);
+        return ResponseEntity.ok(result);
     }
 
     /**
