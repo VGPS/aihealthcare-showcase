@@ -150,8 +150,8 @@
             </div>
             <p class="text-on-surface-variant leading-relaxed">
                 The output: a daily AI-generated newsletter, searchable dashboards for every dimension of
-                the industry, and a multi-model AI search engine that queries Claude, GPT, Gemini, and
-                Perplexity simultaneously with numbered citation references.
+                the industry, and a multi-model AI search engine that queries Claude for Healthcare, OpenAI for Healthcare,
+                Google for Health, and Perplexity Health simultaneously with numbered citation references.
             </p>
         </div>
     </section>
@@ -170,7 +170,7 @@
 web (70 controllers)  ──>  application (use cases)  ──>  domain (103 models + 92 ports)
                                                                   ^
                     infrastructure/* (adapters) ──────────────────+
-                    - ai/          9 Spring AI adapters (Claude, GPT, Gemini, Perplexity, Bedrock)
+                    - ai/          9 Spring AI adapters (Claude, OpenAI, Google, Perplexity, Amazon)
                     - ingestion/   RSS, web scraping, HuggingFace, PubMed, FDA, Perplexity
                     - persistence/ 41 JPA entities, repositories, storage adapters
                     - delivery/    Email (SES), NotebookLM export, transactional emails
@@ -181,7 +181,7 @@ web (70 controllers)  ──>  application (use cases)  ──>  domain (103 mod
             <div class="bg-white rounded-lg p-5 shadow-sm border border-outline-variant">
                 <h4 class="font-semibold text-on-surface mb-2">Swap Anything</h4>
                 <p class="text-sm text-on-surface-variant">
-                    Switch from Claude to GPT? Add a new data source? Change the database? Each change
+                    Switch from Claude to OpenAI? Add a new data source? Change the database? Each change
                     is a single adapter — zero domain modifications. I've done this live with 5 LLM
                     providers.
                 </p>
@@ -245,11 +245,12 @@ web (70 controllers)  ──>  application (use cases)  ──>  domain (103 mod
             <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1.5 rounded-full">Spring Data JPA</span>
             <span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full">PostgreSQL 16</span>
             <span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1.5 rounded-full">PGVector</span>
-            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">Anthropic Claude</span>
-            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">OpenAI GPT</span>
-            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">Google Gemini</span>
-            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">Perplexity Sonar</span>
-            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">AWS Bedrock</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">Claude for Healthcare</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">OpenAI for Healthcare</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">Google for Health</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">Microsoft for Healthcare</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">Perplexity Health</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1.5 rounded-full">Amazon Health</span>
             <span class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1.5 rounded-full">Stripe Billing</span>
             <span class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1.5 rounded-full">Amazon SES</span>
             <span class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1.5 rounded-full">AWS EC2</span>

@@ -277,15 +277,25 @@ public class VendorCompareController {
 
     /**
      * Extracts a user-friendly label from a feed topic name.
-     * E.g. "Anthropic Healthcare" → "Anthropic", "Amazon Connect Health" → "Amazon/AWS".
+     * Maps feed topics to standard healthcare platform names.
      */
     private String extractLabel(String topicName) {
         log.debug("extractLabel() | topicName={}", topicName);
-        String result = topicName;
-        if (topicName.endsWith(" Healthcare")) {
-            result = topicName.substring(0, topicName.length() - " Healthcare".length());
-        } else if (topicName.startsWith("Amazon Connect")) {
-            result = "Amazon/AWS";
+        String result;
+        if (topicName.contains("Anthropic")) {
+            result = "Claude for Healthcare";
+        } else if (topicName.contains("OpenAI")) {
+            result = "OpenAI for Healthcare";
+        } else if (topicName.contains("Google")) {
+            result = "Google for Health";
+        } else if (topicName.contains("Amazon")) {
+            result = "Amazon Health";
+        } else if (topicName.contains("Perplexity")) {
+            result = "Perplexity Health";
+        } else if (topicName.contains("Microsoft")) {
+            result = "Microsoft for Healthcare";
+        } else {
+            result = topicName;
         }
         log.debug("extractLabel() | return={}", result);
         return result;

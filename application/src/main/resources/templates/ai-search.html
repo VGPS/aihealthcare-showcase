@@ -4,8 +4,9 @@
  * AI-Enhanced Search page — multi-model LLM synthesis from the article archive.
  *
  * Allows SUBSCRIBER-tier users to submit a natural-language query and receive
- * independent AI syntheses from up to five models (Claude, GPT, Perplexity,
- * Gemini, Amazon/AWS). FREE-tier users see an upgrade banner. Shows source
+ * independent AI syntheses from up to five models (Claude for Healthcare,
+ * OpenAI for Healthcare, Perplexity Health, Google for Health, Amazon Health).
+ * FREE-tier users see an upgrade banner. Shows source
  * article cards with numbered citations when syntheses are present.
  *
  * @author  Bill Blackmon
@@ -40,7 +41,7 @@
 <main class="max-w-7xl mx-auto px-4 py-6">
 
     <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
-        <p class="text-sm text-gray-500 leading-relaxed">AI-powered research synthesis. Enter a question and select which AI models to query — each model independently analyzes relevant articles and generates a cited summary. Compare perspectives across Claude, GPT, Perplexity, and Gemini.</p>
+        <p class="text-sm text-gray-500 leading-relaxed">AI-powered research synthesis. Enter a question and select which AI models to query — each model independently analyzes relevant articles and generates a cited summary. Compare perspectives across Claude for Healthcare, OpenAI for Healthcare, Perplexity Health, and Google for Health.</p>
     </div>
 
     <!-- Upgrade banner for FREE-tier users -->
@@ -48,7 +49,7 @@
          class="bg-gradient-to-r from-primary-600 to-purple-600 text-white p-4 rounded-lg mb-6 flex items-center justify-between shadow-md">
         <span class="text-sm leading-relaxed">
             <strong>AI-Enhanced Search is a Subscriber feature.</strong><br/>
-            Upgrade to Subscriber to search across the full article archive with multi-model AI synthesis from Claude, GPT, Gemini, and Perplexity.
+            Upgrade to Subscriber to search across the full article archive with multi-model AI synthesis from Claude for Healthcare, OpenAI for Healthcare, Google for Health, and Perplexity Health.
         </span>
         <a th:href="@{/pricing}"
            class="bg-white text-primary-600 font-semibold text-sm px-4 py-2 rounded-md hover:bg-gray-100 ml-6 shrink-0">Upgrade</a>
