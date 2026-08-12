@@ -37,7 +37,7 @@
             <button @click="switchTab('chat')" :class="tab==='chat' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Source-Grounded Q&amp;A</button>
             <button @click="switchTab('analyze')" :class="tab==='analyze' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Market Briefing</button>
             <button @click="switchTab('synthesis')" :class="tab==='synthesis' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Intelligence Report</button>
-            <button @click="switchTab('platform-race')" :class="tab==='platform-race' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Platform Race</button>
+            <button @click="switchTab('platform-race')" :class="tab==='platform-race' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">AI Platform Race</button>
             <button @click="switchTab('verify')" :class="tab==='verify' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">AI Audit</button>
 
             <div class="px-4 py-1.5 mt-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Clinical Reference</div>
@@ -158,7 +158,7 @@
         <!-- ═══ PLATFORM RACE ═══ -->
         <div x-show="tab==='platform-race'" x-cloak>
             <div class="mb-4">
-                <p class="text-sm text-gray-600 leading-relaxed">Which AI platform is winning in healthcare? This vendor-neutral analysis compares Anthropic, OpenAI, Google, and Microsoft across recent news, deal activity, regulatory filings, and competitive positioning. No vendor spin — just evidence-based competitive intelligence.</p>
+                <p class="text-sm text-gray-600 leading-relaxed">Which AI platform is winning in healthcare? This vendor-neutral analysis compares Anthropic, OpenAI, Google, Microsoft, Perplexity, and AWS across recent news, deal activity, regulatory filings, and competitive positioning. No vendor spin — just evidence-based competitive intelligence.</p>
                 <p class="text-xs text-gray-400 mt-1">Queries articles, deals, regulatory events, and framework analyses filtered by vendor-specific keywords. Claude produces a vendor-neutral comparative assessment.</p>
                 <p class="text-xs text-amber-500 mt-1">Average processing time: 2–5 minutes.</p>
             </div>
@@ -755,6 +755,7 @@
             if (i % 2 === 1) html += '<strong>' + parts[i] + '</strong>';
             else html += parts[i];
         }
+        html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" style="color:#7c3aed;text-decoration:underline;">$1</a>');
         return html;
     }
     function stripMarkdown(text) { return cleanText(text).replace(/\*\*/g, ''); }
@@ -1033,10 +1034,13 @@
             for (const ind of data.leadingIndicators) html += '<li style="margin-bottom:0.5rem;font-size:0.85rem;">' + formatMarkdown(ind) + '</li>';
             html += '</ul>';
         }
+        var hasTrendsDomain = false;
         if (data.domainSummaries && data.domainSummaries.length > 0) {
             html += '<h3>Domain Summaries (' + data.domainSummaries.length + ')</h3>';
             for (const ds of data.domainSummaries) {
-                html += '<div class="claim-card confirmed" style="border-left-color:#7c3aed;"><div class="claim-label" style="color:#7c3aed;">' + esc(ds.domain) + ' &middot; ' + ds.dataPoints + ' data points</div>';
+                var isTrends = ds.domain && ds.domain.toUpperCase().indexOf('TREND') >= 0;
+                if (isTrends) hasTrendsDomain = true;
+                html += '<div class="claim-card confirmed" style="border-left-color:#7c3aed;"><div class="claim-label" style="color:#7c3aed;">' + esc(ds.domain) + (isTrends ? '*' : '') + (ds.dataPoints > 0 ? ' &middot; ' + ds.dataPoints + ' data points' : '') + '</div>';
                 if (ds.highlights && ds.highlights.length > 0) {
                     html += '<ul style="margin:0.25rem 0 0 1.25rem;padding:0;">';
                     for (const h of ds.highlights) html += '<li style="font-size:0.83rem;margin-bottom:0.2rem;">' + formatMarkdown(h) + '</li>';
@@ -1044,6 +1048,9 @@
                 }
                 html += '</div>';
             }
+        }
+        if (hasTrendsDomain) {
+            html += '<div style="margin-top:1rem;padding-top:0.5rem;border-top:1px solid #e5e7eb;font-size:0.8rem;"><strong>*Article counts reflect keyword frequency from automated trend detection. <a href="/dashboard/trends" target="_blank" style="color:#7c3aed;">View individual articles on the Trends dashboard</a>.</strong></div>';
         }
         return html;
     }
@@ -1478,7 +1485,7 @@
         if (d.narrative) { for (const p of cleanText(d.narrative).split(/\n{2,}|\n---\n?/)) { const t = p.trim(); if (t && t !== '---') h += '<p>' + esc(t) + '</p>'; } }
         if (d.crossDomainLinks && d.crossDomainLinks.length > 0) { h += '<h2>Cross-Domain Connections</h2><ul>'; for (const l of d.crossDomainLinks) { h += '<li><strong>' + esc(l.fromDomain) + ' &rarr; ' + esc(l.toDomain) + '</strong>'; if (l.confidence) h += ' <span class="badge">' + esc(l.confidence) + '</span>'; h += '<br>' + esc(cleanText(l.connection)) + '</li>'; } h += '</ul>'; }
         if (d.leadingIndicators && d.leadingIndicators.length > 0) { h += '<h2>Leading Indicators</h2><ul>'; for (const i of d.leadingIndicators) h += '<li>' + esc(stripMarkdown(i)) + '</li>'; h += '</ul>'; }
-        if (d.domainSummaries && d.domainSummaries.length > 0) { h += '<h2>Domain Summaries</h2>'; for (const ds of d.domainSummaries) { h += '<h3>' + esc(ds.domain) + ' (' + ds.dataPoints + ')</h3>'; if (ds.highlights) { h += '<ul>'; for (const hl of ds.highlights) h += '<li>' + esc(stripMarkdown(hl)) + '</li>'; h += '</ul>'; } } }
+        if (d.domainSummaries && d.domainSummaries.length > 0) { h += '<h2>Domain Summaries</h2>'; for (const ds of d.domainSummaries) { h += '<h3>' + esc(ds.domain) + (ds.dataPoints > 0 ? ' (' + ds.dataPoints + ')' : '') + '</h3>'; if (ds.highlights) { h += '<ul>'; for (const hl of ds.highlights) h += '<li>' + esc(stripMarkdown(hl)) + '</li>'; h += '</ul>'; } } }
         downloadDocFile('intelligence-report-' + slugify(d.topic) + '.doc', h, 'Intelligence Report: ' + d.topic);
     }
     function exportSynthesisTxt() {
@@ -1487,7 +1494,7 @@
         if (d.narrative) t += stripMarkdown(d.narrative) + '\n\n';
         if (d.crossDomainLinks && d.crossDomainLinks.length > 0) { t += 'CROSS-DOMAIN CONNECTIONS\n' + '-'.repeat(40) + '\n'; for (const l of d.crossDomainLinks) { t += '  * ' + l.fromDomain + ' -> ' + l.toDomain; if (l.confidence) t += ' [' + l.confidence + ']'; t += '\n    ' + stripMarkdown(l.connection) + '\n\n'; } }
         if (d.leadingIndicators && d.leadingIndicators.length > 0) { t += 'LEADING INDICATORS\n' + '-'.repeat(40) + '\n'; for (const i of d.leadingIndicators) t += '  * ' + stripMarkdown(i) + '\n'; t += '\n'; }
-        if (d.domainSummaries && d.domainSummaries.length > 0) { t += 'DOMAIN SUMMARIES\n' + '-'.repeat(40) + '\n'; for (const ds of d.domainSummaries) { t += '  ' + ds.domain.toUpperCase() + ' (' + ds.dataPoints + ' data points)\n'; if (ds.highlights) { for (const h of ds.highlights) t += '    - ' + stripMarkdown(h) + '\n'; } t += '\n'; } }
+        if (d.domainSummaries && d.domainSummaries.length > 0) { t += 'DOMAIN SUMMARIES\n' + '-'.repeat(40) + '\n'; for (const ds of d.domainSummaries) { t += '  ' + ds.domain.toUpperCase() + (ds.dataPoints > 0 ? ' (' + ds.dataPoints + ' data points)' : '') + '\n'; if (ds.highlights) { for (const h of ds.highlights) t += '    - ' + stripMarkdown(h) + '\n'; } t += '\n'; } }
         downloadTextFile('intelligence-report-' + slugify(d.topic) + '.txt', t);
     }
 
