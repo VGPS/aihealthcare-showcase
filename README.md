@@ -190,7 +190,7 @@ All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSu
 - **Competitor web page** change detection (SHA-256 hashing)
 
 ### AI-Powered Analysis
-- **Multi-model search** — fan-out queries to up to 5 LLMs, synthesize with numbered citations
+- **Multi-model search** — fan-out queries to up to 5 LLMs, synthesize with numbered citations that link directly to source articles
 - **Sentiment & risk scoring** — per-company LLM classification (POSITIVE/NEGATIVE/MIXED/NEUTRAL)
 - **Framework competitive analysis** — 6-dimension scoring with radar charts
 - **Deal signal detection** — M&A, funding, partnership identification with LLM confirmation
@@ -212,7 +212,9 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 ### Intelligence Console
 - **13-tab admin console** for interactive healthcare intelligence queries
 - Rich HTML rendering with **entity-aware bold formatting** — companies, studies, legislation, and dollar amounts highlighted automatically by Claude
+- **Live citation links** — `[N]` references in AI output scroll to and highlight the corresponding source article
 - PDF/DOC/TXT/JSON export on every output tab
+- Shared footer with quick links, contact, and branding across both apps
 - Live health check indicator, API key authentication, configurable rate limiting
 
 ### Cross-Domain Intelligence Reports
@@ -239,7 +241,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - **Scheduled daily reports** — automated synthesis for configurable topics (6 AM cron, 30-day retention)
 - **Intelligence trending** — track how analysis evolves over time with delta metrics and trend arrows
 - **Historical daily archive** — paginated browsing of pre-generated daily summary reports
-- **AI Platform Race Tracker** — vendor-neutral competitive landscape analysis across Anthropic, OpenAI, Google, and Microsoft
+- **AI Platform Race Tracker** — vendor-neutral competitive landscape analysis across Anthropic, OpenAI, Google, Microsoft, Perplexity, and AWS
 
 ### Operational Hardening
 - Spring Boot Actuator health/metrics endpoints
