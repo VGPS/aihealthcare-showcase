@@ -70,7 +70,7 @@ Prioritize these source types (in order):
   1. Peer-reviewed papers and clinical studies
   2. FDA, CMS, WHO, and government regulatory announcements
   3. Hospital and health-system publications
-  4. Company press releases (Google, Anthropic, OpenAI healthcare offerings)
+  4. Company press releases (Google for Health, Claude for Healthcare, OpenAI for Healthcare, Microsoft for Healthcare, Perplexity Health, Amazon Health)
   5. Conference proceedings and technical reports
   6. GitHub repositories for open-source healthcare AI tools (include README link)
   7. Hugging Face models tagged for medical, clinical, or biomedical use (include model card link)
@@ -105,8 +105,8 @@ proceedings.
 Also include:
   - Programming-related content: open-source healthcare AI projects with GitHub repo links,
     README summaries, and tool descriptions.
-  - Company summaries: Google (MedGemma, Health AI), Anthropic (Claude for Healthcare),
-    and OpenAI (ChatGPT Health) current healthcare offerings.
+  - Company summaries: Google for Health (MedGemma, Health AI), Claude for Healthcare,
+    OpenAI for Healthcare, Microsoft for Healthcare, Perplexity Health, and Amazon Health current healthcare offerings.
   - Hugging Face healthcare LLMs: models tagged for medical-QA, radiology, EHR, or
     clinical NLP — with model card links and brief descriptions.
 
@@ -140,18 +140,18 @@ WHERE NOT EXISTS (SELECT 1 FROM search_prompts WHERE engine = 'PERPLEXITY');
 INSERT INTO search_prompts (engine, name, template_text, description, active)
 SELECT 'MARKET_INTELLIGENCE',
        'Healthcare AI Market Intelligence',
-       'I am analyzing Healthcare AI Frameworks from Anthropic, Google (Gemini/DeepMind), Perplexity, and OpenAI. Please summarize each company''s offerings and features, pricing, developer tools, and market placement in HTML output so it can be used in a newsletter. Order features within each company section by last date updated (most recent first). Provide direct links to each item. Provide a final summary paragraph for each company. Provide a summary of the current state of this market in the Healthcare and AI segment.
+       'I am analyzing Healthcare AI Frameworks from Claude for Healthcare, OpenAI for Healthcare, Google for Health, Microsoft for Healthcare, Perplexity Health, and Amazon Health. Please summarize each company''s offerings and features, pricing, developer tools, and market placement in HTML output so it can be used in a newsletter. Order features within each company section by last date updated (most recent first). Provide direct links to each item. Provide a final summary paragraph for each company. Provide a summary of the current state of this market in the Healthcare and AI segment.
 
 Format requirements:
 - Return a complete, self-contained HTML document with inline CSS only (no external stylesheets or JavaScript).
 - Use a dark, professional newsletter aesthetic.
-- Group content by company (Anthropic, OpenAI, Google/DeepMind, Perplexity) with clear section headers.
+- Group content by company (Claude for Healthcare, OpenAI for Healthcare, Google for Health, Microsoft for Healthcare, Perplexity Health, Amazon Health) with clear section headers.
 - Include a feature/capability table per company with columns: Feature, Details, Date Updated, Source Link.
 - Include a pricing section per company.
 - Include a strengths/weaknesses verdict per company.
 - Include a market state section at the end with key statistics and a competitive timeline.
 - All source citations must be real, working URLs.',
-       'Monthly competitive landscape report: Anthropic, OpenAI, Google, Perplexity healthcare AI offerings, pricing, developer tools. Returns a styled, self-contained HTML document.',
+       'Monthly competitive landscape report: Claude for Healthcare, OpenAI for Healthcare, Google for Health, Microsoft for Healthcare, Perplexity Health, Amazon Health — offerings, pricing, developer tools. Returns a styled, self-contained HTML document.',
        true
 WHERE NOT EXISTS (SELECT 1 FROM search_prompts WHERE engine = 'MARKET_INTELLIGENCE');
 
