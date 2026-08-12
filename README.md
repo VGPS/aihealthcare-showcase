@@ -1,6 +1,6 @@
 # AI Healthcare Intelligence Platform
 
-A production AI-powered market intelligence platform for the healthcare industry. Harvests, analyzes, and synthesizes data from 69 sources using 6 LLM providers, delivering actionable intelligence through 30+ dashboard pages.
+A production AI-powered market intelligence platform for the healthcare industry. Harvests, analyzes, and synthesizes data from 69 sources using 6 LLM providers, delivering actionable intelligence through 30+ dashboard pages — backed by a companion Claude Intelligence Service providing cross-domain synthesis, multi-LLM verification, and MCP-powered clinical tools.
 
 **Live at [app.bigskylabs.ai](https://app.bigskylabs.ai)** | **[JavaDoc (1,337 pages)](https://vgps.github.io/aihealthcare-showcase/)**
 
@@ -11,7 +11,7 @@ A production AI-powered market intelligence platform for the healthcare industry
 | Metric | Count |
 |--------|-------|
 | Java classes | 592 |
-| Automated tests | 1,837 |
+| Automated tests | 2,037+ |
 | Test classes | 251 |
 | Domain models | 103 |
 | Port interfaces | 92 |
@@ -20,9 +20,9 @@ A production AI-powered market intelligence platform for the healthcare industry
 | Thymeleaf UI pages | 56 |
 | Data sources | 69 |
 | LLM adapters | 20 |
-| Scheduled pipelines | 15 |
-| Prompt templates | 18 |
-| REST API endpoints | 45+ |
+| Scheduled pipelines | 17 |
+| Prompt templates | 24 |
+| REST API endpoints | 65+ |
 
 ---
 
@@ -56,6 +56,27 @@ Built using **hexagonal architecture** (ports and adapters) with strict dependen
 │     AI · Persistence · Ingestion · Delivery · Scheduling     │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+### Two-Service Architecture
+
+```
+AIHealthcare (port 8080)                AIHealthcare-Claude (port 8081)
+├── 69 RSS/API/web sources              ├── Claude RAG chat
+├── 17 automated pipelines              ├── ICD-10 medical coding (MCP)
+├── 30+ Thymeleaf dashboards            ├── CMS coverage lookup (MCP)
+├── Daily newsletter (SES)              ├── NPI / Trials / PubMed (MCP)
+├── Stripe billing                      ├── Cross-domain intelligence reports
+├── Intelligence Console proxy ────────── 20+ REST endpoints
+└── Writes to PostgreSQL ──────────────── Reads from PostgreSQL (read-only)
+                                        │
+                                        ├── LLM Providers:
+                                        │   ├── Anthropic Claude (synthesis)
+                                        │   ├── OpenAI GPT-4o (verification)
+                                        │   ├── Google Gemini 2.0 Flash (verification)
+                                        │   └── AWS Bedrock Nova Pro (verification)
+```
+
+Two independent JARs sharing a PostgreSQL database. No service mesh, no API gateway — the main app's Intelligence Console proxies requests to the Claude service via RestClient.
 
 ### Module Breakdown
 
@@ -147,11 +168,11 @@ An 11-step automated pipeline runs daily, harvesting from 69 sources with fault 
 
 | Provider | Models | Usage |
 |----------|--------|-------|
-| **Anthropic Claude** | Claude Sonnet / Opus | Primary synthesis, wiki compilation, sentiment, deal classification |
-| **OpenAI** | GPT-4o | Multi-model search synthesis, prompt evaluation |
-| **Google Gemini** | Gemini Flash | Search synthesis (cost-optimized alternative) |
+| **Anthropic Claude** | Claude Sonnet / Opus | Primary synthesis, wiki compilation, sentiment, deal classification, cross-domain intelligence |
+| **OpenAI** | GPT-4o | Multi-model search synthesis, prompt evaluation, independent verification |
+| **Google Gemini** | Gemini 2.0 Flash | Search synthesis, independent verification |
 | **Perplexity** | Sonar Pro | Live web research, staged research pipeline |
-| **AWS Bedrock** | Amazon Nova Lite | Enterprise-grade synthesis via Bedrock API |
+| **AWS Bedrock** | Amazon Nova Pro | Enterprise-grade synthesis, independent verification |
 | **pgvector** | Embeddings | Semantic similarity search across article corpus |
 
 All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSummarizationPort`, `SentimentAnalysisPort`, etc.). Unit tests mock these ports — no real AI calls outside dedicated integration profiles.
@@ -179,8 +200,54 @@ All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSu
 ### Content Delivery
 - **Daily newsletter** — auto-generated drafts with WYSIWYG editor, sent via AWS SES
 - **30+ dashboard pages** — Thymeleaf with Chart.js visualizations
-- **REST API** — 45+ endpoints with API key auth and rate limiting
-- **Data export** — CSV/JSON export for enterprise integration
+- **REST API** — 65+ endpoints with API key auth and rate limiting
+- **Data export** — PDF/DOC/TXT/JSON/CSV export across all intelligence tabs
+
+---
+
+## Claude Intelligence Service
+
+A companion Spring Boot service providing Claude-powered clinical intelligence, cross-domain analysis, and multi-LLM verification. Runs alongside the main app and shares the same PostgreSQL database (read-only access to data engine tables).
+
+### Intelligence Console
+- **13-tab admin console** for interactive healthcare intelligence queries
+- Rich HTML rendering with **entity-aware bold formatting** — companies, studies, legislation, and dollar amounts highlighted automatically by Claude
+- PDF/DOC/TXT/JSON export on every output tab
+- Live health check indicator, API key authentication, configurable rate limiting
+
+### Cross-Domain Intelligence Reports
+- **Fuses 7 data domains** — regulatory events, deal signals, company sentiment, framework analyses, trend snapshots, articles, and wiki knowledge — into unified narratives
+- Cross-domain connections (e.g., an FDA clearance reshaping M&A pipelines)
+- Leading indicators and strategic implications
+- Configurable depth (quick/standard/deep) and lookback window
+
+### Multi-LLM Cross-Verification (AI Audit)
+- Claude generates the synthesis; a second LLM independently verifies every claim
+- **3 verifier options:** OpenAI GPT-4o, Google Gemini 2.0 Flash, AWS Bedrock Nova Pro
+- Structured output: confirmed claims, disputed claims (with counter-reasoning), and coverage gaps
+- Confidence scoring with persistent audit trail in PostgreSQL
+- Popular query tracking — frequently-audited topics load instantly from cache
+
+### MCP Tool Integrations
+- **ICD-10 medical coding** — clinical description to billable diagnosis codes via Anthropic's hosted MCP server
+- **CMS coverage lookup** — National Coverage Determination policy search
+- **NPI Registry** — provider lookup by name, specialty, or location
+- **ClinicalTrials.gov** — AI-related clinical trial search
+- **PubMed** — healthcare literature search with clinical synthesis
+
+### Intelligence Monitoring
+- **Scheduled daily reports** — automated synthesis for configurable topics (6 AM cron, 30-day retention)
+- **Intelligence trending** — track how analysis evolves over time with delta metrics and trend arrows
+- **Historical daily archive** — paginated browsing of pre-generated daily summary reports
+- **AI Platform Race Tracker** — vendor-neutral competitive landscape analysis across Anthropic, OpenAI, Google, and Microsoft
+
+### Operational Hardening
+- Spring Boot Actuator health/metrics endpoints
+- Request logging with elapsed time tracking
+- Sliding-window rate limiting per client (IP or API key)
+- Server timeout hardening for deep synthesis queries (5-minute LLM calls)
+- Flyway-managed database migrations for audit and snapshot tables
+- 200 automated tests (JUnit 5 + AssertJ + Mockito)
 
 ---
 
@@ -189,7 +256,7 @@ All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSu
 | Layer | Technology |
 |-------|-----------|
 | **Language** | Java 17 (LTS) |
-| **Framework** | Spring Boot 3.x + Spring AI 1.0.0 |
+| **Framework** | Spring Boot 3.x + Spring AI 1.1.6 |
 | **Architecture** | Hexagonal (Ports & Adapters) |
 | **Database** | PostgreSQL + pgvector (RDS) |
 | **ORM** | Spring Data JPA / Hibernate |
@@ -198,7 +265,7 @@ All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSu
 | **Payments** | Stripe (subscriptions + webhooks) |
 | **Frontend** | Thymeleaf + Tailwind CSS + Chart.js + Alpine.js + htmx |
 | **API Spec** | OpenAPI 3.0 (contract-first, code generated) |
-| **Testing** | JUnit 5 + AssertJ + Mockito (1,837 tests, 0 failures) |
+| **Testing** | JUnit 5 + AssertJ + Mockito (2,037+ tests, 0 failures) |
 | **Deployment** | AWS EC2 + RDS + SES, systemd service |
 | **CI/CD** | Maven + GitHub |
 
@@ -287,7 +354,7 @@ Payments via Stripe with webhook-driven tier upgrades and subscription managemen
 
 - Swapping Claude for GPT requires one new adapter class, zero domain changes
 - Adding a 7th LLM provider is a single `implements AiSearchPort` class
-- The entire AI layer can be mocked for 1,837 tests that run in under 2 minutes with no API calls
+- The entire AI layer can be mocked for 2,037+ tests that run in under 2 minutes with no API calls
 - Data sources can be added or removed via configuration, not code
 
 ---
