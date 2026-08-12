@@ -164,15 +164,16 @@ An 11-step automated pipeline runs daily, harvesting from 69 sources with fault 
 
 ## LLM Integration
 
-6 providers behind a unified port interface — swap any provider with zero domain changes:
+6 healthcare AI platform competitors tracked behind a unified port interface — swap any provider with zero domain changes:
 
 | Provider | Models | Usage |
 |----------|--------|-------|
-| **Anthropic Claude** | Claude Sonnet / Opus | Primary synthesis, wiki compilation, sentiment, deal classification, cross-domain intelligence |
-| **OpenAI** | GPT-4o | Multi-model search synthesis, prompt evaluation, independent verification |
-| **Google Gemini** | Gemini 2.0 Flash | Search synthesis, independent verification |
-| **Perplexity** | Sonar Pro | Live web research, staged research pipeline |
-| **AWS Bedrock** | Amazon Nova Pro | Enterprise-grade synthesis, independent verification |
+| **Claude for Healthcare** | Claude Sonnet / Opus | Primary synthesis, wiki compilation, sentiment, deal classification, cross-domain intelligence |
+| **OpenAI for Healthcare** | GPT-4o | Multi-model search synthesis, prompt evaluation, independent verification |
+| **Google for Health** | Gemini 2.0 Flash | Search synthesis, independent verification |
+| **Microsoft for Healthcare** | Copilot | Competitive tracking, article coverage |
+| **Perplexity Health** | Sonar Pro | Live web research, staged research pipeline |
+| **Amazon Health** | Nova Pro | Enterprise-grade synthesis, independent verification |
 | **pgvector** | Embeddings | Semantic similarity search across article corpus |
 
 All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSummarizationPort`, `SentimentAnalysisPort`, etc.). Unit tests mock these ports — no real AI calls outside dedicated integration profiles.
@@ -241,7 +242,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - **Scheduled daily reports** — automated synthesis for configurable topics (6 AM cron, 30-day retention)
 - **Intelligence trending** — track how analysis evolves over time with delta metrics and trend arrows
 - **Historical daily archive** — paginated browsing of pre-generated daily summary reports
-- **AI Platform Race Tracker** — vendor-neutral competitive landscape analysis across Anthropic, OpenAI, Google, Microsoft, Perplexity, and AWS
+- **AI Platform Race Tracker** — vendor-neutral competitive landscape analysis across Claude for Healthcare, OpenAI for Healthcare, Google for Health, Microsoft for Healthcare, Perplexity Health, and Amazon Health
 
 ### Operational Hardening
 - Spring Boot Actuator health/metrics endpoints
