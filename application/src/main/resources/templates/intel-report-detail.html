@@ -9,12 +9,21 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-08-12
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/head :: head('Intel Report — ' + ${report.query()})}" />
+<style>
+    .cite-link {
+        color: #7c3aed; text-decoration: none; font-weight: 600; font-size: 0.8rem;
+        cursor: pointer; border-bottom: 1px dotted #7c3aed;
+    }
+    .cite-link:hover { color: #6d28d9; border-bottom-style: solid; }
+    .source-row.cite-highlight { animation: citeFlash 2s ease-out; }
+    @keyframes citeFlash { 0% { background: #ede9fe; } 100% { background: transparent; } }
+</style>
 <body class="bg-surface font-sans text-on-surface">
 
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
@@ -73,7 +82,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="source : ${report.sources()}" class="border-b border-gray-50 hover:bg-gray-50/50">
+                <tr th:each="source : ${report.sources()}" th:id="'source-' + ${source.citationNumber()}" class="source-row border-b border-gray-50 hover:bg-gray-50/50">
                     <td class="py-2 px-4 text-gray-400 font-mono text-xs" th:text="'[' + ${source.citationNumber()} + ']'">[1]</td>
                     <td class="py-2 px-4">
                         <a th:if="${source.url() != null and !source.url().isBlank()}"
@@ -123,6 +132,29 @@
             arrow.style.transform = '';
         }
     }
+
+    function highlightSource(id) {
+        var panel = document.getElementById('sourcesPanel');
+        var arrow = document.getElementById('sourcesArrow');
+        if (panel.classList.contains('hidden')) {
+            panel.classList.remove('hidden');
+            arrow.style.transform = 'rotate(180deg)';
+        }
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.remove('cite-highlight');
+        void el.offsetWidth;
+        el.classList.add('cite-highlight');
+    }
+
+    (function linkCitations() {
+        var content = document.querySelector('.report-content');
+        if (!content) return;
+        content.innerHTML = content.innerHTML.replace(/\[(\d+)\]/g, function(match, n) {
+            return '<a class="cite-link" href="#source-' + n + '" onclick="highlightSource(\'source-' + n + '\'); return false;">' + match + '</a>';
+        });
+    })();
 </script>
 </body>
 </html>

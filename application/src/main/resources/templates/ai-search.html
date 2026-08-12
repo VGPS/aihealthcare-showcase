@@ -11,7 +11,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-03-01
- * @updated 2026-07-28
+ * @updated 2026-08-12
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -19,6 +19,15 @@
 <head th:replace="~{fragments/head :: head('AI Search')}">
 </head>
 
+<style>
+    .cite-link {
+        color: #7c3aed; text-decoration: none; font-weight: 600; font-size: 0.8rem;
+        cursor: pointer; border-bottom: 1px dotted #7c3aed;
+    }
+    .cite-link:hover { color: #6d28d9; border-bottom-style: solid; }
+    .source-card.cite-highlight { animation: citeFlash 2s ease-out; }
+    @keyframes citeFlash { 0% { background: #ede9fe; } 100% { background: white; } }
+</style>
 <body class="bg-surface font-sans text-on-surface">
 
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
@@ -142,13 +151,13 @@
                       th:text="${synthesis.modelName()}">Model</span>
                 <h3 class="font-semibold text-on-surface text-sm" th:text="${synthesis.modelName() + ' Synthesis'}">AI Synthesis</h3>
             </div>
-            <div class="text-sm text-gray-700 leading-relaxed mb-3" th:text="${synthesis.summary()}">Summary text</div>
+            <div class="synthesis-text text-sm text-gray-700 leading-relaxed mb-3" th:utext="${synthesis.summary()}">Summary text</div>
             <div th:if="${!synthesis.keyFindings().isEmpty()}">
                 <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Key Findings</div>
                 <ul class="space-y-1">
                     <li th:each="finding : ${synthesis.keyFindings()}"
-                        th:text="${finding}"
-                        class="text-sm text-gray-600 pl-4 relative before:content-['•'] before:absolute before:left-0 before:text-primary-500 before:font-bold leading-relaxed">Finding</li>
+                        th:utext="${finding}"
+                        class="synthesis-text text-sm text-gray-600 pl-4 relative before:content-['•'] before:absolute before:left-0 before:text-primary-500 before:font-bold leading-relaxed">Finding</li>
                 </ul>
             </div>
         </div>
@@ -180,7 +189,8 @@
         </div>
 
         <div th:each="article, iterStat : ${articles}"
-             class="bg-white rounded-lg shadow-sm p-3 mb-2 hover:shadow-md transition-shadow">
+             th:id="'source-' + ${iterStat.count}"
+             class="source-card bg-white rounded-lg shadow-sm p-3 mb-2 hover:shadow-md transition-shadow">
             <div class="flex items-baseline gap-2">
                 <span class="text-xs font-bold text-primary-600 shrink-0"
                       th:text="'[' + ${iterStat.count} + ']'">[1]</span>
@@ -215,6 +225,24 @@
         if (spinner) spinner.classList.remove('hidden');
         document.getElementById('loadingOverlay').classList.remove('hidden');
     });
+
+    function highlightSource(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.remove('cite-highlight');
+        void el.offsetWidth;
+        el.classList.add('cite-highlight');
+    }
+
+    (function linkCitations() {
+        var els = document.querySelectorAll('.synthesis-text');
+        for (var i = 0; i < els.length; i++) {
+            els[i].innerHTML = els[i].innerHTML.replace(/\[(\d+)\]/g, function(match, n) {
+                return '<a class="cite-link" href="#source-' + n + '" onclick="highlightSource(\'source-' + n + '\'); return false;">' + match + '</a>';
+            });
+        }
+    })();
 </script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
