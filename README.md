@@ -273,11 +273,11 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 
 ## Domain Model (Included in This Repo)
 
-This repository contains the complete **domain layer** — 252 pure Java files with zero framework dependencies. This is the architectural core: every record, port interface, domain service, and business rule.
+This repository contains the complete **domain layer** — 256 pure Java files with zero framework dependencies. This is the architectural core: every record, port interface, domain service, and business rule.
 
 ```
 domain/
-├── model/          # 103 immutable records
+├── model/          # 105 immutable records
 │   ├── NewsArticle, Topic, NewsletterSection, NewsletterDraft
 │   ├── Company, CompanyDiscoveryResult, CompanyTags
 │   ├── TrendSignal, TrendSnapshot, TrendDirection
@@ -286,10 +286,11 @@ domain/
 │   ├── ArticleSentiment, CompanySentiment, SentimentLabel
 │   ├── FrameworkAnalysis, FrameworkDimension, FrameworkCompany
 │   ├── WikiPage, WikiPageType, SourceRef, Contradiction
+│   ├── GapItem, WikiGapAnalysisResult
 │   ├── ResearchRequest, ResearchAnswer, ResearchPlan
 │   ├── ClinicalTrial, ClinicalTrialPhase, TrialStatus
 │   ├── AiSearchResult, AiSearchSynthesis
-│   └── ... (103 total)
+│   └── ... (105 total)
 │
 ├── port/
 │   ├── inbound/    # 26 use-case interfaces
@@ -303,7 +304,7 @@ domain/
 │   │   ├── MonitorRegulatoryEventsUseCase
 │   │   └── ... (26 total)
 │   │
-│   └── outbound/   # 66 adapter interfaces
+│   └── outbound/   # 67 adapter interfaces
 │       ├── AiSummarizationPort, AiSearchPort
 │       ├── ArticleIngestionPort, ArticleStoragePort
 │       ├── SentimentAnalysisPort, CompanySentimentPort
@@ -311,9 +312,10 @@ domain/
 │       ├── DealClassificationPort, DealSignalPort
 │       ├── RegulatoryEventPort, RegulatoryHarvestingPort
 │       ├── KnowledgeCompilationPort, WikiQueryPort
-│       └── ... (66 total)
+│       ├── WikiGapAnalysisPort
+│       └── ... (67 total)
 │
-├── service/        # 48 domain services (pure business logic)
+├── service/        # 49 domain services (pure business logic)
 │   ├── NewsletterService, NewsletterRenderer
 │   ├── CompanySentimentService, CompanyClassifier
 │   ├── FrameworkAnalysisService
@@ -321,7 +323,8 @@ domain/
 │   ├── TrendDetectionService, TrendOrchestrationService
 │   ├── ResearchOrchestratorService, CitationAssembler
 │   ├── WatchlistMatchingService
-│   └── ... (48 total)
+│   ├── WikiGapAnalysisService
+│   └── ... (49 total)
 │
 └── exception/      # 9 domain exceptions
     ├── PromptVariantNotFoundException
