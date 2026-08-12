@@ -161,14 +161,16 @@ public class IntelligenceConsoleController {
         String queryString = request.getQueryString();
         String fullPath = queryString != null ? forwardPath + "?" + queryString : forwardPath;
         log.debug("proxyGet() | path={}", fullPath);
+        boolean isHtml = forwardPath.contains("/history/files/") && !forwardPath.endsWith("/files");
         try {
             String result = restClient.get()
                     .uri(fullPath)
                     .retrieve()
                     .body(String.class);
             log.debug("proxyGet() | return=200, length={}", result != null ? result.length() : 0);
+            MediaType contentType = isHtml ? MediaType.TEXT_HTML : MediaType.APPLICATION_JSON;
             return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
+                    .contentType(contentType)
                     .body(result);
         } catch (Exception e) {
             log.error("proxyGet() | path={}, error={}", fullPath, e.getMessage());

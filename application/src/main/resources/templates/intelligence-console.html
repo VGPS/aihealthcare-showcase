@@ -36,7 +36,7 @@
             <div class="px-4 py-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider">Intelligence</div>
             <button @click="switchTab('chat')" :class="tab==='chat' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Source-Grounded Q&amp;A</button>
             <button @click="switchTab('analyze')" :class="tab==='analyze' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Market Briefing</button>
-            <button @click="switchTab('synthesis')" :class="tab==='synthesis' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Cross-Domain Synthesis</button>
+            <button @click="switchTab('synthesis')" :class="tab==='synthesis' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Intelligence Report</button>
             <button @click="switchTab('platform-race')" :class="tab==='platform-race' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Platform Race</button>
             <button @click="switchTab('verify')" :class="tab==='verify' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">AI Audit</button>
 
@@ -53,6 +53,7 @@
             <div class="px-4 py-1.5 mt-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Monitoring</div>
             <button @click="switchTab('reports')" :class="tab==='reports' ? 'bg-amber-50 text-amber-700 border-l-2 border-amber-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Daily Briefs</button>
             <button @click="switchTab('trending')" :class="tab==='trending' ? 'bg-amber-50 text-amber-700 border-l-2 border-amber-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Trend Tracking</button>
+            <button @click="switchTab('history')" :class="tab==='history' ? 'bg-amber-50 text-amber-700 border-l-2 border-amber-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Historical Review</button>
         </div>
     </nav>
 
@@ -484,7 +485,7 @@
                 <p class="text-xs text-amber-500 mt-1">Retrieving stored reports typically takes a few seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500">
-                <h2 class="font-display text-lg font-semibold mb-4">Scheduled Synthesis Reports</h2>
+                <h2 class="font-display text-lg font-semibold mb-4">Scheduled Intelligence Reports</h2>
                 <div class="w-48">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Days Back</label>
                     <input type="number" id="reports-days" value="7" min="1" max="30" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
@@ -515,11 +516,11 @@
         <div x-show="tab==='trending'" x-cloak>
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">See how a topic's landscape has changed over time — rising or falling data points, new cross-domain connections, shifting leading indicators. If you've been tracking a topic for weeks, this is where you see whether the story is strengthening or fading.</p>
-                <p class="text-xs text-gray-400 mt-1">Every synthesis (manual or scheduled) is stored as a timestamped snapshot. This view queries the history and computes trend deltas between the oldest and newest runs.</p>
+                <p class="text-xs text-gray-400 mt-1">Every intelligence report (manual or scheduled) is stored as a timestamped record. This view queries the history and computes trend deltas between the oldest and newest runs.</p>
                 <p class="text-xs text-amber-500 mt-1">Retrieving trend data typically takes a few seconds.</p>
             </div>
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500">
-                <h2 class="font-display text-lg font-semibold mb-4">Synthesis Trending</h2>
+                <h2 class="font-display text-lg font-semibold mb-4">Intelligence Trending</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Topic</label>
@@ -542,6 +543,26 @@
                     <button onclick="exportTrendingTxt()" class="ic-btn-export">Export TXT</button>
                     <button onclick="exportJson(lastTrendingData, 'trending')" class="ic-btn-export">Export JSON</button>
                 </div>
+            </div>
+        </div>
+
+        <div x-show="tab==='history'" x-cloak>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Your daily intelligence archive — every day's market summary is stored here in chronological order. Click any date to read that day's full report covering the latest healthcare AI developments, research, partnerships, and regulatory activity.</p>
+                <p class="text-xs text-gray-400 mt-1">Serves pre-generated daily intelligence summaries. Each report synthesizes that day's curated article feed into an executive briefing with source citations.</p>
+                <p class="text-xs text-amber-500 mt-1">Reports load in under a second.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500">
+                <h2 class="font-display text-lg font-semibold mb-4">Daily Intelligence Archive</h2>
+                <span class="ic-spinner" id="history-spinner"></span>
+                <div id="history-list"></div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500 mt-4" id="history-viewer-panel" style="display:none;">
+                <div class="flex items-center gap-3 mb-3">
+                    <h2 class="font-display text-lg font-semibold flex-1" id="history-viewer-title"></h2>
+                    <button onclick="closeHistoryViewer()" class="ic-btn-export">Back to List</button>
+                </div>
+                <iframe id="history-viewer" style="width:100%;border:1px solid #e5e7eb;border-radius:6px;background:#fff;min-height:600px;" sandbox="allow-same-origin"></iframe>
             </div>
         </div>
 
@@ -647,6 +668,9 @@
     let lastVerificationData = null;
     let lastSynthesisData = null;
     let lastTrendingData = null;
+    let historyFiles = [];
+    let historyPage = 0;
+    const HISTORY_PAGE_SIZE = 50;
 
     function intelligenceConsole() {
         return {
@@ -655,6 +679,7 @@
                 this.tab = name;
                 if (name === 'verify') loadPopularQueries();
                 if (name === 'trending') loadTrendingTopics();
+                if (name === 'history') loadHistoryFiles();
             }
         };
     }
@@ -974,11 +999,11 @@
         html += ' &middot; ' + data.dataPointsCounted + ' data points consulted</div>';
         const narrative = cleanText(data.narrative || '');
         if (narrative) {
-            html += '<h3>Synthesis Narrative</h3>';
+            html += '<h3>Intelligence Narrative</h3>';
             for (const p of narrative.split(/\n{2,}|\n---\n?/)) { const t = p.trim(); if (t && t !== '---') html += '<p>' + esc(t) + '</p>'; }
         }
         if (data.crossDomainLinks && data.crossDomainLinks.length > 0) {
-            html += '<h3>Cross-Domain Links (' + data.crossDomainLinks.length + ')</h3><ul style="margin:0 0 0.75rem 1.25rem;padding:0;">';
+            html += '<h3>Cross-Domain Connections (' + data.crossDomainLinks.length + ')</h3><ul style="margin:0 0 0.75rem 1.25rem;padding:0;">';
             for (const link of data.crossDomainLinks) {
                 const conf = link.confidence || '';
                 const confColor = conf === 'HIGH' ? '#166534' : conf === 'LOW' ? '#dc2626' : '#64748b';
@@ -1016,7 +1041,7 @@
         if (ts) html += ' &middot; ' + ts;
         html += '</div>';
         if (status === 'VERIFIED') html += '<div class="meta-line" style="color:#166534;">Audited independently by ' + esc(data.verifierModel || 'GPT-4o') + '.</div>';
-        else if (status === 'UNAVAILABLE') html += '<div class="meta-line" style="color:#dc2626;">The independent auditor (' + esc(data.verifierModel || 'unknown') + ') could not be reached. Synthesis below is unaudited.</div>';
+        else if (status === 'UNAVAILABLE') html += '<div class="meta-line" style="color:#dc2626;">The independent auditor (' + esc(data.verifierModel || 'unknown') + ') could not be reached. Report below is unaudited.</div>';
         if (status === 'VERIFIED' && data.overallConfidence > 0) {
             const pct = Math.round(data.overallConfidence * 100);
             const color = pct >= 75 ? '#22c55e' : pct >= 50 ? '#eab308' : '#dc2626';
@@ -1025,7 +1050,7 @@
         }
         const narrative = cleanText(data.originalNarrative || '');
         if (narrative) {
-            html += '<h3>Synthesis Narrative</h3>';
+            html += '<h3>Intelligence Narrative</h3>';
             for (const p of narrative.split(/\n{2,}|\n---\n?/)) { const t = p.trim(); if (t && t !== '---') html += '<p>' + esc(t) + '</p>'; }
         }
         if (data.confirmedClaims && data.confirmedClaims.length > 0) {
@@ -1295,10 +1320,10 @@
     }
 
     function renderTrending(data) {
-        if (!data.snapshots || data.snapshots.length === 0) return '<div class="popular-empty">No snapshots found for "' + esc(data.topic) + '" in this time window.</div>';
+        if (!data.snapshots || data.snapshots.length === 0) return '<div class="popular-empty">No reports found for "' + esc(data.topic) + '" in this time window.</div>';
         let html = '';
         const s = data.trendSummary;
-        html += '<div style="margin-bottom:1rem;"><strong>' + esc(data.topic) + '</strong> — ' + s.totalSnapshots + ' snapshot' + (s.totalSnapshots !== 1 ? 's' : '') + '</div>';
+        html += '<div style="margin-bottom:1rem;"><strong>' + esc(data.topic) + '</strong> — ' + s.totalSnapshots + ' report' + (s.totalSnapshots !== 1 ? 's' : '') + '</div>';
         for (const snap of data.snapshots) {
             const dt = new Date(snap.synthesizedAt);
             const bgColor = snap.source === 'scheduled' ? '#166534' : '#64748b';
@@ -1364,7 +1389,7 @@
             const resp = await fetch(PROXY + '/synthesis/trending/topics', { headers: getCsrfHeaders() });
             if (!resp.ok) { panel.innerHTML = ''; return; }
             const topics = await resp.json();
-            if (topics.length === 0) { panel.innerHTML = '<div class="popular-empty">No synthesis snapshots yet — run a Cross-Domain Synthesis to start tracking trends.</div>'; return; }
+            if (topics.length === 0) { panel.innerHTML = '<div class="popular-empty">No intelligence reports yet — run an Intelligence Report to start tracking trends.</div>'; return; }
             let html = '<div style="margin-bottom:0.5rem;font-weight:600;font-size:0.85rem;color:#64748b;">Known Topics</div><div class="flex flex-wrap gap-1.5">';
             for (const t of topics) html += '<span class="badge cursor-pointer hover:bg-gray-200 px-2 py-1" onclick="document.getElementById(\'trending-topic\').value=\'' + escAttr(t) + '\';fetchTrending(document.getElementById(\'trending-btn\'));">' + esc(t) + '</span>';
             html += '</div>';
@@ -1390,21 +1415,21 @@
 
     function exportSynthesisDoc() {
         if (!lastSynthesisData) return; const d = lastSynthesisData;
-        let h = '<h1>Cross-Domain Synthesis: ' + esc(d.topic) + '</h1><p class="meta">' + (d.synthesizedAt ? new Date(d.synthesizedAt).toLocaleString() : '') + '</p>';
+        let h = '<h1>Intelligence Report: ' + esc(d.topic) + '</h1><p class="meta">' + (d.synthesizedAt ? new Date(d.synthesizedAt).toLocaleString() : '') + '</p>';
         if (d.narrative) { for (const p of cleanText(d.narrative).split(/\n{2,}|\n---\n?/)) { const t = p.trim(); if (t && t !== '---') h += '<p>' + esc(t) + '</p>'; } }
-        if (d.crossDomainLinks && d.crossDomainLinks.length > 0) { h += '<h2>Cross-Domain Links</h2><ul>'; for (const l of d.crossDomainLinks) { h += '<li><strong>' + esc(l.fromDomain) + ' &rarr; ' + esc(l.toDomain) + '</strong>'; if (l.confidence) h += ' <span class="badge">' + esc(l.confidence) + '</span>'; h += '<br>' + esc(cleanText(l.connection)) + '</li>'; } h += '</ul>'; }
+        if (d.crossDomainLinks && d.crossDomainLinks.length > 0) { h += '<h2>Cross-Domain Connections</h2><ul>'; for (const l of d.crossDomainLinks) { h += '<li><strong>' + esc(l.fromDomain) + ' &rarr; ' + esc(l.toDomain) + '</strong>'; if (l.confidence) h += ' <span class="badge">' + esc(l.confidence) + '</span>'; h += '<br>' + esc(cleanText(l.connection)) + '</li>'; } h += '</ul>'; }
         if (d.leadingIndicators && d.leadingIndicators.length > 0) { h += '<h2>Leading Indicators</h2><ul>'; for (const i of d.leadingIndicators) h += '<li>' + esc(stripMarkdown(i)) + '</li>'; h += '</ul>'; }
         if (d.domainSummaries && d.domainSummaries.length > 0) { h += '<h2>Domain Summaries</h2>'; for (const ds of d.domainSummaries) { h += '<h3>' + esc(ds.domain) + ' (' + ds.dataPoints + ')</h3>'; if (ds.highlights) { h += '<ul>'; for (const hl of ds.highlights) h += '<li>' + esc(stripMarkdown(hl)) + '</li>'; h += '</ul>'; } } }
-        downloadDocFile('synthesis-' + slugify(d.topic) + '.doc', h, 'Synthesis: ' + d.topic);
+        downloadDocFile('intelligence-report-' + slugify(d.topic) + '.doc', h, 'Intelligence Report: ' + d.topic);
     }
     function exportSynthesisTxt() {
         if (!lastSynthesisData) return; const d = lastSynthesisData;
-        let t = 'CROSS-DOMAIN SYNTHESIS: ' + d.topic + '\nGenerated: ' + (d.synthesizedAt ? new Date(d.synthesizedAt).toLocaleString() : 'N/A') + '\n' + '='.repeat(60) + '\n\n';
+        let t = 'INTELLIGENCE REPORT: ' + d.topic + '\nGenerated: ' + (d.synthesizedAt ? new Date(d.synthesizedAt).toLocaleString() : 'N/A') + '\n' + '='.repeat(60) + '\n\n';
         if (d.narrative) t += stripMarkdown(d.narrative) + '\n\n';
-        if (d.crossDomainLinks && d.crossDomainLinks.length > 0) { t += 'CROSS-DOMAIN LINKS\n' + '-'.repeat(40) + '\n'; for (const l of d.crossDomainLinks) { t += '  * ' + l.fromDomain + ' -> ' + l.toDomain; if (l.confidence) t += ' [' + l.confidence + ']'; t += '\n    ' + stripMarkdown(l.connection) + '\n\n'; } }
+        if (d.crossDomainLinks && d.crossDomainLinks.length > 0) { t += 'CROSS-DOMAIN CONNECTIONS\n' + '-'.repeat(40) + '\n'; for (const l of d.crossDomainLinks) { t += '  * ' + l.fromDomain + ' -> ' + l.toDomain; if (l.confidence) t += ' [' + l.confidence + ']'; t += '\n    ' + stripMarkdown(l.connection) + '\n\n'; } }
         if (d.leadingIndicators && d.leadingIndicators.length > 0) { t += 'LEADING INDICATORS\n' + '-'.repeat(40) + '\n'; for (const i of d.leadingIndicators) t += '  * ' + stripMarkdown(i) + '\n'; t += '\n'; }
         if (d.domainSummaries && d.domainSummaries.length > 0) { t += 'DOMAIN SUMMARIES\n' + '-'.repeat(40) + '\n'; for (const ds of d.domainSummaries) { t += '  ' + ds.domain.toUpperCase() + ' (' + ds.dataPoints + ' data points)\n'; if (ds.highlights) { for (const h of ds.highlights) t += '    - ' + stripMarkdown(h) + '\n'; } t += '\n'; } }
-        downloadTextFile('synthesis-' + slugify(d.topic) + '.txt', t);
+        downloadTextFile('intelligence-report-' + slugify(d.topic) + '.txt', t);
     }
 
     function exportAuditDoc() {
@@ -1415,7 +1440,7 @@
         if (d.verifierModel) h += ' &middot; Verified by: ' + esc(d.verifierModel);
         if (d.overallConfidence > 0) h += ' &middot; Confidence: ' + Math.round(d.overallConfidence * 100) + '%';
         h += '</p>';
-        if (d.originalNarrative) { h += '<h2>Synthesis Narrative</h2>'; for (const p of cleanText(d.originalNarrative).split(/\n{2,}|\n---\n?/)) { const t = p.trim(); if (t && t !== '---') h += '<p>' + esc(t) + '</p>'; } }
+        if (d.originalNarrative) { h += '<h2>Intelligence Narrative</h2>'; for (const p of cleanText(d.originalNarrative).split(/\n{2,}|\n---\n?/)) { const t = p.trim(); if (t && t !== '---') h += '<p>' + esc(t) + '</p>'; } }
         if (d.confirmedClaims && d.confirmedClaims.length > 0) { h += '<h2>Confirmed (' + d.confirmedClaims.length + ')</h2><ul>'; for (const c of d.confirmedClaims) { h += '<li><span class="badge">Confirmed</span> ' + esc(stripMarkdown(c.claim)); if (c.reasoning) h += '<br><em>' + esc(stripMarkdown(c.reasoning)) + '</em>'; h += '</li>'; } h += '</ul>'; }
         if (d.disputedClaims && d.disputedClaims.length > 0) { h += '<h2>Disputed (' + d.disputedClaims.length + ')</h2><ul>'; for (const c of d.disputedClaims) { h += '<li><span class="badge badge-disputed">Disputed</span> ' + esc(stripMarkdown(c.claim)); if (c.claudePosition) h += '<br>Claude: ' + esc(stripMarkdown(c.claudePosition)); if (c.verifierPosition) h += '<br>' + esc(d.verifierModel || 'Verifier') + ': ' + esc(stripMarkdown(c.verifierPosition)); h += '</li>'; } h += '</ul>'; }
         if (d.gaps && d.gaps.length > 0) { h += '<h2>Gaps (' + d.gaps.length + ')</h2><ul>'; for (const g of d.gaps) h += '<li><span class="badge badge-gap">Gap</span> ' + esc(stripMarkdown(g.insight)) + '</li>'; h += '</ul>'; }
@@ -1437,15 +1462,105 @@
 
     function exportTrendingDoc() {
         if (!lastTrendingData) return; const d = lastTrendingData;
-        let h = '<h1>Synthesis Trending: ' + esc(d.topic) + '</h1><p class="meta">' + d.snapshots.length + ' snapshot(s)</p>';
+        let h = '<h1>Intelligence Trending: ' + esc(d.topic) + '</h1><p class="meta">' + d.snapshots.length + ' report(s)</p>';
         for (const snap of d.snapshots) { const dt = new Date(snap.synthesizedAt); h += '<h3>' + dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString() + ' <span class="badge">' + esc(snap.source) + '</span></h3>'; if (snap.leadingIndicators && snap.leadingIndicators.length > 0) { h += '<ul>'; for (const i of snap.leadingIndicators) h += '<li>' + esc(stripMarkdown(i)) + '</li>'; h += '</ul>'; } }
         downloadDocFile('trending-' + slugify(d.topic) + '.doc', h, 'Trending: ' + d.topic);
     }
     function exportTrendingTxt() {
         if (!lastTrendingData) return; const d = lastTrendingData;
-        let t = 'SYNTHESIS TRENDING: ' + d.topic + '\n' + d.snapshots.length + ' snapshot(s)\n' + '='.repeat(60) + '\n\n';
+        let t = 'INTELLIGENCE TRENDING: ' + d.topic + '\n' + d.snapshots.length + ' report(s)\n' + '='.repeat(60) + '\n\n';
         for (const snap of d.snapshots) { const dt = new Date(snap.synthesizedAt); t += dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString() + ' [' + snap.source + ']\n'; if (snap.leadingIndicators && snap.leadingIndicators.length > 0) { for (const i of snap.leadingIndicators) t += '  * ' + stripMarkdown(i) + '\n'; } t += '-'.repeat(40) + '\n\n'; }
         downloadTextFile('trending-' + slugify(d.topic) + '.txt', t);
+    }
+
+    // --- Historical Review ---
+    async function loadHistoryFiles() {
+        const list = document.getElementById('history-list');
+        const spinner = document.getElementById('history-spinner');
+        spinner.classList.add('active');
+        list.innerHTML = '';
+        try {
+            const resp = await fetch(PROXY + '/synthesis/history/files', { headers: getCsrfHeaders() });
+            spinner.classList.remove('active');
+            if (!resp.ok) { list.innerHTML = '<div class="popular-empty">Could not load daily summaries.</div>'; return; }
+            historyFiles = await resp.json();
+            historyFiles.reverse();
+            historyPage = 0;
+            if (historyFiles.length === 0) { list.innerHTML = '<div class="popular-empty">No daily intelligence summaries found.</div>'; return; }
+            renderHistoryPage();
+        } catch (e) {
+            spinner.classList.remove('active');
+            list.innerHTML = '<div class="popular-empty">Error loading summaries: ' + esc(e.message) + '</div>';
+        }
+    }
+
+    function renderHistoryPage() {
+        var list = document.getElementById('history-list');
+        var start = historyPage * HISTORY_PAGE_SIZE;
+        var end = Math.min(start + HISTORY_PAGE_SIZE, historyFiles.length);
+        var pageFiles = historyFiles.slice(start, end);
+        var totalPages = Math.ceil(historyFiles.length / HISTORY_PAGE_SIZE);
+        var months = {};
+        for (const f of pageFiles) {
+            var parts = f.filename.match(/(\d{4})_(\d{2})/);
+            var key = parts ? parts[1] + '-' + parts[2] : 'Other';
+            if (!months[key]) months[key] = [];
+            months[key].push(f);
+        }
+        var html = '<div class="flex items-center justify-between mb-3">';
+        html += '<span class="text-sm text-gray-500">' + historyFiles.length + ' daily reports &mdash; showing ' + (start + 1) + '&ndash;' + end + '</span>';
+        if (totalPages > 1) {
+            html += '<div class="flex items-center gap-2">';
+            html += '<button class="ic-btn-export text-xs" onclick="historyPageNav(-1)"' + (historyPage === 0 ? ' disabled style="opacity:0.4;pointer-events:none;"' : '') + '>&laquo; Newer</button>';
+            html += '<span class="text-xs text-gray-400">Page ' + (historyPage + 1) + ' of ' + totalPages + '</span>';
+            html += '<button class="ic-btn-export text-xs" onclick="historyPageNav(1)"' + (historyPage >= totalPages - 1 ? ' disabled style="opacity:0.4;pointer-events:none;"' : '') + '>Older &raquo;</button>';
+            html += '</div>';
+        }
+        html += '</div>';
+        var monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        var sortedKeys = Object.keys(months).sort().reverse();
+        for (const key of sortedKeys) {
+            var parts = key.split('-');
+            var heading = parts.length === 2 ? monthNames[parseInt(parts[1])] + ' ' + parts[0] : key;
+            html += '<div class="font-semibold text-sm mt-4 mb-1 pb-1 border-b border-gray-200 text-gray-700">' + heading + '</div>';
+            for (const f of months[key]) {
+                html += '<div class="flex items-center py-1.5 px-2 rounded cursor-pointer hover:bg-gray-50 transition-colors" onclick="openHistoryFile(\'' + escAttr(f.filename) + '\', \'' + escAttr(f.label) + '\')">';
+                html += '<span class="text-sm font-semibold text-amber-700">' + esc(f.label) + '</span>';
+                html += '</div>';
+            }
+        }
+        if (totalPages > 1) {
+            html += '<div class="flex items-center justify-center gap-2 mt-4">';
+            html += '<button class="ic-btn-export text-xs" onclick="historyPageNav(-1)"' + (historyPage === 0 ? ' disabled style="opacity:0.4;pointer-events:none;"' : '') + '>&laquo; Newer</button>';
+            html += '<span class="text-xs text-gray-400">Page ' + (historyPage + 1) + ' of ' + totalPages + '</span>';
+            html += '<button class="ic-btn-export text-xs" onclick="historyPageNav(1)"' + (historyPage >= totalPages - 1 ? ' disabled style="opacity:0.4;pointer-events:none;"' : '') + '>Older &raquo;</button>';
+            html += '</div>';
+        }
+        list.innerHTML = html;
+    }
+
+    function historyPageNav(delta) {
+        historyPage += delta;
+        renderHistoryPage();
+        document.getElementById('history-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function openHistoryFile(filename, label) {
+        var panel = document.getElementById('history-viewer-panel');
+        var title = document.getElementById('history-viewer-title');
+        var iframe = document.getElementById('history-viewer');
+        title.textContent = label;
+        panel.style.display = '';
+        iframe.src = PROXY + '/synthesis/history/files/' + encodeURIComponent(filename);
+        iframe.onload = function() {
+            try { iframe.style.height = (iframe.contentDocument.body.scrollHeight + 40) + 'px'; } catch (e) {}
+        };
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeHistoryViewer() {
+        document.getElementById('history-viewer-panel').style.display = 'none';
+        document.getElementById('history-viewer').src = 'about:blank';
     }
 </script>
 
