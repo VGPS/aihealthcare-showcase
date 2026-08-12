@@ -45,7 +45,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-04
+ * @updated 2026-08-12
  */
 @Slf4j
 @Controller
@@ -125,6 +125,31 @@ public class SentimentDashboardController {
             }
         }
 
+        // Build article metadata maps for inline expansion
+        List<String> allArticleIds = new ArrayList<>();
+        for (CompanySentiment s : sentiments) {
+            for (ArticleSentiment a : s.articleSentiments()) {
+                allArticleIds.add(a.articleId());
+            }
+        }
+        Map<String, String> articleUrls = new HashMap<>();
+        Map<String, String> articleSources = new HashMap<>();
+        Map<String, String> articleDates = new HashMap<>();
+        if (!allArticleIds.isEmpty()) {
+            List<NewsArticleEntity> entities = articleRepository.findByArticleIdIn(allArticleIds);
+            for (NewsArticleEntity entity : entities) {
+                if (entity.getUrl() != null) {
+                    articleUrls.put(entity.getArticleId(), entity.getUrl());
+                }
+                if (entity.getSourceName() != null) {
+                    articleSources.put(entity.getArticleId(), entity.getSourceName());
+                }
+                if (entity.getPublishedAt() != null) {
+                    articleDates.put(entity.getArticleId(), DISPLAY_FMT.format(entity.getPublishedAt()));
+                }
+            }
+        }
+
         model.addAttribute("sentiments", sentiments);
         model.addAttribute("totalCompanies", allSentiments.size());
         model.addAttribute("positiveCompanies", positiveCompanies);
@@ -135,6 +160,9 @@ public class SentimentDashboardController {
         model.addAttribute("chartScores", chartScores);
         model.addAttribute("chartColors", chartColors);
         model.addAttribute("formattedDates", formattedDates);
+        model.addAttribute("articleUrls", articleUrls);
+        model.addAttribute("articleSources", articleSources);
+        model.addAttribute("articleDates", articleDates);
         model.addAttribute("fullAccess", fullAccess);
         model.addAttribute("hasSentiments", !sentiments.isEmpty());
         model.addAttribute("activePage", "risk");
