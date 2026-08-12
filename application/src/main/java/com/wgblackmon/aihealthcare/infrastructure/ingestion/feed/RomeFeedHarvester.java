@@ -12,9 +12,12 @@ import org.springframework.stereotype.Component;
 
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceConfig.FeedTier;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,17 +53,21 @@ public class RomeFeedHarvester implements ArticleHarvestingPort {
 
     private final List<FeedSourceConfig> feedSources;
     private final ArticleRelevanceFilter relevanceFilter;
+    private final int maxAgeDays;
 
     /**
      * Constructor injection of the resolved feed source list and relevance filter.
      *
      * @param properties      externalized feed configuration from {@code application.yml}
      * @param relevanceFilter filters harvested articles to Healthcare+AI relevance
+     * @param maxAgeDays      articles with publishedAt older than this many days are skipped
      */
     public RomeFeedHarvester(FeedSourceProperties properties,
-                             ArticleRelevanceFilter relevanceFilter) {
-        log.debug("RomeFeedHarvester() | properties={}", properties.getClass().getSimpleName());
+                             ArticleRelevanceFilter relevanceFilter,
+                             @Value("${aihealthcare.articles.max-age-days:30}") int maxAgeDays) {
+        log.debug("RomeFeedHarvester() | properties={}, maxAgeDays={}", properties.getClass().getSimpleName(), maxAgeDays);
         this.relevanceFilter = relevanceFilter;
+        this.maxAgeDays = maxAgeDays;
         List<FeedSourceConfig> rssOnly = new ArrayList<>();
         for (FeedSourceConfig config : properties.toFeedSourceConfigs()) {
             if (config.tier() != FeedTier.COMPETITOR
@@ -121,11 +128,23 @@ public class RomeFeedHarvester implements ArticleHarvestingPort {
                 SyndFeed feed = input.build(reader);
                 List<SyndEntry> entries = feed.getEntries();
 
+                Instant ageCutoff = maxAgeDays > 0
+                        ? Instant.now().minus(maxAgeDays, ChronoUnit.DAYS)
+                        : Instant.EPOCH;
                 int limit = Math.min(entries.size(), source.maxItems());
+                int skippedStale = 0;
                 for (int i = 0; i < limit; i++) {
                     SyndEntry entry = entries.get(i);
                     NewsArticle article = mapEntryToArticle(entry, source);
+                    if (article.publishedAt() != null && article.publishedAt().isBefore(ageCutoff)) {
+                        skippedStale++;
+                        continue;
+                    }
                     results.add(article);
+                }
+                if (skippedStale > 0) {
+                    log.info("harvestFeed() | skipped {} stale articles (published before {}) from '{}'",
+                            skippedStale, ageCutoff, source.name());
                 }
             }
 

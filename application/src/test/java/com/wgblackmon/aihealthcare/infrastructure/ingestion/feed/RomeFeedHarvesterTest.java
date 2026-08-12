@@ -63,7 +63,7 @@ class RomeFeedHarvesterTest {
                         FeedTier.INDUSTRY, 0.5, 10, java.util.List.of())
         ));
 
-        harvester = new RomeFeedHarvester(mockProperties, new ArticleRelevanceFilter());
+        harvester = new RomeFeedHarvester(mockProperties, new ArticleRelevanceFilter(), 30);
     }
 
     @Test
