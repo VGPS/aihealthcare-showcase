@@ -206,8 +206,9 @@ public class PerplexityHarvester {
             String title   = buildTitle(url, citationNumber);
 
             try {
+                String urlHash = Integer.toHexString(url.hashCode());
                 result.add(new NewsArticle(
-                        "perplexity-" + citationNumber,
+                        "perplexity-" + topicSlug(topic) + "-" + urlHash,
                         title,
                         URI.create(url),
                         snippet,
@@ -291,5 +292,10 @@ public class PerplexityHarvester {
             log.debug("buildTitle() | return={} (fallback)", fallback);
             return fallback;
         }
+    }
+
+    private String topicSlug(String topic) {
+        if (topic == null || topic.isBlank()) return "unknown";
+        return topic.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
     }
 }
