@@ -137,12 +137,13 @@ class PerplexityHarvesterTest {
         List<NewsArticle> result = harvester.harvestArticles("clinical AI");
 
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).articleId()).isEqualTo("perplexity-1");
+        assertThat(result.get(0).articleId()).startsWith("perplexity-clinical-ai-");
         assertThat(result.get(0).sourceTier()).isEqualTo("PERPLEXITY");
         assertThat(result.get(0).sourceName()).isEqualTo("Perplexity Sonar");
         assertThat(result.get(0).sourceWeight()).isEqualTo(0.85);
         assertThat(result.get(0).topic()).isEqualTo("clinical AI");
-        assertThat(result.get(1).articleId()).isEqualTo("perplexity-2");
+        assertThat(result.get(1).articleId()).startsWith("perplexity-clinical-ai-");
+        assertThat(result.get(0).articleId()).isNotEqualTo(result.get(1).articleId());
         assertThat(result.get(1).url().toString()).isEqualTo("https://www.fda.gov/medical-devices/news");
     }
 
