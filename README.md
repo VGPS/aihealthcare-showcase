@@ -21,7 +21,7 @@ A production AI-powered market intelligence platform for the healthcare industry
 | Data sources | 69 |
 | LLM adapters | 20 |
 | Scheduled pipelines | 17 |
-| Prompt templates | 24 |
+| Prompt templates | 25 |
 | REST API endpoints | 65+ |
 
 ---
@@ -66,7 +66,7 @@ AIHealthcare (port 8080)                AIHealthcare-Claude (port 8081)
 ├── 30+ Thymeleaf dashboards            ├── Multi-LLM verification (AI Audit)
 ├── Daily newsletter (SES)              ├── AI Platform Race tracker
 ├── Stripe billing                      ├── Wiki intelligence
-├── Intelligence Console proxy ────────── 17 REST endpoints
+├── Intelligence Console proxy ────────── 18 REST endpoints
 └── Writes to PostgreSQL ──────────────── Reads from PostgreSQL (read-only)
                                         │
                                         ├── LLM Providers:
@@ -235,6 +235,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 ### Intelligence Monitoring
 - **Scheduled daily reports** — automated synthesis for configurable topics (6 AM cron, 30-day retention)
 - **Intelligence trending** — track how analysis evolves over time with delta metrics and trend arrows
+- **Synthesis Diff** — Claude-powered temporal diff comparing two intelligence reports, surfacing new/dropped/shifted findings and overall market direction
 - **Historical daily archive** — paginated browsing of pre-generated daily summary reports
 - **AI Platform Race Tracker** — vendor-neutral competitive landscape analysis across Claude for Healthcare, OpenAI for Healthcare, Google for Health, Microsoft for Healthcare, Perplexity Health, and Amazon Health
 
@@ -244,7 +245,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - Sliding-window rate limiting per client (IP or API key)
 - Server timeout hardening for deep synthesis queries (5-minute LLM calls)
 - Flyway-managed database migrations for audit and snapshot tables
-- 154 automated tests (JUnit 5 + AssertJ + Mockito)
+- 162 automated tests (JUnit 5 + AssertJ + Mockito), 7 prompt templates
 
 ---
 
