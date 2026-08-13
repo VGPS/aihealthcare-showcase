@@ -1,6 +1,6 @@
 # AI Healthcare Intelligence Platform
 
-A production AI-powered market intelligence platform for the healthcare industry. Harvests, analyzes, and synthesizes data from 69 sources using 6 LLM providers, delivering actionable intelligence through 30+ dashboard pages — backed by a companion Claude Intelligence Service providing cross-domain synthesis, multi-LLM verification, and MCP-powered clinical tools.
+A production AI-powered market intelligence platform for the healthcare industry. Harvests, analyzes, and synthesizes data from 69 sources using 6 LLM providers, delivering actionable intelligence through 30+ dashboard pages — backed by a companion Claude Intelligence Service providing cross-domain synthesis and multi-LLM verification.
 
 **Live at [app.bigskylabs.ai](https://app.bigskylabs.ai)** | **[JavaDoc (1,337 pages)](https://vgps.github.io/aihealthcare-showcase/)**
 
@@ -62,11 +62,11 @@ Built using **hexagonal architecture** (ports and adapters) with strict dependen
 ```
 AIHealthcare (port 8080)                AIHealthcare-Claude (port 8081)
 ├── 69 RSS/API/web sources              ├── Claude RAG chat
-├── 17 automated pipelines              ├── ICD-10 medical coding (MCP)
-├── 30+ Thymeleaf dashboards            ├── CMS coverage lookup (MCP)
-├── Daily newsletter (SES)              ├── NPI / Trials / PubMed (MCP)
-├── Stripe billing                      ├── Cross-domain intelligence reports
-├── Intelligence Console proxy ────────── 20+ REST endpoints
+├── 17 automated pipelines              ├── Cross-domain intelligence reports
+├── 30+ Thymeleaf dashboards            ├── Multi-LLM verification (AI Audit)
+├── Daily newsletter (SES)              ├── AI Platform Race tracker
+├── Stripe billing                      ├── Wiki intelligence
+├── Intelligence Console proxy ────────── 17 REST endpoints
 └── Writes to PostgreSQL ──────────────── Reads from PostgreSQL (read-only)
                                         │
                                         ├── LLM Providers:
@@ -211,7 +211,7 @@ All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSu
 A companion Spring Boot service providing Claude-powered clinical intelligence, cross-domain analysis, and multi-LLM verification. Runs alongside the main app and shares the same PostgreSQL database (read-only access to data engine tables).
 
 ### Intelligence Console
-- **13-tab admin console** for interactive healthcare intelligence queries
+- **9-tab admin console** for interactive healthcare intelligence queries
 - Rich HTML rendering with **entity-aware bold formatting** — companies, studies, legislation, and dollar amounts highlighted automatically by Claude
 - **Live citation links** — `[N]` references in AI output scroll to and highlight the corresponding source article
 - PDF/DOC/TXT/JSON export on every output tab
@@ -231,13 +231,6 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - Confidence scoring with persistent audit trail in PostgreSQL
 - Popular query tracking — frequently-audited topics load instantly from cache
 
-### MCP Tool Integrations
-- **ICD-10 medical coding** — clinical description to billable diagnosis codes via Anthropic's hosted MCP server
-- **CMS coverage lookup** — National Coverage Determination policy search
-- **NPI Registry** — provider lookup by name, specialty, or location
-- **ClinicalTrials.gov** — AI-related clinical trial search
-- **PubMed** — healthcare literature search with clinical synthesis
-
 ### Intelligence Monitoring
 - **Scheduled daily reports** — automated synthesis for configurable topics (6 AM cron, 30-day retention)
 - **Intelligence trending** — track how analysis evolves over time with delta metrics and trend arrows
@@ -250,7 +243,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - Sliding-window rate limiting per client (IP or API key)
 - Server timeout hardening for deep synthesis queries (5-minute LLM calls)
 - Flyway-managed database migrations for audit and snapshot tables
-- 200 automated tests (JUnit 5 + AssertJ + Mockito)
+- 154 automated tests (JUnit 5 + AssertJ + Mockito)
 
 ---
 
