@@ -211,12 +211,13 @@ All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSu
 A companion Spring Boot service providing Claude-powered clinical intelligence, cross-domain analysis, and multi-LLM verification. Runs alongside the main app and shares the same PostgreSQL database (read-only access to data engine tables).
 
 ### Intelligence Console
-- **9-tab admin console** for interactive healthcare intelligence queries
+- **"Enterprise Intelligence"** — 9-tab admin console for interactive healthcare intelligence queries
 - Rich HTML rendering with **entity-aware bold formatting** — companies, studies, legislation, and dollar amounts highlighted automatically by Claude
 - **Live citation links** — `[N]` references in AI output scroll to and highlight the corresponding source article
+- **Clickable scheduled reports** — daily reports expand inline with full rendered intelligence narratives
 - PDF/DOC/TXT/JSON export on every output tab
 - Shared footer with quick links, contact, and branding across both apps
-- Live health check indicator, API key authentication, configurable rate limiting
+- Live health check indicator, configurable API key authentication and rate limiting
 
 ### Cross-Domain Intelligence Reports
 - **Fuses 7 data domains** — regulatory events, deal signals, company sentiment, framework analyses, trend snapshots, articles, and wiki knowledge — into unified narratives
