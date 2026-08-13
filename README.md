@@ -66,7 +66,7 @@ AIHealthcare (port 8080)                AIHealthcare-Claude (port 8081)
 ├── 30+ Thymeleaf dashboards            ├── Multi-LLM verification (AI Audit)
 ├── Daily newsletter (SES)              ├── AI Platform Race tracker
 ├── Stripe billing                      ├── Wiki intelligence
-├── Intelligence Console proxy ────────── 18 REST endpoints
+├── Intelligence Console proxy ────────── 20 REST endpoints
 └── Writes to PostgreSQL ──────────────── Reads from PostgreSQL (read-only)
                                         │
                                         ├── LLM Providers:
@@ -230,6 +230,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - **3 verifier options:** OpenAI GPT-4o, Google Gemini 2.0 Flash, AWS Bedrock Nova Pro
 - Structured output: confirmed claims, disputed claims (with counter-reasoning), and coverage gaps
 - Confidence scoring with persistent audit trail in PostgreSQL
+- **Confidence Trend Heatmap** — append-only snapshots track confidence over time, CSS Grid heatmap shows improving/declining/stable trends
 - Popular query tracking — frequently-audited topics load instantly from cache
 
 ### Intelligence Monitoring
@@ -245,7 +246,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - Sliding-window rate limiting per client (IP or API key)
 - Server timeout hardening for deep synthesis queries (5-minute LLM calls)
 - Flyway-managed database migrations for audit and snapshot tables
-- 162 automated tests (JUnit 5 + AssertJ + Mockito), 7 prompt templates
+- 176 automated tests (JUnit 5 + AssertJ + Mockito), 7 prompt templates
 
 ---
 
