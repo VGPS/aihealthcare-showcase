@@ -247,7 +247,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - Sliding-window rate limiting per client (IP or API key)
 - Server timeout hardening for deep synthesis queries (5-minute LLM calls)
 - Flyway-managed database migrations for audit and snapshot tables
-- 191 automated tests (JUnit 5 + AssertJ + Mockito), 7 prompt templates
+- 190 automated tests (JUnit 5 + AssertJ + Mockito), 7 prompt templates
 
 ---
 
