@@ -57,9 +57,9 @@
         <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-6 flex flex-col">
             <div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Free</div>
             <div class="text-3xl font-bold text-on-surface mb-1">$0 <span class="text-sm font-normal text-on-surface-variant">/month</span></div>
-            <p class="text-sm text-on-surface-variant mb-4">Daily article digest newsletter delivered to your inbox.</p>
+            <p class="text-sm text-on-surface-variant mb-4">Daily AI healthcare newsletter delivered to your inbox.</p>
             <ul class="text-sm text-on-surface-variant space-y-2 mb-6 flex-1">
-                <li><span class="text-green-600 mr-1">&#10003;</span> Daily article digest email</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> Full daily newsletter</li>
                 <li><span class="text-red-400 mr-1">&#10007;</span> Platform access</li>
                 <li><span class="text-red-400 mr-1">&#10007;</span> Article archive</li>
                 <li><span class="text-red-400 mr-1">&#10007;</span> AI research queries</li>
@@ -67,9 +67,10 @@
                 <li><span class="text-red-400 mr-1">&#10007;</span> LLM model choice</li>
                 <li><span class="text-red-400 mr-1">&#10007;</span> Full newsletter content</li>
             </ul>
-            <div class="block text-center bg-gray-100 text-gray-500 font-semibold py-2.5 rounded-md text-sm">
-                Email Only
-            </div>
+            <a th:href="@{/register}"
+               class="block text-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-md text-sm transition-colors">
+                Sign Up Free
+            </a>
         </div>
 
         <!-- SUBSCRIBER -->
@@ -79,7 +80,7 @@
             <div class="text-3xl font-bold text-on-surface mb-1">$19 <span class="text-sm font-normal text-on-surface-variant">/month</span></div>
             <p class="text-sm text-on-surface-variant mb-4">Full access: newsletters, deep archive, semantic search, and AI tools.</p>
             <ul class="text-sm text-on-surface-variant space-y-2 mb-6 flex-1">
-                <li><span class="text-green-600 mr-1">&#10003;</span> Full weekly newsletter</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> Full daily newsletter</li>
                 <li><span class="text-green-600 mr-1">&#10003;</span> <span th:text="${subscriberArchiveDays == 0} ? 'Unlimited article archive' : ${subscriberArchiveDays} + '-day article archive'">Unlimited</span></li>
                 <li><span class="text-green-600 mr-1">&#10003;</span> Basic + semantic search</li>
                 <li><span class="text-green-600 mr-1">&#10003;</span> <span th:text="${subscriberQueryLimit} + ' AI research queries/month'">200/month</span></li>
@@ -114,7 +115,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr><td>Newsletter content</td><td>Full newsletter</td><td>Daily digest email</td><td>Full newsletter</td></tr>
+                <tr><td>Newsletter content</td><td>Full daily newsletter</td><td>Full daily newsletter</td><td>Full daily newsletter</td></tr>
                 <tr><td>Platform access</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
                 <tr><td>Article archive</td><td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td><td><span class="text-red-400">&#10007;</span></td><td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td></tr>
                 <tr><td>AI research queries</td><td th:text="${subscriberQueryLimit} + ' / trial'">200</td><td><span class="text-red-400">&#10007;</span></td><td th:text="${subscriberQueryLimit} + ' / month'">200</td></tr>
