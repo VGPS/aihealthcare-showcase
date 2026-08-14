@@ -9,6 +9,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
 import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryService;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
+import com.wgblackmon.aihealthcare.infrastructure.research.ResearchHarvestScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
@@ -95,6 +96,9 @@ class WebMonitoringControllerTest {
 
     @MockBean
     private AnalyzeCompanySentimentUseCase sentimentUseCase;
+
+    @MockBean
+    private ResearchHarvestScheduler researchHarvestScheduler;
 
     @Test
     void triggerCompetitorHarvest_withChanges_returns200() throws Exception {

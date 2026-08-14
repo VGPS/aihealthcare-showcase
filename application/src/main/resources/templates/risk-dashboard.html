@@ -92,7 +92,8 @@
             <div class="flex items-center gap-4 text-sm text-gray-600 mb-3">
                 <span>Score: <strong th:text="${#numbers.formatDecimal(s.sentimentScore, 1, 2)}">0.50</strong></span>
                 <a href="javascript:void(0)" class="text-primary-600 hover:underline font-medium cursor-pointer"
-                   th:onclick="'toggleArticles(\'' + ${s.companySlug} + '\')'"
+                   th:data-company-slug="${s.companySlug}"
+                   onclick="toggleArticles(this.getAttribute('data-company-slug'))"
                    th:text="${s.totalArticles} + ' articles'">10 articles</a>
                 <span class="text-xs text-gray-400" th:text="${formattedDates[__${iter.index}__]}">Jan 1, 2026</span>
             </div>
@@ -134,7 +135,8 @@
                            class="text-sm text-gray-600 italic leading-relaxed mt-1" th:text="${a.rationale()}">Rationale</p>
                     </div>
                     <button class="mt-2 px-4 py-1.5 bg-primary-600 text-white rounded text-xs font-semibold hover:bg-primary-700 transition-colors"
-                            th:onclick="'exportArticles(\'' + ${s.companyName} + '\', \'' + ${s.companySlug} + '\')'">Save As Doc</button>
+                            th:data-company-name="${s.companyName}" th:data-company-slug="${s.companySlug}"
+                            onclick="exportArticles(this.getAttribute('data-company-name'), this.getAttribute('data-company-slug'))">Save As Doc</button>
                 </div>
             </div>
         </div>

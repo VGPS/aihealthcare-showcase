@@ -343,12 +343,50 @@ public class WikiController {
             index++;
         }
 
+        // Collect all article IDs from prior and new sources across all contradictions
+        List<String> allArticleIds = new ArrayList<>();
+        for (Contradiction c : contradictions) {
+            for (SourceRef s : c.priorSources()) {
+                if (s.articleId() != null && s.articleId().length() <= 200
+                        && !s.articleId().startsWith("CBM")) {
+                    allArticleIds.add(s.articleId());
+                }
+            }
+            for (SourceRef s : c.newSources()) {
+                if (s.articleId() != null && s.articleId().length() <= 200
+                        && !s.articleId().startsWith("CBM")) {
+                    allArticleIds.add(s.articleId());
+                }
+            }
+        }
+
+        Map<String, String> articleUrlMap = new HashMap<>();
+        Map<String, String> articleTitleMap = new HashMap<>();
+        if (!allArticleIds.isEmpty()) {
+            List<NewsArticleEntity> articles = articleRepository.findByArticleIdIn(allArticleIds);
+            for (NewsArticleEntity entity : articles) {
+                articleUrlMap.put(entity.getArticleId(), entity.getUrl());
+                articleTitleMap.put(entity.getArticleId(), entity.getTitle());
+            }
+        }
+        // Auto-construct PubMed URLs for IDs not found in the DB
+        for (String aid : allArticleIds) {
+            if (aid.startsWith("pubmed-") && !articleUrlMap.containsKey(aid)) {
+                String pmid = aid.substring("pubmed-".length());
+                articleUrlMap.put(aid, "https://pubmed.ncbi.nlm.nih.gov/" + pmid + "/");
+                articleTitleMap.put(aid, "PubMed " + pmid);
+            }
+        }
+
         model.addAttribute("contradictions", contradictions);
         model.addAttribute("contradictionTimestamps", contradictionTimestamps);
         model.addAttribute("pageSlugTitles", pageSlugTitles);
+        model.addAttribute("articleUrlMap", articleUrlMap);
+        model.addAttribute("articleTitleMap", articleTitleMap);
         model.addAttribute("days", days);
 
-        log.debug("contradictions() | return=wiki-contradictions (count={})", contradictions.size());
+        log.debug("contradictions() | return=wiki-contradictions (count={}, sources={})",
+                contradictions.size(), allArticleIds.size());
         return "wiki-contradictions";
     }
 
