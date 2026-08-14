@@ -228,6 +228,64 @@ class DigestNewsletterRendererTest {
         assertThat(result.get().htmlContent()).doesNotContain("HF Model XYZ");
     }
 
+    @Test
+    void buildDigest_partitionsIntoTodaysAndDiscovered() {
+        NewsArticle todayArticle = new NewsArticle(
+                "t1", "Breaking: AI Clears FDA", URI.create("https://example.com/fda"),
+                "FDA clears new AI device", "AI Healthcare", null, null,
+                "TestSource", "INDUSTRY", 0.5, Instant.now()
+        );
+        NewsArticle oldArticle = new NewsArticle(
+                "o1", "Last Week's Discovery", URI.create("https://example.com/old"),
+                "Older article body text", "AI Healthcare", null, null,
+                "TestSource", "INDUSTRY", 0.5, Instant.now().minus(5, java.time.temporal.ChronoUnit.DAYS)
+        );
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(todayArticle, oldArticle));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String html = result.get().htmlContent();
+        assertThat(html).contains("Today&rsquo;s Intelligence");
+        assertThat(html).contains("Also Discovered");
+        int todayPos = html.indexOf("Today&rsquo;s");
+        int discoveredPos = html.indexOf("Also Discovered");
+        assertThat(todayPos).isLessThan(discoveredPos);
+    }
+
+    @Test
+    void buildDigest_allTodayArticles_noDiscoveredSection() {
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(makeArticle("Fresh Article", "https://example.com/fresh", "Fresh body")));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String html = result.get().htmlContent();
+        assertThat(html).contains("Today&rsquo;s Intelligence");
+        assertThat(html).doesNotContain("Also Discovered");
+    }
+
+    @Test
+    void buildDigest_plainTextHasSections() {
+        NewsArticle todayArticle = makeArticle("New Today", "https://example.com/new", "Fresh news");
+        NewsArticle oldArticle = new NewsArticle(
+                "o2", "Old Finding", URI.create("https://example.com/old2"),
+                "Older finding body", "AI Healthcare", null, null,
+                "TestSource", "INDUSTRY", 0.5, Instant.now().minus(3, java.time.temporal.ChronoUnit.DAYS)
+        );
+        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+                .thenReturn(List.of(todayArticle, oldArticle));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String plain = result.get().plainTextContent();
+        assertThat(plain).contains("TODAY'S INTELLIGENCE");
+        assertThat(plain).contains("ALSO DISCOVERED");
+    }
+
     private NewsArticle makeArticle(String title, String url, String body) {
         return new NewsArticle(
                 "art-" + title.hashCode(), title, URI.create(url),

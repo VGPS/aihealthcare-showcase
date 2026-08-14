@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -73,9 +74,21 @@ public class DigestNewsletterRenderer {
             return Optional.empty();
         }
 
-        String bodyHtml = renderArticleCards(filtered);
+        Instant oneDayAgo = Instant.now().minus(1, ChronoUnit.DAYS);
+        List<NewsArticle> todaysItems = new ArrayList<>();
+        List<NewsArticle> discoveredItems = new ArrayList<>();
+        for (NewsArticle article : filtered) {
+            if (article.publishedAt() != null && !article.publishedAt().isBefore(oneDayAgo)) {
+                todaysItems.add(article);
+            } else {
+                discoveredItems.add(article);
+            }
+        }
+        log.info("buildDigest() | today's={}, discovered={}", todaysItems.size(), discoveredItems.size());
+
+        String bodyHtml = renderSectionedCards(todaysItems, discoveredItems);
         String wrappedHtml = wrapInEmailLayout(bodyHtml, today, filtered.size());
-        String plainText = renderPlainText(filtered);
+        String plainText = renderSectionedPlainText(todaysItems, discoveredItems);
 
         String emailDate = today.format(EMAIL_DATE_FMT);
         NewsletterRun result = new NewsletterRun(
@@ -175,6 +188,48 @@ public class DigestNewsletterRenderer {
 
         String result = sb.toString();
         log.debug("renderArticleCards() | return={} chars", result.length());
+        return result;
+    }
+
+    private String renderSectionedCards(List<NewsArticle> todaysItems, List<NewsArticle> discoveredItems) {
+        log.debug("renderSectionedCards() | today={}, discovered={}", todaysItems.size(), discoveredItems.size());
+
+        StringBuilder sb = new StringBuilder();
+
+        if (!todaysItems.isEmpty()) {
+            sb.append("<h2 style=\"color:#1a3a5c; font-size:1.15em; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #0066cc;\">");
+            sb.append("Today&rsquo;s Intelligence</h2>\n");
+            sb.append(renderArticleCards(todaysItems));
+        }
+
+        if (!discoveredItems.isEmpty()) {
+            sb.append("<h2 style=\"color:#666; font-size:1.05em; margin:24px 0 12px; padding-bottom:8px; border-bottom:1px solid #ccc;\">");
+            sb.append("Also Discovered</h2>\n");
+            sb.append(renderArticleCards(discoveredItems));
+        }
+
+        String result = sb.toString();
+        log.debug("renderSectionedCards() | return={} chars", result.length());
+        return result;
+    }
+
+    private String renderSectionedPlainText(List<NewsArticle> todaysItems, List<NewsArticle> discoveredItems) {
+        log.debug("renderSectionedPlainText() | today={}, discovered={}", todaysItems.size(), discoveredItems.size());
+
+        StringBuilder sb = new StringBuilder();
+
+        if (!todaysItems.isEmpty()) {
+            sb.append("=== TODAY'S INTELLIGENCE ===\n\n");
+            sb.append(renderPlainText(todaysItems));
+        }
+
+        if (!discoveredItems.isEmpty()) {
+            sb.append("=== ALSO DISCOVERED ===\n\n");
+            sb.append(renderPlainText(discoveredItems));
+        }
+
+        String result = sb.toString();
+        log.debug("renderSectionedPlainText() | return={} chars", result.length());
         return result;
     }
 
