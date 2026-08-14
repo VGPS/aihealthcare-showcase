@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <!--
 /**
- * Clinical Intelligence Console — full 13-tab admin console proxying all
- * endpoints from the Claude Intelligence Service (port 8081).
+ * Intelligence Console — 11-tab customer UI for the Claude Intelligence Service.
+ *
+ * 7 SUBSCRIBER tabs: Q&A, Market Briefing, Intelligence Report, Platform Race, Wiki, Daily Briefs, Historical Review.
+ * 4 ENTERPRISE tabs: AI Audit, Confidence Trends, Intelligence Trending, What Changed?
+ * DEMO tier gets full Enterprise access. Tier gated server-side via Thymeleaf th:if.
  *
  * AJAX calls route through /admin/intelligence/api/** generic proxy.
  * CSRF token from head fragment meta tags included in all requests.
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 3.0
  * @since   2026-08-08
- * @updated 2026-08-11
+ * @updated 2026-08-14
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -38,22 +41,27 @@
             <button @click="switchTab('analyze')" :class="tab==='analyze' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Market Briefing</button>
             <button @click="switchTab('synthesis')" :class="tab==='synthesis' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Intelligence Report</button>
             <button @click="switchTab('platform-race')" :class="tab==='platform-race' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">AI Platform Race</button>
-            <button @click="switchTab('verify')" :class="tab==='verify' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">AI Audit</button>
-
-            <div class="px-4 py-1.5 mt-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Clinical Reference</div>
-            <button @click="switchTab('coding')" :class="tab==='coding' ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">ICD-10 Coding</button>
-            <button @click="switchTab('coverage')" :class="tab==='coverage' ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">CMS Coverage</button>
-            <button @click="switchTab('npi')" :class="tab==='npi' ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Provider Lookup</button>
-            <button @click="switchTab('trials')" :class="tab==='trials' ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Clinical Trials</button>
-            <button @click="switchTab('literature')" :class="tab==='literature' ? 'bg-indigo-50 text-indigo-700 border-l-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Research Literature</button>
-
-            <div class="px-4 py-1.5 mt-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Knowledge Base</div>
-            <button @click="switchTab('wiki')" :class="tab==='wiki' ? 'bg-teal-50 text-teal-700 border-l-2 border-teal-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Wiki</button>
-
-            <div class="px-4 py-1.5 mt-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Monitoring</div>
+            <button @click="switchTab('wiki')" :class="tab==='wiki' ? 'bg-teal-50 text-teal-700 border-l-2 border-teal-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Wiki Intelligence</button>
             <button @click="switchTab('reports')" :class="tab==='reports' ? 'bg-amber-50 text-amber-700 border-l-2 border-amber-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Daily Briefs</button>
-            <button @click="switchTab('trending')" :class="tab==='trending' ? 'bg-amber-50 text-amber-700 border-l-2 border-amber-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Trend Tracking</button>
             <button @click="switchTab('history')" :class="tab==='history' ? 'bg-amber-50 text-amber-700 border-l-2 border-amber-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors">Historical Review</button>
+
+            <div class="px-4 py-1.5 mt-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Enterprise Analytics</div>
+            <button @click="switchTab('verify')" :class="tab==='verify' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors flex items-center justify-between" th:classappend="${!isEnterprise} ? ' tab-locked'">
+                <span>AI Audit</span>
+                <span th:if="${!isEnterprise}" th:replace="~{fragments/tier-utils :: lockBadge}"></span>
+            </button>
+            <button @click="switchTab('confidence')" :class="tab==='confidence' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors flex items-center justify-between" th:classappend="${!isEnterprise} ? ' tab-locked'">
+                <span>Confidence Trends</span>
+                <span th:if="${!isEnterprise}" th:replace="~{fragments/tier-utils :: lockBadge}"></span>
+            </button>
+            <button @click="switchTab('trending')" :class="tab==='trending' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors flex items-center justify-between" th:classappend="${!isEnterprise} ? ' tab-locked'">
+                <span>Intelligence Trending</span>
+                <span th:if="${!isEnterprise}" th:replace="~{fragments/tier-utils :: lockBadge}"></span>
+            </button>
+            <button @click="switchTab('diff')" :class="tab==='diff' ? 'bg-purple-50 text-purple-700 border-l-2 border-purple-600' : 'text-gray-600 hover:bg-gray-50 border-l-2 border-transparent'" class="w-full text-left px-4 py-2 text-sm font-medium transition-colors flex items-center justify-between" th:classappend="${!isEnterprise} ? ' tab-locked'">
+                <span>What Changed?</span>
+                <span th:if="${!isEnterprise}" th:replace="~{fragments/tier-utils :: lockBadge}"></span>
+            </button>
         </div>
     </nav>
 
@@ -188,6 +196,7 @@
 
         <!-- ═══ AI AUDIT (VERIFICATION) ═══ -->
         <div x-show="tab==='verify'" x-cloak>
+            <div th:if="${isEnterprise}">
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">One AI writes the intelligence report, then a completely independent AI audits every claim against the same raw evidence. You get a confidence-scored result — confirmed facts, disputed claims, and gaps — so you know exactly what to trust.</p>
                 <p class="text-xs text-gray-400 mt-1">Claude generates the synthesis; then a second model independently evaluates every claim against the source data. Claims are classified as confirmed, disputed, or gap.</p>
@@ -246,183 +255,8 @@
                 <p class="text-xs text-gray-500 mb-3">Topics others have audited — click to view the cached result.</p>
                 <div id="popular-queries" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
             </div>
-        </div>
-
-        <!-- ═══ ICD-10 CODING ═══ -->
-        <div x-show="tab==='coding'" x-cloak>
-            <div class="mb-4">
-                <p class="text-sm text-gray-600 leading-relaxed">Describe symptoms or a diagnosis in plain English and get the correct ICD-10-CM codes back — no memorization, no manual lookup. Results include clinical context so you understand why each code was suggested.</p>
-                <p class="text-xs text-gray-400 mt-1">Queries the official ICD-10 code database via Model Context Protocol (MCP). Claude interprets the clinical description and matches it against the coding taxonomy.</p>
-                <p class="text-xs text-amber-500 mt-1">Average processing time: 15–30 seconds.</p>
             </div>
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
-                <h2 class="font-display text-lg font-semibold mb-4">ICD-10 Medical Coding</h2>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Clinical Description</label>
-                        <textarea id="coding-description" rows="3" placeholder="e.g., acute chest pain with shortness of breath" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Patient Context <span class="text-gray-400">(optional)</span></label>
-                        <input type="text" id="coding-context" placeholder="e.g., 65 year old male, history of hypertension" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                </div>
-                <div class="flex items-center gap-3 mt-4">
-                    <button onclick="sendCoding(this)" class="ic-btn ic-btn-indigo">Prompt</button>
-                    <span class="ic-spinner" id="coding-spinner"></span>
-                </div>
-                <div class="text-xs text-gray-400 mt-2" id="coding-timing"></div>
-                <div class="ic-report" id="coding-report"></div>
-            </div>
-        </div>
-
-        <!-- ═══ CMS COVERAGE ═══ -->
-        <div x-show="tab==='coverage'" x-cloak>
-            <div class="mb-4">
-                <p class="text-sm text-gray-600 leading-relaxed">Before you order a procedure, know whether it's covered. Enter a procedure description and get a clear answer on Medicare and Medicaid coverage — including conditions, limitations, and specific CMS policy references.</p>
-                <p class="text-xs text-gray-400 mt-1">Queries federal CMS coverage databases via Model Context Protocol (MCP). Claude summarizes the coverage determination with applicable conditions and policy citations.</p>
-                <p class="text-xs text-amber-500 mt-1">Average processing time: 15–30 seconds.</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
-                <h2 class="font-display text-lg font-semibold mb-4">CMS Coverage Lookup</h2>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Procedure Description</label>
-                        <textarea id="coverage-procedure" rows="2" placeholder="e.g., Cardiac catheterization with coronary angiography" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Payer Type</label>
-                            <select id="coverage-payer" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                                <option value="MEDICARE_B">Medicare Part B</option>
-                                <option value="MEDICARE_A">Medicare Part A</option>
-                                <option value="MEDICAID">Medicaid</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Patient Context <span class="text-gray-400">(optional)</span></label>
-                            <input type="text" id="coverage-context" placeholder="e.g., outpatient setting" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3 mt-4">
-                    <button onclick="sendCoverage(this)" class="ic-btn ic-btn-indigo">Prompt</button>
-                    <span class="ic-spinner" id="coverage-spinner"></span>
-                </div>
-                <div class="text-xs text-gray-400 mt-2" id="coverage-timing"></div>
-                <div class="ic-report" id="coverage-report"></div>
-            </div>
-        </div>
-
-        <!-- ═══ NPI ═══ -->
-        <div x-show="tab==='npi'" x-cloak>
-            <div class="mb-4">
-                <p class="text-sm text-gray-600 leading-relaxed">Look up any healthcare provider in the United States — verify credentials, find specialists by location, or confirm an NPI number for referrals and billing.</p>
-                <p class="text-xs text-gray-400 mt-1">Queries the CMS NPPES (National Plan and Provider Enumeration System) database via Model Context Protocol (MCP).</p>
-                <p class="text-xs text-amber-500 mt-1">Average processing time: 10–20 seconds.</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
-                <h2 class="font-display text-lg font-semibold mb-4">NPI Provider Registry</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Provider Name</label>
-                        <input type="text" id="npi-name" placeholder="e.g., Smith" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">NPI Number</label>
-                        <input type="text" id="npi-number" placeholder="e.g., 1234567890" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
-                        <input type="text" id="npi-state" placeholder="e.g., TX" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Specialty</label>
-                        <input type="text" id="npi-specialty" placeholder="e.g., Cardiology" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                </div>
-                <div class="flex items-center gap-3 mt-4">
-                    <button onclick="sendNpi(this)" class="ic-btn ic-btn-indigo">Prompt</button>
-                    <span class="ic-spinner" id="npi-spinner"></span>
-                </div>
-                <div class="text-xs text-gray-400 mt-2" id="npi-timing"></div>
-                <div class="ic-report" id="npi-report"></div>
-            </div>
-        </div>
-
-        <!-- ═══ CLINICAL TRIALS ═══ -->
-        <div x-show="tab==='trials'" x-cloak>
-            <div class="mb-4">
-                <p class="text-sm text-gray-600 leading-relaxed">Find clinical trials that matter to your practice, patients, or investment thesis. Search by condition, intervention, phase, or status. Sourced directly from the federal ClinicalTrials.gov registry.</p>
-                <p class="text-xs text-gray-400 mt-1">Queries the ClinicalTrials.gov federal database via Model Context Protocol (MCP). Claude summarizes matching studies with enrollment, phase, status, and sponsor details.</p>
-                <p class="text-xs text-amber-500 mt-1">Average processing time: 15–30 seconds.</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
-                <h2 class="font-display text-lg font-semibold mb-4">Clinical Trials Search</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Condition</label>
-                        <input type="text" id="trials-condition" placeholder="e.g., lung cancer" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Intervention</label>
-                        <input type="text" id="trials-intervention" placeholder="e.g., AI diagnostic" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select id="trials-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                            <option value="">Any</option>
-                            <option value="Recruiting">Recruiting</option>
-                            <option value="Active">Active</option>
-                            <option value="Completed">Completed</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Phase</label>
-                        <select id="trials-phase" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                            <option value="">Any</option>
-                            <option value="Phase 1">Phase 1</option>
-                            <option value="Phase 2">Phase 2</option>
-                            <option value="Phase 3">Phase 3</option>
-                            <option value="Phase 4">Phase 4</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3 mt-4">
-                    <button onclick="sendTrials(this)" class="ic-btn ic-btn-indigo">Prompt</button>
-                    <span class="ic-spinner" id="trials-spinner"></span>
-                </div>
-                <div class="text-xs text-gray-400 mt-2" id="trials-timing"></div>
-                <div class="ic-report" id="trials-report"></div>
-            </div>
-        </div>
-
-        <!-- ═══ LITERATURE ═══ -->
-        <div x-show="tab==='literature'" x-cloak>
-            <div class="mb-4">
-                <p class="text-sm text-gray-600 leading-relaxed">Search the world's largest biomedical research database. PubMed indexes over 37 million citations from peer-reviewed journals — find the published evidence behind any clinical question.</p>
-                <p class="text-xs text-gray-400 mt-1">Queries the National Library of Medicine's PubMed database via Model Context Protocol (MCP). Claude summarizes matching publications with citation details and key findings.</p>
-                <p class="text-xs text-amber-500 mt-1">Average processing time: 15–30 seconds.</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-indigo-500">
-                <h2 class="font-display text-lg font-semibold mb-4">PubMed Literature Search</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Search Query</label>
-                        <input type="text" id="lit-query" placeholder="e.g., deep learning radiology diagnosis" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Max Results</label>
-                        <input type="number" id="lit-max" value="10" min="1" max="50" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                </div>
-                <div class="flex items-center gap-3 mt-4">
-                    <button onclick="sendLiterature(this)" class="ic-btn ic-btn-indigo">Prompt</button>
-                    <span class="ic-spinner" id="literature-spinner"></span>
-                </div>
-                <div class="text-xs text-gray-400 mt-2" id="literature-timing"></div>
-                <div class="ic-report" id="literature-report"></div>
-            </div>
+            <div th:unless="${isEnterprise}" th:replace="~{fragments/tier-utils :: upgradeCard}"></div>
         </div>
 
         <!-- ═══ WIKI ═══ -->
@@ -514,6 +348,7 @@
 
         <!-- ═══ TREND TRACKING ═══ -->
         <div x-show="tab==='trending'" x-cloak>
+            <div th:if="${isEnterprise}">
             <div class="mb-4">
                 <p class="text-sm text-gray-600 leading-relaxed">See how a topic's landscape has changed over time — rising or falling data points, new cross-domain connections, shifting leading indicators. If you've been tracking a topic for weeks, this is where you see whether the story is strengthening or fading.</p>
                 <p class="text-xs text-gray-400 mt-1">Every intelligence report (manual or scheduled) is stored as a timestamped record. This view queries the history and computes trend deltas between the oldest and newest runs.</p>
@@ -524,7 +359,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Topic</label>
-                        <input type="text" id="trending-topic" placeholder="e.g., AI healthcare diagnostics" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <select id="trending-topic" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                            <option value="">Select a topic...</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Days Back</label>
@@ -536,7 +373,6 @@
                     <span class="ic-spinner" id="trending-spinner"></span>
                 </div>
                 <div class="text-xs text-gray-400 mt-2" id="trending-timing"></div>
-                <div id="trending-topics-panel" class="mt-3"></div>
                 <div class="ic-report" id="trending-report"></div>
                 <div class="flex gap-2 mt-3" id="trending-export-row" style="display:none;">
                     <button onclick="exportTrendingDoc()" class="ic-btn-export">Export DOC</button>
@@ -544,6 +380,51 @@
                     <button onclick="exportJson(lastTrendingData, 'trending')" class="ic-btn-export">Export JSON</button>
                 </div>
             </div>
+
+            </div>
+            <div th:unless="${isEnterprise}" th:replace="~{fragments/tier-utils :: upgradeCard}"></div>
+        </div>
+
+        <!-- ═══ WHAT CHANGED? ═══ -->
+        <div x-show="tab==='diff'" x-cloak>
+            <div th:if="${isEnterprise}">
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Claude compares two snapshots of the same topic and identifies what shifted — new findings that emerged, claims that were dropped, and positions that reversed. Run this weekly to see whether the story is strengthening or changing direction.</p>
+                <p class="text-xs text-gray-400 mt-1">Performs a hybrid diff: programmatic structural comparison (indicator add/remove, count deltas) plus Claude semantic narrative analysis to identify material meaning changes.</p>
+                <p class="text-xs text-amber-500 mt-1">Average processing time: 2–5 minutes.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500">
+                <h2 class="font-display text-lg font-semibold mb-4">What Changed?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                        <select id="diff-topic" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                            <option value="">Select a topic...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Compare Last N Days</label>
+                        <select id="diff-days" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white">
+                            <option value="7">7 days</option>
+                            <option value="14">14 days</option>
+                            <option value="30" selected>30 days</option>
+                            <option value="90">90 days</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 mt-4">
+                    <button onclick="sendDiff(this)" class="ic-btn ic-btn-amber">Prompt</button>
+                    <span class="ic-spinner" id="diff-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="diff-timing"></div>
+                <div class="ic-report" id="diff-report"></div>
+                <div class="flex gap-2 mt-3" id="diff-export-row" style="display:none;">
+                    <button onclick="exportDiffDoc()" class="ic-btn-export">Export DOC</button>
+                    <button onclick="exportDiffTxt()" class="ic-btn-export">Export TXT</button>
+                </div>
+            </div>
+            </div>
+            <div th:unless="${isEnterprise}" th:replace="~{fragments/tier-utils :: upgradeCard}"></div>
         </div>
 
         <div x-show="tab==='history'" x-cloak>
@@ -564,6 +445,47 @@
                 </div>
                 <iframe id="history-viewer" style="width:100%;border:1px solid #e5e7eb;border-radius:6px;background:#fff;min-height:600px;" sandbox="allow-same-origin"></iframe>
             </div>
+        </div>
+
+        <!-- ═══ CONFIDENCE TRENDS ═══ -->
+        <div x-show="tab==='confidence'" x-cloak>
+            <div th:if="${isEnterprise}">
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 leading-relaxed">Track how the AI's confidence in a topic changes week over week. Each cell in the heatmap represents one AI Audit run — green means high confidence, amber is moderate, red is low. Spot topics where confidence is slipping or improving before you act on the intelligence.</p>
+                <p class="text-xs text-gray-400 mt-1">Reads from the append-only audit snapshot table, which records confidence, confirmed claim count, and verifier model for every audit run. Trend direction computed from first vs. last run in the selected window.</p>
+                <p class="text-xs text-amber-500 mt-1">Average processing time: under 1 second.</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
+                <h2 class="font-display text-lg font-semibold mb-4">Confidence Trend Heatmap</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                        <select id="confidence-topic" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+                            <option value="">All topics</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Days Back</label>
+                        <select id="confidence-days" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+                            <option value="30">30 days</option>
+                            <option value="60">60 days</option>
+                            <option value="90" selected>90 days</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="fetchConfidenceTrend(this)" class="ic-btn">Prompt</button>
+                    <span class="ic-spinner" id="confidence-spinner"></span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" id="confidence-timing"></div>
+                <div class="ic-report" id="confidence-report"></div>
+                <div class="flex gap-2 mt-3" id="confidence-export-row" style="display:none;">
+                    <button onclick="exportConfidenceTrendDoc()" class="ic-btn-export">Export DOC</button>
+                    <button onclick="exportConfidenceTrendTxt()" class="ic-btn-export">Export TXT</button>
+                </div>
+            </div>
+            </div>
+            <div th:unless="${isEnterprise}" th:replace="~{fragments/tier-utils :: upgradeCard}"></div>
         </div>
 
     </main>
@@ -661,6 +583,24 @@
     .popular-meta { font-size: 0.75rem; color: #64748b; display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.2rem; }
     .popular-empty { font-size: 0.82rem; color: #94a3b8; padding: 0.75rem 0; }
     .badge { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 0.25rem; background: #f1f5f9; color: #475569; }
+    /* ── Tier Gating ── */
+    .tab-locked { opacity: 0.6; cursor: not-allowed !important; }
+    .tab-locked:hover { background: transparent !important; }
+    .tab-lock-badge { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.05em; padding: 1px 5px; border-radius: 999px; background: #7c3aed; color: white; }
+    /* ── Confidence Trend Heatmap ── */
+    .heatmap-grid { display: grid; gap: 2px; margin-top: 0.75rem; overflow-x: auto; }
+    .heatmap-header { font-size: 0.7rem; font-weight: 600; color: #64748b; text-align: center; padding: 0.3rem 0.2rem; white-space: nowrap; }
+    .heatmap-topic-label { font-size: 0.78rem; font-weight: 600; color: #1e293b; padding: 0.3rem 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; display: flex; align-items: center; }
+    .heatmap-cell { min-width: 36px; height: 28px; border-radius: 3px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; }
+    .heatmap-cell:hover { transform: scale(1.15); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); z-index: 1; }
+    .heatmap-cell-tooltip { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; font-size: 0.72rem; padding: 0.35rem 0.5rem; border-radius: 0.25rem; white-space: nowrap; z-index: 10; pointer-events: none; }
+    .heatmap-cell:hover .heatmap-cell-tooltip { display: block; }
+    .heatmap-legend { display: flex; gap: 0.75rem; align-items: center; margin-top: 0.5rem; font-size: 0.72rem; color: #64748b; }
+    .heatmap-legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: middle; margin-right: 0.25rem; }
+    .confidence-trend-summary { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.75rem; }
+    .trend-summary-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.6rem 0.9rem; flex: 1 1 220px; min-width: 220px; }
+    .trend-summary-topic { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; }
+    .trend-summary-meta { font-size: 0.78rem; color: #64748b; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 </style>
 
 <script th:inline="none">
@@ -668,6 +608,8 @@
     let lastVerificationData = null;
     let lastSynthesisData = null;
     let lastTrendingData = null;
+    let lastConfidenceTrendData = null;
+    let lastDiffData = null;
     let historyFiles = [];
     let historyPage = 0;
     const HISTORY_PAGE_SIZE = 25;
@@ -679,6 +621,8 @@
                 this.tab = name;
                 if (name === 'verify') loadPopularQueries();
                 if (name === 'trending') loadTrendingTopics();
+                if (name === 'diff') loadTrendingTopics();
+                if (name === 'confidence') loadConfidenceTrendTopics();
                 if (name === 'history') loadHistoryFiles();
             }
         };
@@ -813,6 +757,18 @@
             'analyze-report', 'analyze-spinner', 'analyze-timing', btn, renderAnalysis,
             { exportTitle: 'Market Briefing' });
     }
+    function fetchReports(btn) {
+        const days = document.getElementById('reports-days').value;
+        richApiCall('/synthesis/reports?days=' + days, 'GET', null, 'reports-report', 'reports-spinner', 'reports-timing', btn, renderReportList,
+            { exportTitle: 'Scheduled Reports' });
+    }
+    function fetchLatestReport(btn) {
+        const topic = document.getElementById('reports-topic').value.trim();
+        if (!topic) return;
+        richApiCall('/synthesis/reports/latest?topic=' + encodeURIComponent(topic), 'GET', null,
+            'latest-report', 'latest-spinner', 'latest-timing', btn, renderSynthesis,
+            { exportTitle: 'Latest Report' });
+    }
     function sendSynthesis(btn) {
         const topic = document.getElementById('synthesis-topic').value.trim();
         if (!topic) return;
@@ -846,59 +802,6 @@
             onComplete: function() { loadPopularQueries(); }
         });
     }
-    function sendCoding(btn) {
-        const desc = document.getElementById('coding-description').value.trim();
-        if (!desc) return;
-        const ctx = document.getElementById('coding-context').value.trim();
-        richApiCall('/coding', 'POST', { clinicalDescription: desc, context: ctx || null },
-            'coding-report', 'coding-spinner', 'coding-timing', btn, renderCoding,
-            { exportTitle: 'ICD-10 Medical Coding' });
-    }
-    function sendCoverage(btn) {
-        const proc = document.getElementById('coverage-procedure').value.trim();
-        if (!proc) return;
-        richApiCall('/coverage', 'POST', {
-            procedureDescription: proc,
-            patientContext: document.getElementById('coverage-context').value.trim() || null,
-            payerType: document.getElementById('coverage-payer').value
-        }, 'coverage-report', 'coverage-spinner', 'coverage-timing', btn, renderCoverage,
-            { exportTitle: 'CMS Coverage' });
-    }
-    function sendNpi(btn) {
-        const body = {};
-        const n = document.getElementById('npi-name').value.trim();
-        const num = document.getElementById('npi-number').value.trim();
-        const st = document.getElementById('npi-state').value.trim();
-        const sp = document.getElementById('npi-specialty').value.trim();
-        if (n) body.providerName = n;
-        if (num) body.npiNumber = num;
-        if (st) body.state = st;
-        if (sp) body.specialty = sp;
-        if (Object.keys(body).length === 0) return;
-        richApiCall('/npi', 'POST', body, 'npi-report', 'npi-spinner', 'npi-timing', btn, renderNpi,
-            { exportTitle: 'NPI Provider Lookup' });
-    }
-    function sendTrials(btn) {
-        const body = {};
-        const c = document.getElementById('trials-condition').value.trim();
-        const i = document.getElementById('trials-intervention').value.trim();
-        const s = document.getElementById('trials-status').value;
-        const p = document.getElementById('trials-phase').value;
-        if (c) body.condition = c;
-        if (i) body.intervention = i;
-        if (s) body.status = s;
-        if (p) body.phase = p;
-        if (Object.keys(body).length === 0) return;
-        richApiCall('/trials', 'POST', body, 'trials-report', 'trials-spinner', 'trials-timing', btn, renderTrials,
-            { exportTitle: 'Clinical Trials' });
-    }
-    function sendLiterature(btn) {
-        const q = document.getElementById('lit-query').value.trim();
-        if (!q) return;
-        richApiCall('/literature', 'POST', { query: q, maxResults: parseInt(document.getElementById('lit-max').value) },
-            'literature-report', 'literature-spinner', 'literature-timing', btn, renderLiterature,
-            { exportTitle: 'PubMed Literature' });
-    }
     function sendWiki(btn) {
         const keyword = document.getElementById('wiki-keyword').value.trim();
         const pageType = document.getElementById('wiki-page-type').value;
@@ -915,20 +818,8 @@
         richApiCall('/wiki/ask', 'POST', { question: q }, 'wiki-ask-report', 'wiki-ask-spinner', 'wiki-ask-timing', btn, renderWikiAsk,
             { exportTitle: 'Ask Wiki' });
     }
-    function fetchReports(btn) {
-        const days = document.getElementById('reports-days').value;
-        richApiCall('/synthesis/reports?days=' + days, 'GET', null, 'reports-report', 'reports-spinner', 'reports-timing', btn, renderReportList,
-            { exportTitle: 'Scheduled Reports' });
-    }
-    function fetchLatestReport(btn) {
-        const topic = document.getElementById('reports-topic').value.trim();
-        if (!topic) return;
-        richApiCall('/synthesis/reports/latest?topic=' + encodeURIComponent(topic), 'GET', null,
-            'latest-report', 'latest-spinner', 'latest-timing', btn, renderSynthesis,
-            { exportTitle: 'Latest Report' });
-    }
     function fetchTrending(btn) {
-        const topic = document.getElementById('trending-topic').value.trim();
+        const topic = document.getElementById('trending-topic').value;
         if (!topic) return;
         const days = document.getElementById('trending-days').value || 90;
         lastTrendingData = null;
@@ -984,10 +875,8 @@
                 html += '</div>';
             }
         }
-        let risksHtml = renderBulletList(data.keyRisks, 'Key Risks');
-        let oppsHtml = renderBulletList(data.opportunities, 'Opportunities');
-        html += linkCitations(risksHtml, 'analysis');
-        html += linkCitations(oppsHtml, 'analysis');
+        html += linkCitations(renderBulletList(data.keyRisks, 'Key Risks'), 'analysis');
+        html += linkCitations(renderBulletList(data.opportunities, 'Opportunities'), 'analysis');
         if (data.sources && data.sources.length > 0) {
             html += '<h3>Cited Sources (' + data.sources.length + ')</h3>';
             for (let i = 0; i < data.sources.length; i++) {
@@ -1139,129 +1028,6 @@
         return html;
     }
 
-    function renderCoding(data) {
-        let html = '';
-        const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
-        if (ts) html += '<div class="meta-line">' + ts + '</div>';
-        if (data.codes && data.codes.length > 0) {
-            html += '<h3>ICD-10 Codes (' + data.codes.length + ')</h3>';
-            for (const c of data.codes) {
-                html += '<div class="data-card"><span class="code-badge">' + esc(c.code) + '</span><strong>' + esc(c.description || '') + '</strong>';
-                if (c.category) html += '<div class="card-detail">Category: ' + esc(c.category) + '</div>';
-                if (c.confidence) {
-                    const confColor = c.confidence === 'HIGH' ? '#166534' : c.confidence === 'LOW' ? '#dc2626' : '#64748b';
-                    html += '<div class="card-detail">Confidence: <span style="font-weight:600;color:' + confColor + ';">' + esc(c.confidence) + '</span></div>';
-                }
-                html += '</div>';
-            }
-        }
-        if (data.rawAnalysis) { html += '<h3>Analysis</h3>'; html += renderProseBlock(data.rawAnalysis); }
-        return html;
-    }
-
-    function renderCoverage(data) {
-        let html = '';
-        const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
-        html += '<div class="meta-line">';
-        if (ts) html += ts + ' &middot; ';
-        const status = (data.coverageStatus || 'UNKNOWN').toUpperCase();
-        const statusClass = status.includes('COVERED') && !status.includes('NOT') ? 'covered' : status.includes('NOT') ? 'not-covered' : 'partial';
-        html += 'Coverage: <span class="status-badge ' + statusClass + '">' + esc(status) + '</span></div>';
-        html += renderBulletList(data.conditions, 'Conditions');
-        html += renderBulletList(data.limitations, 'Limitations');
-        if (data.policyReferences && data.policyReferences.length > 0) {
-            html += '<h3>Policy References (' + data.policyReferences.length + ')</h3>';
-            for (const pr of data.policyReferences) {
-                html += '<div class="data-card"><div class="card-title">';
-                if (pr.url) html += '<a class="source-link" href="' + esc(pr.url) + '" target="_blank">' + esc(pr.title || pr.policyId) + '</a>';
-                else html += esc(pr.title || pr.policyId || 'Policy');
-                html += '</div>';
-                if (pr.policyId && pr.title) html += '<div class="card-detail"><span class="code-badge">' + esc(pr.policyId) + '</span></div>';
-                if (pr.relevantSection) html += '<div class="card-detail">' + formatMarkdown(pr.relevantSection) + '</div>';
-                html += '</div>';
-            }
-        }
-        if (data.rawAnalysis) { html += '<h3>Analysis</h3>'; html += renderProseBlock(data.rawAnalysis); }
-        return html;
-    }
-
-    function renderNpi(data) {
-        let html = '';
-        const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
-        if (ts) html += '<div class="meta-line">' + ts + '</div>';
-        if (data.providers && data.providers.length > 0) {
-            html += '<h3>Providers (' + data.providers.length + ')</h3>';
-            for (const p of data.providers) {
-                html += '<div class="data-card">';
-                if (p.npiNumber) html += '<span class="code-badge">' + esc(p.npiNumber) + '</span>';
-                html += '<strong>' + esc(p.name || '') + '</strong>';
-                const details = [];
-                if (p.providerType) details.push(p.providerType);
-                if (p.specialty) details.push(p.specialty);
-                if (p.state) details.push(p.state);
-                if (p.status) details.push('Status: ' + p.status);
-                if (details.length > 0) html += '<div class="card-detail">' + details.map(d => esc(d)).join(' &middot; ') + '</div>';
-                html += '</div>';
-            }
-        }
-        if (data.rawAnalysis) { html += '<h3>Analysis</h3>'; html += renderProseBlock(data.rawAnalysis); }
-        return html;
-    }
-
-    function renderTrials(data) {
-        let html = '';
-        const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
-        if (ts) html += '<div class="meta-line">' + ts + '</div>';
-        if (data.trials && data.trials.length > 0) {
-            html += '<h3>Clinical Trials (' + data.trials.length + ')</h3>';
-            for (const t of data.trials) {
-                html += '<div class="data-card">';
-                if (t.nctId) html += '<span class="code-badge">' + esc(t.nctId) + '</span>';
-                if (t.phase) html += '<span class="status-badge" style="background:#ede9fe;color:#6d28d9;">' + esc(t.phase) + '</span> ';
-                if (t.status) {
-                    const sc = t.status === 'Recruiting' ? '#166534' : t.status === 'Completed' ? '#7c3aed' : '#64748b';
-                    html += '<span class="status-badge" style="background:' + sc + '20;color:' + sc + ';">' + esc(t.status) + '</span>';
-                }
-                html += '<div class="card-title" style="margin-top:0.35rem;">' + esc(t.title || '') + '</div>';
-                const details = [];
-                if (t.conditions) details.push('Conditions: ' + t.conditions);
-                if (t.interventions) details.push('Interventions: ' + t.interventions);
-                if (t.sponsor) details.push('Sponsor: ' + t.sponsor);
-                if (t.startDate) details.push('Start: ' + t.startDate);
-                if (details.length > 0) html += '<div class="card-detail">' + details.map(d => esc(d)).join('<br>') + '</div>';
-                html += '</div>';
-            }
-        }
-        if (data.rawAnalysis) { html += '<h3>Analysis</h3>'; html += renderProseBlock(data.rawAnalysis); }
-        return html;
-    }
-
-    function renderLiterature(data) {
-        let html = '';
-        const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
-        if (ts) html += '<div class="meta-line">' + ts + '</div>';
-        if (data.articles && data.articles.length > 0) {
-            html += '<h3>Articles (' + data.articles.length + ')</h3>';
-            for (const a of data.articles) {
-                html += '<div class="data-card">';
-                if (a.pmid) html += '<span class="code-badge">PMID ' + esc(a.pmid) + '</span>';
-                html += '<div class="card-title">' + esc(a.title || '') + '</div>';
-                const details = [];
-                if (a.authors) details.push(esc(a.authors));
-                if (a.journal) details.push('<em>' + esc(a.journal) + '</em>');
-                if (a.publicationDate) details.push(esc(a.publicationDate));
-                if (details.length > 0) html += '<div class="card-detail">' + details.join(' &middot; ') + '</div>';
-                if (a.abstractText) {
-                    const abs = cleanText(a.abstractText);
-                    html += '<div class="card-detail" style="margin-top:0.35rem;font-style:italic;">' + esc(abs.length > 300 ? abs.substring(0, 300) + '...' : abs) + '</div>';
-                }
-                html += '</div>';
-            }
-        }
-        if (data.rawAnalysis) { html += '<h3>Analysis</h3>'; html += renderProseBlock(data.rawAnalysis); }
-        return html;
-    }
-
     function renderWiki(data) {
         let html = '';
         const ts = data.queriedAt ? new Date(data.queriedAt).toLocaleString() : '';
@@ -1332,8 +1098,8 @@
             if (r.synthesizedAt) meta.push(new Date(r.synthesizedAt).toLocaleString());
             if (r.dataPointsCounted) meta.push(r.dataPointsCounted + ' data points');
             if (meta.length > 0) html += '<div class="card-detail">' + meta.join(' &middot; ') + '</div>';
-            if (r.narrative) {
-                const narrative = cleanText(r.narrative);
+            if (r.response && r.response.narrative) {
+                const narrative = cleanText(r.response.narrative);
                 html += '<div class="card-detail" style="margin-top:0.35rem;">' + esc(narrative.length > 200 ? narrative.substring(0, 200) + '...' : narrative) + '</div>';
             }
             html += '</div>';
@@ -1406,17 +1172,18 @@
 
     /* ── Trending Topics ── */
     async function loadTrendingTopics() {
-        const panel = document.getElementById('trending-topics-panel');
         try {
             const resp = await fetch(PROXY + '/synthesis/trending/topics', { headers: getCsrfHeaders() });
-            if (!resp.ok) { panel.innerHTML = ''; return; }
+            if (!resp.ok) return;
             const topics = await resp.json();
-            if (topics.length === 0) { panel.innerHTML = '<div class="popular-empty">No intelligence reports yet — run an Intelligence Report to start tracking trends.</div>'; return; }
-            let html = '<div style="margin-bottom:0.5rem;font-weight:600;font-size:0.85rem;color:#64748b;">Known Topics</div><div class="flex flex-wrap gap-1.5">';
-            for (const t of topics) html += '<span class="badge cursor-pointer hover:bg-gray-200 px-2 py-1" onclick="document.getElementById(\'trending-topic\').value=\'' + escAttr(t) + '\';fetchTrending(document.getElementById(\'trending-btn\'));">' + esc(t) + '</span>';
-            html += '</div>';
-            panel.innerHTML = html;
-        } catch (e) { panel.innerHTML = ''; }
+            for (const selId of ['trending-topic', 'diff-topic']) {
+                const sel = document.getElementById(selId);
+                if (!sel) continue;
+                let html = '<option value="">Select a topic...</option>';
+                for (const t of topics) html += '<option value="' + escAttr(t) + '">' + esc(t) + '</option>';
+                sel.innerHTML = html;
+            }
+        } catch (e) { /* silently ignore */ }
     }
 
     /* ── Generic Auto-Export (DOC / TXT / JSON for any tab) ── */
@@ -1627,6 +1394,239 @@
     function closeHistoryViewer() {
         document.getElementById('history-viewer-panel').style.display = 'none';
         document.getElementById('history-viewer').src = 'about:blank';
+    }
+
+    /* ── Confidence Trends ── */
+    async function loadConfidenceTrendTopics() {
+        try {
+            var resp = await fetch(PROXY + '/verify/trending/topics', { headers: getCsrfHeaders() });
+            var topics = await resp.json();
+            var sel = document.getElementById('confidence-topic');
+            if (!sel) return;
+            var html = '<option value="">All topics</option>';
+            for (var i = 0; i < topics.length; i++) html += '<option value="' + escAttr(topics[i]) + '">' + esc(topics[i]) + '</option>';
+            sel.innerHTML = html;
+        } catch (e) { /* silently ignore */ }
+    }
+
+    function fetchConfidenceTrend(btn) {
+        var topic = document.getElementById('confidence-topic').value;
+        var days = document.getElementById('confidence-days').value || '90';
+        var url = '/verify/trending?days=' + encodeURIComponent(days);
+        if (topic) url += '&topic=' + encodeURIComponent(topic);
+        lastConfidenceTrendData = null;
+        document.getElementById('confidence-export-row').style.display = 'none';
+        richApiCall(url, 'GET', null,
+            'confidence-report', 'confidence-spinner', 'confidence-timing', btn, renderConfidenceTrend, {
+                onSuccess: function(data) {
+                    lastConfidenceTrendData = data;
+                    document.getElementById('confidence-export-row').style.display = 'flex';
+                }
+            });
+    }
+
+    function renderConfidenceTrend(data) {
+        if (!data.topics || data.topics.length === 0) {
+            return '<div class="popular-empty">No audit snapshots found. Run an AI Audit to start building your confidence trend history.</div>';
+        }
+        var html = '';
+        html += '<div class="heatmap-legend">';
+        html += '<span><span class="heatmap-legend-swatch" style="background:#22c55e;"></span>&ge; 75%</span>';
+        html += '<span><span class="heatmap-legend-swatch" style="background:#f9a825;"></span>&ge; 50%</span>';
+        html += '<span><span class="heatmap-legend-swatch" style="background:#dc2626;"></span>&lt; 50%</span>';
+        html += '<span><span class="heatmap-legend-swatch" style="background:#f1f5f9;border:1px solid #e2e8f0;"></span>No data</span>';
+        html += '</div>';
+        var allDates = [];
+        var dateSet = {};
+        for (var t = 0; t < data.topics.length; t++) {
+            var pts = data.topics[t].points;
+            for (var p = 0; p < pts.length; p++) {
+                var dKey = pts[p].verifiedAt;
+                if (!dateSet[dKey]) { dateSet[dKey] = true; allDates.push(dKey); }
+            }
+        }
+        allDates.sort();
+        if (allDates.length > 0) {
+            var cols = allDates.length;
+            html += '<div class="heatmap-grid" style="grid-template-columns: 200px repeat(' + cols + ', minmax(36px, 1fr));">';
+            html += '<div class="heatmap-header"></div>';
+            for (var d = 0; d < allDates.length; d++) {
+                var dt = new Date(allDates[d]);
+                html += '<div class="heatmap-header">' + (dt.getMonth() + 1) + '/' + dt.getDate() + '</div>';
+            }
+            for (var t = 0; t < data.topics.length; t++) {
+                var topic = data.topics[t];
+                html += '<div class="heatmap-topic-label" title="' + escAttr(topic.displayTopic) + '">' + esc(topic.displayTopic) + '</div>';
+                var pointMap = {};
+                for (var p = 0; p < topic.points.length; p++) pointMap[topic.points[p].verifiedAt] = topic.points[p];
+                for (var d = 0; d < allDates.length; d++) {
+                    var pt = pointMap[allDates[d]];
+                    if (pt) {
+                        var pct = Math.round(pt.confidence * 100);
+                        var bg = pct >= 75 ? '#22c55e' : pct >= 50 ? '#f9a825' : '#dc2626';
+                        html += '<div class="heatmap-cell" style="background:' + bg + ';">';
+                        html += '<span class="heatmap-cell-tooltip">' + pct + '% &middot; ' + esc(pt.verifierModel || '?');
+                        html += ' &middot; ' + pt.confirmedCount + 'C/' + pt.disputedCount + 'D/' + pt.gapCount + 'G</span>';
+                        html += '</div>';
+                    } else {
+                        html += '<div class="heatmap-cell" style="background:#f1f5f9;border:1px solid #e2e8f0;"></div>';
+                    }
+                }
+            }
+            html += '</div>';
+        }
+        html += '<div class="confidence-trend-summary">';
+        for (var t = 0; t < data.topics.length; t++) {
+            var topic = data.topics[t];
+            var pct = Math.round(topic.currentConfidence * 100);
+            var barColor = pct >= 75 ? '#22c55e' : pct >= 50 ? '#f9a825' : '#dc2626';
+            var dirColor = topic.direction === 'IMPROVING' ? '#166534' : topic.direction === 'DECLINING' ? '#dc2626' : '#64748b';
+            var dirIcon = topic.direction === 'IMPROVING' ? '&#9650;' : topic.direction === 'DECLINING' ? '&#9660;' : '&#9644;';
+            var deltaPct = Math.round(topic.deltaConfidence * 100);
+            var deltaSign = deltaPct > 0 ? '+' : '';
+            html += '<div class="trend-summary-card">';
+            html += '<div class="trend-summary-topic">' + esc(topic.displayTopic) + '</div>';
+            html += '<div class="confidence-bar" style="margin:0.3rem 0;">';
+            html += '<span style="font-size:0.8rem;font-weight:600;">Confidence: ' + pct + '%</span>';
+            html += '<div class="bar-bg"><div class="bar-fill" style="width:' + pct + '%;background:' + barColor + ';"></div></div>';
+            html += '</div>';
+            html += '<div class="trend-summary-meta">';
+            html += '<span style="display:inline-block;padding:0.15rem 0.5rem;border-radius:999px;font-size:0.75rem;font-weight:700;color:' + dirColor + ';background:' + dirColor + '18;">' + dirIcon + ' ' + esc(topic.direction) + '</span>';
+            if (topic.points.length > 1) html += '<span style="font-size:0.78rem;color:' + dirColor + ';font-weight:600;">' + deltaSign + deltaPct + 'pp</span>';
+            html += '<span>' + topic.points.length + ' audit' + (topic.points.length !== 1 ? 's' : '') + '</span>';
+            if (topic.latestVerifier) html += '<span>Latest: ' + esc(topic.latestVerifier) + '</span>';
+            html += '</div></div>';
+        }
+        html += '</div>';
+        return html;
+    }
+
+    function exportConfidenceTrendDoc() {
+        if (!lastConfidenceTrendData) return;
+        var d = lastConfidenceTrendData;
+        var html = '<html><head><meta charset="utf-8"><style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;margin:1in;}table{border-collapse:collapse;width:100%;margin:12pt 0;}th,td{border:1px solid #999;padding:4pt 8pt;}th{background:#7c3aed;color:white;}h1{color:#7c3aed;}h2{color:#4c1d95;margin-top:18pt;}</style></head><body>';
+        html += '<h1>Confidence Trend Heatmap</h1>';
+        html += '<p>Period: last ' + d.days + ' days &middot; ' + d.totalSnapshots + ' audit snapshots</p>';
+        for (var t = 0; t < d.topics.length; t++) {
+            var topic = d.topics[t];
+            var pct = Math.round(topic.currentConfidence * 100);
+            var deltaPct = Math.round(topic.deltaConfidence * 100);
+            html += '<h2>' + esc(topic.displayTopic) + '</h2>';
+            html += '<p>Current: ' + pct + '% &middot; Direction: ' + topic.direction;
+            if (topic.points.length > 1) html += ' &middot; Delta: ' + (deltaPct > 0 ? '+' : '') + deltaPct + 'pp';
+            html += ' &middot; ' + topic.points.length + ' audits</p>';
+            html += '<table><tr><th>Date</th><th>Confidence</th><th>Verifier</th><th>Confirmed</th><th>Disputed</th><th>Gaps</th></tr>';
+            for (var p = 0; p < topic.points.length; p++) {
+                var pt = topic.points[p];
+                html += '<tr><td>' + new Date(pt.verifiedAt).toLocaleDateString() + '</td>';
+                html += '<td>' + Math.round(pt.confidence * 100) + '%</td><td>' + esc(pt.verifierModel || '') + '</td>';
+                html += '<td>' + pt.confirmedCount + '</td><td>' + pt.disputedCount + '</td><td>' + pt.gapCount + '</td></tr>';
+            }
+            html += '</table>';
+        }
+        html += '</body></html>';
+        downloadDocFile('confidence-trend-' + slugify(d.days + '-days') + '.doc', html, 'Confidence Trend Heatmap');
+    }
+
+    function exportConfidenceTrendTxt() {
+        if (!lastConfidenceTrendData) return;
+        var d = lastConfidenceTrendData;
+        var t = 'CONFIDENCE TREND HEATMAP\nPeriod: last ' + d.days + ' days | ' + d.totalSnapshots + ' audit snapshots\n' + '='.repeat(60) + '\n\n';
+        for (var i = 0; i < d.topics.length; i++) {
+            var topic = d.topics[i];
+            var pct = Math.round(topic.currentConfidence * 100);
+            var deltaPct = Math.round(topic.deltaConfidence * 100);
+            t += topic.displayTopic.toUpperCase() + '\n' + '-'.repeat(40) + '\n';
+            t += 'Current: ' + pct + '% | Direction: ' + topic.direction;
+            if (topic.points.length > 1) t += ' | Delta: ' + (deltaPct > 0 ? '+' : '') + deltaPct + 'pp';
+            t += ' | ' + topic.points.length + ' audits\n\n';
+            for (var p = 0; p < topic.points.length; p++) {
+                var pt = topic.points[p];
+                t += '  ' + new Date(pt.verifiedAt).toLocaleDateString() + '  ' + Math.round(pt.confidence * 100) + '%  ' + (pt.verifierModel || '?') + '  ' + pt.confirmedCount + 'C/' + pt.disputedCount + 'D/' + pt.gapCount + 'G\n';
+            }
+            t += '\n';
+        }
+        downloadTextFile('confidence-trend-' + slugify(d.days + '-days') + '.txt', t);
+    }
+
+    /* ── What Changed? (Diff) ── */
+    function sendDiff(btn) {
+        var topic = document.getElementById('diff-topic').value;
+        if (!topic) return;
+        var days = document.getElementById('diff-days').value || 7;
+        lastDiffData = null;
+        document.getElementById('diff-export-row').style.display = 'none';
+        richApiCall('/synthesis/trending/diff?topic=' + encodeURIComponent(topic) + '&days=' + days, 'GET', null,
+            'diff-report', 'diff-spinner', 'diff-timing', btn, renderDiff, {
+                onSuccess: function(data) { lastDiffData = data; document.getElementById('diff-export-row').style.display = 'flex'; }
+            });
+    }
+
+    function renderDiff(data) {
+        var html = '';
+        var newerDate = data.newerDate ? new Date(data.newerDate).toLocaleDateString() : '';
+        var olderDate = data.olderDate ? new Date(data.olderDate).toLocaleDateString() : '';
+        html += '<div class="meta-line"><strong>' + esc(data.topic) + '</strong> &middot; Comparing ' + esc(olderDate) + ' &rarr; ' + esc(newerDate) + '</div>';
+        var dirColor = data.overallDirection === 'STRENGTHENING' ? '#166534' : data.overallDirection === 'WEAKENING' ? '#dc2626' : data.overallDirection === 'MIXED' ? '#e65100' : '#64748b';
+        var dirIcon = data.overallDirection === 'STRENGTHENING' ? '&#9650;' : data.overallDirection === 'WEAKENING' ? '&#9660;' : data.overallDirection === 'MIXED' ? '&#9670;' : '&#9644;';
+        html += '<div style="display:inline-block;padding:0.3rem 0.8rem;border-radius:999px;font-weight:700;font-size:0.85rem;color:' + dirColor + ';background:' + dirColor + '18;margin:0.5rem 0 1rem 0;">' + dirIcon + ' ' + esc(data.overallDirection || 'UNKNOWN') + '</div>';
+        if (data.executiveSummary) { html += '<h3>Executive Summary</h3><p style="font-size:0.9rem;line-height:1.5;margin-bottom:1rem;">' + formatMarkdown(data.executiveSummary) + '</p>'; }
+        var deltaHtml = '';
+        if (data.dataPointsDelta !== 0) deltaHtml += renderDeltaPill('Data Points', data.dataPointsDelta);
+        if (data.linkCountDelta !== 0) deltaHtml += renderDeltaPill('Cross-Domain Links', data.linkCountDelta);
+        if (deltaHtml) html += '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;">' + deltaHtml + '</div>';
+        if (data.newFindings && data.newFindings.length > 0) {
+            html += '<h3 style="color:#166534;">New Findings (' + data.newFindings.length + ')</h3>';
+            for (var i = 0; i < data.newFindings.length; i++) { html += '<div class="claim-card confirmed" style="border-left-color:#166534;"><div class="claim-label" style="color:#166534;">NEW</div><div style="font-size:0.85rem;">' + formatMarkdown(data.newFindings[i]) + '</div></div>'; }
+        }
+        if (data.droppedFindings && data.droppedFindings.length > 0) {
+            html += '<h3 style="color:#dc2626;">Dropped Findings (' + data.droppedFindings.length + ')</h3>';
+            for (var i = 0; i < data.droppedFindings.length; i++) { html += '<div class="claim-card" style="border-left:3px solid #dc2626;background:#fef2f2;"><div class="claim-label" style="color:#dc2626;">DROPPED</div><div style="font-size:0.85rem;">' + formatMarkdown(data.droppedFindings[i]) + '</div></div>'; }
+        }
+        if (data.shiftedPositions && data.shiftedPositions.length > 0) {
+            html += '<h3 style="color:#e65100;">Shifted Positions (' + data.shiftedPositions.length + ')</h3>';
+            for (var i = 0; i < data.shiftedPositions.length; i++) { html += '<div class="claim-card" style="border-left:3px solid #e65100;background:#fff8f5;"><div class="claim-label" style="color:#e65100;">SHIFTED</div><div style="font-size:0.85rem;">' + formatMarkdown(data.shiftedPositions[i]) + '</div></div>'; }
+        }
+        if ((data.indicatorsAdded && data.indicatorsAdded.length > 0) || (data.indicatorsRemoved && data.indicatorsRemoved.length > 0)) {
+            html += '<h3>Leading Indicator Changes</h3>';
+            if (data.indicatorsAdded) for (var i = 0; i < data.indicatorsAdded.length; i++) html += '<span style="display:inline-block;background:#dcfce7;color:#166534;padding:0.2rem 0.6rem;border-radius:999px;font-size:0.78rem;margin:0.15rem 0.25rem;">+ ' + esc(data.indicatorsAdded[i]) + '</span>';
+            if (data.indicatorsRemoved) for (var i = 0; i < data.indicatorsRemoved.length; i++) html += '<span style="display:inline-block;background:#fef2f2;color:#dc2626;padding:0.2rem 0.6rem;border-radius:999px;font-size:0.78rem;margin:0.15rem 0.25rem;">- ' + esc(data.indicatorsRemoved[i]) + '</span>';
+        }
+        return html;
+    }
+
+    function renderDeltaPill(label, delta) {
+        var color = delta > 0 ? '#166534' : '#dc2626';
+        var arrow = delta > 0 ? '&#9650;' : '&#9660;';
+        var sign = delta > 0 ? '+' : '';
+        return '<span style="display:inline-block;padding:0.25rem 0.65rem;border-radius:999px;font-size:0.8rem;font-weight:600;color:' + color + ';background:' + color + '18;">' + esc(label) + ' ' + arrow + ' ' + sign + delta + '</span>';
+    }
+
+    function exportDiffDoc() {
+        if (!lastDiffData) return;
+        var d = lastDiffData;
+        var h = '<h1>What Changed: ' + esc(d.topic) + '</h1>';
+        var newerDate = d.newerDate ? new Date(d.newerDate).toLocaleDateString() : '';
+        var olderDate = d.olderDate ? new Date(d.olderDate).toLocaleDateString() : '';
+        h += '<p class="meta">Comparing ' + esc(olderDate) + ' to ' + esc(newerDate) + ' &middot; Direction: ' + esc(d.overallDirection) + '</p>';
+        if (d.executiveSummary) h += '<h2>Executive Summary</h2><p>' + esc(stripMarkdown(d.executiveSummary)) + '</p>';
+        if (d.newFindings && d.newFindings.length > 0) { h += '<h2>New Findings</h2><ul>'; for (var i = 0; i < d.newFindings.length; i++) h += '<li>' + esc(stripMarkdown(d.newFindings[i])) + '</li>'; h += '</ul>'; }
+        if (d.droppedFindings && d.droppedFindings.length > 0) { h += '<h2>Dropped Findings</h2><ul>'; for (var i = 0; i < d.droppedFindings.length; i++) h += '<li>' + esc(stripMarkdown(d.droppedFindings[i])) + '</li>'; h += '</ul>'; }
+        if (d.shiftedPositions && d.shiftedPositions.length > 0) { h += '<h2>Shifted Positions</h2><ul>'; for (var i = 0; i < d.shiftedPositions.length; i++) h += '<li>' + esc(stripMarkdown(d.shiftedPositions[i])) + '</li>'; h += '</ul>'; }
+        downloadDocFile('what-changed-' + slugify(d.topic) + '.doc', h, 'What Changed: ' + d.topic);
+    }
+
+    function exportDiffTxt() {
+        if (!lastDiffData) return;
+        var d = lastDiffData;
+        var newerDate = d.newerDate ? new Date(d.newerDate).toLocaleDateString() : '';
+        var olderDate = d.olderDate ? new Date(d.olderDate).toLocaleDateString() : '';
+        var t = 'WHAT CHANGED: ' + d.topic + '\nComparing ' + olderDate + ' to ' + newerDate + '\nDirection: ' + (d.overallDirection || 'UNKNOWN') + '\n' + '='.repeat(60) + '\n\n';
+        if (d.executiveSummary) t += stripMarkdown(d.executiveSummary) + '\n\n';
+        if (d.newFindings && d.newFindings.length > 0) { t += 'NEW FINDINGS\n' + '-'.repeat(40) + '\n'; for (var i = 0; i < d.newFindings.length; i++) t += '  + ' + stripMarkdown(d.newFindings[i]) + '\n'; t += '\n'; }
+        if (d.droppedFindings && d.droppedFindings.length > 0) { t += 'DROPPED FINDINGS\n' + '-'.repeat(40) + '\n'; for (var i = 0; i < d.droppedFindings.length; i++) t += '  - ' + stripMarkdown(d.droppedFindings[i]) + '\n'; t += '\n'; }
+        if (d.shiftedPositions && d.shiftedPositions.length > 0) { t += 'SHIFTED POSITIONS\n' + '-'.repeat(40) + '\n'; for (var i = 0; i < d.shiftedPositions.length; i++) t += '  ~ ' + stripMarkdown(d.shiftedPositions[i]) + '\n'; t += '\n'; }
+        downloadTextFile('what-changed-' + slugify(d.topic) + '.txt', t);
     }
 </script>
 

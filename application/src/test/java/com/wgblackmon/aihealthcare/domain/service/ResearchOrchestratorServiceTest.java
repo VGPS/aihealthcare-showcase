@@ -326,7 +326,7 @@ class ResearchOrchestratorServiceTest {
                 anyString(), anyList(), anyList(), anyInt(), anyString(), vendorCaptor.capture());
 
         List<String> capturedVendors = vendorCaptor.getValue();
-        assertThat(capturedVendors).containsExactly("Anthropic", "Google");
+        assertThat(capturedVendors).containsExactly("Claude for Healthcare", "Google for Health");
     }
 
     @Test
