@@ -72,7 +72,7 @@ AIHealthcare (port 8080)                AIHealthcare-Claude (port 8081)
                                         ├── LLM Providers:
                                         │   ├── Anthropic Claude (synthesis)
                                         │   ├── OpenAI GPT-4o (verification)
-                                        │   ├── Google Gemini 2.0 Flash (verification)
+                                        │   ├── Google Gemini 2.5 Flash (verification)
                                         │   └── AWS Bedrock Nova Pro (verification)
 ```
 
@@ -170,7 +170,7 @@ An 11-step automated pipeline runs daily, harvesting from 69 sources with fault 
 |----------|--------|-------|
 | **Claude for Healthcare** | Claude Sonnet / Opus | Primary synthesis, wiki compilation, sentiment, deal classification, cross-domain intelligence |
 | **OpenAI for Healthcare** | GPT-4o | Multi-model search synthesis, prompt evaluation, independent verification |
-| **Google for Health** | Gemini 2.0 Flash | Search synthesis, independent verification |
+| **Google for Health** | Gemini 2.5 Flash | Search synthesis, independent verification |
 | **Microsoft for Healthcare** | Copilot | Competitive tracking, article coverage |
 | **Perplexity Health** | Sonar Pro | Live web research, staged research pipeline |
 | **Amazon Health** | Nova Pro | Enterprise-grade synthesis, independent verification |
@@ -227,7 +227,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 
 ### Multi-LLM Cross-Verification (AI Audit)
 - Claude generates the synthesis; a second LLM independently verifies every claim
-- **3 verifier options:** OpenAI GPT-4o, Google Gemini 2.0 Flash, AWS Bedrock Nova Pro
+- **3 verifier options:** OpenAI GPT-4o, Google Gemini 2.5 Flash, AWS Bedrock Nova Pro
 - Structured output: confirmed claims, disputed claims (with counter-reasoning), and coverage gaps
 - Confidence scoring with persistent audit trail in PostgreSQL
 - **Source Provenance Dashboard** — traces each confirmed claim to specific source documents with domain-prefixed ref IDs (Article, Regulatory, Deal, Sentiment, Framework, Trend, Wiki)
