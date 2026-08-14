@@ -133,6 +133,7 @@ public class RomeFeedHarvester implements ArticleHarvestingPort {
                         : Instant.EPOCH;
                 int limit = Math.min(entries.size(), source.maxItems());
                 int skippedStale = 0;
+                int skippedBodyless = 0;
                 for (int i = 0; i < limit; i++) {
                     SyndEntry entry = entries.get(i);
                     NewsArticle article = mapEntryToArticle(entry, source);
@@ -140,11 +141,19 @@ public class RomeFeedHarvester implements ArticleHarvestingPort {
                         skippedStale++;
                         continue;
                     }
+                    if (hasNoUsableBody(article.bodyText())) {
+                        skippedBodyless++;
+                        continue;
+                    }
                     results.add(article);
                 }
                 if (skippedStale > 0) {
                     log.info("harvestFeed() | skipped {} stale articles (published before {}) from '{}'",
                             skippedStale, ageCutoff, source.name());
+                }
+                if (skippedBodyless > 0) {
+                    log.info("harvestFeed() | skipped {} bodyless articles from '{}'",
+                            skippedBodyless, source.name());
                 }
             }
 
@@ -230,5 +239,23 @@ public class RomeFeedHarvester implements ArticleHarvestingPort {
 
         log.debug("mapEntryToArticle() | return={}", article.title());
         return article;
+    }
+
+    private static final int MIN_BODY_LENGTH = 50;
+
+    private boolean hasNoUsableBody(String body) {
+        if (body == null || body.isBlank()) {
+            return true;
+        }
+        String stripped = body.replaceAll("<[^>]+>", "")
+                .replaceAll("&nbsp;", " ")
+                .replaceAll("&amp;", "&")
+                .replaceAll("&lt;", "<")
+                .replaceAll("&gt;", ">")
+                .replaceAll("&quot;", "\"")
+                .replaceAll("&#?\\w+;", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+        return stripped.length() < MIN_BODY_LENGTH;
     }
 }

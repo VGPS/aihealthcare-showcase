@@ -1009,6 +1009,235 @@ aihealthcare:
         tier: HUGGINGFACE
         base-weight: 0.5
         max-items: 25
+      # -----------------------------------------------------------------
+      # NYU Health Sciences Library — curated PubMed AI searches
+      # Source: https://hslguides.med.nyu.edu/aihsl
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: NYU PubMed AI Cancer Research
+        topic: General AI Healthcare News
+        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1Rgu23CHIthWzWDUWU1vwPTDNLHmE6KU9BKCiJHoPQ1yZkWwlk&utm_campaign=pubmed-2&fc=20230720125231
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
+        name: NYU PubMed AI Clinical Ethics
+        topic: General AI Healthcare News
+        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1j1APu8_waJjk_Cm0xxvz7GZ6epE6ohJpU71rjbAcDFwSQKkac&utm_campaign=pubmed-2&fc=20230720113630
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
+        name: NYU PubMed AI Patient Care
+        topic: General AI Healthcare News
+        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1-ohVP9Y35P5jJTm7BKk2ocknKqzXXZY444hq9BFsGAabBmkq6&utm_campaign=pubmed-2&fc=20230720131511
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
+        name: NYU PubMed AI Aging
+        topic: General AI Healthcare News
+        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=16OUJQpKnem6sTF-WIxEFeZ_UT233MaplhnMT-QwYwikNyKIRU&utm_campaign=pubmed-2&fc=20230720133044
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
+        name: NYU PubMed AI Genetics
+        topic: General AI Healthcare News
+        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=16C1W1gAKSbjWNGHbPE9qofuJUA1LiDxLoM92LJ3em7m20XcXZ&utm_campaign=pubmed-2&fc=20230720130248
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
+        name: NYU PubMed AI Healthcare Education
+        topic: General AI Healthcare News
+        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1JIsr3YNQVW4uN-371EOTOTQKU7008kJLrp--ZoByWq8X2bIw9&utm_campaign=pubmed-2&fc=20230720130508
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
+        name: NYU PubMed AI Infectious Disease
+        topic: General AI Healthcare News
+        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1BQBHy1Cez3AzhpFxdjMibBhc6u3JH2VPDChgpvdwC9ERK3Iz_&utm_campaign=pubmed-2&fc=20230724145723
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
+        name: NYU PubMed AI Pharmacy
+        topic: General AI Healthcare News
+        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1pMPQVclnMM7hoD0KaAg4T_NC1RdUWgJoylHMtdWcZrG4Zas9q&utm_campaign=pubmed-2&fc=20230720131618
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
+        name: NYU PubMed AI Surgery
+        topic: General AI Healthcare News
+        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1bOz71MbMW4VKVVQ1Z-VMtD7hfbMTWhEuX0x2rpWJj1xwsXYVN&utm_campaign=pubmed-2&fc=20230720132715
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      # -----------------------------------------------------------------
+      # Yale Biomedical Informatics & Data Science — AI in medicine news
+      # Source: https://medicine.yale.edu/biomedical-informatics-data-science/
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Yale BIDS AI in Medicine
+        topic: General AI Healthcare News
+        url: https://medicine.yale.edu/biomedical-informatics-data-science/news-rss/?title=Latest%20News&orgId=121297
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      # -----------------------------------------------------------------
+      # Harvard Medical School DBMI — biomedical informatics publications
+      # Source: https://dbmi.hms.harvard.edu
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Harvard DBMI Publications
+        topic: General AI Healthcare News
+        url: https://dbmi.hms.harvard.edu/rss.xml
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      # -----------------------------------------------------------------
+      # MIT News — AI and Medicine topic feeds
+      # Source: https://news.mit.edu
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: MIT News AI
+        topic: General AI Healthcare News
+        url: https://news.mit.edu/rss/topic/artificial-intelligence2
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      - topic-id: 1
+        name: MIT News Medicine
+        topic: General AI Healthcare News
+        url: https://news.mit.edu/rss/topic/medicine
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      # -----------------------------------------------------------------
+      # Stanford Biomedical Data Science — AI in medicine research
+      # Source: https://dbds.stanford.edu
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Stanford DBDS
+        topic: General AI Healthcare News
+        url: https://dbds.stanford.edu/feed/
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      # -----------------------------------------------------------------
+      # UCLA Newsroom — health and science topic feeds
+      # Source: https://newsroom.ucla.edu
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: UCLA Health and Behavior
+        topic: General AI Healthcare News
+        url: https://newsroom.ucla.edu/cats/health_+_behavior.xml
+        tier: ACADEMIC
+        base-weight: 0.8
+        max-items: 15
+      - topic-id: 1
+        name: UCLA Science and Technology
+        topic: General AI Healthcare News
+        url: https://newsroom.ucla.edu/cats/science_+_technology.xml
+        tier: ACADEMIC
+        base-weight: 0.8
+        max-items: 15
+      # -----------------------------------------------------------------
+      # Carnegie Mellon — ML Department news (includes health AI, epidemics)
+      # Source: https://www.ml.cmu.edu
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: CMU Machine Learning News
+        topic: General AI Healthcare News
+        url: https://www.ml.cmu.edu/news/feed
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      # -----------------------------------------------------------------
+      # UC Berkeley — BAIR Lab blog (AI research)
+      # Source: https://bair.berkeley.edu/blog
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Berkeley BAIR Blog
+        topic: General AI Healthcare News
+        url: https://bair.berkeley.edu/blog/feed.xml
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      # -----------------------------------------------------------------
+      # University of Washington — Allen School CS news
+      # Source: https://news.cs.washington.edu
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: UW Allen School News
+        topic: General AI Healthcare News
+        url: https://news.cs.washington.edu/feed/
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      # -----------------------------------------------------------------
+      # Duke AI Health — dedicated healthcare AI institute
+      # Source: https://aihealth.duke.edu
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Duke AI Health
+        topic: General AI Healthcare News
+        url: https://aihealth.duke.edu/feed/
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      # -----------------------------------------------------------------
+      # University of Pennsylvania — Biostatistics, Epidemiology & Informatics
+      # Source: https://dbei.med.upenn.edu
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Penn DBEI
+        topic: General AI Healthcare News
+        url: https://dbei.med.upenn.edu/feed/
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      # -----------------------------------------------------------------
+      # AI Healthcare Legal & Policy — law, regulation, ethics feeds
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Stanford Law and Biosciences Blog
+        topic: AI Healthcare Legal
+        url: https://law.stanford.edu/blog/lawandbiosciences/feed
+        tier: ACADEMIC
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
+        name: Stanford CodeX AI Law
+        topic: AI Healthcare Legal
+        url: https://law.stanford.edu/blog/codex/feed
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      - topic-id: 1
+        name: AI Now Institute
+        topic: AI Healthcare Legal
+        url: https://ainowinstitute.org/feed
+        tier: ACADEMIC
+        base-weight: 0.85
+        max-items: 15
+      - topic-id: 1
+        name: ONC Health IT Blog
+        topic: AI Healthcare Government Policy
+        url: https://www.healthit.gov/buzz-blog/feed
+        tier: REGULATORY
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
+        name: STAT News
+        topic: General AI Healthcare News
+        url: https://www.statnews.com/feed/
+        tier: INDUSTRY
+        base-weight: 0.85
+        max-items: 20
 
   # ---------------------------------------------------------------------------
   # Perplexity Sonar API — used by PerplexityHarvester.

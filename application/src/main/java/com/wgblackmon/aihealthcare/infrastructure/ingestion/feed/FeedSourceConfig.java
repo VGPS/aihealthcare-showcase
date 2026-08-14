@@ -97,6 +97,10 @@ public record FeedSourceConfig(
         /** HuggingFace model registry. Harvested daily. */
         HUGGINGFACE,
         /** Perplexity Sonar API — deep-research harvest. Harvested daily when API key present. */
-        PERPLEXITY
+        PERPLEXITY,
+        /** Legal and legislative sources. Harvested daily. */
+        LEGAL,
+        /** Research institutions and university publications. Harvested daily. */
+        RESEARCH
     }
 }
