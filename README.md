@@ -20,7 +20,7 @@ A production AI-powered market intelligence platform for the healthcare industry
 | Thymeleaf UI pages | 56 |
 | Data sources | 69 |
 | LLM adapters | 20 |
-| Scheduled pipelines | 17 |
+| Scheduled pipelines | 18 |
 | Prompt templates | 25 |
 | REST API endpoints | 65+ |
 
@@ -211,7 +211,7 @@ All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSu
 A companion Spring Boot service providing Claude-powered clinical intelligence, cross-domain analysis, and multi-LLM verification. Runs alongside the main app and shares the same PostgreSQL database (read-only access to data engine tables).
 
 ### Intelligence Console
-- **"Enterprise Intelligence"** — 9-tab admin console for interactive healthcare intelligence queries
+- **"Enterprise Intelligence"** — 11-tab console (7 subscriber tabs + 4 enterprise-gated tabs) for interactive healthcare intelligence queries; server-side tier gating via Thymeleaf (non-bypassable)
 - Rich HTML rendering with **entity-aware bold formatting** — companies, studies, legislation, and dollar amounts highlighted automatically by Claude
 - **Live citation links** — `[N]` references in AI output scroll to and highlight the corresponding source article
 - **Clickable scheduled reports** — daily reports expand inline with full rendered intelligence narratives
@@ -247,7 +247,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - Sliding-window rate limiting per client (IP or API key)
 - Server timeout hardening for deep synthesis queries (5-minute LLM calls)
 - Flyway-managed database migrations for audit and snapshot tables
-- 190 automated tests (JUnit 5 + AssertJ + Mockito), 7 prompt templates
+- 191 automated tests (JUnit 5 + AssertJ + Mockito), 7 prompt templates
 
 ---
 
