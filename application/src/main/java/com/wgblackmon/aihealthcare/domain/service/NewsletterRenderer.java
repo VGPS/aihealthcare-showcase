@@ -123,10 +123,23 @@ public class NewsletterRenderer {
                 .append("<h2 style=\"margin: 0 0 8px; font-size: 17px; color: ").append(headlineColor).append(";\">")
                 .append(icon)
                 .append(escapeHtml(section.headline()))
-                .append("</h2>")
-                .append("<p style=\"margin: 0; font-size: 14px; line-height: 1.7; color: #444;\">")
-                .append(escapeHtml(section.summary()))
-                .append("</p>")
+                .append("</h2>");
+
+            if (section.sectionType() == SectionType.REVERSAL_WATCH) {
+                html.append("<ul style=\"margin: 0; padding: 0 0 0 18px; font-size: 14px; line-height: 1.9; color: #444;\">");
+                for (String item : section.summary().split("\n")) {
+                    if (!item.isBlank()) {
+                        html.append("<li style=\"margin-bottom: 6px;\">").append(escapeHtml(item)).append("</li>");
+                    }
+                }
+                html.append("</ul>");
+            } else {
+                html.append("<p style=\"margin: 0; font-size: 14px; line-height: 1.7; color: #444;\">")
+                    .append(escapeHtml(section.summary()))
+                    .append("</p>");
+            }
+
+            html
                 .append("</td></tr></table>")
                 .append("</td></tr>");
         }
