@@ -10,7 +10,33 @@
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head :: head('AIHealthcare — Built with Claude Code')}">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AIHealthcare — Built with Claude Code</title>
+
+    <!-- Open Graph — Facebook / LinkedIn preview card -->
+    <meta property="og:type"        content="website"/>
+    <meta property="og:url"         content="https://app.bigskylabs.ai/press"/>
+    <meta property="og:title"       content="Built an enterprise healthcare AI platform solo with Claude Code"/>
+    <meta property="og:description" content="57+ data sources, 5 LLM providers, 590 Java classes, 1,837 tests — one engineer, Claude Code. Multi-LLM verified intelligence with source provenance. Free 7-day trial."/>
+    <meta property="og:site_name"   content="AIHealthcare by BigSkyLabs"/>
+
+    <!-- Twitter card -->
+    <meta name="twitter:card"        content="summary"/>
+    <meta name="twitter:title"       content="Built an enterprise healthcare AI platform solo with Claude Code"/>
+    <meta name="twitter:description" content="57+ data sources, 5 LLM providers, 590 Java classes, 1,837 tests — one engineer, Claude Code. Multi-LLM verified intelligence with source provenance."/>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Outfit:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+
+    <link rel="stylesheet" th:href="@{/css/tailwind.css}"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+    <script th:src="@{/js/htmx.min.js}" defer></script>
+    <script th:src="@{/js/alpine.min.js}" defer></script>
+    <script th:src="@{/js/htmx-csrf.js}" defer></script>
 </head>
 
 <body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
