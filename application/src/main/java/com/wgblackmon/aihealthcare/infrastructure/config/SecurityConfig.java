@@ -66,7 +66,7 @@ public class SecurityConfig {
             .addFilterBefore(new ApiKeyAuthenticationFilter(apiKeyPort),
                              UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/register", "/choose-path", "/unsubscribe", "/unsubscribe/downgrade",
+                .requestMatchers("/", "/login", "/register", "/choose-path", "/unsubscribe", "/unsubscribe/downgrade",
                                  "/css/**", "/js/**", "/webjars/**",
                                  "/pricing", "/about", "/error").permitAll()
                 .requestMatchers("/api/v1/stripe/webhook").permitAll()

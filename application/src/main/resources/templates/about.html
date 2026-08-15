@@ -270,8 +270,55 @@ web (70 controllers)  ──>  application (use cases)  ──>  domain (103 mod
         </div>
     </section>
 
-    <!-- What I'm Looking For -->
+    <!-- Pricing Tiers -->
     <section class="bg-gray-50 px-4 py-10">
+        <div class="max-w-5xl mx-auto">
+            <h3 class="font-display text-2xl font-bold text-on-surface text-center mb-2">Plans &amp; Pricing</h3>
+            <p class="text-center text-sm text-on-surface-variant mb-7">Individual researchers to enterprise strategy teams.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- Free -->
+                <div class="bg-white rounded-lg border border-outline-variant p-5 flex flex-col">
+                    <div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Free</div>
+                    <div class="text-2xl font-bold text-on-surface mb-1">$0 <span class="text-sm font-normal text-on-surface-variant">/month</span></div>
+                    <p class="text-xs text-on-surface-variant mb-4 flex-1">Daily AI healthcare newsletter — no platform access required.</p>
+                    <a th:href="@{/register}" class="block text-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 rounded-md text-sm transition-colors">Sign Up Free</a>
+                </div>
+                <!-- Subscriber -->
+                <div class="bg-white rounded-lg border-2 border-primary-600 p-5 flex flex-col relative">
+                    <span class="absolute -top-2.5 left-4 bg-primary-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">Most Popular</span>
+                    <div class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-1">Subscriber</div>
+                    <div class="text-2xl font-bold text-on-surface mb-1">$19 <span class="text-sm font-normal text-on-surface-variant">/month</span></div>
+                    <ul class="text-xs text-on-surface-variant space-y-1.5 mb-4 flex-1">
+                        <li><span class="text-green-600 mr-1">&#10003;</span> Full platform — 48 dashboard pages</li>
+                        <li><span class="text-green-600 mr-1">&#10003;</span> Semantic / vector search</li>
+                        <li><span class="text-green-600 mr-1">&#10003;</span> Multi-model AI research queries</li>
+                        <li><span class="text-green-600 mr-1">&#10003;</span> Vendor comparison reports</li>
+                        <li><span class="text-green-600 mr-1">&#10003;</span> Regulatory alert watchlists</li>
+                    </ul>
+                    <a th:href="@{/pricing}" class="block text-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 rounded-md text-sm transition-colors">Start Free Trial</a>
+                </div>
+                <!-- Enterprise -->
+                <div class="bg-white rounded-lg border-2 border-purple-600 p-5 flex flex-col">
+                    <div class="text-xs font-bold uppercase tracking-wider text-purple-600 mb-1">Enterprise</div>
+                    <div class="text-2xl font-bold text-on-surface mb-1">$399 <span class="text-sm font-normal text-on-surface-variant">/month</span></div>
+                    <p class="text-xs text-purple-800 bg-purple-50 rounded p-2 mb-3">Less than an analyst-hour per day — and it runs 24/7.</p>
+                    <ul class="text-xs text-on-surface-variant space-y-1.5 mb-4 flex-1">
+                        <li><span class="text-purple-600 mr-1">&#10003;</span> Multi-LLM AI Audit (GPT-4o, Gemini, Nova)</li>
+                        <li><span class="text-purple-600 mr-1">&#10003;</span> Source provenance — study-level attribution</li>
+                        <li><span class="text-purple-600 mr-1">&#10003;</span> Confidence trend heatmap</li>
+                        <li><span class="text-purple-600 mr-1">&#10003;</span> What Changed? weekly diff</li>
+                        <li><span class="text-purple-600 mr-1">&#10003;</span> REST API access (10 keys)</li>
+                        <li><span class="text-purple-600 mr-1">&#10003;</span> 2,000 queries/month</li>
+                    </ul>
+                    <a href="mailto:wgblackmonall@gmail.com?subject=Enterprise+Plan+Inquiry"
+                       class="block text-center bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded-md text-sm transition-colors">Contact for Access</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What I Bring -->
+    <section class="bg-white px-4 py-10">
         <div class="max-w-4xl mx-auto text-center">
             <h3 class="font-display text-2xl font-bold text-on-surface mb-4">What I Bring</h3>
             <p class="text-on-surface-variant leading-relaxed max-w-2xl mx-auto mb-6">
@@ -280,7 +327,7 @@ web (70 controllers)  ──>  application (use cases)  ──>  domain (103 mod
                 work end-to-end from database to UI.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-                <div class="bg-white rounded-lg p-5 shadow-sm">
+                <div class="bg-gray-50 rounded-lg p-5 shadow-sm">
                     <h4 class="font-semibold text-on-surface mb-2">Full-Stack Delivery</h4>
                     <p class="text-sm text-on-surface-variant">
                         This entire platform — domain models, AI integrations, persistence layer,
@@ -288,7 +335,7 @@ web (70 controllers)  ──>  application (use cases)  ──>  domain (103 mod
                         is the work of one engineer.
                     </p>
                 </div>
-                <div class="bg-white rounded-lg p-5 shadow-sm">
+                <div class="bg-gray-50 rounded-lg p-5 shadow-sm">
                     <h4 class="font-semibold text-on-surface mb-2">AI-Native Engineering</h4>
                     <p class="text-sm text-on-surface-variant">
                         Real experience integrating 5 LLM providers at production scale. Prompt
@@ -296,7 +343,7 @@ web (70 controllers)  ──>  application (use cases)  ──>  domain (103 mod
                         design with caching, batching, and model selection.
                     </p>
                 </div>
-                <div class="bg-white rounded-lg p-5 shadow-sm">
+                <div class="bg-gray-50 rounded-lg p-5 shadow-sm">
                     <h4 class="font-semibold text-on-surface mb-2">Quality Mindset</h4>
                     <p class="text-sm text-on-surface-variant">
                         1,837 tests aren't decoration. They're how I ship with confidence. Every
@@ -306,10 +353,13 @@ web (70 controllers)  ──>  application (use cases)  ──>  domain (103 mod
                 </div>
             </div>
 
-            <div class="mt-8">
+            <div class="mt-8 flex justify-center gap-4 flex-wrap">
                 <a href="mailto:newsletter@bigskylabs.ai"
                    class="inline-block bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm px-6 py-3 rounded-md transition-colors">
                     Get In Touch
+                </a>
+                <a th:href="@{/pricing}" class="inline-block border border-primary-600 text-primary-600 hover:bg-primary-50 font-semibold text-sm px-6 py-3 rounded-md transition-colors">
+                    View Pricing
                 </a>
             </div>
         </div>
