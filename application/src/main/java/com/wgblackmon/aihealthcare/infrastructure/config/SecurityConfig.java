@@ -68,7 +68,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/login", "/register", "/choose-path", "/unsubscribe", "/unsubscribe/downgrade",
                                  "/css/**", "/js/**", "/webjars/**",
-                                 "/pricing", "/about", "/press", "/error").permitAll()
+                                 "/pricing", "/about", "/press", "/press/og.png", "/error").permitAll()
                 .requestMatchers("/api/v1/stripe/webhook").permitAll()
                 .requestMatchers("/api/v1/feedback/**").permitAll()
                 .requestMatchers("/api/v1/monitoring/**").hasRole("ADMIN")
