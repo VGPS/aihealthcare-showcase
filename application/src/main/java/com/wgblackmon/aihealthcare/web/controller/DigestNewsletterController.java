@@ -7,7 +7,9 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.service.DigestNewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,8 +23,9 @@ import java.util.Optional;
  * Admin REST controller for sending the free-tier digest newsletter to a
  * specific address for review and QA purposes.
  *
- * <p>{@code POST /monitoring/digest-newsletter/send?email=xxx} builds today's
- * digest and delivers it to the given address regardless of subscription tier.
+ * <p>{@code GET /monitoring/digest-newsletter} renders today's digest as HTML in
+ * the browser. {@code POST /monitoring/digest-newsletter/send?email=xxx} builds
+ * and delivers it to a specific address regardless of subscription tier.
  *
  * @author  Bill Blackmon
  * @since   2026-08-15
@@ -47,6 +50,18 @@ public class DigestNewsletterController {
         this.renderer      = renderer;
         this.deliveryPort  = deliveryPort;
         this.subscriberPort = subscriberPort;
+    }
+
+    @GetMapping(produces = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<String> preview() {
+        log.debug("preview() | (no args)");
+        Optional<NewsletterRun> run = renderer.buildDigest();
+        if (run.isEmpty()) {
+            log.debug("preview() | return=204 (no articles)");
+            return ResponseEntity.noContent().build();
+        }
+        log.debug("preview() | return=200 ({} chars)", run.get().htmlContent().length());
+        return ResponseEntity.ok(run.get().htmlContent());
     }
 
     @PostMapping("/send")

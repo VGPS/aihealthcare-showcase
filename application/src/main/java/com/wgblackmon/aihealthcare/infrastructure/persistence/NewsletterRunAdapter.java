@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * JPA-backed implementation of {@link NewsletterRunPort}.
@@ -61,6 +62,15 @@ public class NewsletterRunAdapter implements NewsletterRunPort {
         List<NewsletterRun> unmodifiable = List.copyOf(result);
         log.debug("findAll() | return={} runs", unmodifiable.size());
         return unmodifiable;
+    }
+
+    @Override
+    public Optional<NewsletterRun> findLatest() {
+        log.debug("findLatest() |");
+        Optional<NewsletterRun> result = repository.findTopByOrderByGeneratedAtDesc()
+                .map(this::toDomain);
+        log.debug("findLatest() | return={}", result.map(NewsletterRun::runId).orElse("empty"));
+        return result;
     }
 
     private NewsletterRunEntity toEntity(NewsletterRun run) {

@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
 import com.wgblackmon.aihealthcare.domain.exception.RunNotFoundException;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Outbound port for persisting and retrieving {@link NewsletterRun} records.
@@ -43,4 +44,11 @@ public interface NewsletterRunPort {
      * @return unmodifiable list of all runs; empty if none have been saved
      */
     List<NewsletterRun> findAll();
+
+    /**
+     * Returns the most recently generated newsletter run, or empty if none exist.
+     *
+     * @return the latest run by {@code generatedAt}, or empty
+     */
+    Optional<NewsletterRun> findLatest();
 }

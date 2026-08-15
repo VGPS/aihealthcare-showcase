@@ -143,6 +143,8 @@
                        class="border border-gray-300 rounded px-2 py-1.5 text-sm flex-1 focus:outline-none focus:border-primary-400" />
                 <button type="button" class="btn-search text-sm px-3 py-1.5"
                         onclick="sendTestDigest(this)">Send</button>
+                <a href="/monitoring/digest-newsletter" target="_blank"
+                   class="text-xs text-primary-600 hover:underline whitespace-nowrap">Preview in browser</a>
             </div>
             <span id="digestSendStatus" class="text-xs mt-2 block"></span>
         </div>
@@ -163,8 +165,27 @@
                        class="border border-gray-300 rounded px-2 py-1.5 text-sm flex-1 focus:outline-none focus:border-primary-400" />
                 <button type="button" class="btn-search text-sm px-3 py-1.5"
                         onclick="sendSampleNewsletter(this)">Send</button>
+                <a href="/monitoring/sample-newsletter" target="_blank"
+                   class="text-xs text-primary-600 hover:underline whitespace-nowrap">Preview in browser</a>
             </div>
             <span id="sampleSendStatus" class="text-xs mt-2 block"></span>
+        </div>
+
+        <!-- Preview Latest AI Newsletter -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Preview AI Newsletter</h3>
+                <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Read-only</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">Opens the most recently generated AI newsletter in a browser tab for easy reading and review — exactly as subscribers see it.</p>
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Endpoint: <span class="font-mono text-primary-600">/monitoring/newsletter/preview</span></div>
+                <div>Est. duration: <span>Instant (reads from database)</span></div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="/monitoring/newsletter/preview" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open in browser</a>
+                <span class="text-xs text-gray-400">or go to <a href="/newsletter/runs" class="text-primary-600 hover:underline">Newsletter Runs</a> to browse all editions</span>
+            </div>
         </div>
 
     </div>
