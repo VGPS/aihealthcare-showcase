@@ -25,7 +25,7 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
     <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
-        <p class="text-sm text-gray-500 leading-relaxed">Subscription plans. Compare features across tiers and choose the plan that fits your needs.</p>
+        <p class="text-sm text-gray-500 leading-relaxed">Subscription plans. Individual researchers start at $19/month. Health system strategy teams and VC/PE healthcare funds use Enterprise at $399/month — less than an analyst-hour per day.</p>
     </div>
     <div class="text-center mb-8">
         <h2 class="font-display text-2xl font-bold text-on-surface">Choose Your Plan</h2>
@@ -74,7 +74,7 @@
         </div>
 
         <!-- SUBSCRIBER -->
-        <div class="bg-white rounded-lg shadow-md border-2 border-primary-600 p-6 flex flex-col relative">
+        <div id="subscriber" class="bg-white rounded-lg shadow-md border-2 border-primary-600 p-6 flex flex-col relative">
             <span class="absolute -top-2.5 left-4 bg-primary-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-pill">Recommended</span>
             <div class="text-xs font-bold uppercase tracking-wider text-primary-600 mb-1">Subscriber</div>
             <div class="text-3xl font-bold text-on-surface mb-1">$19 <span class="text-sm font-normal text-on-surface-variant">/month</span></div>
@@ -102,6 +102,55 @@
         </div>
     </div>
 
+    <!-- Enterprise tier -->
+    <div id="enterprise" class="bg-white rounded-lg shadow-md border-2 border-purple-600 p-6 mb-8">
+        <div class="flex flex-wrap items-center gap-3 mb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-600">Enterprise</span>
+            <div class="text-3xl font-bold text-on-surface">$399 <span class="text-sm font-normal text-on-surface-variant">/month</span></div>
+            <span class="bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full ml-auto">Built for strategy teams &amp; healthcare investors</span>
+        </div>
+
+        <div class="bg-purple-50 border-l-4 border-purple-500 p-3 mb-4 rounded-r">
+            <p class="text-sm text-purple-900 font-medium">A single verified intelligence report replaces an analyst-hour at $200–400/hr. For health system strategy teams and VC/PE healthcare funds, Enterprise costs less than 15 minutes of consultant time per day — and it runs continuously.</p>
+        </div>
+
+        <p class="text-sm text-on-surface-variant mb-4">Full intelligence suite with multi-LLM cross-verification, source provenance, confidence trending, and temporal diff analysis. Purpose-built for teams that need to trust their intelligence before acting on it.</p>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> All Subscriber features</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> AI Audit — multi-LLM verification</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Confidence trend heatmap</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Intelligence Trending over time</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> What Changed? weekly diff</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Source provenance — study-level attribution</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Platform Race tracker (6 vendors)</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Cross-domain synthesis (7 domains)</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> 2,000 AI queries/month</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> REST API access (10 API keys)</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Historical intelligence archive</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Priority email support</div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="text-sm font-semibold text-on-surface mb-2">&#x1F3E5; Health System Strategy Teams</h4>
+                <p class="text-xs text-on-surface-variant">Track FDA clearances, competitive vendor positioning, M&amp;A signals, and regulatory trends across AI platforms. The weekly "What Changed?" diff surfaces material shifts before your next board presentation — without assigning a staff analyst to monitor 57 sources daily.</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="text-sm font-semibold text-on-surface mb-2">&#x1F4B0; VC/PE Healthcare Funds</h4>
+                <p class="text-xs text-on-surface-variant">Multi-LLM verified intelligence with claim-level confidence scoring and source provenance. Know exactly which claims are backed by PubMed studies vs. industry press — and which independent AI model confirmed them. Audit trails, not black boxes.</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4">
+            <a href="mailto:wgblackmonall@gmail.com?subject=Enterprise+Plan+Inquiry"
+               class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-6 rounded-md text-sm transition-colors">
+                Contact for Enterprise Access
+            </a>
+            <span class="text-xs text-on-surface-variant">Includes onboarding consultation &middot; Cancel anytime</span>
+        </div>
+    </div>
+
     <!-- Feature comparison table -->
     <div class="bg-white rounded-lg shadow-sm p-6">
         <h2 class="font-display text-lg font-semibold text-on-surface mb-4">Feature Comparison</h2>
@@ -112,18 +161,24 @@
                     <th>Demo (7 days)</th>
                     <th>Free</th>
                     <th>Subscriber</th>
+                    <th style="color:#7c3aed;">Enterprise</th>
                 </tr>
             </thead>
             <tbody>
-                <tr><td>Newsletter content</td><td>Full daily newsletter</td><td>Full daily newsletter</td><td>Full daily newsletter</td></tr>
-                <tr><td>Platform access</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
-                <tr><td>Article archive</td><td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td><td><span class="text-red-400">&#10007;</span></td><td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td></tr>
-                <tr><td>AI research queries</td><td th:text="${subscriberQueryLimit} + ' / trial'">200</td><td><span class="text-red-400">&#10007;</span></td><td th:text="${subscriberQueryLimit} + ' / month'">200</td></tr>
-                <tr><td>Semantic / vector search</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
-                <tr><td>LLM model choice</td><td>Multiple models</td><td><span class="text-red-400">&#10007;</span></td><td>Multiple models</td></tr>
-                <tr><td>Vendor comparison reports</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
-                <tr><td>Research run history</td><td>Unlimited</td><td><span class="text-red-400">&#10007;</span></td><td>Unlimited</td></tr>
-                <tr><td>Duration</td><td>7 days</td><td>Unlimited</td><td>Unlimited</td></tr>
+                <tr><td>Newsletter content</td><td>Full daily</td><td>Full daily</td><td>Full daily</td><td style="color:#7c3aed;">Full daily</td></tr>
+                <tr><td>Platform access</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
+                <tr><td>Article archive</td><td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td><td><span class="text-red-400">&#10007;</span></td><td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td><td>Unlimited</td></tr>
+                <tr><td>AI research queries</td><td th:text="${subscriberQueryLimit} + ' / trial'">200</td><td><span class="text-red-400">&#10007;</span></td><td th:text="${subscriberQueryLimit} + ' / month'">200/mo</td><td style="color:#7c3aed;">2,000/month</td></tr>
+                <tr><td>Semantic / vector search</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
+                <tr><td>LLM model choice</td><td>Multiple models</td><td><span class="text-red-400">&#10007;</span></td><td>Multiple models</td><td>Multiple models</td></tr>
+                <tr><td>Vendor comparison reports</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
+                <tr><td>Research run history</td><td>Unlimited</td><td><span class="text-red-400">&#10007;</span></td><td>Unlimited</td><td>Unlimited</td></tr>
+                <tr><td>AI Audit (multi-LLM verification)</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; GPT-4o, Gemini, Nova</td></tr>
+                <tr><td>Source provenance dashboard</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; Study-level attribution</td></tr>
+                <tr><td>Confidence trend heatmap</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td></tr>
+                <tr><td>What Changed? weekly diff</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td></tr>
+                <tr><td>REST API access</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; 10 API keys</td></tr>
+                <tr><td>Duration</td><td>7 days</td><td>Unlimited</td><td>Unlimited</td><td>Unlimited</td></tr>
             </tbody>
         </table>
     </div>

@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BigSkyLabs - AI Healthcare Intelligence</title>
+    <title>BigSkyLabs — Healthcare AI Intelligence Platform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             color: #1a1a2e;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e8ecf1 100%);
-            min-height: 100vh;
+            background: #f8f9fa;
         }
+        a { text-decoration: none; }
+
+        /* Header */
         .header {
             background: #1a1a2e;
             color: white;
@@ -20,205 +22,510 @@
             justify-content: space-between;
             align-items: center;
         }
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
+        .header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
         .header h1 span { color: #4da6ff; }
-        .header a {
-            color: #4da6ff;
-            text-decoration: none;
+        .header-links { display: flex; gap: 0.75rem; align-items: center; }
+        .header-links a {
+            color: #ccc;
+            font-size: 0.88rem;
             font-weight: 500;
-            padding: 0.5rem 1.2rem;
-            border: 1px solid #4da6ff;
+            padding: 0.4rem 1rem;
             border-radius: 6px;
             transition: all 0.2s;
         }
-        .header a:hover { background: #4da6ff; color: white; }
+        .header-links a:hover { color: white; }
+        .header-links .cta {
+            color: white;
+            border: 1px solid #4da6ff;
+            color: #4da6ff;
+        }
+        .header-links .cta:hover { background: #4da6ff; color: white; }
 
+        /* Hero */
         .hero {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 5rem 2rem 3rem;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+            color: white;
+            padding: 5rem 2rem 4rem;
             text-align: center;
         }
-        .hero h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            line-height: 1.2;
+        .hero-tag {
+            display: inline-block;
+            background: rgba(77,166,255,0.15);
+            border: 1px solid rgba(77,166,255,0.3);
+            color: #4da6ff;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.3rem 0.9rem;
+            border-radius: 100px;
             margin-bottom: 1.5rem;
-            color: #1a1a2e;
+        }
+        .hero h2 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 1.25rem;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
         }
         .hero p {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
+            color: #a0aec0;
+            line-height: 1.75;
+            margin-bottom: 2.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero-ctas { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+        .btn-primary {
+            background: #4da6ff;
+            color: white;
+            font-weight: 700;
+            padding: 0.85rem 2rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { background: #3b8fe0; transform: translateY(-1px); }
+        .btn-outline {
+            background: transparent;
+            color: white;
+            font-weight: 600;
+            padding: 0.85rem 2rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.2s;
+        }
+        .btn-outline:hover { background: rgba(255,255,255,0.08); }
+        .hero-note { margin-top: 1.25rem; font-size: 0.82rem; color: #718096; }
+
+        /* Social proof bar */
+        .proof-bar {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.9rem 2rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .proof-bar strong { color: #1a1a2e; }
+
+        /* Section */
+        section { padding: 4rem 2rem; }
+        .section-inner { max-width: 960px; margin: 0 auto; }
+        .section-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #4da6ff;
+            margin-bottom: 0.5rem;
+        }
+        h3.section-title {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #1a1a2e;
+            margin-bottom: 0.75rem;
+            line-height: 1.2;
+        }
+        p.section-sub {
+            font-size: 1rem;
             color: #555;
             line-height: 1.7;
-            margin-bottom: 2.5rem;
+            max-width: 620px;
         }
 
-        .features {
+        /* Features grid */
+        .features { background: white; }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+        }
+        .feature-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1.5rem;
+            background: #fafafa;
+        }
+        .feature-icon { font-size: 1.6rem; margin-bottom: 0.75rem; }
+        .feature-card h4 { font-size: 0.95rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.4rem; }
+        .feature-card p { font-size: 0.85rem; color: #666; line-height: 1.6; }
+        .feature-badge {
+            display: inline-block;
+            background: #7c3aed;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Audience */
+        .audience { background: #f0f4f8; }
+        .audience-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-            max-width: 900px;
-            margin: 0 auto 3rem;
-            padding: 0 2rem;
+            gap: 1.25rem;
+            margin-top: 2.5rem;
         }
-        .feature {
+        .audience-card {
             background: white;
             border-radius: 10px;
             padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         }
-        .feature h3 {
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-            color: #1a1a2e;
-        }
-        .feature p { font-size: 0.9rem; color: #666; line-height: 1.5; }
+        .audience-card h4 { font-size: 0.9rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.4rem; }
+        .audience-card p { font-size: 0.82rem; color: #666; line-height: 1.6; }
 
-        .signup {
-            max-width: 500px;
-            margin: 0 auto 4rem;
-            padding: 2.5rem;
-            background: white;
+        /* Pricing */
+        .pricing { background: white; }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2.5rem;
+        }
+        .plan {
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-        .signup h3 {
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-        .signup p {
-            font-size: 0.9rem;
-            color: #777;
-            margin-bottom: 1.5rem;
-        }
-        .signup form {
+            padding: 1.75rem;
             display: flex;
-            gap: 0.5rem;
+            flex-direction: column;
         }
-        .signup input[type="email"] {
+        .plan.featured { border-color: #4da6ff; border-width: 2px; }
+        .plan.enterprise { border-color: #7c3aed; border-width: 2px; }
+        .plan-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+        .plan.featured .plan-label { color: #4da6ff; }
+        .plan.enterprise .plan-label { color: #7c3aed; }
+        .plan-price { font-size: 2rem; font-weight: 800; color: #1a1a2e; margin-bottom: 0.2rem; }
+        .plan-price span { font-size: 0.85rem; font-weight: 400; color: #888; }
+        .plan-desc { font-size: 0.82rem; color: #666; line-height: 1.5; margin-bottom: 1.25rem; }
+        .plan-features { list-style: none; margin-bottom: 1.5rem; flex: 1; }
+        .plan-features li { font-size: 0.82rem; color: #444; padding: 0.3rem 0; }
+        .plan-features li::before { content: "✓ "; color: #28a745; font-weight: 700; }
+        .plan.enterprise .plan-features li::before { color: #7c3aed; }
+        .plan-cta {
+            display: block;
+            text-align: center;
+            padding: 0.7rem 1rem;
+            border-radius: 7px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+        .plan-cta.blue { background: #4da6ff; color: white; }
+        .plan-cta.blue:hover { background: #3b8fe0; }
+        .plan-cta.purple { background: #7c3aed; color: white; }
+        .plan-cta.purple:hover { background: #6d28d9; }
+        .plan-cta.gray { background: #f0f4f8; color: #444; }
+        .plan-cta.gray:hover { background: #e2e8f0; }
+        .plan-roi {
+            background: #f5f3ff;
+            border-left: 3px solid #7c3aed;
+            padding: 0.6rem 0.75rem;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.78rem;
+            color: #5b21b6;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        /* Newsletter signup */
+        .newsletter { background: linear-gradient(135deg, #1a1a2e, #0f3460); color: white; text-align: center; }
+        .newsletter h3 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .newsletter p { font-size: 0.95rem; color: #a0aec0; margin-bottom: 1.75rem; }
+        .subscribe-form { display: flex; gap: 0.6rem; max-width: 440px; margin: 0 auto; }
+        .subscribe-form input {
             flex: 1;
-            padding: 0.75rem 1rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1rem;
+            padding: 0.8rem 1rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 7px;
+            font-size: 0.95rem;
+            background: rgba(255,255,255,0.08);
+            color: white;
             outline: none;
         }
-        .signup input[type="email"]:focus { border-color: #4da6ff; }
-        .signup button {
-            padding: 0.75rem 1.5rem;
-            background: #1a1a2e;
+        .subscribe-form input::placeholder { color: #718096; }
+        .subscribe-form input:focus { border-color: #4da6ff; }
+        .subscribe-form button {
+            padding: 0.8rem 1.4rem;
+            background: #4da6ff;
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 1rem;
+            border-radius: 7px;
+            font-size: 0.95rem;
+            font-weight: 700;
             cursor: pointer;
-            font-weight: 500;
+            white-space: nowrap;
             transition: background 0.2s;
         }
-        .signup button:hover { background: #2a2a4e; }
-        .signup .msg {
-            margin-top: 1rem;
-            font-size: 0.9rem;
-            display: none;
-        }
-        .signup .msg.success { color: #28a745; display: block; }
-        .signup .msg.error { color: #dc3545; display: block; }
+        .subscribe-form button:hover { background: #3b8fe0; }
+        .msg { margin-top: 0.85rem; font-size: 0.88rem; display: none; }
+        .msg.success { color: #68d391; display: block; }
+        .msg.error { color: #fc8181; display: block; }
 
+        /* Footer */
         .footer {
+            background: #1a1a2e;
+            color: #718096;
             text-align: center;
-            padding: 2rem;
-            color: #999;
-            font-size: 0.85rem;
+            padding: 1.5rem 2rem;
+            font-size: 0.82rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
+        .footer a { color: #4da6ff; }
+        .footer a:hover { text-decoration: underline; }
 
-        @media (max-width: 600px) {
-            .hero h2 { font-size: 1.8rem; }
-            .signup form { flex-direction: column; }
+        @media (max-width: 640px) {
+            .hero h2 { font-size: 1.9rem; }
+            .subscribe-form { flex-direction: column; }
+            .footer { justify-content: center; text-align: center; }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Big<span>Sky</span>Labs</h1>
+
+<div class="header">
+    <h1>Big<span>Sky</span>Labs</h1>
+    <div class="header-links">
+        <a href="https://app.bigskylabs.ai/pricing">Pricing</a>
+        <a href="https://app.bigskylabs.ai/about">About</a>
         <a href="https://app.bigskylabs.ai/login">Sign In</a>
+        <a href="https://app.bigskylabs.ai/register" class="cta">Free Trial</a>
     </div>
+</div>
 
-    <div class="hero">
-        <h2>AI Healthcare Intelligence, Delivered Weekly</h2>
-        <p>
-            We track the fast-moving intersection of artificial intelligence and healthcare
-            so you don't have to. Our platform aggregates news from 40+ sources, synthesizes
-            it with multiple AI models, and delivers curated intelligence to your inbox.
-        </p>
+<!-- Hero -->
+<div class="hero">
+    <div class="hero-tag">Healthcare AI Intelligence Platform</div>
+    <h2>Healthcare Intelligence for Teams That Can't Afford to Be Wrong</h2>
+    <p>
+        Regulatory alerts, deal signals, competitive positioning, and multi-LLM verified intelligence —
+        monitored across 57+ sources, synthesized daily, delivered with source attribution and an independent audit trail.
+    </p>
+    <div class="hero-ctas">
+        <a href="https://app.bigskylabs.ai/register" class="btn-primary">Start Free 7-Day Trial</a>
+        <a href="https://app.bigskylabs.ai/pricing#enterprise" class="btn-outline">Enterprise — $399/mo</a>
     </div>
+    <p class="hero-note">Free trial includes full platform access &middot; No credit card required</p>
+</div>
 
-    <div class="features">
-        <div class="feature">
-            <h3>Multi-Source Aggregation</h3>
-            <p>PubMed, FDA, WHO, Google News, trade press, and competitor pages — all in one place.</p>
-        </div>
-        <div class="feature">
-            <h3>AI-Powered Synthesis</h3>
-            <p>Claude for Healthcare, OpenAI for Healthcare, Google for Health, and Perplexity Health analyze and summarize findings from multiple angles.</p>
-        </div>
-        <div class="feature">
-            <h3>LLM Knowledge Wiki</h3>
-            <p>A living knowledge base that tracks contradictions and evolving claims over time.</p>
-        </div>
-        <div class="feature">
-            <h3>Vendor Intelligence</h3>
-            <p>Side-by-side comparisons of AI healthcare vendors with grounded scoring and citations.</p>
+<!-- Proof bar -->
+<div class="proof-bar">
+    <strong>57+ data sources</strong> &nbsp;&middot;&nbsp;
+    <strong>5 LLM providers</strong> &nbsp;&middot;&nbsp;
+    <strong>48 dashboard pages</strong> &nbsp;&middot;&nbsp;
+    <strong>11 automated pipelines</strong> &nbsp;&middot;&nbsp;
+    <strong>1,837 tests</strong>
+</div>
+
+<!-- Features -->
+<section class="features">
+    <div class="section-inner">
+        <div class="section-tag">What You Get</div>
+        <h3 class="section-title">Intelligence You Can Act On</h3>
+        <p class="section-sub">Every report is cross-verified by independent AI models. Every claim links to its source. Every week you see exactly what changed.</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-badge">Enterprise</div>
+                <div class="feature-icon">🔍</div>
+                <h4>Multi-LLM AI Audit</h4>
+                <p>Claude synthesizes intelligence. GPT-4o, Gemini, or AWS Nova independently verifies every claim. Confidence scoring, disputed claims, and source attribution — all in one report.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-badge">Enterprise</div>
+                <div class="feature-icon">📋</div>
+                <h4>Source Provenance Dashboard</h4>
+                <p>Know exactly which PubMed studies, regulatory filings, or industry articles back each claim — and whether a second AI model confirmed them.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-badge">Enterprise</div>
+                <div class="feature-icon">📈</div>
+                <h4>What Changed? Weekly Diff</h4>
+                <p>Claude compares this week's intelligence report to last week's. New findings, dropped findings, and shifted positions — flagged before your next meeting.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚖️</div>
+                <h4>Regulatory Alert Monitoring</h4>
+                <p>FDA 510(k) clearances, De Novo authorizations, and CMS rules harvested daily from openFDA and the Federal Register. Custom watchlists match your companies of interest.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h4>Deal Signal Detection</h4>
+                <p>LLM-enhanced identification of M&A activity, funding rounds, partnerships, and licensing deals — with extracted amounts, counterparties, and cross-referenced company context.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏥</div>
+                <h4>AI Platform Race Tracker</h4>
+                <p>Vendor-neutral competitive positioning across Claude for Healthcare, OpenAI for Healthcare, Google for Health, Microsoft for Healthcare, Perplexity Health, and Amazon Health.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h4>Competitive Framework Scoring</h4>
+                <p>6-dimension scoring (clinical validation, regulatory positioning, market adoption, technology depth, data assets, partnerships) with radar chart visualization per company.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📬</div>
+                <h4>Daily Intelligence Newsletter</h4>
+                <p>AI-generated newsletter summarizing the day's most important AI healthcare developments, grouped by topic with attributed sources. Full version for subscribers, digest for free users.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔎</div>
+                <h4>Semantic Vector Search</h4>
+                <p>Query across a live article corpus using pgvector embeddings. Ask natural-language questions and get synthesized answers with numbered citation references from real articles.</p>
+            </div>
         </div>
     </div>
+</section>
 
-    <div class="signup" id="signup">
-        <h3>Get the Newsletter</h3>
-        <p>Weekly AI healthcare intelligence — free, no spam, unsubscribe anytime.</p>
-        <form id="subscribeForm" onsubmit="return subscribe(event)">
+<!-- Audience -->
+<section class="audience">
+    <div class="section-inner">
+        <div class="section-tag">Who It's For</div>
+        <h3 class="section-title">Built for Healthcare AI Professionals</h3>
+        <div class="audience-grid">
+            <div class="audience-card">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem;">💰</div>
+                <h4>VC/PE Healthcare Funds</h4>
+                <p>Multi-LLM verified intelligence with claim-level confidence scoring and source provenance. Know which claims are backed by studies vs. press — with an independent AI audit trail.</p>
+            </div>
+            <div class="audience-card">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem;">🏥</div>
+                <h4>Health System Strategy Teams</h4>
+                <p>Track vendor positioning, M&A signals, and regulatory trends. The weekly "What Changed?" diff surfaces material shifts before your next board presentation — no analyst assigned to 57 sources.</p>
+            </div>
+            <div class="audience-card">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem;">⚖️</div>
+                <h4>Regulatory &amp; Compliance</h4>
+                <p>Automated FDA and CMS alert harvesting with custom company watchlists. Never miss a 510(k) clearance, De Novo authorization, or CMS policy change.</p>
+            </div>
+            <div class="audience-card">
+                <div style="font-size:1.5rem;margin-bottom:0.5rem;">🔬</div>
+                <h4>Researchers &amp; Analysts</h4>
+                <p>AI-synthesized research from PubMed, industry news, and startup directories. Daily briefings with numbered citation references and full source attribution.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing">
+    <div class="section-inner">
+        <div class="section-tag">Pricing</div>
+        <h3 class="section-title">Plans for Every Team</h3>
+        <p class="section-sub">Individual researchers to enterprise strategy teams. Start free — no credit card required.</p>
+        <div class="pricing-grid">
+            <!-- Free -->
+            <div class="plan">
+                <div class="plan-label" style="color:#888;">Free</div>
+                <div class="plan-price">$0 <span>/month</span></div>
+                <div class="plan-desc">Daily AI healthcare newsletter. No platform access.</div>
+                <ul class="plan-features">
+                    <li>Full daily digest newsletter</li>
+                    <li>Unsubscribe anytime</li>
+                </ul>
+                <a href="https://app.bigskylabs.ai/register" class="plan-cta gray">Sign Up Free</a>
+            </div>
+            <!-- Subscriber -->
+            <div class="plan featured">
+                <div class="plan-label">Subscriber</div>
+                <div class="plan-price">$19 <span>/month</span></div>
+                <div class="plan-desc">Full platform — 48 dashboards, semantic search, and AI research queries.</div>
+                <ul class="plan-features">
+                    <li>Full platform — 48 dashboard pages</li>
+                    <li>Semantic / vector search</li>
+                    <li>Multi-model AI research queries</li>
+                    <li>Vendor comparison reports</li>
+                    <li>Regulatory alert watchlists</li>
+                    <li>Full newsletter + archive</li>
+                </ul>
+                <a href="https://app.bigskylabs.ai/register" class="plan-cta blue">Start Free Trial</a>
+            </div>
+            <!-- Enterprise -->
+            <div class="plan enterprise">
+                <div class="plan-label">Enterprise</div>
+                <div class="plan-price">$399 <span>/month</span></div>
+                <div class="plan-roi">One verified intelligence report replaces an analyst-hour at $200–400/hr. That's less than 15 minutes of consultant time — and it runs 24/7.</div>
+                <ul class="plan-features">
+                    <li>All Subscriber features</li>
+                    <li>Multi-LLM AI Audit (GPT-4o, Gemini, Nova)</li>
+                    <li>Source provenance — study-level attribution</li>
+                    <li>What Changed? weekly diff</li>
+                    <li>Confidence trend heatmap</li>
+                    <li>REST API (10 keys) &middot; 2,000 queries/mo</li>
+                    <li>Onboarding consultation included</li>
+                </ul>
+                <a href="mailto:wgblackmonall@gmail.com?subject=Enterprise+Plan+Inquiry" class="plan-cta purple">Contact for Access</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter -->
+<section class="newsletter">
+    <div class="section-inner">
+        <h3>Get the Free Newsletter</h3>
+        <p>Daily AI healthcare intelligence — free, no spam, unsubscribe anytime.</p>
+        <form class="subscribe-form" onsubmit="return subscribe(event)">
             <input type="email" id="emailInput" placeholder="you@example.com" required />
             <button type="submit">Subscribe</button>
         </form>
         <div class="msg" id="msg"></div>
     </div>
+</section>
 
-    <div class="footer">
-        &copy; 2026 BigSkyLabs. All rights reserved.
-    </div>
+<div class="footer">
+    <span>&copy; 2026 BigSkyLabs. All rights reserved.</span>
+    <span>
+        <a href="https://app.bigskylabs.ai/pricing">Pricing</a> &nbsp;&middot;&nbsp;
+        <a href="https://app.bigskylabs.ai/about">About</a> &nbsp;&middot;&nbsp;
+        <a href="https://app.bigskylabs.ai/register">Free Trial</a> &nbsp;&middot;&nbsp;
+        <a href="mailto:wgblackmonall@gmail.com">Contact</a>
+    </span>
+</div>
 
-    <script>
-        async function subscribe(e) {
-            e.preventDefault();
-            var email = document.getElementById('emailInput').value;
-            var msg = document.getElementById('msg');
-            msg.className = 'msg';
-            msg.style.display = 'none';
-            try {
-                var res = await fetch('https://app.bigskylabs.ai/api/v1/subscribers', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email: email})
-                });
-                if (res.ok) {
-                    msg.textContent = 'You\'re subscribed! Check your inbox soon.';
-                    msg.className = 'msg success';
-                    document.getElementById('emailInput').value = '';
-                } else if (res.status === 409) {
-                    msg.textContent = 'You\'re already subscribed!';
-                    msg.className = 'msg error';
-                } else {
-                    msg.textContent = 'Something went wrong. Please try again.';
-                    msg.className = 'msg error';
-                }
-            } catch (err) {
-                msg.textContent = 'Could not connect. Please try again later.';
+<script>
+    async function subscribe(e) {
+        e.preventDefault();
+        var email = document.getElementById('emailInput').value;
+        var msg = document.getElementById('msg');
+        msg.className = 'msg';
+        msg.style.display = 'none';
+        try {
+            var res = await fetch('https://app.bigskylabs.ai/api/v1/subscribers', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: email})
+            });
+            if (res.ok) {
+                msg.textContent = "You're subscribed! Check your inbox soon.";
+                msg.className = 'msg success';
+                document.getElementById('emailInput').value = '';
+            } else if (res.status === 409) {
+                msg.textContent = "You're already subscribed!";
+                msg.className = 'msg error';
+            } else {
+                msg.textContent = 'Something went wrong. Please try again.';
                 msg.className = 'msg error';
             }
+        } catch (err) {
+            msg.textContent = 'Could not connect. Please try again later.';
+            msg.className = 'msg error';
         }
-    </script>
+    }
+</script>
 </body>
 </html>

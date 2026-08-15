@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Public homepage at GET / — platform marketing page for unauthenticated visitors.
+ * Authenticated users are redirected to /dashboard by HomeController.
+ *
+ * @author  Bill Blackmon
+ * @since   2026-08-15
+ * @updated 2026-08-15
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('AIHealthcare — AI Healthcare Intelligence Platform')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
+
+<!-- Header -->
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+        <div>
+            <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
+            <p class="text-primary-200 text-sm mt-0.5">AI-Powered Healthcare Intelligence Platform</p>
+        </div>
+        <div class="flex gap-3">
+            <a th:href="@{/pricing}" class="text-primary-200 hover:text-white text-sm font-medium px-3 py-2 transition-colors">Pricing</a>
+            <a th:href="@{/about}" class="text-primary-200 hover:text-white text-sm font-medium px-3 py-2 transition-colors">About</a>
+            <a th:href="@{/login}" class="bg-white/10 hover:bg-white/20 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors border border-white/20">Sign In</a>
+            <a th:href="@{/register}" class="bg-white text-primary-700 font-semibold text-sm px-4 py-2 rounded-md hover:bg-primary-50 transition-colors">Free Trial</a>
+        </div>
+    </div>
+</header>
+
+<main class="flex-1">
+
+    <!-- Hero -->
+    <section class="bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 text-white px-4 py-16">
+        <div class="max-w-4xl mx-auto text-center">
+            <p class="text-primary-200 text-xs font-bold uppercase tracking-widest mb-3">Healthcare AI Intelligence Platform</p>
+            <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-4">
+                Healthcare Intelligence<br/>for Teams That Can't Afford to Be Wrong
+            </h2>
+            <p class="text-primary-100 text-lg max-w-2xl mx-auto leading-relaxed mb-8">
+                Regulatory alerts, deal signals, competitive positioning, and multi-LLM verified intelligence —
+                monitored across 57+ sources, synthesized daily, with source attribution and an independent audit trail.
+            </p>
+            <div class="flex justify-center gap-4 flex-wrap mb-4">
+                <a th:href="@{/register}"
+                   class="bg-white text-primary-700 font-bold px-8 py-3 rounded-lg text-base hover:bg-primary-50 transition-colors shadow-md">
+                    Start Free 7-Day Trial
+                </a>
+                <a th:href="@{/pricing#enterprise}"
+                   class="bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-3 rounded-lg text-base border border-white/30 transition-colors">
+                    Enterprise — $399/mo
+                </a>
+            </div>
+            <p class="text-primary-300 text-xs">Full platform access &middot; No credit card required</p>
+        </div>
+    </section>
+
+    <!-- Stats bar -->
+    <section class="bg-white border-b border-outline-variant py-4">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                <div><div class="text-xl font-bold text-primary-700">57+</div><div class="text-xs text-on-surface-variant">Data Sources</div></div>
+                <div><div class="text-xl font-bold text-primary-700">5</div><div class="text-xs text-on-surface-variant">LLM Providers</div></div>
+                <div><div class="text-xl font-bold text-primary-700">48</div><div class="text-xs text-on-surface-variant">Dashboard Pages</div></div>
+                <div><div class="text-xl font-bold text-primary-700">11</div><div class="text-xs text-on-surface-variant">Automated Pipelines</div></div>
+                <div><div class="text-xl font-bold text-primary-700">1,837</div><div class="text-xs text-on-surface-variant">Automated Tests</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="max-w-6xl mx-auto px-4 py-12">
+        <h3 class="font-display text-2xl font-bold text-on-surface text-center mb-2">Intelligence You Can Act On</h3>
+        <p class="text-center text-sm text-on-surface-variant mb-8">Every report is cross-verified by independent AI models. Every claim links to its source.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+            <div class="bg-white rounded-lg border border-outline-variant p-5 shadow-sm">
+                <span class="inline-block bg-purple-100 text-purple-800 text-xs font-bold px-2 py-0.5 rounded mb-3">Enterprise</span>
+                <h4 class="font-semibold text-on-surface mb-2">Multi-LLM AI Audit</h4>
+                <p class="text-sm text-on-surface-variant">Claude synthesizes intelligence. GPT-4o, Gemini, or AWS Nova independently verifies every claim. Confidence scoring and source attribution in one report.</p>
+            </div>
+
+            <div class="bg-white rounded-lg border border-outline-variant p-5 shadow-sm">
+                <span class="inline-block bg-purple-100 text-purple-800 text-xs font-bold px-2 py-0.5 rounded mb-3">Enterprise</span>
+                <h4 class="font-semibold text-on-surface mb-2">Source Provenance Dashboard</h4>
+                <p class="text-sm text-on-surface-variant">Know exactly which PubMed studies, regulatory filings, or industry articles back each claim — and whether a second AI model confirmed them.</p>
+            </div>
+
+            <div class="bg-white rounded-lg border border-outline-variant p-5 shadow-sm">
+                <span class="inline-block bg-purple-100 text-purple-800 text-xs font-bold px-2 py-0.5 rounded mb-3">Enterprise</span>
+                <h4 class="font-semibold text-on-surface mb-2">What Changed? Weekly Diff</h4>
+                <p class="text-sm text-on-surface-variant">Claude compares this week's intelligence to last week's. New findings, dropped findings, and shifted positions — flagged before your next meeting.</p>
+            </div>
+
+            <div class="bg-white rounded-lg border border-outline-variant p-5 shadow-sm">
+                <h4 class="font-semibold text-on-surface mb-2">&#x2696;&#xFE0F; Regulatory Alert Monitoring</h4>
+                <p class="text-sm text-on-surface-variant">FDA 510(k) clearances, De Novo authorizations, and CMS rules harvested daily from openFDA and the Federal Register. Custom watchlists match your companies.</p>
+            </div>
+
+            <div class="bg-white rounded-lg border border-outline-variant p-5 shadow-sm">
+                <h4 class="font-semibold text-on-surface mb-2">&#x1F4B0; Deal Signal Detection</h4>
+                <p class="text-sm text-on-surface-variant">LLM-enhanced identification of M&amp;A activity, funding rounds, partnerships, and licensing deals — with extracted amounts and counterparties.</p>
+            </div>
+
+            <div class="bg-white rounded-lg border border-outline-variant p-5 shadow-sm">
+                <h4 class="font-semibold text-on-surface mb-2">&#x1F3C6; AI Platform Race Tracker</h4>
+                <p class="text-sm text-on-surface-variant">Vendor-neutral competitive positioning across Claude for Healthcare, OpenAI for Healthcare, Google for Health, Microsoft for Healthcare, Perplexity Health, and Amazon Health.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Who it's for -->
+    <section class="bg-gray-50 px-4 py-10">
+        <div class="max-w-5xl mx-auto">
+            <h3 class="font-display text-xl font-bold text-on-surface text-center mb-6">Built For Healthcare AI Professionals</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-lg p-5 shadow-sm text-center">
+                    <div class="text-2xl mb-2">&#x1F4B0;</div>
+                    <h4 class="font-semibold text-sm text-on-surface mb-1">VC/PE Healthcare Funds</h4>
+                    <p class="text-xs text-on-surface-variant">Verified intelligence with claim-level confidence scoring. Know which claims are backed by studies — not just press.</p>
+                </div>
+                <div class="bg-white rounded-lg p-5 shadow-sm text-center">
+                    <div class="text-2xl mb-2">&#x1F3E5;</div>
+                    <h4 class="font-semibold text-sm text-on-surface mb-1">Health System Strategy</h4>
+                    <p class="text-xs text-on-surface-variant">Track vendor positioning, M&amp;A signals, and regulatory trends. "What Changed?" surfaces shifts before your next board presentation.</p>
+                </div>
+                <div class="bg-white rounded-lg p-5 shadow-sm text-center">
+                    <div class="text-2xl mb-2">&#x2696;</div>
+                    <h4 class="font-semibold text-sm text-on-surface mb-1">Regulatory &amp; Compliance</h4>
+                    <p class="text-xs text-on-surface-variant">Automated FDA and CMS alert harvesting with custom watchlists. Never miss a 510(k) clearance or policy change.</p>
+                </div>
+                <div class="bg-white rounded-lg p-5 shadow-sm text-center">
+                    <div class="text-2xl mb-2">&#x1F52C;</div>
+                    <h4 class="font-semibold text-sm text-on-surface mb-1">Researchers &amp; Analysts</h4>
+                    <p class="text-xs text-on-surface-variant">AI-synthesized research from PubMed, industry news, and startup directories. Daily briefings with full source attribution.</p>
+                </div>
+            </div>
+
+            <!-- Enterprise ROI callout -->
+            <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-5 text-center">
+                <p class="text-sm text-purple-900 mb-3">
+                    <span class="font-bold">Enterprise at $399/month</span> — one verified intelligence report replaces an analyst-hour at $200–400/hr.
+                    For strategy teams and VC/PE funds, that's less than 15 minutes of consultant time per day.
+                </p>
+                <div class="flex justify-center gap-3 flex-wrap">
+                    <a href="mailto:wgblackmonall@gmail.com?subject=Enterprise+Plan+Inquiry"
+                       class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-5 rounded-md text-sm transition-colors">
+                        Contact for Enterprise Access
+                    </a>
+                    <a th:href="@{/pricing#enterprise}"
+                       class="inline-block border border-purple-600 text-purple-700 hover:bg-purple-50 font-semibold py-2 px-5 rounded-md text-sm transition-colors">
+                        See Enterprise Features
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="bg-primary-600 px-4 py-10 text-center">
+        <div class="max-w-2xl mx-auto">
+            <h3 class="font-display text-2xl font-bold text-white mb-2">Start Your Free 7-Day Trial</h3>
+            <p class="text-primary-100 text-sm mb-6">Full access to every feature. No credit card required.</p>
+            <div class="flex justify-center gap-4 flex-wrap">
+                <a th:href="@{/register}"
+                   class="bg-white text-primary-700 font-bold px-8 py-3 rounded-lg text-sm hover:bg-primary-50 transition-colors">
+                    Get Started Free
+                </a>
+                <a th:href="@{/login}"
+                   class="bg-white/10 hover:bg-white/20 text-white font-semibold px-8 py-3 rounded-lg text-sm border border-white/30 transition-colors">
+                    Sign In
+                </a>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>
