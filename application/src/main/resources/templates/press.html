@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Public press/share page at GET /press — shareable blurb for social media,
+ * developer communities, and email outreach. No auth required.
+ *
+ * @author  Bill Blackmon
+ * @since   2026-08-15
+ * @updated 2026-08-15
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('AIHealthcare — Built with Claude Code')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+        <div>
+            <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
+            <p class="text-primary-200 text-sm mt-0.5">AI-Powered Healthcare Intelligence Platform</p>
+        </div>
+        <div class="flex gap-3">
+            <a th:href="@{/register}" class="bg-white text-primary-700 font-semibold text-sm px-4 py-2 rounded-md hover:bg-primary-50 transition-colors">Free Trial</a>
+            <a th:href="@{/login}" class="bg-white/10 hover:bg-white/20 text-white text-sm font-semibold px-4 py-2 rounded-md border border-white/20 transition-colors">Sign In</a>
+        </div>
+    </div>
+</header>
+
+<main class="flex-1">
+
+    <div class="max-w-3xl mx-auto px-4 py-12">
+
+        <!-- Eyebrow -->
+        <p class="text-xs font-bold uppercase tracking-widest text-primary-600 mb-2">Built with Claude Code</p>
+
+        <!-- Headline -->
+        <h2 class="font-display text-3xl font-bold text-on-surface leading-tight mb-4">
+            A solo developer built an enterprise healthcare AI intelligence platform — here's what's inside.
+        </h2>
+
+        <!-- Intro -->
+        <p class="text-base text-on-surface-variant leading-relaxed mb-8">
+            I built <strong>AIHealthcare</strong> from scratch as a single engineer using Claude Code.
+            It monitors 57+ data sources daily, runs an 11-step automated pipeline, and synthesizes
+            everything through Claude — then independently cross-verifies Claude's output with GPT-4o,
+            Gemini, or AWS Bedrock Nova, claim by claim, with confidence scoring and source provenance.
+        </p>
+
+        <!-- Stats row -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            <div class="bg-white rounded-lg border border-outline-variant p-4 text-center shadow-sm">
+                <div class="text-2xl font-bold text-primary-700">57+</div>
+                <div class="text-xs text-on-surface-variant mt-0.5">Data Sources</div>
+            </div>
+            <div class="bg-white rounded-lg border border-outline-variant p-4 text-center shadow-sm">
+                <div class="text-2xl font-bold text-primary-700">5</div>
+                <div class="text-xs text-on-surface-variant mt-0.5">LLM Providers</div>
+            </div>
+            <div class="bg-white rounded-lg border border-outline-variant p-4 text-center shadow-sm">
+                <div class="text-2xl font-bold text-primary-700">590</div>
+                <div class="text-xs text-on-surface-variant mt-0.5">Java Classes</div>
+            </div>
+            <div class="bg-white rounded-lg border border-outline-variant p-4 text-center shadow-sm">
+                <div class="text-2xl font-bold text-primary-700">1,837</div>
+                <div class="text-xs text-on-surface-variant mt-0.5">Automated Tests</div>
+            </div>
+        </div>
+
+        <!-- What Claude Code actually did -->
+        <div class="bg-primary-50 border-l-4 border-primary-600 rounded-r-lg p-5 mb-8">
+            <h3 class="font-semibold text-on-surface mb-2">What Claude Code actually did</h3>
+            <p class="text-sm text-on-surface-variant leading-relaxed">
+                Roughly 80% of this codebase was written by Claude Code. I directed the architecture,
+                reviewed diffs, and made judgment calls on tradeoffs. Claude handled the repetitive
+                scaffolding, adapter implementations, test generation, prompt engineering, and most
+                of the Thymeleaf UI. The Spring AI integration and multi-LLM verification pattern
+                were particularly well-handled — I described what I wanted and it produced
+                production-quality code on the first pass most of the time.
+            </p>
+        </div>
+
+        <!-- What it does -->
+        <h3 class="font-display text-xl font-semibold text-on-surface mb-4">What the platform does</h3>
+        <div class="space-y-3 mb-8">
+            <div class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">1</span>
+                <p class="text-sm text-on-surface-variant"><span class="font-semibold text-on-surface">Harvests and deduplicates</span> articles from PubMed, openFDA, the Federal Register, Healthcare Dive, Beckers, Google News, Y Combinator, and 50+ other sources daily.</p>
+            </div>
+            <div class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">2</span>
+                <p class="text-sm text-on-surface-variant"><span class="font-semibold text-on-surface">Runs an 11-step pipeline</span> — sentiment scoring, competitive framework analysis, deal signal detection, regulatory matching, trend detection, wiki compilation, and newsletter generation.</p>
+            </div>
+            <div class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">3</span>
+                <p class="text-sm text-on-surface-variant"><span class="font-semibold text-on-surface">Synthesizes intelligence</span> through Claude (Anthropic) across 7 domains simultaneously — regulatory, deals, sentiment, frameworks, trends, articles, and wiki.</p>
+            </div>
+            <div class="flex items-start gap-3">
+                <span class="flex-shrink-0 w-6 h-6 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">4</span>
+                <p class="text-sm text-on-surface-variant"><span class="font-semibold text-on-surface">Cross-verifies with a second AI</span> — GPT-4o, Gemini 2.5 Flash, or AWS Bedrock Nova independently evaluate every claim, assign confidence scores, and cite source references.</p>
+            </div>
+        </div>
+
+        <!-- Tech stack -->
+        <h3 class="font-display text-xl font-semibold text-on-surface mb-3">Stack</h3>
+        <div class="flex flex-wrap gap-2 mb-8">
+            <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">Java 17</span>
+            <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">Spring Boot 3</span>
+            <span class="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">Spring AI 1.1.6</span>
+            <span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">PostgreSQL + pgvector</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full">Anthropic Claude</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full">OpenAI GPT-4o</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full">Google Gemini 2.5 Flash</span>
+            <span class="inline-block bg-purple-100 text-purple-800 text-xs font-semibold px-3 py-1 rounded-full">AWS Bedrock Nova Pro</span>
+            <span class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1 rounded-full">AWS SES</span>
+            <span class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1 rounded-full">AWS EC2</span>
+            <span class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-3 py-1 rounded-full">Stripe</span>
+            <span class="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">Hexagonal Architecture</span>
+            <span class="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">Flyway</span>
+            <span class="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">Thymeleaf</span>
+            <span class="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">Tailwind CSS</span>
+        </div>
+
+        <!-- Happy to discuss -->
+        <div class="bg-gray-50 rounded-lg border border-outline-variant p-5 mb-8">
+            <p class="text-sm text-on-surface-variant leading-relaxed">
+                Happy to discuss the <strong>Spring AI integration</strong>, the <strong>multi-LLM cross-verification pattern</strong>,
+                the <strong>hexagonal architecture</strong>, or how I used Claude Code to move fast without accumulating debt.
+                Ask questions below or reach me at
+                <a href="mailto:wgblackmonall@gmail.com" class="text-primary-600 hover:underline">wgblackmonall@gmail.com</a>.
+            </p>
+        </div>
+
+        <!-- CTA -->
+        <div class="bg-primary-600 rounded-lg p-6 text-white text-center">
+            <h3 class="font-display text-lg font-bold mb-1">Try it yourself — free for 7 days</h3>
+            <p class="text-primary-100 text-sm mb-4">Full platform access. No credit card required.</p>
+            <a th:href="@{/register}"
+               class="inline-block bg-white text-primary-700 font-bold px-8 py-3 rounded-lg text-sm hover:bg-primary-50 transition-colors">
+                Start Free Trial
+            </a>
+        </div>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>
