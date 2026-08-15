@@ -124,6 +124,51 @@
         </div>
     </div>
 
+    <!-- Test-Send Cards -->
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(360px,1fr))] gap-4 mt-4">
+
+        <!-- Send Test Digest -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Send Test Digest</h3>
+                <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Low</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">Builds today's free-tier article digest and sends it to a specific email address. Use this to QA the digest format and article count without modifying subscription tiers.</p>
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Endpoint: <span class="font-mono text-primary-600">/monitoring/digest-newsletter/send</span></div>
+                <div>Est. duration: <span>~2 seconds (no LLM)</span></div>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="email" id="digestEmailInput" placeholder="recipient@example.com"
+                       class="border border-gray-300 rounded px-2 py-1.5 text-sm flex-1 focus:outline-none focus:border-primary-400" />
+                <button type="button" class="btn-search text-sm px-3 py-1.5"
+                        onclick="sendTestDigest(this)">Send</button>
+            </div>
+            <span id="digestSendStatus" class="text-xs mt-2 block"></span>
+        </div>
+
+        <!-- Send Sample Newsletter -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Send Sample Newsletter</h3>
+                <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Low</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">Sends the cold-outreach sample newsletter (static content) to a specific email address for prospect review or QA.</p>
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Endpoint: <span class="font-mono text-primary-600">/monitoring/sample-newsletter/send</span></div>
+                <div>Est. duration: <span>~1 second</span></div>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="email" id="sampleEmailInput" placeholder="recipient@example.com"
+                       class="border border-gray-300 rounded px-2 py-1.5 text-sm flex-1 focus:outline-none focus:border-primary-400" />
+                <button type="button" class="btn-search text-sm px-3 py-1.5"
+                        onclick="sendSampleNewsletter(this)">Send</button>
+            </div>
+            <span id="sampleSendStatus" class="text-xs mt-2 block"></span>
+        </div>
+
+    </div>
+
     <!-- Pipeline Run History -->
     <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
         <div class="border-b-2 border-gray-100 pb-3 mb-5">
@@ -431,6 +476,56 @@ function finishBatch(btn, message) {
     btn.disabled = false;
     btn.onclick = function() { runAllSafe(btn); };
     setAllButtonsDisabled(false);
+}
+
+function sendTestDigest(btn) {
+    var email = document.getElementById('digestEmailInput').value.trim();
+    var statusEl = document.getElementById('digestSendStatus');
+    if (!email) { statusEl.textContent = 'Enter an email address first.'; statusEl.className = 'text-xs mt-2 block text-red-600'; return; }
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    statusEl.textContent = 'Building digest...';
+    statusEl.className = 'text-xs mt-2 block text-blue-600';
+    var headers = { 'Content-Type': 'application/json' };
+    headers[getCsrfHeader()] = getCsrfToken();
+    fetch('/monitoring/digest-newsletter/send?email=' + encodeURIComponent(email), { method: 'POST', headers: headers, credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.disabled = false; btn.textContent = 'Send';
+            if (data.sent) {
+                statusEl.textContent = 'Sent to ' + email + ' (' + data.articleCount + ')';
+                statusEl.className = 'text-xs mt-2 block text-green-700 font-semibold';
+            } else {
+                statusEl.textContent = data.error || 'Send failed';
+                statusEl.className = 'text-xs mt-2 block text-red-600';
+            }
+        })
+        .catch(function(e) { btn.disabled = false; btn.textContent = 'Send'; statusEl.textContent = 'Error: ' + e; statusEl.className = 'text-xs mt-2 block text-red-600'; });
+}
+
+function sendSampleNewsletter(btn) {
+    var email = document.getElementById('sampleEmailInput').value.trim();
+    var statusEl = document.getElementById('sampleSendStatus');
+    if (!email) { statusEl.textContent = 'Enter an email address first.'; statusEl.className = 'text-xs mt-2 block text-red-600'; return; }
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    statusEl.textContent = 'Sending sample...';
+    statusEl.className = 'text-xs mt-2 block text-blue-600';
+    var headers = { 'Content-Type': 'application/json' };
+    headers[getCsrfHeader()] = getCsrfToken();
+    fetch('/monitoring/sample-newsletter/send?email=' + encodeURIComponent(email), { method: 'POST', headers: headers, credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.disabled = false; btn.textContent = 'Send';
+            if (data.sent) {
+                statusEl.textContent = 'Sent to ' + email;
+                statusEl.className = 'text-xs mt-2 block text-green-700 font-semibold';
+            } else {
+                statusEl.textContent = data.error || 'Send failed';
+                statusEl.className = 'text-xs mt-2 block text-red-600';
+            }
+        })
+        .catch(function(e) { btn.disabled = false; btn.textContent = 'Send'; statusEl.textContent = 'Error: ' + e; statusEl.className = 'text-xs mt-2 block text-red-600'; });
 }
 
 /*]]>*/
