@@ -31,10 +31,10 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <nav th:fragment="nav(activePage)" class="nav-bar">
 
-    <!-- Claude AI (admin-only, far left) -->
+    <!-- Enterprise Intel (admin-only, far left) -->
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/intelligence}"
        th:classappend="${activePage == 'intelligence'} ? ' active'"
-       class="nav-link" style="color: #a78bfa; font-weight: 600;">⚕ Claude AI</a>
+       class="nav-link" style="color: #a78bfa; font-weight: 600;">⚕ Enterprise Intel</a>
 
     <!-- Dashboard (standalone) -->
     <a th:href="@{/dashboard}"
