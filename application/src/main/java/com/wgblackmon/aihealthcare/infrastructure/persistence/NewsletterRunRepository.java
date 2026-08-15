@@ -40,4 +40,6 @@ public interface NewsletterRunRepository extends JpaRepository<NewsletterRunEnti
      */
     @Query("SELECT MAX(n.generatedAt) FROM NewsletterRunEntity n")
     Optional<Instant> findMostRecentGeneratedAt();
+
+    Optional<NewsletterRunEntity> findTopByOrderByGeneratedAtDesc();
 }
