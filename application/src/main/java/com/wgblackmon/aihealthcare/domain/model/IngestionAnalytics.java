@@ -8,7 +8,7 @@ import java.util.List;
  * harvested articles stored in the database.
  *
  * <p>Provides a total article count, breakdowns by source tier
- * (ACADEMIC, REGULATORY, INDUSTRY, COMPETITOR, HUGGINGFACE) and by
+ * (REGULATORY, LEGAL, RESEARCH, ACADEMIC, INDUSTRY, COMPETITOR) and by
  * topic name, plus counts for the last 7 and 30 calendar days based
  * on the {@code created_at} ingestion timestamp, and the earliest
  * article ingestion date for display context.

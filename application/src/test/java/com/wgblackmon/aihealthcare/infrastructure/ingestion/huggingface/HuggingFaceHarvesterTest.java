@@ -46,7 +46,7 @@ class HuggingFaceHarvesterTest {
             1L, "HuggingFace Healthcare LLMs",
             "General AI Healthcare News",
             "https://huggingface.co/api/models?search=healthcare",
-            FeedTier.HUGGINGFACE, 0.5, 25, java.util.List.of());
+            FeedTier.RESEARCH, 0.75, 25, java.util.List.of());
 
     private static final String SAMPLE_RESPONSE = """
             [
@@ -95,7 +95,7 @@ class HuggingFaceHarvesterTest {
         assertThat(result.get(0).articleId()).isEqualTo("hf-microsoft/BioGPT");
         assertThat(result.get(0).title()).isEqualTo("microsoft/BioGPT");
         assertThat(result.get(0).url().toString()).isEqualTo("https://huggingface.co/microsoft/BioGPT");
-        assertThat(result.get(0).sourceTier()).isEqualTo("HUGGINGFACE");
+        assertThat(result.get(0).sourceTier()).isEqualTo("RESEARCH");
         assertThat(result.get(0).bodyText()).contains("text-generation");
         assertThat(result.get(0).bodyText()).contains("50000");
         assertThat(result.get(0).bodyText()).contains("medical");
@@ -151,7 +151,7 @@ class HuggingFaceHarvesterTest {
         FeedSourceConfig limitedSource = new FeedSourceConfig(
                 1L, "HF Limited", "General AI Healthcare News",
                 "https://huggingface.co/api/models",
-                FeedTier.HUGGINGFACE, 0.5, 1, java.util.List.of());
+                FeedTier.RESEARCH, 0.75, 1, java.util.List.of());
         ObjectMapper objectMapper = new ObjectMapper()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         HuggingFaceHarvester limitedHarvester = new HuggingFaceHarvester(

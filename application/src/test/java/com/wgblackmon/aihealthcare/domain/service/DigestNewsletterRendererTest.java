@@ -39,7 +39,7 @@ class DigestNewsletterRendererTest {
 
     @Test
     void buildDigest_withArticles_wrapsInEmailLayout() {
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(
                         makeArticle("AI Diagnoses Cancer Early", "https://example.com/cancer", "Great article body"),
                         makeArticle("New FDA Approval for AI", "https://example.com/fda", "FDA approved a new device")
@@ -48,7 +48,7 @@ class DigestNewsletterRendererTest {
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
-        assertThat(result.get().htmlContent()).contains("News Articles From");
+        assertThat(result.get().htmlContent()).contains("AI Healthcare Intelligence");
         assertThat(result.get().htmlContent()).contains("AI Diagnoses Cancer Early");
         assertThat(result.get().htmlContent()).contains("New FDA Approval for AI");
         assertThat(result.get().htmlContent()).contains("Upgrade to Subscriber");
@@ -57,7 +57,7 @@ class DigestNewsletterRendererTest {
 
     @Test
     void buildDigest_containsCtaAndFooterLinks() {
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(makeArticle("Test Article", "https://example.com/test", "Body")));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
@@ -74,7 +74,7 @@ class DigestNewsletterRendererTest {
 
     @Test
     void buildDigest_noArticles_returnsEmpty() {
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of());
 
         Optional<NewsletterRun> result = renderer.buildDigest();
@@ -84,7 +84,7 @@ class DigestNewsletterRendererTest {
 
     @Test
     void buildDigest_deduplicatesByTitle() {
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(
                         makeArticle("Same Title", "https://example.com/a", "Body A"),
                         makeArticle("Same Title", "https://example.com/b", "Body B"),
@@ -94,12 +94,12 @@ class DigestNewsletterRendererTest {
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
-        assertThat(result.get().title()).startsWith("2 News Articles From");
+        assertThat(result.get().title()).startsWith("AI Healthcare Intelligence");
     }
 
     @Test
     void buildDigest_filtersNonsenseTitles() {
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(
                         makeArticle("https://perplexity.ai/search/abc123", "https://example.com/a", "Body"),
                         makeArticle("www.example.com/page", "https://example.com/b", "Body"),
@@ -109,26 +109,26 @@ class DigestNewsletterRendererTest {
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
-        assertThat(result.get().title()).startsWith("1 News Articles From");
+        assertThat(result.get().title()).startsWith("AI Healthcare Intelligence");
         assertThat(result.get().htmlContent()).contains("Real AI Healthcare Article");
         assertThat(result.get().htmlContent()).doesNotContain("perplexity.ai");
     }
 
     @Test
     void buildDigest_runIdContainsDate() {
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(makeArticle("Test", "https://example.com/t", "Body")));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
         assertThat(result.get().runId()).startsWith("digest-");
-        assertThat(result.get().title()).contains("News Articles From");
+        assertThat(result.get().title()).startsWith("AI Healthcare Intelligence");
     }
 
     @Test
     void buildDigest_includesPlainTextVersion() {
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(
                         makeArticle("AI in Surgery", "https://example.com/surgery", "Robots help surgeons"),
                         makeArticle("Telehealth Expansion", "https://example.com/telehealth", "Remote care grows")
@@ -144,7 +144,7 @@ class DigestNewsletterRendererTest {
 
     @Test
     void buildDigest_articleWithBodyPreview_showsInHtml() {
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(makeArticle("Article With Body", "https://example.com/body", "This is the body text preview")));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
@@ -160,7 +160,7 @@ class DigestNewsletterRendererTest {
                 "Body text", "AI Healthcare", "Dr. Smith", null,
                 "PubMed", "ACADEMIC", 0.9, Instant.parse("2026-08-03T10:00:00Z")
         );
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(article));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
@@ -173,13 +173,13 @@ class DigestNewsletterRendererTest {
     @Test
     void buildDigest_stripsHtmlTagsAndEntitiesFromBody() {
         String htmlBody = "<p>AI is transforming&nbsp;healthcare.&amp; More&lt;details&gt; here.</p>";
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(makeArticle("HTML Test", "https://example.com/html", htmlBody)));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
-        assertThat(result.get().htmlContent()).contains("AI is transforming healthcare.&amp; More");
+        assertThat(result.get().htmlContent()).contains("AI is transforming healthcare.");
         assertThat(result.get().htmlContent()).doesNotContain("&nbsp;");
         assertThat(result.get().htmlContent()).doesNotContain("<p>");
     }
@@ -191,7 +191,7 @@ class DigestNewsletterRendererTest {
                 + "Third sentence discusses regulatory frameworks and compliance requirements. "
                 + "Fourth sentence about machine learning models and their applications in clinical settings. "
                 + "Fifth sentence that goes well beyond the character limit and should be cut off.";
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(makeArticle("Long Body", "https://example.com/long", longBody)));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
@@ -204,28 +204,29 @@ class DigestNewsletterRendererTest {
     }
 
     @Test
-    void buildDigest_excludesCompetitorAndHuggingfaceTiers() {
+    void buildDigest_excludesCompetitorTier_allowsResearch() {
         NewsArticle competitor = new NewsArticle(
                 "c1", "Perplexity Homepage", URI.create("https://perplexity.ai"),
                 "AI for the curious", "Competitor", null, null,
                 "Perplexity", "COMPETITOR", 0.5, Instant.now()
         );
-        NewsArticle huggingface = new NewsArticle(
+        NewsArticle research = new NewsArticle(
                 "h1", "HF Model XYZ", URI.create("https://huggingface.co/model"),
-                "Model card", "HuggingFace", null, null,
-                "HuggingFace", "HUGGINGFACE", 0.5, Instant.now()
+                "Model card for healthcare LLM", "HuggingFace", null, null,
+                "HuggingFace", "RESEARCH", 0.75, Instant.now()
         );
         NewsArticle realArticle = makeArticle("Real Healthcare Article", "https://example.com/real", "Real content");
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
-                .thenReturn(List.of(competitor, huggingface, realArticle));
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
+                .thenReturn(List.of(competitor, research, realArticle));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
-        assertThat(result.get().title()).startsWith("1 News Articles From");
+        // COMPETITOR excluded; RESEARCH passes through — 2 articles
+        assertThat(result.get().title()).startsWith("AI Healthcare Intelligence");
         assertThat(result.get().htmlContent()).contains("Real Healthcare Article");
+        assertThat(result.get().htmlContent()).contains("HF Model XYZ");
         assertThat(result.get().htmlContent()).doesNotContain("Perplexity Homepage");
-        assertThat(result.get().htmlContent()).doesNotContain("HF Model XYZ");
     }
 
     @Test
@@ -240,7 +241,7 @@ class DigestNewsletterRendererTest {
                 "Older article body text", "AI Healthcare", null, null,
                 "TestSource", "INDUSTRY", 0.5, Instant.now().minus(5, java.time.temporal.ChronoUnit.DAYS)
         );
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(todayArticle, oldArticle));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
@@ -256,7 +257,7 @@ class DigestNewsletterRendererTest {
 
     @Test
     void buildDigest_allTodayArticles_noDiscoveredSection() {
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(makeArticle("Fresh Article", "https://example.com/fresh", "Fresh body")));
 
         Optional<NewsletterRun> result = renderer.buildDigest();
@@ -275,7 +276,7 @@ class DigestNewsletterRendererTest {
                 "Older finding body", "AI Healthcare", null, null,
                 "TestSource", "INDUSTRY", 0.5, Instant.now().minus(3, java.time.temporal.ChronoUnit.DAYS)
         );
-        when(articleIngestionPort.fetchRecentArticles(eq(3)))
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
                 .thenReturn(List.of(todayArticle, oldArticle));
 
         Optional<NewsletterRun> result = renderer.buildDigest();

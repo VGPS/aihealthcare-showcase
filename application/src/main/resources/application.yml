@@ -856,15 +856,15 @@ aihealthcare:
         name: Google News AI Healthcare Legal
         topic: AI Healthcare Legal
         url: https://news.google.com/rss/search?q=AI+healthcare+legal+liability+malpractice+lawsuit&hl=en-US&gl=US&ceid=US:en
-        tier: INDUSTRY
-        base-weight: 0.7
+        tier: LEGAL
+        base-weight: 0.9
         max-items: 20
       - topic-id: 1
         name: Google News AI Medical Device Regulation
         topic: AI Healthcare Legal
         url: https://news.google.com/rss/search?q=AI+medical+device+regulation+compliance+HIPAA&hl=en-US&gl=US&ceid=US:en
-        tier: INDUSTRY
-        base-weight: 0.7
+        tier: LEGAL
+        base-weight: 0.9
         max-items: 20
       # -----------------------------------------------------------------
       # Health Data Utilities — health data interoperability, FHIR, HL7,
@@ -1006,8 +1006,8 @@ aihealthcare:
         name: HuggingFace Healthcare LLMs
         topic: HuggingFace Healthcare LLMs
         url: https://huggingface.co/api/models?search=healthcare+medical&sort=downloads&direction=-1&limit=25
-        tier: HUGGINGFACE
-        base-weight: 0.5
+        tier: RESEARCH
+        base-weight: 0.75
         max-items: 25
       # -----------------------------------------------------------------
       # NYU Health Sciences Library — curated PubMed AI searches
@@ -1207,21 +1207,21 @@ aihealthcare:
         name: Stanford Law and Biosciences Blog
         topic: AI Healthcare Legal
         url: https://law.stanford.edu/blog/lawandbiosciences/feed
-        tier: ACADEMIC
+        tier: LEGAL
         base-weight: 0.9
         max-items: 15
       - topic-id: 1
         name: Stanford CodeX AI Law
         topic: AI Healthcare Legal
         url: https://law.stanford.edu/blog/codex/feed
-        tier: ACADEMIC
+        tier: LEGAL
         base-weight: 0.85
         max-items: 15
       - topic-id: 1
         name: AI Now Institute
         topic: AI Healthcare Legal
         url: https://ainowinstitute.org/feed
-        tier: ACADEMIC
+        tier: LEGAL
         base-weight: 0.85
         max-items: 15
       - topic-id: 1
