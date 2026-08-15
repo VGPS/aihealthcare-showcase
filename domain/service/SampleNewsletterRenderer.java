@@ -101,7 +101,7 @@ public class SampleNewsletterRenderer {
 
         for (NewsArticle article : articles) {
             String tier = article.sourceTier();
-            if (tier != null && (tier.equals("COMPETITOR") || tier.equals("HUGGINGFACE"))) {
+            if (tier != null && tier.equals("COMPETITOR")) {
                 continue;
             }
             String title = article.title();
