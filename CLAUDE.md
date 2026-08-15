@@ -688,6 +688,21 @@ Compilation will run after harvest via the existing `@Scheduled` trigger (wired 
 
 ---
 
+### Slice CI-30: Newsletter Digest Quality — COMPLETE
+- **Root cause fixed:** `DigestNewsletterRenderer` had no article cap — fetched all articles from last 3 days (1973 articles on 2026-08-15)
+- `LOOKBACK_DAYS`: 3 → 1 (daily digest = 1-day window)
+- `MAX_DIGEST_ARTICLES = 75`: after dedup, sort by `sourceWeight` DESC, cap at 75
+- Email subject: `"1973 News Articles From 8/15/2026"` → `"AI Healthcare Intelligence — August 15, 2026"`
+- **Tier system cleanup:**
+  - Removed `FeedTier.HUGGINGFACE` from enum; `HuggingFaceHarvester` now uses `FeedTier.RESEARCH`
+  - New priority order: REGULATORY ≥ LEGAL ≥ RESEARCH ≥ ACADEMIC > INDUSTRY > COMPETITOR
+  - 5 AI Healthcare Legal feeds moved from INDUSTRY/ACADEMIC → LEGAL tier, weights 0.85–0.9
+  - HuggingFace Healthcare LLMs feed: HUGGINGFACE/0.5 → RESEARCH/0.75
+- `SampleNewsletterRenderer`: removed HUGGINGFACE string from tier exclusion
+- **Plan:** `.claude/plans/ci-30-newsletter-quality.md`
+
+---
+
 ## What NOT to Do
 - Do not add auth/security until explicitly requested.
 - Do not modify `openapi.yaml` without confirming the change first.

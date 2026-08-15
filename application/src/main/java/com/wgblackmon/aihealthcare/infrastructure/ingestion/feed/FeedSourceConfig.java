@@ -83,24 +83,23 @@ public record FeedSourceConfig(
     }
 
     /**
-     * Harvest tier for a feed source.
+     * Harvest tier for a feed source. Priority order (highest signal first):
+     * REGULATORY ≥ LEGAL ≥ RESEARCH ≥ ACADEMIC > INDUSTRY > COMPETITOR.
      */
     public enum FeedTier {
-        /** Peer-reviewed journals and pre-print servers. Harvested daily. */
-        ACADEMIC,
-        /** Government and regulatory bodies. Harvested daily. */
+        /** Government and regulatory bodies (FDA, CMS, WHO). Highest signal. */
         REGULATORY,
+        /** Legal, legislative, and compliance sources (court filings, law school blogs, policy institutes). */
+        LEGAL,
+        /** Research institutions and university publications. High signal, peer-adjacent. */
+        RESEARCH,
+        /** Peer-reviewed journals and pre-print servers. */
+        ACADEMIC,
         /** Trade news and industry publications. Harvested every few hours. */
         INDUSTRY,
         /** Competitor web pages monitored for content changes. Harvested daily. */
         COMPETITOR,
-        /** HuggingFace model registry. Harvested daily. */
-        HUGGINGFACE,
         /** Perplexity Sonar API — deep-research harvest. Harvested daily when API key present. */
-        PERPLEXITY,
-        /** Legal and legislative sources. Harvested daily. */
-        LEGAL,
-        /** Research institutions and university publications. Harvested daily. */
-        RESEARCH
+        PERPLEXITY
     }
 }

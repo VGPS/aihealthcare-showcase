@@ -59,7 +59,7 @@ public class HuggingFaceHarvester {
                   properties.getClass().getSimpleName());
         List<FeedSourceConfig> filtered = new ArrayList<>();
         for (FeedSourceConfig config : properties.toFeedSourceConfigs()) {
-            if (config.tier() == FeedTier.HUGGINGFACE) {
+            if (config.tier() == FeedTier.RESEARCH) {
                 filtered.add(config);
             }
         }

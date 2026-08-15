@@ -12,6 +12,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -34,11 +35,10 @@ import java.util.Set;
 @Slf4j
 public class DigestNewsletterRenderer {
 
-    private static final DateTimeFormatter EMAIL_DATE_FMT =
-            DateTimeFormatter.ofPattern("M/d/yyyy");
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy");
-    private static final int LOOKBACK_DAYS = 3;
+    private static final int LOOKBACK_DAYS = 1;
+    private static final int MAX_DIGEST_ARTICLES = 75;
     private static final int BODY_PREVIEW_MAX_CHARS = 300;
 
     private final ArticleIngestionPort articleIngestionPort;
@@ -68,6 +68,12 @@ public class DigestNewsletterRenderer {
         List<NewsArticle> filtered = filterAndDedup(rawArticles);
         log.info("buildDigest() | {} articles after filtering and dedup", filtered.size());
 
+        Collections.sort(filtered, (a, b) -> Double.compare(b.sourceWeight(), a.sourceWeight()));
+        if (filtered.size() > MAX_DIGEST_ARTICLES) {
+            filtered = new ArrayList<>(filtered.subList(0, MAX_DIGEST_ARTICLES));
+            log.info("buildDigest() | capped to top {} articles by sourceWeight", MAX_DIGEST_ARTICLES);
+        }
+
         if (filtered.isEmpty()) {
             log.info("buildDigest() | No articles found — skipping digest");
             log.debug("buildDigest() | return=Optional.empty()");
@@ -87,13 +93,13 @@ public class DigestNewsletterRenderer {
         log.info("buildDigest() | today's={}, discovered={}", todaysItems.size(), discoveredItems.size());
 
         String bodyHtml = renderSectionedCards(todaysItems, discoveredItems);
-        String wrappedHtml = wrapInEmailLayout(bodyHtml, today, filtered.size());
+        String subject = "AI Healthcare Intelligence — " + today.format(DISPLAY_FMT);
+        String wrappedHtml = wrapInEmailLayout(bodyHtml, today, filtered.size(), subject);
         String plainText = renderSectionedPlainText(todaysItems, discoveredItems);
 
-        String emailDate = today.format(EMAIL_DATE_FMT);
         NewsletterRun result = new NewsletterRun(
                 "digest-" + today.format(DateTimeFormatter.ISO_LOCAL_DATE),
-                filtered.size() + " News Articles From " + emailDate,
+                subject,
                 today,
                 wrappedHtml,
                 plainText,
@@ -113,7 +119,7 @@ public class DigestNewsletterRenderer {
 
         for (NewsArticle article : articles) {
             String tier = article.sourceTier();
-            if (tier != null && (tier.equals("COMPETITOR") || tier.equals("HUGGINGFACE"))) {
+            if (tier != null && tier.equals("COMPETITOR")) {
                 continue;
             }
             String title = article.title();
@@ -329,12 +335,11 @@ public class DigestNewsletterRenderer {
         return result;
     }
 
-    private String wrapInEmailLayout(String bodyHtml, LocalDate today, int articleCount) {
-        log.debug("wrapInEmailLayout() | bodyLength={}, today={}, articleCount={}",
-                  bodyHtml.length(), today, articleCount);
+    private String wrapInEmailLayout(String bodyHtml, LocalDate today, int articleCount, String subject) {
+        log.debug("wrapInEmailLayout() | bodyLength={}, today={}, articleCount={}, subject={}",
+                  bodyHtml.length(), today, articleCount, subject);
 
-        String emailDate = today.format(EMAIL_DATE_FMT);
-        String headerTitle = articleCount + " News Articles From " + emailDate;
+        String headerTitle = subject;
 
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html>\n");
