@@ -56,11 +56,12 @@ public class ReversalWatchSectionBuilder {
         StringBuilder summary = new StringBuilder();
         for (Contradiction c : contradictions) {
             if (!summary.isEmpty()) {
-                summary.append(" | ");
+                summary.append("\n");
             }
-            summary.append("[").append(c.pageSlug()).append("] ")
-                    .append("Prior: \"").append(c.priorClaim()).append("\"")
-                    .append(" -> Now: \"").append(c.newClaim()).append("\"");
+            String topic = c.pageSlug().replace("-", " ");
+            summary.append(topic.substring(0, 1).toUpperCase()).append(topic.substring(1))
+                    .append(": Was \"").append(c.priorClaim()).append("\"")
+                    .append(" — Now: \"").append(c.newClaim()).append("\"");
         }
 
         // Collect article IDs from all source refs

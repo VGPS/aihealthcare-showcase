@@ -99,10 +99,11 @@ class ReversalWatchSectionBuilderTest {
         NewsletterSection result = builder.build(List.of(CONTRADICTION, second), "section-001");
 
         assertThat(result.headline()).contains("2 Contradictions Detected");
-        assertThat(result.summary()).contains("fda-ai-guidance");
-        assertThat(result.summary()).contains("ai-billing-regulation");
+        assertThat(result.summary()).contains("Fda ai guidance");
+        assertThat(result.summary()).contains("Ai billing regulation");
         assertThat(result.summary()).contains("AI diagnostic tools require full premarket review");
         assertThat(result.summary()).contains("AI billing codes suspended pending review");
+        assertThat(result.summary()).contains("\n");
     }
 
     @Test
