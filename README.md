@@ -199,10 +199,11 @@ All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSu
 - **Wiki knowledge base** — LLM-compiled longitudinal context with contradiction detection
 
 ### Content Delivery
-- **Daily newsletter** — auto-generated drafts with WYSIWYG editor, sent via AWS SES
+- **Daily newsletter** — AI-summarized for ENTERPRISE/SUBSCRIBER/DEMO tiers; article digest for FREE tier (capped at 75 articles by source weight, 1-day lookback); Reversal Watch section surfaces wiki contradictions as formatted bullet list; sent via AWS SES
 - **30+ dashboard pages** — Thymeleaf with Chart.js visualizations
 - **REST API** — 65+ endpoints with API key auth and rate limiting
 - **Data export** — PDF/DOC/TXT/JSON/CSV export across all intelligence tabs
+- **Feed tier hierarchy** — REGULATORY → LEGAL → RESEARCH → ACADEMIC → INDUSTRY → COMPETITOR; source weight (0.5–0.95) determines digest inclusion order
 
 ---
 

@@ -86,13 +86,14 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
 
         NewsletterRun run = newsletterRunPort.findByRunId(runId);
 
-        // Split subscribers by tier — 4-tier routing
+        // Split subscribers by tier — 5-tier routing
+        List<Subscriber> enterpriseRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.ENTERPRISE);
         List<Subscriber> subscriberRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER);
         List<Subscriber> demoRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO);
         List<Subscriber> freeRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.FREE);
         // FREE_PENDING subscribers are intentionally skipped — they need to choose a path first
 
-        int totalRecipients = subscriberRecipients.size() + demoRecipients.size() + freeRecipients.size();
+        int totalRecipients = enterpriseRecipients.size() + subscriberRecipients.size() + demoRecipients.size() + freeRecipients.size();
         if (totalRecipients == 0) {
             log.warn("deliver() | No active subscribers — skipping delivery for runId={}", runId);
             log.debug("deliver() | return=0");
@@ -100,6 +101,13 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
         }
 
         int sentCount = 0;
+
+        // Deliver full newsletter to ENTERPRISE subscribers
+        if (!enterpriseRecipients.isEmpty()) {
+            newsletterDeliveryPort.deliver(run, enterpriseRecipients);
+            sentCount += enterpriseRecipients.size();
+            log.info("deliver() | Full newsletter sent to {} enterprise-tier recipients", enterpriseRecipients.size());
+        }
 
         // Deliver full newsletter to SUBSCRIBER subscribers
         if (!subscriberRecipients.isEmpty()) {
