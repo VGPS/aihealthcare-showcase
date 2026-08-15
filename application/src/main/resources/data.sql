@@ -244,6 +244,14 @@ SELECT 'enterprise@test.com',
        'Enterprise Tester', 'USER', true, 'ENTERPRISE'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'enterprise@test.com');
 
+-- Ensure all ADMIN-role users have ENTERPRISE tier in the subscribers table.
+-- Uses ON CONFLICT so this is safe to re-run on any deployment.
+INSERT INTO subscribers (email, active, name, subscribed_at, tier)
+SELECT u.email, true, u.display_name, NOW(), 'ENTERPRISE'
+FROM app_users u
+WHERE u.role = 'ADMIN'
+ON CONFLICT (email) DO UPDATE SET tier = 'ENTERPRISE';
+
 -- ---------------------------------------------------------------------------
 -- Fix company_relationships: replace UUID evidence_article_ids with actual
 -- article URLs by joining back to news_articles table.
