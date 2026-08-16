@@ -212,7 +212,7 @@ All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSu
 A companion Spring Boot service providing Claude-powered clinical intelligence, cross-domain analysis, and multi-LLM verification. Runs alongside the main app and shares the same PostgreSQL database (read-only access to data engine tables).
 
 ### Intelligence Console
-- **"Enterprise Intelligence"** — 11-tab console (7 subscriber tabs + 4 enterprise-gated tabs) for interactive healthcare intelligence queries; server-side tier gating via Thymeleaf (non-bypassable)
+- **"Enterprise Intelligence"** — 12-tab console (7 subscriber tabs + 5 enterprise-gated tabs) for interactive healthcare intelligence queries; server-side tier gating via Thymeleaf (non-bypassable)
 - Rich HTML rendering with **entity-aware bold formatting** — companies, studies, legislation, and dollar amounts highlighted automatically by Claude
 - **Live citation links** — `[N]` references in AI output scroll to and highlight the corresponding source article
 - **Clickable scheduled reports** — daily reports expand inline with full rendered intelligence narratives
@@ -236,11 +236,11 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - Popular query tracking — frequently-audited topics load instantly from cache
 
 ### AI Accountability Tracker
-- **Per-system scorecards** for the 15 largest U.S. health systems — Kaiser, HCA, CommonSpirit, Ascension, Providence, AdventHealth, Mayo Clinic, and 8 others
+- **Per-system scorecards** for 19 providers — 15 major U.S. health systems (Kaiser, HCA, CommonSpirit, Ascension, Providence, AdventHealth, Mayo Clinic, and 8 others) plus UnitedHealth Group, Cigna, and Aetna
 - **5 dimension badges** (no composite score): AI Tier, Enforcement, Conduct, Offshoring, Direction — each dimension tells a different story
 - Enforcement history from DOJ, HHS-OIG, state AGs with settlement amounts and predecessor entity names (e.g., "Dignity Health" before CommonSpirit merger)
-- AI deployment registry: 23 deployments across ambient documentation, prior auth, revenue cycle, clinical decision support
-- **Editorial angles** surface underreported patterns: dual-role payer/provider risk, AI financial scoring, IT offshoring acceleration, denial-fighting AI as a product category
+- AI deployment registry across ambient documentation, prior auth, revenue cycle, clinical decision support, and **AI Marketing** — advertising claims alongside documented contradictions (e.g., Cigna PXDX 1.2-second denial reviews vs. "supports clinical judgment" messaging)
+- **Editorial angles** surface underreported patterns: dual-role payer/provider risk, AI financial scoring, IT offshoring acceleration, denial-fighting AI as a product category, AI marketing enforcement risk
 
 ### Intelligence Monitoring
 - **Scheduled daily reports** — automated synthesis for configurable topics (6 AM cron, 30-day retention)
