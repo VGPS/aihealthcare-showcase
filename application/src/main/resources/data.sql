@@ -303,7 +303,9 @@ INSERT INTO health_systems (id, canonical_name, aliases_pipe, hq_state, system_t
 ('northwell',            'Northwell Health',           'North Shore-Long Island Jewish Health System',                                 'NY', 'NONPROFIT'),
 ('mayo',                 'Mayo Clinic',                'Mayo Foundation for Medical Education and Research',                           'MN', 'NONPROFIT'),
 ('tenet',                'Tenet Healthcare',           'Tenet Health|Detroit Medical Center|Clinica de la Mama',                       'TX', 'FOR_PROFIT'),
-('ut-health',            'UT Health System',           'UT Southwestern Medical Center|MD Anderson Cancer Center|UT Health San Antonio','TX', 'ACADEMIC')
+('ut-health',            'UT Health System',           'UT Southwestern Medical Center|MD Anderson Cancer Center|UT Health San Antonio','TX', 'ACADEMIC'),
+('unitedhealth',         'UnitedHealth Group',         'UnitedHealthcare|Optum|Change Healthcare|UHG|Optum Rx',                       'MN', 'FOR_PROFIT_PAYER'),
+('cigna',                'The Cigna Group',            'Cigna Healthcare|Cigna|eviCore|Express Scripts',                              'CT', 'FOR_PROFIT_PAYER')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO enforcement_actions
@@ -353,7 +355,13 @@ VALUES
  'https://www.justice.gov/archive/opa/pr/2006/June/06_civ_406.html'),
 ('ea-ut-2022',         'ut-health',           'UT Southwestern Medical Center',          'DOJ',      'CONTROLLED_SUBSTANCES', 4500000, '2022-01-01',
  'Controlled Substances Act violations',
- 'https://www.justice.gov/usao-ndtx/pr/ut-southwestern-pay-45-million-resolve-alleged-controlled-substance-act-violations')
+ 'https://www.justice.gov/usao-ndtx/pr/ut-southwestern-pay-45-million-resolve-alleged-controlled-substance-act-violations'),
+('ea-uhg-2019',       'unitedhealth',        'UnitedHealth Group Inc.',                 'DOJ',      'FALSE_CLAIMS_ACT',    16000000, '2019-01-01',
+ 'Medicare Advantage risk-score inflation — upcoding diagnoses to inflate capitation payments; separate CMS audit identified $6.6B in potential overcharges industry-wide',
+ 'https://www.justice.gov/opa/pr/unitedhealth-group-pay-over-16-million-settle-false-claims-act-allegations'),
+('ea-cigna-2024',     'cigna',               'Cigna Health and Life Insurance Company',  'STATE_AG', 'AI_PRIOR_AUTH_DENIALS', 172000000, '2024-01-01',
+ 'PXDX automated prior authorization system denied 300,000+ claims in two months with physicians reviewing each denial in under 2 seconds — California DOI investigation into AI-automated denials without adequate clinical review',
+ 'https://www.propublica.org/article/cigna-pxdx-deny-claims-calpers-california')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO ai_deployments
@@ -381,5 +389,9 @@ VALUES
 ('ai-northwell-rcm',    'northwell',           'Clinithink + XiFin',   'NLP Denials Mgmt + AI Appeals Agent',        'REVENUE_CYCLE',     '10-year Clinithink NLP deal; XiFin AI appeals agent; 30-35% initial denial rates from some payers',          'https://www.techtarget.com/revcyclemanagement/news/366600965/Northwell-Health-to-Use-AI-NLP-to-Improve-Revenue-Cycle-Management', '2024-01-01'),
 ('ai-mayo-research',    'mayo',                'Cerebras/Microsoft',   'Foundation Models on Genomic Data',          'RESEARCH',          '100,000+ genomes; Cerebras computing power; Optum360 AI-assisted coding and claims editing',                  'https://newsnetwork.mayoclinic.org/discussion/mayo-clinic-engages-cerebras-to-deliver-potent-computing-power-scale-ai-transformation/', '2024-01-01'),
 ('ai-tenet-rcm',        'tenet',               'Conifer/Google Cloud', 'End-to-End AI Revenue Cycle Management',     'REVENUE_CYCLE',     '17M encounters; $32B NPR processed through AI pipeline; Commure ambient AI across hospitals',                  'https://www.techtarget.com/revcyclemanagement/news/366634448/Google-Cloud-Conifer-team-up-for-end-to-end-AI-RCM',                '2024-01-01'),
-('ai-ut-clinical',      'ut-health',           'Microsoft/Abridge',    'Ambient Documentation Head-to-Head Trial',   'CLINICAL',          'UT Southwestern head-to-head DAX vs Abridge trial (published JAMA); MD Anderson IDSO $100M data-science institute', 'https://pubmed.ncbi.nlm.nih.gov/41734793/',                                              '2024-01-01')
+('ai-ut-clinical',      'ut-health',           'Microsoft/Abridge',    'Ambient Documentation Head-to-Head Trial',   'CLINICAL',          'UT Southwestern head-to-head DAX vs Abridge trial (published JAMA); MD Anderson IDSO $100M data-science institute', 'https://pubmed.ncbi.nlm.nih.gov/41734793/',                                              '2024-01-01'),
+('ai-uhg-priorauth',    'unitedhealth',        'Optum',                'AI Prior Authorization Review (NaviMedix)',   'PRIOR_AUTH',        'Processes millions of prior auth requests annually; NaviMedix predictive analytics for surgical necessity screening; subject of 2023 Senate Finance Committee investigation into denial rates', 'https://www.finance.senate.gov/chairmans-news/wyden-grassley-investigate-unitedhealth-for-potentially-using-ai-to-deny-care', '2022-01-01'),
+('ai-uhg-rcm',          'unitedhealth',        'Optum/Change Healthcare','Claims Processing and Revenue Cycle AI',     'REVENUE_CYCLE',     '15B+ claims/year through Change Healthcare clearinghouse; AI-powered eligibility verification, claims routing, and remittance processing; 2024 cyberattack disrupted $1.5T in annual payment flows', 'https://www.ama-assn.org/practice-management/sustainability/change-healthcare-cyberattack-and-disruption',                    '2019-01-01'),
+('ai-cigna-pxdx',       'cigna',               'Cigna (proprietary)',   'PXDX Automated Prior Auth Denial Engine',    'PRIOR_AUTH',        '300,000+ claims denied in 2 months; physicians averaged 1.2 seconds per review; flagged by ProPublica 2023; Connecticut and California investigations triggered', 'https://www.propublica.org/article/cigna-pxdx-deny-claims-calpers-california',                                               '2020-01-01'),
+('ai-cigna-evicore',    'cigna',               'eviCore (Cigna subsidiary)','AI-Powered Utilization Management',      'PRIOR_AUTH',        'Manages 500M+ utilization management decisions/year across payers; AI-assisted clinical review for radiology, cardiology, oncology; acquired by Cigna 2018', 'https://www.evicore.com/solutions/artificial-intelligence',                                                                    '2018-01-01')
 ON CONFLICT (id) DO NOTHING;
