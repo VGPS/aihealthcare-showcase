@@ -96,6 +96,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchQueryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleBodyFormattingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleScoringPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
@@ -284,13 +285,26 @@ public class AppConfig {
      * Creates the {@link DigestNewsletterRenderer} that builds the FREE-tier
      * daily article digest from recent RSS articles in the database.
      *
+     * <p>The renderer scores the top-20 articles via {@link ArticleScoringPort} and
+     * formats the highest-scored article's body text via {@link ArticleBodyFormattingPort}
+     * for the "Article of the Day" featured block.
+     *
      * @param articleIngestionPort Port for fetching recent articles.
+     * @param articleScoringPort   Port for LLM-based 1–10 significance scoring.
+     * @param bodyFormattingPort   Port for LLM entity bolding of article body text.
      * @return The wired {@link DigestNewsletterRenderer} instance.
      */
     @Bean
-    public DigestNewsletterRenderer digestNewsletterRenderer(ArticleIngestionPort articleIngestionPort) {
-        log.debug("digestNewsletterRenderer() | articleIngestionPort={}", articleIngestionPort.getClass().getSimpleName());
-        DigestNewsletterRenderer result = new DigestNewsletterRenderer(articleIngestionPort);
+    public DigestNewsletterRenderer digestNewsletterRenderer(
+            ArticleIngestionPort articleIngestionPort,
+            ArticleScoringPort articleScoringPort,
+            ArticleBodyFormattingPort bodyFormattingPort) {
+        log.debug("digestNewsletterRenderer() | articleIngestionPort={}, articleScoringPort={}, bodyFormattingPort={}",
+                  articleIngestionPort.getClass().getSimpleName(),
+                  articleScoringPort.getClass().getSimpleName(),
+                  bodyFormattingPort.getClass().getSimpleName());
+        DigestNewsletterRenderer result = new DigestNewsletterRenderer(
+                articleIngestionPort, articleScoringPort, bodyFormattingPort);
         log.debug("digestNewsletterRenderer() | return={}", result.getClass().getSimpleName());
         return result;
     }

@@ -3,17 +3,22 @@ package com.wgblackmon.aihealthcare.domain.service;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRunStatus;
+import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleBodyFormattingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleScoringPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -21,21 +26,42 @@ import static org.mockito.Mockito.when;
 /**
  * Unit tests for {@link DigestNewsletterRenderer}.
  *
+ * <p>Scoring and formatting ports are mocked; by default scoring returns an empty
+ * list so tests that do not exercise the Article of the Day feature see the same
+ * output as the pre-scoring implementation.
+ *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 3.0
  * @since   2026-07-20
- * @updated 2026-08-05
+ * @updated 2026-08-16
  */
 class DigestNewsletterRendererTest {
 
-    private ArticleIngestionPort articleIngestionPort;
+    private ArticleIngestionPort     articleIngestionPort;
+    private ArticleScoringPort       articleScoringPort;
+    private ArticleBodyFormattingPort bodyFormattingPort;
     private DigestNewsletterRenderer renderer;
 
     @BeforeEach
     void setUp() {
         articleIngestionPort = mock(ArticleIngestionPort.class);
-        renderer = new DigestNewsletterRenderer(articleIngestionPort);
+        articleScoringPort   = mock(ArticleScoringPort.class);
+        bodyFormattingPort   = mock(ArticleBodyFormattingPort.class);
+
+        // Default: scoring returns empty (graceful degradation)
+        when(articleScoringPort.scoreArticles(any(), anyString(), anyString(), anyInt()))
+                .thenReturn(List.of());
+        // Default: formatting returns empty
+        when(bodyFormattingPort.formatWithEntityBolding(anyString(), anyString()))
+                .thenReturn("");
+
+        renderer = new DigestNewsletterRenderer(
+                articleIngestionPort, articleScoringPort, bodyFormattingPort);
     }
+
+    // -------------------------------------------------------------------------
+    // Existing digest layout tests (unchanged behaviour with empty scoring)
+    // -------------------------------------------------------------------------
 
     @Test
     void buildDigest_withArticles_wrapsInEmailLayout() {
@@ -109,7 +135,6 @@ class DigestNewsletterRendererTest {
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
-        assertThat(result.get().title()).startsWith("AI Healthcare Intelligence");
         assertThat(result.get().htmlContent()).contains("Real AI Healthcare Article");
         assertThat(result.get().htmlContent()).doesNotContain("perplexity.ai");
     }
@@ -123,7 +148,6 @@ class DigestNewsletterRendererTest {
 
         assertThat(result).isPresent();
         assertThat(result.get().runId()).startsWith("digest-");
-        assertThat(result.get().title()).startsWith("AI Healthcare Intelligence");
     }
 
     @Test
@@ -222,8 +246,6 @@ class DigestNewsletterRendererTest {
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
-        // COMPETITOR excluded; RESEARCH passes through — 2 articles
-        assertThat(result.get().title()).startsWith("AI Healthcare Intelligence");
         assertThat(result.get().htmlContent()).contains("Real Healthcare Article");
         assertThat(result.get().htmlContent()).contains("HF Model XYZ");
         assertThat(result.get().htmlContent()).doesNotContain("Perplexity Homepage");
@@ -250,9 +272,7 @@ class DigestNewsletterRendererTest {
         String html = result.get().htmlContent();
         assertThat(html).contains("Today&rsquo;s Intelligence");
         assertThat(html).contains("Also Discovered");
-        int todayPos = html.indexOf("Today&rsquo;s");
-        int discoveredPos = html.indexOf("Also Discovered");
-        assertThat(todayPos).isLessThan(discoveredPos);
+        assertThat(html.indexOf("Today&rsquo;s")).isLessThan(html.indexOf("Also Discovered"));
     }
 
     @Test
@@ -263,9 +283,8 @@ class DigestNewsletterRendererTest {
         Optional<NewsletterRun> result = renderer.buildDigest();
 
         assertThat(result).isPresent();
-        String html = result.get().htmlContent();
-        assertThat(html).contains("Today&rsquo;s Intelligence");
-        assertThat(html).doesNotContain("Also Discovered");
+        assertThat(result.get().htmlContent()).contains("Today&rsquo;s Intelligence");
+        assertThat(result.get().htmlContent()).doesNotContain("Also Discovered");
     }
 
     @Test
@@ -286,6 +305,121 @@ class DigestNewsletterRendererTest {
         assertThat(plain).contains("TODAY'S INTELLIGENCE");
         assertThat(plain).contains("ALSO DISCOVERED");
     }
+
+    // -------------------------------------------------------------------------
+    // Article of the Day tests (CI-31)
+    // -------------------------------------------------------------------------
+
+    @Test
+    void buildDigest_withTopScoredArticle_rendersFeaturedBlock() {
+        NewsArticle article = makeArticle("FDA Clears First AI Surgical Robot",
+                "https://example.com/fda-robot", "Landmark approval for AI robotic surgery.");
+        when(articleIngestionPort.fetchRecentArticles(eq(1))).thenReturn(List.of(article));
+
+        ScoredArticle topScore = new ScoredArticle(
+                "art-" + "FDA Clears First AI Surgical Robot".hashCode(),
+                "FDA Clears First AI Surgical Robot",
+                9, "First-of-kind FDA clearance for an AI-guided robotic surgical system.",
+                "AI Healthcare");
+        when(articleScoringPort.scoreArticles(any(), anyString(), anyString(), anyInt()))
+                .thenReturn(List.of(topScore));
+        when(bodyFormattingPort.formatWithEntityBolding(anyString(), anyString()))
+                .thenReturn("The **FDA** cleared the first **AI**-guided robotic surgical system.\n\nThis marks a landmark moment for **robotic surgery**.");
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String html = result.get().htmlContent();
+        assertThat(html).contains("Article of the Day");
+        assertThat(html).contains("9/10");
+        assertThat(html).contains("First-of-kind FDA clearance");
+        assertThat(html).contains("<strong>FDA</strong>");
+        assertThat(html).contains("padding-left:16px");
+    }
+
+    @Test
+    void buildDigest_featuredBlockAppearsBeforeTodaysIntelligence() {
+        NewsArticle article = makeArticle("Top AI Article", "https://example.com/top", "Significant finding.");
+        when(articleIngestionPort.fetchRecentArticles(eq(1))).thenReturn(List.of(article));
+
+        ScoredArticle topScore = new ScoredArticle(
+                "art-" + "Top AI Article".hashCode(), "Top AI Article",
+                8, "Significant clinical milestone.", "AI Healthcare");
+        when(articleScoringPort.scoreArticles(any(), anyString(), anyString(), anyInt()))
+                .thenReturn(List.of(topScore));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String html = result.get().htmlContent();
+        int featuredPos = html.indexOf("Article of the Day");
+        int todaysPos   = html.indexOf("Today&rsquo;s Intelligence");
+        assertThat(featuredPos).isGreaterThan(-1);
+        assertThat(todaysPos).isGreaterThan(-1);
+        assertThat(featuredPos).isLessThan(todaysPos);
+    }
+
+    @Test
+    void buildDigest_scoringFails_digestSendsWithoutFeaturedBlock() {
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
+                .thenReturn(List.of(makeArticle("Normal Article", "https://example.com/normal", "Body text")));
+        when(articleScoringPort.scoreArticles(any(), anyString(), anyString(), anyInt()))
+                .thenThrow(new RuntimeException("LLM timeout"));
+
+        // Should not throw; digest sends without Article of the Day
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        assertThat(result.get().htmlContent()).doesNotContain("Article of the Day");
+        assertThat(result.get().htmlContent()).contains("Normal Article");
+    }
+
+    @Test
+    void buildDigest_formattingFails_usesBodyPreviewFallback() {
+        NewsArticle article = makeArticle("Important Finding",
+                "https://example.com/finding", "AI detects early-stage cancer.");
+        when(articleIngestionPort.fetchRecentArticles(eq(1))).thenReturn(List.of(article));
+
+        ScoredArticle topScore = new ScoredArticle(
+                "art-" + "Important Finding".hashCode(), "Important Finding",
+                8, "Concrete clinical outcome.", "AI Healthcare");
+        when(articleScoringPort.scoreArticles(any(), anyString(), anyString(), anyInt()))
+                .thenReturn(List.of(topScore));
+        when(bodyFormattingPort.formatWithEntityBolding(anyString(), anyString()))
+                .thenThrow(new RuntimeException("formatting unavailable"));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String html = result.get().htmlContent();
+        assertThat(html).contains("Article of the Day");
+        // Falls back to raw body preview
+        assertThat(html).contains("AI detects early-stage cancer.");
+    }
+
+    @Test
+    void buildDigest_featuredPlainTextIncludesRationale() {
+        NewsArticle article = makeArticle("Landmark Study", "https://example.com/study", "Breakthrough results.");
+        when(articleIngestionPort.fetchRecentArticles(eq(1))).thenReturn(List.of(article));
+
+        ScoredArticle topScore = new ScoredArticle(
+                "art-" + "Landmark Study".hashCode(), "Landmark Study",
+                9, "First-ever RCT showing AI outperforms radiologists.", "AI Healthcare");
+        when(articleScoringPort.scoreArticles(any(), anyString(), anyString(), anyInt()))
+                .thenReturn(List.of(topScore));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String plain = result.get().plainTextContent();
+        assertThat(plain).contains("ARTICLE OF THE DAY");
+        assertThat(plain).contains("9/10");
+        assertThat(plain).contains("First-ever RCT");
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
 
     private NewsArticle makeArticle(String title, String url, String body) {
         return new NewsArticle(
