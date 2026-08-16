@@ -281,3 +281,105 @@ WHERE EXISTS (
     SELECT 1 FROM news_articles na
     WHERE CAST(na.url AS VARCHAR(2048)) = cr.evidence_article_id
 );
+
+-- ---------------------------------------------------------------------------
+-- CI-32: AI Accountability Tracker seed data
+-- 15 largest U.S. health systems, enforcement actions, and AI deployments
+-- Source: health-systems-ai-accountability.pplx.md research dossier
+-- ---------------------------------------------------------------------------
+
+INSERT INTO health_systems (id, canonical_name, aliases_pipe, hq_state, system_type) VALUES
+('kaiser',               'Kaiser Permanente',          'Kaiser Foundation Hospitals|Permanente Medical Groups',                         'CA', 'NONPROFIT'),
+('hca',                  'HCA Healthcare',             'Hospital Corporation of America|HCA Inc.',                                      'TN', 'FOR_PROFIT'),
+('commonspirit',         'CommonSpirit Health',        'Dignity Health|Catholic Health Initiatives',                                    'IL', 'NONPROFIT'),
+('advocate',             'Advocate Health',            'Advocate Aurora Health|Aurora Health Care',                                     'NC', 'NONPROFIT'),
+('upmc',                 'UPMC',                       'University of Pittsburgh Medical Center',                                       'PA', 'NONPROFIT'),
+('providence',           'Providence',                 'Providence Health & Services|Swedish Health Services',                          'WA', 'NONPROFIT'),
+('uc-health',            'UC Health',                  'UCSF Health|UCLA Health|UC San Diego Health|UC Davis Health',                   'CA', 'ACADEMIC'),
+('trinity',              'Trinity Health',             'Mercy Health|Holy Cross Health',                                               'MI', 'NONPROFIT'),
+('ascension',            'Ascension',                  'Ascension Health|Ascension Michigan',                                          'TX', 'NONPROFIT'),
+('adventhealth',         'AdventHealth',               'Adventist Health System',                                                      'FL', 'NONPROFIT'),
+('mass-general-brigham', 'Mass General Brigham',       'Partners HealthCare|Massachusetts General Hospital|Mass Eye and Ear',          'MA', 'NONPROFIT'),
+('northwell',            'Northwell Health',           'North Shore-Long Island Jewish Health System',                                 'NY', 'NONPROFIT'),
+('mayo',                 'Mayo Clinic',                'Mayo Foundation for Medical Education and Research',                           'MN', 'NONPROFIT'),
+('tenet',                'Tenet Healthcare',           'Tenet Health|Detroit Medical Center|Clinica de la Mama',                       'TX', 'FOR_PROFIT'),
+('ut-health',            'UT Health System',           'UT Southwestern Medical Center|MD Anderson Cancer Center|UT Health San Antonio','TX', 'ACADEMIC')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO enforcement_actions
+    (id, health_system_id, entity_name_at_time, agency, theory, amount_usd, settlement_date, description, source_url)
+VALUES
+('ea-kaiser-2026',     'kaiser',              'Kaiser Foundation Health Plan',           'DOJ',      'FALSE_CLAIMS_ACT',    556000000, '2026-01-01',
+ 'Medicare Advantage risk-score inflation (upcoding) — largest MA risk-code FCA settlement on record',
+ 'https://www.justice.gov/opa/pr/kaiser-permanente-affiliates-pay-556m-resolve-false-claims-act-allegations'),
+('ea-hca-2003',        'hca',                 'HCA Inc.',                                'DOJ',      'FALSE_CLAIMS_ACT',     16500000, '2003-01-01',
+ 'Stark Law violations — improper physician compensation at Parkridge Health System',
+ 'https://www.justice.gov/archives/opa/pr/hospital-chain-hca-inc-pays-165-million-settle-false-claims-act-allegations-regarding'),
+('ea-commonspirit',    'commonspirit',        'Dignity Health',                          'DOJ',      'FALSE_CLAIMS_ACT',     37000000, '2014-01-01',
+ 'Medically unnecessary kyphoplasty procedures (predecessor entity Dignity Health)',
+ 'https://www.justice.gov/archives/opa/pr/dignity-health-agrees-pay-37-million-settle-false-claims-act-allegations'),
+('ea-advocate',        'advocate',            'Aurora Health Care Inc.',                 'DOJ',      'FALSE_CLAIMS_ACT',     12000000, '2021-01-01',
+ 'Stark Law violations — improper physician compensation (predecessor entity Aurora Health Care)',
+ 'https://www.justice.gov/usao-edwi/pr/aurora-health-care-inc-agrees-pay-12-million-settle-allegations-under-false-claims-act'),
+('ea-upmc-2023',       'upmc',                'UPMC',                                    'DOJ',      'FALSE_CLAIMS_ACT',      8500000, '2023-01-01',
+ 'Neurosurgery upcoding — Luketich FCA settlement',
+ 'https://www.phillipsandcohen.com/upmc-settles-for-8-5-million/'),
+('ea-providence-2022', 'providence',          'Providence Health Services',              'STATE_AG', 'CONSUMER_PROTECTION', 157800000, '2022-01-01',
+ 'Charity-care violations: McKinsey Rev-Up collections against charity-eligible patients; Washington AG action',
+ 'https://www.atg.wa.gov/news/news-releases/ag-ferguson-providence-must-provide-1578-million-refunds-and-debt-relief'),
+('ea-uchealth-2019',   'uc-health',           'Regents of the University of California', 'HHS_OIG', 'CMP',                   5300000, '2019-01-01',
+ 'UC San Diego upcoding — Civil Monetary Penalties Law violations for overcoded E&M services',
+ 'https://oig.hhs.gov/fraud/enforcement/the-regents-of-the-university-of-california-agreed-to-pay-53-million-for-allegedly-violating-the-civil-monetary-penalties-law-by-submitting-upcoded-claims/'),
+('ea-trinity-2020',    'trinity',             'Trinity Health Genesis Network',          'DOJ',      'FALSE_CLAIMS_ACT',      4600000, '2020-01-01',
+ 'Impella mechanical circulatory support device overbilling — medically unnecessary procedures',
+ 'https://www.beckershospitalreview.com/legal-regulatory-issues/trinity-health-genesis-health-mercy-health-network-settle-4-6m-overbilling-case/'),
+('ea-ascension-2021',  'ascension',           'Ascension Michigan',                      'DOJ',      'FALSE_CLAIMS_ACT',      2800000, '2021-01-01',
+ 'False Claims Act violations at Michigan facilities',
+ 'https://www.justice.gov/usao-edmi/pr/ascension-michigan-pay-28-million-resolve-false-claims-act-allegations'),
+('ea-advent-2015',     'adventhealth',        'Adventist Health System',                 'DOJ',      'FALSE_CLAIMS_ACT',    115000000, '2015-01-01',
+ 'Wide-ranging FCA — billing fraud across specialties (predecessor entity Adventist Health System)',
+ 'https://www.justice.gov/archives/opa/pr/adventist-health-system-agrees-pay-115-million-settle-false-claims-act-allegations'),
+('ea-mgb-2022',        'mass-general-brigham','Massachusetts General Hospital',          'DOJ',      'FALSE_CLAIMS_ACT',     14600000, '2022-01-01',
+ 'Concurrent surgery FCA — operating on two patients simultaneously without patient disclosure',
+ 'https://www.jdsupra.com/legalnews/massachusetts-general-hospital-reaches-7023796/'),
+('ea-northwell-2018',  'northwell',           'Northwell Health',                        'HHS_OIG',  'CMP',                  12700000, '2018-01-01',
+ 'Spinal procedures not provided as claimed or medically unnecessary — Civil Monetary Penalties',
+ 'https://oig.hhs.gov/fraud/enforcement/northwell-health-agreed-to-pay-127-million-for-allegedly-violating-the-civil-monetary-penalties-law-by-submitting-claims-for-spinal-procedures-that-were-not-provided-as-claimed-or-medically-unnecessary/'),
+('ea-mayo-2005',       'mayo',                'Mayo Clinic',                             'DOJ',      'FALSE_CLAIMS_ACT',      6500000, '2005-01-01',
+ 'NIH grant fraud',
+ 'https://www.justice.gov/archive/opa/pr/2005/May/05_civ_292.htm'),
+('ea-tenet-2006',      'tenet',               'Tenet Healthcare Corporation',            'DOJ',      'FALSE_CLAIMS_ACT',    900000000, '2006-01-01',
+ 'Wide-ranging FCA — largest resolution in cohort excluding Kaiser 2026; predecessor entity settlement',
+ 'https://www.justice.gov/archive/opa/pr/2006/June/06_civ_406.html'),
+('ea-ut-2022',         'ut-health',           'UT Southwestern Medical Center',          'DOJ',      'CONTROLLED_SUBSTANCES', 4500000, '2022-01-01',
+ 'Controlled Substances Act violations',
+ 'https://www.justice.gov/usao-ndtx/pr/ut-southwestern-pay-45-million-resolve-alleged-controlled-substance-act-violations')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO ai_deployments
+    (id, health_system_id, vendor, product, domain, scale_metric, source_url, deployed_date)
+VALUES
+('ai-kaiser-ambient',   'kaiser',              'Abridge',              'Ambient Documentation',                       'CLINICAL',          '40 hospitals; 6M+ visits AI-transcribed in 2025',                                                            'https://about.kaiserpermanente.org/expertise-and-impact/public-policy/our-key-issues/artificial-intelligence',                   '2024-01-01'),
+('ai-kaiser-rcm',       'kaiser',              'Epic',                 'ClaimsConnect (Tapestry-based)',              'REVENUE_CYCLE',     'Integrated claims management across 13.4M members',                                                           'https://about.kaiserpermanente.org/news/press-release-archive/kaiser-permanente-improves-member-experience-with-ai-enabled-clinical-technology', '2024-01-01'),
+('ai-hca-rcm',          'hca',                 'Internal',             'Revenue Cycle AI (payer-denial-focused)',     'REVENUE_CYCLE',     '180+ hospitals; CFO cited as direct response to growing payer denial rates',                                   'https://www.beckershospitalreview.com/finance/where-hca-is-focusing-its-revenue-cycle-ai-efforts/',                              '2024-01-01'),
+('ai-hca-ambient',      'hca',                 'Commure/Augmedix',     'Ambient Docs + SPOT Sepsis AI',              'CLINICAL',          '130+ hospitals with Timpani AI scheduling; SPOT sepsis early-warning AI',                                     'https://www.beckershospitalreview.com/healthcare-information-technology/ai/how-hca-healthcare-built-its-enterprise-ai-strategy/', '2024-01-01'),
+('ai-cs-rcm',           'commonspirit',        'Midstream Health',     'AI Underpayment and Denial Agents',          'REVENUE_CYCLE',     '242 AI tools deployed; ~$100M annual value (vendor-reported)',                                                'https://www.fiercehealthcare.com/providers/jpm26-commonspirit-ceo-teases-new-divestures-outlines-ai-wins-and-pitfalls',          '2024-01-01'),
+('ai-advocate-ambient', 'advocate',            'Microsoft/Nuance',     'DAX Copilot',                                'CLINICAL',          'Largest Microsoft DAX deployment in the country; Epic Agent Factory autonomous agents',                         'https://medcitynews.com/2025/04/ai-healthcare-advocate-technology-hospital/',                                                     '2024-01-01'),
+('ai-advocate-imaging', 'advocate',            'Aidoc',                'AI Imaging Diagnostics',                     'CLINICAL',          'System-wide radiology triage AI',                                                                             'https://www.advocatehealth.org/news/advocate-health-deploys-ai-solution-to-redefine-diagnostic-excellence-through-agreement-with-aidoc', '2024-01-01'),
+('ai-upmc-rcm',         'upmc',                'Internal',             'Claims-Data Predictive Models',              'REVENUE_CYCLE',     'Health plan denial predictive models; RPA claims statusing',                                                  'https://www.pachamber.org/media/the_current/upmc_ai_blog_article/',                                                              '2024-01-01'),
+('ai-upmc-ambient',     'upmc',                'Abridge',              'Ambient Documentation',                      'CLINICAL',          '12,000+ clinicians on systemwide rollout',                                                                    'https://www.beckershospitalreview.com/healthcare-information-technology/ai/upmc-to-roll-out-abridges-ai-documentation-tool-systemwide/', '2024-01-01'),
+('ai-prov-rcm',         'providence',          'Xsolis',               'Utilization Management AI',                  'REVENUE_CYCLE',     '$40M+ savings (vendor-reported); 91.8% AI prior-auth acceptance rate; 84% Epic AI draft acceptance',          'https://www.fiercehealthcare.com/sponsored/xsolis-ai-solutions-have-saved-providence-health-system-more-40-million',            '2024-01-01'),
+('ai-uc-clinical',      'uc-health',           'UCSF Internal',        'Versa GenAI Platform',                       'CLINICAL',          'UCSF enterprise generative AI platform; UCLA appointed chief AI officer 2025',                                 'https://chancellor.ucsf.edu/news/now-available-versa-ucsf-generative-ai-platform',                                               '2024-01-01'),
+('ai-uc-collections',   'uc-health',           'Experian',             'Collections AI / Propensity-to-Pay',         'FINANCIAL_SCORING', 'UC San Diego Health scores patients by propensity to pay; improved collections, reduced bad debt (vendor-reported)', 'https://www.experian.com/blogs/healthcare/case-study-how-ucsdh-improved-collections-and-reduced-bad-debt/', '2023-01-01'),
+('ai-trinity-charity',  'trinity',             'Internal',             'Presumptive Charity Eligibility Scoring',    'FINANCIAL_SCORING', 'Automated presumptive charity scoring on ALL patients using address, ZIP code, and credit history',              'https://www.hfma.org/qa-one-systems-approach-to-presumptive-charity-care/',                                                       '2023-01-01'),
+('ai-trinity-research', 'trinity',             'Truveta',              'Truveta Genome Project',                     'RESEARCH',          'Real-world genomic data platform for clinical research',                                                      'https://www.jhconline.com/trinity-health-and-the-potential-of-ai.html',                                                          '2024-01-01'),
+('ai-ascension-rcm',    'ascension',           'R1 RCM',               'Full RCM Outsourcing with AI',               'REVENUE_CYCLE',     'Entire RCM outsourced to R1 through 2031 including AI-powered denials management',                            'https://www.r1rcm.com/news-and-press/r1-announces-rcm-partnership-expansion-and-extension-with-ascension/',                     '2023-01-01'),
+('ai-ascension-cloud',  'ascension',           'Google',               'Project Nightingale / Cloud AI',             'CLINICAL',          'Google Cloud AI partnership; ambient documentation and AI nursing flowsheets',                                 'https://cloud.google.com/blog/topics/inside-google-cloud/our-partnership-with-ascension',                                         '2024-01-01'),
+('ai-advent-rcm',       'adventhealth',        'Iodine Software',      'Clinical Documentation Integrity AI',        'REVENUE_CYCLE',     '>90% physician queries answered in one day; pre-bill AI denial prevention on every discharge record (vendor-reported)', 'https://iodinesoftware.com/customer-successes/adventhealth/',                             '2024-01-01'),
+('ai-mgb-coding',       'mass-general-brigham','CodaMetrix',           'Autonomous Medical Coding',                  'REVENUE_CYCLE',     '>80% of radiology coding fully automated; AI targets appeals most likely to be overturned',                   'https://www.healthleadersmedia.com/revenue-cycle/spark-joy-vanquish-vapor-how-mass-general-brigham-uses-tech-rev-rcm',           '2024-01-01'),
+('ai-mgb-ambient',      'mass-general-brigham','Abridge',              'Hybrid Ambient Documentation',               'CLINICAL',          '4,000+ providers; reduces after-hours documentation burden',                                                  'https://www.massgeneralbrigham.org/en/about/newsroom/press-releases/hybrid-ambient-documentation-reduces-after-hours-work',      '2024-01-01'),
+('ai-northwell-rcm',    'northwell',           'Clinithink + XiFin',   'NLP Denials Mgmt + AI Appeals Agent',        'REVENUE_CYCLE',     '10-year Clinithink NLP deal; XiFin AI appeals agent; 30-35% initial denial rates from some payers',          'https://www.techtarget.com/revcyclemanagement/news/366600965/Northwell-Health-to-Use-AI-NLP-to-Improve-Revenue-Cycle-Management', '2024-01-01'),
+('ai-mayo-research',    'mayo',                'Cerebras/Microsoft',   'Foundation Models on Genomic Data',          'RESEARCH',          '100,000+ genomes; Cerebras computing power; Optum360 AI-assisted coding and claims editing',                  'https://newsnetwork.mayoclinic.org/discussion/mayo-clinic-engages-cerebras-to-deliver-potent-computing-power-scale-ai-transformation/', '2024-01-01'),
+('ai-tenet-rcm',        'tenet',               'Conifer/Google Cloud', 'End-to-End AI Revenue Cycle Management',     'REVENUE_CYCLE',     '17M encounters; $32B NPR processed through AI pipeline; Commure ambient AI across hospitals',                  'https://www.techtarget.com/revcyclemanagement/news/366634448/Google-Cloud-Conifer-team-up-for-end-to-end-AI-RCM',                '2024-01-01'),
+('ai-ut-clinical',      'ut-health',           'Microsoft/Abridge',    'Ambient Documentation Head-to-Head Trial',   'CLINICAL',          'UT Southwestern head-to-head DAX vs Abridge trial (published JAMA); MD Anderson IDSO $100M data-science institute', 'https://pubmed.ncbi.nlm.nih.gov/41734793/',                                              '2024-01-01')
+ON CONFLICT (id) DO NOTHING;
