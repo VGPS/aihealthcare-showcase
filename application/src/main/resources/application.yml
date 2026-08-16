@@ -306,6 +306,7 @@ aihealthcare:
         - "Amazon Connect Health"
         - "Perplexity Healthcare"
         - "Google Healthcare"
+        - "Epic Systems Healthcare AI"
         - "Beckers Hospital Review"
         - "HuggingFace Healthcare LLMs"
         - "New AI Healthcare Companies"
@@ -383,6 +384,7 @@ aihealthcare:
       - "Amazon Connect Health"
       - "Perplexity Healthcare"
       - "Google Healthcare"
+      - "Epic Systems Healthcare AI"
       - "Beckers Hospital Review"
       - "HuggingFace Healthcare LLMs"
       - "New AI Healthcare Companies"
@@ -839,6 +841,37 @@ aihealthcare:
         tier: COMPETITOR
         base-weight: 0.6
         max-items: 5
+      # -----------------------------------------------------------------
+      # Epic Systems Healthcare AI — EHR-embedded AI, Healthcare Intelligence
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Epic Systems Healthcare AI News
+        topic: Epic Systems Healthcare AI
+        url: https://news.google.com/rss/search?q=Epic+Systems+AI+healthcare+EHR&hl=en-US&gl=US&ceid=US:en
+        tier: COMPETITOR
+        base-weight: 0.85
+        max-items: 20
+      - topic-id: 1
+        name: Epic Healthcare Intelligence
+        topic: Epic Systems Healthcare AI
+        url: https://news.google.com/rss/search?q=Epic+EHR+artificial+intelligence+%22Healthcare+Intelligence%22&hl=en-US&gl=US&ceid=US:en
+        tier: COMPETITOR
+        base-weight: 0.8
+        max-items: 15
+      - topic-id: 1
+        name: Epic AI Features 2026
+        topic: Epic Systems Healthcare AI
+        url: https://news.google.com/rss/search?q=Epic+%22AI+features%22+%22ambient+AI%22+%22generative+AI%22+EHR+2026&hl=en-US&gl=US&ceid=US:en
+        tier: COMPETITOR
+        base-weight: 0.8
+        max-items: 15
+      - topic-id: 1
+        name: Epic Aura DAX Competitor
+        topic: Epic Systems Healthcare AI
+        url: https://news.google.com/rss/search?q=Epic+AI+vs+%22DAX+Copilot%22+OR+%22ambient+documentation%22+OR+%22Aura%22+EHR&hl=en-US&gl=US&ceid=US:en
+        tier: COMPETITOR
+        base-weight: 0.75
+        max-items: 10
       # -----------------------------------------------------------------
       # Beckers Hospital Review
       # -----------------------------------------------------------------
