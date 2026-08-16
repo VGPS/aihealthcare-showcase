@@ -90,8 +90,8 @@ class LegalBriefSectionBuilderTest {
 
         assertThat(result).isNotNull();
         assertThat(result.sectionType()).isEqualTo(SectionType.LEGAL_BRIEF);
-        assertThat(result.summary()).contains("Litigation:");
-        assertThat(result.summary()).contains("Policy:");
+        assertThat(result.summary()).contains("Litigation");
+        assertThat(result.summary()).contains("Policy");
     }
 
     @Test
@@ -107,7 +107,7 @@ class LegalBriefSectionBuilderTest {
         NewsletterSection result = builder.build("section-010", 7);
 
         assertThat(result).isNotNull();
-        assertThat(result.summary()).contains("Regulatory:");
+        assertThat(result.summary()).contains("Regulatory");
         assertThat(result.summary()).contains("FDA_510K_CLEARANCE");
     }
 
@@ -190,9 +190,9 @@ class LegalBriefSectionBuilderTest {
         NewsletterSection result = builder.build("section-010", 7);
 
         assertThat(result).isNotNull();
-        assertThat(result.summary()).contains("Litigation:");
-        assertThat(result.summary()).contains("Policy:");
-        assertThat(result.summary()).contains("Regulatory:");
+        assertThat(result.summary()).contains("Litigation");
+        assertThat(result.summary()).contains("Policy");
+        assertThat(result.summary()).contains("Regulatory");
     }
 
     @Test

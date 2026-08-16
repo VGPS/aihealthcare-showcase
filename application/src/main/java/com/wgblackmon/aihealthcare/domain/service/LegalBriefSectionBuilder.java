@@ -79,53 +79,32 @@ public class LegalBriefSectionBuilder {
         // Build headline
         String headline = buildHeadline(litigationCount, policyCount, regulatoryCount);
 
-        // Build summary from top headlines and regulatory events
+        // Build summary as newline-separated lines with ##-prefixed category sub-headers.
+        // NewsletterRenderer detects ## markers to render bold headings + bullet lists.
         StringBuilder summary = new StringBuilder();
 
-        // Add litigation headlines
-        int headlineCount = 0;
         if (!legalArticles.isEmpty()) {
-            summary.append("Litigation: ");
-            for (int i = 0; i < legalArticles.size() && headlineCount < MAX_HEADLINES; i++) {
-                if (headlineCount > 0) {
-                    summary.append(" | ");
-                }
-                summary.append(truncateTitle(legalArticles.get(i).title()));
-                headlineCount++;
+            summary.append("##Litigation (").append(litigationCount).append(")");
+            for (int i = 0; i < legalArticles.size() && i < MAX_HEADLINES; i++) {
+                summary.append("\n").append(truncateTitle(legalArticles.get(i).title()));
             }
         }
 
-        // Add policy headlines
         if (!policyArticles.isEmpty()) {
-            if (!summary.isEmpty()) {
-                summary.append(" — ");
-            }
-            summary.append("Policy: ");
-            int policyHeadlines = 0;
-            for (int i = 0; i < policyArticles.size() && policyHeadlines < MAX_HEADLINES; i++) {
-                if (policyHeadlines > 0) {
-                    summary.append(" | ");
-                }
-                summary.append(truncateTitle(policyArticles.get(i).title()));
-                policyHeadlines++;
+            if (summary.length() > 0) summary.append("\n");
+            summary.append("##Policy (").append(policyCount).append(")");
+            for (int i = 0; i < policyArticles.size() && i < MAX_HEADLINES; i++) {
+                summary.append("\n").append(truncateTitle(policyArticles.get(i).title()));
             }
         }
 
-        // Add regulatory event highlights
         if (!regEvents.isEmpty()) {
-            if (!summary.isEmpty()) {
-                summary.append(" — ");
-            }
-            summary.append("Regulatory: ");
-            int regHighlights = 0;
-            for (int i = 0; i < regEvents.size() && regHighlights < 3; i++) {
+            if (summary.length() > 0) summary.append("\n");
+            summary.append("##Regulatory (").append(regulatoryCount).append(")");
+            for (int i = 0; i < regEvents.size() && i < 3; i++) {
                 RegulatoryEvent event = regEvents.get(i);
-                if (regHighlights > 0) {
-                    summary.append(" | ");
-                }
-                summary.append("[").append(event.eventType().name()).append("] ");
+                summary.append("\n[").append(event.eventType().name()).append("] ");
                 summary.append(truncateTitle(event.title()));
-                regHighlights++;
             }
         }
 
