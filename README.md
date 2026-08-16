@@ -345,8 +345,9 @@ Four-tier subscription model with feature gating:
 |------|--------|
 | **DEMO** | 48-hour full access trial, auto-expires to FREE |
 | **FREE** | Limited articles (7-day window), 5 companies, 4 trend snapshots |
-| **SUBSCRIBER** | Full access — all articles, all features, daily briefings |
-| **ADMIN** | Subscriber + pipeline management + user administration |
+| **SUBSCRIBER** | Full access — all articles, all features, daily briefings; Intelligence Console shows 7 tabs |
+| **ENTERPRISE** | Subscriber + 4 additional Intelligence Console tabs (AI Audit, What Changed?, Intelligence Trending, Confidence Trends) |
+| **ADMIN** | Enterprise + pipeline management + user administration, all quota/tier checks bypassed |
 
 Payments via Stripe with webhook-driven tier upgrades and subscription management.
 
