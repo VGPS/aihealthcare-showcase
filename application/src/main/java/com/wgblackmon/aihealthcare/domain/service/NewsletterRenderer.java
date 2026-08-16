@@ -152,7 +152,17 @@ public class NewsletterRenderer {
                                .append("line-height: 1.85; color: #444;\">");
                             inList = true;
                         }
-                        html.append("<li style=\"margin-bottom: 3px;\">").append(escapeHtml(line)).append("</li>");
+                        int sep = line.indexOf("||");
+                        if (sep > 0 && sep < line.length() - 2) {
+                            String linkText = line.substring(0, sep);
+                            String linkUrl  = line.substring(sep + 2);
+                            html.append("<li style=\"margin-bottom: 3px;\">")
+                               .append("<a href=\"").append(escapeHtml(linkUrl))
+                               .append("\" style=\"color: #1a5276; text-decoration: underline;\" target=\"_blank\">")
+                               .append(escapeHtml(linkText)).append("</a></li>");
+                        } else {
+                            html.append("<li style=\"margin-bottom: 3px;\">").append(escapeHtml(line)).append("</li>");
+                        }
                     }
                 }
                 if (inList) html.append("</ul>");
@@ -250,7 +260,13 @@ public class NewsletterRenderer {
                     if (line.startsWith("##")) {
                         text.append(line.substring(2)).append(":\n");
                     } else {
-                        text.append("  • ").append(line).append("\n");
+                        int sep = line.indexOf("||");
+                        if (sep > 0) {
+                            text.append("  • ").append(line.substring(0, sep)).append("\n")
+                               .append("    ").append(line.substring(sep + 2)).append("\n");
+                        } else {
+                            text.append("  • ").append(line).append("\n");
+                        }
                     }
                 }
                 text.append("\n");

@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.domain.service;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
+import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
@@ -86,7 +87,7 @@ public class LegalBriefSectionBuilder {
         if (!legalArticles.isEmpty()) {
             summary.append("##Litigation (").append(litigationCount).append(")");
             for (int i = 0; i < legalArticles.size() && i < MAX_HEADLINES; i++) {
-                summary.append("\n").append(truncateTitle(legalArticles.get(i).title()));
+                summary.append("\n").append(buildArticleItem(legalArticles.get(i)));
             }
         }
 
@@ -94,17 +95,15 @@ public class LegalBriefSectionBuilder {
             if (summary.length() > 0) summary.append("\n");
             summary.append("##Policy (").append(policyCount).append(")");
             for (int i = 0; i < policyArticles.size() && i < MAX_HEADLINES; i++) {
-                summary.append("\n").append(truncateTitle(policyArticles.get(i).title()));
+                summary.append("\n").append(buildArticleItem(policyArticles.get(i)));
             }
         }
 
         if (!regEvents.isEmpty()) {
             if (summary.length() > 0) summary.append("\n");
-            summary.append("##Regulatory (").append(regulatoryCount).append(")");
+            summary.append("##Regulatory Events (").append(regulatoryCount).append(")");
             for (int i = 0; i < regEvents.size() && i < 3; i++) {
-                RegulatoryEvent event = regEvents.get(i);
-                summary.append("\n[").append(event.eventType().name()).append("] ");
-                summary.append(truncateTitle(event.title()));
+                summary.append("\n").append(buildRegItem(regEvents.get(i)));
             }
         }
 
@@ -164,17 +163,69 @@ public class LegalBriefSectionBuilder {
         return headline.toString();
     }
 
-    private String truncateTitle(String title) {
-        if (title == null) {
-            return "";
+    /**
+     * Formats an article as "displayTitle||url" for link rendering.
+     * Uses sourceName when the article title looks like a bare domain.
+     */
+    private String buildArticleItem(NewsArticle article) {
+        String displayTitle;
+        if (isDomainTitle(article.title())) {
+            String src = article.sourceName();
+            displayTitle = (src != null && !src.isBlank()) ? src : article.title();
+        } else {
+            displayTitle = truncateTitle(article.title());
         }
+        String url = article.url() != null ? article.url().toString() : "";
+        return url.isBlank() ? displayTitle : displayTitle + "||" + url;
+    }
+
+    /**
+     * Formats a regulatory event as "TypeLabel: Title (Applicant)||sourceUrl".
+     */
+    private String buildRegItem(RegulatoryEvent event) {
+        StringBuilder label = new StringBuilder(formatEventType(event.eventType()));
+        label.append(": ").append(truncateTitle(event.title()));
+        if (event.applicantName() != null && !event.applicantName().isBlank()) {
+            label.append(" (").append(event.applicantName()).append(")");
+        }
+        String url = event.sourceUrl() != null ? event.sourceUrl() : "";
+        return url.isBlank() ? label.toString() : label + "||" + url;
+    }
+
+    private String formatEventType(RegulatoryEventType type) {
+        if (type == null) return "Regulatory";
+        switch (type) {
+            case FDA_510K_CLEARANCE:              return "FDA 510(k)";
+            case FDA_DE_NOVO_CLASSIFICATION:      return "FDA De Novo";
+            case FDA_PMA_APPROVAL:                return "FDA PMA";
+            case FDA_GUIDANCE_DRAFT:              return "FDA Guidance (Draft)";
+            case FDA_GUIDANCE_FINAL:              return "FDA Guidance";
+            case CMS_PROPOSED_RULE:               return "CMS Proposed Rule";
+            case CMS_FINAL_RULE:                  return "CMS Final Rule";
+            case CMS_NCD:                         return "CMS Coverage Decision";
+            case FDA_DIGITAL_HEALTH_ANNOUNCEMENT: return "FDA Digital Health";
+            default:                              return "Regulatory";
+        }
+    }
+
+    /** Returns true when a title is a bare domain name rather than an article headline. */
+    private boolean isDomainTitle(String title) {
+        if (title == null) return false;
+        // Strip em-dash or hyphen publisher suffix to get the raw title part
+        String base = title.split("\\s[—\\-]\\s")[0].trim();
+        // Matches hostnames like "pmc.ncbi.nlm.nih.gov" (lower-case, dots, optional path)
+        return base.matches("[a-z0-9][a-z0-9.\\-]*\\.[a-z]{2,}(/[\\S]*)?");
+    }
+
+    private String truncateTitle(String title) {
+        if (title == null) return "";
         // Strip publisher suffix from Google News titles ("Headline - Publisher")
         int dashIdx = title.lastIndexOf(" - ");
         if (dashIdx > 0 && dashIdx < title.length() - 3) {
             title = title.substring(0, dashIdx).trim();
         }
-        if (title.length() > 80) {
-            return title.substring(0, 77) + "...";
+        if (title.length() > 150) {
+            return title.substring(0, 147) + "...";
         }
         return title;
     }

@@ -108,7 +108,8 @@ class LegalBriefSectionBuilderTest {
 
         assertThat(result).isNotNull();
         assertThat(result.summary()).contains("Regulatory");
-        assertThat(result.summary()).contains("FDA_510K_CLEARANCE");
+        assertThat(result.summary()).contains("FDA 510(k)");
+        assertThat(result.summary()).contains("https://fda.gov/510k/K241234");
     }
 
     @Test
