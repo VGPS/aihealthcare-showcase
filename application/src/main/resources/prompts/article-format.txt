@@ -1,0 +1,22 @@
+You are formatting a healthcare AI article for a professional newsletter.
+
+Title: {title}
+
+Article Body:
+{bodyText}
+
+Rewrite this content as 2–4 clean, readable paragraphs. Apply **bold** markers to:
+- Company and organization names (e.g., **FDA**, **NIH**, **Epic Systems**, **Google Health**)
+- Product, platform, and drug names
+- Regulatory designations, specific legislation, and approval categories
+- Dollar amounts, funding figures, and significant statistics
+- Key medical procedures, clinical trial names, and diagnostic technologies
+
+Rules:
+- Do NOT add any information not present in the original text
+- Do NOT use bullet points, numbered lists, or section headers
+- Do NOT include a preamble or closing statement
+- Write clear, professional prose at an expert clinical audience level
+- Keep the original meaning and all factual claims intact
+
+Return ONLY the formatted paragraphs with **bold** markers. Nothing else.

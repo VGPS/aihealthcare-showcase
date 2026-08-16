@@ -62,13 +62,17 @@
                       th:text="${htmlContent}"
                       class="w-full min-h-[400px]"></textarea>
 
-            <div class="flex gap-3 items-center mt-4">
+            <div class="flex gap-3 items-center mt-4 flex-wrap">
                 <a th:href="@{/newsletter/runs}"
                    class="inline-block px-5 py-2 rounded-md text-sm font-medium bg-gray-500 text-white hover:bg-gray-600 no-underline text-center">Cancel</a>
                 <button type="submit"
                         class="inline-block px-5 py-2 rounded-md text-sm font-medium bg-primary-600 text-white hover:bg-primary-700 cursor-pointer border-none">Save Draft</button>
                 <button type="button" id="sendBtn"
                         class="inline-block px-5 py-2 rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 cursor-pointer border-none">Send Newsletter</button>
+                <button type="button" onclick="exportNewsletterDoc()"
+                        class="inline-block px-5 py-2 rounded-md text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 cursor-pointer border border-gray-300">Save As DOC</button>
+                <button type="button" onclick="exportNewsletterTxt()"
+                        class="inline-block px-5 py-2 rounded-md text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 cursor-pointer border border-gray-300">Save As TXT</button>
             </div>
         </form>
 
@@ -102,6 +106,37 @@
             document.getElementById('sendForm').submit();
         }
     });
+
+    function exportNewsletterDoc() {
+        var content = tinymce.activeEditor ? tinymce.activeEditor.getContent() : document.getElementById('htmlEditor').value;
+        var title   = document.querySelector('[data-title]') ? document.querySelector('[data-title]').textContent : 'AI Healthcare Newsletter';
+        var doc = '<html xmlns:o="urn:schemas-microsoft-com:office:office" '
+                + 'xmlns:w="urn:schemas-microsoft-com:office:word" '
+                + 'xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8">'
+                + '<title>' + title + '</title>'
+                + '<style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;line-height:1.6;max-width:700px;margin:0 auto;padding:20px;}'
+                + 'strong{font-weight:bold;}a{color:#0066cc;}blockquote{border-left:3px solid #0066cc;padding:8px 16px;margin:12px 0;}</style>'
+                + '</head><body>' + content + '</body></html>';
+        var blob = new Blob(['﻿' + doc], { type: 'application/msword' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'newsletter-' + new Date().toISOString().slice(0,10) + '.doc';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    function exportNewsletterTxt() {
+        var content = tinymce.activeEditor ? tinymce.activeEditor.getContent() : document.getElementById('htmlEditor').value;
+        var tmp = document.createElement('div');
+        tmp.innerHTML = content;
+        var text = tmp.innerText || tmp.textContent || '';
+        var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'newsletter-' + new Date().toISOString().slice(0,10) + '.txt';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
 </script>
 </body>
 </html>
