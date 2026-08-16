@@ -21,7 +21,7 @@ A production AI-powered market intelligence platform for the healthcare industry
 | Data sources | 69 |
 | LLM adapters | 20 |
 | Scheduled pipelines | 18 |
-| Prompt templates | 25 |
+| Prompt templates | 26 |
 | REST API endpoints | 65+ |
 
 ---
@@ -88,13 +88,13 @@ AIHealthcare/
 │   │                                #   wiki pages, research, frameworks
 │   ├── port/
 │   │   ├── inbound/    (26 files)   # Use-case interfaces (what the app CAN do)
-│   │   └── outbound/   (66 files)   # Adapter interfaces (what the app NEEDS)
+│   │   └── outbound/   (67 files)   # Adapter interfaces (what the app NEEDS)
 │   ├── service/        (48 files)   # Domain logic: scoring, matching, rendering,
 │   │                                #   classification, enrichment, dedup
 │   └── exception/       (9 files)   # Domain-specific exceptions
 │
 ├── infrastructure/                  # Framework-dependent implementations
-│   ├── ai/             (20 files)   # LLM adapters (Claude, GPT, Gemini,
+│   ├── ai/             (21 files)   # LLM adapters (Claude, GPT, Gemini,
 │   │                                #   Perplexity, Bedrock, pgvector)
 │   ├── persistence/    (40+ files)  # JPA entities, repositories, adapters
 │   ├── ingestion/      (25+ files)  # RSS, web scraping, HuggingFace,
@@ -199,7 +199,7 @@ All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSu
 - **Wiki knowledge base** — LLM-compiled longitudinal context with contradiction detection
 
 ### Content Delivery
-- **Daily newsletter** — AI-summarized for ENTERPRISE/SUBSCRIBER/DEMO tiers; article digest for FREE tier (capped at 75 articles by source weight, 1-day lookback); Reversal Watch section surfaces wiki contradictions as formatted bullet list; sent via AWS SES
+- **Daily newsletter** — AI-summarized for ENTERPRISE/SUBSCRIBER/DEMO tiers; article digest for FREE tier featuring an **Article of the Day** block (top-scored article by LLM significance 1–10, formatted body with entity bolding) and 75-article feed capped by source weight; Reversal Watch section surfaces wiki contradictions as formatted bullet list; sent via AWS SES
 - **30+ dashboard pages** — Thymeleaf with Chart.js visualizations
 - **REST API** — 65+ endpoints with API key auth and rate limiting
 - **Data export** — PDF/DOC/TXT/JSON/CSV export across all intelligence tabs
@@ -274,7 +274,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 
 ## Domain Model (Included in This Repo)
 
-This repository contains the complete **domain layer** — 256 pure Java files with zero framework dependencies. This is the architectural core: every record, port interface, domain service, and business rule.
+This repository contains the complete **domain layer** — 257 pure Java files with zero framework dependencies. This is the architectural core: every record, port interface, domain service, and business rule.
 
 ```
 domain/
@@ -305,7 +305,7 @@ domain/
 │   │   ├── MonitorRegulatoryEventsUseCase
 │   │   └── ... (26 total)
 │   │
-│   └── outbound/   # 67 adapter interfaces
+│   └── outbound/   # 68 adapter interfaces
 │       ├── AiSummarizationPort, AiSearchPort
 │       ├── ArticleIngestionPort, ArticleStoragePort
 │       ├── SentimentAnalysisPort, CompanySentimentPort
