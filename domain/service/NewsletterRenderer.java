@@ -133,6 +133,39 @@ public class NewsletterRenderer {
                     }
                 }
                 html.append("</ul>");
+            } else if (section.sectionType() == SectionType.LEGAL_BRIEF) {
+                boolean inList = false;
+                for (String line : section.summary().split("\n")) {
+                    if (line.isBlank()) continue;
+                    if (line.startsWith("##")) {
+                        if (inList) { html.append("</ul>"); inList = false; }
+                        html.append("<p style=\"margin: 10px 0 3px; font-size: 11px; font-weight: bold; ")
+                           .append("color: #1a5276; text-transform: uppercase; letter-spacing: 0.8px; ")
+                           .append("border-bottom: 1px solid #aed6f1; padding-bottom: 2px;\">")
+                           .append(escapeHtml(line.substring(2))).append("</p>");
+                        html.append("<ul style=\"margin: 0; padding: 0 0 6px 18px; font-size: 14px; ")
+                           .append("line-height: 1.85; color: #444;\">");
+                        inList = true;
+                    } else {
+                        if (!inList) {
+                            html.append("<ul style=\"margin: 0; padding: 0 0 6px 18px; font-size: 14px; ")
+                               .append("line-height: 1.85; color: #444;\">");
+                            inList = true;
+                        }
+                        int sep = line.indexOf("||");
+                        if (sep > 0 && sep < line.length() - 2) {
+                            String linkText = line.substring(0, sep);
+                            String linkUrl  = line.substring(sep + 2);
+                            html.append("<li style=\"margin-bottom: 3px;\">")
+                               .append("<a href=\"").append(escapeHtml(linkUrl))
+                               .append("\" style=\"color: #1a5276; text-decoration: underline;\" target=\"_blank\">")
+                               .append(escapeHtml(linkText)).append("</a></li>");
+                        } else {
+                            html.append("<li style=\"margin-bottom: 3px;\">").append(escapeHtml(line)).append("</li>");
+                        }
+                    }
+                }
+                if (inList) html.append("</ul>");
             } else {
                 html.append("<p style=\"margin: 0; font-size: 14px; line-height: 1.7; color: #444;\">")
                     .append(escapeHtml(section.summary()))
@@ -221,7 +254,25 @@ public class NewsletterRenderer {
                 text.append("---\n");
             }
             text.append(section.headline()).append("\n\n");
-            text.append(section.summary()).append("\n\n");
+            if (section.sectionType() == SectionType.LEGAL_BRIEF) {
+                for (String line : section.summary().split("\n")) {
+                    if (line.isBlank()) continue;
+                    if (line.startsWith("##")) {
+                        text.append(line.substring(2)).append(":\n");
+                    } else {
+                        int sep = line.indexOf("||");
+                        if (sep > 0) {
+                            text.append("  • ").append(line.substring(0, sep)).append("\n")
+                               .append("    ").append(line.substring(sep + 2)).append("\n");
+                        } else {
+                            text.append("  • ").append(line).append("\n");
+                        }
+                    }
+                }
+                text.append("\n");
+            } else {
+                text.append(section.summary()).append("\n\n");
+            }
         }
 
         if (!draft.sourceArticles().isEmpty()) {

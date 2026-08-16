@@ -10,10 +10,10 @@ A production AI-powered market intelligence platform for the healthcare industry
 
 | Metric | Count |
 |--------|-------|
-| Java classes | 592 |
-| Automated tests | 2,037+ |
-| Test classes | 251 |
-| Domain models | 103 |
+| Java classes | 601 |
+| Automated tests | 2,048+ |
+| Test classes | 253 |
+| Domain models | 106 |
 | Port interfaces | 92 |
 | Controllers | 72 |
 | Infrastructure adapters | 67 |
@@ -235,6 +235,13 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - **Confidence Trend Heatmap** — append-only snapshots track confidence over time, CSS Grid heatmap shows improving/declining/stable trends
 - Popular query tracking — frequently-audited topics load instantly from cache
 
+### AI Accountability Tracker
+- **Per-system scorecards** for the 15 largest U.S. health systems — Kaiser, HCA, CommonSpirit, Ascension, Providence, AdventHealth, Mayo Clinic, and 8 others
+- **5 dimension badges** (no composite score): AI Tier, Enforcement, Conduct, Offshoring, Direction — each dimension tells a different story
+- Enforcement history from DOJ, HHS-OIG, state AGs with settlement amounts and predecessor entity names (e.g., "Dignity Health" before CommonSpirit merger)
+- AI deployment registry: 23 deployments across ambient documentation, prior auth, revenue cycle, clinical decision support
+- **Editorial angles** surface underreported patterns: dual-role payer/provider risk, AI financial scoring, IT offshoring acceleration, denial-fighting AI as a product category
+
 ### Intelligence Monitoring
 - **Scheduled daily reports** — automated synthesis for configurable topics (6 AM cron, 30-day retention)
 - **Intelligence trending** — track how analysis evolves over time with delta metrics and trend arrows
@@ -248,7 +255,7 @@ A companion Spring Boot service providing Claude-powered clinical intelligence, 
 - Sliding-window rate limiting per client (IP or API key)
 - Server timeout hardening for deep synthesis queries (5-minute LLM calls)
 - Flyway-managed database migrations for audit and snapshot tables
-- 191 automated tests (JUnit 5 + AssertJ + Mockito), 7 prompt templates
+- 201 automated tests (JUnit 5 + AssertJ + Mockito), 6 prompt templates
 
 ---
 

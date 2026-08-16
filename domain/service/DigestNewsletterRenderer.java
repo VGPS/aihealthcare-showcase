@@ -103,7 +103,17 @@ public class DigestNewsletterRenderer {
         // Score top candidates and build "Article of the Day" block
         String featuredHtml     = "";
         String featuredPlainText = "";
-        List<NewsArticle> candidates = filtered.subList(0, Math.min(SCORING_CANDIDATES, filtered.size()));
+        // Exclude domain-style titles and stub articles (body < 100 chars) from Article of the Day
+        List<NewsArticle> scorable = new ArrayList<>();
+        for (NewsArticle a : filtered) {
+            if (isDomainTitle(a.title())) continue;
+            if (a.bodyText() == null || a.bodyText().length() < 100) continue;
+            scorable.add(a);
+            if (scorable.size() >= SCORING_CANDIDATES) break;
+        }
+        List<NewsArticle> candidates = scorable.isEmpty()
+                ? filtered.subList(0, Math.min(SCORING_CANDIDATES, filtered.size()))
+                : scorable;
 
         try {
             List<ScoredArticle> scored = articleScoringPort.scoreArticles(
@@ -179,7 +189,7 @@ public class DigestNewsletterRenderer {
         sb.append("  <h2 style=\"margin:0 0 6px; font-size:1.15em; line-height:1.4; font-family:Arial,sans-serif;\">")
           .append("<a href=\"").append(url)
           .append("\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a3a5c; text-decoration:underline;\">")
-          .append(escapeHtml(article.title())).append("</a></h2>\n");
+          .append(escapeHtml(featuredTitle(article))).append("</a></h2>\n");
 
         // Source · date meta
         if (!meta.isEmpty()) {
@@ -284,6 +294,23 @@ public class DigestNewsletterRenderer {
     // -------------------------------------------------------------------------
     // Existing rendering (unchanged behaviour)
     // -------------------------------------------------------------------------
+
+    /** Returns a human-readable display title; substitutes sourceName when title is a bare domain. */
+    private String featuredTitle(NewsArticle article) {
+        String title = article.title();
+        if (isDomainTitle(title)) {
+            String src = article.sourceName();
+            return (src != null && !src.isBlank()) ? src : title;
+        }
+        return title;
+    }
+
+    /** Returns true when a title is a bare domain name rather than an article headline. */
+    private boolean isDomainTitle(String title) {
+        if (title == null) return false;
+        String base = title.split("\\s[—\\-]\\s")[0].trim();
+        return base.matches("[a-z0-9][a-z0-9.\\-]*\\.[a-z]{2,}(/[\\S]*)?");
+    }
 
     private List<NewsArticle> filterAndDedup(List<NewsArticle> articles) {
         log.debug("filterAndDedup() | inputSize={}", articles.size());
