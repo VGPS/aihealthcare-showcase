@@ -1723,7 +1723,7 @@
         function dimensionBadge(label, value) {
             if (!value) return '';
             var color = badgeColor(value);
-            return '<span style="display:inline-block;padding:0.3rem 0.8rem;border-radius:999px;font-size:0.78rem;font-weight:600;background:' + color + '18;color:' + color + ';border:1px solid ' + color + '30;margin:0.2rem 0.25rem;">' + esc(label) + ': ' + esc(value) + '</span>';
+            return '<span style="display:inline-block;padding:0.3rem 0.8rem;border-radius:999px;font-size:0.78rem;font-weight:600;background:' + color + '18;color:' + color + ';border:1px solid ' + color + '30;margin:0.2rem 0.25rem;">' + esc(label) + ': ' + formatMarkdown(value) + '</span>';
         }
         html += '<div style="margin-bottom:1rem;">';
         html += dimensionBadge('AI Tier', data.aiTierBadge);
@@ -1761,15 +1761,15 @@
                 var amtStr = ea.amountUsd ? ('$' + (ea.amountUsd >= 1e9 ? (ea.amountUsd / 1e9).toFixed(1) + 'B' : ea.amountUsd >= 1e6 ? (ea.amountUsd / 1e6).toFixed(1) + 'M' : ea.amountUsd.toLocaleString())) : '—';
                 var yearStr = ea.settlementDate ? ea.settlementDate.substring(0, 4) : '—';
                 html += '<tr style="' + (i % 2 === 1 ? 'background:#f8fafc;' : '') + '">';
-                html += '<td style="padding:0.4rem 0.6rem;">' + esc(ea.agency || '—') + '</td>';
-                html += '<td style="padding:0.4rem 0.6rem;">' + esc(ea.theory || '—') + '</td>';
+                html += '<td style="padding:0.4rem 0.6rem;">' + formatMarkdown(ea.agency || '—') + '</td>';
+                html += '<td style="padding:0.4rem 0.6rem;">' + formatMarkdown(ea.theory || '—') + '</td>';
                 html += '<td style="padding:0.4rem 0.6rem;font-weight:600;">' + amtStr + '</td>';
                 html += '<td style="padding:0.4rem 0.6rem;">' + esc(yearStr) + '</td>';
                 html += '<td style="padding:0.4rem 0.6rem;">';
-                if (ea.sourceUrl) html += '<a href="' + escAttr(ea.sourceUrl) + '" target="_blank" class="source-link">' + esc(ea.entityNameAtTime || '—') + '</a>';
-                else html += esc(ea.entityNameAtTime || '—');
+                if (ea.sourceUrl) html += '<a href="' + escAttr(ea.sourceUrl) + '" target="_blank" class="source-link">' + formatMarkdown(ea.entityNameAtTime || '—') + '</a>';
+                else html += formatMarkdown(ea.entityNameAtTime || '—');
                 html += '</td></tr>';
-                if (ea.description) html += '<tr><td colspan="5" style="padding:0.25rem 0.6rem 0.5rem;color:#64748b;font-size:0.8rem;">' + esc(ea.description) + '</td></tr>';
+                if (ea.description) html += '<tr><td colspan="5" style="padding:0.25rem 0.6rem 0.5rem;color:#64748b;font-size:0.8rem;">' + formatMarkdown(ea.description) + '</td></tr>';
             }
             html += '</tbody></table>';
         }
@@ -1791,9 +1791,9 @@
                 for (var j = 0; j < deps.length; j++) {
                     var d = deps[j];
                     html += '<div style="margin-bottom:' + (j < deps.length - 1 ? '0.4rem' : '0') + ';">';
-                    if (d.sourceUrl) html += '<a href="' + escAttr(d.sourceUrl) + '" target="_blank" class="source-link" style="font-size:0.85rem;font-weight:600;">' + esc(d.vendor) + ' — ' + esc(d.product) + '</a>';
-                    else html += '<span style="font-size:0.85rem;font-weight:600;">' + esc(d.vendor) + ' — ' + esc(d.product) + '</span>';
-                    if (d.scaleMetric) html += '<div style="font-size:0.78rem;color:#64748b;">' + esc(d.scaleMetric) + '</div>';
+                    if (d.sourceUrl) html += '<a href="' + escAttr(d.sourceUrl) + '" target="_blank" class="source-link" style="font-size:0.85rem;font-weight:600;">' + formatMarkdown(d.vendor) + ' — ' + formatMarkdown(d.product) + '</a>';
+                    else html += '<span style="font-size:0.85rem;font-weight:600;">' + formatMarkdown(d.vendor) + ' — ' + formatMarkdown(d.product) + '</span>';
+                    if (d.scaleMetric) html += '<div style="font-size:0.78rem;color:#64748b;">' + formatMarkdown(d.scaleMetric) + '</div>';
                     html += '</div>';
                 }
                 html += '</div>';
