@@ -305,7 +305,8 @@ INSERT INTO health_systems (id, canonical_name, aliases_pipe, hq_state, system_t
 ('tenet',                'Tenet Healthcare',           'Tenet Health|Detroit Medical Center|Clinica de la Mama',                       'TX', 'FOR_PROFIT'),
 ('ut-health',            'UT Health System',           'UT Southwestern Medical Center|MD Anderson Cancer Center|UT Health San Antonio','TX', 'ACADEMIC'),
 ('unitedhealth',         'UnitedHealth Group',         'UnitedHealthcare|Optum|Change Healthcare|UHG|Optum Rx',                       'MN', 'FOR_PROFIT_PAYER'),
-('cigna',                'The Cigna Group',            'Cigna Healthcare|Cigna|eviCore|Express Scripts',                              'CT', 'FOR_PROFIT_PAYER')
+('cigna',                'The Cigna Group',            'Cigna Healthcare|Cigna|eviCore|Express Scripts',                              'CT', 'FOR_PROFIT_PAYER'),
+('aetna',                'Aetna',                      'Aetna Inc.|CVS Health|Aetna Life Insurance Company',                         'CT', 'FOR_PROFIT_PAYER')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO enforcement_actions
@@ -361,7 +362,10 @@ VALUES
  'https://www.justice.gov/opa/pr/unitedhealth-group-pay-over-16-million-settle-false-claims-act-allegations'),
 ('ea-cigna-2024',     'cigna',               'Cigna Health and Life Insurance Company',  'STATE_AG', 'AI_PRIOR_AUTH_DENIALS', 172000000, '2024-01-01',
  'PXDX automated prior authorization system denied 300,000+ claims in two months with physicians reviewing each denial in under 2 seconds — California DOI investigation into AI-automated denials without adequate clinical review',
- 'https://www.propublica.org/article/cigna-pxdx-deny-claims-calpers-california')
+ 'https://www.propublica.org/article/cigna-pxdx-deny-claims-calpers-california'),
+('ea-aetna-2020',    'aetna',               'Aetna Life Insurance Company',             'DOJ',      'FALSE_CLAIMS_ACT',     25000000, '2020-01-01',
+ 'Medicare Advantage overbilling — upcoding risk-adjustment diagnoses to inflate capitation payments; resolved under False Claims Act',
+ 'https://www.justice.gov/opa/pr/aetna-pay-25-million-settle-allegations-it-submitted-false-claims-medicare-advantage')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO ai_deployments
@@ -393,5 +397,7 @@ VALUES
 ('ai-uhg-priorauth',    'unitedhealth',        'Optum',                'AI Prior Authorization Review (NaviMedix)',   'PRIOR_AUTH',        'Processes millions of prior auth requests annually; NaviMedix predictive analytics for surgical necessity screening; subject of 2023 Senate Finance Committee investigation into denial rates', 'https://www.finance.senate.gov/chairmans-news/wyden-grassley-investigate-unitedhealth-for-potentially-using-ai-to-deny-care', '2022-01-01'),
 ('ai-uhg-rcm',          'unitedhealth',        'Optum/Change Healthcare','Claims Processing and Revenue Cycle AI',     'REVENUE_CYCLE',     '15B+ claims/year through Change Healthcare clearinghouse; AI-powered eligibility verification, claims routing, and remittance processing; 2024 cyberattack disrupted $1.5T in annual payment flows', 'https://www.ama-assn.org/practice-management/sustainability/change-healthcare-cyberattack-and-disruption',                    '2019-01-01'),
 ('ai-cigna-pxdx',       'cigna',               'Cigna (proprietary)',   'PXDX Automated Prior Auth Denial Engine',    'PRIOR_AUTH',        '300,000+ claims denied in 2 months; physicians averaged 1.2 seconds per review; flagged by ProPublica 2023; Connecticut and California investigations triggered', 'https://www.propublica.org/article/cigna-pxdx-deny-claims-calpers-california',                                               '2020-01-01'),
-('ai-cigna-evicore',    'cigna',               'eviCore (Cigna subsidiary)','AI-Powered Utilization Management',      'PRIOR_AUTH',        'Manages 500M+ utilization management decisions/year across payers; AI-assisted clinical review for radiology, cardiology, oncology; acquired by Cigna 2018', 'https://www.evicore.com/solutions/artificial-intelligence',                                                                    '2018-01-01')
+('ai-cigna-evicore',    'cigna',               'eviCore (Cigna subsidiary)','AI-Powered Utilization Management',      'PRIOR_AUTH',        'Manages 500M+ utilization management decisions/year across payers; AI-assisted clinical review for radiology, cardiology, oncology; acquired by Cigna 2018', 'https://www.evicore.com/solutions/artificial-intelligence',                                                                    '2018-01-01'),
+('ai-aetna-priorauth',  'aetna',               'CVS/Aetna (proprietary)', 'AI-Assisted Prior Authorization Review',   'PRIOR_AUTH',        'Algorithmic prior auth screening integrated into CVS Health MinuteClinic and Caremark workflows; flagged by AMA for contributing to high denial rates in oncology and behavioral health', 'https://www.ama-assn.org/practice-management/sustainability/prior-authorization',                                              '2021-01-01'),
+('ai-aetna-cvs',        'aetna',               'CVS Health/Signify Health','In-Home Health Assessment AI',             'POPULATION_HEALTH', 'Signify Health (acquired 2023 for $8B) deploys AI-guided in-home assessments to identify care gaps; feeds Aetna risk stratification models for Medicare Advantage members', 'https://www.cvshealth.com/news/company-news/cvs-health-completes-acquisition-of-signify-health.html',                        '2023-01-01')
 ON CONFLICT (id) DO NOTHING;
