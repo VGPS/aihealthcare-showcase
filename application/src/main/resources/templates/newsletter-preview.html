@@ -4,13 +4,18 @@
  * Admin browser preview of the latest (or a specific) AI newsletter run.
  *
  * Embeds the exact HTML sent to subscribers, unmodified, in an isolated
- * iframe, and offers a "Copy for Social Media" button that writes both the
- * HTML and plain-text versions to the clipboard at once (via the
- * multi-MIME-type Clipboard API), so the formatting survives a paste into
- * Medium, X, or LinkedIn's post composer.
+ * iframe. Offers two copy paths because target platforms don't handle
+ * pasted content the same way:
+ *   - "Copy for Medium / LinkedIn" writes both HTML and plain-text to the
+ *     clipboard (via the multi-MIME-type Clipboard API) with a short
+ *     attribution footer appended, for platforms with a real rich-text
+ *     paste target.
+ *   - "Copy for X / Facebook" writes a short plain-text teaser + link,
+ *     since neither platform renders pasted HTML formatting and X has a
+ *     hard length limit the full newsletter would exceed.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-08-17
  * @updated 2026-08-17
  */
@@ -39,11 +44,19 @@
     </div>
 
     <div th:if="${run != null}">
-        <div class="flex items-center gap-3 mb-4">
-            <button type="button" class="btn-search" id="copyBtn" onclick="copyNewsletterContent()">
-                Copy for Social Media
-            </button>
-            <span id="copyStatus" class="text-xs"></span>
+        <div class="flex flex-wrap items-center gap-4 mb-4">
+            <div class="flex items-center gap-2">
+                <button type="button" class="btn-search" id="richCopyBtn" onclick="copyRichContent()">
+                    Copy for Medium / LinkedIn
+                </button>
+                <span id="richCopyStatus" class="text-xs"></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" class="btn-search" id="teaserCopyBtn" onclick="copyTeaser()">
+                    Copy for X / Facebook
+                </button>
+                <span id="teaserCopyStatus" class="text-xs"></span>
+            </div>
         </div>
 
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -51,9 +64,10 @@
                     class="w-full" style="border:0; min-height:1400px;"></iframe>
         </div>
 
-        <!-- Hidden source content read by the copy button; not rendered -->
+        <!-- Hidden source content read by the copy buttons; not rendered -->
         <textarea id="newsletterHtmlSource" th:text="${htmlContent}" class="hidden"></textarea>
         <textarea id="newsletterPlainSource" th:text="${plainTextContent}" class="hidden"></textarea>
+        <input id="newsletterTitleSource" type="hidden" th:value="${title}"/>
     </div>
 
 </main>
@@ -61,14 +75,29 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
-function copyNewsletterContent() {
+var SITE_NAME = 'AI Healthcare Intelligence';
+var SITE_URL = 'https://app.bigskylabs.ai/pricing';
+
+function buildFooterHtml() {
+    return '<hr/><p style="color:#6b7280;font-size:13px;margin-top:16px;">' +
+           '<strong>' + SITE_NAME + '</strong> — Daily insights on AI in healthcare.<br/>' +
+           'Read more &amp; subscribe: <a href="' + SITE_URL + '">' + SITE_URL + '</a></p>';
+}
+
+function buildFooterText() {
+    return '\n\n---\n' + SITE_NAME + ' — Daily insights on AI in healthcare.\n' +
+           'Read more & subscribe: ' + SITE_URL;
+}
+
+/** Rich HTML+text copy for platforms with a real rich-text paste target (Medium, LinkedIn). */
+function copyRichContent() {
     var htmlSource = document.getElementById('newsletterHtmlSource');
     var plainSource = document.getElementById('newsletterPlainSource');
-    var statusEl = document.getElementById('copyStatus');
+    var statusEl = document.getElementById('richCopyStatus');
     if (!htmlSource || !plainSource) { return; }
 
-    var htmlContent = htmlSource.value;
-    var textContent = plainSource.value;
+    var htmlContent = htmlSource.value + buildFooterHtml();
+    var textContent = plainSource.value + buildFooterText();
 
     if (navigator.clipboard && window.ClipboardItem) {
         var item = new ClipboardItem({
@@ -76,7 +105,7 @@ function copyNewsletterContent() {
             'text/plain': new Blob([textContent], {type: 'text/plain'})
         });
         navigator.clipboard.write([item]).then(function() {
-            statusEl.textContent = 'Copied — paste into Medium, X, or LinkedIn.';
+            statusEl.textContent = 'Copied — paste into Medium or LinkedIn.';
             statusEl.className = 'text-xs text-green-700 font-semibold';
         }).catch(function() {
             fallbackCopyPlainText(textContent, statusEl);
@@ -84,6 +113,34 @@ function copyNewsletterContent() {
     } else {
         fallbackCopyPlainText(textContent, statusEl);
     }
+}
+
+/** Short plain-text teaser + link for platforms that strip formatting and/or cap length (X, Facebook). */
+function copyTeaser() {
+    var titleSource = document.getElementById('newsletterTitleSource');
+    var plainSource = document.getElementById('newsletterPlainSource');
+    var statusEl = document.getElementById('teaserCopyStatus');
+    if (!plainSource) { return; }
+
+    var title = titleSource ? titleSource.value : '';
+    var body = plainSource.value.trim();
+    var excerpt = body;
+    if (body.length > 400) {
+        excerpt = body.substring(0, 400);
+        var lastSpace = excerpt.lastIndexOf(' ');
+        if (lastSpace > 0) { excerpt = excerpt.substring(0, lastSpace); }
+        excerpt += '…';
+    }
+
+    var teaser = (title ? title + '\n\n' : '') + excerpt + '\n\n' + SITE_URL;
+
+    navigator.clipboard.writeText(teaser).then(function() {
+        statusEl.textContent = 'Copied — paste into X or Facebook.';
+        statusEl.className = 'text-xs text-green-700 font-semibold';
+    }).catch(function() {
+        statusEl.textContent = 'Copy failed — select the text manually.';
+        statusEl.className = 'text-xs text-red-700 font-semibold';
+    });
 }
 
 function fallbackCopyPlainText(text, statusEl) {
