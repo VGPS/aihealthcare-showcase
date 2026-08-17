@@ -6,6 +6,10 @@ import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Renders a {@link NewsletterDraft} into two output formats for storage and delivery.
  *
@@ -129,7 +133,7 @@ public class NewsletterRenderer {
                 html.append("<ul style=\"margin: 0; padding: 0 0 0 18px; font-size: 14px; line-height: 1.9; color: #444;\">");
                 for (String item : section.summary().split("\n")) {
                     if (!item.isBlank()) {
-                        html.append("<li style=\"margin-bottom: 6px;\">").append(escapeHtml(item)).append("</li>");
+                        html.append("<li style=\"margin-bottom: 6px;\">").append(linkCitationsHtml(item, draft.sourceArticles())).append("</li>");
                     }
                 }
                 html.append("</ul>");
@@ -291,6 +295,34 @@ public class NewsletterRenderer {
         String result = text.toString();
         log.debug("renderPlainText() | return=text[{} chars]", result.length());
         return result;
+    }
+
+    private static final Pattern CITATION_PATTERN = Pattern.compile("(?i)(Article\\s+)?\\[(\\d+)]");
+
+    /**
+     * HTML-escapes text then converts [N] / "Article [N]" citation refs to
+     * clickable anchor tags pointing to the Nth source article (1-indexed).
+     * Out-of-range indices are left as plain text.
+     */
+    private String linkCitationsHtml(String text, List<NewsArticle> articles) {
+        if (text == null) return "";
+        String escaped = escapeHtml(text);
+        if (articles == null || articles.isEmpty()) return escaped;
+        Matcher m = CITATION_PATTERN.matcher(escaped);
+        StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            int idx = Integer.parseInt(m.group(2)) - 1;
+            if (idx >= 0 && idx < articles.size()) {
+                String url = escapeHtml(articles.get(idx).url().toString());
+                String link = "<a href=\"" + url + "\" style=\"color: #cc3300; text-decoration: underline;\" target=\"_blank\">"
+                        + m.group(0) + "</a>";
+                m.appendReplacement(sb, Matcher.quoteReplacement(link));
+            } else {
+                m.appendReplacement(sb, Matcher.quoteReplacement(m.group(0)));
+            }
+        }
+        m.appendTail(sb);
+        return sb.toString();
     }
 
     /**
