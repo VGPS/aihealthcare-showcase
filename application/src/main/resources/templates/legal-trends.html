@@ -33,19 +33,7 @@
         <p class="text-sm text-gray-500 leading-relaxed">Legal trend analysis. Track emerging patterns in healthcare AI regulation, policy shifts, and enforcement actions over time.</p>
     </div>
 
-    <!-- Run Detection button (ADMIN only) -->
-    <div sec:authorize="hasRole('ADMIN')" class="mb-6">
-        <form th:action="@{/dashboard/legal/trends/detect}" method="post" style="display:inline">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-            <button type="submit" id="detectBtn"
-                    class="px-5 py-2 bg-green-600 text-white border-none rounded-md cursor-pointer text-sm hover:bg-green-700 transition-colors flex items-center gap-1">
-                <span class="spinner hidden border-2 border-white/30 border-t-white rounded-full w-4 h-4 animate-spin inline-block align-middle mr-1"></span>
-                <span id="detectLabel">Prompt</span>
-            </button>
-        </form>
-    </div>
-
-    <!-- Snapshot meta -->
+<!-- Snapshot meta -->
     <div th:if="${hasSnapshot}" class="mb-6 text-gray-500 text-sm">
         Last updated: <span th:text="${generatedAt}">N/A</span>
         &nbsp;|&nbsp; <span th:text="${totalKeywords}">0</span> topics analyzed
@@ -65,7 +53,7 @@
     </div>
 
     <div th:unless="${hasSnapshot}" class="py-8 text-center text-gray-500">
-        <p>No legal trend data available yet. Click <b>Prompt</b> above to run detection or wait for the weekly run.</p>
+        <p>No legal trend data available yet. Trend detection runs automatically each week.</p>
     </div>
 
     <!-- Chart -->
@@ -176,13 +164,6 @@
 
 </main>
 
-<div id="loadingOverlay" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center gap-3">
-        <div class="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
-        <p class="text-sm font-semibold text-on-surface">Prompting<span class="thinking-dots"></span></p>
-    </div>
-</div>
-
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <!-- Toggle linked articles -->
@@ -233,20 +214,6 @@
     });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    var detectForm = document.querySelector('form[action*="legal/trends/detect"]');
-    if (detectForm) {
-        detectForm.addEventListener('submit', function() {
-            var btn = document.getElementById('detectBtn');
-            var spinner = btn.querySelector('.spinner');
-            var label = document.getElementById('detectLabel');
-            if (spinner) spinner.classList.remove('hidden');
-            if (label) label.textContent = 'Prompting…';
-            btn.classList.add('loading');
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-        });
-    }
-</script>
 
 </body>
 </html>
