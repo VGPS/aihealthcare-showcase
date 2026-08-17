@@ -3,28 +3,33 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
 
 /**
- * Admin REST controller for rendering newsletter runs as HTML directly in
- * the browser — no email client required.
+ * Admin controller for rendering newsletter runs as a browsable Thymeleaf
+ * page — no email client required.
  *
  * <p>{@code GET /monitoring/newsletter/preview} — latest AI newsletter run.
  * {@code GET /monitoring/newsletter/preview/{runId}} — specific run by ID.
  *
+ * <p>The page embeds the exact HTML sent to subscribers (unmodified) in an
+ * isolated iframe, and offers a one-click "Copy for Social Media" button
+ * that places both the HTML and plain-text versions on the clipboard
+ * simultaneously so the formatting survives a paste into Medium, X, or
+ * LinkedIn's post composer.
+ *
  * @author  Bill Blackmon
  * @since   2026-08-15
- * @updated 2026-08-15
+ * @updated 2026-08-17
  */
 @Slf4j
-@RestController
+@Controller
 @RequestMapping("/monitoring/newsletter")
 public class MonitoringNewsletterController {
 
@@ -36,23 +41,38 @@ public class MonitoringNewsletterController {
         this.newsletterRunPort = newsletterRunPort;
     }
 
-    @GetMapping(value = "/preview", produces = MediaType.TEXT_HTML_VALUE)
-    public ResponseEntity<String> previewLatest() {
+    @GetMapping("/preview")
+    public String previewLatest(Model model) {
         log.debug("previewLatest() | (no args)");
         Optional<NewsletterRun> run = newsletterRunPort.findLatest();
         if (run.isEmpty()) {
-            log.debug("previewLatest() | return=204 (no runs yet)");
-            return ResponseEntity.noContent().build();
+            log.debug("previewLatest() | return=newsletter-preview (no runs yet)");
+            model.addAttribute("run", null);
+            return "newsletter-preview";
         }
-        log.debug("previewLatest() | return=200 runId={}", run.get().runId());
-        return ResponseEntity.ok(run.get().htmlContent());
+        populateModel(model, run.get());
+        log.debug("previewLatest() | return=newsletter-preview runId={}", run.get().runId());
+        return "newsletter-preview";
     }
 
-    @GetMapping(value = "/preview/{runId}", produces = MediaType.TEXT_HTML_VALUE)
-    public ResponseEntity<String> previewById(@PathVariable String runId) {
+    @GetMapping("/preview/{runId}")
+    public String previewById(@PathVariable String runId, Model model) {
         log.debug("previewById() | runId={}", runId);
         NewsletterRun run = newsletterRunPort.findByRunId(runId);
-        log.debug("previewById() | return=200");
-        return ResponseEntity.ok(run.htmlContent());
+        populateModel(model, run);
+        log.debug("previewById() | return=newsletter-preview");
+        return "newsletter-preview";
+    }
+
+    private void populateModel(Model model, NewsletterRun run) {
+        log.debug("populateModel() | runId={}", run.runId());
+        model.addAttribute("run", run);
+        model.addAttribute("runId", run.runId());
+        model.addAttribute("title", run.title());
+        model.addAttribute("weekOf", run.weekOf());
+        model.addAttribute("status", run.status());
+        model.addAttribute("htmlContent", run.htmlContent());
+        model.addAttribute("plainTextContent", run.plainTextContent());
+        log.debug("populateModel() | return=void");
     }
 }
