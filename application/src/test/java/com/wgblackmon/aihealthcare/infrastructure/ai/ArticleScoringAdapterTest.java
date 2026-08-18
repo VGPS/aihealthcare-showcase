@@ -147,6 +147,26 @@ class ArticleScoringAdapterTest {
     }
 
     @Test
+    void parseResponse_skipsDuplicateRationale() {
+        List<NewsArticle> articles = List.of(
+                makeArticle("art-1", "FDA clears AI diagnostic"),
+                makeArticle("art-2", "FDA clears AI diagnostic (syndicated)"),
+                makeArticle("art-3", "Breakthrough clinical trial result")
+        );
+
+        String response = "SCORED_ARTICLES:\n" +
+                "[1] SCORE: 8 | First autonomous AI diagnostic cleared by FDA\n" +
+                "[2] SCORE: 8 | Duplicate of [1] — same article republished on another site\n" +
+                "[3] SCORE: 9 | Phase 3 trial shows 40% improvement in detection accuracy\n";
+
+        List<ScoredArticle> result = adapter.parseResponse(response, articles, "radiology ai", 0);
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).articleId()).isEqualTo("art-1");
+        assertThat(result.get(1).articleId()).isEqualTo("art-3");
+    }
+
+    @Test
     void scoreArticles_emptyInput_returnsEmptyList() {
         List<ScoredArticle> result = adapter.scoreArticles(List.of(), "theme", "desc", 7);
 

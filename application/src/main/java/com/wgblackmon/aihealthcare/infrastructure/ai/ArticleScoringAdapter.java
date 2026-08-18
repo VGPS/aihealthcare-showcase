@@ -228,6 +228,12 @@ public class ArticleScoringAdapter implements ArticleScoringPort {
                     rationale = "No rationale provided";
                 }
 
+                // LLM flags syndicated copies with "Duplicate of [N]" — drop them entirely
+                if (rationale.startsWith("Duplicate")) {
+                    log.debug("parseResponse() | skipping duplicate article index={}", articleIndex);
+                    continue;
+                }
+
                 NewsArticle article = articles.get(batchIndex);
                 scored.add(new ScoredArticle(
                         article.articleId(),
