@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Thymeleaf fragments for tier-based UI gating.
+ *
+ * upgradeCard — full-width card shown in locked tab content areas.
+ * lockBadge   — inline badge appended to locked nav buttons.
+ *
+ * @author  Bill Blackmon
+ * @since   2026-08-14
+ * @updated 2026-08-14
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--/* UpgradeCard: replaces locked tab content for SUBSCRIBER users */-->
+<div th:fragment="upgradeCard"
+     class="flex flex-col items-center justify-center text-center py-16 px-8">
+    <div style="font-size:2.5rem;margin-bottom:1rem;">&#128274;</div>
+    <h3 style="font-size:1.1rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem;">Enterprise Feature</h3>
+    <p style="font-size:0.9rem;color:#64748b;max-width:380px;margin-bottom:1.5rem;">
+        This tab is available on the Enterprise plan. Upgrade to unlock AI Audit cross-verification,
+        confidence trend tracking, intelligence trending, and temporal diff analysis.
+    </p>
+    <a href="/pricing#enterprise"
+       style="display:inline-block;padding:0.625rem 1.75rem;background:#7c3aed;color:#fff;font-weight:600;border-radius:0.5rem;font-size:0.875rem;text-decoration:none;transition:background 0.15s;"
+       onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">
+        Upgrade to Enterprise
+    </a>
+</div>
+
+<!--/* lockBadge: inline badge for locked nav tabs */-->
+<span th:fragment="lockBadge" class="tab-lock-badge">Enterprise</span>
+
+</body>
+</html>

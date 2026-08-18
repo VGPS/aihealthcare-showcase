@@ -70,6 +70,16 @@ class TransactionalEmailAdapterTest {
     }
 
     @Test
+    void sendPasswordReset_sendsOneMessage() {
+        MimeMessage mockMessage = mock(MimeMessage.class);
+        when(mailSender.createMimeMessage()).thenReturn(mockMessage);
+
+        adapter.sendPasswordReset("user@example.com", "Test User", "tok-1");
+
+        verify(mailSender).send(any(MimeMessage.class));
+    }
+
+    @Test
     void sendWelcome_mailFailure_doesNotThrow() {
         MimeMessage mockMessage = mock(MimeMessage.class);
         when(mailSender.createMimeMessage()).thenReturn(mockMessage);

@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.delivery;
 
 import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
 import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
+import com.wgblackmon.aihealthcare.domain.service.PromotionalFooter;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,7 @@ import org.springframework.stereotype.Component;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-31
- * @updated 2026-08-07
+ * @updated 2026-08-17
  */
 @Slf4j
 @Component
@@ -57,7 +58,7 @@ public class TransactionalEmailAdapter implements TransactionalEmailPort {
         String plain = "Welcome to AI Healthcare Intelligence, " + name + "!\n\n"
                 + "Your " + demoDays + "-day demo is now active. "
                 + "Explore features at " + baseUrl + "/dashboard\n\n"
-                + "Upgrade anytime at " + baseUrl + "/pricing";
+                + "Want deeper AI analysis?\n" + PromotionalFooter.BUTTONS_PLAIN_TEXT;
 
         sendEmail(email, subject, html, plain);
         log.debug("sendWelcome() | return=void");
@@ -71,9 +72,8 @@ public class TransactionalEmailAdapter implements TransactionalEmailPort {
         String html = buildExpirationHtml(name);
         String plain = "Hi " + name + ",\n\n"
                 + "Your demo period has ended. "
-                + "Upgrade to continue receiving full AI Healthcare Intelligence: "
-                + baseUrl + "/pricing\n\n"
-                + "You can still access limited features with a free account.";
+                + "You can still access limited features with a free account.\n\n"
+                + "Want deeper AI analysis?\n" + PromotionalFooter.UPGRADE_ONLY_PLAIN_TEXT;
 
         sendEmail(email, subject, html, plain);
         log.debug("sendDemoExpiration() | return=void");
@@ -108,6 +108,23 @@ public class TransactionalEmailAdapter implements TransactionalEmailPort {
         log.debug("notifyAdminNewRegistration() | return=void");
     }
 
+    @Override
+    public void sendPasswordReset(String email, String name, String token) {
+        log.debug("sendPasswordReset() | email={}, name={}, token=[REDACTED]", email, name);
+
+        String resetLink = baseUrl + "/reset-password?token=" + token;
+        String subject = "Reset Your AI Healthcare Intelligence Password";
+        String html = buildPasswordResetHtml(name, resetLink);
+        String plain = "Hi " + name + ",\n\n"
+                + "We received a request to reset your password. This link expires in 60 minutes:\n"
+                + resetLink + "\n\n"
+                + "If you didn't request this, you can safely ignore this email.\n\n"
+                + "Want deeper AI analysis?\n" + PromotionalFooter.BUTTONS_PLAIN_TEXT;
+
+        sendEmail(email, subject, html, plain);
+        log.debug("sendPasswordReset() | return=void");
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
@@ -135,7 +152,7 @@ public class TransactionalEmailAdapter implements TransactionalEmailPort {
         return "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px\">"
                 + "<div style=\"background:#1e40af;color:white;padding:24px;border-radius:8px 8px 0 0;text-align:center\">"
                 + "<h1 style=\"margin:0;font-size:24px\">Welcome to AI Healthcare Intelligence!</h1></div>"
-                + "<div style=\"background:white;padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px\">"
+                + "<div style=\"background:white;padding:24px;border:1px solid #e5e7eb;border-top:none\">"
                 + "<p>Hi <strong>" + escapeHtml(name) + "</strong>,</p>"
                 + "<p>Your <strong>" + demoDays + "-day demo</strong> is now active. "
                 + "You have full access to all features including:</p>"
@@ -148,26 +165,65 @@ public class TransactionalEmailAdapter implements TransactionalEmailPort {
                 + "<p style=\"text-align:center;margin:24px 0\">"
                 + "<a href=\"" + baseUrl + "/dashboard\" style=\"background:#1e40af;color:white;padding:12px 32px;"
                 + "border-radius:6px;text-decoration:none;font-weight:bold\">Go to Dashboard</a></p>"
-                + "<p style=\"color:#6b7280;font-size:13px\">When your demo ends, "
-                + "<a href=\"" + baseUrl + "/pricing\">upgrade to a subscriber plan</a> "
-                + "to keep full access.</p>"
-                + "</div></div>";
+                + "</div>" + buildPromotionalFooterHtml("Want deeper AI analysis?",
+                        "When your demo ends, keep full access with a Subscriber upgrade.")
+                + "</div>";
     }
 
     private String buildExpirationHtml(String name) {
         return "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px\">"
                 + "<div style=\"background:#dc2626;color:white;padding:24px;border-radius:8px 8px 0 0;text-align:center\">"
                 + "<h1 style=\"margin:0;font-size:24px\">Your Demo Has Expired</h1></div>"
-                + "<div style=\"background:white;padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px\">"
+                + "<div style=\"background:white;padding:24px;border:1px solid #e5e7eb;border-top:none\">"
                 + "<p>Hi <strong>" + escapeHtml(name) + "</strong>,</p>"
                 + "<p>Your AI Healthcare Intelligence demo period has ended. "
                 + "To continue receiving full access to all features, upgrade to a subscriber plan.</p>"
-                + "<p style=\"text-align:center;margin:24px 0\">"
-                + "<a href=\"" + baseUrl + "/pricing\" style=\"background:#1e40af;color:white;padding:12px 32px;"
-                + "border-radius:6px;text-decoration:none;font-weight:bold\">Upgrade Now</a></p>"
                 + "<p style=\"color:#6b7280;font-size:13px\">You can still log in and access limited "
                 + "features with your free account.</p>"
-                + "</div></div>";
+                + "</div>" + buildExpirationFooterHtml()
+                + "</div>";
+    }
+
+    private String buildExpirationFooterHtml() {
+        return "<div style=\"background:#f0f7ff;padding:20px 24px;border:1px solid #e5e7eb;border-top:none;"
+                + "border-radius:0 0 8px 8px;\">"
+                + "<h3 style=\"margin:0 0 8px;color:#1a1a2e;font-size:16px\">Want deeper AI analysis?</h3>"
+                + "<p style=\"margin:0 0 12px;font-size:13px;color:#555\">Subscribe for full AI-powered newsletters "
+                + "with expert synthesis, vendor comparisons, and research insights.</p>"
+                + PromotionalFooter.UPGRADE_ONLY_HTML
+                + "</div>";
+    }
+
+    private String buildPasswordResetHtml(String name, String resetLink) {
+        return "<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px\">"
+                + "<div style=\"background:#1e40af;color:white;padding:24px;border-radius:8px 8px 0 0;text-align:center\">"
+                + "<h1 style=\"margin:0;font-size:24px\">Reset Your Password</h1></div>"
+                + "<div style=\"background:white;padding:24px;border:1px solid #e5e7eb;border-top:none\">"
+                + "<p>Hi <strong>" + escapeHtml(name) + "</strong>,</p>"
+                + "<p>We received a request to reset your AI Healthcare Intelligence password. "
+                + "This link expires in <strong>60 minutes</strong>.</p>"
+                + "<p style=\"text-align:center;margin:24px 0\">"
+                + "<a href=\"" + resetLink + "\" style=\"background:#1e40af;color:white;padding:12px 32px;"
+                + "border-radius:6px;text-decoration:none;font-weight:bold\">Reset Password</a></p>"
+                + "<p style=\"color:#6b7280;font-size:13px\">If you didn't request this, you can safely ignore this email "
+                + "&mdash; your password will not be changed.</p>"
+                + "</div>" + buildPromotionalFooterHtml("Want deeper AI analysis?",
+                        "Subscribe for full AI-powered newsletters with expert synthesis, vendor comparisons, and research insights.")
+                + "</div>";
+    }
+
+    /**
+     * Shared "Upgrade to Subscriber" / "Free 7 Day Demo" CTA block appended to
+     * every customer-facing transactional email, matching the footer used in
+     * the digest and full newsletter emails ({@link PromotionalFooter}).
+     */
+    private String buildPromotionalFooterHtml(String headline, String paragraph) {
+        return "<div style=\"background:#f0f7ff;padding:20px 24px;border:1px solid #e5e7eb;border-top:none;"
+                + "border-radius:0 0 8px 8px;\">"
+                + "<h3 style=\"margin:0 0 8px;color:#1a1a2e;font-size:16px\">" + escapeHtml(headline) + "</h3>"
+                + "<p style=\"margin:0 0 12px;font-size:13px;color:#555\">" + escapeHtml(paragraph) + "</p>"
+                + PromotionalFooter.BUTTONS_HTML
+                + "</div>";
     }
 
     private String escapeHtml(String text) {

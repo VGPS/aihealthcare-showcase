@@ -34,9 +34,9 @@ import java.util.Set;
  * without the featured block if scoring or formatting fails.
  *
  * @author  Bill Blackmon
- * @version 3.0
+ * @version 3.1
  * @since   2026-07-20
- * @updated 2026-08-16
+ * @updated 2026-08-17
  */
 @Slf4j
 public class DigestNewsletterRenderer {
@@ -147,7 +147,8 @@ public class DigestNewsletterRenderer {
 
         String bodyHtml  = featuredHtml + renderSectionedCards(todaysItems, discoveredItems);
         String subject   = "AI Healthcare Intelligence — " + today.format(DISPLAY_FMT);
-        String plainText = featuredPlainText + renderSectionedPlainText(todaysItems, discoveredItems);
+        String plainText = featuredPlainText + renderSectionedPlainText(todaysItems, discoveredItems)
+                + renderPlainTextFooter();
 
         NewsletterRun result = new NewsletterRun(
                 "digest-" + today.format(DateTimeFormatter.ISO_LOCAL_DATE),
@@ -476,6 +477,15 @@ public class DigestNewsletterRenderer {
         return sb.toString();
     }
 
+    /** Plain-text equivalent of the HTML CTA footer + unsubscribe line appended in {@link #wrapInEmailLayout}. */
+    private String renderPlainTextFooter() {
+        return "\n---\nWANT DEEPER AI ANALYSIS?\n\n"
+                + "Subscribe for full AI-powered newsletters with expert synthesis, vendor comparisons, and research insights.\n"
+                + PromotionalFooter.BUTTONS_PLAIN_TEXT + "\n\n"
+                + "You are receiving this because you signed up for the free AI Healthcare digest.\n"
+                + "Unsubscribe: https://app.bigskylabs.ai/unsubscribe\n";
+    }
+
     private String wrapInEmailLayout(String bodyHtml, LocalDate today, int articleCount, String subject) {
         log.debug("wrapInEmailLayout() | bodyLength={}, today={}, articleCount={}, subject={}",
                   bodyHtml.length(), today, articleCount, subject);
@@ -507,11 +517,7 @@ public class DigestNewsletterRenderer {
         sb.append("<tr><td style=\"background:#f0f7ff; padding:20px 24px; border-top:2px solid #0066cc;\">\n");
         sb.append("  <h3 style=\"margin:0 0 8px; color:#1a1a2e; font-size:1em;\">Want deeper AI analysis?</h3>\n");
         sb.append("  <p style=\"margin:0 0 12px; font-size:0.9em; color:#555;\">Subscribe for full AI-powered newsletters with expert synthesis, vendor comparisons, and research insights.</p>\n");
-        sb.append("  <a href=\"https://app.bigskylabs.ai/pricing\" style=\"display:inline-block; background:#0066cc; color:white; ");
-        sb.append("padding:10px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9em;\">Upgrade to Subscriber &mdash; $19/mo</a>\n");
-        sb.append("  <span style=\"display:inline-block; margin-left:12px;\">");
-        sb.append("<a href=\"https://app.bigskylabs.ai/demo\" style=\"display:inline-block; background:#28a745; color:white; ");
-        sb.append("padding:10px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9em;\">Free 7 Day Demo</a></span>\n");
+        sb.append("  ").append(PromotionalFooter.BUTTONS_HTML).append("\n");
         sb.append("</td></tr>\n");
 
         // Unsubscribe footer
