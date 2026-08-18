@@ -19,9 +19,9 @@ import lombok.extern.slf4j.Slf4j;
  * and injected into {@link DeliveryService} via constructor injection.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-24
- * @updated 2026-05-26
+ * @updated 2026-08-17
  */
 @Slf4j
 public class NewsletterTeaserBuilder {
@@ -56,8 +56,7 @@ public class NewsletterTeaserBuilder {
                 "This is a preview of " + timeframe + " AI in Healthcare newsletter. " +
                 "Upgrade to <strong>Subscriber</strong> for full coverage including deep-dive analysis, " +
                 "vendor comparisons, and research summaries.</p>" +
-                "<p style=\"margin: 0; font-size: 0.9em; opacity: 0.85;\">" +
-                "Contact us to upgrade your subscription.</p>" +
+                "<div style=\"margin-top: 4px;\">" + PromotionalFooter.BUTTONS_HTML + "</div>" +
                 "</div>";
 
         this.ctaPlainText =
@@ -66,7 +65,7 @@ public class NewsletterTeaserBuilder {
                 "This is a preview of " + timeframe + " AI in Healthcare newsletter. " +
                 "Upgrade to Subscriber for full coverage including deep-dive analysis, " +
                 "vendor comparisons, and research summaries.\n\n" +
-                "Contact us to upgrade your subscription.\n";
+                PromotionalFooter.BUTTONS_PLAIN_TEXT + "\n";
 
         log.debug("NewsletterTeaserBuilder() | timeframe={}", timeframe);
     }

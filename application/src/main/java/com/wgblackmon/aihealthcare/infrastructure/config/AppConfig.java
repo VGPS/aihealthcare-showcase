@@ -29,8 +29,10 @@ import com.wgblackmon.aihealthcare.domain.service.DigestNewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
 import com.wgblackmon.aihealthcare.domain.service.SampleNewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.RegistrationService;
+import com.wgblackmon.aihealthcare.domain.service.PasswordResetService;
 
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.PasswordResetPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PasswordHashingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
@@ -250,6 +252,31 @@ public class AppConfig {
                   transactionalEmailPort.getClass().getSimpleName());
         RegistrationService result = new RegistrationService(appUserPort, subscriberPort, passwordHashingPort, transactionalEmailPort);
         log.debug("registrationService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link PasswordResetService} bean that implements
+     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.PasswordResetUseCase}.
+     *
+     * @param appUserPort           Adapter implementing app user persistence (auto-detected).
+     * @param passwordResetPort     Adapter implementing reset token persistence (auto-detected).
+     * @param passwordHashingPort   Adapter implementing password hashing (auto-detected).
+     * @param transactionalEmailPort Adapter implementing transactional email delivery (auto-detected).
+     * @return The wired {@link PasswordResetService} instance.
+     */
+    @Bean
+    public PasswordResetService passwordResetService(AppUserPort appUserPort,
+                                                      PasswordResetPort passwordResetPort,
+                                                      PasswordHashingPort passwordHashingPort,
+                                                      TransactionalEmailPort transactionalEmailPort) {
+        log.debug("passwordResetService() | appUserPort={}, passwordResetPort={}, passwordHashingPort={}, transactionalEmailPort={}",
+                  appUserPort.getClass().getSimpleName(),
+                  passwordResetPort.getClass().getSimpleName(),
+                  passwordHashingPort.getClass().getSimpleName(),
+                  transactionalEmailPort.getClass().getSimpleName());
+        PasswordResetService result = new PasswordResetService(appUserPort, passwordResetPort, passwordHashingPort, transactionalEmailPort);
+        log.debug("passwordResetService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

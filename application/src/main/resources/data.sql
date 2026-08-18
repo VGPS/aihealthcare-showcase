@@ -246,8 +246,10 @@ WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'enterprise@test.com');
 
 -- Ensure all ADMIN-role users have ENTERPRISE tier in the subscribers table.
 -- Uses ON CONFLICT so this is safe to re-run on any deployment.
-INSERT INTO subscribers (email, active, name, subscribed_at, tier)
-SELECT u.email, true, u.display_name, NOW(), 'ENTERPRISE'
+-- unsubscribe_token is NOT NULL + UNIQUE on subscribers, so newly-inserted
+-- rows need a generated value; existing rows keep their token untouched.
+INSERT INTO subscribers (email, active, name, subscribed_at, tier, unsubscribe_token)
+SELECT u.email, true, u.display_name, NOW(), 'ENTERPRISE', gen_random_uuid()::text
 FROM app_users u
 WHERE u.role = 'ADMIN'
 ON CONFLICT (email) DO UPDATE SET tier = 'ENTERPRISE';

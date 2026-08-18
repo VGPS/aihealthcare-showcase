@@ -1,7 +1,10 @@
 # ---------------------------------------------------------------------------
 # Test profile — overrides main application.yml for unit / slice tests.
 #
-# Uses H2 in-memory instead of PostgreSQL.
+# Uses the local PostgreSQL instance (database: aihealthcaredb_test) instead
+# of H2. Production runs on PostgreSQL exclusively, so tests run against the
+# same engine to catch dialect-specific SQL (e.g. INSERT ... ON CONFLICT)
+# that H2 doesn't support the same way.
 # Disables PgVector auto-configuration (tests mock the VectorStore).
 # Disables scheduling so @Scheduled methods do not fire during tests.
 # ---------------------------------------------------------------------------
@@ -19,10 +22,25 @@ spring:
         enabled: false
 
   datasource:
-    url: jdbc:h2:mem:aihealthcaredb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
+    url: jdbc:postgresql://localhost:5432/aihealthcaredb_test
+    driver-class-name: org.postgresql.Driver
+    username: admin
+    password: 1454
+    # Small pool: Spring's test-context cache keeps several distinct
+    # @DataJpaTest contexts (one per @Import'd adapter) alive at once, each
+    # with its own pool — a large per-pool size exhausts Postgres's
+    # max_connections across a big test run. 2 is enough for sequential tests.
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
+
+  # @DataJpaTest auto-replaces the configured datasource with an embedded one
+  # (H2, since it's still on the classpath for the optional h2 dev profile)
+  # unless told not to. This keeps @DataJpaTest on the real PostgreSQL instance
+  # configured above.
+  test:
+    database:
+      replace: none
 
   jpa:
     hibernate:
@@ -31,7 +49,7 @@ spring:
     properties:
       hibernate:
         format_sql: false
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     defer-datasource-initialization: true
 
   sql:

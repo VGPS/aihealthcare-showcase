@@ -39,4 +39,13 @@ public interface TransactionalEmailPort {
      * @param tier        the tier assigned to the new user.
      */
     void notifyAdminNewRegistration(String userEmail, String displayName, String tier);
+
+    /**
+     * Sends a password reset link to a user who requested one.
+     *
+     * @param email the recipient email address.
+     * @param name  the user's display name.
+     * @param token the reset token to embed in the emailed link.
+     */
+    void sendPasswordReset(String email, String name, String token);
 }

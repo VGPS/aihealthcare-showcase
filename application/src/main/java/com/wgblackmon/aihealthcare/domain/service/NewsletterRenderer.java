@@ -31,9 +31,9 @@ import java.util.regex.Pattern;
  * Java Streams — per project conventions.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-11
- * @updated 2026-08-08
+ * @updated 2026-08-17
  */
 @Slf4j
 public class NewsletterRenderer {
@@ -201,6 +201,14 @@ public class NewsletterRenderer {
                 .append("</td></tr>");
         }
 
+        // CTA footer — upgrade / free demo, shared with the digest and teaser emails
+        html.append("<tr><td style=\"background-color: #f0f7ff; padding: 20px 32px; border-top: 2px solid #0066cc;\">")
+            .append("<h3 style=\"margin: 0 0 8px; color: #1a1a2e; font-size: 16px;\">Want deeper AI analysis?</h3>")
+            .append("<p style=\"margin: 0 0 12px; font-size: 14px; color: #555;\">")
+            .append("Subscribe for full AI-powered newsletters with expert synthesis, vendor comparisons, and research insights.</p>")
+            .append(PromotionalFooter.BUTTONS_HTML)
+            .append("</td></tr>");
+
         // Close inner content table
         html.append("</table>");
 
@@ -288,6 +296,10 @@ public class NewsletterRenderer {
         }
 
         text.append("\n---\n");
+        text.append("WANT DEEPER AI ANALYSIS?\n\n");
+        text.append("Subscribe for full AI-powered newsletters with expert synthesis, vendor comparisons, and research insights.\n");
+        text.append(PromotionalFooter.BUTTONS_PLAIN_TEXT).append("\n\n");
+        text.append("---\n");
         text.append("AIHealthcare - AI-in-Healthcare Intelligence Platform\n");
         text.append("Unsubscribe: {{unsubscribe_url}}\n");
         text.append("Manage preferences: {{preferences_url}}\n");
