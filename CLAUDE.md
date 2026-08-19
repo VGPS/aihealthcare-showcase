@@ -703,6 +703,127 @@ Compilation will run after harvest via the existing `@Scheduled` trigger (wired 
 
 ---
 
+## Market Analysis
+
+### Overview
+
+The Market Analysis module tracks daily market-moving news in AI-powered healthcare — regulatory actions, public-company earnings/guidance, funding rounds, and M&A — and produces a ranked, fact-vs-speculation-separated digest. It reuses the existing Deep Research + scheduled-job pattern already established for the Trends pipeline, and adds a lightweight market-data lookup step for any publicly traded company mentioned in the news.
+
+**Architecture decisions (locked in — do not re-litigate):**
+- **No Flyway** — use JPA `@Entity` classes with the existing `ddl-auto: create-drop` pattern (same as every other entity in this project). Prompt 1.3 references Flyway migrations; ignore that and use JPA instead.
+- **No Bedrock** — use the existing Spring AI `ChatClient` wired to the direct Anthropic API (same `ChatClient` bean already used throughout this app). Prompt 1.5 references `Claude/Bedrock`; use the existing ChatClient bean pattern instead.
+- **No streams** — all iteration uses `for` loops per project convention. Code samples in the spec use `.stream().map()`; convert all of those to `for` loops in the actual implementation.
+- **Provider locked:** market data = Alpaca; private funding = Perplexity Search API (reuse existing client); analyst ratings = Benzinga ($99/mo, Slice 3.2).
+
+### Domain model (hexagonal — domain layer)
+
+Package root: `com.wgblackmon.aihealthcare.domain.marketanalysis`
+
+```
+domain/
+  marketanalysis/
+    MarketNewsItem.java          // record: headline, summary, sourceUrls, publishedAt, category
+    NewsCategory.java            // enum: EARNINGS, REGULATORY, FUNDING, M_AND_A, MAJOR_PARTNERSHIP, OTHER
+    FactClassification.java      // enum: CONFIRMED, SPECULATIVE
+    ImpactDimension.java         // enum: REVENUE, EARNINGS, VALUATION, INVESTOR_SENTIMENT, FUTURE_GROWTH
+    ImpactAssessment.java        // record: dimension, direction (POSITIVE/NEGATIVE/NEUTRAL), rationale
+    MarketImpactRank.java        // 1 (highest) .. 5 (lowest)
+    AffectedCompany.java         // record: name, tickerSymbol (nullable), role, peerGroup
+    PeerGroup.java               // enum: AI_SCRIBE_DOCUMENTATION, VALUE_BASED_CARE_PLATFORM, DIAGNOSTIC_IMAGING_AI, DRUG_DISCOVERY_AI, DIGITAL_THERAPEUTICS, OTHER
+    PrivateFundingRound.java     // record: companyName, roundStage, amountUsd, leadInvestors, announcedAt
+    DealTerms.java               // record: upfrontCashUsd, milestonePaymentsUsd, equityStakePct, royaltyPct, disclosedPortion (FULL/PARTIAL/UNDISCLOSED)
+    AnalystRatingChange.java     // record: firm, tickerSymbol, previousRating, newRating, previousPriceTarget, newPriceTarget, changedAt
+    GuidanceComparison.java      // record: tickerSymbol, priorGuidanceLow, priorGuidanceHigh, newGuidanceLow, newGuidanceHigh, metric
+    RulemakingStage.java         // enum: DISCUSSION_PAPER, COMMENT_PERIOD, DRAFT_GUIDANCE, FINAL_GUIDANCE, ENFORCEMENT
+    Jurisdiction.java            // enum: US_FDA, EU_AI_ACT, UK_MHRA, US_STATE, OTHER
+    RegulatoryTracker.java       // record: jurisdiction, stage, docketId, commentDeadline, lastUpdatedAt
+    MarketDigestEntry.java       // aggregate: NewsItem + ImpactAssessments + FactClassification + rank + AffectedCompanies + optional DealTerms/PrivateFundingRound/RegulatoryTracker
+    MarketDigest.java            // aggregate: date, List<MarketDigestEntry>, generatedAt
+    port/
+      MarketNewsResearchPort.java    // findRecentAiHealthcareNews(Instant since) → List<MarketNewsItem>
+      MarketDataPort.java            // getQuote(ticker) → Optional<Quote>; getPriceHistory(ticker, start, end) → Optional<PriceHistory>
+      PrivateFundingPort.java        // findRecentRounds(since, peerGroupFilter) → List<PrivateFundingRound>
+      AnalystRatingPort.java         // findRecentChanges(ticker, since) → List<AnalystRatingChange>
+      GuidancePort.java              // getPriorGuidance(ticker, metric) + recordGuidance(comparison)
+      RegulatoryTrackerRepository.java  // upsert(tracker); findApproachingDeadlines(within) → List<RegulatoryTracker>
+      MarketDigestRepository.java    // save(digest); findByDate(date) → Optional<MarketDigest>
+      MarketDigestNotifier.java      // notify(digest) — called only when digest has ≥1 qualifying entry
+      ImpactClassifierPort.java      // classify(List<MarketDigestEntry>) → List<MarketDigestEntry>
+      TickerWatchlistRepository.java // findWatchedTickers(subscriberId) → List<String>
+```
+
+### Qualifying bar (`isMarketMoving`)
+
+An entry qualifies when:
+- `category == EARNINGS`, OR
+- `category == REGULATORY`, OR
+- `category == FUNDING AND dealSizeUsd > 50_000_000` (strict — exactly $50M does NOT qualify), OR
+- `category == M_AND_A`, OR
+- `category == MAJOR_PARTNERSHIP`
+
+### Scheduler
+
+Daily at 7:00 AM America/Chicago — `@Scheduled(cron = "0 0 7 * * *", zone = "America/Chicago")`
+Runs on a dedicated async executor bean `"marketAnalysisExecutor"` (corePoolSize=2, maxPoolSize=4) — distinct from the Trends pipeline's executor.
+
+### Persistence (JPA — no Flyway)
+
+Four core Phase-1 tables (JPA auto-creates):
+- `market_digest` — id BIGSERIAL PK, digest_date DATE UNIQUE, generated_at TIMESTAMPTZ
+- `market_digest_entry` — id BIGSERIAL PK, digest_id FK, headline, summary, source_urls TEXT[], category, fact_classification, market_impact_rank SMALLINT (1-5), published_at, embedding VECTOR(1536) nullable
+- `market_digest_impact_assessment` — id BIGSERIAL PK, entry_id FK, dimension, direction, rationale
+- `market_digest_affected_company` — id BIGSERIAL PK, entry_id FK, company_name, ticker_symbol nullable, role, peer_group nullable, quote_price, quote_change_pct, market_cap
+
+Additional Phase-2/3 tables: `guidance_history`, `regulatory_tracker`, `private_funding_round`, `analyst_rating_change`, `ticker_watchlist` — add as nullable columns or separate entities when their slice lands; must not break existing digest deserialization.
+
+Use pgvector cosine similarity (<=>) on `embedding` for 7-day rolling dedup to suppress re-notification on resurface stories (threshold configurable via `market-analysis.dedup.similarity-threshold`, starting 0.92-0.95). Dedup suppresses notification only — every entry is always persisted.
+
+### REST API
+
+```
+GET  /api/market-digest/{date}               → MarketDigestResponse (404 if none)
+GET  /api/market-digest/latest               → MarketDigestResponse (most recent)
+GET  /api/market-digest?from=&to=            → paginated List<MarketDigestSummary>
+GET  /api/market-digest/weekly-rollup?weekOf= → WeeklyRollupResponse
+POST /api/market-digest/subscribe            → subscribe current user (idempotent)
+GET  /api/market-digest/watchlist            → current user's tracked tickers
+PUT  /api/market-digest/watchlist            → replace tracked ticker list
+```
+
+### Infrastructure adapters
+
+| Adapter | Port | Package |
+|---------|------|---------|
+| `PerplexityMarketNewsAdapter` | `MarketNewsResearchPort` | `infrastructure.marketanalysis.perplexity` |
+| `AlpacaMarketDataAdapter` | `MarketDataPort` | `infrastructure.marketanalysis.marketdata` |
+| `ClaudeImpactClassifierAdapter` | `ImpactClassifierPort` | `infrastructure.marketanalysis.ai` |
+| `SesMarketDigestNotifier` | `MarketDigestNotifier` | `infrastructure.marketanalysis.notification` |
+| `MarketDigestRepositoryAdapter` | `MarketDigestRepository` | `infrastructure.marketanalysis.persistence` |
+| `EntryEmbeddingService` | (internal — wraps existing pgvector embedding) | `infrastructure.marketanalysis.embedding` |
+
+### Build order (from market-analysis-slices.md)
+
+```
+1.1 domain model + ports
+1.2 qualifying-bar filter + ranking logic (MarketDigestService partial)
+1.3 JPA entities + repository adapter
+{1.4 Perplexity news adapter, 1.5 Claude classifier adapter, 1.7 Alpaca market data adapter} — parallel
+1.6 scheduler + pipeline wiring (depends on 1.2, 1.3, 1.4, 1.5)
+1.8 SES notifier + REST endpoints (depends on 1.6)
+1.9 pgvector dedup (depends only on 1.3)
+Phase 2: 2.1 guidance history, 2.2 peer tagging, 2.3 regulatory tracker (2.1→2.3 sequential — shared DTO)
+Phase 3: 3.1 private funding, 3.2 analyst ratings, 3.3 deal terms, 3.4 watchlists, 3.5 weekly rollup
+```
+
+### Testing notes
+
+- Unit test `isMarketMoving()` against each `NewsCategory` boundary, especially the $50M funding threshold and exact-equals edge case.
+- Contract-test `ClaudeImpactClassifierAdapter` with a fixed prompt fixture and golden JSON response (catch schema drift early).
+- Integration test the full pipeline against a stubbed `MarketNewsResearchPort` (canned news items: one earnings beat + one sub-threshold funding round) to verify end-to-end filtering and ranking.
+- Snapshot-test `MarketDigestFormatter.toHtml()` to catch email template regressions.
+
+---
+
 ## What NOT to Do
 - Do not add auth/security until explicitly requested.
 - Do not modify `openapi.yaml` without confirming the change first.
