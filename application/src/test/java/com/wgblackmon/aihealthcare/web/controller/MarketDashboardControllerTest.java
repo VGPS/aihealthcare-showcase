@@ -167,4 +167,37 @@ class MarketDashboardControllerTest {
                 .andExpect(view().name("market-digest"))
                 .andExpect(model().attribute("totalEntries", 0));
     }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /dashboard/market/history with digests returns history view")
+    void marketHistory_withDigests_returnsView() throws Exception {
+        when(marketDigestService.findAll()).thenReturn(List.of(digestWithEntries(NewsCategory.EARNINGS)));
+
+        mockMvc.perform(get("/dashboard/market/history"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("market-digest-history"))
+                .andExpect(model().attribute("hasHistory", true))
+                .andExpect(model().attribute("totalDigests", 1));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /dashboard/market/history with no digests returns empty state")
+    void marketHistory_noDigests_returnsEmptyState() throws Exception {
+        when(marketDigestService.findAll()).thenReturn(List.of());
+
+        mockMvc.perform(get("/dashboard/market/history"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("market-digest-history"))
+                .andExpect(model().attribute("hasHistory", false))
+                .andExpect(model().attribute("totalDigests", 0));
+    }
+
+    @Test
+    @DisplayName("GET /dashboard/market/history unauthenticated redirects to login")
+    void marketHistory_unauthenticated_redirects() throws Exception {
+        mockMvc.perform(get("/dashboard/market/history"))
+                .andExpect(status().is3xxRedirection());
+    }
 }

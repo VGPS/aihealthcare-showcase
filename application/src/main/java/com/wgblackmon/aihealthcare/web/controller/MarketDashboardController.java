@@ -41,6 +41,7 @@ import java.util.Optional;
  * <ul>
  *   <li>{@code GET /dashboard/market} — shows the most recent digest</li>
  *   <li>{@code GET /dashboard/market/{date}} — shows the digest for a specific date</li>
+ *   <li>{@code GET /dashboard/market/history} — browse all digest dates (tier-gated)</li>
  * </ul>
  *
  * @author  Bill Blackmon
@@ -81,6 +82,40 @@ public class MarketDashboardController {
 
         log.debug("marketDigestLatest() | return={}", result);
         return result;
+    }
+
+    @GetMapping("/dashboard/market/history")
+    public String marketHistory(Principal principal, Model model) {
+        log.debug("marketHistory()");
+
+        List<MarketDigest> all = marketDigestService.findAll();
+        boolean fullAccess = hasFullAccess(principal);
+
+        int freeLimit = 7;
+        List<MarketDigest> visible = all;
+        if (!fullAccess && all.size() > freeLimit) {
+            visible = all.subList(0, freeLimit);
+        }
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (MarketDigest d : visible) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("dateStr", DISPLAY_FMT.format(d.date().atStartOfDay(ZoneOffset.UTC)));
+            row.put("dateIso", d.date().toString());
+            row.put("entryCount", d.entries().size());
+            row.put("topCategory", topCategory(d.entries()));
+            row.put("generatedAt", DISPLAY_FMT.format(d.generatedAt()));
+            rows.add(row);
+        }
+
+        model.addAttribute("digests", rows);
+        model.addAttribute("totalDigests", all.size());
+        model.addAttribute("hasHistory", !all.isEmpty());
+        model.addAttribute("fullAccess", fullAccess);
+        model.addAttribute("activePage", "market-history");
+
+        log.debug("marketHistory() | return=market-digest-history ({} rows)", rows.size());
+        return "market-digest-history";
     }
 
     @GetMapping("/dashboard/market/{date}")
@@ -200,6 +235,23 @@ public class MarketDashboardController {
             return "";
         }
         return assessments.get(0).rationale();
+    }
+
+    private String topCategory(List<MarketDigestEntry> entries) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (MarketDigestEntry e : entries) {
+            String cat = e.category().name();
+            counts.put(cat, counts.getOrDefault(cat, 0) + 1);
+        }
+        String top = null;
+        int max = 0;
+        for (Map.Entry<String, Integer> e : counts.entrySet()) {
+            if (e.getValue() > max) {
+                max = e.getValue();
+                top = e.getKey();
+            }
+        }
+        return top;
     }
 
     private boolean hasFullAccess(Principal principal) {
