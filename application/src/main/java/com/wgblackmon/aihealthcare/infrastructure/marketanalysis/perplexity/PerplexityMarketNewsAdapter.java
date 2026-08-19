@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearch
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -49,6 +50,7 @@ public class PerplexityMarketNewsAdapter implements MarketNewsResearchPort {
     private final String              modelId;
     private final RestClient          restClient;
 
+    @Autowired
     public PerplexityMarketNewsAdapter(
             PromptLoaderService promptLoader,
             @Value("${aihealthcare.perplexity.api-key:}") String apiKey,
