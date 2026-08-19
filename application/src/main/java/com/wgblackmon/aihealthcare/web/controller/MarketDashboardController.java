@@ -1,0 +1,238 @@
+package com.wgblackmon.aihealthcare.web.controller;
+
+import com.wgblackmon.aihealthcare.domain.marketanalysis.AffectedCompany;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.ImpactAssessment;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.security.Principal;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * Thymeleaf controller for the Market Digest dashboard at {@code /dashboard/market}.
+ *
+ * <p>Displays the latest (or a specific date's) AI-healthcare market digest with
+ * qualifying entries ranked by market impact. Supports category filtering via
+ * query parameter and applies tier gating (FREE users see the top 3 entries;
+ * SUBSCRIBER/DEMO/ADMIN see all entries).
+ *
+ * <p>Routes:
+ * <ul>
+ *   <li>{@code GET /dashboard/market} — shows the most recent digest</li>
+ *   <li>{@code GET /dashboard/market/{date}} — shows the digest for a specific date</li>
+ * </ul>
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-19
+ * @updated 2026-08-19
+ */
+@Slf4j
+@Controller
+public class MarketDashboardController {
+
+    private static final DateTimeFormatter DISPLAY_FMT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneOffset.UTC);
+
+    private static final int FREE_LIMIT = 3;
+
+    private final MarketDigestService marketDigestService;
+    private final SubscriberPort subscriberPort;
+
+    public MarketDashboardController(MarketDigestService marketDigestService,
+                                     SubscriberPort subscriberPort) {
+        log.debug("MarketDashboardController() | marketDigestService={}, subscriberPort={}",
+                marketDigestService.getClass().getSimpleName(),
+                subscriberPort.getClass().getSimpleName());
+        this.marketDigestService = marketDigestService;
+        this.subscriberPort = subscriberPort;
+        log.debug("MarketDashboardController() | return=void");
+    }
+
+    @GetMapping("/dashboard/market")
+    public String marketDigestLatest(@RequestParam(required = false) String category,
+                                     Principal principal,
+                                     Model model) {
+        log.debug("marketDigestLatest() | category={}", category);
+
+        Optional<MarketDigest> latest = marketDigestService.findLatest();
+        String result = populateModel(latest, category, principal, model);
+
+        log.debug("marketDigestLatest() | return={}", result);
+        return result;
+    }
+
+    @GetMapping("/dashboard/market/{date}")
+    public String marketDigestByDate(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String category,
+            Principal principal,
+            Model model) {
+        log.debug("marketDigestByDate() | date={}, category={}", date, category);
+
+        Optional<MarketDigest> digest = marketDigestService.findByDate(date);
+        String result = populateModel(digest, category, principal, model);
+
+        log.debug("marketDigestByDate() | return={}", result);
+        return result;
+    }
+
+    // ─── helpers ────────────────────────────────────────────────────────────
+
+    private String populateModel(Optional<MarketDigest> digestOpt,
+                                 String category,
+                                 Principal principal,
+                                 Model model) {
+        boolean fullAccess = hasFullAccess(principal);
+
+        if (digestOpt.isEmpty()) {
+            model.addAttribute("digest", null);
+            model.addAttribute("entries", List.of());
+            model.addAttribute("filterCategory", category);
+            model.addAttribute("digestDate", null);
+            model.addAttribute("fullAccess", fullAccess);
+            model.addAttribute("categoryCounts", Map.of());
+            model.addAttribute("totalEntries", 0);
+            model.addAttribute("activePage", "market");
+            return "market-digest";
+        }
+
+        MarketDigest digest = digestOpt.get();
+        String dateLabel = DISPLAY_FMT.format(digest.date().atStartOfDay(ZoneOffset.UTC));
+
+        List<MarketDigestEntry> all = digest.entries();
+
+        // Category filter
+        List<MarketDigestEntry> filtered = new ArrayList<>();
+        if (category != null && !category.isBlank()) {
+            NewsCategory filterEnum = parseCategory(category);
+            for (MarketDigestEntry entry : all) {
+                if (filterEnum != null && entry.category() == filterEnum) {
+                    filtered.add(entry);
+                }
+            }
+        } else {
+            for (MarketDigestEntry entry : all) {
+                filtered.add(entry);
+            }
+        }
+
+        // Category counts (on unfiltered set)
+        Map<String, Integer> categoryCounts = new LinkedHashMap<>();
+        for (MarketDigestEntry entry : all) {
+            String cat = entry.category().name();
+            categoryCounts.put(cat, categoryCounts.getOrDefault(cat, 0) + 1);
+        }
+
+        // Tier gate
+        if (!fullAccess && filtered.size() > FREE_LIMIT) {
+            filtered = filtered.subList(0, FREE_LIMIT);
+        }
+
+        List<Map<String, Object>> entries = toDisplayList(filtered);
+
+        model.addAttribute("entries", entries);
+        model.addAttribute("filterCategory", category);
+        model.addAttribute("digestDate", dateLabel);
+        model.addAttribute("digestLocalDate", digest.date());
+        model.addAttribute("fullAccess", fullAccess);
+        model.addAttribute("categoryCounts", categoryCounts);
+        model.addAttribute("totalEntries", all.size());
+        model.addAttribute("activePage", "market");
+
+        return "market-digest";
+    }
+
+    private List<Map<String, Object>> toDisplayList(List<MarketDigestEntry> entries) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (MarketDigestEntry entry : entries) {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("headline", entry.newsItem().headline());
+            map.put("summary", entry.newsItem().summary());
+            map.put("category", entry.category().name());
+            map.put("factClassification", entry.factClassification().name());
+            map.put("rank", entry.rank().value());
+            map.put("publishedAt", DISPLAY_FMT.format(entry.newsItem().publishedAt()));
+            map.put("dealSizeUsd", entry.newsItem().dealSizeUsd());
+            map.put("sourceUrls", entry.newsItem().sourceUrls());
+            map.put("companies", companyLabels(entry.affectedCompanies()));
+            map.put("impactSummary", firstImpactRationale(entry.impactAssessments()));
+            result.add(map);
+        }
+        return result;
+    }
+
+    private List<String> companyLabels(List<AffectedCompany> companies) {
+        List<String> labels = new ArrayList<>();
+        for (AffectedCompany c : companies) {
+            if (c.tickerSymbol() != null && !c.tickerSymbol().isBlank()) {
+                labels.add(c.name() + " (" + c.tickerSymbol() + ")");
+            } else {
+                labels.add(c.name());
+            }
+        }
+        return labels;
+    }
+
+    private String firstImpactRationale(List<ImpactAssessment> assessments) {
+        if (assessments == null || assessments.isEmpty()) {
+            return "";
+        }
+        return assessments.get(0).rationale();
+    }
+
+    private boolean hasFullAccess(Principal principal) {
+        if (principal == null) {
+            return false;
+        }
+        if (principal instanceof Authentication) {
+            Authentication auth = (Authentication) principal;
+            for (GrantedAuthority authority : auth.getAuthorities()) {
+                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
+                    return true;
+                }
+            }
+        }
+        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
+        if (subscriber.isPresent()) {
+            SubscriptionTier tier = subscriber.get().tier();
+            return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO;
+        }
+        return false;
+    }
+
+    private NewsCategory parseCategory(String category) {
+        if (category == null) {
+            return null;
+        }
+        switch (category.toUpperCase()) {
+            case "EARNINGS":         return NewsCategory.EARNINGS;
+            case "REGULATORY":       return NewsCategory.REGULATORY;
+            case "FUNDING":          return NewsCategory.FUNDING;
+            case "M_AND_A":          return NewsCategory.M_AND_A;
+            case "MAJOR_PARTNERSHIP": return NewsCategory.MAJOR_PARTNERSHIP;
+            default:                 return null;
+        }
+    }
+}

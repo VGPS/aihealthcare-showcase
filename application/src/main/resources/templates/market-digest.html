@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Market Digest Dashboard — ranked AI-healthcare market news covering earnings,
+ * regulatory actions, funding rounds, M&A, and major partnerships.
+ * Supports category filtering and tier gating (FREE sees top 3 entries).
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-19
+ * @updated 2026-08-19
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Market Digest')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Market Digest</h1>
+    <p class="text-primary-200 text-sm mt-0.5">
+        Market-moving AI healthcare news — earnings, regulatory actions, funding, M&amp;A, and partnerships
+        <span th:if="${digestDate}" th:text="' · ' + ${digestDate}"></span>
+    </p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('market')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <p class="text-sm text-gray-500 leading-relaxed mb-6">Daily AI-healthcare market intelligence. Qualifying events are ranked by market impact (1 = highest) and classified as CONFIRMED or SPECULATIVE by LLM analysis. Filter by news category below.</p>
+
+    <!-- Category Filter Bar -->
+    <div class="bg-white rounded-lg shadow-card p-4 mb-6 flex flex-wrap items-center gap-3">
+        <span class="text-sm text-gray-500 font-medium">Filter by category:</span>
+        <a th:href="@{/dashboard/market}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterCategory == null} ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'">
+            All
+        </a>
+        <a th:href="@{/dashboard/market(category='EARNINGS')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterCategory == 'EARNINGS'} ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'">
+            Earnings
+        </a>
+        <a th:href="@{/dashboard/market(category='REGULATORY')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterCategory == 'REGULATORY'} ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-800 hover:bg-purple-200'">
+            Regulatory
+        </a>
+        <a th:href="@{/dashboard/market(category='FUNDING')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterCategory == 'FUNDING'} ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800 hover:bg-green-200'">
+            Funding
+        </a>
+        <a th:href="@{/dashboard/market(category='M_AND_A')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterCategory == 'M_AND_A'} ? 'bg-red-600 text-white' : 'bg-red-100 text-red-800 hover:bg-red-200'">
+            M&amp;A
+        </a>
+        <a th:href="@{/dashboard/market(category='MAJOR_PARTNERSHIP')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterCategory == 'MAJOR_PARTNERSHIP'} ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'">
+            Partnership
+        </a>
+    </div>
+
+    <!-- Summary Badges -->
+    <div th:if="${not #maps.isEmpty(categoryCounts)}" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div th:each="entry : ${categoryCounts}" class="bg-white rounded-lg shadow-card p-4 text-center">
+            <div class="text-2xl font-bold text-primary-600" th:text="${entry.value}">0</div>
+            <div class="text-xs text-gray-500 uppercase mt-1" th:text="${entry.key.replace('_', ' ')}">CAT</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-card p-4 text-center">
+            <div class="text-2xl font-bold text-gray-700" th:text="${totalEntries}">0</div>
+            <div class="text-xs text-gray-500 uppercase mt-1">Total</div>
+        </div>
+    </div>
+
+    <!-- Tier Gate Message -->
+    <div th:if="${!fullAccess and totalEntries > 3}" class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <p class="text-sm text-amber-800">
+            Showing the <strong>top 3</strong> market-moving entries.
+            <a th:href="@{/pricing}" class="text-primary-600 underline font-medium">Upgrade to Subscriber</a>
+            for full access to all entries and daily market intelligence alerts.
+        </p>
+    </div>
+
+    <!-- No Digest State -->
+    <div th:if="${digest == null and totalEntries == 0 and #lists.isEmpty(entries)}"
+         class="bg-white rounded-lg shadow-card p-8 text-center">
+        <p class="text-gray-500 text-sm">No market digest has been generated yet.</p>
+        <p class="text-gray-400 text-xs mt-2">Digests are generated daily at 7:00 AM Chicago time by the market analysis pipeline.</p>
+    </div>
+
+    <!-- Entries Table -->
+    <div th:unless="${#lists.isEmpty(entries)}" class="bg-white rounded-lg shadow-card p-6">
+        <h2 class="text-xl font-semibold text-primary-700 mb-4">
+            Market-Moving Events
+            <span th:if="${filterCategory != null}"
+                  class="text-sm font-normal text-gray-500 ml-2"
+                  th:text="'· ' + ${filterCategory.replace('_', ' ')}"></span>
+        </h2>
+
+        <div class="space-y-4">
+            <div th:each="entry : ${entries}"
+                 class="border border-gray-200 rounded-lg p-4 hover:border-primary-300 transition-colors">
+
+                <!-- Entry header row -->
+                <div class="flex flex-wrap items-start gap-2 mb-2">
+
+                    <!-- Rank badge -->
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold"
+                          th:classappend="${entry.rank == 1} ? 'bg-red-100 text-red-800' :
+                                          (${entry.rank == 2} ? 'bg-orange-100 text-orange-800' :
+                                          (${entry.rank == 3} ? 'bg-yellow-100 text-yellow-800' :
+                                          (${entry.rank == 4} ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600')))"
+                          th:text="'#' + ${entry.rank}">
+                        #1
+                    </span>
+
+                    <!-- Category badge -->
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                          th:classappend="${entry.category == 'EARNINGS'} ? 'bg-blue-100 text-blue-800' :
+                                          (${entry.category == 'REGULATORY'} ? 'bg-purple-100 text-purple-800' :
+                                          (${entry.category == 'FUNDING'} ? 'bg-green-100 text-green-800' :
+                                          (${entry.category == 'M_AND_A'} ? 'bg-red-100 text-red-800' :
+                                          (${entry.category == 'MAJOR_PARTNERSHIP'} ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'))))"
+                          th:text="${entry.category.replace('_', ' ')}">
+                        EARNINGS
+                    </span>
+
+                    <!-- Fact classification badge -->
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                          th:classappend="${entry.factClassification == 'CONFIRMED'} ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'"
+                          th:text="${entry.factClassification}">
+                        CONFIRMED
+                    </span>
+
+                    <span class="ml-auto text-xs text-gray-400" th:text="${entry.publishedAt}"></span>
+                </div>
+
+                <!-- Headline -->
+                <h3 class="text-sm font-semibold text-gray-900 mb-1" th:text="${entry.headline}">Headline</h3>
+
+                <!-- Summary -->
+                <p class="text-sm text-gray-600 mb-2" th:text="${entry.summary}">Summary</p>
+
+                <!-- Impact summary (first assessment rationale) -->
+                <p th:if="${entry.impactSummary != null and !entry.impactSummary.isEmpty()}"
+                   class="text-xs text-gray-500 italic mb-2"
+                   th:text="'Impact: ' + ${entry.impactSummary}">
+                </p>
+
+                <!-- Deal size (funding/M&A) -->
+                <div th:if="${entry.dealSizeUsd != null}" class="mb-2">
+                    <span class="text-xs font-medium text-gray-500">Deal size: </span>
+                    <span class="text-xs font-bold text-green-700"
+                          th:text="'$' + ${#numbers.formatInteger(entry.dealSizeUsd / 1000000, 1, 'COMMA')} + 'M'">
+                        $100M
+                    </span>
+                </div>
+
+                <!-- Affected companies -->
+                <div th:if="${not #lists.isEmpty(entry.companies)}" class="flex flex-wrap gap-1 mb-2">
+                    <span th:each="company : ${entry.companies}"
+                          class="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded"
+                          th:text="${company}">
+                        Company
+                    </span>
+                </div>
+
+                <!-- Source links -->
+                <div th:if="${not #lists.isEmpty(entry.sourceUrls)}" class="flex flex-wrap gap-2">
+                    <span class="text-xs text-gray-400">Sources:</span>
+                    <a th:each="url, stat : ${entry.sourceUrls}"
+                       th:href="${url}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="text-xs text-primary-600 hover:underline"
+                       th:text="'[' + ${stat.index + 1} + ']'">
+                        [1]
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty state when filter returns no results -->
+    <div th:if="${#lists.isEmpty(entries) and totalEntries > 0}"
+         class="bg-white rounded-lg shadow-card p-8 text-center">
+        <p class="text-gray-500 text-sm">No entries match the selected category filter.</p>
+        <a th:href="@{/dashboard/market}" class="text-primary-600 text-sm hover:underline mt-2 inline-block">Clear filter</a>
+    </div>
+
+</main>
+
+</body>
+</html>
