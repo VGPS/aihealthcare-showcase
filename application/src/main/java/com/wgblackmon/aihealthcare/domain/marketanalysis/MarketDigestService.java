@@ -9,18 +9,24 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Application-layer service orchestrating the daily AI-healthcare market digest pipeline.
  *
- * <p>Slice 1.2 implements the qualifying-bar filter ({@link #isMarketMoving}) and
- * the rank-ascending sort step. All other pipeline methods throw
- * {@link UnsupportedOperationException} until their respective slices are merged:
- * <ul>
- *   <li>{@link #generateDailyDigest} — completed in Slice 1.6 (scheduler/wiring)</li>
- * </ul>
+ * <p>The full daily digest pipeline (implemented in Slice 1.6):
+ * <ol>
+ *   <li>Skip if a digest for {@code date} already exists in the repository.</li>
+ *   <li>Research: fetch raw news from the 24h window ending at midnight on {@code date}.</li>
+ *   <li>Wrap each item in a preliminary {@link MarketDigestEntry} (SPECULATIVE/rank-5/empty assessments).</li>
+ *   <li>Classify: enrich assessments, fact classification, and rank via {@link ImpactClassifierPort}.</li>
+ *   <li>Filter: discard non-qualifying entries; sort qualifying entries rank-ascending.</li>
+ *   <li>Persist the resulting {@link MarketDigest} via {@link MarketDigestRepository}.</li>
+ *   <li>Notify via {@link MarketDigestNotifier} when ≥1 entry qualifies (notifier is nullable).</li>
+ * </ol>
  *
  * <p>Qualifying bar: an entry clears when its category is EARNINGS, REGULATORY, M_AND_A,
  * or MAJOR_PARTNERSHIP, or when it is FUNDING with a disclosed deal size strictly greater
@@ -55,15 +61,67 @@ public class MarketDigestService {
 
     /**
      * Runs the full daily digest pipeline for the given date.
-     * Completed in Slice 1.6.
+     *
+     * <p>Idempotent: if a digest already exists for {@code date} it is returned
+     * unchanged — the pipeline is not re-executed.
      *
      * @param date the digest date (non-null)
-     * @return the persisted digest
+     * @return the persisted (or pre-existing) digest
      */
     public MarketDigest generateDailyDigest(LocalDate date) {
         log.debug("generateDailyDigest() | date={}", date);
-        // TODO Slice 1.6 — full pipeline wiring
-        throw new UnsupportedOperationException("generateDailyDigest — implemented in Slice 1.6");
+
+        Optional<MarketDigest> existing = repository.findByDate(date);
+        if (existing.isPresent()) {
+            log.info("generateDailyDigest() | digest already exists for {} — skipping pipeline", date);
+            log.debug("generateDailyDigest() | return=existing");
+            return existing.get();
+        }
+
+        Instant since = date.minusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        List<MarketNewsItem> newsItems = newsResearch.findRecentAiHealthcareNews(since);
+        log.info("generateDailyDigest() | research returned {} raw items for {}", newsItems.size(), date);
+
+        if (newsItems.isEmpty()) {
+            MarketDigest emptyDigest = MarketDigest.empty(date);
+            repository.save(emptyDigest);
+            log.info("generateDailyDigest() | saved empty digest for {}", date);
+            log.debug("generateDailyDigest() | return=emptyDigest");
+            return emptyDigest;
+        }
+
+        List<MarketDigestEntry> preliminary = new ArrayList<>();
+        for (MarketNewsItem item : newsItems) {
+            preliminary.add(new MarketDigestEntry(
+                    item,
+                    new ArrayList<>(),
+                    FactClassification.SPECULATIVE,
+                    new MarketImpactRank(5),
+                    new ArrayList<>()
+            ));
+        }
+
+        List<MarketDigestEntry> classified = impactClassifier.classify(preliminary);
+        List<MarketDigestEntry> qualified  = filterAndSort(classified);
+
+        log.info("generateDailyDigest() | {} of {} items cleared qualifying bar for {}",
+                qualified.size(), classified.size(), date);
+
+        MarketDigest digest = new MarketDigest(date, qualified, Instant.now());
+        repository.save(digest);
+        log.info("generateDailyDigest() | digest saved for {}", date);
+
+        if (!qualified.isEmpty() && notifier != null) {
+            try {
+                notifier.notify(digest);
+                log.info("generateDailyDigest() | notifier invoked for {} qualifying entries", qualified.size());
+            } catch (Exception e) {
+                log.warn("generateDailyDigest() | notifier failed (non-fatal): {}", e.getMessage());
+            }
+        }
+
+        log.debug("generateDailyDigest() | return={}", digest);
+        return digest;
     }
 
     /**
