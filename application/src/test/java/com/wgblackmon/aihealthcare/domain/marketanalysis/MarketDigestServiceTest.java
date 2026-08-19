@@ -9,12 +9,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -39,7 +36,9 @@ class MarketDigestServiceTest {
                 mock(MarketDataPort.class),
                 mock(ImpactClassifierPort.class),
                 mock(MarketDigestRepository.class),
-                mock(MarketDigestNotifier.class)
+                mock(MarketDigestNotifier.class),
+                null,
+                0.93
         );
     }
 
@@ -127,12 +126,6 @@ class MarketDigestServiceTest {
     @Test
     void filterAndSort_emptyInput_returnsEmpty() {
         assertThat(service.filterAndSort(List.of())).isEmpty();
-    }
-
-    @Test
-    void generateDailyDigest_throwsUnsupported() {
-        assertThatThrownBy(() -> service.generateDailyDigest(LocalDate.now()))
-                .isInstanceOf(UnsupportedOperationException.class);
     }
 
     // --- helper ---

@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.domain.marketanalysis;
 
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.EntryEmbeddingPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
@@ -42,6 +43,7 @@ class MarketDigestServicePipelineTest {
     @Mock private ImpactClassifierPort   impactClassifier;
     @Mock private MarketDigestRepository repository;
     @Mock private MarketDigestNotifier   notifier;
+    @Mock private EntryEmbeddingPort     embeddingPort;
 
     private MarketDigestService service;
 
@@ -49,7 +51,8 @@ class MarketDigestServicePipelineTest {
 
     @BeforeEach
     void setUp() {
-        service = new MarketDigestService(newsResearch, marketData, impactClassifier, repository, notifier);
+        service = new MarketDigestService(newsResearch, marketData, impactClassifier,
+                repository, notifier, embeddingPort, 0.93);
         when(repository.findByDate(TODAY)).thenReturn(Optional.empty());
     }
 
@@ -150,12 +153,12 @@ class MarketDigestServicePipelineTest {
         verify(notifier, never()).notify(any());
     }
 
-    // ─── null notifier (Slice 1.8 not yet wired) ─────────────────────────────
+    // ─── null notifier ────────────────────────────────────────────────────────
 
     @Test
     void generateDailyDigest_withNullNotifier_doesNotThrow() {
         MarketDigestService serviceNoNotifier = new MarketDigestService(
-                newsResearch, marketData, impactClassifier, repository, null);
+                newsResearch, marketData, impactClassifier, repository, null, null, 0.93);
         when(repository.findByDate(TODAY)).thenReturn(Optional.empty());
 
         MarketNewsItem item = newsItem(NewsCategory.EARNINGS, null);

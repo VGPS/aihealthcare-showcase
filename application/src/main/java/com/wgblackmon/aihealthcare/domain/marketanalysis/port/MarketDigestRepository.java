@@ -50,4 +50,14 @@ public interface MarketDigestRepository {
      * @return list of all digests; empty list if none exist
      */
     List<MarketDigest> findAll();
+
+    /**
+     * Returns digests whose date falls within [{@code from}, {@code to}] (inclusive),
+     * ordered by date descending.
+     *
+     * @param from start date, inclusive (non-null)
+     * @param to   end date, inclusive (non-null)
+     * @return matching digests; empty list if none exist in the range
+     */
+    List<MarketDigest> findByDateRange(LocalDate from, LocalDate to);
 }
