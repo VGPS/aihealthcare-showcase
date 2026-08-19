@@ -196,6 +196,12 @@ aihealthcare:
     staleness-threshold-days: 30
 
   # ---------------------------------------------------------------------------
+  # Market Analysis — daily AI-healthcare market digest pipeline.
+  # Fires at 07:00 America/Chicago (zone is set in @Scheduled annotation).
+  # ---------------------------------------------------------------------------
+  market-analysis:
+    schedule: "0 0 7 * * *"
+
   # Trend Detection — weekly keyword frequency analysis across rolling windows.
   # Schedule default: Sunday 08:00 UTC (after wiki lint completes).
   # ---------------------------------------------------------------------------
