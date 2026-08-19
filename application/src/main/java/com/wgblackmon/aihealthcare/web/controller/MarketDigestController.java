@@ -5,9 +5,11 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.ImpactAssessment;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
 import com.wgblackmon.aihealthcare.web.dto.MarketDigestEntryResponse;
 import com.wgblackmon.aihealthcare.web.dto.MarketDigestResponse;
 import com.wgblackmon.aihealthcare.web.dto.MarketDigestSummary;
+import com.wgblackmon.aihealthcare.web.dto.WeeklyRollupResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -129,6 +131,57 @@ public class MarketDigestController {
 
         log.debug("getAll() | return=200, count={}", summaries.size());
         return ResponseEntity.ok(summaries);
+    }
+
+    /**
+     * Returns a weekly rollup aggregating all digests for the 7-day window starting on
+     * {@code weekOf} (inclusive) through {@code weekOf + 6 days} (inclusive).
+     *
+     * <p>Results include per-day summaries and a breakdown of qualifying entries
+     * by news category.
+     *
+     * @param weekOf the first day of the target week in {@code yyyy-MM-dd} format (required)
+     * @return 200 with the weekly rollup
+     */
+    @GetMapping("/weekly-rollup")
+    public ResponseEntity<WeeklyRollupResponse> getWeeklyRollup(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekOf) {
+        log.debug("getWeeklyRollup() | weekOf={}", weekOf);
+
+        LocalDate weekEnd = weekOf.plusDays(6);
+        List<MarketDigest> digests = marketDigestService.findByDateRange(weekOf, weekEnd);
+
+        List<MarketDigestSummary> dailySummaries = new ArrayList<>();
+        int[] categoryCounts = new int[NewsCategory.values().length];
+        int totalEntries = 0;
+
+        for (MarketDigest digest : digests) {
+            dailySummaries.add(new MarketDigestSummary(
+                    digest.date(),
+                    digest.generatedAt(),
+                    digest.entries().size()
+            ));
+            for (MarketDigestEntry entry : digest.entries()) {
+                totalEntries++;
+                int ordinal = entry.category().ordinal();
+                categoryCounts[ordinal]++;
+            }
+        }
+
+        List<WeeklyRollupResponse.CategoryCount> byCategory = new ArrayList<>();
+        NewsCategory[] categories = NewsCategory.values();
+        for (int i = 0; i < categories.length; i++) {
+            if (categoryCounts[i] > 0) {
+                byCategory.add(new WeeklyRollupResponse.CategoryCount(
+                        categories[i].name(), categoryCounts[i]));
+            }
+        }
+
+        WeeklyRollupResponse response = new WeeklyRollupResponse(
+                weekOf, weekEnd, totalEntries, dailySummaries, byCategory);
+
+        log.debug("getWeeklyRollup() | return=200, totalEntries={}", totalEntries);
+        return ResponseEntity.ok(response);
     }
 
     // ─── mapping helpers ────────────────────────────────────────────────────

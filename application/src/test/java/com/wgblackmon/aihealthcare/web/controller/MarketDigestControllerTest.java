@@ -139,6 +139,44 @@ class MarketDigestControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    // ─── GET /api/market-digest/weekly-rollup ───────────────────────────────
+
+    @Test
+    @WithMockUser
+    void getWeeklyRollup_returnsAggregatedResponse() throws Exception {
+        LocalDate weekOf = LocalDate.of(2026, 8, 11);
+        when(marketDigestService.findByDateRange(any(), any()))
+                .thenReturn(List.of(digestWithOneEntry()));
+
+        mockMvc.perform(get("/api/market-digest/weekly-rollup")
+                        .param("weekOf", "2026-08-11"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.weekOf").value("2026-08-11"))
+                .andExpect(jsonPath("$.weekEnd").value("2026-08-17"))
+                .andExpect(jsonPath("$.totalQualifyingEntries").value(1))
+                .andExpect(jsonPath("$.dailySummaries.length()").value(1));
+    }
+
+    @Test
+    @WithMockUser
+    void getWeeklyRollup_whenNoDigests_returnsEmptyRollup() throws Exception {
+        when(marketDigestService.findByDateRange(any(), any())).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/market-digest/weekly-rollup")
+                        .param("weekOf", "2026-08-11"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalQualifyingEntries").value(0))
+                .andExpect(jsonPath("$.dailySummaries.length()").value(0))
+                .andExpect(jsonPath("$.byCategory.length()").value(0));
+    }
+
+    @Test
+    @WithMockUser
+    void getWeeklyRollup_missingWeekOf_returns400() throws Exception {
+        mockMvc.perform(get("/api/market-digest/weekly-rollup"))
+                .andExpect(status().isBadRequest());
+    }
+
     // ─── helpers ────────────────────────────────────────────────────────────
 
     private MarketDigest digestWithOneEntry() {
