@@ -1,7 +1,9 @@
 package com.wgblackmon.aihealthcare.infrastructure.config;
 
+import com.wgblackmon.aihealthcare.domain.marketanalysis.GuidanceQueryService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.EntryEmbeddingPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.GuidancePort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
@@ -31,7 +33,7 @@ import java.util.concurrent.Executor;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-08-19  added guidanceQueryService bean (Slice 2.1)
  */
 @Slf4j
 @Configuration
@@ -64,6 +66,21 @@ public class MarketAnalysisConfig {
                 newsResearch, marketData, impactClassifier, repository,
                 notifier, embeddingPort, dedupThreshold);
         log.debug("marketDigestService() | return={}", result);
+        return result;
+    }
+
+    /**
+     * Wires the {@link GuidanceQueryService} domain service with the JPA-backed
+     * {@link GuidancePort} adapter.
+     *
+     * @param guidancePort JPA-backed guidance history adapter
+     * @return configured {@link GuidanceQueryService} bean
+     */
+    @Bean
+    public GuidanceQueryService guidanceQueryService(GuidancePort guidancePort) {
+        log.debug("guidanceQueryService() | guidancePort={}", guidancePort.getClass().getSimpleName());
+        GuidanceQueryService result = new GuidanceQueryService(guidancePort);
+        log.debug("guidanceQueryService() | return={}", result);
         return result;
     }
 
