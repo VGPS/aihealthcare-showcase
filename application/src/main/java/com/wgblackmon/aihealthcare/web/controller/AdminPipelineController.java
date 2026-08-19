@@ -11,11 +11,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -35,9 +38,9 @@ import java.util.Map;
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 2.2
+ * @version 2.3
  * @since   2026-07-30
- * @updated 2026-08-05
+ * @updated 2026-08-19
  */
 @Slf4j
 @Controller
@@ -54,13 +57,16 @@ public class AdminPipelineController {
 
     private final PipelineHealthService healthService;
     private final NewsletterGenerationScheduler newsletterScheduler;
+    private final MarketDigestService marketDigestService;
 
     public AdminPipelineController(PipelineHealthService healthService,
-                                   NewsletterGenerationScheduler newsletterScheduler) {
-        log.debug("AdminPipelineController() | healthService={}, newsletterScheduler={}",
-                  healthService, newsletterScheduler);
+                                   NewsletterGenerationScheduler newsletterScheduler,
+                                   MarketDigestService marketDigestService) {
+        log.debug("AdminPipelineController() | healthService={}, newsletterScheduler={}, marketDigestService={}",
+                  healthService, newsletterScheduler, marketDigestService);
         this.healthService = healthService;
         this.newsletterScheduler = newsletterScheduler;
+        this.marketDigestService = marketDigestService;
     }
 
     /**
@@ -250,6 +256,47 @@ public class AdminPipelineController {
         }
     }
 
+    /**
+     * Manually triggers the daily market digest pipeline for today.
+     * Idempotent — if a digest already exists for today it is returned unchanged.
+     *
+     * @return JSON result with entry count, date, and duration
+     */
+    @PostMapping("/market-digest/generate")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> generateMarketDigest() {
+        log.debug("generateMarketDigest()");
+
+        Instant start = Instant.now();
+        try {
+            MarketDigest digest = marketDigestService.generateDailyDigest(LocalDate.now());
+
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "SUCCESS");
+            result.put("message", "Market digest generated for " + digest.date()
+                    + " with " + digest.entries().size() + " entries");
+            result.put("entryCount", digest.entries().size());
+            result.put("date", digest.date().toString());
+            result.put("durationMs", durationMs);
+
+            log.info("generateMarketDigest() | digest generated: date={}, entries={}",
+                    digest.date(), digest.entries().size());
+            log.debug("generateMarketDigest() | return={}", result);
+            return ResponseEntity.ok(result);
+        } catch (Exception ex) {
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "FAILED");
+            result.put("message", ex.getMessage());
+            result.put("durationMs", durationMs);
+
+            log.error("generateMarketDigest() | pipeline failed: {}", ex.getMessage(), ex);
+            log.debug("generateMarketDigest() | return={}", result);
+            return ResponseEntity.internalServerError().body(result);
+        }
+    }
+
     private String formatRunSummary(PipelineHealthService.PipelineRunRecord run) {
         if ("SUCCESS".equals(run.status())) {
             return "OK in " + run.durationMs() + "ms";
@@ -356,6 +403,11 @@ public class AdminPipelineController {
                 "Analyzes recent articles against wiki coverage to identify knowledge gaps with specific article references. Requires AI API key.",
                 "Weekly after wiki lint", "FeedHarvestScheduler",
                 "/monitoring/wiki/gap-analysis", "POST", false, "~2 min", "High (LLM cost)"));
+
+        list.add(new PipelineInfo("market-digest", "Market Digest Generator",
+                "Generates the daily AI healthcare market digest: researches news via Perplexity, classifies market impact via Claude, persists digest. Idempotent — safe to re-run for today.",
+                "Daily 07:00 AM CT", "MarketDigestScheduler",
+                "/admin/pipelines/market-digest/generate", "POST", true, "~3 min", "High (LLM cost)"));
 
         log.debug("buildPipelineList() | return={} pipelines", list.size());
         return list;

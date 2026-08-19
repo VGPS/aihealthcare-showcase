@@ -1,5 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
@@ -16,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -38,9 +41,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link AdminPipelineController}.
  *
  * @author  Bill Blackmon
- * @version 3.1
+ * @version 3.2
  * @since   2026-07-30
- * @updated 2026-08-05
+ * @updated 2026-08-19
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(AdminPipelineController.class)
@@ -57,6 +60,9 @@ class AdminPipelineControllerTest {
 
     @MockitoBean
     private NewsletterGenerationScheduler newsletterScheduler;
+
+    @MockitoBean
+    private MarketDigestService marketDigestService;
 
     // --- Page rendering ---
 
@@ -83,7 +89,7 @@ class AdminPipelineControllerTest {
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("pipelineCount", 18));
+                .andExpect(model().attribute("pipelineCount", 19));
     }
 
     @Test
@@ -249,5 +255,34 @@ class AdminPipelineControllerTest {
     void generateAndSendNewsletterReturns403ForNonAdmin() throws Exception {
         mockMvc.perform(post("/admin/pipelines/newsletter/generate-and-send").with(csrf()))
                 .andExpect(status().isForbidden());
+    }
+
+    // --- Market digest generate endpoint ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void generateMarketDigestReturnsSuccess() throws Exception {
+        MarketDigest digest = new MarketDigest(LocalDate.now(), java.util.List.of(), Instant.now());
+        when(marketDigestService.generateDailyDigest(LocalDate.now())).thenReturn(digest);
+
+        mockMvc.perform(post("/admin/pipelines/market-digest/generate").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.entryCount").value(0))
+                .andExpect(jsonPath("$.date").value(LocalDate.now().toString()));
+
+        verify(marketDigestService).generateDailyDigest(LocalDate.now());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void generateMarketDigestReturnsFailureOnException() throws Exception {
+        when(marketDigestService.generateDailyDigest(LocalDate.now()))
+                .thenThrow(new RuntimeException("Perplexity API unavailable"));
+
+        mockMvc.perform(post("/admin/pipelines/market-digest/generate").with(csrf()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.message").value("Perplexity API unavailable"));
     }
 }
