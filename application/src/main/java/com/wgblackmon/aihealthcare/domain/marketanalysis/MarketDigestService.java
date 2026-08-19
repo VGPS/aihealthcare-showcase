@@ -125,6 +125,43 @@ public class MarketDigestService {
     }
 
     /**
+     * Returns the most recently generated digest, or empty if none has been persisted yet.
+     *
+     * @return the latest digest wrapped in Optional, or empty
+     */
+    public Optional<MarketDigest> findLatest() {
+        log.debug("findLatest()");
+        Optional<MarketDigest> result = repository.findLatest();
+        log.debug("findLatest() | return=present:{}", result.isPresent());
+        return result;
+    }
+
+    /**
+     * Returns the digest for the given date, or empty if none exists.
+     *
+     * @param date the digest date to query (non-null)
+     * @return the digest wrapped in Optional, or empty
+     */
+    public Optional<MarketDigest> findByDate(LocalDate date) {
+        log.debug("findByDate() | date={}", date);
+        Optional<MarketDigest> result = repository.findByDate(date);
+        log.debug("findByDate() | return=present:{}", result.isPresent());
+        return result;
+    }
+
+    /**
+     * Returns all persisted digests ordered newest-first.
+     *
+     * @return list of all digests; empty list if none exist
+     */
+    public List<MarketDigest> findAll() {
+        log.debug("findAll()");
+        List<MarketDigest> result = repository.findAll();
+        log.debug("findAll() | return.size={}", result.size());
+        return result;
+    }
+
+    /**
      * Returns {@code true} when the entry clears the market-moving qualifying bar.
      *
      * <p>Qualifying categories: EARNINGS, REGULATORY, M_AND_A, MAJOR_PARTNERSHIP always qualify.
