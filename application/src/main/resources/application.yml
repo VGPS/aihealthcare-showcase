@@ -1299,8 +1299,8 @@ aihealthcare:
   # When absent the adapter returns Optional.empty() for all tickers.
   # ---------------------------------------------------------------------------
   alpaca:
-    api-key: ${ALPACA_API_KEY:}
-    secret-key: ${ALPACA_SECRET_KEY:}
+    api-key: ${ALPACA_API_KEY_ID:}
+    secret-key: ${ALPACA_API_SECRET_KEY:}
 
   # ---------------------------------------------------------------------------
   # Google Gemini API — used by GeminiAiSearchAdapter for AI-enhanced search.
