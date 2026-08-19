@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceHistory;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.Quote;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -51,6 +52,7 @@ public class AlpacaMarketDataAdapter implements MarketDataPort {
     private final String     secretKey;
     private final RestClient restClient;
 
+    @Autowired
     public AlpacaMarketDataAdapter(
             @Value("${aihealthcare.alpaca.api-key:}") String apiKey,
             @Value("${aihealthcare.alpaca.secret-key:}") String secretKey) {
