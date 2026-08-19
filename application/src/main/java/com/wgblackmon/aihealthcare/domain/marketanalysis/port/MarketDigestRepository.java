@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.domain.marketanalysis.port;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -35,4 +36,18 @@ public interface MarketDigestRepository {
      * @return the digest wrapped in Optional, or empty
      */
     Optional<MarketDigest> findByDate(LocalDate date);
+
+    /**
+     * Returns the most recently generated digest, or empty if none exists yet.
+     *
+     * @return the latest digest wrapped in Optional, or empty
+     */
+    Optional<MarketDigest> findLatest();
+
+    /**
+     * Returns all persisted digests ordered by date descending (newest first).
+     *
+     * @return list of all digests; empty list if none exist
+     */
+    List<MarketDigest> findAll();
 }

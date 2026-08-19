@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.marketanalysis.persistence;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,4 +23,8 @@ public interface MarketDigestJpaRepository extends JpaRepository<MarketDigestEnt
     Optional<MarketDigestEntity> findByDigestDate(LocalDate digestDate);
 
     void deleteByDigestDate(LocalDate digestDate);
+
+    Optional<MarketDigestEntity> findTopByOrderByDigestDateDesc();
+
+    List<MarketDigestEntity> findAllByOrderByDigestDateDesc();
 }

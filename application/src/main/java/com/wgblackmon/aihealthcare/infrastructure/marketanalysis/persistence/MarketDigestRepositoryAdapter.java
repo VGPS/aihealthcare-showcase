@@ -118,22 +118,54 @@ public class MarketDigestRepositoryAdapter implements MarketDigestRepository {
             return Optional.empty();
         }
 
-        MarketDigestEntity digestEntity = digestEntityOpt.get();
-        List<MarketDigestEntryEntity> entryEntities = entryRepo.findByDigestId(digestEntity.getDigestId());
+        MarketDigest result = hydrateDigest(digestEntityOpt.get());
+        log.debug("findByDate() | return={}", result);
+        return Optional.of(result);
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<MarketDigest> findLatest() {
+        log.debug("findLatest()");
+
+        Optional<MarketDigestEntity> digestEntityOpt = digestRepo.findTopByOrderByDigestDateDesc();
+        if (digestEntityOpt.isEmpty()) {
+            log.debug("findLatest() | return=empty");
+            return Optional.empty();
+        }
+
+        MarketDigest result = hydrateDigest(digestEntityOpt.get());
+        log.debug("findLatest() | return={}", result);
+        return Optional.of(result);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MarketDigest> findAll() {
+        log.debug("findAll()");
+
+        List<MarketDigestEntity> entities = digestRepo.findAllByOrderByDigestDateDesc();
+        List<MarketDigest> results = new ArrayList<>();
+        for (MarketDigestEntity entity : entities) {
+            results.add(hydrateDigest(entity));
+        }
+
+        log.debug("findAll() | return.size={}", results.size());
+        return results;
+    }
+
+    // ─── private helpers ────────────────────────────────────────────────────
+
+    private MarketDigest hydrateDigest(MarketDigestEntity digestEntity) {
+        List<MarketDigestEntryEntity> entryEntities = entryRepo.findByDigestId(digestEntity.getDigestId());
         List<MarketDigestEntry> entries = new ArrayList<>();
         for (MarketDigestEntryEntity entryEntity : entryEntities) {
             List<ImpactAssessment> assessments = loadAssessments(entryEntity.getEntryId());
             List<AffectedCompany> companies = loadCompanies(entryEntity.getEntryId());
             entries.add(toDomainEntry(entryEntity, assessments, companies));
         }
-
-        MarketDigest result = new MarketDigest(digestEntity.getDigestDate(), entries, digestEntity.getGeneratedAt());
-        log.debug("findByDate() | return={}", result);
-        return Optional.of(result);
+        return new MarketDigest(digestEntity.getDigestDate(), entries, digestEntity.getGeneratedAt());
     }
-
-    // ─── private helpers ────────────────────────────────────────────────────
 
     private void deleteExistingByDate(LocalDate date) {
         Optional<MarketDigestEntity> existing = digestRepo.findByDigestDate(date);
