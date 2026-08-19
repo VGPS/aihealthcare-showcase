@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import org.jsoup.Jsoup;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -482,7 +484,7 @@ public class NotebookLMService {
             sb.append("      <div style=\"font-size:1.05em; font-weight:bold; margin-bottom:6px;\">")
               .append("<a href=\"").append(escapeHtml(url))
               .append("\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a3a5c; text-decoration:underline;\">")
-              .append(escapeHtml(articleTitle)).append("</a>");
+              .append(escapeHtml(Jsoup.parse(articleTitle).text())).append("</a>");
 
             String metaText = buildArticleMeta(article);
             if (!metaText.isEmpty()) {
@@ -808,8 +810,8 @@ public class NotebookLMService {
             return "";
         }
 
-        // Strip HTML tags for preview
-        String plainText = body.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
+        // Jsoup decodes HTML entities (&nbsp; etc.) AND strips tags in one pass
+        String plainText = Jsoup.parse(body).text();
         if (plainText.length() <= BODY_PREVIEW_LENGTH) {
             String result = escapeHtml(plainText);
             log.debug("buildBodyPreview() | return={} chars (full)", result.length());
