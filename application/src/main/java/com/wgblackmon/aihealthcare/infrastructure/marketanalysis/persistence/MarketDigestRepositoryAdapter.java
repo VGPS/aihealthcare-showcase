@@ -154,6 +154,22 @@ public class MarketDigestRepositoryAdapter implements MarketDigestRepository {
         return results;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<MarketDigest> findByDateRange(LocalDate from, LocalDate to) {
+        log.debug("findByDateRange() | from={}, to={}", from, to);
+
+        List<MarketDigestEntity> entities =
+                digestRepo.findByDigestDateBetweenOrderByDigestDateDesc(from, to);
+        List<MarketDigest> results = new ArrayList<>();
+        for (MarketDigestEntity entity : entities) {
+            results.add(hydrateDigest(entity));
+        }
+
+        log.debug("findByDateRange() | return.size={}", results.size());
+        return results;
+    }
+
     // ─── private helpers ────────────────────────────────────────────────────
 
     private MarketDigest hydrateDigest(MarketDigestEntity digestEntity) {

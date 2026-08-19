@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.config;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.EntryEmbeddingPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
@@ -8,6 +9,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestReposi
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -36,13 +38,15 @@ import java.util.concurrent.Executor;
 public class MarketAnalysisConfig {
 
     /**
-     * Wires the daily digest orchestration service with all four adapter ports.
+     * Wires the daily digest orchestration service with all adapter ports.
      *
      * @param newsResearch     Perplexity adapter — fetches recent AI-healthcare news
      * @param marketData       Alpaca adapter — stock quote + price history lookup
      * @param impactClassifier Claude adapter — 5-dimension impact scoring
      * @param repository       JPA adapter — persist and query digests
-     * @param notifier         SES notifier — null until Slice 1.8 is merged
+     * @param notifier         SES notifier — email alert delivery
+     * @param embeddingPort    embedding adapter for dedup — null when EmbeddingModel absent
+     * @param dedupThreshold   cosine similarity threshold above which entries are suppressed
      * @return configured {@link MarketDigestService} bean
      */
     @Bean
@@ -51,10 +55,14 @@ public class MarketAnalysisConfig {
             MarketDataPort marketData,
             ImpactClassifierPort impactClassifier,
             MarketDigestRepository repository,
-            @Autowired(required = false) MarketDigestNotifier notifier) {
-        log.debug("marketDigestService() | notifierPresent={}", notifier != null);
+            @Autowired(required = false) MarketDigestNotifier notifier,
+            @Autowired(required = false) EntryEmbeddingPort embeddingPort,
+            @Value("${aihealthcare.market-analysis.dedup.similarity-threshold:0.93}") double dedupThreshold) {
+        log.debug("marketDigestService() | notifierPresent={}, embeddingPortPresent={}, dedupThreshold={}",
+                notifier != null, embeddingPort != null, dedupThreshold);
         MarketDigestService result = new MarketDigestService(
-                newsResearch, marketData, impactClassifier, repository, notifier);
+                newsResearch, marketData, impactClassifier, repository,
+                notifier, embeddingPort, dedupThreshold);
         log.debug("marketDigestService() | return={}", result);
         return result;
     }

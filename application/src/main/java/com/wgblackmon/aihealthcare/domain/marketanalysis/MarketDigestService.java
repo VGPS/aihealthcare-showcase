@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.domain.marketanalysis;
 
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.EntryEmbeddingPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
@@ -40,23 +41,31 @@ import java.util.Optional;
 @Slf4j
 public class MarketDigestService {
 
+    static final int DEDUP_LOOKBACK_DAYS = 7;
+
     private final MarketNewsResearchPort newsResearch;
     private final MarketDataPort marketData;
     private final ImpactClassifierPort impactClassifier;
     private final MarketDigestRepository repository;
     private final MarketDigestNotifier notifier;
+    private final EntryEmbeddingPort embeddingPort;
+    private final double dedupThreshold;
 
     public MarketDigestService(
             MarketNewsResearchPort newsResearch,
             MarketDataPort marketData,
             ImpactClassifierPort impactClassifier,
             MarketDigestRepository repository,
-            MarketDigestNotifier notifier) {
+            MarketDigestNotifier notifier,
+            EntryEmbeddingPort embeddingPort,
+            double dedupThreshold) {
         this.newsResearch = newsResearch;
         this.marketData = marketData;
         this.impactClassifier = impactClassifier;
         this.repository = repository;
         this.notifier = notifier;
+        this.embeddingPort = embeddingPort;
+        this.dedupThreshold = dedupThreshold;
     }
 
     /**
@@ -112,11 +121,16 @@ public class MarketDigestService {
         log.info("generateDailyDigest() | digest saved for {}", date);
 
         if (!qualified.isEmpty() && notifier != null) {
-            try {
-                notifier.notify(digest);
-                log.info("generateDailyDigest() | notifier invoked for {} qualifying entries", qualified.size());
-            } catch (Exception e) {
-                log.warn("generateDailyDigest() | notifier failed (non-fatal): {}", e.getMessage());
+            List<MarketDigestEntry> notifiable = deduplicateForNotification(qualified, date);
+            log.info("generateDailyDigest() | dedup: {} of {} entries are novel (threshold={})",
+                    notifiable.size(), qualified.size(), dedupThreshold);
+            if (!notifiable.isEmpty()) {
+                try {
+                    notifier.notify(new MarketDigest(date, notifiable, digest.generatedAt()));
+                    log.info("generateDailyDigest() | notifier invoked for {} novel entries", notifiable.size());
+                } catch (Exception e) {
+                    log.warn("generateDailyDigest() | notifier failed (non-fatal): {}", e.getMessage());
+                }
             }
         }
 
@@ -191,6 +205,101 @@ public class MarketDigestService {
         }
         log.debug("isMarketMoving() | return={}", result);
         return result;
+    }
+
+    /**
+     * Filters candidate entries against recent digests using embedding cosine similarity.
+     *
+     * <p>For each candidate, computes its embedding and compares against embeddings of all
+     * entries from the preceding {@link #DEDUP_LOOKBACK_DAYS} days. If any recent entry's
+     * similarity exceeds {@link #dedupThreshold}, the candidate is suppressed (not returned).
+     *
+     * <p>If {@link #embeddingPort} is null, or if any embedding call fails, the candidate
+     * is included in the output (fail-open: prefer over-notification to missed alerts).
+     *
+     * @param candidates new qualifying entries to evaluate
+     * @param date       the digest date (used to compute the lookback window)
+     * @return subset of candidates that are novel enough to warrant notification
+     */
+    List<MarketDigestEntry> deduplicateForNotification(List<MarketDigestEntry> candidates, LocalDate date) {
+        log.debug("deduplicateForNotification() | candidates={}, date={}", candidates.size(), date);
+
+        if (embeddingPort == null) {
+            log.debug("deduplicateForNotification() | no embeddingPort — skipping dedup, return all");
+            return candidates;
+        }
+
+        LocalDate lookbackFrom = date.minusDays(DEDUP_LOOKBACK_DAYS);
+        LocalDate lookbackTo   = date.minusDays(1);
+        List<MarketDigest> recentDigests = repository.findByDateRange(lookbackFrom, lookbackTo);
+
+        List<MarketDigestEntry> recentEntries = new ArrayList<>();
+        for (MarketDigest recent : recentDigests) {
+            for (MarketDigestEntry entry : recent.entries()) {
+                recentEntries.add(entry);
+            }
+        }
+
+        if (recentEntries.isEmpty()) {
+            log.debug("deduplicateForNotification() | no recent entries — all candidates are novel");
+            return candidates;
+        }
+
+        List<float[]> recentEmbeddings = new ArrayList<>();
+        for (MarketDigestEntry recent : recentEntries) {
+            float[] vec = embeddingPort.embed(recent.newsItem().headline(), recent.newsItem().summary());
+            recentEmbeddings.add(vec);
+        }
+
+        List<MarketDigestEntry> novel = new ArrayList<>();
+        for (MarketDigestEntry candidate : candidates) {
+            float[] candidateVec = embeddingPort.embed(
+                    candidate.newsItem().headline(), candidate.newsItem().summary());
+
+            if (candidateVec == null) {
+                novel.add(candidate);
+                continue;
+            }
+
+            boolean isDuplicate = false;
+            for (float[] recentVec : recentEmbeddings) {
+                if (recentVec != null && cosineSimilarity(candidateVec, recentVec) >= dedupThreshold) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+
+            if (!isDuplicate) {
+                novel.add(candidate);
+            }
+        }
+
+        log.debug("deduplicateForNotification() | return.size={}", novel.size());
+        return novel;
+    }
+
+    /**
+     * Computes cosine similarity between two float vectors.
+     *
+     * <p>Returns 0.0 if either vector is zero-length (degenerate case — treated as dissimilar).
+     *
+     * @param a first vector (non-null, same length as b)
+     * @param b second vector (non-null, same length as a)
+     * @return similarity in [-1.0, 1.0] where 1.0 = identical direction
+     */
+    static double cosineSimilarity(float[] a, float[] b) {
+        double dot = 0.0;
+        double normA = 0.0;
+        double normB = 0.0;
+        for (int i = 0; i < a.length; i++) {
+            dot   += (double) a[i] * b[i];
+            normA += (double) a[i] * a[i];
+            normB += (double) b[i] * b[i];
+        }
+        if (normA == 0.0 || normB == 0.0) {
+            return 0.0;
+        }
+        return dot / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 
     /**

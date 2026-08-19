@@ -27,4 +27,6 @@ public interface MarketDigestJpaRepository extends JpaRepository<MarketDigestEnt
     Optional<MarketDigestEntity> findTopByOrderByDigestDateDesc();
 
     List<MarketDigestEntity> findAllByOrderByDigestDateDesc();
+
+    List<MarketDigestEntity> findByDigestDateBetweenOrderByDigestDateDesc(LocalDate from, LocalDate to);
 }
