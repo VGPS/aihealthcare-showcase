@@ -185,6 +185,21 @@ public class MarketDigestService {
     }
 
     /**
+     * Returns digests whose date falls within [{@code from}, {@code to}] (inclusive),
+     * ordered newest-first.
+     *
+     * @param from start date, inclusive (non-null)
+     * @param to   end date, inclusive (non-null)
+     * @return list of matching digests; empty list if none found
+     */
+    public List<MarketDigest> findByDateRange(LocalDate from, LocalDate to) {
+        log.debug("findByDateRange() | from={}, to={}", from, to);
+        List<MarketDigest> result = repository.findByDateRange(from, to);
+        log.debug("findByDateRange() | return.size={}", result.size());
+        return result;
+    }
+
+    /**
      * Returns {@code true} when the entry clears the market-moving qualifying bar.
      *
      * <p>Qualifying categories: EARNINGS, REGULATORY, M_AND_A, MAJOR_PARTNERSHIP always qualify.
