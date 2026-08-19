@@ -1280,6 +1280,18 @@ aihealthcare:
   perplexity:
     api-key: ${PERPLEXITY_API_KEY:}
     model: ${PERPLEXITY_MODEL_ID:sonar}
+    market-news:
+      model: ${PERPLEXITY_MARKET_NEWS_MODEL:sonar}
+
+  # ---------------------------------------------------------------------------
+  # Alpaca Markets Data API — used by AlpacaMarketDataAdapter for real-time
+  # stock quotes and OHLCV price history.
+  # Set ALPACA_API_KEY and ALPACA_SECRET_KEY as environment variables.
+  # When absent the adapter returns Optional.empty() for all tickers.
+  # ---------------------------------------------------------------------------
+  alpaca:
+    api-key: ${ALPACA_API_KEY:}
+    secret-key: ${ALPACA_SECRET_KEY:}
 
   # ---------------------------------------------------------------------------
   # Google Gemini API — used by GeminiAiSearchAdapter for AI-enhanced search.
