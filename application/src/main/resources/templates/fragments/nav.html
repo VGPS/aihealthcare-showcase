@@ -15,7 +15,7 @@
  *                    wiki | trends | trend-history | regulatory | legal | legal-trends |
  *                    clinical-trials | companies | risk | frameworks | watchlist | notes |
  *                    relationships | search | pricing | about | profile | developer | webhooks | admin | admin-pipelines |
- *                    intelligence | deals | market
+ *                    intelligence | deals | market | market-history
  *
  * Nav groups: Claude AI (admin) | Dashboard | Content | Research | Legal | Reference | Account
  *
@@ -44,7 +44,7 @@
     <!-- Content group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'news' || activePage == 'trends' || activePage == 'trend-history' || activePage == 'market' || activePage == 'deals'} ? ' active'">
+                th:classappend="${activePage == 'news' || activePage == 'trends' || activePage == 'trend-history' || activePage == 'market' || activePage == 'market-history' || activePage == 'deals'} ? ' active'">
             Content ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
@@ -52,6 +52,8 @@
                th:classappend="${activePage == 'deals'} ? ' active'">Deal Signals</a>
             <a th:href="@{/dashboard/market}"
                th:classappend="${activePage == 'market'} ? ' active'">Market Digest</a>
+            <a th:href="@{/dashboard/market/history}"
+               th:classappend="${activePage == 'market-history'} ? ' active'">Market History</a>
             <a th:href="@{/dashboard/news}"
                th:classappend="${activePage == 'news'} ? ' active'">News Listing</a>
             <a th:href="@{/dashboard/trends/history}"

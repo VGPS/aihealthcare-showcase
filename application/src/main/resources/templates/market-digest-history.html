@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Market Digest History — timeline table of all generated daily digests,
+ * with date, entry count, top category, and links to individual digest views.
+ * Tier-gated: FREE users see the 7 most recent, SUBSCRIBER/DEMO/ADMIN see all.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-19
+ * @updated 2026-08-19
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Market Digest History')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Market Digest History</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Browse all daily AI-healthcare market digests</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('market-history')}"></nav>
+
+<main class="max-w-5xl mx-auto px-4 py-6">
+
+    <p class="text-sm text-gray-500 leading-relaxed mb-6">
+        Each row represents one day's market digest. Click a date to view the full ranked entry list for that day.
+    </p>
+
+    <!-- No history state -->
+    <div th:unless="${hasHistory}" class="bg-white rounded-lg shadow-card p-8 text-center">
+        <p class="text-gray-500 text-sm">No market digests generated yet.</p>
+        <p class="text-gray-400 text-xs mt-2">Digests are generated daily at 7:00 AM Chicago time.</p>
+    </div>
+
+    <!-- Tier gate message -->
+    <div th:if="${hasHistory and !fullAccess}" class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <p class="text-sm text-amber-800">
+            Showing the <strong>7 most recent</strong> digests.
+            <a th:href="@{/pricing}" class="text-primary-600 underline font-medium">Upgrade to Subscriber</a>
+            for full digest archive access.
+        </p>
+    </div>
+
+    <!-- Digest count summary -->
+    <div th:if="${hasHistory}" class="mb-4 text-sm text-gray-500">
+        <span th:text="${totalDigests}">0</span> digests on record
+    </div>
+
+    <!-- History table -->
+    <div th:if="${hasHistory}" class="bg-white rounded-lg shadow-card overflow-hidden">
+        <table class="w-full text-sm border-collapse">
+            <thead>
+                <tr class="bg-gray-50 text-left text-xs text-gray-500 uppercase tracking-wider">
+                    <th class="px-4 py-3">Date</th>
+                    <th class="px-4 py-3 text-center">Entries</th>
+                    <th class="px-4 py-3">Top Category</th>
+                    <th class="px-4 py-3">Generated</th>
+                    <th class="px-4 py-3"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="d : ${digests}" class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium text-gray-800" th:text="${d.dateStr}">Aug 19, 2026</td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="inline-block bg-primary-100 text-primary-800 px-2 py-0.5 rounded-full text-xs font-semibold"
+                              th:text="${d.entryCount}">0</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span th:if="${d.topCategory != null}"
+                              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                              th:classappend="${d.topCategory == 'EARNINGS'} ? 'bg-blue-100 text-blue-800' :
+                                              (${d.topCategory == 'REGULATORY'} ? 'bg-purple-100 text-purple-800' :
+                                              (${d.topCategory == 'FUNDING'} ? 'bg-green-100 text-green-800' :
+                                              (${d.topCategory == 'M_AND_A'} ? 'bg-red-100 text-red-800' :
+                                              (${d.topCategory == 'MAJOR_PARTNERSHIP'} ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'))))"
+                              th:text="${d.topCategory.replace('_', ' ')}">
+                            EARNINGS
+                        </span>
+                        <span th:if="${d.topCategory == null}" class="text-gray-400 text-xs">—</span>
+                    </td>
+                    <td class="px-4 py-3 text-gray-500" th:text="${d.generatedAt}">Aug 19, 2026</td>
+                    <td class="px-4 py-3 text-right">
+                        <a th:href="@{/dashboard/market/{date}(date=${d.dateIso})}"
+                           class="text-xs font-medium text-primary-600 hover:underline">
+                            View →
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${hasHistory}" class="mt-4 text-right">
+        <a th:href="@{/dashboard/market}" class="text-sm text-primary-600 hover:underline">← Latest Digest</a>
+    </div>
+
+</main>
+
+</body>
+</html>
