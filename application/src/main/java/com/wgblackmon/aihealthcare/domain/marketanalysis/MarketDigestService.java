@@ -36,12 +36,14 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-08-19  peer tagging step added (Slice 2.2)
  */
 @Slf4j
 public class MarketDigestService {
 
     static final int DEDUP_LOOKBACK_DAYS = 7;
+
+    private static final PeerGroupTagger PEER_GROUP_TAGGER = new PeerGroupTagger();
 
     private final MarketNewsResearchPort newsResearch;
     private final MarketDataPort marketData;
@@ -111,7 +113,14 @@ public class MarketDigestService {
         }
 
         List<MarketDigestEntry> classified = impactClassifier.classify(preliminary);
-        List<MarketDigestEntry> qualified  = filterAndSort(classified);
+
+        List<MarketDigestEntry> peerTagged = new ArrayList<>();
+        for (MarketDigestEntry entry : classified) {
+            peerTagged.add(PEER_GROUP_TAGGER.tagEntry(entry));
+        }
+        log.debug("generateDailyDigest() | peer-tagged {} entries", peerTagged.size());
+
+        List<MarketDigestEntry> qualified  = filterAndSort(peerTagged);
 
         log.info("generateDailyDigest() | {} of {} items cleared qualifying bar for {}",
                 qualified.size(), classified.size(), date);
