@@ -93,16 +93,35 @@ public class MarketDashboardController {
     }
 
     @GetMapping("/dashboard/market/history")
-    public String marketHistory(Principal principal, Model model) {
-        log.debug("marketHistory()");
+    public String marketHistory(
+            @RequestParam(required = false, defaultValue = "0") int days,
+            Principal principal,
+            Model model) {
+        log.debug("marketHistory() | days={}", days);
 
         List<MarketDigest> all = marketDigestService.findAll();
         boolean fullAccess = hasFullAccess(principal);
 
+        // Lookback filter — days=0 means show all
+        List<MarketDigest> filtered = new ArrayList<>();
+        if (days > 0) {
+            LocalDate cutoff = LocalDate.now().minusDays(days);
+            for (MarketDigest d : all) {
+                if (!d.date().isBefore(cutoff)) {
+                    filtered.add(d);
+                }
+            }
+        } else {
+            for (MarketDigest d : all) {
+                filtered.add(d);
+            }
+        }
+
+        // Tier gate applies to the already-filtered list
         int freeLimit = 7;
-        List<MarketDigest> visible = all;
-        if (!fullAccess && all.size() > freeLimit) {
-            visible = all.subList(0, freeLimit);
+        List<MarketDigest> visible = filtered;
+        if (!fullAccess && filtered.size() > freeLimit) {
+            visible = filtered.subList(0, freeLimit);
         }
 
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -118,11 +137,13 @@ public class MarketDashboardController {
 
         model.addAttribute("digests", rows);
         model.addAttribute("totalDigests", all.size());
+        model.addAttribute("filteredCount", filtered.size());
         model.addAttribute("hasHistory", !all.isEmpty());
         model.addAttribute("fullAccess", fullAccess);
+        model.addAttribute("selectedDays", days);
         model.addAttribute("activePage", "market-history");
 
-        log.debug("marketHistory() | return=market-digest-history ({} rows)", rows.size());
+        log.debug("marketHistory() | return=market-digest-history ({} rows, days={})", rows.size(), days);
         return "market-digest-history";
     }
 
