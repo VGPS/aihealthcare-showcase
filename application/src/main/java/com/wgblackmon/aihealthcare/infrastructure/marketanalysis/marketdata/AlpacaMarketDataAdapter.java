@@ -30,7 +30,7 @@ import java.util.Optional;
  * </ul>
  *
  * <p>The Alpaca free tier ("paper trading") API key is sufficient for both endpoints.
- * When {@code ALPACA_API_KEY} or {@code ALPACA_SECRET_KEY} is absent, both methods
+ * When {@code ALPACA_API_KEY_ID} or {@code ALPACA_API_SECRET_KEY} is absent, both methods
  * return {@code Optional.empty()} rather than throwing — callers treat missing market
  * data as non-fatal.
  *
@@ -40,7 +40,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-08-19 — fix feed=iex (paper keys don't have SIP access); fix javadoc env var name
  */
 @Slf4j
 @Component
@@ -83,7 +83,7 @@ public class AlpacaMarketDataAdapter implements MarketDataPort {
 
         try {
             Map<String, AlpacaQuoteResponse> response = restClient.get()
-                    .uri("/v2/stocks/snapshots?symbols={symbol}&feed=sip", tickerSymbol)
+                    .uri("/v2/stocks/snapshots?symbols={symbol}&feed=iex", tickerSymbol)
                     .header("APCA-API-KEY-ID", apiKey)
                     .header("APCA-API-SECRET-KEY", secretKey)
                     .retrieve()

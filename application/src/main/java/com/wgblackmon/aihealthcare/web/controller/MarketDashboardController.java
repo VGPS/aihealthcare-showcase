@@ -47,7 +47,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-08-19 — add ENTERPRISE to hasFullAccess() tier check
  */
 @Slf4j
 @Controller
@@ -269,7 +269,9 @@ public class MarketDashboardController {
         Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
         if (subscriber.isPresent()) {
             SubscriptionTier tier = subscriber.get().tier();
-            return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO;
+            return tier == SubscriptionTier.SUBSCRIBER
+                    || tier == SubscriptionTier.DEMO
+                    || tier == SubscriptionTier.ENTERPRISE;
         }
         return false;
     }
