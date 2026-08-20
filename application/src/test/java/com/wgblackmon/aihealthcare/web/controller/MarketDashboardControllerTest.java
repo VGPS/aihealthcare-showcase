@@ -184,7 +184,8 @@ class MarketDashboardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("market-digest-history"))
                 .andExpect(model().attribute("hasHistory", true))
-                .andExpect(model().attribute("totalDigests", 1));
+                .andExpect(model().attribute("totalDigests", 1))
+                .andExpect(model().attribute("selectedDays", 0));
     }
 
     @Test
@@ -205,6 +206,21 @@ class MarketDashboardControllerTest {
     void marketHistory_unauthenticated_redirects() throws Exception {
         mockMvc.perform(get("/dashboard/market/history"))
                 .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /dashboard/market/history?days=7 filters digests to last 7 days")
+    void marketHistory_withDaysParam_filtersResults() throws Exception {
+        // Digest from today — should be included in a 7-day window
+        MarketDigest recent = digestWithEntries(NewsCategory.EARNINGS);
+        when(marketDigestService.findAll()).thenReturn(List.of(recent));
+
+        mockMvc.perform(get("/dashboard/market/history").param("days", "7"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("market-digest-history"))
+                .andExpect(model().attribute("selectedDays", 7))
+                .andExpect(model().attribute("filteredCount", 1));
     }
 
     @Test

@@ -4,11 +4,12 @@
  * Market Digest History — timeline table of all generated daily digests,
  * with date, entry count, top category, and links to individual digest views.
  * Tier-gated: FREE users see the 7 most recent, SUBSCRIBER/DEMO/ADMIN see all.
+ * Lookback filter: ?days=7|30|90|0 (0 = all time, default).
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-08-20 — added lookback filter pills
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -26,9 +27,26 @@
 
 <main class="max-w-5xl mx-auto px-4 py-6">
 
-    <p class="text-sm text-gray-500 leading-relaxed mb-6">
+    <p class="text-sm text-gray-500 leading-relaxed mb-4">
         Each row represents one day's market digest. Click a date to view the full ranked entry list for that day.
     </p>
+
+    <!-- Lookback filter pills -->
+    <div class="flex items-center gap-2 mb-6 flex-wrap">
+        <span class="text-xs text-gray-400 font-medium uppercase tracking-wider mr-1">Look back:</span>
+        <a th:href="@{/dashboard/market/history(days=7)}"
+           th:classappend="${selectedDays == 7} ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:border-primary-400 hover:text-primary-600'"
+           class="px-3 py-1 rounded-full text-xs font-semibold transition-colors">7 days</a>
+        <a th:href="@{/dashboard/market/history(days=30)}"
+           th:classappend="${selectedDays == 30} ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:border-primary-400 hover:text-primary-600'"
+           class="px-3 py-1 rounded-full text-xs font-semibold transition-colors">30 days</a>
+        <a th:href="@{/dashboard/market/history(days=90)}"
+           th:classappend="${selectedDays == 90} ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:border-primary-400 hover:text-primary-600'"
+           class="px-3 py-1 rounded-full text-xs font-semibold transition-colors">90 days</a>
+        <a th:href="@{/dashboard/market/history}"
+           th:classappend="${selectedDays == 0} ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:border-primary-400 hover:text-primary-600'"
+           class="px-3 py-1 rounded-full text-xs font-semibold transition-colors">All time</a>
+    </div>
 
     <!-- No history state -->
     <div th:unless="${hasHistory}" class="bg-white rounded-lg shadow-card p-8 text-center">
@@ -47,7 +65,15 @@
 
     <!-- Digest count summary -->
     <div th:if="${hasHistory}" class="mb-4 text-sm text-gray-500">
-        <span th:text="${totalDigests}">0</span> digests on record
+        <span th:if="${selectedDays > 0}">
+            Showing <span th:text="${filteredCount}">0</span>
+            digest<span th:if="${filteredCount != 1}">s</span>
+            from the last <span th:text="${selectedDays}">7</span> days
+            (<span th:text="${totalDigests}">0</span> total on record)
+        </span>
+        <span th:if="${selectedDays == 0}">
+            <span th:text="${totalDigests}">0</span> digests on record
+        </span>
     </div>
 
     <!-- History table -->
