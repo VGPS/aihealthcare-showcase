@@ -2,6 +2,8 @@ package com.wgblackmon.aihealthcare.infrastructure.config;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.GuidanceQueryService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollupService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.CorporateActionPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.EntryEmbeddingPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.GuidancePort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort;
@@ -9,6 +11,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.SecondaryNewsCheckPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +36,7 @@ import java.util.concurrent.Executor;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19  added guidanceQueryService bean (Slice 2.1)
+ * @updated 2026-08-20  added weeklyRollupService bean (Slice 3.5)
  */
 @Slf4j
 @Configuration
@@ -48,7 +51,9 @@ public class MarketAnalysisConfig {
      * @param repository       JPA adapter — persist and query digests
      * @param notifier         SES notifier — email alert delivery
      * @param embeddingPort    embedding adapter for dedup — null when EmbeddingModel absent
-     * @param dedupThreshold   cosine similarity threshold above which entries are suppressed
+     * @param dedupThreshold      cosine similarity threshold above which entries are suppressed
+     * @param secondaryNewsCheck  optional Alpaca News cross-check adapter (null when keys absent)
+     * @param corporateActionPort optional Alpaca Corporate Actions confirmation adapter (null when keys absent)
      * @return configured {@link MarketDigestService} bean
      */
     @Bean
@@ -59,13 +64,36 @@ public class MarketAnalysisConfig {
             MarketDigestRepository repository,
             @Autowired(required = false) MarketDigestNotifier notifier,
             @Autowired(required = false) EntryEmbeddingPort embeddingPort,
-            @Value("${aihealthcare.market-analysis.dedup.similarity-threshold:0.93}") double dedupThreshold) {
-        log.debug("marketDigestService() | notifierPresent={}, embeddingPortPresent={}, dedupThreshold={}",
-                notifier != null, embeddingPort != null, dedupThreshold);
+            @Value("${aihealthcare.market-analysis.dedup.similarity-threshold:0.93}") double dedupThreshold,
+            @Autowired(required = false) SecondaryNewsCheckPort secondaryNewsCheck,
+            @Autowired(required = false) CorporateActionPort corporateActionPort) {
+        log.debug("marketDigestService() | notifierPresent={}, embeddingPortPresent={}, dedupThreshold={}, "
+                        + "secondaryNewsCheckPresent={}, corporateActionPortPresent={}",
+                notifier != null, embeddingPort != null, dedupThreshold,
+                secondaryNewsCheck != null, corporateActionPort != null);
         MarketDigestService result = new MarketDigestService(
                 newsResearch, marketData, impactClassifier, repository,
-                notifier, embeddingPort, dedupThreshold);
+                notifier, embeddingPort, dedupThreshold, secondaryNewsCheck, corporateActionPort);
         log.debug("marketDigestService() | return={}", result);
+        return result;
+    }
+
+    /**
+     * Wires the on-demand weekly rollup service.
+     *
+     * @param repository   JPA-backed digest repository
+     * @param embeddingPort optional embedding model for semantic dedup (null when absent)
+     * @param threshold    cosine similarity threshold reused from the main dedup config
+     * @return configured {@link WeeklyRollupService} bean
+     */
+    @Bean
+    public WeeklyRollupService weeklyRollupService(
+            MarketDigestRepository repository,
+            @Autowired(required = false) EntryEmbeddingPort embeddingPort,
+            @Value("${aihealthcare.market-analysis.dedup.similarity-threshold:0.93}") double threshold) {
+        log.debug("weeklyRollupService() | embeddingPortPresent={}, threshold={}", embeddingPort != null, threshold);
+        WeeklyRollupService result = new WeeklyRollupService(repository, embeddingPort, threshold);
+        log.debug("weeklyRollupService() | return={}", result);
         return result;
     }
 

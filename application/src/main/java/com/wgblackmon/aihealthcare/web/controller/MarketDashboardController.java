@@ -1,11 +1,15 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.AffectedCompany;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.FactClassification;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.ImpactAssessment;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.RollupEntry;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollup;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollupService;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
@@ -47,7 +51,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19 — add ENTERPRISE to hasFullAccess() tier check
+ * @updated 2026-08-20 — add weekly rollup endpoint (Slice 3.5)
  */
 @Slf4j
 @Controller
@@ -58,16 +62,20 @@ public class MarketDashboardController {
 
     private static final int FREE_LIMIT = 3;
 
-    private final MarketDigestService marketDigestService;
-    private final SubscriberPort subscriberPort;
+    private final MarketDigestService  marketDigestService;
+    private final WeeklyRollupService  weeklyRollupService;
+    private final SubscriberPort       subscriberPort;
 
     public MarketDashboardController(MarketDigestService marketDigestService,
+                                     WeeklyRollupService weeklyRollupService,
                                      SubscriberPort subscriberPort) {
-        log.debug("MarketDashboardController() | marketDigestService={}, subscriberPort={}",
+        log.debug("MarketDashboardController() | marketDigestService={}, weeklyRollupService={}, subscriberPort={}",
                 marketDigestService.getClass().getSimpleName(),
+                weeklyRollupService.getClass().getSimpleName(),
                 subscriberPort.getClass().getSimpleName());
         this.marketDigestService = marketDigestService;
-        this.subscriberPort = subscriberPort;
+        this.weeklyRollupService = weeklyRollupService;
+        this.subscriberPort      = subscriberPort;
         log.debug("MarketDashboardController() | return=void");
     }
 
@@ -116,6 +124,59 @@ public class MarketDashboardController {
 
         log.debug("marketHistory() | return=market-digest-history ({} rows)", rows.size());
         return "market-digest-history";
+    }
+
+    @GetMapping("/dashboard/market/weekly")
+    public String weeklyRollup(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekOf,
+            Principal principal,
+            Model model) {
+        log.debug("weeklyRollup() | weekOf={}", weekOf);
+
+        boolean fullAccess = hasFullAccess(principal);
+
+        if (weekOf == null) {
+            // Default to the most recent Monday
+            LocalDate today = LocalDate.now();
+            weekOf = today.minusDays(today.getDayOfWeek().getValue() - 1);
+        }
+
+        WeeklyRollup rollup = weeklyRollupService.buildRollup(weekOf);
+
+        List<Map<String, Object>> entryRows = new ArrayList<>();
+        for (RollupEntry re : rollup.entries()) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("headline",          re.representative().newsItem().headline());
+            row.put("summary",           re.representative().newsItem().summary());
+            row.put("category",          re.representative().category().name());
+            row.put("rank",              re.bestRank().value());
+            row.put("factClassification", re.factClassification().name());
+            row.put("confirmed",         re.factClassification() == FactClassification.CONFIRMED);
+            row.put("occurrenceCount",   re.occurrenceCount());
+            row.put("companies",         companyLabels(re.representative().affectedCompanies()));
+            row.put("sourceUrls",        re.representative().newsItem().sourceUrls());
+            entryRows.add(row);
+        }
+
+        // Tier gate: FREE users see top 5
+        List<Map<String, Object>> visible = entryRows;
+        if (!fullAccess && entryRows.size() > FREE_LIMIT) {
+            visible = entryRows.subList(0, FREE_LIMIT);
+        }
+
+        model.addAttribute("entries",     visible);
+        model.addAttribute("totalEntries", rollup.entries().size());
+        model.addAttribute("weekOf",      DISPLAY_FMT.format(weekOf.atStartOfDay(ZoneOffset.UTC)));
+        model.addAttribute("weekEnd",     DISPLAY_FMT.format(weekOf.plusDays(6).atStartOfDay(ZoneOffset.UTC)));
+        model.addAttribute("weekOfIso",   weekOf.toString());
+        model.addAttribute("prevWeekIso", weekOf.minusDays(7).toString());
+        model.addAttribute("nextWeekIso", weekOf.plusDays(7).toString());
+        model.addAttribute("fullAccess",  fullAccess);
+        model.addAttribute("activePage",  "market-weekly");
+
+        String result = "market-digest-weekly";
+        log.debug("weeklyRollup() | return={}", result);
+        return result;
     }
 
     @GetMapping("/dashboard/market/{date}")

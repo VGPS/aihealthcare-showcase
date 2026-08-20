@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Weekly Market Digest Rollup — de-duplicated view of all qualifying market entries
+ * across a 7-day window. Near-duplicate stories that resurface on multiple days are
+ * collapsed into a single row; the Occurrences badge shows how often each story appeared.
+ * Tier-gated: FREE users see the top 3 entries; SUBSCRIBER/DEMO/ADMIN see all.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-20
+ * @updated 2026-08-20
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Weekly Market Rollup')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Weekly Market Rollup</h1>
+    <p class="text-primary-200 text-sm mt-0.5">De-duplicated AI-healthcare market signals</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('market-weekly')}"></nav>
+
+<main class="max-w-5xl mx-auto px-4 py-6">
+
+    <!-- Week navigation -->
+    <div class="flex items-center justify-between mb-6">
+        <a th:href="@{/dashboard/market/weekly(weekOf=${prevWeekIso})}"
+           class="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-800 font-medium">
+            &larr; Previous week
+        </a>
+        <div class="text-center">
+            <p class="font-semibold text-gray-800 text-lg"
+               th:text="${weekOf + ' — ' + weekEnd}">Week range</p>
+            <p class="text-xs text-gray-400 mt-0.5">7-day window · stories collapsed by headline similarity</p>
+        </div>
+        <a th:href="@{/dashboard/market/weekly(weekOf=${nextWeekIso})}"
+           class="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-800 font-medium">
+            Next week &rarr;
+        </a>
+    </div>
+
+    <!-- Tier gate message -->
+    <div th:if="${!fullAccess and totalEntries > 3}"
+         class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <p class="text-sm text-amber-800">
+            Showing the <strong>top 3</strong> entries this week.
+            <a th:href="@{/pricing}" class="text-primary-600 underline font-medium">Upgrade to Subscriber</a>
+            to see all <span th:text="${totalEntries}">N</span> qualifying signals.
+        </p>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${totalEntries == 0}"
+         class="bg-white rounded-lg shadow-card p-8 text-center">
+        <p class="text-gray-500 text-sm">No qualifying market signals for this week.</p>
+        <p class="text-gray-400 text-xs mt-2">
+            Try the <a th:href="@{/dashboard/market/history}" class="text-primary-600 underline">digest history</a>
+            to find a week with entries.
+        </p>
+    </div>
+
+    <!-- Summary badge -->
+    <div th:if="${totalEntries > 0}" class="mb-4 text-sm text-gray-500">
+        <span th:text="${totalEntries}">0</span> unique signals this week
+        <span th:if="${!fullAccess and totalEntries > 3}">
+            (showing top 3)
+        </span>
+    </div>
+
+    <!-- Entry cards -->
+    <div th:if="${!entries.isEmpty()}" class="space-y-4">
+        <div th:each="entry : ${entries}"
+             class="bg-white rounded-lg shadow-card border border-gray-100 p-5">
+
+            <!-- Header row: rank badge + headline + occurrence count -->
+            <div class="flex items-start justify-between gap-3 mb-2">
+                <div class="flex items-start gap-3 flex-1 min-w-0">
+                    <!-- Rank circle -->
+                    <span class="flex-shrink-0 w-7 h-7 rounded-full bg-primary-100 text-primary-700
+                                 text-xs font-bold flex items-center justify-center"
+                          th:text="${entry.rank}">1</span>
+
+                    <!-- Headline -->
+                    <h3 class="font-semibold text-gray-900 text-sm leading-snug"
+                        th:text="${entry.headline}">Headline</h3>
+                </div>
+
+                <!-- Occurrence badge -->
+                <div class="flex-shrink-0 flex gap-2 items-center">
+                    <span th:if="${entry.occurrenceCount > 1}"
+                          class="inline-flex items-center gap-1 rounded-full bg-blue-100 text-blue-700
+                                 text-xs font-semibold px-2 py-0.5">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        <span th:text="${entry.occurrenceCount + 'x'}">2x</span>
+                    </span>
+
+                    <!-- Category badge -->
+                    <span class="inline-block rounded-full text-xs font-semibold px-2 py-0.5"
+                          th:classappend="${entry.category == 'EARNINGS'     ? 'bg-green-100 text-green-700'  :
+                                           entry.category == 'REGULATORY'   ? 'bg-purple-100 text-purple-700':
+                                           entry.category == 'FUNDING'      ? 'bg-blue-100 text-blue-700'    :
+                                           entry.category == 'M_AND_A'      ? 'bg-orange-100 text-orange-700':
+                                           entry.category == 'MAJOR_PARTNERSHIP' ? 'bg-teal-100 text-teal-700':
+                                                                              'bg-gray-100 text-gray-600'}"
+                          th:text="${#strings.replace(entry.category,'_',' ')}">EARNINGS</span>
+
+                    <!-- Fact classification badge -->
+                    <span th:if="${entry.confirmed}"
+                          class="inline-block rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200
+                                 text-xs font-medium px-2 py-0.5">Confirmed</span>
+                    <span th:unless="${entry.confirmed}"
+                          class="inline-block rounded-full bg-gray-50 text-gray-500 border border-gray-200
+                                 text-xs font-medium px-2 py-0.5">Speculative</span>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <p class="text-sm text-gray-600 leading-relaxed mb-3 ml-10"
+               th:text="${entry.summary}">Summary text.</p>
+
+            <!-- Companies -->
+            <div th:if="${not #lists.isEmpty(entry.companies)}" class="ml-10 mb-2 flex flex-wrap gap-1">
+                <span th:each="company : ${entry.companies}"
+                      class="inline-block bg-gray-100 text-gray-600 text-xs rounded px-2 py-0.5"
+                      th:text="${company}">Company</span>
+            </div>
+
+            <!-- Source links -->
+            <div th:if="${not #lists.isEmpty(entry.sourceUrls)}"
+                 class="ml-10 flex flex-wrap gap-2 mt-2">
+                <a th:each="url, stat : ${entry.sourceUrls}"
+                   th:href="${url}"
+                   th:text="${'Source ' + (stat.index + 1)}"
+                   target="_blank" rel="noopener noreferrer"
+                   class="text-xs text-primary-600 hover:text-primary-800 underline">Source</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="mt-8 pt-4 border-t border-gray-200 flex justify-between text-sm">
+        <a th:href="@{/dashboard/market}" class="text-primary-600 hover:text-primary-800">
+            &larr; Daily digest
+        </a>
+        <a th:href="@{/dashboard/market/history}" class="text-primary-600 hover:text-primary-800">
+            Digest history &rarr;
+        </a>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>
