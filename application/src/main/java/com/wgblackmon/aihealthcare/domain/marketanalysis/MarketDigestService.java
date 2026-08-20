@@ -1,11 +1,13 @@
 package com.wgblackmon.aihealthcare.domain.marketanalysis;
 
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.CorporateActionPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.EntryEmbeddingPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.SecondaryNewsCheckPort;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
@@ -18,12 +20,15 @@ import java.util.Optional;
 /**
  * Application-layer service orchestrating the daily AI-healthcare market digest pipeline.
  *
- * <p>The full daily digest pipeline (implemented in Slice 1.6):
+ * <p>The full daily digest pipeline:
  * <ol>
  *   <li>Skip if a digest for {@code date} already exists in the repository.</li>
  *   <li>Research: fetch raw news from the 24h window ending at midnight on {@code date}.</li>
+ *   <li>Cross-check (optional): fetch secondary news from Alpaca News API for tracked tickers;
+ *       merge with Perplexity results, de-duplicating by normalized headline.</li>
  *   <li>Wrap each item in a preliminary {@link MarketDigestEntry} (SPECULATIVE/rank-5/empty assessments).</li>
  *   <li>Classify: enrich assessments, fact classification, and rank via {@link ImpactClassifierPort}.</li>
+ *   <li>Peer-tag companies against the peer-group classifier.</li>
  *   <li>Filter: discard non-qualifying entries; sort qualifying entries rank-ascending.</li>
  *   <li>Persist the resulting {@link MarketDigest} via {@link MarketDigestRepository}.</li>
  *   <li>Notify via {@link MarketDigestNotifier} when ≥1 entry qualifies (notifier is nullable).</li>
@@ -36,7 +41,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19  peer tagging step added (Slice 2.2)
+ * @updated 2026-08-19  secondary news cross-check (Slice 3.6) + corporate action confirmation (Slice 3.7)
  */
 @Slf4j
 public class MarketDigestService {
@@ -46,12 +51,14 @@ public class MarketDigestService {
     private static final PeerGroupTagger PEER_GROUP_TAGGER = new PeerGroupTagger();
 
     private final MarketNewsResearchPort newsResearch;
-    private final MarketDataPort marketData;
-    private final ImpactClassifierPort impactClassifier;
+    private final MarketDataPort         marketData;
+    private final ImpactClassifierPort   impactClassifier;
     private final MarketDigestRepository repository;
-    private final MarketDigestNotifier notifier;
-    private final EntryEmbeddingPort embeddingPort;
-    private final double dedupThreshold;
+    private final MarketDigestNotifier   notifier;
+    private final EntryEmbeddingPort     embeddingPort;
+    private final double                 dedupThreshold;
+    private final SecondaryNewsCheckPort secondaryNewsCheck;
+    private final CorporateActionPort    corporateActionPort;
 
     public MarketDigestService(
             MarketNewsResearchPort newsResearch,
@@ -60,14 +67,18 @@ public class MarketDigestService {
             MarketDigestRepository repository,
             MarketDigestNotifier notifier,
             EntryEmbeddingPort embeddingPort,
-            double dedupThreshold) {
-        this.newsResearch = newsResearch;
-        this.marketData = marketData;
-        this.impactClassifier = impactClassifier;
-        this.repository = repository;
-        this.notifier = notifier;
-        this.embeddingPort = embeddingPort;
-        this.dedupThreshold = dedupThreshold;
+            double dedupThreshold,
+            SecondaryNewsCheckPort secondaryNewsCheck,
+            CorporateActionPort corporateActionPort) {
+        this.newsResearch        = newsResearch;
+        this.marketData          = marketData;
+        this.impactClassifier    = impactClassifier;
+        this.repository          = repository;
+        this.notifier            = notifier;
+        this.embeddingPort       = embeddingPort;
+        this.dedupThreshold      = dedupThreshold;
+        this.secondaryNewsCheck  = secondaryNewsCheck;
+        this.corporateActionPort = corporateActionPort;
     }
 
     /**
@@ -90,10 +101,15 @@ public class MarketDigestService {
         }
 
         Instant since = date.minusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        Instant until = date.atStartOfDay(ZoneOffset.UTC).toInstant();
+
         List<MarketNewsItem> newsItems = newsResearch.findRecentAiHealthcareNews(since);
         log.info("generateDailyDigest() | research returned {} raw items for {}", newsItems.size(), date);
 
-        if (newsItems.isEmpty()) {
+        // Step 1b: secondary cross-check from Alpaca News API (optional, fail-open)
+        List<MarketNewsItem> mergedItems = mergeWithSecondaryCheck(newsItems, since, until);
+
+        if (mergedItems.isEmpty()) {
             MarketDigest emptyDigest = MarketDigest.empty(date);
             repository.save(emptyDigest);
             log.info("generateDailyDigest() | saved empty digest for {}", date);
@@ -102,7 +118,7 @@ public class MarketDigestService {
         }
 
         List<MarketDigestEntry> preliminary = new ArrayList<>();
-        for (MarketNewsItem item : newsItems) {
+        for (MarketNewsItem item : mergedItems) {
             preliminary.add(new MarketDigestEntry(
                     item,
                     new ArrayList<>(),
@@ -128,6 +144,15 @@ public class MarketDigestService {
         MarketDigest digest = new MarketDigest(date, qualified, Instant.now());
         repository.save(digest);
         log.info("generateDailyDigest() | digest saved for {}", date);
+
+        // Optional corporate action confirmation step (Slice 3.7)
+        if (corporateActionPort != null && !qualified.isEmpty()) {
+            try {
+                corporateActionPort.attachConfirmations(digest, date);
+            } catch (Exception e) {
+                log.warn("generateDailyDigest() | corporate action confirmation failed (non-fatal): {}", e.getMessage());
+            }
+        }
 
         if (!qualified.isEmpty() && notifier != null) {
             List<MarketDigestEntry> notifiable = deduplicateForNotification(qualified, date);
@@ -197,6 +222,74 @@ public class MarketDigestService {
         List<MarketDigest> result = repository.findByDateRange(from, to);
         log.debug("findByDateRange() | return.size={}", result.size());
         return result;
+    }
+
+    /**
+     * Merges primary Perplexity news items with secondary Alpaca News items,
+     * de-duplicating by normalized headline (lowercase + stripped punctuation).
+     *
+     * <p>Perplexity items are always preserved. Alpaca items are appended only when
+     * their normalized headline does not already appear in the primary set.
+     * If {@link #secondaryNewsCheck} is null or the call fails, the primary list
+     * is returned as-is (fail-open behaviour).
+     *
+     * @param primary  items from the primary Perplexity research adapter
+     * @param since    start of the time window passed to the secondary adapter
+     * @param until    end of the time window passed to the secondary adapter
+     * @return merged, de-duplicated list (never null)
+     */
+    List<MarketNewsItem> mergeWithSecondaryCheck(
+            List<MarketNewsItem> primary, Instant since, Instant until) {
+        log.debug("mergeWithSecondaryCheck() | primary.size={}", primary.size());
+
+        if (secondaryNewsCheck == null) {
+            log.debug("mergeWithSecondaryCheck() | no secondaryNewsCheck — returning primary only");
+            return primary;
+        }
+
+        List<MarketNewsItem> secondary;
+        try {
+            secondary = secondaryNewsCheck.findRecentNews(since, until);
+        } catch (Exception e) {
+            log.warn("mergeWithSecondaryCheck() | secondary check failed (non-fatal): {}", e.getMessage());
+            return primary;
+        }
+
+        if (secondary.isEmpty()) {
+            log.debug("mergeWithSecondaryCheck() | secondary returned 0 items");
+            return primary;
+        }
+
+        // Build normalized headline set from primary items
+        java.util.Set<String> seenHeadlines = new java.util.HashSet<>();
+        for (MarketNewsItem item : primary) {
+            seenHeadlines.add(normalizeHeadline(item.headline()));
+        }
+
+        List<MarketNewsItem> merged = new ArrayList<>(primary);
+        int added = 0;
+        for (MarketNewsItem item : secondary) {
+            String normalized = normalizeHeadline(item.headline());
+            if (!seenHeadlines.contains(normalized)) {
+                merged.add(item);
+                seenHeadlines.add(normalized);
+                added++;
+            }
+        }
+
+        log.info("mergeWithSecondaryCheck() | secondary added {} novel items (total={})", added, merged.size());
+        log.debug("mergeWithSecondaryCheck() | return.size={}", merged.size());
+        return merged;
+    }
+
+    /**
+     * Normalizes a headline for de-duplication comparison: lowercase and strips non-alphanumeric.
+     *
+     * @param headline the raw headline string (non-null)
+     * @return lowercase alphanumeric-only string
+     */
+    static String normalizeHeadline(String headline) {
+        return headline.toLowerCase().replaceAll("[^a-z0-9]", "");
     }
 
     /**

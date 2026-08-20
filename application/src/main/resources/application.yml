@@ -1301,6 +1301,7 @@ aihealthcare:
   alpaca:
     api-key: ${ALPACA_API_KEY_ID:}
     secret-key: ${ALPACA_API_SECRET_KEY:}
+    tracked-tickers: ${ALPACA_TRACKED_TICKERS:DOCS,AMWL,EVH,NVCR,ASTH,HIMS,OMCL,PHR}
 
   # ---------------------------------------------------------------------------
   # Google Gemini API — used by GeminiAiSearchAdapter for AI-enhanced search.

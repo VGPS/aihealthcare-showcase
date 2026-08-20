@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.SecondaryNewsCheckPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,9 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link MarketDigestService} — qualifying-bar filter and sort-by-rank logic.
@@ -38,7 +41,9 @@ class MarketDigestServiceTest {
                 mock(MarketDigestRepository.class),
                 mock(MarketDigestNotifier.class),
                 null,
-                0.93
+                0.93,
+                null,
+                null
         );
     }
 
@@ -128,7 +133,93 @@ class MarketDigestServiceTest {
         assertThat(service.filterAndSort(List.of())).isEmpty();
     }
 
+    // --- mergeWithSecondaryCheck ---
+
+    @Test
+    void merge_nullSecondaryPort_returnsPrimary() {
+        MarketNewsItem item = makeItem("Primary Headline", NewsCategory.EARNINGS);
+        List<MarketNewsItem> result = service.mergeWithSecondaryCheck(
+                List.of(item), Instant.now(), Instant.now());
+        assertThat(result).containsExactly(item);
+    }
+
+    @Test
+    void merge_secondaryReturnsNovelItem_appendsIt() {
+        SecondaryNewsCheckPort port = mock(SecondaryNewsCheckPort.class);
+        MarketDigestService svc = new MarketDigestService(
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort.class),
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort.class),
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort.class),
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository.class),
+                null, null, 0.93, port, null);
+
+        MarketNewsItem primary = makeItem("Primary Headline", NewsCategory.EARNINGS);
+        MarketNewsItem secondary = makeItem("Novel Secondary Headline", NewsCategory.REGULATORY);
+        when(port.findRecentNews(any(), any())).thenReturn(List.of(secondary));
+
+        List<MarketNewsItem> result = svc.mergeWithSecondaryCheck(
+                List.of(primary), Instant.now(), Instant.now());
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).headline()).isEqualTo("Primary Headline");
+        assertThat(result.get(1).headline()).isEqualTo("Novel Secondary Headline");
+    }
+
+    @Test
+    void merge_secondaryDuplicatesHeadline_notAppended() {
+        SecondaryNewsCheckPort port = mock(SecondaryNewsCheckPort.class);
+        MarketDigestService svc = new MarketDigestService(
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort.class),
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort.class),
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort.class),
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository.class),
+                null, null, 0.93, port, null);
+
+        MarketNewsItem primary = makeItem("Doximity Q2 Earnings Beat Estimates!", NewsCategory.EARNINGS);
+        MarketNewsItem duplicate = makeItem("doximity q2 earnings beat estimates!", NewsCategory.EARNINGS);
+        when(port.findRecentNews(any(), any())).thenReturn(List.of(duplicate));
+
+        List<MarketNewsItem> result = svc.mergeWithSecondaryCheck(
+                List.of(primary), Instant.now(), Instant.now());
+
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void merge_secondaryThrows_returnsPrimaryOnly() {
+        SecondaryNewsCheckPort port = mock(SecondaryNewsCheckPort.class);
+        MarketDigestService svc = new MarketDigestService(
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort.class),
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort.class),
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort.class),
+                mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository.class),
+                null, null, 0.93, port, null);
+
+        MarketNewsItem primary = makeItem("Primary Headline", NewsCategory.M_AND_A);
+        when(port.findRecentNews(any(), any())).thenThrow(new RuntimeException("API error"));
+
+        List<MarketNewsItem> result = svc.mergeWithSecondaryCheck(
+                List.of(primary), Instant.now(), Instant.now());
+
+        assertThat(result).containsExactly(primary);
+    }
+
+    @Test
+    void normalizeHeadline_stripsNonAlphanumericAndLowercases() {
+        assertThat(MarketDigestService.normalizeHeadline("Doximity Q2 Earnings — Beat Estimates!"))
+                .isEqualTo("doximityq2earningsbeatestimates");
+        // simpler case
+        assertThat(MarketDigestService.normalizeHeadline("Hello, World!"))
+                .isEqualTo("helloworld");
+    }
+
     // --- helper ---
+
+    private static MarketNewsItem makeItem(String headline, NewsCategory category) {
+        return new MarketNewsItem(
+                headline, "Summary.", List.of("https://example.com"),
+                Instant.now(), category, null);
+    }
 
     private static MarketDigestEntry makeEntry(NewsCategory category, Long dealSizeUsd, int rank) {
         MarketNewsItem item = new MarketNewsItem(

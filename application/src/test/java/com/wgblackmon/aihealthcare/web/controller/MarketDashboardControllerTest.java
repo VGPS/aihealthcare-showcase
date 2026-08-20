@@ -11,6 +11,9 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketImpactRank;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketNewsItem;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.RollupEntry;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollup;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollupService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
@@ -44,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-08-20 — added WeeklyRollupService mock + weekly endpoint tests
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(MarketDashboardController.class)
@@ -55,6 +58,9 @@ class MarketDashboardControllerTest {
 
     @MockitoBean
     private MarketDigestService marketDigestService;
+
+    @MockitoBean
+    private WeeklyRollupService weeklyRollupService;
 
     @MockitoBean
     private SubscriberPort subscriberPort;
@@ -199,5 +205,36 @@ class MarketDashboardControllerTest {
     void marketHistory_unauthenticated_redirects() throws Exception {
         mockMvc.perform(get("/dashboard/market/history"))
                 .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /dashboard/market/weekly returns market-digest-weekly view")
+    void weekly_returnsWeeklyView() throws Exception {
+        LocalDate weekStart = LocalDate.of(2026, 8, 17);
+        WeeklyRollup rollup = new WeeklyRollup(weekStart, List.of(), java.time.Instant.now());
+        when(weeklyRollupService.buildRollup(weekStart)).thenReturn(rollup);
+
+        mockMvc.perform(get("/dashboard/market/weekly").param("weekOf", "2026-08-17"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("market-digest-weekly"))
+                .andExpect(model().attribute("totalEntries", 0))
+                .andExpect(model().attribute("activePage", "market-weekly"));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /dashboard/market/weekly with entries populates model rows")
+    void weekly_withEntries_populatesRows() throws Exception {
+        LocalDate weekStart = LocalDate.of(2026, 8, 17);
+        MarketDigestEntry entry = digestWithEntries(NewsCategory.EARNINGS).entries().get(0);
+        RollupEntry rollupEntry = new RollupEntry(entry, entry.rank(), FactClassification.CONFIRMED, 2);
+        WeeklyRollup rollup = new WeeklyRollup(weekStart, List.of(rollupEntry), java.time.Instant.now());
+        when(weeklyRollupService.buildRollup(weekStart)).thenReturn(rollup);
+
+        mockMvc.perform(get("/dashboard/market/weekly").param("weekOf", "2026-08-17"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("market-digest-weekly"))
+                .andExpect(model().attribute("totalEntries", 1));
     }
 }
