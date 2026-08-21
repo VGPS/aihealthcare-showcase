@@ -20,21 +20,24 @@ import java.util.Set;
  * day's top-weighted AI healthcare articles.
  *
  * <p>Serves {@code GET /dashboard/linkedin} by fetching the last 24 hours of
- * articles via {@link ArticleIngestionPort}, sorting them by source weight
- * descending, capping at 5, and building two copy-ready text blocks:
+ * articles via {@link ArticleIngestionPort}, classifying each article into a
+ * preferred topic category (LEGAL, MARKETPLACE, POLICY, CONTRADICTION, or
+ * GENERAL), sorting by category priority then source weight, deduplicating by
+ * title, and capping at 5 articles.
+ *
+ * <p>Two copy-ready text blocks are produced:
  * <ul>
- *   <li><strong>Post body</strong> — 3,000-character LinkedIn post with article
- *       titles and one-line snippets. Links are intentionally omitted from the
- *       post body to avoid LinkedIn's reach-suppression for external links.</li>
- *   <li><strong>Links block</strong> — numbered source list intended to be
- *       pasted as the first comment after publishing.</li>
+ *   <li><strong>Post body</strong> — ≤3,000-char LinkedIn post with category
+ *       labels, bold titles, and expanded snippets. Links are intentionally
+ *       omitted to avoid LinkedIn's reach-suppression for external links.</li>
+ *   <li><strong>Links block</strong> — numbered source list for the first
+ *       comment after publishing.</li>
  * </ul>
  *
- * <p>No LLM calls are made; the post is assembled from harvested article
- * metadata only.
+ * <p>No LLM calls are made; classification uses keyword matching only.
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-08-21
  * @updated 2026-08-21
  */
@@ -49,6 +52,47 @@ public class LinkedInPostController {
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy");
     private static final String SITE_URL = "https://app.bigskylabs.ai";
+
+    // Topic priority — higher = appears first in the post
+    private static final int PRIORITY_LEGAL         = 4;
+    private static final int PRIORITY_MARKETPLACE   = 3;
+    private static final int PRIORITY_POLICY        = 2;
+    private static final int PRIORITY_CONTRADICTION = 1;
+    private static final int PRIORITY_GENERAL       = 0;
+
+    private static final String[] LEGAL_KEYWORDS = {
+        "lawsuit", "litigation", "court", "class action", "settlement",
+        "ftc", "antitrust", "doj", "attorney general", "sec filing",
+        "hipaa violation", "patent infringement", "copyright infringement",
+        "criminal charges", "indictment", "legal challenge", "legal action",
+        "injunction", "verdict", "subpoena", "regulatory fine", "penalty"
+    };
+
+    private static final String[] MARKETPLACE_KEYWORDS = {
+        "acqui", "merger", "acquired", "acquisition", "funding round",
+        "raised", "series a", "series b", "series c", "ipo",
+        "private equity", "venture capital", "joint venture",
+        "partnership", "deal", "billion", "investment", "buyout",
+        "divest", "spin off", "strategic alliance", "m&a"
+    };
+
+    private static final String[] POLICY_KEYWORDS = {
+        "fda clears", "fda approves", "fda guidance", "fda draft",
+        "cms rule", "cms proposes", "cms finalizes",
+        "congress", "senate", "legislation", "signed into law",
+        "executive order", "white house", "hhs", "onc",
+        "proposed rule", "final rule", "rulemaking", "mandate",
+        "government policy", "federal policy", "state law",
+        "510(k)", "de novo", "pma approval"
+    };
+
+    private static final String[] CONTRADICTION_KEYWORDS = {
+        "contradicts", "reverses", "disputes", "challenges earlier",
+        "conflicts with", "overturns", "refutes", "debunks",
+        "prior study", "previous study", "study reversed",
+        "update to earlier", "correction to", "retraction",
+        "new evidence contradicts", "researchers challenge"
+    };
 
     private final ArticleIngestionPort articleIngestionPort;
 
@@ -69,7 +113,7 @@ public class LinkedInPostController {
 
         List<NewsArticle> raw = articleIngestionPort.fetchRecentArticles(1);
         List<NewsArticle> usable = filterUsable(raw);
-        List<NewsArticle> sorted = sortByWeightDesc(usable);
+        List<NewsArticle> sorted = sortByPriorityThenWeight(usable);
         List<NewsArticle> deduped = deduplicateByTitle(sorted);
         List<NewsArticle> top = limitList(deduped, MAX_ARTICLES);
 
@@ -90,12 +134,9 @@ public class LinkedInPostController {
 
     /**
      * Drops articles that have no usable headline or content:
-     * (1) bodyText starts with "NFE/" — malformed Google News RSS entries where
-     *     the body contains a browser UA string instead of article text.
-     * (2) Title (normalized) equals the topic field (normalized) — the feed name
-     *     was used as the headline, meaning no real article title was captured.
-     * (3) Title ends with "- Google News" — the raw Google News feed label leaked
-     *     into the title field.
+     * (1) bodyText starts with "NFE/" — malformed Google News RSS entries.
+     * (2) Title contains "- Google News" — raw feed label leaked into headline.
+     * (3) Normalized title equals normalized topic — feed name used as headline.
      */
     private List<NewsArticle> filterUsable(List<NewsArticle> articles) {
         log.debug("filterUsable() | articles={}", articles.size());
@@ -110,15 +151,12 @@ public class LinkedInPostController {
     }
 
     private boolean isUsable(NewsArticle a) {
-        // Malformed Google News RSS — body is a browser UA string, not article text
         if (a.bodyText() != null && a.bodyText().trim().startsWith("NFE/")) {
             return false;
         }
-        // Raw Google News feed label leaked into title
         if (a.title() != null && a.title().contains("- Google News")) {
             return false;
         }
-        // Title is just the topic/feed name — no real headline was captured
         String titleNorm = normalizeTitle(a.title());
         String topicNorm = normalizeTitle(a.topic());
         if (!titleNorm.isBlank() && !topicNorm.isBlank() && titleNorm.equals(topicNorm)) {
@@ -127,23 +165,88 @@ public class LinkedInPostController {
         return true;
     }
 
-    private List<NewsArticle> sortByWeightDesc(List<NewsArticle> articles) {
-        log.debug("sortByWeightDesc() | articles={}", articles.size());
+    /**
+     * Sorts articles by topic priority descending, then source weight descending.
+     * LEGAL (4) > MARKETPLACE (3) > POLICY (2) > CONTRADICTION (1) > GENERAL (0).
+     */
+    private List<NewsArticle> sortByPriorityThenWeight(List<NewsArticle> articles) {
+        log.debug("sortByPriorityThenWeight() | articles={}", articles.size());
         List<NewsArticle> copy = new ArrayList<>(articles);
 
-        // Insertion sort by sourceWeight descending
+        // Insertion sort — stable, correct for small lists
         for (int i = 1; i < copy.size(); i++) {
             NewsArticle key = copy.get(i);
+            int keyPriority = classifyPriority(key);
             int j = i - 1;
-            while (j >= 0 && copy.get(j).sourceWeight() < key.sourceWeight()) {
+            while (j >= 0) {
+                int jPriority = classifyPriority(copy.get(j));
+                boolean jWins = jPriority > keyPriority
+                        || (jPriority == keyPriority && copy.get(j).sourceWeight() >= key.sourceWeight());
+                if (jWins) {
+                    break;
+                }
                 copy.set(j + 1, copy.get(j));
                 j--;
             }
             copy.set(j + 1, key);
         }
 
-        log.debug("sortByWeightDesc() | return={}", copy.size());
+        log.debug("sortByPriorityThenWeight() | return={}", copy.size());
         return copy;
+    }
+
+    /**
+     * Returns the topic priority score for a single article by matching its
+     * title and body text against keyword sets in priority order.
+     * Source tier "LEGAL" and "REGULATORY" are also used as signals.
+     */
+    private int classifyPriority(NewsArticle a) {
+        String text = buildSearchText(a);
+
+        // Explicit tier signals take precedence
+        if ("LEGAL".equalsIgnoreCase(a.sourceTier())) {
+            return PRIORITY_LEGAL;
+        }
+        if ("REGULATORY".equalsIgnoreCase(a.sourceTier())) {
+            return PRIORITY_POLICY;
+        }
+
+        if (containsAny(text, LEGAL_KEYWORDS))         { return PRIORITY_LEGAL; }
+        if (containsAny(text, MARKETPLACE_KEYWORDS))   { return PRIORITY_MARKETPLACE; }
+        if (containsAny(text, POLICY_KEYWORDS))        { return PRIORITY_POLICY; }
+        if (containsAny(text, CONTRADICTION_KEYWORDS)) { return PRIORITY_CONTRADICTION; }
+        return PRIORITY_GENERAL;
+    }
+
+    /**
+     * Returns the display label for an article's topic category.
+     * Returns an empty string for GENERAL so unlabeled articles stay clean.
+     */
+    private String classifyLabel(NewsArticle a) {
+        int priority = classifyPriority(a);
+        switch (priority) {
+            case PRIORITY_LEGAL:         return "[LEGAL] ";
+            case PRIORITY_MARKETPLACE:   return "[MARKETPLACE] ";
+            case PRIORITY_POLICY:        return "[POLICY] ";
+            case PRIORITY_CONTRADICTION: return "[CONTRADICTION] ";
+            default:                     return "";
+        }
+    }
+
+    private String buildSearchText(NewsArticle a) {
+        StringBuilder sb = new StringBuilder();
+        if (a.title() != null)    { sb.append(a.title()).append(" "); }
+        if (a.bodyText() != null) { sb.append(a.bodyText()); }
+        return sb.toString().toLowerCase();
+    }
+
+    private boolean containsAny(String text, String[] keywords) {
+        for (String kw : keywords) {
+            if (text.contains(kw)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private List<NewsArticle> limitList(List<NewsArticle> articles, int limit) {
@@ -159,7 +262,7 @@ public class LinkedInPostController {
 
     /**
      * Removes articles with duplicate titles (case-insensitive, punctuation-stripped).
-     * Input must already be sorted by weight descending — the first occurrence wins.
+     * Input must already be sorted — the first (highest-priority) occurrence wins.
      */
     private List<NewsArticle> deduplicateByTitle(List<NewsArticle> articles) {
         log.debug("deduplicateByTitle() | articles={}", articles.size());
@@ -193,7 +296,8 @@ public class LinkedInPostController {
         } else {
             for (int i = 0; i < articles.size(); i++) {
                 NewsArticle a = articles.get(i);
-                sb.append(i + 1).append(". **").append(a.title()).append("**\n");
+                String label = classifyLabel(a);
+                sb.append(i + 1).append(". **").append(label).append(a.title()).append("**\n");
                 String snippet = extractSnippet(a.bodyText());
                 if (!snippet.isBlank()) {
                     sb.append(snippet).append("\n");
@@ -244,12 +348,10 @@ public class LinkedInPostController {
         if (bodyText == null || bodyText.isBlank()) {
             return "";
         }
-        // Strip HTML tags
         String cleaned = bodyText.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
         if (cleaned.length() <= SNIPPET_MAX_CHARS) {
             return cleaned;
         }
-        // Truncate at word boundary
         String truncated = cleaned.substring(0, SNIPPET_MAX_CHARS);
         int lastSpace = truncated.lastIndexOf(' ');
         if (lastSpace > 0) {
