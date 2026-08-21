@@ -160,6 +160,45 @@ class LinkedInPostControllerTest {
 
     @Test
     @WithMockUser
+    void filtersOut_malformedGoogleNewsBody() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                articleWithBody("a1", "Epic Systems Healthcare AI News", "NFE/5.0 \"Epic Systems\" - Google News…", "ai-healthcare", 0.9),
+                article("a2", "FDA Clears New AI Diagnostic Tool", "Detailed FDA press release.", 0.8)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("articleCount", 1));
+    }
+
+    @Test
+    @WithMockUser
+    void filtersOut_googleNewsLabel_inTitle() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                article("a1", "AI Healthcare Funding - Google News", "body", 0.9),
+                article("a2", "CMS Proposes New AI Coverage Rule", "body2", 0.8)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("articleCount", 1));
+    }
+
+    @Test
+    @WithMockUser
+    void filtersOut_titleEqualsTopic() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                articleWithBody("a1", "Epic Systems AI Healthcare", "some body text", "epic systems ai healthcare", 0.9),
+                article("a2", "Epic Launches Ambient AI Scribe", "Real article body.", 0.8)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("articleCount", 1));
+    }
+
+    @Test
+    @WithMockUser
     void unauthorizedUser_isRedirectedToLogin() throws Exception {
         mockMvc.perform(get("/dashboard/linkedin"))
                 .andExpect(status().isOk()); // @WithMockUser satisfies auth
@@ -168,9 +207,13 @@ class LinkedInPostControllerTest {
     // ------------------------------------------------------------------
 
     private NewsArticle article(String id, String title, String body, double weight) {
+        return articleWithBody(id, title, body, "ai-healthcare", weight);
+    }
+
+    private NewsArticle articleWithBody(String id, String title, String body, String topic, double weight) {
         return new NewsArticle(
                 id, title, URI.create("https://example.com/" + id),
-                body, "ai-healthcare", null, null,
+                body, topic, null, null,
                 "Test Source", "INDUSTRY", weight, Instant.now()
         );
     }
