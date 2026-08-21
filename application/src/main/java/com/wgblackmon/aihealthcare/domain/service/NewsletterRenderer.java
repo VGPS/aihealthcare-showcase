@@ -130,13 +130,28 @@ public class NewsletterRenderer {
                 .append("</h2>");
 
             if (section.sectionType() == SectionType.REVERSAL_WATCH) {
-                html.append("<ul style=\"margin: 0; padding: 0 0 0 18px; font-size: 14px; line-height: 1.9; color: #444;\">");
-                for (String item : section.summary().split("\n")) {
-                    if (!item.isBlank()) {
-                        html.append("<li style=\"margin-bottom: 6px;\">").append(linkCitationsHtml(item, draft.sourceArticles())).append("</li>");
+                // Lines alternate: PRIOR:<topic>|<claim>  then  NEW:<claim>
+                // PRIOR lines → bold topic label + bold prior claim text
+                // NEW lines → bullet-point indented contradicting evidence
+                for (String line : section.summary().split("\n")) {
+                    if (line.isBlank()) continue;
+                    if (line.startsWith("PRIOR:")) {
+                        String payload = line.substring("PRIOR:".length());
+                        int sep = payload.indexOf("|");
+                        String topic  = sep > 0 ? escapeHtml(payload.substring(0, sep)) : "";
+                        String claim  = sep > 0 ? escapeHtml(payload.substring(sep + 1)) : escapeHtml(payload);
+                        html.append("<p style=\"margin: 14px 0 4px; font-size: 11px; font-weight: bold; ")
+                            .append("color: #cc3300; text-transform: uppercase; letter-spacing: 0.7px;\">")
+                            .append(topic).append("</p>")
+                            .append("<p style=\"margin: 0 0 4px; font-size: 14px; font-weight: bold; color: #333; line-height: 1.6;\">")
+                            .append(claim).append("</p>");
+                    } else if (line.startsWith("NEW:")) {
+                        String claim = escapeHtml(line.substring("NEW:".length()));
+                        html.append("<ul style=\"margin: 0 0 10px; padding: 0 0 0 18px; font-size: 14px; line-height: 1.7; color: #444;\">")
+                            .append("<li style=\"margin-bottom: 4px;\">").append(claim).append("</li>")
+                            .append("</ul>");
                     }
                 }
-                html.append("</ul>");
             } else if (section.sectionType() == SectionType.LEGAL_BRIEF) {
                 boolean inList = false;
                 for (String line : section.summary().split("\n")) {
@@ -266,7 +281,22 @@ public class NewsletterRenderer {
                 text.append("---\n");
             }
             text.append(section.headline()).append("\n\n");
-            if (section.sectionType() == SectionType.LEGAL_BRIEF) {
+            if (section.sectionType() == SectionType.REVERSAL_WATCH) {
+                for (String line : section.summary().split("\n")) {
+                    if (line.isBlank()) continue;
+                    if (line.startsWith("PRIOR:")) {
+                        String payload = line.substring("PRIOR:".length());
+                        int sep = payload.indexOf("|");
+                        String topic = sep > 0 ? payload.substring(0, sep) : "";
+                        String claim = sep > 0 ? payload.substring(sep + 1) : payload;
+                        text.append("\n[").append(topic).append("]\n");
+                        text.append("Was: \"").append(claim).append("\"\n");
+                    } else if (line.startsWith("NEW:")) {
+                        text.append("  • Now: \"").append(line.substring("NEW:".length())).append("\"\n");
+                    }
+                }
+                text.append("\n");
+            } else if (section.sectionType() == SectionType.LEGAL_BRIEF) {
                 for (String line : section.summary().split("\n")) {
                     if (line.isBlank()) continue;
                     if (line.startsWith("##")) {

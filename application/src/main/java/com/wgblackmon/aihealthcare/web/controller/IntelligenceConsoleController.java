@@ -230,11 +230,27 @@ public class IntelligenceConsoleController {
     }
 
     private boolean requiresEnterprise(String forwardPath) {
-        return ENTERPRISE_PATHS.stream().anyMatch(forwardPath::startsWith);
+        log.debug("requiresEnterprise() | forwardPath={}", forwardPath);
+        for (String path : ENTERPRISE_PATHS) {
+            if (forwardPath.startsWith(path)) {
+                log.debug("requiresEnterprise() | return=true");
+                return true;
+            }
+        }
+        log.debug("requiresEnterprise() | return=false");
+        return false;
     }
 
     private boolean isCountingPath(String forwardPath) {
-        return COUNTING_PATHS.stream().anyMatch(forwardPath::startsWith);
+        log.debug("isCountingPath() | forwardPath={}", forwardPath);
+        for (String path : COUNTING_PATHS) {
+            if (forwardPath.startsWith(path)) {
+                log.debug("isCountingPath() | return=true");
+                return true;
+            }
+        }
+        log.debug("isCountingPath() | return=false");
+        return false;
     }
 
     private boolean isEnterpriseTier(SubscriptionTier tier) {
