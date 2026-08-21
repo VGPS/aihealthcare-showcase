@@ -313,7 +313,7 @@ public class LinkedInPostController {
             for (int i = 0; i < articles.size(); i++) {
                 NewsArticle a = articles.get(i);
                 String label = classifyLabel(a);
-                sb.append(i + 1).append(". **").append(label).append(a.title()).append("**\n");
+                sb.append(i + 1).append(". **").append(label).append(cleanText(a.title())).append("**\n");
                 String snippet = extractSnippet(a.bodyText());
                 if (!snippet.isBlank()) {
                     sb.append(snippet).append("\n");
@@ -348,7 +348,7 @@ public class LinkedInPostController {
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
             String url = a.url() != null ? a.url().toString() : "";
-            String entry = (i + 1) + ". " + a.title() + "\n"
+            String entry = (i + 1) + ". " + cleanText(a.title()) + "\n"
                     + (url.isBlank() ? "" : "   " + url + "\n")
                     + "\n";
             if (sb.length() + entry.length() > LINKS_BLOCK_LIMIT) {
@@ -367,7 +367,7 @@ public class LinkedInPostController {
         if (bodyText == null || bodyText.isBlank()) {
             return "";
         }
-        String cleaned = bodyText.replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
+        String cleaned = cleanText(bodyText);
         if (cleaned.length() <= SNIPPET_MAX_CHARS) {
             return cleaned;
         }
@@ -377,5 +377,36 @@ public class LinkedInPostController {
             truncated = truncated.substring(0, lastSpace);
         }
         return truncated + "…";
+    }
+
+    /**
+     * Strips HTML tags, decodes common HTML entities, and collapses whitespace.
+     * Handles named entities (&amp;nbsp; &amp;amp; etc.) and numeric entities (&#160; &#8217; etc.).
+     */
+    private String cleanText(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text
+                .replaceAll("<[^>]+>", " ")          // strip HTML tags
+                .replace("&nbsp;",  " ")
+                .replace("&amp;",   "&")
+                .replace("&lt;",    "<")
+                .replace("&gt;",    ">")
+                .replace("&quot;",  "\"")
+                .replace("&apos;",  "'")
+                .replace("&laquo;", "«")
+                .replace("&raquo;", "»")
+                .replace("&mdash;", "—")
+                .replace("&ndash;", "–")
+                .replace("&hellip;", "…")
+                .replace("&ldquo;", "“")
+                .replace("&rdquo;", "”")
+                .replace("&lsquo;", "‘")
+                .replace("&rsquo;", "’")
+                .replaceAll("&#\\d+;", " ")           // numeric entities → space
+                .replaceAll("&[a-zA-Z]{2,8};", " ")  // any remaining named entities
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 }

@@ -273,6 +273,22 @@ class LinkedInPostControllerTest {
 
     @Test
     @WithMockUser
+    void htmlEntities_areStrippedFromOutput() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                articleWithBody("a1",
+                        "FDA&nbsp;Clears AI&amp;ML Diagnostic Tool",
+                        "Study shows&nbsp;90% accuracy&mdash;promising results for patients.",
+                        "ai-healthcare", 0.9)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("postBody", containsString("FDA Clears AI&ML Diagnostic Tool")))
+                .andExpect(model().attribute("postBody", containsString("90% accuracy—promising")));
+    }
+
+    @Test
+    @WithMockUser
     void linksBlock_doesNotExceed1250Chars() throws Exception {
         // 5 entries × (title 250 chars + URL ~30 chars + formatting) ≈ 1450 chars — triggers truncation
         when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
