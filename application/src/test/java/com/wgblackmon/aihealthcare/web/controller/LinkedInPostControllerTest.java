@@ -271,6 +271,23 @@ class LinkedInPostControllerTest {
                 .andExpect(status().isOk()); // @WithMockUser satisfies auth
     }
 
+    @Test
+    @WithMockUser
+    void linksBlock_doesNotExceed1250Chars() throws Exception {
+        // 5 entries × (title 250 chars + URL ~30 chars + formatting) ≈ 1450 chars — triggers truncation
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                article("a1", "A".repeat(250), "body1", 0.95),
+                article("a2", "B".repeat(250), "body2", 0.90),
+                article("a3", "C".repeat(250), "body3", 0.85),
+                article("a4", "D".repeat(250), "body4", 0.80),
+                article("a5", "E".repeat(250), "body5", 0.75)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("linksBlockLength", lessThanOrEqualTo(1250)));
+    }
+
     // ------------------------------------------------------------------
 
     private NewsArticle article(String id, String title, String body, double weight) {
