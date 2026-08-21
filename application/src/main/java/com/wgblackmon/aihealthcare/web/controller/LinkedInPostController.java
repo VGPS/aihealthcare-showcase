@@ -37,7 +37,7 @@ import java.util.Set;
  * <p>No LLM calls are made; classification uses keyword matching only.
  *
  * @author  Bill Blackmon
- * @version 1.3
+ * @version 1.4
  * @since   2026-08-21
  * @updated 2026-08-21
  */
@@ -133,10 +133,13 @@ public class LinkedInPostController {
     }
 
     /**
-     * Drops articles that have no usable headline or content:
-     * (1) bodyText starts with "NFE/" — malformed Google News RSS entries.
-     * (2) Title contains "- Google News" — raw feed label leaked into headline.
-     * (3) Normalized title equals normalized topic — feed name used as headline.
+     * Drops articles that should not appear in a LinkedIn post:
+     * (1) sourceWeight below 0.5 (below 5/10) — low-quality or unranked sources.
+     * (2) Title contains "Google" — excludes Google-branded content and Google
+     *     News aggregation artifacts; keeps the post independent and unique.
+     * (3) bodyText starts with "NFE/" — malformed Google News RSS entries.
+     * (4) Title contains "- Google News" — raw feed label leaked into headline.
+     * (5) Normalized title equals normalized topic — feed name used as headline.
      */
     private List<NewsArticle> filterUsable(List<NewsArticle> articles) {
         log.debug("filterUsable() | articles={}", articles.size());
@@ -151,12 +154,23 @@ public class LinkedInPostController {
     }
 
     private boolean isUsable(NewsArticle a) {
+        // Below the 5/10 quality threshold
+        if (a.sourceWeight() < 0.5) {
+            return false;
+        }
+        // Google-branded content or Google News aggregation artifact
+        if (a.title() != null && a.title().toLowerCase().contains("google")) {
+            return false;
+        }
+        // Malformed Google News RSS — body is a browser UA string, not article text
         if (a.bodyText() != null && a.bodyText().trim().startsWith("NFE/")) {
             return false;
         }
+        // Raw Google News feed label leaked into title
         if (a.title() != null && a.title().contains("- Google News")) {
             return false;
         }
+        // Title is just the topic/feed name — no real headline was captured
         String titleNorm = normalizeTitle(a.title());
         String topicNorm = normalizeTitle(a.topic());
         if (!titleNorm.isBlank() && !topicNorm.isBlank() && titleNorm.equals(topicNorm)) {

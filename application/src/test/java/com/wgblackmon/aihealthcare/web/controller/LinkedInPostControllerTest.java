@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link LinkedInPostController}.
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-08-21
  * @updated 2026-08-21
  */
@@ -217,7 +217,7 @@ class LinkedInPostControllerTest {
     void marketplaceArticle_ranksBeforePolicyArticle() throws Exception {
         when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
                 article("a1", "CMS Issues New Guidance on AI Billing", "Policy details.", 0.9),
-                article("a2", "Google Acquires AI Health Startup for $500M", "Deal details.", 0.5)
+                article("a2", "Microsoft Acquires AI Health Startup for $500M", "Deal details.", 0.6)
         ));
 
         mockMvc.perform(get("/dashboard/linkedin"))
@@ -236,6 +236,32 @@ class LinkedInPostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("postBody",
                         containsString("**[POLICY] FDA Approves AI Diagnostic Tool for Cardiac Screening**")));
+    }
+
+    @Test
+    @WithMockUser
+    void filtersOut_lowWeightArticle() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                article("a1", "AI Startup Raises Seed Round", "Low-quality tip.", 0.3),
+                article("a2", "FDA Clears AI Sepsis Detection Tool", "Real press release.", 0.9)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("articleCount", 1));
+    }
+
+    @Test
+    @WithMockUser
+    void filtersOut_googleTitleArticle() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                article("a1", "Google Health Expands AI Diagnostics Partnership", "Google news.", 0.9),
+                article("a2", "Epic Launches Ambient AI Documentation Tool", "Real article.", 0.8)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("articleCount", 1));
     }
 
     @Test
