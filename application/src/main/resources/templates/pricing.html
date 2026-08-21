@@ -143,11 +143,17 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-4">
-            <a href="mailto:wgblackmonall@gmail.com?subject=Enterprise+Plan+Inquiry"
+            <button id="enterpriseUpgradeBtn"
+                    th:if="${stripeEnabled}"
+                    th:data-price-id="${subscriberPriceId}"
+                    onclick="handleUpgrade()"
+                    class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-6 rounded-md text-sm transition-colors">
+                Subscribe to Enterprise
+            </button>
+            <a th:if="${!stripeEnabled}" th:href="@{/register}"
                class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-6 rounded-md text-sm transition-colors">
-                Contact for Enterprise Access
+                Subscribe to Enterprise
             </a>
-            <span class="text-xs text-on-surface-variant">Includes onboarding consultation &middot; Cancel anytime</span>
         </div>
     </div>
 

@@ -53,15 +53,18 @@ public class ReversalWatchSectionBuilder {
                 contradictions.size(),
                 contradictions.size() == 1 ? "" : "s");
 
+        // Format: PRIOR:<topic>|<prior claim>\nNEW:<new claim>
+        // Renderer detects these prefixes to bold the prior claim and bullet the new claim.
         StringBuilder summary = new StringBuilder();
         for (Contradiction c : contradictions) {
             if (!summary.isEmpty()) {
                 summary.append("\n");
             }
             String topic = c.pageSlug().replace("-", " ");
-            summary.append(topic.substring(0, 1).toUpperCase()).append(topic.substring(1))
-                    .append(": Was \"").append(c.priorClaim()).append("\"")
-                    .append(" — Now: \"").append(c.newClaim()).append("\"");
+            String topicLabel = topic.substring(0, 1).toUpperCase() + topic.substring(1);
+            summary.append("PRIOR:").append(topicLabel).append("|").append(c.priorClaim());
+            summary.append("\n");
+            summary.append("NEW:").append(c.newClaim());
         }
 
         // Collect article IDs from all source refs

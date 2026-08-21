@@ -115,19 +115,24 @@
     <!-- Contradictions -->
     <div class="bg-white rounded-lg shadow-sm p-5 mb-6" th:if="${!contradictions.isEmpty()}">
         <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-5">Contradictions</h2>
-        <div class="bg-white rounded-lg shadow-sm border-l-4 border-red-400 p-5 mb-4"
+        <div class="border-l-4 border-red-400 pl-4 mb-6"
              th:each="c : ${contradictions}">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-                <div class="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm leading-relaxed">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Prior Claim</div>
-                    <div th:text="${c.get('priorClaim')}">Previous assertion...</div>
-                </div>
-                <div class="bg-red-50 border border-red-200 rounded-md p-3 text-sm leading-relaxed">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-red-700 mb-1">New Claim</div>
-                    <div th:text="${c.get('newClaim')}">Contradicting assertion...</div>
-                </div>
+
+            <!-- Prior claim (bolded) -->
+            <div class="mb-3">
+                <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Prior Claim</div>
+                <p class="text-sm font-semibold text-gray-800 leading-relaxed" th:text="${c.get('priorClaim')}">Previous assertion...</p>
             </div>
-            <div class="text-xs text-gray-400 mt-3"
+
+            <!-- New claim as bullet -->
+            <div class="bg-red-50 border border-red-200 rounded-md p-3 mb-2">
+                <div class="text-xs font-semibold uppercase tracking-wider text-red-700 mb-2">Contradicting Evidence</div>
+                <ul class="list-disc ml-4 space-y-1">
+                    <li class="text-sm text-gray-700 leading-relaxed" th:text="${c.get('newClaim')}">Contradicting assertion...</li>
+                </ul>
+            </div>
+
+            <div class="text-xs text-gray-400"
                  th:text="'Detected ' + ${c.get('detectedAt')}">
                 Detected Jul 4, 2026
             </div>
