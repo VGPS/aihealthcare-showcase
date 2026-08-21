@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+/**
+ * LinkedIn post generator page at GET /dashboard/linkedin.
+ *
+ * Displays two ready-to-copy text blocks built from today's top-weighted
+ * AI healthcare articles:
+ *   - Post body (≤3,000 chars, no links) for pasting directly into LinkedIn
+ *   - Links block for pasting as the first comment after publishing
+ *
+ * @author  Bill Blackmon
+ * @since   2026-08-21
+ * @updated 2026-08-21
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('LinkedIn Post Generator')}">
+</head>
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">LinkedIn Post Generator</h1>
+    <p class="text-primary-200 text-sm mt-0.5">
+        Top articles from <span th:text="${dateLabel}">today</span> &middot;
+        <span th:text="${articleCount}">0</span> articles &middot;
+        Post body: <span th:text="${postBodyLength}">0</span> / 3,000 chars
+    </p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('linkedin')}"></nav>
+
+<main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+    <div th:if="${articleCount == 0}"
+         class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+        No articles were harvested in the last 24 hours. Try again after the next scheduled
+        harvest (daily at 04:00 UTC) or trigger a manual harvest via the
+        <a th:href="@{/admin/pipeline}" class="underline font-medium">Pipeline page</a>.
+    </div>
+
+    <!-- Post body -->
+    <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-on-surface">Post Body</h2>
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-on-surface-variant">Paste directly into LinkedIn (no links — avoids reach penalty)</span>
+                <button type="button" onclick="copyText('postBody', 'postBodyStatus')"
+                        class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-4 py-1.5 rounded-md transition-colors">
+                    Copy Post
+                </button>
+                <span id="postBodyStatus" class="text-xs"></span>
+            </div>
+        </div>
+        <textarea id="postBody" th:text="${postBody}" readonly
+                  class="w-full h-72 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
+                  spellcheck="false"></textarea>
+        <div class="mt-1 text-xs text-on-surface-variant text-right">
+            <span th:text="${postBodyLength}" class="font-medium">0</span> / 3,000 characters
+        </div>
+    </div>
+
+    <!-- Links block -->
+    <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-on-surface">Source Links — Paste as First Comment</h2>
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-on-surface-variant">Post your article first, then paste this as comment #1</span>
+                <button type="button" onclick="copyText('linksBlock', 'linksBlockStatus')"
+                        class="bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-1.5 rounded-md transition-colors">
+                    Copy Links
+                </button>
+                <span id="linksBlockStatus" class="text-xs"></span>
+            </div>
+        </div>
+        <textarea id="linksBlock" th:text="${linksBlock}" readonly
+                  class="w-full h-52 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
+                  spellcheck="false"></textarea>
+    </div>
+
+    <!-- Workflow hint -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
+        <p class="font-semibold mb-1">Posting workflow</p>
+        <ol class="list-decimal ml-4 space-y-1 text-blue-800">
+            <li>Copy the <strong>Post Body</strong> and paste into a new LinkedIn post.</li>
+            <li>Publish the post.</li>
+            <li>Immediately open the post, click <em>Add a comment</em>, and paste the <strong>Source Links</strong> block.</li>
+            <li>Submit the comment — LinkedIn shows it as "pinned" on your own posts.</li>
+        </ol>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+function copyText(textareaId, statusId) {
+    var el = document.getElementById(textareaId);
+    var statusEl = document.getElementById(statusId);
+    if (!el) { return; }
+    navigator.clipboard.writeText(el.value).then(function() {
+        statusEl.textContent = 'Copied!';
+        statusEl.className = 'text-xs text-green-700 font-semibold';
+        setTimeout(function() {
+            statusEl.textContent = '';
+        }, 3000);
+    }).catch(function() {
+        el.select();
+        statusEl.textContent = 'Select + Ctrl-C to copy';
+        statusEl.className = 'text-xs text-yellow-700 font-semibold';
+    });
+}
+</script>
+</body>
+</html>
