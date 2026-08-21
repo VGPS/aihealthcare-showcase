@@ -34,7 +34,7 @@ import java.util.Set;
  * metadata only.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-21
  * @updated 2026-08-21
  */
@@ -68,7 +68,8 @@ public class LinkedInPostController {
         log.debug("linkedInPost() | entry");
 
         List<NewsArticle> raw = articleIngestionPort.fetchRecentArticles(1);
-        List<NewsArticle> sorted = sortByWeightDesc(raw);
+        List<NewsArticle> usable = filterUsable(raw);
+        List<NewsArticle> sorted = sortByWeightDesc(usable);
         List<NewsArticle> deduped = deduplicateByTitle(sorted);
         List<NewsArticle> top = limitList(deduped, MAX_ARTICLES);
 
@@ -85,6 +86,45 @@ public class LinkedInPostController {
         log.debug("linkedInPost() | return=linkedin-post, articles={}, postBodyLength={}",
                 top.size(), postBody.length());
         return "linkedin-post";
+    }
+
+    /**
+     * Drops articles that have no usable headline or content:
+     * (1) bodyText starts with "NFE/" — malformed Google News RSS entries where
+     *     the body contains a browser UA string instead of article text.
+     * (2) Title (normalized) equals the topic field (normalized) — the feed name
+     *     was used as the headline, meaning no real article title was captured.
+     * (3) Title ends with "- Google News" — the raw Google News feed label leaked
+     *     into the title field.
+     */
+    private List<NewsArticle> filterUsable(List<NewsArticle> articles) {
+        log.debug("filterUsable() | articles={}", articles.size());
+        List<NewsArticle> result = new ArrayList<>();
+        for (NewsArticle a : articles) {
+            if (isUsable(a)) {
+                result.add(a);
+            }
+        }
+        log.debug("filterUsable() | return={}", result.size());
+        return result;
+    }
+
+    private boolean isUsable(NewsArticle a) {
+        // Malformed Google News RSS — body is a browser UA string, not article text
+        if (a.bodyText() != null && a.bodyText().trim().startsWith("NFE/")) {
+            return false;
+        }
+        // Raw Google News feed label leaked into title
+        if (a.title() != null && a.title().contains("- Google News")) {
+            return false;
+        }
+        // Title is just the topic/feed name — no real headline was captured
+        String titleNorm = normalizeTitle(a.title());
+        String topicNorm = normalizeTitle(a.topic());
+        if (!titleNorm.isBlank() && !topicNorm.isBlank() && titleNorm.equals(topicNorm)) {
+            return false;
+        }
+        return true;
     }
 
     private List<NewsArticle> sortByWeightDesc(List<NewsArticle> articles) {
