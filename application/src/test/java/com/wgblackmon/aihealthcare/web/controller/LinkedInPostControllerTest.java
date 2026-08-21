@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link LinkedInPostController}.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-21
  * @updated 2026-08-21
  */
@@ -70,13 +70,14 @@ class LinkedInPostControllerTest {
     @WithMockUser
     void postBody_containsBoldArticleTitle() throws Exception {
         when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
-                article("a1", "CMS Finalizes AI Reimbursement Rule", "New payment policy.", 0.9)
+                article("a1", "AI Chatbot Improves Patient Scheduling", "General product news.", 0.9)
         ));
 
+        // General article gets no label — verify plain bold format
         mockMvc.perform(get("/dashboard/linkedin"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("postBody",
-                        containsString("**CMS Finalizes AI Reimbursement Rule**")));
+                        containsString("**AI Chatbot Improves Patient Scheduling**")));
     }
 
     @Test
@@ -195,6 +196,46 @@ class LinkedInPostControllerTest {
         mockMvc.perform(get("/dashboard/linkedin"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("articleCount", 1));
+    }
+
+    @Test
+    @WithMockUser
+    void legalArticle_ranksBeforeGeneralArticle() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                article("a1", "OpenAI Releases New Model", "General product news.", 0.95),
+                article("a2", "FTC Files Antitrust Lawsuit Against AI Vendor", "Regulatory action.", 0.5)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                // Lawsuit article (lower weight) must appear before the high-weight general article
+                .andExpect(model().attribute("postBody", containsString("[LEGAL]")));
+    }
+
+    @Test
+    @WithMockUser
+    void marketplaceArticle_ranksBeforePolicyArticle() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                article("a1", "CMS Issues New Guidance on AI Billing", "Policy details.", 0.9),
+                article("a2", "Google Acquires AI Health Startup for $500M", "Deal details.", 0.5)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("postBody", containsString("[MARKETPLACE]")));
+    }
+
+    @Test
+    @WithMockUser
+    void policyArticle_getsLabel() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                article("a1", "FDA Approves AI Diagnostic Tool for Cardiac Screening", "Clearance details.", 0.9)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("postBody",
+                        containsString("**[POLICY] FDA Approves AI Diagnostic Tool for Cardiac Screening**")));
     }
 
     @Test
