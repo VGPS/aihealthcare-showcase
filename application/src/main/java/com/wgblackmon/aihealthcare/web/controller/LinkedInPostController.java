@@ -48,6 +48,7 @@ public class LinkedInPostController {
     private static final int MAX_ARTICLES = 5;
     private static final int SNIPPET_MAX_CHARS = 220;
     private static final int POST_BODY_LIMIT = 2900;
+    private static final int LINKS_BLOCK_LIMIT = 1200;
 
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy");
@@ -126,6 +127,7 @@ public class LinkedInPostController {
         model.addAttribute("articleCount", top.size());
         model.addAttribute("dateLabel", dateLabel);
         model.addAttribute("postBodyLength", postBody.length());
+        model.addAttribute("linksBlockLength", linksBlock.length());
 
         log.debug("linkedInPost() | return=linkedin-post, articles={}, postBodyLength={}",
                 top.size(), postBody.length());
@@ -346,11 +348,14 @@ public class LinkedInPostController {
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
             String url = a.url() != null ? a.url().toString() : "";
-            sb.append(i + 1).append(". ").append(a.title()).append("\n");
-            if (!url.isBlank()) {
-                sb.append("   ").append(url).append("\n");
+            String entry = (i + 1) + ". " + a.title() + "\n"
+                    + (url.isBlank() ? "" : "   " + url + "\n")
+                    + "\n";
+            if (sb.length() + entry.length() > LINKS_BLOCK_LIMIT) {
+                sb.append("Full source list: ").append(SITE_URL).append("\n");
+                break;
             }
-            sb.append("\n");
+            sb.append(entry);
         }
 
         String result = sb.toString().trim();
