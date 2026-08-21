@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link LinkedInPostController}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-21
  * @updated 2026-08-21
  */
@@ -68,7 +68,7 @@ class LinkedInPostControllerTest {
 
     @Test
     @WithMockUser
-    void postBody_containsArticleTitle() throws Exception {
+    void postBody_containsBoldArticleTitle() throws Exception {
         when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
                 article("a1", "CMS Finalizes AI Reimbursement Rule", "New payment policy.", 0.9)
         ));
@@ -76,7 +76,21 @@ class LinkedInPostControllerTest {
         mockMvc.perform(get("/dashboard/linkedin"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("postBody",
-                        containsString("CMS Finalizes AI Reimbursement Rule")));
+                        containsString("**CMS Finalizes AI Reimbursement Rule**")));
+    }
+
+    @Test
+    @WithMockUser
+    void deduplicatesByTitle_keepsHighestWeight() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                article("a1", "Epic Systems Healthcare AI News", "body1", 0.9),
+                article("a2", "Epic Systems Healthcare AI News", "body2", 0.85),
+                article("a3", "OpenAI Health GPT Launches", "body3", 0.8)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("articleCount", 2));
     }
 
     @Test

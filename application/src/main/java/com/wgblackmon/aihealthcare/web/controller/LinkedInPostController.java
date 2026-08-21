@@ -11,7 +11,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Thymeleaf controller that generates a ready-to-copy LinkedIn post from the
@@ -32,7 +34,7 @@ import java.util.List;
  * metadata only.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-21
  * @updated 2026-08-21
  */
@@ -41,7 +43,7 @@ import java.util.List;
 public class LinkedInPostController {
 
     private static final int MAX_ARTICLES = 5;
-    private static final int SNIPPET_MAX_CHARS = 140;
+    private static final int SNIPPET_MAX_CHARS = 220;
     private static final int POST_BODY_LIMIT = 2900;
 
     private static final DateTimeFormatter DATE_FMT =
@@ -67,7 +69,8 @@ public class LinkedInPostController {
 
         List<NewsArticle> raw = articleIngestionPort.fetchRecentArticles(1);
         List<NewsArticle> sorted = sortByWeightDesc(raw);
-        List<NewsArticle> top = limitList(sorted, MAX_ARTICLES);
+        List<NewsArticle> deduped = deduplicateByTitle(sorted);
+        List<NewsArticle> top = limitList(deduped, MAX_ARTICLES);
 
         String dateLabel = DATE_FMT.format(LocalDate.now(ZoneId.of("America/Chicago")));
         String postBody = buildPostBody(top, dateLabel);
@@ -114,6 +117,31 @@ public class LinkedInPostController {
         return result;
     }
 
+    /**
+     * Removes articles with duplicate titles (case-insensitive, punctuation-stripped).
+     * Input must already be sorted by weight descending — the first occurrence wins.
+     */
+    private List<NewsArticle> deduplicateByTitle(List<NewsArticle> articles) {
+        log.debug("deduplicateByTitle() | articles={}", articles.size());
+        Set<String> seen = new HashSet<>();
+        List<NewsArticle> result = new ArrayList<>();
+        for (NewsArticle a : articles) {
+            String key = normalizeTitle(a.title());
+            if (!key.isBlank() && seen.add(key)) {
+                result.add(a);
+            }
+        }
+        log.debug("deduplicateByTitle() | return={}", result.size());
+        return result;
+    }
+
+    private String normalizeTitle(String title) {
+        if (title == null) {
+            return "";
+        }
+        return title.toLowerCase().replaceAll("[^a-z0-9\\s]", "").replaceAll("\\s+", " ").trim();
+    }
+
     private String buildPostBody(List<NewsArticle> articles, String dateLabel) {
         log.debug("buildPostBody() | articles={}, dateLabel={}", articles.size(), dateLabel);
 
@@ -125,10 +153,10 @@ public class LinkedInPostController {
         } else {
             for (int i = 0; i < articles.size(); i++) {
                 NewsArticle a = articles.get(i);
-                sb.append(i + 1).append(". ").append(a.title()).append("\n");
+                sb.append(i + 1).append(". **").append(a.title()).append("**\n");
                 String snippet = extractSnippet(a.bodyText());
                 if (!snippet.isBlank()) {
-                    sb.append("   ").append(snippet).append("\n");
+                    sb.append(snippet).append("\n");
                 }
                 sb.append("\n");
             }
