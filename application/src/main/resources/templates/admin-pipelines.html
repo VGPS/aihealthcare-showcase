@@ -188,6 +188,35 @@
             </div>
         </div>
 
+        <!-- Corrections Daily Post -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Corrections Daily Post</h3>
+                <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Manual</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Shows recent wiki-detected contradictions filtered for LEGAL, POLICY, and FDA relevance
+                (sourceWeight ≥ 7/10). Pairs each original claim (amber) with its corrected claim (green),
+                plus article titles, snippets, and source links.
+            </p>
+            <div class="bg-amber-50 border border-amber-100 rounded px-3 py-2 mb-3 text-xs text-amber-900">
+                <p class="font-semibold mb-1">Pipeline required before use</p>
+                <ol class="list-decimal ml-3 space-y-0.5">
+                    <li>Run <strong>RSS Feeds</strong> to harvest today's articles.</li>
+                    <li>Run <strong>Wiki Compile</strong> to detect contradictions.</li>
+                    <li>Open Corrections page — entries appear automatically.</li>
+                </ol>
+            </div>
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Page: <span class="font-mono text-primary-600">/dashboard/corrections</span></div>
+                <div>Lookback window: <span class="font-semibold">30 days</span></div>
+                <div>Max entries: <span class="font-semibold">10 corrections</span></div>
+            </div>
+            <div class="flex items-center gap-2 mt-auto">
+                <a href="/dashboard/corrections" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open Corrections</a>
+            </div>
+        </div>
+
         <!-- LinkedIn Daily Post Generator -->
         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
             <div class="flex justify-between items-start mb-2">
