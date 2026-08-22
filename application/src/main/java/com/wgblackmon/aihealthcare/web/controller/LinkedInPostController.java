@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.web.util.ArticleToneClassifier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -39,7 +40,8 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.4
  * @since   2026-08-21
- * @updated 2026-08-21
+ * @updated 2026-08-23
+ * @see ArticleToneClassifier
  */
 @Slf4j
 @Controller
@@ -95,11 +97,14 @@ public class LinkedInPostController {
         "new evidence contradicts", "researchers challenge"
     };
 
-    private final ArticleIngestionPort articleIngestionPort;
+    private final ArticleIngestionPort  articleIngestionPort;
+    private final ArticleToneClassifier toneClassifier;
 
-    public LinkedInPostController(ArticleIngestionPort articleIngestionPort) {
+    public LinkedInPostController(ArticleIngestionPort articleIngestionPort,
+                                  ArticleToneClassifier toneClassifier) {
         log.debug("LinkedInPostController() | articleIngestionPort={}", articleIngestionPort);
         this.articleIngestionPort = articleIngestionPort;
+        this.toneClassifier       = toneClassifier;
     }
 
     /**
@@ -311,9 +316,11 @@ public class LinkedInPostController {
             sb.append("No new articles in the last 24 hours.\n");
         } else {
             for (int i = 0; i < articles.size(); i++) {
-                NewsArticle a = articles.get(i);
-                String label = classifyLabel(a);
-                sb.append(i + 1).append(". **").append(label).append(cleanText(a.title())).append("**\n");
+                NewsArticle a     = articles.get(i);
+                String label      = classifyLabel(a);
+                String toneEmoji  = toneClassifier.toneEmoji(a);
+                sb.append(i + 1).append(". ").append(toneEmoji)
+                  .append("**").append(label).append(cleanText(a.title())).append("**\n");
                 String snippet = extractSnippet(a.bodyText());
                 if (!snippet.isBlank()) {
                     sb.append(snippet).append("\n");
@@ -325,7 +332,7 @@ public class LinkedInPostController {
         sb.append("Source links in the first comment below.\n\n");
         sb.append("Follow for daily AI healthcare intelligence.\n");
         sb.append("→ Full platform: ").append(SITE_URL).append("\n\n");
-        sb.append("#AIHealthcare #HealthTech #HealthcareAI #DigitalHealth #MedTech");
+        sb.append(toneClassifier.linkedInHashtags(articles));
 
         String result = sb.toString();
         if (result.length() > POST_BODY_LIMIT) {
@@ -346,9 +353,10 @@ public class LinkedInPostController {
         StringBuilder sb = new StringBuilder();
         sb.append("Sources:\n");
         for (int i = 0; i < articles.size(); i++) {
-            NewsArticle a = articles.get(i);
-            String url = a.url() != null ? a.url().toString() : "";
-            String entry = (i + 1) + ". " + cleanText(a.title()) + "\n"
+            NewsArticle a    = articles.get(i);
+            String url       = a.url() != null ? a.url().toString() : "";
+            String toneEmoji = toneClassifier.toneEmoji(a);
+            String entry = toneEmoji + cleanText(a.title()) + "\n"
                     + (url.isBlank() ? "" : "   " + url + "\n")
                     + "\n";
             if (sb.length() + entry.length() > LINKS_BLOCK_LIMIT) {
@@ -357,6 +365,8 @@ public class LinkedInPostController {
             }
             sb.append(entry);
         }
+
+        sb.append("\n").append(toneClassifier.linkedInHashtags(articles));
 
         String result = sb.toString().trim();
         log.debug("buildLinksBlock() | return=length:{}", result.length());
