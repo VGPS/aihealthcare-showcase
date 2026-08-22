@@ -2,6 +2,8 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.web.util.ArticleToneClassifier;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -15,9 +17,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -34,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-22
- * @updated 2026-08-22
+ * @updated 2026-08-23
  */
 @WebMvcTest(FacebookDailyPostController.class)
 class FacebookDailyPostControllerTest {
@@ -44,6 +50,18 @@ class FacebookDailyPostControllerTest {
 
     @MockitoBean
     private ArticleIngestionPort articleIngestionPort;
+
+    @MockitoBean
+    private ArticleToneClassifier toneClassifier;
+
+    @BeforeEach
+    void setUpToneClassifier() {
+        when(toneClassifier.classifyTone(any())).thenReturn("NEUTRAL");
+        when(toneClassifier.toneEmoji(anyString())).thenReturn("ℹ️ ");
+        when(toneClassifier.toneEmoji(any(NewsArticle.class))).thenReturn("ℹ️ ");
+        when(toneClassifier.facebookHashtags(any())).thenReturn(
+                "#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #BigSkyLabs");
+    }
 
     // ------------------------------------------------------------------
     // Page rendering
@@ -211,7 +229,8 @@ class FacebookDailyPostControllerTest {
 
     @Test
     void classifyLabel_legalArticle_returnsLegalLabel() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(
+                articleIngestionPort, new ArticleToneClassifier());
         NewsArticle a = article("x", "FDA Sues AI Startup Over Lawsuit Settlement",
                 "body", "INDUSTRY", 0.9);
         assert "[LEGAL] ".equals(ctrl.classifyLabel(a))
@@ -220,7 +239,8 @@ class FacebookDailyPostControllerTest {
 
     @Test
     void classifyLabel_marketplaceArticle_returnsMarketplaceLabel() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(
+                articleIngestionPort, new ArticleToneClassifier());
         NewsArticle a = article("x", "Epic Systems acquires AI startup for $2.1B",
                 "body", "INDUSTRY", 0.9);
         assert "[MARKETPLACE] ".equals(ctrl.classifyLabel(a))
@@ -228,86 +248,21 @@ class FacebookDailyPostControllerTest {
     }
 
     // ------------------------------------------------------------------
-    // Text helpers
+    // Text helpers  (tone tests moved to ArticleToneClassifierTest)
     // ------------------------------------------------------------------
 
     @Test
-    void classifyTone_danger_forRecallKeyword() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
-        NewsArticle a = article("x", "FDA Recalls AI Diagnostic Device Over Safety Concerns",
-                "The FDA issued a recall notice citing patient harm.", "INDUSTRY", 0.9);
-        assert "UGLY".equals(ctrl.classifyTone(a))
-                : "Expected UGLY, got: " + ctrl.classifyTone(a);
-    }
-
-    @Test
-    void classifyTone_alarm_forInvestigationKeyword() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
-        NewsArticle a = article("x", "DOJ Launches Investigation into AI Billing Vendor",
-                "Federal investigators opened a formal investigation.", "INDUSTRY", 0.9);
-        assert "BAD".equals(ctrl.classifyTone(a))
-                : "Expected BAD, got: " + ctrl.classifyTone(a);
-    }
-
-    @Test
-    void classifyTone_hopeful_forApprovalKeyword() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
-        NewsArticle a = article("x", "FDA Clears AI Tool for Early Cancer Detection",
-                "The FDA approved a breakthrough AI diagnostic tool.", "INDUSTRY", 0.9);
-        assert "GOOD".equals(ctrl.classifyTone(a))
-                : "Expected GOOD, got: " + ctrl.classifyTone(a);
-    }
-
-    @Test
-    void classifyTone_neutral_forInformationalArticle() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
-        NewsArticle a = article("x", "Overview of AI Applications in Radiology",
-                "Researchers reviewed current AI applications in radiology departments.", "INDUSTRY", 0.9);
-        assert "NEUTRAL".equals(ctrl.classifyTone(a))
-                : "Expected NEUTRAL, got: " + ctrl.classifyTone(a);
-    }
-
-    @Test
-    void classifyTone_promo_forMarketingArticle() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
-        NewsArticle a = article("x", "MedAI Proud to Announce Industry-Leading AI Platform",
-                "We are proud to announce our award-winning, best-in-class solution for healthcare.",
-                "INDUSTRY", 0.9);
-        assert "PROMO".equals(ctrl.classifyTone(a))
-                : "Expected PROMO, got: " + ctrl.classifyTone(a);
-    }
-
-    @Test
-    void classifyTone_good_takesPrecedenceOverPromo() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
-        // "cleared" (GOOD) + "proud to announce" (PROMO) — GOOD wins
-        NewsArticle a = article("x", "FDA Cleared Our Industry-Leading Device",
-                "We are proud to announce the FDA has cleared our device for clinical use.",
-                "INDUSTRY", 0.9);
-        assert "GOOD".equals(ctrl.classifyTone(a))
-                : "Expected GOOD to beat PROMO, got: " + ctrl.classifyTone(a);
-    }
-
-    @Test
-    void classifyTone_danger_takesPrecedenceOverAlarm() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
-        // Both "harm" (UGLY) and "investigation" (BAD) present — UGLY wins
-        NewsArticle a = article("x", "Investigation Launched After AI Tool Linked to Patient Harm",
-                "body", "INDUSTRY", 0.9);
-        assert "UGLY".equals(ctrl.classifyTone(a))
-                : "Expected UGLY to take precedence, got: " + ctrl.classifyTone(a);
-    }
-
-    @Test
     void cleanText_stripsHtmlAndEntities() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(
+                articleIngestionPort, new ArticleToneClassifier());
         assert "FDA cleared device".equals(ctrl.cleanText("FDA&nbsp;cleared <b>device</b>"))
                 : "cleanText failed";
     }
 
     @Test
     void extractSnippet_truncatesAtWordBoundary() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(
+                articleIngestionPort, new ArticleToneClassifier());
         String long200 = "word ".repeat(50);
         String result  = ctrl.extractSnippet(long200, 100);
         assert result.length() <= 101 : "Too long: " + result.length();
@@ -316,10 +271,29 @@ class FacebookDailyPostControllerTest {
 
     @Test
     void truncate_addsEllipsis() {
-        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(
+                articleIngestionPort, new ArticleToneClassifier());
         String result = ctrl.truncate("The FDA has issued new guidance on AI devices today", 30);
         assert result.length() <= 31 && result.endsWith("…")
                 : "Expected truncated with ellipsis, got: " + result;
+    }
+
+    // ------------------------------------------------------------------
+    // Hashtags
+    // ------------------------------------------------------------------
+
+    @Test
+    @WithMockUser
+    void commentBlock_containsHashtags() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt()))
+                .thenReturn(List.of(legalArticle("a1", 0.9)));
+
+        MvcResult result = mockMvc.perform(get("/dashboard/facebook"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String comment = (String) result.getModelAndView().getModel().get("commentBlock");
+        assertThat(comment).contains("#HealthcareAI");
     }
 
     // ------------------------------------------------------------------

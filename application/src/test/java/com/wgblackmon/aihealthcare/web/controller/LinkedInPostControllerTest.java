@@ -2,6 +2,8 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.web.util.ArticleToneClassifier;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -17,7 +19,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -30,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.3
  * @since   2026-08-21
- * @updated 2026-08-21
+ * @updated 2026-08-23
  */
 @WebMvcTest(LinkedInPostController.class)
 class LinkedInPostControllerTest {
@@ -40,6 +44,18 @@ class LinkedInPostControllerTest {
 
     @MockitoBean
     private ArticleIngestionPort articleIngestionPort;
+
+    @MockitoBean
+    private ArticleToneClassifier toneClassifier;
+
+    @BeforeEach
+    void setUpToneClassifier() {
+        when(toneClassifier.classifyTone(any())).thenReturn("NEUTRAL");
+        when(toneClassifier.toneEmoji(anyString())).thenReturn("ℹ️ ");
+        when(toneClassifier.toneEmoji(any(NewsArticle.class))).thenReturn("ℹ️ ");
+        when(toneClassifier.linkedInHashtags(any())).thenReturn(
+                "#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #MedicalInnovation");
+    }
 
     @Test
     @WithMockUser
@@ -289,8 +305,9 @@ class LinkedInPostControllerTest {
 
     @Test
     @WithMockUser
-    void linksBlock_doesNotExceed1250Chars() throws Exception {
+    void linksBlock_doesNotExceed1400Chars() throws Exception {
         // 5 entries × (title 250 chars + URL ~30 chars + formatting) ≈ 1450 chars — triggers truncation
+        // Hashtag footer (~80 chars) added after the source list, so limit is 1400
         when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
                 article("a1", "A".repeat(250), "body1", 0.95),
                 article("a2", "B".repeat(250), "body2", 0.90),
@@ -301,7 +318,43 @@ class LinkedInPostControllerTest {
 
         mockMvc.perform(get("/dashboard/linkedin"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("linksBlockLength", lessThanOrEqualTo(1250)));
+                .andExpect(model().attribute("linksBlockLength", lessThanOrEqualTo(1400)));
+    }
+
+    @Test
+    @WithMockUser
+    void postBody_containsToneEmoji() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                article("a1", "FDA Clears AI Radiology Tool", "Clearance announcement.", 0.9)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("postBody", containsString("ℹ️")));
+    }
+
+    @Test
+    @WithMockUser
+    void postBody_containsHashtags() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                article("a1", "FDA Clears AI Radiology Tool", "Clearance announcement.", 0.9)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("postBody", containsString("#HealthcareAI")));
+    }
+
+    @Test
+    @WithMockUser
+    void linksBlock_containsHashtags() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(List.of(
+                article("a1", "FDA Clears AI Radiology Tool", "Clearance announcement.", 0.9)
+        ));
+
+        mockMvc.perform(get("/dashboard/linkedin"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("linksBlock", containsString("#HealthcareAI")));
     }
 
     // ------------------------------------------------------------------

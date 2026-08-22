@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.web.util.ArticleToneClassifier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -43,6 +44,7 @@ import java.util.Set;
  * @version 1.0
  * @since   2026-08-22
  * @updated 2026-08-23
+ * @see ArticleToneClassifier
  */
 @Slf4j
 @Controller
@@ -99,54 +101,14 @@ public class FacebookDailyPostController {
         "new evidence contradicts", "researchers challenge"
     };
 
-    // Tone — three tiers from bad to good
-    // UGLY: immediate patient safety risk or legal jeopardy
-    private static final String[] UGLY_KEYWORDS = {
-        "recall", "recalled", "safety alert", "adverse event",
-        "lawsuit", "litigation", "criminal", "indictment", "fraud",
-        "death", "died", "harm", "harmful", "injury", "injuries",
-        "breach", "hack", "data leak", "data breach",
-        "ban", "banned", "revoked", "unsafe"
-    };
+    private final ArticleIngestionPort  articleIngestionPort;
+    private final ArticleToneClassifier toneClassifier;
 
-    // BAD: regulatory concern, investigation, warning — not yet at UGLY level
-    private static final String[] BAD_KEYWORDS = {
-        "investigation", "subpoena", "penalty", "fine", "violation",
-        "warning letter", "warning", "denied", "rejected",
-        "delay", "delayed", "failure", "failed",
-        "scandal", "misleading", "concern", "concerns",
-        "lawsuit", "court", "class action", "settlement",
-        "risk", "danger", "adverse"
-    };
-
-    private static final String[] GOOD_KEYWORDS = {
-        "approved", "clearance", "cleared", "authorized",
-        "fda clears", "fda approves", "breakthrough",
-        "promising", "effective", "efficacy", "successful", "success",
-        "improves", "improvement", "better outcomes", "reduces", "prevents",
-        "launched", "innovation", "advance", "advances",
-        "study shows", "trial shows", "evidence shows", "results show",
-        "saves", "saving", "benefit", "benefits", "cure", "treatment",
-        "funding", "investment", "partnership", "collaboration"
-    };
-
-    // PROMO: marketing/advertising language — checked after GOOD so real news wins
-    private static final String[] PROMO_KEYWORDS = {
-        "proud to announce", "excited to announce", "thrilled to announce",
-        "pleased to announce", "best-in-class", "industry-leading",
-        "award-winning", "leading provider", "cutting-edge solution",
-        "game-changing", "transformative solution", "revolutionary solution",
-        "free trial", "request a demo", "sign up today", "contact us today",
-        "press release", "pr newswire", "business wire", "globe newswire",
-        "sponsorship", "sponsored by", "whitepaper", "ebook download",
-        "webinar registration"
-    };
-
-    private final ArticleIngestionPort articleIngestionPort;
-
-    public FacebookDailyPostController(ArticleIngestionPort articleIngestionPort) {
+    public FacebookDailyPostController(ArticleIngestionPort articleIngestionPort,
+                                       ArticleToneClassifier toneClassifier) {
         log.debug("FacebookDailyPostController() | articleIngestionPort={}", articleIngestionPort);
         this.articleIngestionPort = articleIngestionPort;
+        this.toneClassifier       = toneClassifier;
     }
 
     /**
@@ -205,12 +167,8 @@ public class FacebookDailyPostController {
         String footer = "\nSources in comment ↓\n" + SITE_URL;
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
-            String tone  = classifyTone(a);
-            String emoji = "UGLY".equals(tone)  ? "🚨 "
-                         : "BAD".equals(tone)   ? "⚠️ "
-                         : "GOOD".equals(tone)  ? "✅ "
-                         : "PROMO".equals(tone) ? "🙄 "
-                         :                        "ℹ️ ";
+            String tone  = toneClassifier.classifyTone(a);
+            String emoji = toneClassifier.toneEmoji(tone);
             String title = truncate(cleanText(a.title()), ITEM_TITLE_MAX);
             String line  = (i + 1) + ". " + emoji + title + "\n";
             if (sb.length() + line.length() + footer.length() > POST_BODY_LIMIT) {
@@ -242,12 +200,8 @@ public class FacebookDailyPostController {
 
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
-            String tone  = classifyTone(a);
-            String emoji = "UGLY".equals(tone)  ? "🚨 "
-                         : "BAD".equals(tone)   ? "⚠️ "
-                         : "GOOD".equals(tone)  ? "✅ "
-                         : "PROMO".equals(tone) ? "🙄 "
-                         :                        "ℹ️ ";
+            String tone  = toneClassifier.classifyTone(a);
+            String emoji = toneClassifier.toneEmoji(tone);
             String title   = cleanText(a.title());
             String snippet = extractSnippet(a.bodyText(), 160);
             String url     = a.url() != null ? a.url().toString() : "";
@@ -268,7 +222,8 @@ public class FacebookDailyPostController {
             sb.append(entry);
         }
 
-        sb.append("Full platform: ").append(APP_URL);
+        sb.append("Full platform: ").append(APP_URL).append("\n\n");
+        sb.append(toneClassifier.facebookHashtags(articles));
 
         String result = sb.toString();
         log.debug("buildCommentBlock() | return=length:{}", result.length());
@@ -377,21 +332,6 @@ public class FacebookDailyPostController {
         if (containsAny(text, POLICY_KEYWORDS))        { return PRIORITY_POLICY; }
         if (containsAny(text, CONTRADICTION_KEYWORDS)) { return PRIORITY_CONTRADICTION; }
         return PRIORITY_GENERAL;
-    }
-
-    /**
-     * Classifies the tone of an article as UGLY (immediate patient safety or legal
-     * jeopardy), BAD (regulatory concern or investigation), GOOD (positive
-     * development), or NEUTRAL (informational).
-     * UGLY takes precedence over BAD; both take precedence over GOOD.
-     */
-    String classifyTone(NewsArticle a) {
-        String text = buildSearchText(a);
-        if (containsAny(text, UGLY_KEYWORDS))  { return "UGLY"; }
-        if (containsAny(text, BAD_KEYWORDS))   { return "BAD"; }
-        if (containsAny(text, GOOD_KEYWORDS))  { return "GOOD"; }
-        if (containsAny(text, PROMO_KEYWORDS)) { return "PROMO"; }
-        return "NEUTRAL";
     }
 
     String classifyLabel(NewsArticle a) {
