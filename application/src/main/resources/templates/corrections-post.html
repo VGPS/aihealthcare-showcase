@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Corrections Daily Post page — pairs original claims with their corrections.
+ *
+ * Shows wiki-detected contradictions filtered for LEGAL/POLICY/FDA relevance
+ * with each pair displayed as: prior claim (bold) + original article, then
+ * corrected claim (bold) + correction article.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-22
+ * @updated 2026-08-22
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Corrections Daily Post')}"></head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Corrections Daily Post</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Recent AI healthcare corrections &amp; reversals — LEGAL, POLICY, FDA priority</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('admin-pipelines')}"></nav>
+
+<main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Header bar -->
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-sm text-gray-500">
+                <span th:text="${entryCount}">0</span> correction(s) found in the last
+                <span th:text="${lookbackDays}">30</span> days
+                &nbsp;·&nbsp;
+                <span th:text="${dateLabel}">Today</span>
+            </p>
+        </div>
+        <a href="/admin/pipelines" class="text-xs text-primary-600 hover:underline">← Pipelines</a>
+    </div>
+
+    <!-- No data state -->
+    <div th:if="${entryCount == 0}"
+         class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+        <p class="text-sm text-yellow-800 font-semibold mb-1">No corrections found</p>
+        <p class="text-xs text-yellow-700">
+            Run <strong>RSS Feeds</strong> then <strong>Wiki Compile</strong> on the
+            <a href="/admin/pipelines" class="underline">Pipelines page</a> to populate correction data.
+        </p>
+    </div>
+
+    <!-- Correction entries -->
+    <div th:if="${entryCount > 0}" class="space-y-6">
+        <div th:each="entry, iterStat : ${entries}"
+             class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+
+            <!-- Entry header -->
+            <div class="bg-gray-50 border-b border-gray-200 px-5 py-2 flex items-center justify-between">
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Correction #<span th:text="${iterStat.count}">1</span>
+                </span>
+            </div>
+
+            <div class="p-5 space-y-4">
+
+                <!-- PRIOR CLAIM block -->
+                <div class="border-l-4 border-amber-400 pl-4">
+                    <p class="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Original Claim</p>
+                    <p class="text-sm font-bold text-gray-800" th:text="${entry.priorClaim()}">Prior claim text</p>
+
+                    <!-- Prior source articles -->
+                    <div th:if="${!entry.priorArticles().isEmpty()}" class="mt-2 space-y-2">
+                        <div th:each="a : ${entry.priorArticles()}"
+                             class="bg-amber-50 rounded p-3 text-xs">
+                            <p class="font-semibold text-gray-800 mb-0.5" th:text="${a.title()}">Title</p>
+                            <p th:if="${a.bodyText() != null and !a.bodyText().isBlank()}"
+                               class="text-gray-600 mb-1"
+                               th:text="${#strings.abbreviate(a.bodyText().replaceAll('<[^>]+>', ' ').replaceAll('\\s+', ' ').trim(), 200)}">Snippet</p>
+                            <a th:href="${a.url()}" target="_blank"
+                               class="text-primary-600 hover:underline break-all"
+                               th:text="${a.url()}">URL</a>
+                        </div>
+                    </div>
+                    <p th:if="${entry.priorArticles().isEmpty()}"
+                       class="text-xs text-gray-400 mt-1 italic">Source article no longer in archive</p>
+                </div>
+
+                <!-- Divider arrow -->
+                <div class="flex items-center gap-2 text-gray-400">
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                    <span class="text-sm">↓ corrected by</span>
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                </div>
+
+                <!-- CORRECTED CLAIM block -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <p class="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Corrected Claim</p>
+                    <p class="text-sm font-bold text-gray-800" th:text="${entry.correctedClaim()}">New claim text</p>
+
+                    <!-- New source articles -->
+                    <div th:if="${!entry.newArticles().isEmpty()}" class="mt-2 space-y-2">
+                        <div th:each="a : ${entry.newArticles()}"
+                             class="bg-green-50 rounded p-3 text-xs">
+                            <p class="font-semibold text-gray-800 mb-0.5" th:text="${a.title()}">Title</p>
+                            <p th:if="${a.bodyText() != null and !a.bodyText().isBlank()}"
+                               class="text-gray-600 mb-1"
+                               th:text="${#strings.abbreviate(a.bodyText().replaceAll('<[^>]+>', ' ').replaceAll('\\s+', ' ').trim(), 200)}">Snippet</p>
+                            <a th:href="${a.url()}" target="_blank"
+                               class="text-primary-600 hover:underline break-all"
+                               th:text="${a.url()}">URL</a>
+                        </div>
+                    </div>
+                    <p th:if="${entry.newArticles().isEmpty()}"
+                       class="text-xs text-gray-400 mt-1 italic">Source article no longer in archive</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Workflow hint -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
+        <p class="font-semibold mb-1">Data pipeline</p>
+        <ol class="list-decimal ml-4 space-y-0.5 text-xs">
+            <li>Run <strong>RSS Feeds</strong> to harvest today's articles.</li>
+            <li>Run <strong>Wiki Compile</strong> to detect contradictions from new articles.</li>
+            <li>Reload this page — new corrections appear automatically.</li>
+        </ol>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>
