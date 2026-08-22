@@ -1,43 +1,43 @@
 <!DOCTYPE html>
 <!--
 /**
- * Corrections Daily Post page — pairs original claims with their corrections.
+ * Corrections Daily Post page — LinkedIn-ready copy blocks for wiki-detected
+ * AI healthcare corrections and reversals.
  *
- * Shows wiki-detected contradictions filtered for LEGAL/POLICY/FDA relevance
- * with each pair displayed as: prior claim (bold) + original article, then
- * corrected claim (bold) + correction article.
+ * Shows:
+ *   - Copyable post body (≤3,000 chars, no links)
+ *   - Copyable source links block (≤1,250 chars, for first comment)
+ *   - Visual preview of each correction pair (original + corrected claim)
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-08-22
  * @updated 2026-08-22
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/head :: head('Corrections Daily Post')}"></head>
-<body class="bg-surface font-sans text-on-surface">
+<head th:replace="~{fragments/head :: head('Corrections Post Generator')}"></head>
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
 
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
-    <h1 class="font-display text-2xl font-bold tracking-tight">Corrections Daily Post</h1>
-    <p class="text-primary-200 text-sm mt-0.5">Recent AI healthcare corrections &amp; reversals — LEGAL, POLICY, FDA priority</p>
+    <h1 class="font-display text-2xl font-bold tracking-tight">Corrections Post Generator</h1>
+    <p class="text-primary-200 text-sm mt-0.5">
+        <span th:text="${entryCount}">0</span> correction(s) · <span th:text="${dateLabel}">today</span>
+        &middot; Post body: <span th:text="${postBodyLength}">0</span> / 3,000 chars
+        &middot; <a href="https://bigskylabs.ai" target="_blank" class="underline text-primary-100">bigskylabs.ai</a>
+        &middot; <a href="https://app.bigskylabs.ai/wiki" target="_blank" class="underline text-primary-100">AI Healthcare Wiki</a>
+    </p>
 </header>
 
 <nav th:replace="~{fragments/nav :: nav('admin-pipelines')}"></nav>
 
 <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- Header bar -->
+    <!-- Back link -->
     <div class="flex items-center justify-between">
-        <div>
-            <p class="text-sm text-gray-500">
-                <span th:text="${entryCount}">0</span> correction(s) found in the last
-                <span th:text="${lookbackDays}">30</span> days
-                &nbsp;·&nbsp;
-                <span th:text="${dateLabel}">Today</span>
-            </p>
-        </div>
         <a href="/admin/pipelines" class="text-xs text-primary-600 hover:underline">← Pipelines</a>
+        <p class="text-xs text-gray-400">Last <span th:text="${lookbackDays}">30</span>-day window</p>
     </div>
 
     <!-- No data state -->
@@ -50,87 +50,183 @@
         </p>
     </div>
 
-    <!-- Correction entries -->
+    <!-- ======================== COPY BLOCKS ======================== -->
     <div th:if="${entryCount > 0}" class="space-y-6">
-        <div th:each="entry, iterStat : ${entries}"
-             class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
 
-            <!-- Entry header -->
-            <div class="bg-gray-50 border-b border-gray-200 px-5 py-2 flex items-center justify-between">
-                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                    Correction #<span th:text="${iterStat.count}">1</span>
-                </span>
+        <!-- Disclaimer -->
+        <div class="bg-amber-50 border border-amber-300 rounded-lg p-4 text-sm text-amber-900">
+            <p class="font-semibold mb-1">Disclaimer</p>
+            <p class="text-xs">
+                These corrections are <strong>AI wiki-detected contradictions</strong> sourced from published
+                healthcare articles. They have <strong>not been individually verified or qualified</strong>.
+                Always review the original sources before sharing.
+                View provenance in the
+                <a href="https://app.bigskylabs.ai/wiki" target="_blank"
+                   class="underline font-medium text-amber-800">AI Healthcare Wiki →</a>
+            </p>
+        </div>
+
+        <!-- Post body -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="font-semibold text-on-surface">Post Body</h2>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-on-surface-variant">Paste directly into LinkedIn (no links — avoids reach penalty)</span>
+                    <button type="button" onclick="copyText('postBody', 'postBodyStatus')"
+                            class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-4 py-1.5 rounded-md transition-colors">
+                        Copy Post
+                    </button>
+                    <span id="postBodyStatus" class="text-xs"></span>
+                </div>
             </div>
-
-            <div class="p-5 space-y-4">
-
-                <!-- PRIOR CLAIM block -->
-                <div class="border-l-4 border-amber-400 pl-4">
-                    <p class="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Original Claim</p>
-                    <p class="text-sm font-bold text-gray-800" th:text="${entry.priorClaim()}">Prior claim text</p>
-
-                    <!-- Prior source articles -->
-                    <div th:if="${!entry.priorArticles().isEmpty()}" class="mt-2 space-y-2">
-                        <div th:each="a : ${entry.priorArticles()}"
-                             class="bg-amber-50 rounded p-3 text-xs">
-                            <p class="font-semibold text-gray-800 mb-0.5" th:text="${a.title()}">Title</p>
-                            <p th:if="${a.bodyText() != null and !a.bodyText().isBlank()}"
-                               class="text-gray-600 mb-1"
-                               th:text="${#strings.abbreviate(a.bodyText().replaceAll('<[^>]+>', ' ').replaceAll('\\s+', ' ').trim(), 200)}">Snippet</p>
-                            <a th:href="${a.url()}" target="_blank"
-                               class="text-primary-600 hover:underline break-all"
-                               th:text="${a.url()}">URL</a>
-                        </div>
-                    </div>
-                    <p th:if="${entry.priorArticles().isEmpty()}"
-                       class="text-xs text-gray-400 mt-1 italic">Source article no longer in archive</p>
-                </div>
-
-                <!-- Divider arrow -->
-                <div class="flex items-center gap-2 text-gray-400">
-                    <div class="flex-1 h-px bg-gray-200"></div>
-                    <span class="text-sm">↓ corrected by</span>
-                    <div class="flex-1 h-px bg-gray-200"></div>
-                </div>
-
-                <!-- CORRECTED CLAIM block -->
-                <div class="border-l-4 border-green-500 pl-4">
-                    <p class="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Corrected Claim</p>
-                    <p class="text-sm font-bold text-gray-800" th:text="${entry.correctedClaim()}">New claim text</p>
-
-                    <!-- New source articles -->
-                    <div th:if="${!entry.newArticles().isEmpty()}" class="mt-2 space-y-2">
-                        <div th:each="a : ${entry.newArticles()}"
-                             class="bg-green-50 rounded p-3 text-xs">
-                            <p class="font-semibold text-gray-800 mb-0.5" th:text="${a.title()}">Title</p>
-                            <p th:if="${a.bodyText() != null and !a.bodyText().isBlank()}"
-                               class="text-gray-600 mb-1"
-                               th:text="${#strings.abbreviate(a.bodyText().replaceAll('<[^>]+>', ' ').replaceAll('\\s+', ' ').trim(), 200)}">Snippet</p>
-                            <a th:href="${a.url()}" target="_blank"
-                               class="text-primary-600 hover:underline break-all"
-                               th:text="${a.url()}">URL</a>
-                        </div>
-                    </div>
-                    <p th:if="${entry.newArticles().isEmpty()}"
-                       class="text-xs text-gray-400 mt-1 italic">Source article no longer in archive</p>
-                </div>
-
+            <textarea id="postBody" th:text="${postBody}" readonly
+                      class="w-full h-72 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
+                      spellcheck="false"></textarea>
+            <div class="mt-1 text-xs text-on-surface-variant text-right">
+                <span th:text="${postBodyLength}" class="font-medium">0</span> / 3,000 characters
             </div>
         </div>
-    </div>
 
-    <!-- Workflow hint -->
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
-        <p class="font-semibold mb-1">Data pipeline</p>
-        <ol class="list-decimal ml-4 space-y-0.5 text-xs">
-            <li>Run <strong>RSS Feeds</strong> to harvest today's articles.</li>
-            <li>Run <strong>Wiki Compile</strong> to detect contradictions from new articles.</li>
-            <li>Reload this page — new corrections appear automatically.</li>
-        </ol>
+        <!-- Links / sources block -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="font-semibold text-on-surface">Source Links — Paste as First Comment</h2>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-on-surface-variant">Post your article first, then paste this as comment #1</span>
+                    <button type="button" onclick="copyText('linksBlock', 'linksBlockStatus')"
+                            class="bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-1.5 rounded-md transition-colors">
+                        Copy Links
+                    </button>
+                    <span id="linksBlockStatus" class="text-xs"></span>
+                </div>
+            </div>
+            <textarea id="linksBlock" th:text="${linksBlock}" readonly
+                      class="w-full h-48 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
+                      spellcheck="false"></textarea>
+            <div class="mt-1 text-xs text-on-surface-variant text-right">
+                <span th:text="${linksBlockLength}" class="font-medium">0</span> / 1,250 characters
+            </div>
+        </div>
+
+        <!-- Posting workflow -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
+            <p class="font-semibold mb-1">Posting workflow</p>
+            <ol class="list-decimal ml-4 space-y-1 text-xs text-blue-800">
+                <li>Copy the <strong>Post Body</strong> and paste into a new LinkedIn post.</li>
+                <li>Publish the post.</li>
+                <li>Immediately open the post, click <em>Add a comment</em>, and paste the <strong>Source Links</strong> block.</li>
+                <li>Submit the comment — LinkedIn shows it as pinned on your own posts.</li>
+            </ol>
+        </div>
+
+        <!-- ======================== VISUAL PREVIEW ======================== -->
+        <div>
+            <h2 class="text-base font-semibold text-gray-700 mb-3">
+                Preview — <span th:text="${entryCount}">0</span> Correction(s)
+            </h2>
+            <div class="space-y-5">
+                <div th:each="entry, iterStat : ${entries}"
+                     class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+
+                    <!-- Entry header with wiki link -->
+                    <div class="bg-gray-50 border-b border-gray-200 px-5 py-2 flex items-center justify-between">
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            Correction #<span th:text="${iterStat.count}">1</span>
+                        </span>
+                        <a th:href="@{'/wiki/' + ${entry.pageSlug()}}"
+                           target="_blank"
+                           class="text-xs text-primary-600 hover:underline font-medium">
+                            View in Wiki →
+                        </a>
+                    </div>
+
+                    <div class="p-5 space-y-4">
+
+                        <!-- PRIOR CLAIM -->
+                        <div class="border-l-4 border-amber-400 pl-4">
+                            <p class="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Original Claim</p>
+                            <p class="text-sm font-bold text-gray-800" th:text="${entry.priorClaim()}">Prior claim text</p>
+                            <div th:if="${!entry.priorArticles().isEmpty()}" class="mt-2 space-y-2">
+                                <div th:each="a : ${entry.priorArticles()}"
+                                     class="bg-amber-50 rounded p-3 text-xs">
+                                    <p class="font-semibold text-gray-800 mb-0.5" th:text="${a.title()}">Title</p>
+                                    <p th:if="${a.bodyText() != null and !a.bodyText().isBlank()}"
+                                       class="text-gray-600 mb-1"
+                                       th:text="${#strings.abbreviate(a.bodyText().replaceAll('&lt;[^&gt;]+&gt;', ' ').replaceAll('\\s+', ' ').trim(), 200)}">Snippet</p>
+                                    <a th:href="${a.url()}" target="_blank"
+                                       class="text-primary-600 hover:underline break-all"
+                                       th:text="${a.url()}">URL</a>
+                                </div>
+                            </div>
+                            <p th:if="${entry.priorArticles().isEmpty()}"
+                               class="text-xs text-gray-400 mt-1 italic">Source article no longer in archive</p>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="flex items-center gap-2 text-gray-400">
+                            <div class="flex-1 h-px bg-gray-200"></div>
+                            <span class="text-sm">↓ corrected by</span>
+                            <div class="flex-1 h-px bg-gray-200"></div>
+                        </div>
+
+                        <!-- CORRECTED CLAIM -->
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <p class="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Corrected Claim</p>
+                            <p class="text-sm font-bold text-gray-800" th:text="${entry.correctedClaim()}">New claim text</p>
+                            <div th:if="${!entry.newArticles().isEmpty()}" class="mt-2 space-y-2">
+                                <div th:each="a : ${entry.newArticles()}"
+                                     class="bg-green-50 rounded p-3 text-xs">
+                                    <p class="font-semibold text-gray-800 mb-0.5" th:text="${a.title()}">Title</p>
+                                    <p th:if="${a.bodyText() != null and !a.bodyText().isBlank()}"
+                                       class="text-gray-600 mb-1"
+                                       th:text="${#strings.abbreviate(a.bodyText().replaceAll('&lt;[^&gt;]+&gt;', ' ').replaceAll('\\s+', ' ').trim(), 200)}">Snippet</p>
+                                    <a th:href="${a.url()}" target="_blank"
+                                       class="text-primary-600 hover:underline break-all"
+                                       th:text="${a.url()}">URL</a>
+                                </div>
+                            </div>
+                            <p th:if="${entry.newArticles().isEmpty()}"
+                               class="text-xs text-gray-400 mt-1 italic">Source article no longer in archive</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- App promo footer -->
+        <div class="bg-primary-50 border border-primary-200 rounded-lg p-4 text-center">
+            <p class="text-sm font-semibold text-primary-800 mb-1">
+                AI in Healthcare Intelligence — <a href="https://bigskylabs.ai" target="_blank"
+                   class="underline">bigskylabs.ai</a>
+            </p>
+            <p class="text-xs text-primary-700">
+                Daily AI healthcare news, regulatory alerts, trend signals, and competitive intelligence.
+                <a href="https://bigskylabs.ai" target="_blank" class="underline font-semibold">Start your 7-day free demo →</a>
+            </p>
+        </div>
+
     </div>
 
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+function copyText(textareaId, statusId) {
+    var el = document.getElementById(textareaId);
+    var statusEl = document.getElementById(statusId);
+    if (!el) { return; }
+    navigator.clipboard.writeText(el.value).then(function() {
+        statusEl.textContent = 'Copied!';
+        statusEl.className = 'text-xs text-green-700 font-semibold';
+        setTimeout(function() { statusEl.textContent = ''; }, 3000);
+    }).catch(function() {
+        el.select();
+        statusEl.textContent = 'Select + Ctrl-C to copy';
+        statusEl.className = 'text-xs text-yellow-700 font-semibold';
+    });
+}
+</script>
 </body>
 </html>

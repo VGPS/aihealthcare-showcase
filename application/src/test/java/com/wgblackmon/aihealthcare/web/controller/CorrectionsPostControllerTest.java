@@ -19,6 +19,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
@@ -190,6 +191,61 @@ class CorrectionsPostControllerTest {
         mockMvc.perform(get("/dashboard/corrections"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("entryCount", 10));
+    }
+
+    // ------------------------------------------------------------------
+    // Post body + links block
+    // ------------------------------------------------------------------
+
+    @Test
+    @WithMockUser
+    void postBody_isPopulated() throws Exception {
+        Contradiction c = contradiction("FDA cleared AI diagnostic tool",
+                "FDA issued safety alert for AI diagnostic tool");
+        when(wikiQueryPort.recentContradictions(any())).thenReturn(List.of(c));
+        when(articleIngestionPort.fetchArticlesByIds(anyList()))
+                .thenReturn(List.of(fdaArticle("a1", 0.9)));
+
+        mockMvc.perform(get("/dashboard/corrections"))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("postBody"))
+                .andExpect(model().attribute("postBodyLength",
+                        org.hamcrest.Matchers.greaterThan(0)));
+    }
+
+    @Test
+    @WithMockUser
+    void postBody_doesNotExceed3000Chars() throws Exception {
+        List<Contradiction> many = new java.util.ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            many.add(contradiction(
+                    "FDA cleared AI diagnostic device number " + i + " for patient use in clinical settings",
+                    "FDA issued safety alert for AI diagnostic device number " + i + " citing adverse events"));
+        }
+        when(wikiQueryPort.recentContradictions(any())).thenReturn(many);
+        when(articleIngestionPort.fetchArticlesByIds(anyList()))
+                .thenReturn(List.of(fdaArticle("a1", 0.9)));
+
+        mockMvc.perform(get("/dashboard/corrections"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("postBodyLength", lessThanOrEqualTo(3000)));
+    }
+
+    @Test
+    @WithMockUser
+    void linksBlock_containsWikiPath() throws Exception {
+        Contradiction c = contradiction("FDA cleared AI diagnostic tool",
+                "FDA issued safety alert for AI diagnostic tool");
+        when(wikiQueryPort.recentContradictions(any())).thenReturn(List.of(c));
+        when(articleIngestionPort.fetchArticlesByIds(anyList()))
+                .thenReturn(List.of(fdaArticle("a1", 0.9)));
+
+        MvcResult result = mockMvc.perform(get("/dashboard/corrections"))
+                .andExpect(status().isOk())
+                .andReturn();
+        String linksBlock = (String) result.getModelAndView().getModel().get("linksBlock");
+        assert linksBlock != null && linksBlock.contains("/wiki/") : "Links block should contain wiki URL";
+        assert linksBlock.length() <= 1250 : "Links block exceeded 1250 chars: " + linksBlock.length();
     }
 
     // ------------------------------------------------------------------

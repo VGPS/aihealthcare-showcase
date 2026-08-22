@@ -20,25 +20,24 @@ import java.util.List;
 
 /**
  * Thymeleaf controller that generates a Corrections Daily Post from recent
- * wiki-detected contradictions, formatted for review and copy-paste use.
+ * wiki-detected contradictions, formatted for LinkedIn copy-paste.
  *
  * <p>Serves {@code GET /dashboard/corrections} by fetching contradictions from
  * the last 30 days via {@link WikiQueryPort}, looking up their source articles
  * via {@link ArticleIngestionPort}, filtering for LEGAL/POLICY/FDA relevance and
- * quality (sourceWeight ≥ 0.7), and building a model of paired correction entries.
+ * quality (sourceWeight ≥ 0.7), and building LinkedIn-ready copy blocks plus a
+ * visual preview of the correction pairs.
  *
- * <p>Each entry shows:
+ * <p>Produces two copy blocks:
  * <ul>
- *   <li>The <strong>prior claim</strong> (bolded) with the original source article title,
- *       snippet, and link.</li>
- *   <li>The <strong>corrected claim</strong> (bolded) with the correcting article title,
- *       snippet, and link.</li>
+ *   <li>Post body (≤ 2,900 chars, no links) — paste directly into LinkedIn.</li>
+ *   <li>Links block (≤ 1,200 chars) — paste as the first comment after publishing.</li>
  * </ul>
  *
- * <p>No LLM calls are made; all filtering uses keyword matching on existing data.
+ * <p>No LLM calls are made; all filtering uses keyword matching on existing wiki data.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-08-22
  * @updated 2026-08-22
  */
@@ -46,10 +45,15 @@ import java.util.List;
 @Controller
 public class CorrectionsPostController {
 
-    private static final int LOOKBACK_DAYS    = 30;
-    private static final int MAX_ENTRIES      = 10;
-    private static final int SNIPPET_MAX_CHARS = 200;
-    private static final double MIN_WEIGHT    = 0.7;
+    private static final int    LOOKBACK_DAYS     = 30;
+    private static final int    MAX_ENTRIES       = 10;
+    private static final int    SNIPPET_MAX_CHARS = 200;
+    private static final double MIN_WEIGHT        = 0.7;
+    private static final int    POST_BODY_LIMIT   = 2900;
+    private static final int    LINKS_BLOCK_LIMIT = 1200;
+
+    private static final String APP_URL  = "https://app.bigskylabs.ai";
+    private static final String SITE_URL = "https://bigskylabs.ai";
 
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy");
@@ -89,16 +93,115 @@ public class CorrectionsPostController {
         List<Contradiction> all = wikiQueryPort.recentContradictions(since);
 
         List<CorrectionEntry> entries = buildEntries(all);
-        String dateLabel = DATE_FMT.format(LocalDate.now(ZoneId.of("America/Chicago")));
+        String dateLabel  = DATE_FMT.format(LocalDate.now(ZoneId.of("America/Chicago")));
+        String postBody   = buildPostBody(entries, dateLabel);
+        String linksBlock = buildLinksBlock(entries);
 
-        model.addAttribute("entries", entries);
-        model.addAttribute("entryCount", entries.size());
-        model.addAttribute("dateLabel", dateLabel);
-        model.addAttribute("lookbackDays", LOOKBACK_DAYS);
+        model.addAttribute("entries",          entries);
+        model.addAttribute("entryCount",       entries.size());
+        model.addAttribute("dateLabel",        dateLabel);
+        model.addAttribute("lookbackDays",     LOOKBACK_DAYS);
+        model.addAttribute("postBody",         postBody);
+        model.addAttribute("linksBlock",       linksBlock);
+        model.addAttribute("postBodyLength",   postBody.length());
+        model.addAttribute("linksBlockLength", linksBlock.length());
 
         log.debug("correctionsPost() | return=corrections-post, entries={}", entries.size());
         return "corrections-post";
     }
+
+    // ------------------------------------------------------------------
+    // Post body builder
+    // ------------------------------------------------------------------
+
+    private String buildPostBody(List<CorrectionEntry> entries, String dateLabel) {
+        log.debug("buildPostBody() | entries={}", entries.size());
+
+        String header = "AI Healthcare — Corrections & Reversals\n"
+                + dateLabel + "\n\n"
+                + "These are AI wiki-detected contradictions sourced from published healthcare "
+                + "articles. They have NOT been individually verified.\n"
+                + "Full wiki: " + APP_URL + "/wiki\n";
+
+        String footer = "\n―――\n\n"
+                + "Follow for daily AI healthcare intelligence.\n"
+                + "7-day free demo: " + SITE_URL;
+
+        StringBuilder body = new StringBuilder(header);
+
+        for (CorrectionEntry entry : entries) {
+            String block = "\n―――\n\n"
+                    + "ORIGINAL CLAIM:\n"
+                    + "“" + cleanText(entry.priorClaim()) + "”\n\n"
+                    + "CORRECTED BY:\n"
+                    + "“" + cleanText(entry.correctedClaim()) + "”\n";
+
+            if (body.length() + block.length() + footer.length() > POST_BODY_LIMIT) {
+                break;
+            }
+            body.append(block);
+        }
+
+        body.append(footer);
+
+        String result = body.toString();
+        if (result.length() > POST_BODY_LIMIT) {
+            int cut = result.lastIndexOf('\n', POST_BODY_LIMIT - footer.length());
+            result = (cut > 0 ? result.substring(0, cut) : result.substring(0, POST_BODY_LIMIT - footer.length()))
+                    + footer;
+        }
+
+        log.debug("buildPostBody() | return length={}", result.length());
+        return result;
+    }
+
+    // ------------------------------------------------------------------
+    // Links block builder
+    // ------------------------------------------------------------------
+
+    private String buildLinksBlock(List<CorrectionEntry> entries) {
+        log.debug("buildLinksBlock() | entries={}", entries.size());
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Sources & Wiki References:\n\n");
+
+        for (CorrectionEntry entry : entries) {
+            String wikiLine = "Wiki: " + APP_URL + "/wiki/" + entry.pageSlug() + "\n";
+            if (sb.length() + wikiLine.length() > LINKS_BLOCK_LIMIT) {
+                sb.append("More: ").append(APP_URL).append("/wiki\n");
+                break;
+            }
+            sb.append(wikiLine);
+
+            for (NewsArticle a : entry.priorArticles()) {
+                String link = a.url().toString() + "\n";
+                if (sb.length() + link.length() > LINKS_BLOCK_LIMIT) {
+                    break;
+                }
+                sb.append(link);
+            }
+            for (NewsArticle a : entry.newArticles()) {
+                String link = a.url().toString() + "\n";
+                if (sb.length() + link.length() > LINKS_BLOCK_LIMIT) {
+                    break;
+                }
+                sb.append(link);
+            }
+        }
+
+        String siteFooter = "\n" + SITE_URL + " — 7-day free demo";
+        if (sb.length() + siteFooter.length() <= LINKS_BLOCK_LIMIT) {
+            sb.append(siteFooter);
+        }
+
+        String result = sb.toString();
+        log.debug("buildLinksBlock() | return length={}", result.length());
+        return result;
+    }
+
+    // ------------------------------------------------------------------
+    // Entry building
+    // ------------------------------------------------------------------
 
     private List<CorrectionEntry> buildEntries(List<Contradiction> contradictions) {
         log.debug("buildEntries() | contradictions={}", contradictions.size());
@@ -125,6 +228,7 @@ public class CorrectionsPostController {
             }
 
             result.add(new CorrectionEntry(
+                    c.pageSlug(),
                     c.priorClaim(),
                     c.newClaim(),
                     priorArticles,
@@ -135,6 +239,10 @@ public class CorrectionsPostController {
         log.debug("buildEntries() | return={}", result.size());
         return result;
     }
+
+    // ------------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------------
 
     private List<String> extractIds(List<SourceRef> sources) {
         List<String> ids = new ArrayList<>();
@@ -154,10 +262,7 @@ public class CorrectionsPostController {
 
     /**
      * Returns true if the contradiction's claims or any high-weight source article
-     * is LEGAL/POLICY/FDA-relevant. Claim text is the primary signal — if the
-     * wiki-detected contradiction itself mentions a priority keyword the entry
-     * qualifies regardless of article quality (source articles may be low-weight
-     * or may have aged out of the DB).
+     * is LEGAL/POLICY/FDA-relevant. Claim text is the primary signal.
      */
     private boolean isPriority(Contradiction c,
                                 List<NewsArticle> priorArticles,
@@ -248,14 +353,16 @@ public class CorrectionsPostController {
     }
 
     /**
-     * A paired correction entry: prior claim + correction claim, each with source articles.
+     * A paired correction entry: prior claim + corrected claim, each with source articles.
      *
-     * @param priorClaim    the original claim that was contradicted (display bold)
+     * @param pageSlug       wiki page slug (used for wiki deep-link)
+     * @param priorClaim     the original claim that was contradicted (display bold)
      * @param correctedClaim the new/corrected claim (display bold)
-     * @param priorArticles source articles supporting the prior claim
-     * @param newArticles   source articles supporting the correction
+     * @param priorArticles  source articles supporting the prior claim
+     * @param newArticles    source articles supporting the correction
      */
     public record CorrectionEntry(
+            String pageSlug,
             String priorClaim,
             String correctedClaim,
             List<NewsArticle> priorArticles,
