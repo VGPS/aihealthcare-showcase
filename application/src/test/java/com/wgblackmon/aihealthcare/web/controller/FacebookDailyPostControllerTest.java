@@ -268,6 +268,27 @@ class FacebookDailyPostControllerTest {
     }
 
     @Test
+    void classifyTone_promo_forMarketingArticle() {
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        NewsArticle a = article("x", "MedAI Proud to Announce Industry-Leading AI Platform",
+                "We are proud to announce our award-winning, best-in-class solution for healthcare.",
+                "INDUSTRY", 0.9);
+        assert "PROMO".equals(ctrl.classifyTone(a))
+                : "Expected PROMO, got: " + ctrl.classifyTone(a);
+    }
+
+    @Test
+    void classifyTone_good_takesPrecedenceOverPromo() {
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        // "cleared" (GOOD) + "proud to announce" (PROMO) — GOOD wins
+        NewsArticle a = article("x", "FDA Cleared Our Industry-Leading Device",
+                "We are proud to announce the FDA has cleared our device for clinical use.",
+                "INDUSTRY", 0.9);
+        assert "GOOD".equals(ctrl.classifyTone(a))
+                : "Expected GOOD to beat PROMO, got: " + ctrl.classifyTone(a);
+    }
+
+    @Test
     void classifyTone_danger_takesPrecedenceOverAlarm() {
         FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
         // Both "harm" (UGLY) and "investigation" (BAD) present — UGLY wins

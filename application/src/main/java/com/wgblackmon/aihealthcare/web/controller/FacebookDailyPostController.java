@@ -42,7 +42,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-22
- * @updated 2026-08-22
+ * @updated 2026-08-23
  */
 @Slf4j
 @Controller
@@ -130,6 +130,18 @@ public class FacebookDailyPostController {
         "funding", "investment", "partnership", "collaboration"
     };
 
+    // PROMO: marketing/advertising language — checked after GOOD so real news wins
+    private static final String[] PROMO_KEYWORDS = {
+        "proud to announce", "excited to announce", "thrilled to announce",
+        "pleased to announce", "best-in-class", "industry-leading",
+        "award-winning", "leading provider", "cutting-edge solution",
+        "game-changing", "transformative solution", "revolutionary solution",
+        "free trial", "request a demo", "sign up today", "contact us today",
+        "press release", "pr newswire", "business wire", "globe newswire",
+        "sponsorship", "sponsored by", "whitepaper", "ebook download",
+        "webinar registration"
+    };
+
     private final ArticleIngestionPort articleIngestionPort;
 
     public FacebookDailyPostController(ArticleIngestionPort articleIngestionPort) {
@@ -196,8 +208,9 @@ public class FacebookDailyPostController {
             String tone  = classifyTone(a);
             String emoji = "UGLY".equals(tone)  ? "🚨 "
                          : "BAD".equals(tone)   ? "⚠️ "
-                         : "GOOD".equals(tone) ? "✅ "
-                         :                          "ℹ️ ";
+                         : "GOOD".equals(tone)  ? "✅ "
+                         : "PROMO".equals(tone) ? "🙄 "
+                         :                        "ℹ️ ";
             String title = truncate(cleanText(a.title()), ITEM_TITLE_MAX);
             String line  = (i + 1) + ". " + emoji + title + "\n";
             if (sb.length() + line.length() + footer.length() > POST_BODY_LIMIT) {
@@ -229,17 +242,18 @@ public class FacebookDailyPostController {
 
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
-            String tone    = classifyTone(a);
-            String toneTag = "UGLY".equals(tone)  ? " [UGLY]"
-                           : "BAD".equals(tone)   ? " [BAD]"
-                           : "GOOD".equals(tone) ? " [GOOD]"
-                           :                          " [INFO]";
+            String tone  = classifyTone(a);
+            String emoji = "UGLY".equals(tone)  ? "🚨 "
+                         : "BAD".equals(tone)   ? "⚠️ "
+                         : "GOOD".equals(tone)  ? "✅ "
+                         : "PROMO".equals(tone) ? "🙄 "
+                         :                        "ℹ️ ";
             String title   = cleanText(a.title());
             String snippet = extractSnippet(a.bodyText(), 160);
             String url     = a.url() != null ? a.url().toString() : "";
 
             StringBuilder entry = new StringBuilder();
-            entry.append(i + 1).append(". ").append(title).append(toneTag).append("\n");
+            entry.append(emoji).append(title).append("\n");
             if (!snippet.isBlank()) {
                 entry.append(snippet).append("\n");
             }
@@ -375,7 +389,8 @@ public class FacebookDailyPostController {
         String text = buildSearchText(a);
         if (containsAny(text, UGLY_KEYWORDS))  { return "UGLY"; }
         if (containsAny(text, BAD_KEYWORDS))   { return "BAD"; }
-        if (containsAny(text, GOOD_KEYWORDS)) { return "GOOD"; }
+        if (containsAny(text, GOOD_KEYWORDS))  { return "GOOD"; }
+        if (containsAny(text, PROMO_KEYWORDS)) { return "PROMO"; }
         return "NEUTRAL";
     }
 
