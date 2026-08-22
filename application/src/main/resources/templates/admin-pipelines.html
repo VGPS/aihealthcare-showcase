@@ -217,6 +217,35 @@
             </div>
         </div>
 
+        <!-- Facebook Corrections Post -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Facebook Corrections Post</h3>
+                <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Manual</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Generates a Facebook-ready post from wiki-detected AI healthcare corrections.
+                Post body ≤ 390 chars (fits above Facebook's "See more" fold) showing the lead correction.
+                Full sources, wiki links, and all corrections go in a comment block.
+            </p>
+            <div class="bg-amber-50 border border-amber-100 rounded px-3 py-2 mb-3 text-xs text-amber-900">
+                <p class="font-semibold mb-1">Pipeline required before use</p>
+                <ol class="list-decimal ml-3 space-y-0.5">
+                    <li>Run <strong>RSS Feeds</strong> to harvest today's articles.</li>
+                    <li>Run <strong>Wiki Compile</strong> to detect contradictions.</li>
+                    <li>Open Facebook post page — entries appear automatically.</li>
+                </ol>
+            </div>
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Page: <span class="font-mono text-primary-600">/dashboard/facebook-corrections</span></div>
+                <div>Post body limit: <span class="font-semibold">390 chars</span> (above "See more" fold)</div>
+                <div>Best time to post: <span class="font-semibold">Weekdays 9–11 AM local time</span></div>
+            </div>
+            <div class="flex items-center gap-2 mt-auto">
+                <a href="/dashboard/facebook-corrections" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open Generator</a>
+            </div>
+        </div>
+
         <!-- LinkedIn Daily Post Generator -->
         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
             <div class="flex justify-between items-start mb-2">
@@ -248,6 +277,40 @@
             </div>
             <div class="flex items-center gap-2 mt-auto">
                 <a href="/dashboard/linkedin" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open Generator</a>
+            </div>
+        </div>
+
+        <!-- Facebook Daily Post Generator -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Facebook Daily Post</h3>
+                <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Manual</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Generates a ready-to-copy Facebook post from today's top-weighted articles (last 24 hours, capped at 5).
+                Same article pipeline as LinkedIn. Post body ≤ 390 chars — lead story above the "See more" fold,
+                additional headlines as bullets. Links are OK in Facebook posts (no reach penalty).
+            </p>
+
+            <!-- Posting workflow -->
+            <div class="bg-blue-50 border border-blue-100 rounded px-3 py-2 mb-3 text-xs text-blue-900">
+                <p class="font-semibold mb-1">Posting workflow</p>
+                <ol class="list-decimal ml-3 space-y-0.5">
+                    <li>Click <strong>Open Generator</strong> to get today's ready-to-copy text.</li>
+                    <li>Copy the <strong>Post Body</strong> and paste into a new Facebook Page post. Publish it.</li>
+                    <li>Open the published post → <em>Write a comment</em> → paste the <strong>Comment</strong> block for full sources.</li>
+                    <li>Submit the comment.</li>
+                </ol>
+                <p class="mt-1.5 text-blue-700"><strong>Facebook vs LinkedIn:</strong> Links in the post body do NOT hurt Facebook reach. The site URL is included directly in the post.</p>
+            </div>
+
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Page: <span class="font-mono text-primary-600">/dashboard/facebook</span></div>
+                <div>Est. duration: <span>Instant (reads from database)</span></div>
+                <div>Best time to post: <span class="font-semibold">Weekdays, 9–11 AM local time</span></div>
+            </div>
+            <div class="flex items-center gap-2 mt-auto">
+                <a href="/dashboard/facebook" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open Generator</a>
             </div>
         </div>
 
