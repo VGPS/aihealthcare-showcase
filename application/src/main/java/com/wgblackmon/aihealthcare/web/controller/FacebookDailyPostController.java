@@ -26,14 +26,14 @@ import java.util.Set;
  *
  * <p>Facebook-specific formatting (vs LinkedIn):
  * <ul>
- *   <li><strong>Post body ≤ 390 chars</strong> — content above Facebook's "See
- *       more" fold. Shows the lead article (title + short snippet) followed by
- *       2-3 additional headlines as bullets.</li>
+ *   <li><strong>Post body ≤ 390 chars</strong> — numbered list of all selected
+ *       articles (title only, no snippet). All 5 items appear in both the post
+ *       body and the comment so the counts always match.</li>
  *   <li><strong>Links are OK in the post body</strong> — Facebook does not
  *       suppress reach for external links in posts. The SITE_URL is included
  *       in the post body itself.</li>
- *   <li><strong>Comment block</strong> — full article list with URLs and
- *       snippets. Longer than LinkedIn (Facebook comments allow ~8,000 chars).</li>
+ *   <li><strong>Comment block</strong> — same numbered list with full snippets
+ *       and source URLs. Facebook comments allow ~8,000 chars.</li>
  * </ul>
  *
  * <p>No LLM calls are made; classification uses the same keyword matching as
@@ -48,11 +48,9 @@ import java.util.Set;
 @Controller
 public class FacebookDailyPostController {
 
-    private static final int MAX_ARTICLES      = 5;
-    private static final int LEAD_TITLE_MAX    = 62;
-    private static final int LEAD_SNIPPET_MAX  = 100;
-    private static final int BULLET_TITLE_MAX  = 55;
-    private static final int POST_BODY_LIMIT   = 390;
+    private static final int MAX_ARTICLES    = 5;
+    private static final int ITEM_TITLE_MAX  = 55;  // "N. [MARKETPLACE] " = 18 chars, leaving ~55 for title
+    private static final int POST_BODY_LIMIT = 390;
     private static final int COMMENT_LIMIT     = 7900;
 
     private static final DateTimeFormatter DATE_FMT =
@@ -159,30 +157,18 @@ public class FacebookDailyPostController {
             return empty;
         }
 
-        // Lead article: category label + title + short snippet
-        NewsArticle lead = articles.get(0);
-        String leadLabel   = classifyLabel(lead);
-        String leadTitle   = truncate(cleanText(lead.title()), LEAD_TITLE_MAX);
-        String leadSnippet = extractSnippet(lead.bodyText(), LEAD_SNIPPET_MAX);
-
-        sb.append(leadLabel).append(leadTitle).append("\n");
-        if (!leadSnippet.isBlank()) {
-            sb.append(leadSnippet).append("\n");
-        }
-
-        // Reserve space for footer before appending bullets
+        // Numbered list — all items, title only (no snippet).
+        // Budget: 390 - header(~37) - footer(~37) = ~316 for up to 5 items at ~63 chars each.
         String footer = "\nSources in comment ↓\n" + SITE_URL;
-
-        // Remaining articles as bullet headlines
-        for (int i = 1; i < articles.size(); i++) {
+        for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
             String label = classifyLabel(a);
-            String title = truncate(cleanText(a.title()), BULLET_TITLE_MAX);
-            String bullet = "\n• " + label + title;
-            if (sb.length() + bullet.length() + footer.length() + 1 > POST_BODY_LIMIT) {
+            String title = truncate(cleanText(a.title()), ITEM_TITLE_MAX);
+            String line  = (i + 1) + ". " + label + title + "\n";
+            if (sb.length() + line.length() + footer.length() > POST_BODY_LIMIT) {
                 break;
             }
-            sb.append(bullet);
+            sb.append(line);
         }
 
         sb.append(footer);
