@@ -232,12 +232,21 @@ class FacebookDailyPostControllerTest {
     // ------------------------------------------------------------------
 
     @Test
-    void classifyTone_concern_forRecallKeyword() {
+    void classifyTone_danger_forRecallKeyword() {
         FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
         NewsArticle a = article("x", "FDA Recalls AI Diagnostic Device Over Safety Concerns",
-                "The FDA issued a recall notice.", "INDUSTRY", 0.9);
-        assert "CONCERN".equals(ctrl.classifyTone(a))
-                : "Expected CONCERN, got: " + ctrl.classifyTone(a);
+                "The FDA issued a recall notice citing patient harm.", "INDUSTRY", 0.9);
+        assert "UGLY".equals(ctrl.classifyTone(a))
+                : "Expected UGLY, got: " + ctrl.classifyTone(a);
+    }
+
+    @Test
+    void classifyTone_alarm_forInvestigationKeyword() {
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        NewsArticle a = article("x", "DOJ Launches Investigation into AI Billing Vendor",
+                "Federal investigators opened a formal investigation.", "INDUSTRY", 0.9);
+        assert "BAD".equals(ctrl.classifyTone(a))
+                : "Expected BAD, got: " + ctrl.classifyTone(a);
     }
 
     @Test
@@ -245,8 +254,8 @@ class FacebookDailyPostControllerTest {
         FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
         NewsArticle a = article("x", "FDA Clears AI Tool for Early Cancer Detection",
                 "The FDA approved a breakthrough AI diagnostic tool.", "INDUSTRY", 0.9);
-        assert "HOPEFUL".equals(ctrl.classifyTone(a))
-                : "Expected HOPEFUL, got: " + ctrl.classifyTone(a);
+        assert "GOOD".equals(ctrl.classifyTone(a))
+                : "Expected GOOD, got: " + ctrl.classifyTone(a);
     }
 
     @Test
@@ -259,13 +268,13 @@ class FacebookDailyPostControllerTest {
     }
 
     @Test
-    void classifyTone_concern_takesPrecedenceOverHopeful() {
+    void classifyTone_danger_takesPrecedenceOverAlarm() {
         FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
-        // Both "approved" and "lawsuit" present — CONCERN wins
-        NewsArticle a = article("x", "Previously Approved AI Tool Faces Lawsuit Over Harm",
+        // Both "harm" (UGLY) and "investigation" (BAD) present — UGLY wins
+        NewsArticle a = article("x", "Investigation Launched After AI Tool Linked to Patient Harm",
                 "body", "INDUSTRY", 0.9);
-        assert "CONCERN".equals(ctrl.classifyTone(a))
-                : "Expected CONCERN to take precedence, got: " + ctrl.classifyTone(a);
+        assert "UGLY".equals(ctrl.classifyTone(a))
+                : "Expected UGLY to take precedence, got: " + ctrl.classifyTone(a);
     }
 
     @Test
