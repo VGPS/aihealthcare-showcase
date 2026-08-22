@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Facebook Corrections Post page — Facebook-ready copy blocks for wiki-detected
+ * AI healthcare corrections and reversals.
+ *
+ * Shows:
+ *   - Copyable post body (≤390 chars, fits above Facebook "See more" fold)
+ *   - Copyable comment block with wiki links, article URLs, and disclaimer
+ *   - Visual preview of each correction pair (original + corrected claim)
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-22
+ * @updated 2026-08-22
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Facebook Corrections Post')}"></head>
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Facebook Corrections Post</h1>
+    <p class="text-primary-200 text-sm mt-0.5">
+        <span th:text="${entryCount}">0</span> correction(s) · <span th:text="${dateLabel}">today</span>
+        &middot; Post: <span th:text="${postBodyLength}">0</span> / 390 chars
+        &middot; <a href="https://bigskylabs.ai" target="_blank" class="underline text-primary-100">bigskylabs.ai</a>
+        &middot; <a href="https://app.bigskylabs.ai/wiki" target="_blank" class="underline text-primary-100">AI Healthcare Wiki</a>
+    </p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('admin-pipelines')}"></nav>
+
+<main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Back link -->
+    <div class="flex items-center justify-between">
+        <a href="/admin/pipelines" class="text-xs text-primary-600 hover:underline">← Pipelines</a>
+        <p class="text-xs text-gray-400">Last <span th:text="${lookbackDays}">30</span>-day window</p>
+    </div>
+
+    <!-- No data state -->
+    <div th:if="${entryCount == 0}"
+         class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+        <p class="text-sm text-yellow-800 font-semibold mb-1">No corrections found</p>
+        <p class="text-xs text-yellow-700">
+            Run <strong>RSS Feeds</strong> then <strong>Wiki Compile</strong> on the
+            <a href="/admin/pipelines" class="underline">Pipelines page</a> to populate correction data.
+        </p>
+    </div>
+
+    <!-- ======================== COPY BLOCKS ======================== -->
+    <div th:if="${entryCount > 0}" class="space-y-6">
+
+        <!-- Disclaimer -->
+        <div class="bg-amber-50 border border-amber-300 rounded-lg p-4 text-sm text-amber-900">
+            <p class="font-semibold mb-1">Disclaimer</p>
+            <p class="text-xs">
+                These corrections are <strong>AI wiki-detected contradictions</strong> sourced from published
+                healthcare articles. They have <strong>not been individually verified or qualified</strong>.
+                Always review the original sources before sharing.
+                View provenance in the
+                <a href="https://app.bigskylabs.ai/wiki" target="_blank"
+                   class="underline font-medium text-amber-800">AI Healthcare Wiki →</a>
+            </p>
+        </div>
+
+        <!-- Post body — fits above Facebook "See more" fold -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <h2 class="font-semibold text-on-surface">Post Body</h2>
+                    <p class="text-xs text-on-surface-variant mt-0.5">Paste directly into Facebook — shows the lead correction above the "See more" fold (≤ 390 chars)</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="copyText('postBody', 'postBodyStatus')"
+                            class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-4 py-1.5 rounded-md transition-colors">
+                        Copy Post
+                    </button>
+                    <span id="postBodyStatus" class="text-xs"></span>
+                </div>
+            </div>
+            <textarea id="postBody" th:text="${postBody}" readonly
+                      class="w-full h-44 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
+                      spellcheck="false"></textarea>
+            <div class="mt-1 flex items-center justify-between text-xs text-on-surface-variant">
+                <span class="text-blue-700 font-medium">Facebook: links are OK in post body — no reach penalty</span>
+                <span><span th:text="${postBodyLength}" class="font-medium">0</span> / 390 characters</span>
+            </div>
+        </div>
+
+        <!-- Comment block — full sources, all entries -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <div>
+                    <h2 class="font-semibold text-on-surface">Comment — Sources &amp; All Corrections</h2>
+                    <p class="text-xs text-on-surface-variant mt-0.5">Post your article first, then paste this as comment #1</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="copyText('commentBlock', 'commentBlockStatus')"
+                            class="bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-1.5 rounded-md transition-colors">
+                        Copy Comment
+                    </button>
+                    <span id="commentBlockStatus" class="text-xs"></span>
+                </div>
+            </div>
+            <textarea id="commentBlock" th:text="${commentBlock}" readonly
+                      class="w-full h-56 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
+                      spellcheck="false"></textarea>
+            <div class="mt-1 text-xs text-on-surface-variant text-right">
+                <span th:text="${commentBlockLength}" class="font-medium">0</span> characters
+            </div>
+        </div>
+
+        <!-- Posting workflow -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
+            <p class="font-semibold mb-1">Posting workflow</p>
+            <ol class="list-decimal ml-4 space-y-1 text-xs text-blue-800">
+                <li>Copy the <strong>Post Body</strong> and paste into a new Facebook Page post.</li>
+                <li>Publish the post.</li>
+                <li>Immediately open the post, click <em>Write a comment</em>, and paste the <strong>Comment</strong> block.</li>
+                <li>Submit the comment — this pins your sources directly on the post.</li>
+            </ol>
+            <p class="mt-2 text-blue-700 text-xs">
+                <strong>Facebook vs LinkedIn:</strong> Unlike LinkedIn, Facebook does not penalize links in the post body.
+                The 390-char limit is the <em>visible</em> limit before Facebook collapses the text with "See more."
+                Readers who tap "See more" see the full post — but the hook must fit above the fold.
+            </p>
+        </div>
+
+        <!-- ======================== VISUAL PREVIEW ======================== -->
+        <div>
+            <h2 class="text-base font-semibold text-gray-700 mb-3">
+                Preview — <span th:text="${entryCount}">0</span> Correction(s)
+            </h2>
+            <div class="space-y-5">
+                <div th:each="entry, iterStat : ${entries}"
+                     class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+
+                    <!-- Entry header with wiki link -->
+                    <div class="bg-gray-50 border-b border-gray-200 px-5 py-2 flex items-center justify-between">
+                        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            Correction #<span th:text="${iterStat.count}">1</span>
+                        </span>
+                        <a th:href="@{'/wiki/' + ${entry.pageSlug()}}"
+                           target="_blank"
+                           class="text-xs text-primary-600 hover:underline font-medium">
+                            View in Wiki →
+                        </a>
+                    </div>
+
+                    <div class="p-5 space-y-4">
+
+                        <!-- PRIOR CLAIM -->
+                        <div class="border-l-4 border-amber-400 pl-4">
+                            <p class="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Original Claim</p>
+                            <p class="text-sm font-bold text-gray-800" th:text="${entry.priorClaim()}">Prior claim text</p>
+                            <div th:if="${!entry.priorArticles().isEmpty()}" class="mt-2 space-y-2">
+                                <div th:each="a : ${entry.priorArticles()}"
+                                     class="bg-amber-50 rounded p-3 text-xs">
+                                    <p class="font-semibold text-gray-800 mb-0.5" th:text="${a.title()}">Title</p>
+                                    <p th:if="${a.bodyText() != null and !a.bodyText().isBlank()}"
+                                       class="text-gray-600 mb-1"
+                                       th:text="${#strings.abbreviate(a.bodyText().replaceAll('&lt;[^&gt;]+&gt;', ' ').replaceAll('\\s+', ' ').trim(), 200)}">Snippet</p>
+                                    <a th:href="${a.url()}" target="_blank"
+                                       class="text-primary-600 hover:underline break-all"
+                                       th:text="${a.url()}">URL</a>
+                                </div>
+                            </div>
+                            <p th:if="${entry.priorArticles().isEmpty()}"
+                               class="text-xs text-gray-400 mt-1 italic">Source article no longer in archive</p>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="flex items-center gap-2 text-gray-400">
+                            <div class="flex-1 h-px bg-gray-200"></div>
+                            <span class="text-sm">↓ corrected by</span>
+                            <div class="flex-1 h-px bg-gray-200"></div>
+                        </div>
+
+                        <!-- CORRECTED CLAIM -->
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <p class="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Corrected Claim</p>
+                            <p class="text-sm font-bold text-gray-800" th:text="${entry.correctedClaim()}">New claim text</p>
+                            <div th:if="${!entry.newArticles().isEmpty()}" class="mt-2 space-y-2">
+                                <div th:each="a : ${entry.newArticles()}"
+                                     class="bg-green-50 rounded p-3 text-xs">
+                                    <p class="font-semibold text-gray-800 mb-0.5" th:text="${a.title()}">Title</p>
+                                    <p th:if="${a.bodyText() != null and !a.bodyText().isBlank()}"
+                                       class="text-gray-600 mb-1"
+                                       th:text="${#strings.abbreviate(a.bodyText().replaceAll('&lt;[^&gt;]+&gt;', ' ').replaceAll('\\s+', ' ').trim(), 200)}">Snippet</p>
+                                    <a th:href="${a.url()}" target="_blank"
+                                       class="text-primary-600 hover:underline break-all"
+                                       th:text="${a.url()}">URL</a>
+                                </div>
+                            </div>
+                            <p th:if="${entry.newArticles().isEmpty()}"
+                               class="text-xs text-gray-400 mt-1 italic">Source article no longer in archive</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- App promo footer -->
+        <div class="bg-primary-50 border border-primary-200 rounded-lg p-4 text-center">
+            <p class="text-sm font-semibold text-primary-800 mb-1">
+                AI in Healthcare Intelligence — <a href="https://bigskylabs.ai" target="_blank"
+                   class="underline">bigskylabs.ai</a>
+            </p>
+            <p class="text-xs text-primary-700">
+                Daily AI healthcare news, regulatory alerts, trend signals, and competitive intelligence.
+                <a href="https://bigskylabs.ai" target="_blank" class="underline font-semibold">Start your 7-day free demo →</a>
+            </p>
+        </div>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+function copyText(textareaId, statusId) {
+    var el = document.getElementById(textareaId);
+    var statusEl = document.getElementById(statusId);
+    if (!el) { return; }
+    navigator.clipboard.writeText(el.value).then(function() {
+        statusEl.textContent = 'Copied!';
+        statusEl.className = 'text-xs text-green-700 font-semibold';
+        setTimeout(function() { statusEl.textContent = ''; }, 3000);
+    }).catch(function() {
+        el.select();
+        statusEl.textContent = 'Select + Ctrl-C to copy';
+        statusEl.className = 'text-xs text-yellow-700 font-semibold';
+    });
+}
+</script>
+</body>
+</html>
