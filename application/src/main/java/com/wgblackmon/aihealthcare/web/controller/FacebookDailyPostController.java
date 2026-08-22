@@ -49,7 +49,7 @@ import java.util.Set;
 public class FacebookDailyPostController {
 
     private static final int MAX_ARTICLES    = 5;
-    private static final int ITEM_TITLE_MAX  = 55;  // "N. [MARKETPLACE] " = 18 chars, leaving ~55 for title
+    private static final int ITEM_TITLE_MAX  = 52;  // "N. ⚠️ " = 5 chars, leaving ~52 for title
     private static final int POST_BODY_LIMIT = 390;
     private static final int COMMENT_LIMIT     = 7900;
 
@@ -97,6 +97,30 @@ public class FacebookDailyPostController {
         "prior study", "previous study", "study reversed",
         "update to earlier", "correction to", "retraction",
         "new evidence contradicts", "researchers challenge"
+    };
+
+    // Tone — CONCERN (bad for patients/industry) vs HOPEFUL (good news)
+    private static final String[] CONCERN_KEYWORDS = {
+        "lawsuit", "litigation", "court", "class action", "settlement",
+        "recall", "recalled", "safety alert", "adverse event", "adverse",
+        "violation", "penalty", "fine", "criminal", "indictment", "fraud",
+        "denied", "rejected", "warning letter", "warning",
+        "investigation", "subpoena", "scandal", "misleading",
+        "breach", "hack", "data leak", "data breach",
+        "death", "died", "harm", "harmful", "injury", "injuries",
+        "danger", "unsafe", "risk", "ban", "banned", "revoked",
+        "delay", "delayed", "failure", "failed", "concern", "concerns"
+    };
+
+    private static final String[] HOPEFUL_KEYWORDS = {
+        "approved", "clearance", "cleared", "authorized",
+        "fda clears", "fda approves", "breakthrough",
+        "promising", "effective", "efficacy", "successful", "success",
+        "improves", "improvement", "better outcomes", "reduces", "prevents",
+        "launched", "innovation", "advance", "advances",
+        "study shows", "trial shows", "evidence shows", "results show",
+        "saves", "saving", "benefit", "benefits", "cure", "treatment",
+        "funding", "investment", "partnership", "collaboration"
     };
 
     private final ArticleIngestionPort articleIngestionPort;
@@ -157,14 +181,15 @@ public class FacebookDailyPostController {
             return empty;
         }
 
-        // Numbered list — all items, title only (no snippet).
+        // Numbered list — all items, tone emoji + title (no snippet).
         // Budget: 390 - header(~37) - footer(~37) = ~316 for up to 5 items at ~63 chars each.
         String footer = "\nSources in comment ↓\n" + SITE_URL;
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
-            String label = classifyLabel(a);
+            String tone  = classifyTone(a);
+            String emoji = "CONCERN".equals(tone) ? "⚠️ " : "HOPEFUL".equals(tone) ? "✅ " : "";
             String title = truncate(cleanText(a.title()), ITEM_TITLE_MAX);
-            String line  = (i + 1) + ". " + label + title + "\n";
+            String line  = (i + 1) + ". " + emoji + title + "\n";
             if (sb.length() + line.length() + footer.length() > POST_BODY_LIMIT) {
                 break;
             }
@@ -194,12 +219,14 @@ public class FacebookDailyPostController {
 
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
+            String tone    = classifyTone(a);
+            String toneTag = "CONCERN".equals(tone) ? " [CONCERN]" : "HOPEFUL".equals(tone) ? " [HOPEFUL]" : "";
             String title   = cleanText(a.title());
             String snippet = extractSnippet(a.bodyText(), 160);
             String url     = a.url() != null ? a.url().toString() : "";
 
             StringBuilder entry = new StringBuilder();
-            entry.append(i + 1).append(". ").append(title).append("\n");
+            entry.append(i + 1).append(". ").append(title).append(toneTag).append("\n");
             if (!snippet.isBlank()) {
                 entry.append(snippet).append("\n");
             }
@@ -323,6 +350,18 @@ public class FacebookDailyPostController {
         if (containsAny(text, POLICY_KEYWORDS))        { return PRIORITY_POLICY; }
         if (containsAny(text, CONTRADICTION_KEYWORDS)) { return PRIORITY_CONTRADICTION; }
         return PRIORITY_GENERAL;
+    }
+
+    /**
+     * Classifies the tone of an article as CONCERN (bad for patients/industry),
+     * HOPEFUL (positive development), or NEUTRAL (informational).
+     * CONCERN takes precedence over HOPEFUL when both sets match.
+     */
+    String classifyTone(NewsArticle a) {
+        String text = buildSearchText(a);
+        if (containsAny(text, CONCERN_KEYWORDS))  { return "CONCERN"; }
+        if (containsAny(text, HOPEFUL_KEYWORDS))  { return "HOPEFUL"; }
+        return "NEUTRAL";
     }
 
     String classifyLabel(NewsArticle a) {

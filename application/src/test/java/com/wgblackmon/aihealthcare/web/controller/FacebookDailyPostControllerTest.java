@@ -232,6 +232,43 @@ class FacebookDailyPostControllerTest {
     // ------------------------------------------------------------------
 
     @Test
+    void classifyTone_concern_forRecallKeyword() {
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        NewsArticle a = article("x", "FDA Recalls AI Diagnostic Device Over Safety Concerns",
+                "The FDA issued a recall notice.", "INDUSTRY", 0.9);
+        assert "CONCERN".equals(ctrl.classifyTone(a))
+                : "Expected CONCERN, got: " + ctrl.classifyTone(a);
+    }
+
+    @Test
+    void classifyTone_hopeful_forApprovalKeyword() {
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        NewsArticle a = article("x", "FDA Clears AI Tool for Early Cancer Detection",
+                "The FDA approved a breakthrough AI diagnostic tool.", "INDUSTRY", 0.9);
+        assert "HOPEFUL".equals(ctrl.classifyTone(a))
+                : "Expected HOPEFUL, got: " + ctrl.classifyTone(a);
+    }
+
+    @Test
+    void classifyTone_neutral_forInformationalArticle() {
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        NewsArticle a = article("x", "Overview of AI Applications in Radiology",
+                "Researchers reviewed current AI applications in radiology departments.", "INDUSTRY", 0.9);
+        assert "NEUTRAL".equals(ctrl.classifyTone(a))
+                : "Expected NEUTRAL, got: " + ctrl.classifyTone(a);
+    }
+
+    @Test
+    void classifyTone_concern_takesPrecedenceOverHopeful() {
+        FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
+        // Both "approved" and "lawsuit" present — CONCERN wins
+        NewsArticle a = article("x", "Previously Approved AI Tool Faces Lawsuit Over Harm",
+                "body", "INDUSTRY", 0.9);
+        assert "CONCERN".equals(ctrl.classifyTone(a))
+                : "Expected CONCERN to take precedence, got: " + ctrl.classifyTone(a);
+    }
+
+    @Test
     void cleanText_stripsHtmlAndEntities() {
         FacebookDailyPostController ctrl = new FacebookDailyPostController(articleIngestionPort);
         assert "FDA cleared device".equals(ctrl.cleanText("FDA&nbsp;cleared <b>device</b>"))
