@@ -99,20 +99,27 @@ public class FacebookDailyPostController {
         "new evidence contradicts", "researchers challenge"
     };
 
-    // Tone — CONCERN (bad for patients/industry) vs HOPEFUL (good news)
-    private static final String[] CONCERN_KEYWORDS = {
-        "lawsuit", "litigation", "court", "class action", "settlement",
-        "recall", "recalled", "safety alert", "adverse event", "adverse",
-        "violation", "penalty", "fine", "criminal", "indictment", "fraud",
-        "denied", "rejected", "warning letter", "warning",
-        "investigation", "subpoena", "scandal", "misleading",
-        "breach", "hack", "data leak", "data breach",
+    // Tone — three tiers from bad to good
+    // UGLY: immediate patient safety risk or legal jeopardy
+    private static final String[] UGLY_KEYWORDS = {
+        "recall", "recalled", "safety alert", "adverse event",
+        "lawsuit", "litigation", "criminal", "indictment", "fraud",
         "death", "died", "harm", "harmful", "injury", "injuries",
-        "danger", "unsafe", "risk", "ban", "banned", "revoked",
-        "delay", "delayed", "failure", "failed", "concern", "concerns"
+        "breach", "hack", "data leak", "data breach",
+        "ban", "banned", "revoked", "unsafe"
     };
 
-    private static final String[] HOPEFUL_KEYWORDS = {
+    // BAD: regulatory concern, investigation, warning — not yet at UGLY level
+    private static final String[] BAD_KEYWORDS = {
+        "investigation", "subpoena", "penalty", "fine", "violation",
+        "warning letter", "warning", "denied", "rejected",
+        "delay", "delayed", "failure", "failed",
+        "scandal", "misleading", "concern", "concerns",
+        "lawsuit", "court", "class action", "settlement",
+        "risk", "danger", "adverse"
+    };
+
+    private static final String[] GOOD_KEYWORDS = {
         "approved", "clearance", "cleared", "authorized",
         "fda clears", "fda approves", "breakthrough",
         "promising", "effective", "efficacy", "successful", "success",
@@ -187,7 +194,10 @@ public class FacebookDailyPostController {
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
             String tone  = classifyTone(a);
-            String emoji = "CONCERN".equals(tone) ? "⚠️ " : "HOPEFUL".equals(tone) ? "✅ " : "";
+            String emoji = "UGLY".equals(tone)  ? "🚨 "
+                         : "BAD".equals(tone)   ? "⚠️ "
+                         : "GOOD".equals(tone) ? "✅ "
+                         :                          "ℹ️ ";
             String title = truncate(cleanText(a.title()), ITEM_TITLE_MAX);
             String line  = (i + 1) + ". " + emoji + title + "\n";
             if (sb.length() + line.length() + footer.length() > POST_BODY_LIMIT) {
@@ -220,7 +230,10 @@ public class FacebookDailyPostController {
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
             String tone    = classifyTone(a);
-            String toneTag = "CONCERN".equals(tone) ? " [CONCERN]" : "HOPEFUL".equals(tone) ? " [HOPEFUL]" : "";
+            String toneTag = "UGLY".equals(tone)  ? " [UGLY]"
+                           : "BAD".equals(tone)   ? " [BAD]"
+                           : "GOOD".equals(tone) ? " [GOOD]"
+                           :                          " [INFO]";
             String title   = cleanText(a.title());
             String snippet = extractSnippet(a.bodyText(), 160);
             String url     = a.url() != null ? a.url().toString() : "";
@@ -353,14 +366,16 @@ public class FacebookDailyPostController {
     }
 
     /**
-     * Classifies the tone of an article as CONCERN (bad for patients/industry),
-     * HOPEFUL (positive development), or NEUTRAL (informational).
-     * CONCERN takes precedence over HOPEFUL when both sets match.
+     * Classifies the tone of an article as UGLY (immediate patient safety or legal
+     * jeopardy), BAD (regulatory concern or investigation), GOOD (positive
+     * development), or NEUTRAL (informational).
+     * UGLY takes precedence over BAD; both take precedence over GOOD.
      */
     String classifyTone(NewsArticle a) {
         String text = buildSearchText(a);
-        if (containsAny(text, CONCERN_KEYWORDS))  { return "CONCERN"; }
-        if (containsAny(text, HOPEFUL_KEYWORDS))  { return "HOPEFUL"; }
+        if (containsAny(text, UGLY_KEYWORDS))  { return "UGLY"; }
+        if (containsAny(text, BAD_KEYWORDS))   { return "BAD"; }
+        if (containsAny(text, GOOD_KEYWORDS)) { return "GOOD"; }
         return "NEUTRAL";
     }
 
