@@ -128,7 +128,7 @@
     <div class="grid grid-cols-[repeat(auto-fill,minmax(360px,1fr))] gap-4 mt-4">
 
         <!-- Send Test Digest -->
-        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
             <div class="flex justify-between items-start mb-2">
                 <h3 class="text-lg font-semibold text-primary-600">Send Test Digest</h3>
                 <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Low</span>
@@ -138,19 +138,19 @@
                 <div>Endpoint: <span class="font-mono text-primary-600">/monitoring/digest-newsletter/send</span></div>
                 <div>Est. duration: <span>~2 seconds (no LLM)</span></div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 mt-auto">
                 <input type="email" id="digestEmailInput" placeholder="recipient@example.com"
                        class="border border-gray-300 rounded px-2 py-1.5 text-sm flex-1 focus:outline-none focus:border-primary-400" />
                 <button type="button" class="btn-search text-sm px-3 py-1.5"
                         onclick="sendTestDigest(this)">Send</button>
                 <a href="/monitoring/digest-newsletter" target="_blank"
-                   class="text-xs text-primary-600 hover:underline whitespace-nowrap">Preview in browser</a>
+                   class="text-xs text-primary-600 hover:underline whitespace-nowrap">Preview</a>
             </div>
             <span id="digestSendStatus" class="text-xs mt-2 block"></span>
         </div>
 
         <!-- Send Sample Newsletter -->
-        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
             <div class="flex justify-between items-start mb-2">
                 <h3 class="text-lg font-semibold text-primary-600">Send Sample Newsletter</h3>
                 <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Low</span>
@@ -160,19 +160,19 @@
                 <div>Endpoint: <span class="font-mono text-primary-600">/monitoring/sample-newsletter/send</span></div>
                 <div>Est. duration: <span>~1 second</span></div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 mt-auto">
                 <input type="email" id="sampleEmailInput" placeholder="recipient@example.com"
                        class="border border-gray-300 rounded px-2 py-1.5 text-sm flex-1 focus:outline-none focus:border-primary-400" />
                 <button type="button" class="btn-search text-sm px-3 py-1.5"
                         onclick="sendSampleNewsletter(this)">Send</button>
                 <a href="/monitoring/sample-newsletter" target="_blank"
-                   class="text-xs text-primary-600 hover:underline whitespace-nowrap">Preview in browser</a>
+                   class="text-xs text-primary-600 hover:underline whitespace-nowrap">Preview</a>
             </div>
             <span id="sampleSendStatus" class="text-xs mt-2 block"></span>
         </div>
 
         <!-- Preview Latest AI Newsletter -->
-        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
             <div class="flex justify-between items-start mb-2">
                 <h3 class="text-lg font-semibold text-primary-600">Preview AI Newsletter</h3>
                 <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Read-only</span>
@@ -182,14 +182,14 @@
                 <div>Endpoint: <span class="font-mono text-primary-600">/monitoring/newsletter/preview</span></div>
                 <div>Est. duration: <span>Instant (reads from database)</span></div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 mt-auto">
                 <a href="/monitoring/newsletter/preview" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open in browser</a>
-                <span class="text-xs text-gray-400">or go to <a href="/newsletter/runs" class="text-primary-600 hover:underline">Newsletter Runs</a> to browse all editions</span>
+                <span class="text-xs text-gray-400">or <a href="/newsletter/runs" class="text-primary-600 hover:underline">Newsletter Runs</a></span>
             </div>
         </div>
 
         <!-- LinkedIn Daily Post Generator -->
-        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200">
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
             <div class="flex justify-between items-start mb-2">
                 <h3 class="text-lg font-semibold text-primary-600">LinkedIn Daily Post</h3>
                 <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Manual</span>
@@ -217,7 +217,7 @@
                 <div>Est. duration: <span>Instant (reads from database)</span></div>
                 <div>Best time to post: <span class="font-semibold">Tue–Thu, 7–9 AM local time</span> (highest LinkedIn B2B engagement)</div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 mt-auto">
                 <a href="/dashboard/linkedin" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open Generator</a>
             </div>
         </div>
