@@ -70,8 +70,24 @@ Report to the user before running:
 
 ### 5. Run k6
 
+Three files are written per run to `logs/k6/` (gitignored — local only):
+
+| File | Contents |
+|------|----------|
+| `run-TIMESTAMP.json` | Every metric data point as JSON Lines — one object per HTTP request with URL, group, status, duration, tags |
+| `run-TIMESTAMP.log` | k6's own INFO/WARN/ERROR messages (login failures, network errors, threshold events) |
+| `run-TIMESTAMP-summary.txt` | The terminal summary table (same as what prints at the end) |
+
 ```bash
-"/c/Program Files/k6/k6.exe" run --env MAX_VUS=<N> --env K6_USERNAME=wgblackmonall@gmail.com --env K6_PASSWORD=<password> load-test/k6-smoke.js 2>&1 | tail -55
+TIMESTAMP=$(date +%Y-%m-%d-%H%M%S) && \
+mkdir -p logs/k6 && \
+"/c/Program Files/k6/k6.exe" run \
+  --out "json=logs/k6/run-${TIMESTAMP}.json" \
+  --log-output "file=logs/k6/run-${TIMESTAMP}.log" \
+  --env MAX_VUS=<N> \
+  --env K6_USERNAME=wgblackmonall@gmail.com \
+  --env K6_PASSWORD=<password> \
+  load-test/k6-smoke.js 2>&1 | tee "logs/k6/run-${TIMESTAMP}-summary.txt" | tail -55
 ```
 
 Use `K6_USERNAME` (not `K6_PASSWORD` — Windows USERNAME env var collision: on Windows,
@@ -79,6 +95,39 @@ Use `K6_USERNAME` (not `K6_PASSWORD` — Windows USERNAME env var collision: on 
 login email. The script uses `K6_USERNAME` to avoid this.)
 
 k6 streams live output to the terminal. Let it run to completion (~5 minutes).
+
+### Reading the JSON metrics file
+
+The JSON file has one object per line. Two line types:
+
+- `"type":"Metric"` — declares a metric (appears once per metric name)
+- `"type":"Point"` — one data point; the useful one for analysis
+
+Each `Point` looks like:
+```json
+{"type":"Point","data":{"time":"2026-08-23T21:00:01Z","value":234.5,"tags":{"group":"::dashboard","url":"https://app.bigskylabs.ai/dashboard","status":"200","expected_response":"true"}},"metric":"http_req_duration"}
+```
+
+Key fields in `data`:
+- `value` — response time in milliseconds (for `http_req_duration`)
+- `tags.group` — which `group()` block the request came from (e.g. `::dashboard`, `::wiki-index`)
+- `tags.status` — HTTP status code
+- `tags.url` — full request URL
+- `time` — UTC timestamp of the request
+
+**Useful one-liners for analyzing the JSON file** (replace `RUNFILE` with the actual filename):
+```bash
+# Per-page average response time
+grep '"type":"Point"' logs/k6/RUNFILE.json | grep '"metric":"http_req_duration"' | \
+  python3 -c "import sys,json; rows=[json.loads(l) for l in sys.stdin]; \
+  groups={}; \
+  [groups.setdefault(r['data']['tags'].get('group','?'),[]).append(r['data']['value']) for r in rows]; \
+  [print(f'{sum(v)/len(v):7.0f}ms avg  {g}') for g,v in sorted(groups.items())]"
+
+# Any non-200 responses
+grep '"type":"Point"' logs/k6/RUNFILE.json | \
+  python3 -c "import sys,json; [print(r['data']['tags']) for r in (json.loads(l) for l in sys.stdin) if r.get('metric')=='http_req_failed' and r['data']['value']==1]"
+```
 
 ### 6. Report results
 

@@ -49,6 +49,9 @@ build/
 .idea/runConfigurations/
 .idea/dataSources.xml
 
+### k6 load test output (local only) ###
+logs/k6/
+
 ### Stale docs removed from repo ###
 SESSION_LOG.md
 docs/SESSION_LOG.md
