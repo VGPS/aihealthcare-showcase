@@ -38,9 +38,9 @@ import java.util.Map;
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 2.3
+ * @version 2.4
  * @since   2026-07-30
- * @updated 2026-08-19
+ * @updated 2026-08-23
  */
 @Slf4j
 @Controller
@@ -314,6 +314,71 @@ public class AdminPipelineController {
 
         List<PipelineInfo> list = new ArrayList<>();
 
+        // ── High LLM cost (most complex first) ──────────────────────────────
+        list.add(new PipelineInfo("market-digest", "Market Digest Generator",
+                "Generates the daily AI healthcare market digest: researches news via Perplexity, classifies market impact via Claude, persists digest. Idempotent — safe to re-run for today.",
+                "Daily 07:00 AM CT", "MarketDigestScheduler",
+                "/admin/pipelines/market-digest/generate", "POST", true, "~3 min", "High (LLM cost)"));
+
+        list.add(new PipelineInfo("wiki-compile", "Wiki Compilation",
+                "Compiles recent articles into wiki pages via LLM with provenance and contradiction detection. Requires AI API key.",
+                "After daily feed harvest", "FeedHarvestScheduler",
+                "/monitoring/wiki/compile", "POST", false, "~5 min", "High (LLM cost)"));
+
+        list.add(new PipelineInfo("newsletter-send", "Newsletter Generate & Send",
+                "Runs the full newsletter pipeline on demand: ingest today's articles, generate draft via AI, and deliver to all active subscribers. Use this if the scheduled run failed.",
+                "Daily midnight UTC", "NewsletterGenerationScheduler",
+                "/admin/pipelines/newsletter/generate-and-send", "POST", true, "~30 sec", "High (LLM cost)"));
+
+        list.add(new PipelineInfo("wiki-gap-analysis", "Wiki Gap Analysis",
+                "Analyzes recent articles against wiki coverage to identify knowledge gaps with specific article references. Requires AI API key.",
+                "Weekly after wiki lint", "FeedHarvestScheduler",
+                "/monitoring/wiki/gap-analysis", "POST", false, "~2 min", "High (LLM cost)"));
+
+        list.add(new PipelineInfo("market-intelligence", "Market Intelligence Report",
+                "Generates monthly competitive landscape report via AI. Writes HTML to NotebookLMDirectory/summaries/.",
+                "Monthly 1st at 08:00 UTC", "MarketIntelligenceScheduler",
+                "/api/v1/market-intelligence/refresh", "POST", false, "~2 min", "High (LLM cost)"));
+
+        list.add(new PipelineInfo("topic-summaries", "Topic Summary Generation",
+                "Generates AI-powered 3-sentence summaries for each news topic. Requires AI API key.",
+                "After daily feed harvest", "FeedHarvestScheduler",
+                "/api/v1/monitoring/summaries", "POST", false, "~3 min", "High (LLM cost)"));
+
+        // ── High CPU + API ───────────────────────────────────────────────────
+        list.add(new PipelineInfo("embedding", "Article Embedding",
+                "Embeds new articles into vector store for semantic search. Skips already-embedded articles. Requires pgvector.",
+                "Daily 07:00 UTC", "EmbeddingScheduler",
+                "/api/v1/monitoring/embeddings", "POST", false, "~10 min", "High (CPU + API)"));
+
+        // ── Medium LLM ───────────────────────────────────────────────────────
+        list.add(new PipelineInfo("legal-trends", "Legal Trend Detection",
+                "Detects trends in legal, policy, and regulatory articles via LLM-based topic extraction.",
+                "Weekly Sunday 09:00 UTC", "LegalTrendScheduler",
+                "/dashboard/legal/trends/detect", "POST", true, "~1 min", "Medium (LLM)"));
+
+        list.add(new PipelineInfo("research-harvest", "Research Harvest (Perplexity)",
+                "Runs the COMBINED research pipeline (Perplexity + Google) for all configured topics. Persists new articles to DB.",
+                "Daily 06:00 & 12:00 UTC", "ResearchHarvestScheduler",
+                "/api/v1/monitoring/research-harvest", "POST", false, "~5 min", "Medium (LLM)"));
+
+        list.add(new PipelineInfo("company-discovery", "Company Discovery (Perplexity)",
+                "Discovers AI healthcare companies via Perplexity API: broad discovery, structured extraction, cross-validation. Deduplicates against DB.",
+                "Weekly Sunday 06:00 UTC", "CompanyDiscoveryScheduler",
+                "/api/v1/monitoring/company-discovery", "POST", false, "~5 min", "Medium (LLM)"));
+
+        // ── Medium (no LLM) ──────────────────────────────────────────────────
+        list.add(new PipelineInfo("legal-backfill", "Legal & Regulatory Backfill",
+                "Backfills legal articles from CourtListener and PubMed, plus regulatory events. Configurable lookback window.",
+                "Manual only", "None",
+                "/monitoring/legal-backfill?days=30", "POST", false, "~3 min", "Medium"));
+
+        list.add(new PipelineInfo("pubmed-backfill", "PubMed Article Backfill",
+                "Queries PubMed E-utilities API across 11 predefined healthcare AI search queries.",
+                "Manual only", "None",
+                "/monitoring/backfill?fromYear=2024&toYear=2026&maxPerQuery=20", "POST", false, "~2 min", "Medium"));
+
+        // ── Low ──────────────────────────────────────────────────────────────
         list.add(new PipelineInfo("rss-feeds", "RSS Feed Harvest",
                 "Harvests articles from all configured RSS feeds (ACADEMIC, REGULATORY, INDUSTRY). Runs relevance filter, saves to DB.",
                 "Daily 04:00 UTC", "FeedHarvestScheduler",
@@ -339,75 +404,16 @@ public class AdminPipelineController {
                 "Daily 05:00 UTC", "ClinicalTrialHarvestScheduler",
                 "/monitoring/clinical-trials-harvest", "POST", true, "~1 min", "Low"));
 
-        list.add(new PipelineInfo("wiki-compile", "Wiki Compilation",
-                "Compiles recent articles into wiki pages via LLM with provenance and contradiction detection. Requires AI API key.",
-                "After daily feed harvest", "FeedHarvestScheduler",
-                "/monitoring/wiki/compile", "POST", false, "~5 min", "High (LLM cost)"));
-
-        list.add(new PipelineInfo("wiki-lint", "Wiki Linting",
-                "Checks wiki pages for orphans, broken cross-references, stale content (>30 days), missing provenance.",
-                "Daily 08:00 UTC", "WikiLintScheduler",
-                "/monitoring/wiki/lint", "POST", false, "~10 sec", "Minimal"));
-
-        list.add(new PipelineInfo("legal-backfill", "Legal & Regulatory Backfill",
-                "Backfills legal articles from CourtListener and PubMed, plus regulatory events. Configurable lookback window.",
-                "Manual only", "None",
-                "/monitoring/legal-backfill?days=30", "POST", false, "~3 min", "Medium"));
-
-        list.add(new PipelineInfo("pubmed-backfill", "PubMed Article Backfill",
-                "Queries PubMed E-utilities API across 11 predefined healthcare AI search queries.",
-                "Manual only", "None",
-                "/monitoring/backfill?fromYear=2024&toYear=2026&maxPerQuery=20", "POST", false, "~2 min", "Medium"));
-
         list.add(new PipelineInfo("trend-detection", "Trend Detection",
                 "Analyzes keyword frequency across 30/90/180-day windows to identify rising, fading, and new trends.",
                 "Weekly Sunday 08:00 UTC", "TrendDetectionScheduler",
                 "/api/v1/trends/detect", "POST", false, "~30 sec", "Low"));
 
-        list.add(new PipelineInfo("legal-trends", "Legal Trend Detection",
-                "Detects trends in legal, policy, and regulatory articles via LLM-based topic extraction.",
-                "Weekly Sunday 09:00 UTC", "LegalTrendScheduler",
-                "/dashboard/legal/trends/detect", "POST", true, "~1 min", "Medium (LLM)"));
-
-        list.add(new PipelineInfo("topic-summaries", "Topic Summary Generation",
-                "Generates AI-powered 3-sentence summaries for each news topic. Requires AI API key.",
-                "After daily feed harvest", "FeedHarvestScheduler",
-                "/api/v1/monitoring/summaries", "POST", false, "~3 min", "High (LLM cost)"));
-
-        list.add(new PipelineInfo("embedding", "Article Embedding",
-                "Embeds new articles into vector store for semantic search. Skips already-embedded articles. Requires pgvector.",
-                "Daily 07:00 UTC", "EmbeddingScheduler",
-                "/api/v1/monitoring/embeddings", "POST", false, "~10 min", "High (CPU + API)"));
-
-        list.add(new PipelineInfo("market-intelligence", "Market Intelligence Report",
-                "Generates monthly competitive landscape report via AI. Writes HTML to NotebookLMDirectory/summaries/.",
-                "Monthly 1st at 08:00 UTC", "MarketIntelligenceScheduler",
-                "/api/v1/market-intelligence/refresh", "POST", false, "~2 min", "High (LLM cost)"));
-
-        list.add(new PipelineInfo("newsletter-send", "Newsletter Generate & Send",
-                "Runs the full newsletter pipeline on demand: ingest today's articles, generate draft via AI, and deliver to all active subscribers. Use this if the scheduled run failed.",
-                "Daily midnight UTC", "NewsletterGenerationScheduler",
-                "/admin/pipelines/newsletter/generate-and-send", "POST", true, "~30 sec", "High (LLM cost)"));
-
-        list.add(new PipelineInfo("research-harvest", "Research Harvest (Perplexity)",
-                "Runs the COMBINED research pipeline (Perplexity + Google) for all configured topics. Persists new articles to DB.",
-                "Daily 06:00 & 12:00 UTC", "ResearchHarvestScheduler",
-                "/api/v1/monitoring/research-harvest", "POST", false, "~5 min", "Medium (LLM)"));
-
-        list.add(new PipelineInfo("company-discovery", "Company Discovery (Perplexity)",
-                "Discovers AI healthcare companies via Perplexity API: broad discovery, structured extraction, cross-validation. Deduplicates against DB.",
-                "Weekly Sunday 06:00 UTC", "CompanyDiscoveryScheduler",
-                "/api/v1/monitoring/company-discovery", "POST", false, "~5 min", "Medium (LLM)"));
-
-        list.add(new PipelineInfo("wiki-gap-analysis", "Wiki Gap Analysis",
-                "Analyzes recent articles against wiki coverage to identify knowledge gaps with specific article references. Requires AI API key.",
-                "Weekly after wiki lint", "FeedHarvestScheduler",
-                "/monitoring/wiki/gap-analysis", "POST", false, "~2 min", "High (LLM cost)"));
-
-        list.add(new PipelineInfo("market-digest", "Market Digest Generator",
-                "Generates the daily AI healthcare market digest: researches news via Perplexity, classifies market impact via Claude, persists digest. Idempotent — safe to re-run for today.",
-                "Daily 07:00 AM CT", "MarketDigestScheduler",
-                "/admin/pipelines/market-digest/generate", "POST", true, "~3 min", "High (LLM cost)"));
+        // ── Minimal ──────────────────────────────────────────────────────────
+        list.add(new PipelineInfo("wiki-lint", "Wiki Linting",
+                "Checks wiki pages for orphans, broken cross-references, stale content (>30 days), missing provenance.",
+                "Daily 08:00 UTC", "WikiLintScheduler",
+                "/monitoring/wiki/lint", "POST", false, "~10 sec", "Minimal"));
 
         log.debug("buildPipelineList() | return={} pipelines", list.size());
         return list;
