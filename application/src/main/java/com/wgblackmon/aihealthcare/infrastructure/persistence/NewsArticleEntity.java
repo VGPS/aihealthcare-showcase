@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -28,10 +29,15 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-08-07
+ * @updated 2026-08-23
  */
 @Entity
-@Table(name = "news_articles")
+@Table(name = "news_articles",
+       indexes = {
+           @Index(name = "idx_news_articles_topic",        columnList = "topic"),
+           @Index(name = "idx_news_articles_published_at", columnList = "published_at"),
+           @Index(name = "idx_news_articles_url",          columnList = "url")
+       })
 public class NewsArticleEntity {
 
     @Id
