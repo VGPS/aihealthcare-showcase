@@ -108,6 +108,43 @@ header p {
 }
 
 
+/* ==================== Page Header Brand Icon ==================== */
+/* Injects brand icon as the leftmost element in every page header via ::before.
+   Grid layout keeps h1 + p stacked on the right while icon spans both rows. */
+body > header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 0.875rem;
+}
+
+body > header::before {
+    content: '';
+    display: block;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    background: url('/images/brand-icon.png') center/contain no-repeat;
+    border-radius: 6px;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
+}
+
+body > header > h1 {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
+}
+
+body > header > p {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: 0;
+    align-self: start;
+}
+
 /* ==================== Navigation ==================== */
 /* ── Nav bar ── */
 nav.nav-bar {
