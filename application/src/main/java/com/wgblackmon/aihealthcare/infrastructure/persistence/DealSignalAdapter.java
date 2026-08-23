@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 import com.wgblackmon.aihealthcare.domain.model.DealSignal;
 import com.wgblackmon.aihealthcare.domain.model.DealSignalType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DealSignalPort;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.DealSignalListView;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -13,10 +14,14 @@ import java.util.List;
 /**
  * JPA-backed implementation of {@link DealSignalPort}.
  *
+ * <p>List queries ({@code findRecent}, {@code findByType}) use the
+ * {@link DealSignalListView} projection to skip the {@code llm_analysis}
+ * TEXT column. Detail lookups ({@code findById}) use the full entity.
+ *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-04
- * @updated 2026-08-06
+ * @updated 2026-08-23
  */
 @Slf4j
 @Component
@@ -43,10 +48,10 @@ public class DealSignalAdapter implements DealSignalPort {
     @Override
     public List<DealSignal> findRecent(int limit) {
         log.debug("findRecent() | limit={}", limit);
-        List<DealSignalEntity> entities = repository.findAllByOrderByDetectedAtDesc(PageRequest.of(0, limit));
+        List<DealSignalListView> views = repository.findRecentListView(PageRequest.of(0, limit));
         List<DealSignal> result = new ArrayList<>();
-        for (DealSignalEntity entity : entities) {
-            result.add(toDomain(entity));
+        for (DealSignalListView view : views) {
+            result.add(toDomainList(view));
         }
         log.debug("findRecent() | return={} signals", result.size());
         return result;
@@ -73,11 +78,11 @@ public class DealSignalAdapter implements DealSignalPort {
     @Override
     public List<DealSignal> findByType(String signalType, int limit) {
         log.debug("findByType() | signalType={}, limit={}", signalType, limit);
-        List<DealSignalEntity> entities = repository.findBySignalTypeOrderByDetectedAtDesc(
+        List<DealSignalListView> views = repository.findBySignalTypeListView(
                 signalType, PageRequest.of(0, limit));
         List<DealSignal> result = new ArrayList<>();
-        for (DealSignalEntity entity : entities) {
-            result.add(toDomain(entity));
+        for (DealSignalListView view : views) {
+            result.add(toDomainList(view));
         }
         log.debug("findByType() | return={} signals", result.size());
         return result;
@@ -114,6 +119,23 @@ public class DealSignalAdapter implements DealSignalPort {
                 entity.getCounterpartyName(),
                 entity.getSourceUrl(),
                 entity.getLlmAnalysis()
+        );
+    }
+
+    private DealSignal toDomainList(DealSignalListView view) {
+        return new DealSignal(
+                view.getSignalId(),
+                view.getArticleId(),
+                view.getTitle(),
+                DealSignalType.valueOf(view.getSignalType()),
+                view.getCompanyName(),
+                view.getSummary(),
+                view.getConfidence(),
+                view.getDetectedAt(),
+                view.getDealAmount(),
+                view.getCounterpartyName(),
+                view.getSourceUrl(),
+                null
         );
     }
 }

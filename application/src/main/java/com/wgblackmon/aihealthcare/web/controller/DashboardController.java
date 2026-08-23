@@ -39,6 +39,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -64,9 +66,9 @@ import java.util.Set;
  * map for the {@code news-listing} template.
  *
  * @author  Bill Blackmon
- * @version 1.4
+ * @version 1.5
  * @since   2026-05-04
- * @updated 2026-08-02
+ * @updated 2026-08-23
  */
 @Slf4j
 @Controller
@@ -221,7 +223,7 @@ public class DashboardController {
         model.addAttribute("matchSnippets", matchSnippets);
 
         // --- Today's Headlines (top 8 articles from last 7 days, highest source weight) ---
-        List<NewsArticle> recentArticles = articleIngestionPort.fetchRecentArticles(7);
+        List<NewsArticle> recentArticles = new ArrayList<>(articleIngestionPort.fetchRecentArticles(7));
         // Sort by source weight descending, then by publishedAt descending
         sortByPublishedAt(recentArticles, false);
         List<NewsArticle> headlines = new ArrayList<>();
@@ -293,7 +295,7 @@ public class DashboardController {
         model.addAttribute("regDates", regDates);
 
         // --- Legal Pulse (latest 3 legal articles) ---
-        List<NewsArticle> legalArticles = articleIngestionPort.fetchByTopicWithArchiveLimit("AI Healthcare Legal", 0);
+        List<NewsArticle> legalArticles = new ArrayList<>(articleIngestionPort.fetchByTopicWithArchiveLimit("AI Healthcare Legal", 0));
         sortByPublishedAt(legalArticles, false);
         List<NewsArticle> legalPulse = new ArrayList<>();
         for (int i = 0; i < legalArticles.size() && legalPulse.size() < 3; i++) {
@@ -428,7 +430,7 @@ public class DashboardController {
         int totalArticles = 0;
 
         for (String topic : topicNames) {
-            List<NewsArticle> fetched = articleIngestionPort.fetchByTopicWithArchiveLimit(topic, archiveDays);
+            List<NewsArticle> fetched = articleIngestionPort.fetchNewsHeadlines(topic, archiveDays);
             List<NewsArticle> filtered = new ArrayList<>();
             for (NewsArticle a : fetched) {
                 if (!"Anthropic Healthcare AI".equals(a.title())) {
@@ -649,32 +651,18 @@ public class DashboardController {
     private void sortByPublishedAt(List<NewsArticle> articles, boolean ascending) {
         log.debug("sortByPublishedAt() | size={}, ascending={}", articles.size(), ascending);
 
-        int n = articles.size();
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - 1 - i; j++) {
-                NewsArticle a = articles.get(j);
-                NewsArticle b = articles.get(j + 1);
+        Collections.sort(articles, new Comparator<NewsArticle>() {
+            @Override
+            public int compare(NewsArticle a, NewsArticle b) {
                 Instant ta = a.publishedAt();
                 Instant tb = b.publishedAt();
-
-                // Nulls always go to the end
-                boolean swap;
-                if (ta == null && tb == null) {
-                    swap = false;
-                } else if (ta == null) {
-                    swap = true;   // null a after non-null b
-                } else if (tb == null) {
-                    swap = false;  // non-null a before null b
-                } else {
-                    swap = ascending ? ta.isAfter(tb) : ta.isBefore(tb);
-                }
-
-                if (swap) {
-                    articles.set(j, b);
-                    articles.set(j + 1, a);
-                }
+                if (ta == null && tb == null) return 0;
+                if (ta == null) return 1;   // null to end
+                if (tb == null) return -1;  // null to end
+                int cmp = ta.compareTo(tb);
+                return ascending ? cmp : -cmp;
             }
-        }
+        });
 
         log.debug("sortByPublishedAt() | return=void");
     }
@@ -693,35 +681,25 @@ public class DashboardController {
         log.debug("sortArticles() | size={}, sortBy={}, ascending={}", articles.size(), sortBy, ascending);
 
         if ("title".equalsIgnoreCase(sortBy)) {
-            int n = articles.size();
-            for (int i = 0; i < n - 1; i++) {
-                for (int j = 0; j < n - 1 - i; j++) {
-                    String ta = titles.getOrDefault(articles.get(j).articleId(), "");
-                    String tb = titles.getOrDefault(articles.get(j + 1).articleId(), "");
+            Collections.sort(articles, new Comparator<NewsArticle>() {
+                @Override
+                public int compare(NewsArticle a, NewsArticle b) {
+                    String ta = titles.getOrDefault(a.articleId(), "");
+                    String tb = titles.getOrDefault(b.articleId(), "");
                     int cmp = ta.compareToIgnoreCase(tb);
-                    boolean swap = ascending ? cmp > 0 : cmp < 0;
-                    if (swap) {
-                        NewsArticle tmp = articles.get(j);
-                        articles.set(j, articles.get(j + 1));
-                        articles.set(j + 1, tmp);
-                    }
+                    return ascending ? cmp : -cmp;
                 }
-            }
+            });
         } else if ("publication".equalsIgnoreCase(sortBy)) {
-            int n = articles.size();
-            for (int i = 0; i < n - 1; i++) {
-                for (int j = 0; j < n - 1 - i; j++) {
-                    String pa = publications.getOrDefault(articles.get(j).articleId(), "");
-                    String pb = publications.getOrDefault(articles.get(j + 1).articleId(), "");
+            Collections.sort(articles, new Comparator<NewsArticle>() {
+                @Override
+                public int compare(NewsArticle a, NewsArticle b) {
+                    String pa = publications.getOrDefault(a.articleId(), "");
+                    String pb = publications.getOrDefault(b.articleId(), "");
                     int cmp = pa.compareToIgnoreCase(pb);
-                    boolean swap = ascending ? cmp > 0 : cmp < 0;
-                    if (swap) {
-                        NewsArticle tmp = articles.get(j);
-                        articles.set(j, articles.get(j + 1));
-                        articles.set(j + 1, tmp);
-                    }
+                    return ascending ? cmp : -cmp;
                 }
-            }
+            });
         } else {
             sortByPublishedAt(articles, ascending);
         }
