@@ -33,7 +33,8 @@
     <!-- Page header -->
     <div class="flex items-center justify-between mb-5">
         <h2 class="font-display text-lg font-semibold text-on-surface">Knowledge Wiki</h2>
-        <span class="text-sm text-gray-500" th:text="${totalPages} + ' pages'">0 pages</span>
+        <span class="text-sm text-gray-500"
+              th:text="${totalPages} + ' pages' + (${totalPageCount > 1} ? ' (page ' + (${currentPage} + 1) + ' of ' + ${totalPageCount} + ')' : '')">0 pages</span>
     </div>
 
     <!-- Purpose -->
@@ -112,6 +113,24 @@
                 <span th:text="${pageTimestamps.get(page.slug())}">Jul 4, 2026</span>
             </div>
         </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-5" th:if="${totalPageCount > 1}">
+        <a th:if="${hasPrev}"
+           th:href="@{/wiki(query=${query},pageType=${selectedType},page=${currentPage - 1})}"
+           class="px-4 py-2 text-sm font-medium text-primary-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 no-underline">
+            &larr; Previous
+        </a>
+        <span th:unless="${hasPrev}" class="px-4 py-2 text-sm text-gray-400">&larr; Previous</span>
+        <span class="text-sm text-gray-500"
+              th:text="'Page ' + (${currentPage} + 1) + ' of ' + ${totalPageCount}">Page 1 of N</span>
+        <a th:if="${hasNext}"
+           th:href="@{/wiki(query=${query},pageType=${selectedType},page=${currentPage + 1})}"
+           class="px-4 py-2 text-sm font-medium text-primary-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 no-underline">
+            Next &rarr;
+        </a>
+        <span th:unless="${hasNext}" class="px-4 py-2 text-sm text-gray-400">Next &rarr;</span>
     </div>
 
     <!-- Empty state -->

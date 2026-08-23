@@ -31,6 +31,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+
 import java.net.URI;
 import java.security.Principal;
 import java.time.Instant;
@@ -68,6 +71,8 @@ import java.util.Map;
 @Controller
 @RequestMapping("/wiki")
 public class WikiController {
+
+    private static final int PAGE_SIZE = 60;
 
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm").withZone(ZoneOffset.UTC);
@@ -128,21 +133,29 @@ public class WikiController {
     @GetMapping
     public String wikiIndex(@RequestParam(required = false) String query,
                              @RequestParam(required = false) String pageType,
+                             @RequestParam(defaultValue = "0") int page,
                              Model model) {
-        log.debug("wikiIndex() | query={}, pageType={}", query, pageType);
+        log.debug("wikiIndex() | query={}, pageType={}, page={}", query, pageType, page);
 
         boolean hasQuery = query != null && !query.isBlank();
         boolean hasType = pageType != null && !pageType.isBlank();
 
+        PageRequest pageable = PageRequest.of(page, PAGE_SIZE, Sort.by("updatedAt").descending());
+
         List<WikiPageIndexView> views;
+        long totalCount;
         if (hasQuery && hasType) {
             views = pageRepository.searchByKeywordAndPageTypeForIndex(query.trim(), pageType);
+            totalCount = views.size();
         } else if (hasQuery) {
             views = pageRepository.searchByKeywordForIndex(query.trim());
+            totalCount = views.size();
         } else if (hasType) {
-            views = pageRepository.findAllByPageType(pageType);
+            views = pageRepository.findAllByPageType(pageType, pageable);
+            totalCount = pageRepository.countByPageType(pageType);
         } else {
-            views = pageRepository.findAllBy();
+            views = pageRepository.findAllBy(pageable);
+            totalCount = pageRepository.count();
         }
 
         List<WikiPage> pages = new ArrayList<>();
@@ -151,19 +164,25 @@ public class WikiController {
         }
 
         Map<String, String> pageTimestamps = new HashMap<>();
-        for (WikiPage page : pages) {
-            Instant displayTime = page.updatedAt() != null ? page.updatedAt() : page.createdAt();
-            pageTimestamps.put(page.slug(), DISPLAY_FMT.format(displayTime) + " UTC");
+        for (WikiPage p : pages) {
+            Instant displayTime = p.updatedAt() != null ? p.updatedAt() : p.createdAt();
+            pageTimestamps.put(p.slug(), DISPLAY_FMT.format(displayTime) + " UTC");
         }
+
+        long totalPageCount = (totalCount + PAGE_SIZE - 1) / PAGE_SIZE;
 
         model.addAttribute("pages", pages);
         model.addAttribute("pageTimestamps", pageTimestamps);
         model.addAttribute("query", query);
         model.addAttribute("selectedType", pageType);
         model.addAttribute("pageTypes", WikiPageType.values());
-        model.addAttribute("totalPages", pages.size());
+        model.addAttribute("totalPages", totalCount);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPageCount", totalPageCount);
+        model.addAttribute("hasPrev", page > 0);
+        model.addAttribute("hasNext", page < totalPageCount - 1);
 
-        log.debug("wikiIndex() | return=wiki-index (totalPages={})", pages.size());
+        log.debug("wikiIndex() | return=wiki-index (showing={}, totalCount={}, page={})", pages.size(), totalCount, page);
         return "wiki-index";
     }
 
