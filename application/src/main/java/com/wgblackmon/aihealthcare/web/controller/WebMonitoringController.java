@@ -16,6 +16,7 @@ import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryServ
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.StartupPipelineOrchestrator;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.research.ResearchHarvestScheduler;
@@ -51,7 +52,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-04-19
- * @updated 2026-08-03
+ * @updated 2026-08-23
  */
 @Slf4j
 @RestController
@@ -73,6 +74,7 @@ public class WebMonitoringController {
     private final NewsArticleRepository newsArticleRepository;
     private final AnalyzeCompanySentimentUseCase sentimentUseCase;
     private final ResearchHarvestScheduler researchHarvestScheduler;
+    private final StartupPipelineOrchestrator pipelineOrchestrator;
 
     public WebMonitoringController(WebPageHarvester webPageHarvester,
                                    HuggingFaceHarvester huggingFaceHarvester,
@@ -88,7 +90,9 @@ public class WebMonitoringController {
                                    CompanyProfileService companyProfileService,
                                    NewsArticleRepository newsArticleRepository,
                                    AnalyzeCompanySentimentUseCase sentimentUseCase,
-                                   ResearchHarvestScheduler researchHarvestScheduler) {
+                                   ResearchHarvestScheduler researchHarvestScheduler,
+                                   @org.springframework.beans.factory.annotation.Autowired(required = false)
+                                   StartupPipelineOrchestrator pipelineOrchestrator) {
         log.debug("WebMonitoringController() | webPageHarvester={}, huggingFaceHarvester={}, " +
                   "articleStoragePort={}, hashRepository={}",
                   webPageHarvester.getClass().getSimpleName(),
@@ -110,6 +114,7 @@ public class WebMonitoringController {
         this.newsArticleRepository = newsArticleRepository;
         this.sentimentUseCase = sentimentUseCase;
         this.researchHarvestScheduler = researchHarvestScheduler;
+        this.pipelineOrchestrator = pipelineOrchestrator;
     }
 
     /**
@@ -399,6 +404,41 @@ public class WebMonitoringController {
 
         log.debug("triggerSentimentPipeline() | return={}", result);
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Triggers a full pipeline cascade run in a background thread and returns 202 immediately.
+     *
+     * <p>Equivalent to what {@code FeedHarvestScheduler} does after each harvest, but
+     * manually invoked from the admin UI.  Runs all 13 post-harvest pipelines sequentially
+     * in a daemon thread; results appear in the Pipeline Run History table within ~15 minutes.
+     *
+     * @return 202 Accepted with started flag, or 503 if orchestrator is unavailable
+     */
+    @PostMapping("/run-all-pipelines")
+    public ResponseEntity<Map<String, Object>> runFullCascade() {
+        log.debug("runFullCascade() | (no args)");
+
+        if (pipelineOrchestrator == null) {
+            Map<String, Object> err = new LinkedHashMap<>();
+            err.put("started", false);
+            err.put("message", "Pipeline orchestrator not available");
+            log.debug("runFullCascade() | return=503 orchestrator unavailable");
+            return ResponseEntity.status(503).body(err);
+        }
+
+        Thread t = new Thread(() -> pipelineOrchestrator.runAllPipelines());
+        t.setDaemon(true);
+        t.setName("manual-cascade-" + System.currentTimeMillis());
+        t.start();
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("started", true);
+        result.put("threadName", t.getName());
+        result.put("message", "Full pipeline cascade started. Check Pipeline Run History in 10–15 minutes.");
+
+        log.debug("runFullCascade() | return={}", result);
+        return ResponseEntity.accepted().body(result);
     }
 
     /**
