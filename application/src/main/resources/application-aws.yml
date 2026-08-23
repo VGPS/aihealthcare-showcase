@@ -16,9 +16,9 @@ spring:
     username: ${DB_USERNAME:admin}
     password: ${DB_PASSWORD}
     hikari:
-      maximum-pool-size: 25        # 50 concurrent users × ~30% DB hit rate; RDS t3.small handles 25 well
-      minimum-idle: 5              # keep 5 warm so first requests after idle don't pay connect latency
-      connection-timeout: 30000    # ms — fail fast rather than queue forever
+      maximum-pool-size: 50        # match max VU count — 50 VUs each need 1 connection simultaneously
+      minimum-idle: 10             # keep 10 warm; down from 5 to absorb concurrent burst without spin-up
+      connection-timeout: 10000    # ms — fail fast (10s) rather than blocking 50 threads for 30s each
       idle-timeout: 600000         # 10 min idle before closing a spare connection
       max-lifetime: 1800000        # 30 min — rotate before RDS server-side 8h timeout kills it
 
