@@ -124,8 +124,36 @@
         </div>
     </div>
 
-    <!-- Test-Send Cards -->
+    <!-- Utility Cards -->
     <div class="grid grid-cols-[repeat(auto-fill,minmax(360px,1fr))] gap-4 mt-4">
+
+        <!-- Run Full Cascade -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Run Full Cascade</h3>
+                <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-semibold">High (LLM)</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Runs all 13 post-harvest analysis pipelines in sequence — exactly what the server
+                does automatically after each daily RSS harvest. Returns immediately; pipelines run
+                in the background. Results appear in Run History below in 10–15 minutes.
+            </p>
+            <div class="bg-amber-50 border border-amber-100 rounded px-3 py-2 mb-3 text-xs text-amber-900">
+                <p class="font-semibold mb-0.5">Important</p>
+                <p>Triggers LLM calls (sentiment, framework, deal, research). Each call counts against
+                   your Anthropic/OpenAI quotas. Run at most once per 24 h.</p>
+            </div>
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Endpoint: <span class="font-mono text-primary-600">POST /monitoring/run-all-pipelines</span></div>
+                <div>Returns: <span class="font-semibold">202 Accepted</span> immediately; runs in background thread</div>
+                <div>Est. total time: <span class="font-semibold">10–20 min</span> (LLM pipelines dominate)</div>
+            </div>
+            <div class="flex items-center gap-3 mt-auto">
+                <button type="button" class="btn-search text-sm px-3 py-1.5"
+                        id="cascadeBtn" onclick="runFullCascade(this)">Run Full Cascade</button>
+                <span id="cascadeStatus" class="text-xs"></span>
+            </div>
+        </div>
 
         <!-- Send Test Digest -->
         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
@@ -662,6 +690,43 @@ function finishBatch(btn, message) {
     btn.disabled = false;
     btn.onclick = function() { runAllSafe(btn); };
     setAllButtonsDisabled(false);
+}
+
+/** Triggers the full cascade (all 13 pipelines) in a server-side background thread. */
+function runFullCascade(btn) {
+    var statusEl = document.getElementById('cascadeStatus');
+    btn.disabled = true;
+    btn.textContent = 'Starting...';
+    statusEl.textContent = '';
+    statusEl.className = 'text-xs text-blue-600';
+
+    var headers = { 'Content-Type': 'application/json' };
+    headers[getCsrfHeader()] = getCsrfToken();
+
+    fetch('/monitoring/run-all-pipelines', {
+        method: 'POST',
+        headers: headers,
+        credentials: 'same-origin'
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        if (data.started) {
+            btn.textContent = 'Running…';
+            statusEl.className = 'text-xs text-green-700 font-semibold';
+            statusEl.textContent = 'Started (' + data.threadName + '). Refresh Run History in ~15 min.';
+        } else {
+            btn.disabled = false;
+            btn.textContent = 'Run Full Cascade';
+            statusEl.className = 'text-xs text-red-600';
+            statusEl.textContent = data.message || 'Failed to start';
+        }
+    })
+    .catch(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Run Full Cascade';
+        statusEl.className = 'text-xs text-red-600';
+        statusEl.textContent = 'Error: ' + err.message;
+    });
 }
 
 /**

@@ -15,10 +15,23 @@ spring:
     url: jdbc:postgresql://${DB_HOST}:5432/aihealthcaredb
     username: ${DB_USERNAME:admin}
     password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 25        # 50 concurrent users × ~30% DB hit rate; RDS t3.small handles 25 well
+      minimum-idle: 5              # keep 5 warm so first requests after idle don't pay connect latency
+      connection-timeout: 30000    # ms — fail fast rather than queue forever
+      idle-timeout: 600000         # 10 min idle before closing a spare connection
+      max-lifetime: 1800000        # 30 min — rotate before RDS server-side 8h timeout kills it
 
   jpa:
     hibernate:
       ddl-auto: update
+
+server:
+  tomcat:
+    threads:
+      max: 200      # Spring Boot default; explicit so load tests don't surprise you
+      min-spare: 20 # keep 20 warm to absorb burst traffic without spin-up latency
+    connection-timeout: 30000 # ms — drop connections that stall at the TCP layer
 
   ai:
     vectorstore:
