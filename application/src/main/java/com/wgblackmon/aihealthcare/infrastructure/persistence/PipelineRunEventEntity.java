@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
+import com.wgblackmon.aihealthcare.domain.model.PipelineErrorType;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
 import jakarta.persistence.Column;
@@ -19,9 +20,9 @@ import java.time.Instant;
  * method and the {@link #fromDomain(PipelineRunEvent)} static factory method.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-23
  */
 @Entity
 @Table(name = "pipeline_run_events")
@@ -58,6 +59,15 @@ public class PipelineRunEventEntity {
     @Column(name = "trigger_source", nullable = false, length = 20)
     private String triggerSource;
 
+    @Column(name = "error_type", length = 20)
+    private String errorType;
+
+    @Column(name = "error_provider", length = 50)
+    private String errorProvider;
+
+    @Column(name = "error_detail", columnDefinition = "TEXT")
+    private String errorDetail;
+
     /** Required no-arg constructor for JPA. */
     public PipelineRunEventEntity() {}
 
@@ -77,7 +87,10 @@ public class PipelineRunEventEntity {
                 durationMs,
                 errorMessage,
                 itemsProcessed,
-                triggerSource
+                triggerSource,
+                errorType != null ? PipelineErrorType.valueOf(errorType) : null,
+                errorProvider,
+                errorDetail
         );
     }
 
@@ -99,6 +112,9 @@ public class PipelineRunEventEntity {
         entity.setErrorMessage(event.errorMessage());
         entity.setItemsProcessed(event.itemsProcessed());
         entity.setTriggerSource(event.triggerSource());
+        entity.setErrorType(event.errorType() != null ? event.errorType().name() : null);
+        entity.setErrorProvider(event.errorProvider());
+        entity.setErrorDetail(event.errorDetail());
         return entity;
     }
 
@@ -131,4 +147,13 @@ public class PipelineRunEventEntity {
 
     public String getTriggerSource()                    { return triggerSource; }
     public void setTriggerSource(String triggerSource)   { this.triggerSource = triggerSource; }
+
+    public String getErrorType()                        { return errorType; }
+    public void setErrorType(String errorType)          { this.errorType = errorType; }
+
+    public String getErrorProvider()                    { return errorProvider; }
+    public void setErrorProvider(String errorProvider)  { this.errorProvider = errorProvider; }
+
+    public String getErrorDetail()                      { return errorDetail; }
+    public void setErrorDetail(String errorDetail)      { this.errorDetail = errorDetail; }
 }

@@ -194,7 +194,8 @@ public class PipelineHealthService {
                 PipelineRunEvent event = new PipelineRunEvent(
                         null, pipelineId, pipelineId, status,
                         record.startedAt(), record.completedAt(), record.durationMs(),
-                        errorMessage, record.itemsProcessed(), "MANUAL");
+                        errorMessage, record.itemsProcessed(), "MANUAL",
+                        null, null, null);
                 pipelineRunEventPort.save(event);
             } catch (Exception e) {
                 log.warn("recordRun() | failed to persist pipeline event: {}", e.getMessage());

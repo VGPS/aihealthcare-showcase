@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
 import com.wgblackmon.aihealthcare.domain.model.DealSignal;
+import com.wgblackmon.aihealthcare.domain.model.PipelineErrorType;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
 import com.wgblackmon.aihealthcare.domain.model.WebhookEventType;
@@ -45,9 +46,9 @@ import java.time.Instant;
  * </ol>
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-03
- * @updated 2026-08-04
+ * @updated 2026-08-23
  */
 @Slf4j
 @Component
@@ -226,16 +227,26 @@ public class StartupPipelineOrchestrator {
             step.run();
             Instant completedAt = Instant.now();
             log.info("runAllPipelines() | <<< {} complete", name);
-            persistEvent(name, PipelineStepStatus.SUCCESS, startedAt, completedAt, null);
+            persistEvent(name, PipelineStepStatus.SUCCESS, startedAt, completedAt,
+                    null, null, null, null);
         } catch (Exception e) {
             Instant completedAt = Instant.now();
-            log.warn("runAllPipelines() | <<< {} FAILED — continuing: {}", name, e.getMessage());
-            persistEvent(name, PipelineStepStatus.FAILED, startedAt, completedAt, e.getMessage());
+            PipelineErrorType errorType = classifyError(e);
+            String errorProvider = detectProvider(e);
+            String errorDetail = extractStackTrace(e);
+            log.warn("runAllPipelines() | <<< {} FAILED [{}{}] — continuing: {}",
+                    name, errorType,
+                    errorProvider != null ? "/" + errorProvider : "",
+                    e.getMessage());
+            persistEvent(name, PipelineStepStatus.FAILED, startedAt, completedAt,
+                    e.getMessage(), errorType, errorProvider, errorDetail);
         }
     }
 
     private void persistEvent(String stepName, PipelineStepStatus status,
-                              Instant startedAt, Instant completedAt, String errorMessage) {
+                              Instant startedAt, Instant completedAt,
+                              String errorMessage, PipelineErrorType errorType,
+                              String errorProvider, String errorDetail) {
         if (pipelineRunEventPort == null) {
             return;
         }
@@ -245,12 +256,99 @@ public class StartupPipelineOrchestrator {
             PipelineRunEvent event = new PipelineRunEvent(
                     null, pipelineId, stepName, status,
                     startedAt, completedAt, durationMs,
-                    errorMessage, 0, "ORCHESTRATOR");
+                    errorMessage, 0, "ORCHESTRATOR",
+                    errorType, errorProvider, errorDetail);
             pipelineRunEventPort.save(event);
         } catch (Exception e) {
             log.warn("persistEvent() | failed to persist pipeline event for step={}: {}",
                     stepName, e.getMessage());
         }
+    }
+
+    /**
+     * Classifies an exception into a {@link PipelineErrorType} based on its
+     * message and class hierarchy.  HTTP status codes are parsed from the message
+     * since Spring AI/RestClient embed them in the exception text.
+     */
+    private PipelineErrorType classifyError(Exception e) {
+        if (e instanceof RuntimeException) {
+            Throwable cause = e.getCause();
+            if (cause instanceof OutOfMemoryError || cause instanceof StackOverflowError) {
+                return PipelineErrorType.FATAL;
+            }
+        }
+        String msg = buildFullMessage(e).toLowerCase();
+        if (msg.contains("401") || msg.contains("403")
+                || msg.contains("unauthorized") || msg.contains("authentication failed")
+                || msg.contains("invalid api key") || msg.contains("invalid_api_key")
+                || msg.contains("forbidden") || msg.contains("permission denied")) {
+            return PipelineErrorType.LLM_AUTH;
+        }
+        if (msg.contains("402") || msg.contains("429")
+                || msg.contains("payment required") || msg.contains("insufficient_quota")
+                || msg.contains("rate limit") || msg.contains("quota exceeded")
+                || msg.contains("billing") || msg.contains("credit")) {
+            return PipelineErrorType.LLM_QUOTA;
+        }
+        if (msg.contains("504") || msg.contains("503") || msg.contains("502")
+                || msg.contains("timeout") || msg.contains("timed out")
+                || msg.contains("connection refused") || msg.contains("connection reset")
+                || msg.contains("failed to connect") || msg.contains("network error")
+                || msg.contains("socketexception") || msg.contains("sockettimeout")) {
+            return PipelineErrorType.NETWORK;
+        }
+        return PipelineErrorType.UNKNOWN;
+    }
+
+    /**
+     * Detects which LLM provider is responsible for the failure by scanning
+     * the exception message and cause chain for provider-specific strings.
+     * Returns null if the error is not LLM-related.
+     */
+    private String detectProvider(Exception e) {
+        String msg = buildFullMessage(e).toLowerCase();
+        if (msg.contains("anthropic") || msg.contains("claude")) {
+            return "Anthropic";
+        }
+        if (msg.contains("openai") || msg.contains("gpt")) {
+            return "OpenAI";
+        }
+        if (msg.contains("perplexity") || msg.contains("sonar")) {
+            return "Perplexity";
+        }
+        if (msg.contains("gemini") || msg.contains("google.generativeai") || msg.contains("generativelanguage")) {
+            return "Gemini";
+        }
+        if (msg.contains("alpaca")) {
+            return "Alpaca";
+        }
+        return null;
+    }
+
+    /** Extracts the first 500 characters of a stack trace for display in the UI. */
+    private String extractStackTrace(Exception e) {
+        java.io.StringWriter sw = new java.io.StringWriter();
+        java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+        e.printStackTrace(pw);
+        String full = sw.toString();
+        if (full.length() <= 500) {
+            return full;
+        }
+        return full.substring(0, 500) + "…";
+    }
+
+    /** Builds a searchable string from the exception message and its full cause chain. */
+    private String buildFullMessage(Exception e) {
+        StringBuilder sb = new StringBuilder();
+        Throwable t = e;
+        while (t != null) {
+            if (t.getMessage() != null) {
+                sb.append(t.getMessage()).append(' ');
+            }
+            sb.append(t.getClass().getName()).append(' ');
+            t = t.getCause();
+        }
+        return sb.toString();
     }
 
     private String toPipelineId(String stepName) {

@@ -136,7 +136,10 @@ class PipelineRunEventAdapterTest {
                 1500L,
                 errorMessage,
                 itemsProcessed,
-                "SCHEDULER"
+                "SCHEDULER",
+                null,
+                null,
+                null
         );
     }
 }
