@@ -26,13 +26,6 @@ spring:
     hibernate:
       ddl-auto: update
 
-server:
-  tomcat:
-    threads:
-      max: 200      # Spring Boot default; explicit so load tests don't surprise you
-      min-spare: 20 # keep 20 warm to absorb burst traffic without spin-up latency
-    connection-timeout: 30000 # ms — drop connections that stall at the TCP layer
-
   ai:
     vectorstore:
       pgvector:
@@ -49,6 +42,11 @@ server:
       mail.smtp.starttls.required: true
 
 server:
+  tomcat:
+    threads:
+      max: 200      # Spring Boot default; explicit so load tests don't surprise you
+      min-spare: 20 # keep 20 warm to absorb burst traffic without spin-up latency
+    connection-timeout: 30000 # ms — drop connections that stall at the TCP layer
   servlet:
     session:
       cookie:
