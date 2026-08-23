@@ -31,6 +31,7 @@ import { Trend, Rate, Counter } from 'k6/metrics';
 const BASE_URL  = __ENV.BASE_URL  || 'https://app.bigskylabs.ai';
 const USERNAME  = __ENV.USERNAME  || 'wgblackmonall@gmail.com';
 const PASSWORD  = __ENV.PASSWORD  || 'changeme';
+const MAX_VUS   = parseInt(__ENV.MAX_VUS) || 50;  // override: --env MAX_VUS=100
 
 // ---------------------------------------------------------------------------
 // Custom metrics
@@ -40,14 +41,16 @@ const errorRate    = new Rate('error_rate');
 const loginFails   = new Counter('login_failures');
 
 // ---------------------------------------------------------------------------
-// Load shape — ramp to 50 VUs, hold 3 min, ramp down
+// Load shape — ramp to MAX_VUS, hold 3 min, ramp down
 // ---------------------------------------------------------------------------
+const warmupVus = Math.max(1, Math.round(MAX_VUS * 0.2));  // 20% of target for warm-up
+
 export const options = {
     stages: [
-        { duration: '30s', target: 10  },  // warm up
-        { duration: '60s', target: 50  },  // ramp to target load
-        { duration: '3m',  target: 50  },  // hold — this is your "under load" window
-        { duration: '30s', target: 0   },  // ramp down
+        { duration: '30s', target: warmupVus },  // warm up to 20% of target
+        { duration: '60s', target: MAX_VUS   },  // ramp to full load
+        { duration: '3m',  target: MAX_VUS   },  // hold — this is your "under load" window
+        { duration: '30s', target: 0         },  // ramp down
     ],
     thresholds: {
         'page_load_ms':  ['p(95)<3000'],  // 95th percentile under 3 s
