@@ -144,7 +144,7 @@
                    your Anthropic/OpenAI quotas. Run at most once per 24 h.</p>
             </div>
             <div class="text-xs text-gray-500 mb-3 space-y-1">
-                <div>Endpoint: <span class="font-mono text-primary-600">POST /monitoring/run-all-pipelines</span></div>
+                <div>Endpoint: <span class="font-mono text-primary-600">POST /api/v1/monitoring/run-all-pipelines</span></div>
                 <div>Returns: <span class="font-semibold">202 Accepted</span> immediately; runs in background thread</div>
                 <div>Est. total time: <span class="font-semibold">10–20 min</span> (LLM pipelines dominate)</div>
             </div>
@@ -703,7 +703,7 @@ function runFullCascade(btn) {
     var headers = { 'Content-Type': 'application/json' };
     headers[getCsrfHeader()] = getCsrfToken();
 
-    fetch('/monitoring/run-all-pipelines', {
+    fetch('/api/v1/monitoring/run-all-pipelines', {
         method: 'POST',
         headers: headers,
         credentials: 'same-origin'
