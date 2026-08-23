@@ -28,9 +28,9 @@ import { Trend, Rate, Counter } from 'k6/metrics';
 // ---------------------------------------------------------------------------
 // Config — override via --env flags
 // ---------------------------------------------------------------------------
-const BASE_URL  = __ENV.BASE_URL  || 'https://app.bigskylabs.ai';
-const USERNAME  = __ENV.USERNAME  || 'wgblackmonall@gmail.com';
-const PASSWORD  = __ENV.PASSWORD  || 'changeme';
+const BASE_URL  = __ENV.BASE_URL   || 'https://app.bigskylabs.ai';
+const USERNAME  = __ENV.K6_USERNAME || 'wgblackmonall@gmail.com';  // K6_USERNAME avoids collision with Windows USERNAME env var
+const PASSWORD  = __ENV.K6_PASSWORD || 'changeme';
 const MAX_VUS   = parseInt(__ENV.MAX_VUS) || 50;  // override: --env MAX_VUS=100
 
 // ---------------------------------------------------------------------------
@@ -73,11 +73,11 @@ function login(jar) {
     }
     const csrfToken = csrfMatch[1];
 
-    // Step 2: POST credentials
+    // Step 2: POST credentials — explicit encoding avoids Windows USERNAME env var collision
     const loginResp = http.post(
         `${BASE_URL}/login`,
-        { username: USERNAME, password: PASSWORD, _csrf: csrfToken },
-        { jar, redirects: 5 }
+        `username=${encodeURIComponent(USERNAME)}&password=${encodeURIComponent(PASSWORD)}&_csrf=${encodeURIComponent(csrfToken)}`,
+        { jar, redirects: 5, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
 
     const ok = loginResp.status === 200 && !loginResp.url.includes('/login?error');
@@ -161,7 +161,7 @@ export default function () {
     });
 
     group('rest-articles', () => {
-        const r = http.get(`${BASE_URL}/api/v1/articles?limit=20`, params);
+        const r = http.get(`${BASE_URL}/api/v1/articles?topic=AI+Healthcare&limit=20`, params);
         pageLoadTime.add(r.timings.duration, { page: 'api-articles' });
         errorRate.add(r.status !== 200);
         check(r, { 'api articles 200': (res) => res.status === 200 });

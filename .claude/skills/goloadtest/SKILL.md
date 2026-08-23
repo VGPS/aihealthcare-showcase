@@ -53,7 +53,7 @@ Report to the user before running:
 ### 4. Run k6
 
 ```bash
-k6 run --env MAX_VUS=<N> --env PASSWORD=<password> load-test/k6-smoke.js
+k6 run --env MAX_VUS=<N> --env K6_PASSWORD=<password> load-test/k6-smoke.js
 ```
 
 k6 streams live output to the terminal. Let it run to completion (~5 minutes).
