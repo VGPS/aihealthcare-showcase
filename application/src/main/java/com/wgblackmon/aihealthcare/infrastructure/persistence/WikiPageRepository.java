@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -60,11 +61,20 @@ public interface WikiPageRepository extends JpaRepository<WikiPageEntity, String
     // 833 KB/request of markdown that the index listing never displays.
     // ------------------------------------------------------------------
 
-    /** All pages, index columns only. */
+    /** All pages, index columns only (unbounded — use for counts or search). */
     List<WikiPageIndexView> findAllBy();
 
-    /** Pages of a given type, index columns only. */
+    /** All pages, index columns only, with pagination for the wiki index listing. */
+    List<WikiPageIndexView> findAllBy(Pageable pageable);
+
+    /** Pages of a given type, index columns only (unbounded). */
     List<WikiPageIndexView> findAllByPageType(String pageType);
+
+    /** Pages of a given type, index columns only, with pagination. */
+    List<WikiPageIndexView> findAllByPageType(String pageType, Pageable pageable);
+
+    /** Count of pages of a given type (for pagination header). */
+    long countByPageType(String pageType);
 
     /** Keyword search (title/tags/content), index columns only. */
     @Query("SELECT w.slug AS slug, w.title AS title, w.pageType AS pageType, w.tags AS tags, " +

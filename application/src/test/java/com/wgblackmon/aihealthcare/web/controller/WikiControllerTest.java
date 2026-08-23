@@ -32,6 +32,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -111,23 +113,25 @@ class WikiControllerTest {
 
     @Test
     void wikiIndex_noPages_rendersEmptyState() throws Exception {
-        when(pageRepository.findAllBy()).thenReturn(List.of());
+        when(pageRepository.findAllBy(any(Pageable.class))).thenReturn(List.of());
+        when(pageRepository.count()).thenReturn(0L);
 
         mockMvc.perform(get("/wiki"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("wiki-index"))
-                .andExpect(model().attribute("totalPages", 0));
+                .andExpect(model().attribute("totalPages", 0L));
     }
 
     @Test
     void wikiIndex_withPages_rendersPageCards() throws Exception {
-        when(pageRepository.findAllBy())
+        when(pageRepository.findAllBy(any(Pageable.class)))
                 .thenReturn(List.of(buildIndexView("fda-ai-guidance", "FDA AI Guidance", "ENTITY")));
+        when(pageRepository.count()).thenReturn(1L);
 
         mockMvc.perform(get("/wiki"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("wiki-index"))
-                .andExpect(model().attribute("totalPages", 1));
+                .andExpect(model().attribute("totalPages", 1L));
     }
 
     @Test
@@ -138,18 +142,19 @@ class WikiControllerTest {
         mockMvc.perform(get("/wiki").param("query", "FDA"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("wiki-index"))
-                .andExpect(model().attribute("totalPages", 1));
+                .andExpect(model().attribute("totalPages", 1L));
     }
 
     @Test
     void wikiIndex_withPageType_filtersPages() throws Exception {
-        when(pageRepository.findAllByPageType("CONCEPT"))
+        when(pageRepository.findAllByPageType(eq("CONCEPT"), any(Pageable.class)))
                 .thenReturn(List.of(buildIndexView("ai-concept", "AI Concept", "CONCEPT")));
+        when(pageRepository.countByPageType("CONCEPT")).thenReturn(1L);
 
         mockMvc.perform(get("/wiki").param("pageType", "CONCEPT"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("wiki-index"))
-                .andExpect(model().attribute("totalPages", 1));
+                .andExpect(model().attribute("totalPages", 1L));
     }
 
     @Test
