@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleListView;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -159,6 +160,54 @@ public class ArticleIngestionAdapter implements ArticleIngestionPort {
 
         log.debug("fetchArticlesByDateRange() | return={} articles", result.size());
         return result;
+    }
+
+    @Override
+    public List<NewsArticle> fetchNewsHeadlines(String topic, int archiveDays) {
+        log.debug("fetchNewsHeadlines() | topic={}, archiveDays={}", topic, archiveDays);
+
+        List<NewsArticleListView> views;
+        if (archiveDays > 0) {
+            Instant cutoff = Instant.now().minus(archiveDays, ChronoUnit.DAYS);
+            log.debug("fetchNewsHeadlines() | using publishedAt filter: cutoff={}", cutoff);
+            views = repository.findTop25ByTopicContainingIgnoreCaseAndPublishedAtAfterOrderByPublishedAtDesc(
+                    topic, cutoff);
+        } else {
+            log.debug("fetchNewsHeadlines() | archiveDays=0, no date filter applied");
+            views = repository.findTop25ByTopicContainingIgnoreCaseOrderByPublishedAtDesc(topic);
+        }
+
+        List<NewsArticle> result = new ArrayList<>();
+        for (NewsArticleListView view : views) {
+            result.add(toHeadline(view));
+        }
+
+        log.debug("fetchNewsHeadlines() | return={} articles (capped at 25)", result.size());
+        return result;
+    }
+
+    private NewsArticle toHeadline(NewsArticleListView view) {
+        URI url = null;
+        try {
+            url = view.getUrl() != null && !view.getUrl().isBlank()
+                    ? URI.create(view.getUrl())
+                    : URI.create("");
+        } catch (IllegalArgumentException ex) {
+            log.warn("toHeadline() | invalid URI for articleId={}, using empty URI", view.getArticleId());
+        }
+        return new NewsArticle(
+                view.getArticleId(),
+                view.getTitle(),
+                url,
+                null,
+                view.getTopic(),
+                view.getAuthor(),
+                view.getTopicId(),
+                view.getSourceName(),
+                view.getSourceTier(),
+                view.getSourceWeight(),
+                view.getPublishedAt()
+        );
     }
 
     private NewsArticle toDomain(NewsArticleEntity entity) {

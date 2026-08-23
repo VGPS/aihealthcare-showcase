@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Spring Data JPA repository for {@link NewsArticleEntity}.
@@ -178,4 +179,25 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, 
      */
     @Query("SELECT MIN(n.createdAt) FROM NewsArticleEntity n")
     java.util.Optional<Instant> findEarliestCreatedAt();
+
+    /**
+     * Returns up to 25 recent articles (by publishedAt) for the given topic keyword,
+     * published on or after {@code cutoff}, using a lightweight projection that excludes
+     * {@code bodyText}. Spring Data generates a column-specific SELECT for performance.
+     *
+     * @param topic  substring to match against the topic column (case-insensitive)
+     * @param cutoff only articles published at or after this instant are returned
+     * @return up to 25 matching article projections; empty if none found
+     */
+    List<NewsArticleListView> findTop25ByTopicContainingIgnoreCaseAndPublishedAtAfterOrderByPublishedAtDesc(
+            String topic, Instant cutoff);
+
+    /**
+     * Returns up to 25 recent articles (by publishedAt) for the given topic keyword,
+     * with no date restriction, using a lightweight projection that excludes {@code bodyText}.
+     *
+     * @param topic substring to match against the topic column (case-insensitive)
+     * @return up to 25 matching article projections; empty if none found
+     */
+    List<NewsArticleListView> findTop25ByTopicContainingIgnoreCaseOrderByPublishedAtDesc(String topic);
 }

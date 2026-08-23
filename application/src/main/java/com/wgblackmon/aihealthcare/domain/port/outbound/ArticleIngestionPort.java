@@ -88,4 +88,20 @@ public interface ArticleIngestionPort {
      * @return all articles created within the range; may be empty
      */
     List<NewsArticle> fetchArticlesByDateRange(Instant from, Instant to);
+
+    /**
+     * Fetch up to 25 recent article headlines for the given topic for the news
+     * listing page. Returns articles <em>without</em> body text to avoid
+     * transferring TEXT column data that the listing page never displays.
+     *
+     * <p>Results are ordered newest-first (by {@code publishedAt}).  Applies the
+     * same archive-depth window as {@link #fetchByTopicWithArchiveLimit}: pass
+     * {@code archiveDays = 0} for unlimited depth (SUBSCRIBER tier), or a positive
+     * integer for FREE-tier date gating.
+     *
+     * @param topic       case-insensitive substring match against the topic column
+     * @param archiveDays maximum article age in days; 0 = unlimited
+     * @return up to 25 matching articles with {@code bodyText = null}; may be empty
+     */
+    List<NewsArticle> fetchNewsHeadlines(String topic, int archiveDays);
 }
