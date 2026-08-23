@@ -15,7 +15,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-08-23
  */
 public interface WikiPageRepository extends JpaRepository<WikiPageEntity, String> {
 
@@ -54,6 +54,38 @@ public interface WikiPageRepository extends JpaRepository<WikiPageEntity, String
            "OR LOWER(w.contentMarkdown) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
            "ORDER BY w.title")
     List<WikiPageEntity> searchByKeywordAndPageType(String keyword, String pageType);
+
+    // ------------------------------------------------------------------
+    // Index projections — exclude content_markdown to avoid transferring
+    // 833 KB/request of markdown that the index listing never displays.
+    // ------------------------------------------------------------------
+
+    /** All pages, index columns only. */
+    List<WikiPageIndexView> findAllBy();
+
+    /** Pages of a given type, index columns only. */
+    List<WikiPageIndexView> findAllByPageType(String pageType);
+
+    /** Keyword search (title/tags/content), index columns only. */
+    @Query("SELECT w.slug AS slug, w.title AS title, w.pageType AS pageType, w.tags AS tags, " +
+           "w.relatedSlugs AS relatedSlugs, w.createdAt AS createdAt, w.updatedAt AS updatedAt, " +
+           "w.revision AS revision " +
+           "FROM WikiPageEntity w WHERE LOWER(w.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(w.tags) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(w.contentMarkdown) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "ORDER BY w.title")
+    List<WikiPageIndexView> searchByKeywordForIndex(String keyword);
+
+    /** Keyword + type filter search, index columns only. */
+    @Query("SELECT w.slug AS slug, w.title AS title, w.pageType AS pageType, w.tags AS tags, " +
+           "w.relatedSlugs AS relatedSlugs, w.createdAt AS createdAt, w.updatedAt AS updatedAt, " +
+           "w.revision AS revision " +
+           "FROM WikiPageEntity w WHERE w.pageType = :pageType AND " +
+           "(LOWER(w.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(w.tags) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(w.contentMarkdown) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "ORDER BY w.title")
+    List<WikiPageIndexView> searchByKeywordAndPageTypeForIndex(String keyword, String pageType);
 
     /**
      * Finds wiki pages created after the given instant (newest first).
