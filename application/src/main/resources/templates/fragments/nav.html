@@ -24,12 +24,45 @@
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-28
- * @updated 2026-08-19
+ * @updated 2026-08-23
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <nav th:fragment="nav(activePage)" class="nav-bar">
+
+    <!-- Brand icon — links to dashboard -->
+    <a th:href="@{/dashboard}" class="nav-link" style="padding: 0 0.75rem; gap: 0.4rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" height="26" width="26" style="display:block;flex-shrink:0;">
+            <defs>
+                <filter id="ng" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="1.5" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <linearGradient id="nl" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.4"/>
+                    <stop offset="60%" stop-color="#06B6D4" stop-opacity="1"/>
+                </linearGradient>
+            </defs>
+            <rect width="100" height="100" rx="20" fill="#0F172A"/>
+            <polyline points="7,50 18,50 22,44 26,20 30,74 34,50 46,50"
+                      fill="none" stroke="url(#nl)" stroke-width="2.5"
+                      stroke-linecap="round" stroke-linejoin="round" filter="url(#ng)"/>
+            <g stroke="#06B6D4" fill="none" stroke-linecap="round">
+                <line x1="46" y1="50" x2="62" y2="50" stroke-width="1.8" stroke-opacity="0.9"/>
+                <line x1="62" y1="50" x2="75" y2="35" stroke-width="1.5" stroke-opacity="0.75"/>
+                <line x1="62" y1="50" x2="75" y2="65" stroke-width="1.5" stroke-opacity="0.75"/>
+                <line x1="75" y1="35" x2="91" y2="48" stroke-width="1.5" stroke-opacity="0.65"/>
+                <line x1="75" y1="65" x2="91" y2="48" stroke-width="1.5" stroke-opacity="0.65"/>
+            </g>
+            <g filter="url(#ng)">
+                <circle cx="62" cy="50" r="3.5" fill="#06B6D4"/>
+                <circle cx="75" cy="35" r="2.8" fill="#06B6D4"/>
+                <circle cx="75" cy="65" r="2.8" fill="#06B6D4"/>
+                <circle cx="91" cy="48" r="3.2" fill="#06B6D4"/>
+            </g>
+        </svg>
+    </a>
 
     <!-- Enterprise Intel (admin-only, far left) -->
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/intelligence}"
