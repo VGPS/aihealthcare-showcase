@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
+import com.wgblackmon.aihealthcare.domain.model.PipelineErrorType;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PipelineRunEventPort;
@@ -30,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-30
- * @updated 2026-08-04
+ * @updated 2026-08-23
  */
 @Slf4j
 @Service
@@ -191,17 +192,52 @@ public class PipelineHealthService {
                     }
                     errorMessage = sb.toString();
                 }
+                PipelineErrorType errorType = null;
+                String errorProvider = null;
+                if (status == PipelineStepStatus.FAILED && errorMessage != null) {
+                    errorType = classifyFromMessage(errorMessage);
+                    errorProvider = detectProviderFromMessage(errorMessage);
+                }
                 PipelineRunEvent event = new PipelineRunEvent(
                         null, pipelineId, pipelineId, status,
                         record.startedAt(), record.completedAt(), record.durationMs(),
                         errorMessage, record.itemsProcessed(), "MANUAL",
-                        null, null, null);
+                        errorType, errorProvider, null);
                 pipelineRunEventPort.save(event);
             } catch (Exception e) {
                 log.warn("recordRun() | failed to persist pipeline event: {}", e.getMessage());
             }
         }
         log.debug("recordRun() | return=void");
+    }
+
+    /** Classifies an error message string (from browser-reported HTTP status) into a PipelineErrorType. */
+    private PipelineErrorType classifyFromMessage(String message) {
+        String m = message.toLowerCase();
+        if (m.contains("401") || m.contains("403")
+                || m.contains("unauthorized") || m.contains("invalid api key") || m.contains("forbidden")) {
+            return PipelineErrorType.LLM_AUTH;
+        }
+        if (m.contains("402") || m.contains("429")
+                || m.contains("quota") || m.contains("rate limit") || m.contains("billing")) {
+            return PipelineErrorType.LLM_QUOTA;
+        }
+        if (m.contains("504") || m.contains("503") || m.contains("502")
+                || m.contains("timeout") || m.contains("network error") || m.contains("failed to fetch")) {
+            return PipelineErrorType.NETWORK;
+        }
+        return PipelineErrorType.UNKNOWN;
+    }
+
+    /** Detects the LLM provider name from an error message string, or null if not identifiable. */
+    private String detectProviderFromMessage(String message) {
+        String m = message.toLowerCase();
+        if (m.contains("anthropic") || m.contains("claude")) return "Anthropic";
+        if (m.contains("openai") || m.contains("gpt")) return "OpenAI";
+        if (m.contains("perplexity") || m.contains("sonar")) return "Perplexity";
+        if (m.contains("gemini") || m.contains("generativelanguage")) return "Gemini";
+        if (m.contains("alpaca")) return "Alpaca";
+        return null;
     }
 
     /**
