@@ -63,8 +63,8 @@ Report to the user before running:
 - Target: https://app.bigskylabs.ai
 - VUs: <N>
 - Duration: ~5 min (30s warm-up → 60s ramp → 3m hold → 30s ramp-down)
-- Pages tested: dashboard, news, search, trends, deals, regulatory, wiki, REST /api/v1/articles
-- Note: LLM endpoints (AI Search, frameworks, sentiment) are excluded — no API cost.
+- Pages tested: dashboard, news, search, trends, deals, regulatory, wiki, admin-pipelines, REST /api/v1/articles
+- Note: LLM endpoints (AI Search, frameworks, sentiment) and pipeline trigger buttons are excluded — no API cost.
 - **Warning**: Do not run during a scheduled harvest window (04:00-04:30 UTC) — the background
   pipeline will compete for DB connections and CPU, invalidating the results.
 

@@ -1,9 +1,9 @@
 /**
  * k6 load test — AIHealthcare / bigskylabs.ai
  *
- * Simulates authenticated subscriber sessions hitting the pages
+ * Simulates authenticated subscriber/admin sessions hitting the pages
  * real users actually visit. Does NOT call LLM endpoints (AI Search,
- * framework analysis) — those have intentional rate limits and per-call cost.
+ * framework analysis, pipeline triggers) — those have intentional rate limits and per-call cost.
  *
  * Usage:
  *   k6 run load-test/k6-smoke.js                   # default: 50 VUs against EC2
@@ -157,6 +157,14 @@ export default function () {
         pageLoadTime.add(r.timings.duration, { page: 'wiki' });
         errorRate.add(r.status !== 200);
         check(r, { 'wiki 200': (res) => res.status === 200 });
+        sleep(randomBetween(1, 2));
+    });
+
+    group('admin-pipelines', () => {
+        const r = http.get(`${BASE_URL}/admin/pipelines`, params);
+        pageLoadTime.add(r.timings.duration, { page: 'admin-pipelines' });
+        errorRate.add(r.status !== 200);
+        check(r, { 'admin-pipelines 200': (res) => res.status === 200 });
         sleep(randomBetween(1, 2));
     });
 
