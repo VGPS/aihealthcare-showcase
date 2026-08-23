@@ -74,6 +74,7 @@ spring:
   # defer-datasource-initialization ensures data.sql runs AFTER Hibernate DDL.
   # ---------------------------------------------------------------------------
   jpa:
+    open-in-view: false   # release DB connection after service layer, not after template render
     hibernate:
       ddl-auto: update
     show-sql: false

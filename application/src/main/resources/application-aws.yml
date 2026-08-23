@@ -23,6 +23,7 @@ spring:
       max-lifetime: 1800000        # 30 min — rotate before RDS server-side 8h timeout kills it
 
   jpa:
+    open-in-view: false   # release DB connection after service layer, not after template render
     hibernate:
       ddl-auto: update
 
