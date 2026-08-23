@@ -16,6 +16,7 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleReposit
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiContradictionEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiContradictionRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageIndexView;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionRepository;
@@ -133,20 +134,20 @@ public class WikiController {
         boolean hasQuery = query != null && !query.isBlank();
         boolean hasType = pageType != null && !pageType.isBlank();
 
-        List<WikiPageEntity> entities;
+        List<WikiPageIndexView> views;
         if (hasQuery && hasType) {
-            entities = pageRepository.searchByKeywordAndPageType(query.trim(), pageType);
+            views = pageRepository.searchByKeywordAndPageTypeForIndex(query.trim(), pageType);
         } else if (hasQuery) {
-            entities = pageRepository.searchByKeyword(query.trim());
+            views = pageRepository.searchByKeywordForIndex(query.trim());
         } else if (hasType) {
-            entities = pageRepository.findByPageType(pageType);
+            views = pageRepository.findAllByPageType(pageType);
         } else {
-            entities = pageRepository.findAll();
+            views = pageRepository.findAllBy();
         }
 
         List<WikiPage> pages = new ArrayList<>();
-        for (WikiPageEntity entity : entities) {
-            pages.add(entityToIndexPage(entity));
+        for (WikiPageIndexView view : views) {
+            pages.add(indexViewToPage(view));
         }
 
         Map<String, String> pageTimestamps = new HashMap<>();
@@ -649,25 +650,25 @@ public class WikiController {
     }
 
     /**
-     * Maps a {@link WikiPageEntity} to a lightweight {@link WikiPage} for index display.
-     * Source refs are omitted — the index page does not show sources, so loading them
-     * per entity would produce an N+1 query: 1 + 2×N DB round-trips per page load.
+     * Maps a {@link WikiPageIndexView} projection to a {@link WikiPage} for index display.
+     * Sources and contentMarkdown are omitted — neither is needed for the index listing,
+     * and loading them would transfer 833 KB/request of unused markdown from the DB.
      */
-    private WikiPage entityToIndexPage(WikiPageEntity entity) {
-        log.debug("entityToIndexPage() | slug={}", entity.getSlug());
+    private WikiPage indexViewToPage(WikiPageIndexView view) {
+        log.debug("indexViewToPage() | slug={}", view.getSlug());
         WikiPage result = new WikiPage(
-                entity.getSlug(),
-                entity.getTitle(),
-                WikiPageType.valueOf(entity.getPageType()),
-                splitPipeDelimited(entity.getTags()),
+                view.getSlug(),
+                view.getTitle(),
+                WikiPageType.valueOf(view.getPageType()),
+                splitPipeDelimited(view.getTags()),
                 null,
                 List.of(),
-                splitPipeDelimited(entity.getRelatedSlugs()),
-                entity.getCreatedAt(),
-                entity.getUpdatedAt(),
-                entity.getRevision()
+                splitPipeDelimited(view.getRelatedSlugs()),
+                view.getCreatedAt(),
+                view.getUpdatedAt(),
+                view.getRevision()
         );
-        log.debug("entityToIndexPage() | return={}", result.slug());
+        log.debug("indexViewToPage() | return={}", result.slug());
         return result;
     }
 

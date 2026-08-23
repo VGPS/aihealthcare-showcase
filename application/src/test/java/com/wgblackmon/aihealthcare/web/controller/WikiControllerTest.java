@@ -15,6 +15,7 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleReposit
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiContradictionEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiContradictionRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageIndexView;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionRepository;
@@ -95,9 +96,22 @@ class WikiControllerTest {
                 NOW, NOW, 1);
     }
 
+    private WikiPageIndexView buildIndexView(String slug, String title, String pageType) {
+        return new WikiPageIndexView() {
+            public String getSlug()         { return slug; }
+            public String getTitle()        { return title; }
+            public String getPageType()     { return pageType; }
+            public String getTags()         { return null; }
+            public String getRelatedSlugs() { return null; }
+            public Instant getCreatedAt()   { return NOW; }
+            public Instant getUpdatedAt()   { return null; }
+            public int getRevision()        { return 1; }
+        };
+    }
+
     @Test
     void wikiIndex_noPages_rendersEmptyState() throws Exception {
-        when(pageRepository.findAll()).thenReturn(List.of());
+        when(pageRepository.findAllBy()).thenReturn(List.of());
 
         mockMvc.perform(get("/wiki"))
                 .andExpect(status().isOk())
@@ -107,16 +121,8 @@ class WikiControllerTest {
 
     @Test
     void wikiIndex_withPages_rendersPageCards() throws Exception {
-        WikiPageEntity entity = new WikiPageEntity();
-        entity.setSlug("fda-ai-guidance");
-        entity.setTitle("FDA AI Guidance");
-        entity.setPageType("ENTITY");
-        entity.setCreatedAt(NOW);
-        entity.setRevision(1);
-        when(pageRepository.findAll()).thenReturn(List.of(entity));
-
-        WikiPage page = buildTestPage("fda-ai-guidance", "FDA AI Guidance", WikiPageType.ENTITY);
-        when(wikiQueryPort.getPage("fda-ai-guidance")).thenReturn(page);
+        when(pageRepository.findAllBy())
+                .thenReturn(List.of(buildIndexView("fda-ai-guidance", "FDA AI Guidance", "ENTITY")));
 
         mockMvc.perform(get("/wiki"))
                 .andExpect(status().isOk())
@@ -126,14 +132,8 @@ class WikiControllerTest {
 
     @Test
     void wikiIndex_withQuery_filtersPages() throws Exception {
-        WikiPage page = buildTestPage("fda-ai-guidance", "FDA AI Guidance", WikiPageType.ENTITY);
-        WikiPageEntity entity = new WikiPageEntity();
-        entity.setSlug("fda-ai-guidance");
-        entity.setTitle("FDA AI Guidance");
-        entity.setPageType("ENTITY");
-        entity.setCreatedAt(NOW);
-        when(pageRepository.searchByKeyword("FDA")).thenReturn(List.of(entity));
-        when(wikiQueryPort.getPage("fda-ai-guidance")).thenReturn(page);
+        when(pageRepository.searchByKeywordForIndex("FDA"))
+                .thenReturn(List.of(buildIndexView("fda-ai-guidance", "FDA AI Guidance", "ENTITY")));
 
         mockMvc.perform(get("/wiki").param("query", "FDA"))
                 .andExpect(status().isOk())
@@ -143,16 +143,8 @@ class WikiControllerTest {
 
     @Test
     void wikiIndex_withPageType_filtersPages() throws Exception {
-        WikiPageEntity entity = new WikiPageEntity();
-        entity.setSlug("ai-concept");
-        entity.setTitle("AI Concept");
-        entity.setPageType("CONCEPT");
-        entity.setCreatedAt(NOW);
-        entity.setRevision(1);
-        when(pageRepository.findByPageType("CONCEPT")).thenReturn(List.of(entity));
-
-        WikiPage page = buildTestPage("ai-concept", "AI Concept", WikiPageType.CONCEPT);
-        when(wikiQueryPort.getPage("ai-concept")).thenReturn(page);
+        when(pageRepository.findAllByPageType("CONCEPT"))
+                .thenReturn(List.of(buildIndexView("ai-concept", "AI Concept", "CONCEPT")));
 
         mockMvc.perform(get("/wiki").param("pageType", "CONCEPT"))
                 .andExpect(status().isOk())
