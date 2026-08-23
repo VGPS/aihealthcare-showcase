@@ -83,6 +83,14 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 - Built **Spring Security 6** session-based authentication with ADMIN/USER roles, BCrypt password hashing, tier-based feature gating, and API key authentication for REST endpoints
 - Delivered **48-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
 
+**Performance Engineering & Load Testing**
+- Eliminated a critical **N+1 query problem** on the wiki index page (1,299 DB queries/request → 1), confirmed by k6 load testing that revealed 2% pass rate for `/wiki` under 50 concurrent VUs
+- Diagnosed and fixed **Hikari connection pool exhaustion** caused by Spring Boot's Open Session In View (OSIV) holding DB connections for the full HTTP request lifecycle including Thymeleaf template rendering — disabling OSIV (`spring.jpa.open-in-view: false`) released connections at service boundary; pool sized 25→50 to match VU count
+- Introduced **Spring Data JPA interface projections** (`WikiPageIndexView`) excluding `content_markdown` from the wiki index query, eliminating ~833 KB/request of data transfer (avg 1,284 bytes/page × 649 pages) that was being discarded immediately — at 50 VUs this removed ~40 MB/s of unnecessary RDS-to-app data transfer
+- Added **server-side pagination** to the wiki index (60 pages/page with `Pageable`) after profiling showed Thymeleaf CPU saturation rendering 649 card divs simultaneously across 50 concurrent users
+- Added **JPA index annotations** on high-traffic FK columns: `news_articles(topic, published_at, url)`, `wiki_source_refs(page_slug)`, `wiki_contradictions(page_slug)`, `wiki_pages(page_type, updated_at)` — eliminates full table scans on the 9,120-row articles table and 649-page wiki
+- Verified all optimizations with **k6 smoke tests** (50 VUs, 5-min staged ramp) achieving **0.00% error rate** and **100% pass rate across all 8 tested endpoints** (dashboard, news, search, trends, deals, regulatory, wiki, REST API) — up from wiki's 0% and overall 9.38% error rate before fixes
+
 **Security & Operations**
 - Applied **PII masking** via domain-pure LogSanitizer utility across 40+ log statements, preventing email exposure in production logs
 - Deployed to **AWS EC2** with Amazon SES email delivery, externalized cron scheduling (11 configurable jobs), and profile-based configuration (dev/aws/prod)
