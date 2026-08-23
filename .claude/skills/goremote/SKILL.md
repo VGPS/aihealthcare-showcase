@@ -75,13 +75,36 @@ End the message with:
 Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 ```
 
-### 5. Push to remote
+### 5. Push to private repo
 
 ```bash
 git push AIHealthcare_Origin master
 ```
 
 If the push fails (e.g. rejected), **STOP** and report. Do not force-push.
+
+### 5a. Push to showcase (public) repo — ALWAYS
+
+The showcase at `C:/workspaces/SpringAIClaude/aihealthcare-showcase` is kept in sync after
+every private push. Do this step before building the JAR.
+
+**Resume sync** — always copy if `docs/William_Blackmon_Resume.docx` is present:
+```bash
+cp C:/workspaces/SpringAIClaude/AIHealthcare/docs/William_Blackmon_Resume.docx \
+   C:/workspaces/SpringAIClaude/aihealthcare-showcase/William_Blackmon_Resume.docx
+```
+
+Commit and push in the showcase repo:
+```bash
+cd C:/workspaces/SpringAIClaude/aihealthcare-showcase
+git add William_Blackmon_Resume.docx
+git diff --cached --quiet || git commit -m "<same short summary as private commit>"
+git push origin master
+cd C:/workspaces/SpringAIClaude/AIHealthcare
+```
+
+(`git diff --cached --quiet || git commit` skips the commit if nothing changed, so you
+never get an empty commit even when the resume hasn't changed.)
 
 ### 6. Build JAR
 

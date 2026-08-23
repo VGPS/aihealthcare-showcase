@@ -51,10 +51,33 @@ Write a commit message that describes the delta since the last commit. Follow th
 
 Use HEREDOC format for the message.
 
-### 5. Push
+### 5. Push to private repo
 
 ```bash
 git push AIHealthcare_Origin master
 ```
 
 Note: the remote is named `AIHealthcare_Origin`, not `origin`.
+
+### 6. Push to showcase (public) repo — ALWAYS
+
+The showcase repo at `C:/workspaces/SpringAIClaude/aihealthcare-showcase` is always kept
+in sync. After every push to the private repo, also push to the public showcase.
+
+**Sync the resume** if `docs/William_Blackmon_Resume.docx` changed in this commit:
+```bash
+cp C:/workspaces/SpringAIClaude/AIHealthcare/docs/William_Blackmon_Resume.docx \
+   C:/workspaces/SpringAIClaude/aihealthcare-showcase/William_Blackmon_Resume.docx
+```
+
+Then commit and push in the showcase repo with a matching summary message:
+```bash
+cd C:/workspaces/SpringAIClaude/aihealthcare-showcase
+git add William_Blackmon_Resume.docx   # and any other files you synced
+git commit -m "<same summary as private repo commit>"
+git push origin master
+cd C:/workspaces/SpringAIClaude/AIHealthcare
+```
+
+If no showcase-relevant files changed (resume, README, domain layer), still note in the
+report that the showcase is current (no sync needed this commit).
