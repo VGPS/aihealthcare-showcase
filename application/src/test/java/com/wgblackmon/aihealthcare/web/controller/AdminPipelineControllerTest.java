@@ -200,7 +200,8 @@ class AdminPipelineControllerTest {
     void pipelinesIncludesRecentEvents() throws Exception {
         PipelineRunEvent event = new PipelineRunEvent(
                 1L, "rss-feeds", "RSS Feed Harvest", PipelineStepStatus.SUCCESS,
-                Instant.now().minusSeconds(60), Instant.now(), 60000L, null, 42, "ORCHESTRATOR"
+                Instant.now().minusSeconds(60), Instant.now(), 60000L, null, 42, "ORCHESTRATOR",
+                null, null, null
         );
 
         when(healthService.preFlightCheckAll(anyList())).thenReturn(Map.of());
