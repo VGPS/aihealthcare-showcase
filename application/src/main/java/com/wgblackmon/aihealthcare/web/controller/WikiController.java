@@ -61,7 +61,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-08-04
+ * @updated 2026-08-23
  */
 @Slf4j
 @Controller
@@ -146,10 +146,7 @@ public class WikiController {
 
         List<WikiPage> pages = new ArrayList<>();
         for (WikiPageEntity entity : entities) {
-            WikiPage page = wikiQueryPort.getPage(entity.getSlug());
-            if (page != null) {
-                pages.add(page);
-            }
+            pages.add(entityToIndexPage(entity));
         }
 
         Map<String, String> pageTimestamps = new HashMap<>();
@@ -648,6 +645,44 @@ public class WikiController {
 
         List<WikiPage> result = new ArrayList<>(seen.values());
         log.debug("searchWikiByKeywords() | return={} pages", result.size());
+        return result;
+    }
+
+    /**
+     * Maps a {@link WikiPageEntity} to a lightweight {@link WikiPage} for index display.
+     * Source refs are omitted — the index page does not show sources, so loading them
+     * per entity would produce an N+1 query: 1 + 2×N DB round-trips per page load.
+     */
+    private WikiPage entityToIndexPage(WikiPageEntity entity) {
+        log.debug("entityToIndexPage() | slug={}", entity.getSlug());
+        WikiPage result = new WikiPage(
+                entity.getSlug(),
+                entity.getTitle(),
+                WikiPageType.valueOf(entity.getPageType()),
+                splitPipeDelimited(entity.getTags()),
+                null,
+                List.of(),
+                splitPipeDelimited(entity.getRelatedSlugs()),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt(),
+                entity.getRevision()
+        );
+        log.debug("entityToIndexPage() | return={}", result.slug());
+        return result;
+    }
+
+    private List<String> splitPipeDelimited(String value) {
+        List<String> result = new ArrayList<>();
+        if (value == null || value.isBlank()) {
+            return result;
+        }
+        String[] parts = value.split("\\|");
+        for (String part : parts) {
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty()) {
+                result.add(trimmed);
+            }
+        }
         return result;
     }
 

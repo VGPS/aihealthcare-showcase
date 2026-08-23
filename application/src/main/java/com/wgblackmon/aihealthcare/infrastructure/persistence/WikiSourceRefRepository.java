@@ -14,7 +14,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-08-23
  */
 public interface WikiSourceRefRepository extends JpaRepository<WikiSourceRefEntity, Long> {
 
@@ -25,6 +25,15 @@ public interface WikiSourceRefRepository extends JpaRepository<WikiSourceRefEnti
      * @return source references for that page; empty if none
      */
     List<WikiSourceRefEntity> findByPageSlug(String pageSlug);
+
+    /**
+     * Finds all source references for a batch of wiki pages in a single query.
+     * Callers group results by {@link WikiSourceRefEntity#getPageSlug()}.
+     *
+     * @param slugs page slugs to fetch refs for
+     * @return all matching source refs across the given slugs
+     */
+    List<WikiSourceRefEntity> findAllByPageSlugIn(List<String> slugs);
 
     /**
      * Deletes all source references for the given wiki page.

@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
@@ -20,10 +21,11 @@ import java.time.LocalDate;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-05
+ * @updated 2026-08-23
  */
 @Entity
-@Table(name = "wiki_source_refs")
+@Table(name = "wiki_source_refs",
+       indexes = @Index(name = "idx_wiki_source_refs_page_slug", columnList = "page_slug"))
 public class WikiSourceRefEntity {
 
     @Id

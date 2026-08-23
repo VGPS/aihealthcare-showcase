@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 import java.time.Instant;
@@ -19,10 +20,11 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-08-23
  */
 @Entity
-@Table(name = "wiki_contradictions")
+@Table(name = "wiki_contradictions",
+       indexes = @Index(name = "idx_wiki_contradictions_page_slug", columnList = "page_slug"))
 public class WikiContradictionEntity {
 
     @Id
