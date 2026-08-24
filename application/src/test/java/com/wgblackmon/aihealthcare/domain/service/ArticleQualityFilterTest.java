@@ -118,4 +118,32 @@ class ArticleQualityFilterTest {
         // 9 chars but has body — body text makes it useful
         assertThat(filter.isUsable(article("AI in FDA", "FDA", "Significant body content about FDA AI plans"))).isTrue();
     }
+
+    // --- unusable: domain-URL title + label sourceName (Perplexity scrape pattern) ---
+
+    @Test
+    void domainTitle_withPerplexitySourceName_isNotUsable() {
+        // "who.int — news" is a domain pattern; sourceName "PERPLEXITY" is a label →
+        // the newsletter renderer would show "PERPLEXITY" as the display title, which is useless
+        assertThat(filter.isUsable(article("who.int — news", "PERPLEXITY", "body text"))).isFalse();
+    }
+
+    @Test
+    void domainTitle_withPerplexitySourceName_multiSegmentDomain_isNotUsable() {
+        assertThat(filter.isUsable(article("pubmed.ncbi.nlm.nih.gov — 41653871", "PERPLEXITY", "abstract"))).isFalse();
+    }
+
+    @Test
+    void domainTitle_withRealSourceName_isUsable() {
+        // Domain-patterned title but a real source name → the renderer shows the source name,
+        // which is informative. Don't reject these.
+        assertThat(filter.isUsable(article("cms.gov — files", "CMS.gov", "body"))).isTrue();
+    }
+
+    @Test
+    void realTitle_withPerplexitySourceName_isUsable() {
+        // If the title is a real headline (not domain-patterned), keep the article even if
+        // it came from Perplexity
+        assertThat(filter.isUsable(article("FDA Clears AI Diagnostic Tool", "PERPLEXITY", "body"))).isTrue();
+    }
 }
