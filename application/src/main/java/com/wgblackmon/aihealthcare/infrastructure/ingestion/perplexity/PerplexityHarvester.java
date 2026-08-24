@@ -53,7 +53,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-04-28
- * @updated 2026-07-10
+ * @updated 2026-08-24
  */
 @Slf4j
 @Component
@@ -262,8 +262,11 @@ public class PerplexityHarvester {
 
     /**
      * Builds a human-readable title from a citation URL by combining the
-     * host name with the first meaningful path segment.
-     * Falls back to {@code "Source [{n}]"} on any parsing error.
+     * host name with the first meaningful path segment. Falls back to the
+     * bare host name (no bracketed citation number \u2014 the title becomes the
+     * visible anchor text of an already-clickable link, so a redundant
+     * "[n]" marker next to it is just noise) when no usable path segment
+     * exists, or to {@code "Source"} on any parsing error.
      */
     private String buildTitle(String url, int citationNumber) {
         log.debug("buildTitle() | url={}, citationNumber={}", url, citationNumber);
@@ -284,13 +287,11 @@ public class PerplexityHarvester {
                 }
             }
 
-            String result = host + " [" + citationNumber + "]";
-            log.debug("buildTitle() | return={}", result);
-            return result;
+            log.debug("buildTitle() | return={}", host);
+            return host;
         } catch (Exception e) {
-            String fallback = "Source [" + citationNumber + "]";
-            log.debug("buildTitle() | return={} (fallback)", fallback);
-            return fallback;
+            log.debug("buildTitle() | return=Source (fallback)");
+            return "Source";
         }
     }
 

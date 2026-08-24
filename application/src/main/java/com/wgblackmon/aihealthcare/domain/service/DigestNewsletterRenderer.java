@@ -34,9 +34,9 @@ import java.util.Set;
  * without the featured block if scoring or formatting fails.
  *
  * @author  Bill Blackmon
- * @version 3.2
+ * @version 3.3
  * @since   2026-07-20
- * @updated 2026-08-23
+ * @updated 2026-08-24
  */
 @Slf4j
 public class DigestNewsletterRenderer {
@@ -376,7 +376,7 @@ public class DigestNewsletterRenderer {
             sb.append("</div>\n");
 
             String bodyPreview = buildBodyPreview(article);
-            if (!bodyPreview.isEmpty()) {
+            if (!bodyPreview.isEmpty() && !isRedundantWithTitle(articleTitle, bodyPreview)) {
                 sb.append("    <div style=\"font-size:0.9em; color:#444; margin-top:4px; line-height:1.5; font-family:Arial,sans-serif;\">")
                   .append(escapeHtml(bodyPreview)).append("</div>\n");
             }
@@ -474,11 +474,37 @@ public class DigestNewsletterRenderer {
                     cleaned = lastPeriod > BODY_PREVIEW_MAX / 2
                             ? truncated.substring(0, lastPeriod + 1) : truncated.trim() + "...";
                 }
-                sb.append("\n   ").append(cleaned);
+                if (!isRedundantWithTitle(article.title(), cleaned)) {
+                    sb.append("\n   ").append(cleaned);
+                }
             }
             sb.append("\n\n");
         }
         return sb.toString();
+    }
+
+    /**
+     * True when {@code preview} adds no meaningful content beyond {@code title} —
+     * e.g. an RSS lead paragraph that just restates the headline in sentence form.
+     * Compares normalized (lowercase, punctuation-stripped) text so a preview that
+     * is the title plus only incidental formatting differences is treated as a
+     * duplicate; a preview with substantially more content is kept.
+     */
+    private boolean isRedundantWithTitle(String title, String preview) {
+        String normTitle   = normalizeForComparison(title);
+        String normPreview = normalizeForComparison(preview);
+        if (normTitle.isEmpty() || normPreview.isEmpty()) return false;
+        if (normTitle.equals(normPreview)) return true;
+        if (normTitle.startsWith(normPreview)) return true;
+        if (normPreview.startsWith(normTitle)) {
+            return (normPreview.length() - normTitle.length()) < 30;
+        }
+        return false;
+    }
+
+    private String normalizeForComparison(String text) {
+        if (text == null) return "";
+        return text.toLowerCase().replaceAll("[^a-z0-9]+", " ").trim();
     }
 
     /** Plain-text equivalent of the HTML CTA footer + unsubscribe line appended in {@link #wrapInEmailLayout}. */
@@ -508,8 +534,8 @@ public class DigestNewsletterRenderer {
         sb.append("<tr><td style=\"background:#1a1a2e; color:white; padding:20px 24px; border-radius:8px 8px 0 0;\">\n");
         sb.append("  <h1 style=\"margin:0; font-size:1.3em; color:white;\">").append(subject).append("</h1>\n");
         sb.append("  <p style=\"margin:8px 0 0; font-size:0.85em; color:#b0b8c8; line-height:1.4;\">");
-        sb.append("AIHealthcare Intelligence is a weekly briefing on AI in healthcare &mdash; sourced from 69 feeds, ");
-        sb.append("scored by five LLMs, and curated for decision-makers tracking regulatory, clinical, and commercial developments.");
+        sb.append("Your free daily digest of AI in healthcare &mdash; sourced from 69 feeds across regulatory, clinical, ");
+        sb.append("and commercial developments. Subscribers get a deeper weekly briefing with full AI-powered analysis.");
         sb.append("</p>\n</td></tr>\n");
 
         // Body

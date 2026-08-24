@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
@@ -41,9 +42,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link AdminPipelineController}.
  *
  * @author  Bill Blackmon
- * @version 3.2
+ * @version 3.3
  * @since   2026-07-30
- * @updated 2026-08-19
+ * @updated 2026-08-24
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(AdminPipelineController.class)
@@ -63,6 +64,9 @@ class AdminPipelineControllerTest {
 
     @MockitoBean
     private MarketDigestService marketDigestService;
+
+    @MockitoBean
+    private DeliverNewsletterUseCase deliverUseCase;
 
     // --- Page rendering ---
 
@@ -89,7 +93,7 @@ class AdminPipelineControllerTest {
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("pipelineCount", 19));
+                .andExpect(model().attribute("pipelineCount", 20));
     }
 
     @Test
@@ -236,14 +240,14 @@ class AdminPipelineControllerTest {
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.message").value("Newsletter generated and sent"));
 
-        verify(newsletterScheduler).runDailyDraftGeneration();
+        verify(newsletterScheduler).runWeeklyDraftGeneration();
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void generateAndSendNewsletterReturnsFailureOnException() throws Exception {
         doThrow(new RuntimeException("SMTP connection refused"))
-                .when(newsletterScheduler).runDailyDraftGeneration();
+                .when(newsletterScheduler).runWeeklyDraftGeneration();
 
         mockMvc.perform(post("/admin/pipelines/newsletter/generate-and-send").with(csrf()))
                 .andExpect(status().isInternalServerError())
@@ -255,6 +259,40 @@ class AdminPipelineControllerTest {
     @WithMockUser(roles = "USER")
     void generateAndSendNewsletterReturns403ForNonAdmin() throws Exception {
         mockMvc.perform(post("/admin/pipelines/newsletter/generate-and-send").with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    // --- Digest send endpoint ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void sendDigestReturnsSuccess() throws Exception {
+        when(deliverUseCase.deliverDigest()).thenReturn(42);
+
+        mockMvc.perform(post("/admin/pipelines/digest/send").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.recipientCount").value(42));
+
+        verify(deliverUseCase).deliverDigest();
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void sendDigestReturnsFailureOnException() throws Exception {
+        doThrow(new RuntimeException("SMTP connection refused"))
+                .when(deliverUseCase).deliverDigest();
+
+        mockMvc.perform(post("/admin/pipelines/digest/send").with(csrf()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.message").value("SMTP connection refused"));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void sendDigestReturns403ForNonAdmin() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/digest/send").with(csrf()))
                 .andExpect(status().isForbidden());
     }
 

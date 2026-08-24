@@ -148,9 +148,13 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   # Article query — how far back (in days) to look when fetching articles.
   # Set to 0 for no date restriction.  Change freely for experimentation.
+  #
+  # 7 days matches the paid Newsletter's weekly cadence (aihealthcare.newsletter.
+  # schedule) so a Monday run captures the full trailing week instead of just
+  # the last 24h. Also used by the /api/v1/articles browse endpoint.
   # ---------------------------------------------------------------------------
   articles:
-    days-back: 1
+    days-back: 7
     max-age-days: 30
 
   # ---------------------------------------------------------------------------
@@ -1393,12 +1397,23 @@ aihealthcare:
   # Newsletter delivery — from address used in outgoing emails.
   # SMTP connection settings live in the active profile (dev or prod).
   #
-  # Schedule: daily at midnight UTC.  The scheduler generates a DRAFT newsletter
-  # from the previous day's articles but does NOT auto-send.  Review and edit
-  # at /newsletter/runs/{runId}/edit (TinyMCE), then click Send when ready.
+  # Schedule: weekly, Monday 08:00 UTC. Ingests the full 19-topic feed pool
+  # (see aihealthcare.news.topics) over the trailing week, generates a DRAFT,
+  # and auto-sends to ENTERPRISE/SUBSCRIBER/DEMO tiers unless overridden via
+  # the "Override Auto Send Today" checkbox at /newsletter/runs.
+  #
+  # The FREE-tier daily digest is a separate pipeline — see aihealthcare.digest
+  # below — decoupled so its daily cadence doesn't depend on this schedule.
   # ---------------------------------------------------------------------------
   newsletter:
     from-address: newsletter@aihealthcare.local
+    schedule: "0 0 8 * * MON"
+
+  # ---------------------------------------------------------------------------
+  # FREE-tier daily digest — independent schedule from the paid newsletter above.
+  # Schedule: daily at midnight UTC (unchanged from the digest's prior timing).
+  # ---------------------------------------------------------------------------
+  digest:
     schedule: "0 0 0 * * *"
 
   # ---------------------------------------------------------------------------
