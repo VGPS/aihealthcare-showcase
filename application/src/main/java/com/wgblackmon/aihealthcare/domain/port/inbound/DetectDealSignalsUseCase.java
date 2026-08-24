@@ -11,19 +11,19 @@ import java.util.List;
  * and retrieving enriched deal context with cross-referenced data.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-04
- * @updated 2026-08-06
+ * @updated 2026-08-23
  */
 public interface DetectDealSignalsUseCase {
 
     List<DealSignal> detectSignals();
 
-    List<DealSignal> getRecentSignals(int limit);
+    List<DealSignal> getRecentSignals(int pageSize, int page);
 
     DealSignal getSignalById(String signalId);
 
-    List<DealSignal> getSignalsByType(DealSignalType type, int limit);
+    List<DealSignal> getSignalsByType(DealSignalType type, int pageSize, int page);
 
     DealContext getSignalWithContext(String signalId);
 }

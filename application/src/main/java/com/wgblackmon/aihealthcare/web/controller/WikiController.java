@@ -63,7 +63,7 @@ import java.util.Map;
  * via {@link NewsArticleRepository}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-04
  * @updated 2026-08-23
  */
@@ -72,7 +72,7 @@ import java.util.Map;
 @RequestMapping("/wiki")
 public class WikiController {
 
-    private static final int PAGE_SIZE = 60;
+    private static final int PAGE_SIZE = 20;
 
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm").withZone(ZoneOffset.UTC);
