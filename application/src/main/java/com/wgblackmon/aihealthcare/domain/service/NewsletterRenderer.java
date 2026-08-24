@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
  * Java Streams — per project conventions.
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-04-11
  * @updated 2026-08-24
  */
@@ -207,6 +207,17 @@ public class NewsletterRenderer {
                 .append("</td></tr>");
         }
 
+        // Build inverse map: articleId → list of section headlines that used it
+        Map<String, List<String>> articleSectionMap = new HashMap<>();
+        for (NewsletterSection s : draft.sections()) {
+            for (String id : s.articleIds()) {
+                if (!articleSectionMap.containsKey(id)) {
+                    articleSectionMap.put(id, new ArrayList<>());
+                }
+                articleSectionMap.get(id).add(s.headline());
+            }
+        }
+
         // Sources
         if (!draft.sourceArticles().isEmpty()) {
             html.append("<tr><td style=\"padding: 8px 32px 0;\">")
@@ -217,7 +228,7 @@ public class NewsletterRenderer {
                 .append("text-transform: uppercase; letter-spacing: 0.5px;\">Source Articles</h3>")
                 .append("<ul style=\"margin: 0; padding: 0 0 0 18px; line-height: 1.9;\">");
             for (NewsArticle article : draft.sourceArticles()) {
-                html.append("<li style=\"font-size: 13px; color: #555;\"><a href=\"")
+                html.append("<li style=\"font-size: 13px; color: #555; margin-bottom: 6px;\"><a href=\"")
                     .append(article.url())
                     .append("\" style=\"color: #0066cc; text-decoration: none;\">")
                     .append(escapeHtml(article.title()))
@@ -226,6 +237,15 @@ public class NewsletterRenderer {
                     html.append(" <span style=\"color: #999; font-style: italic;\">— ")
                         .append(escapeHtml(article.sourceName()))
                         .append("</span>");
+                }
+                List<String> usedIn = articleSectionMap.getOrDefault(article.articleId(), List.of());
+                if (!usedIn.isEmpty()) {
+                    html.append("<br><span style=\"font-size: 11px; color: #aaa;\">Used in: ");
+                    for (int i = 0; i < usedIn.size(); i++) {
+                        if (i > 0) html.append(", ");
+                        html.append(escapeHtml(usedIn.get(i)));
+                    }
+                    html.append("</span>");
                 }
                 html.append("</li>");
             }
@@ -335,6 +355,16 @@ public class NewsletterRenderer {
         }
 
         if (!draft.sourceArticles().isEmpty()) {
+            // Build inverse map for plain text attribution
+            Map<String, List<String>> ptArticleSectionMap = new HashMap<>();
+            for (NewsletterSection s : draft.sections()) {
+                for (String id : s.articleIds()) {
+                    if (!ptArticleSectionMap.containsKey(id)) {
+                        ptArticleSectionMap.put(id, new ArrayList<>());
+                    }
+                    ptArticleSectionMap.get(id).add(s.headline());
+                }
+            }
             text.append("---\nSOURCE ARTICLES\n\n");
             for (NewsArticle article : draft.sourceArticles()) {
                 text.append("- ").append(article.title());
@@ -342,6 +372,15 @@ public class NewsletterRenderer {
                     text.append(" (").append(article.sourceName()).append(")");
                 }
                 text.append(": ").append(article.url()).append("\n");
+                List<String> usedIn = ptArticleSectionMap.getOrDefault(article.articleId(), List.of());
+                if (!usedIn.isEmpty()) {
+                    text.append("  Used in: ");
+                    for (int i = 0; i < usedIn.size(); i++) {
+                        if (i > 0) text.append(", ");
+                        text.append(usedIn.get(i));
+                    }
+                    text.append("\n");
+                }
             }
         }
 

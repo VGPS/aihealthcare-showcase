@@ -18,6 +18,6 @@ Also classify this section using EXACTLY one of these types:
   TOOL_PICK          - A notable tool, dataset, or open-source library
 
 Respond in EXACTLY this format (do not add any other text):
-HEADLINE: <one punchy sentence summarising the key development>
+HEADLINE: <≤ 10 words; active voice; one clause only — no stacked noun phrases, no "and" linking two separate topics. Good: "Cleveland Clinic Links AI Scribes to Clinician Retention". Bad: "Conditional Public Trust and Persistent Bias Risks Demand Urgent Governance">
 SUMMARY: <2-4 sentences expanding on the headline. When citing a specific finding or claim from one of the articles, include its bracket number as an inline citation, e.g. "A JAMA study [2] found..." or "Per [1], the FDA cleared...". Use only article numbers that appear in the article list above.>
 SECTION_TYPE: <one value from the list above>

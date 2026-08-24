@@ -178,6 +178,22 @@ class NewsletterRendererTest {
     }
 
     @Test
+    @DisplayName("renderHtml() shows 'Used in:' attribution under each source article")
+    void renderHtml_sourceArticleShowsUsedInSection() {
+        String html = renderer.renderHtml(draft);
+        // The source article "article-001" is used by "section-001" whose headline is "AI Outperforms Radiologists"
+        assertThat(html).contains("Used in:");
+        assertThat(html).contains("AI Outperforms Radiologists");
+    }
+
+    @Test
+    @DisplayName("renderPlainText() shows 'Used in:' attribution under each source article")
+    void renderPlainText_sourceArticleShowsUsedInSection() {
+        String text = renderer.renderPlainText(draft);
+        assertThat(text).contains("Used in: AI Outperforms Radiologists");
+    }
+
+    @Test
     @DisplayName("renderHtml() makes [1] citation in summary a clickable link to the source article")
     void renderHtml_inlineCitationLinksToSourceArticle() {
         // Build a section whose summary contains [1] — should become a hyperlink
