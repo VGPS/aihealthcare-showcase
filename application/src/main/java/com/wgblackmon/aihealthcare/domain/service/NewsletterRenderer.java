@@ -8,8 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,7 +36,7 @@ import java.util.regex.Pattern;
  * Java Streams — per project conventions.
  *
  * @author  Bill Blackmon
- * @version 1.3
+ * @version 1.4
  * @since   2026-04-11
  * @updated 2026-08-24
  */
@@ -227,7 +229,11 @@ public class NewsletterRenderer {
                 .append("<h3 style=\"margin: 0 0 12px; font-size: 15px; color: #555; ")
                 .append("text-transform: uppercase; letter-spacing: 0.5px;\">Source Articles</h3>")
                 .append("<ul style=\"margin: 0; padding: 0 0 0 18px; line-height: 1.9;\">");
+            Set<String> seenHtmlIds = new HashSet<>();
             for (NewsArticle article : draft.sourceArticles()) {
+                if (!seenHtmlIds.add(article.articleId())) {
+                    continue;
+                }
                 html.append("<li style=\"font-size: 13px; color: #555; margin-bottom: 6px;\"><a href=\"")
                     .append(article.url())
                     .append("\" style=\"color: #0066cc; text-decoration: none;\">")
@@ -366,7 +372,11 @@ public class NewsletterRenderer {
                 }
             }
             text.append("---\nSOURCE ARTICLES\n\n");
+            Set<String> seenTextIds = new HashSet<>();
             for (NewsArticle article : draft.sourceArticles()) {
+                if (!seenTextIds.add(article.articleId())) {
+                    continue;
+                }
                 text.append("- ").append(article.title());
                 if (article.sourceName() != null && !article.sourceName().isBlank()) {
                     text.append(" (").append(article.sourceName()).append(")");

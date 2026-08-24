@@ -178,6 +178,62 @@ class NewsletterRendererTest {
     }
 
     @Test
+    @DisplayName("renderHtml() deduplicates source articles with the same articleId")
+    void renderHtml_deduplicatesSourceArticles() {
+        // Same article listed twice in sourceArticles — should appear only once
+        NewsArticle dup = new NewsArticle(
+                "article-001",                          // same ID as in setUp()
+                "AI Improves Diagnostic Accuracy",
+                java.net.URI.create("https://example.com/article-001"),
+                "body", "AI diagnostics", null, 1L, "PubMed AI Healthcare", "ACADEMIC", 0.9, null
+        );
+        NewsletterDraft dupDraft = new NewsletterDraft(
+                "draft-dup", "run-dup", "AI Weekly",
+                java.time.LocalDate.of(2026, 8, 24),
+                "Intro.",
+                draft.sections(),
+                List.of(dup, dup),       // duplicate
+                java.time.Instant.now()
+        );
+        String html = renderer.renderHtml(dupDraft);
+        // Count occurrences of the article title inside an <li> — should be exactly 1
+        int count = 0;
+        int idx = 0;
+        while ((idx = html.indexOf("AI Improves Diagnostic Accuracy", idx)) != -1) {
+            count++;
+            idx++;
+        }
+        // Title appears in the <li> list; there may also be one in the intro/body but not in sources twice
+        // The source list li wraps it in <a href=...> — just verify it's not doubled there
+        assertThat(html.indexOf("article-001\" style"))
+                .isEqualTo(html.lastIndexOf("article-001\" style"));
+    }
+
+    @Test
+    @DisplayName("renderPlainText() deduplicates source articles with the same articleId")
+    void renderPlainText_deduplicatesSourceArticles() {
+        NewsArticle dup = new NewsArticle(
+                "article-001",
+                "AI Improves Diagnostic Accuracy",
+                java.net.URI.create("https://example.com/article-001"),
+                "body", "AI diagnostics", null, 1L, "PubMed AI Healthcare", "ACADEMIC", 0.9, null
+        );
+        NewsletterDraft dupDraft = new NewsletterDraft(
+                "draft-dup", "run-dup", "AI Weekly",
+                java.time.LocalDate.of(2026, 8, 24),
+                "Intro.",
+                draft.sections(),
+                List.of(dup, dup),
+                java.time.Instant.now()
+        );
+        String text = renderer.renderPlainText(dupDraft);
+        // Should appear exactly once in the SOURCE ARTICLES block
+        int firstOccurrence = text.indexOf("- AI Improves Diagnostic Accuracy");
+        int lastOccurrence  = text.lastIndexOf("- AI Improves Diagnostic Accuracy");
+        assertThat(firstOccurrence).isEqualTo(lastOccurrence);
+    }
+
+    @Test
     @DisplayName("renderHtml() shows 'Used in:' attribution under each source article")
     void renderHtml_sourceArticleShowsUsedInSection() {
         String html = renderer.renderHtml(draft);
