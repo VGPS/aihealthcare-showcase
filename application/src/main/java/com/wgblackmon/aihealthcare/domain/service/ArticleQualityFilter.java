@@ -21,10 +21,12 @@ import java.util.Set;
  *   <li>title (trimmed, uppercased) is in the known source-label set</li>
  *   <li>title equals sourceName (case-insensitive) — harvester used source name as fallback</li>
  *   <li>title is shorter than 10 chars AND bodyText is null/blank</li>
+ *   <li>title is a bare domain/URL pattern AND sourceName is a known label — the newsletter
+ *       renderer would display the source label ("PERPLEXITY") as the headline, which is useless</li>
  * </ul>
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-23
  * @updated 2026-08-23
  */
@@ -80,6 +82,23 @@ public class ArticleQualityFilter {
             return false;
         }
 
+        // Domain-URL title (e.g. "who.int — news") + label sourceName (e.g. "PERPLEXITY")
+        // means the newsletter renderer would substitute the source label as the display
+        // title, which is no better than showing nothing.
+        if (isDomainTitle(t) && sourceName != null
+                && LABEL_TITLES.contains(sourceName.trim().toUpperCase())) {
+            return false;
+        }
+
         return true;
+    }
+
+    /**
+     * Returns true when a title is a bare domain/URL pattern rather than a real headline.
+     * Matches hostnames like "pmc.ncbi.nlm.nih.gov" or "who.int — news".
+     */
+    private boolean isDomainTitle(String title) {
+        String base = title.split("\\s[—\\-]\\s")[0].trim();
+        return base.matches("[a-z0-9][a-z0-9.\\-]*\\.[a-z]{2,}(/[\\S]*)?");
     }
 }
