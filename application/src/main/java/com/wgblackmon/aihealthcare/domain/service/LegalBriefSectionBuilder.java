@@ -26,9 +26,9 @@ import java.util.List;
  * signaling the caller to omit the section entirely.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-30
- * @updated 2026-07-30
+ * @updated 2026-08-23
  */
 @Slf4j
 public class LegalBriefSectionBuilder {
@@ -38,15 +38,18 @@ public class LegalBriefSectionBuilder {
     private static final int MAX_HEADLINES = 5;
     private static final int MAX_REG_EVENTS = 10;
 
-    private final ArticleIngestionPort articleIngestionPort;
+    private final ArticleIngestionPort           articleIngestionPort;
     private final MonitorRegulatoryEventsUseCase regulatoryUseCase;
+    private final ArticleQualityFilter           articleQualityFilter;
 
     public LegalBriefSectionBuilder(ArticleIngestionPort articleIngestionPort,
-                                     MonitorRegulatoryEventsUseCase regulatoryUseCase) {
-        log.debug("LegalBriefSectionBuilder() | articleIngestionPort={}, regulatoryUseCase={}",
-                  articleIngestionPort, regulatoryUseCase);
+                                     MonitorRegulatoryEventsUseCase regulatoryUseCase,
+                                     ArticleQualityFilter articleQualityFilter) {
+        log.debug("LegalBriefSectionBuilder() | articleIngestionPort={}, regulatoryUseCase={}, articleQualityFilter={}",
+                  articleIngestionPort, regulatoryUseCase, articleQualityFilter);
         this.articleIngestionPort = articleIngestionPort;
-        this.regulatoryUseCase = regulatoryUseCase;
+        this.regulatoryUseCase    = regulatoryUseCase;
+        this.articleQualityFilter = articleQualityFilter;
     }
 
     /**
@@ -61,11 +64,22 @@ public class LegalBriefSectionBuilder {
     public NewsletterSection build(String sectionId, int lookbackDays) {
         log.debug("build() | sectionId={}, lookbackDays={}", sectionId, lookbackDays);
 
-        List<NewsArticle> legalArticles = articleIngestionPort
+        List<NewsArticle> rawLegal = articleIngestionPort
                 .fetchByTopicWithArchiveLimit(TOPIC_LEGAL, lookbackDays);
-        List<NewsArticle> policyArticles = articleIngestionPort
+        List<NewsArticle> rawPolicy = articleIngestionPort
                 .fetchByTopicWithArchiveLimit(TOPIC_POLICY, lookbackDays);
         List<RegulatoryEvent> regEvents = regulatoryUseCase.getRecentEvents(MAX_REG_EVENTS);
+
+        List<NewsArticle> legalArticles = new ArrayList<>();
+        for (NewsArticle a : rawLegal) {
+            if (articleQualityFilter.isUsable(a)) legalArticles.add(a);
+        }
+        List<NewsArticle> policyArticles = new ArrayList<>();
+        for (NewsArticle a : rawPolicy) {
+            if (articleQualityFilter.isUsable(a)) policyArticles.add(a);
+        }
+        log.debug("build() | legal={}/{} usable, policy={}/{} usable after quality filter",
+                  legalArticles.size(), rawLegal.size(), policyArticles.size(), rawPolicy.size());
 
         int litigationCount = legalArticles.size();
         int policyCount = policyArticles.size();

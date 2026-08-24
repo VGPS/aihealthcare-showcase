@@ -56,7 +56,8 @@ class DigestNewsletterRendererTest {
                 .thenReturn("");
 
         renderer = new DigestNewsletterRenderer(
-                articleIngestionPort, articleScoringPort, bodyFormattingPort);
+                articleIngestionPort, articleScoringPort, bodyFormattingPort,
+                new ArticleQualityFilter());
     }
 
     // -------------------------------------------------------------------------

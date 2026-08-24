@@ -13,6 +13,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
+import com.wgblackmon.aihealthcare.domain.service.ArticleQualityFilter;
 import com.wgblackmon.aihealthcare.domain.service.LegalBriefSectionBuilder;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
@@ -107,7 +108,7 @@ class NewsletterServiceReversalWatchTest {
     @BeforeEach
     void setUp() {
         LegalBriefSectionBuilder legalBriefBuilder = new LegalBriefSectionBuilder(
-                ingestionPort, regulatoryUseCase);
+                ingestionPort, regulatoryUseCase, new ArticleQualityFilter());
         service = new NewsletterService(ingestionPort, summarizationPort,
                 new NewsletterRenderer(), newsletterRunPort, searchPort,
                 wikiQueryPort, new ReversalWatchSectionBuilder(), legalBriefBuilder);
