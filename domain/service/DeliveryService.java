@@ -33,9 +33,9 @@ import java.util.UUID;
  * <p>Slice 3c will add scheduling support via {@code NewsletterGenerationScheduler}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-13
- * @updated 2026-08-07
+ * @updated 2026-08-24
  */
 @Slf4j
 public class DeliveryService implements ManageSubscribersUseCase, DeliverNewsletterUseCase {
@@ -86,14 +86,14 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
 
         NewsletterRun run = newsletterRunPort.findByRunId(runId);
 
-        // Split subscribers by tier — 5-tier routing
+        // Split subscribers by tier — ENTERPRISE/SUBSCRIBER/DEMO get the full newsletter.
+        // FREE subscribers get the digest instead — see deliverDigest(), which runs on
+        // its own schedule and is not part of this call.
         List<Subscriber> enterpriseRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.ENTERPRISE);
         List<Subscriber> subscriberRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER);
         List<Subscriber> demoRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO);
-        List<Subscriber> freeRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.FREE);
-        // FREE_PENDING subscribers are intentionally skipped — they need to choose a path first
 
-        int totalRecipients = enterpriseRecipients.size() + subscriberRecipients.size() + demoRecipients.size() + freeRecipients.size();
+        int totalRecipients = enterpriseRecipients.size() + subscriberRecipients.size() + demoRecipients.size();
         if (totalRecipients == 0) {
             log.warn("deliver() | No active subscribers — skipping delivery for runId={}", runId);
             log.debug("deliver() | return=0");
@@ -123,18 +123,6 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
             log.info("deliver() | Full newsletter sent to {} demo-tier recipients", demoRecipients.size());
         }
 
-        // Deliver daily digest to FREE subscribers (NotebookLM summary, not teaser)
-        if (!freeRecipients.isEmpty()) {
-            Optional<NewsletterRun> digestOpt = digestRenderer.buildDigest();
-            if (digestOpt.isPresent()) {
-                newsletterDeliveryPort.deliver(digestOpt.get(), freeRecipients);
-                sentCount += freeRecipients.size();
-                log.info("deliver() | Digest newsletter sent to {} free subscribers", freeRecipients.size());
-            } else {
-                log.info("deliver() | No articles today — skipping digest for {} free subscribers", freeRecipients.size());
-            }
-        }
-
         if (sentCount > 0) {
             NewsletterRun sent = new NewsletterRun(
                     run.runId(),
@@ -146,14 +134,46 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
                     run.generatedAt()
             );
             newsletterRunPort.save(sent);
-            log.info("deliver() | Newsletter delivered: runId={}, subscriber={}, demo={}, free={}",
-                     runId, subscriberRecipients.size(), demoRecipients.size(), freeRecipients.size());
+            log.info("deliver() | Newsletter delivered: runId={}, enterprise={}, subscriber={}, demo={}",
+                     runId, enterpriseRecipients.size(), subscriberRecipients.size(), demoRecipients.size());
         } else {
-            log.info("deliver() | No emails sent for runId={} — 0 articles available", runId);
+            log.info("deliver() | No emails sent for runId={} — 0 recipients available", runId);
         }
 
         log.debug("deliver() | return={}", sentCount);
         return sentCount;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Builds a fresh digest via {@link DigestNewsletterRenderer} and sends it to
+     * all active FREE-tier subscribers. Runs independently of {@link #deliver(String)}
+     * so the FREE digest's daily cadence is not tied to the paid newsletter's schedule.
+     */
+    @Override
+    public int deliverDigest() {
+        log.debug("deliverDigest() | (no args)");
+
+        List<Subscriber> freeRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.FREE);
+        if (freeRecipients.isEmpty()) {
+            log.info("deliverDigest() | No active FREE subscribers — skipping digest");
+            log.debug("deliverDigest() | return=0");
+            return 0;
+        }
+
+        Optional<NewsletterRun> digestOpt = digestRenderer.buildDigest();
+        if (digestOpt.isEmpty()) {
+            log.info("deliverDigest() | No articles today — skipping digest for {} free subscribers", freeRecipients.size());
+            log.debug("deliverDigest() | return=0");
+            return 0;
+        }
+
+        newsletterDeliveryPort.deliver(digestOpt.get(), freeRecipients);
+        log.info("deliverDigest() | Digest newsletter sent to {} free subscribers", freeRecipients.size());
+
+        log.debug("deliverDigest() | return={}", freeRecipients.size());
+        return freeRecipients.size();
     }
 
     // -------------------------------------------------------------------------

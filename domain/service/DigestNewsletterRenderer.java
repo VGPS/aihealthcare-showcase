@@ -34,9 +34,9 @@ import java.util.Set;
  * without the featured block if scoring or formatting fails.
  *
  * @author  Bill Blackmon
- * @version 3.0
+ * @version 3.3
  * @since   2026-07-20
- * @updated 2026-08-16
+ * @updated 2026-08-24
  */
 @Slf4j
 public class DigestNewsletterRenderer {
@@ -52,20 +52,24 @@ public class DigestNewsletterRenderer {
             "Significant developments in AI healthcare: FDA approvals, clinical AI breakthroughs, "
             + "major partnerships, funding rounds, regulatory rulings, and commercial product launches.";
 
-    private final ArticleIngestionPort    articleIngestionPort;
-    private final ArticleScoringPort      articleScoringPort;
+    private final ArticleIngestionPort      articleIngestionPort;
+    private final ArticleScoringPort        articleScoringPort;
     private final ArticleBodyFormattingPort bodyFormattingPort;
+    private final ArticleQualityFilter      articleQualityFilter;
 
     public DigestNewsletterRenderer(ArticleIngestionPort articleIngestionPort,
                                     ArticleScoringPort articleScoringPort,
-                                    ArticleBodyFormattingPort bodyFormattingPort) {
-        log.debug("DigestNewsletterRenderer() | articleIngestionPort={}, articleScoringPort={}, bodyFormattingPort={}",
+                                    ArticleBodyFormattingPort bodyFormattingPort,
+                                    ArticleQualityFilter articleQualityFilter) {
+        log.debug("DigestNewsletterRenderer() | articleIngestionPort={}, articleScoringPort={}, bodyFormattingPort={}, articleQualityFilter={}",
                   articleIngestionPort.getClass().getSimpleName(),
                   articleScoringPort.getClass().getSimpleName(),
-                  bodyFormattingPort.getClass().getSimpleName());
+                  bodyFormattingPort.getClass().getSimpleName(),
+                  articleQualityFilter.getClass().getSimpleName());
         this.articleIngestionPort = articleIngestionPort;
         this.articleScoringPort   = articleScoringPort;
         this.bodyFormattingPort   = bodyFormattingPort;
+        this.articleQualityFilter = articleQualityFilter;
         log.debug("DigestNewsletterRenderer() | return=void");
     }
 
@@ -147,7 +151,8 @@ public class DigestNewsletterRenderer {
 
         String bodyHtml  = featuredHtml + renderSectionedCards(todaysItems, discoveredItems);
         String subject   = "AI Healthcare Intelligence — " + today.format(DISPLAY_FMT);
-        String plainText = featuredPlainText + renderSectionedPlainText(todaysItems, discoveredItems);
+        String plainText = featuredPlainText + renderSectionedPlainText(todaysItems, discoveredItems)
+                + renderPlainTextFooter();
 
         NewsletterRun result = new NewsletterRun(
                 "digest-" + today.format(DateTimeFormatter.ISO_LOCAL_DATE),
@@ -321,8 +326,8 @@ public class DigestNewsletterRenderer {
         for (NewsArticle article : articles) {
             String tier = article.sourceTier();
             if (tier != null && tier.equals("COMPETITOR")) continue;
+            if (!articleQualityFilter.isUsable(article)) continue;
             String title = article.title();
-            if (title == null || title.isBlank()) continue;
             if (isNonsenseTitle(title)) continue;
             String normalizedTitle = title.trim().toLowerCase();
             if (seenTitles.contains(normalizedTitle)) continue;
@@ -371,7 +376,7 @@ public class DigestNewsletterRenderer {
             sb.append("</div>\n");
 
             String bodyPreview = buildBodyPreview(article);
-            if (!bodyPreview.isEmpty()) {
+            if (!bodyPreview.isEmpty() && !isRedundantWithTitle(articleTitle, bodyPreview)) {
                 sb.append("    <div style=\"font-size:0.9em; color:#444; margin-top:4px; line-height:1.5; font-family:Arial,sans-serif;\">")
                   .append(escapeHtml(bodyPreview)).append("</div>\n");
             }
@@ -469,11 +474,46 @@ public class DigestNewsletterRenderer {
                     cleaned = lastPeriod > BODY_PREVIEW_MAX / 2
                             ? truncated.substring(0, lastPeriod + 1) : truncated.trim() + "...";
                 }
-                sb.append("\n   ").append(cleaned);
+                if (!isRedundantWithTitle(article.title(), cleaned)) {
+                    sb.append("\n   ").append(cleaned);
+                }
             }
             sb.append("\n\n");
         }
         return sb.toString();
+    }
+
+    /**
+     * True when {@code preview} adds no meaningful content beyond {@code title} —
+     * e.g. an RSS lead paragraph that just restates the headline in sentence form.
+     * Compares normalized (lowercase, punctuation-stripped) text so a preview that
+     * is the title plus only incidental formatting differences is treated as a
+     * duplicate; a preview with substantially more content is kept.
+     */
+    private boolean isRedundantWithTitle(String title, String preview) {
+        String normTitle   = normalizeForComparison(title);
+        String normPreview = normalizeForComparison(preview);
+        if (normTitle.isEmpty() || normPreview.isEmpty()) return false;
+        if (normTitle.equals(normPreview)) return true;
+        if (normTitle.startsWith(normPreview)) return true;
+        if (normPreview.startsWith(normTitle)) {
+            return (normPreview.length() - normTitle.length()) < 30;
+        }
+        return false;
+    }
+
+    private String normalizeForComparison(String text) {
+        if (text == null) return "";
+        return text.toLowerCase().replaceAll("[^a-z0-9]+", " ").trim();
+    }
+
+    /** Plain-text equivalent of the HTML CTA footer + unsubscribe line appended in {@link #wrapInEmailLayout}. */
+    private String renderPlainTextFooter() {
+        return "\n---\nWANT DEEPER AI ANALYSIS?\n\n"
+                + "Subscribe for full AI-powered newsletters with expert synthesis, vendor comparisons, and research insights.\n"
+                + PromotionalFooter.BUTTONS_PLAIN_TEXT + "\n\n"
+                + "You are receiving this because you signed up for the free AI Healthcare digest.\n"
+                + "Unsubscribe: https://app.bigskylabs.ai/unsubscribe\n";
     }
 
     private String wrapInEmailLayout(String bodyHtml, LocalDate today, int articleCount, String subject) {
@@ -494,8 +534,8 @@ public class DigestNewsletterRenderer {
         sb.append("<tr><td style=\"background:#1a1a2e; color:white; padding:20px 24px; border-radius:8px 8px 0 0;\">\n");
         sb.append("  <h1 style=\"margin:0; font-size:1.3em; color:white;\">").append(subject).append("</h1>\n");
         sb.append("  <p style=\"margin:8px 0 0; font-size:0.85em; color:#b0b8c8; line-height:1.4;\">");
-        sb.append("AIHealthcare Intelligence is a weekly briefing on AI in healthcare &mdash; sourced from 69 feeds, ");
-        sb.append("scored by five LLMs, and curated for decision-makers tracking regulatory, clinical, and commercial developments.");
+        sb.append("Your free daily digest of AI in healthcare &mdash; sourced from 69 feeds across regulatory, clinical, ");
+        sb.append("and commercial developments. Subscribers get a deeper weekly briefing with full AI-powered analysis.");
         sb.append("</p>\n</td></tr>\n");
 
         // Body
@@ -507,11 +547,7 @@ public class DigestNewsletterRenderer {
         sb.append("<tr><td style=\"background:#f0f7ff; padding:20px 24px; border-top:2px solid #0066cc;\">\n");
         sb.append("  <h3 style=\"margin:0 0 8px; color:#1a1a2e; font-size:1em;\">Want deeper AI analysis?</h3>\n");
         sb.append("  <p style=\"margin:0 0 12px; font-size:0.9em; color:#555;\">Subscribe for full AI-powered newsletters with expert synthesis, vendor comparisons, and research insights.</p>\n");
-        sb.append("  <a href=\"https://app.bigskylabs.ai/pricing\" style=\"display:inline-block; background:#0066cc; color:white; ");
-        sb.append("padding:10px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9em;\">Upgrade to Subscriber &mdash; $19/mo</a>\n");
-        sb.append("  <span style=\"display:inline-block; margin-left:12px;\">");
-        sb.append("<a href=\"https://app.bigskylabs.ai/demo\" style=\"display:inline-block; background:#28a745; color:white; ");
-        sb.append("padding:10px 24px; border-radius:6px; text-decoration:none; font-weight:600; font-size:0.9em;\">Free 7 Day Demo</a></span>\n");
+        sb.append("  ").append(PromotionalFooter.BUTTONS_HTML).append("\n");
         sb.append("</td></tr>\n");
 
         // Unsubscribe footer
