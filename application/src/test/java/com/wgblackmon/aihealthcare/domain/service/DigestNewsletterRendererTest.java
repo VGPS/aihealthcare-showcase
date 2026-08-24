@@ -95,6 +95,8 @@ class DigestNewsletterRendererTest {
         assertThat(result.get().htmlContent()).contains("pricing");
         assertThat(result.get().htmlContent()).contains("Free 7 Day Demo");
         assertThat(result.get().htmlContent()).contains("app.bigskylabs.ai/demo");
+        assertThat(result.get().htmlContent()).contains("Enterprise plans");
+        assertThat(result.get().htmlContent()).contains("pricing#enterprise");
         assertThat(result.get().htmlContent()).contains("Unsubscribe");
         assertThat(result.get().htmlContent()).contains("app.bigskylabs.ai/unsubscribe");
     }
@@ -176,6 +178,36 @@ class DigestNewsletterRendererTest {
 
         assertThat(result).isPresent();
         assertThat(result.get().htmlContent()).contains("This is the body text preview");
+    }
+
+    @Test
+    void buildDigest_bodyPreviewRedundantWithTitle_omitsPreview() {
+        String title = "FDA Seeks Public Feedback on Regulatory Approach for Generative AI-Enabled Medical Devices - The National Law Review";
+        String body  = "FDA Seeks Public Feedback on Regulatory Approach for Generative AI-Enabled Medical Devices The National Law Review";
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
+                .thenReturn(List.of(makeArticle(title, "https://example.com/fda-feedback", body)));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String html = result.get().htmlContent();
+        assertThat(html).contains(title);
+        // Redundant preview (just restates the headline) must not render as a separate line
+        long titleOccurrences = html.split(java.util.regex.Pattern.quote(title.substring(0, 40)), -1).length - 1;
+        assertThat(titleOccurrences).isEqualTo(1);
+    }
+
+    @Test
+    void buildDigest_bodyPreviewAddsNewContent_stillShowsPreview() {
+        String title = "FDA Clears New AI Device";
+        String body  = "FDA Clears New AI Device. The clearance covers real-time diagnostic imaging analysis for radiology departments nationwide.";
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
+                .thenReturn(List.of(makeArticle(title, "https://example.com/fda-device", body)));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        assertThat(result.get().htmlContent()).contains("real-time diagnostic imaging analysis");
     }
 
     @Test

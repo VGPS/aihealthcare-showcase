@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 
@@ -38,9 +39,9 @@ import java.util.Map;
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 2.4
+ * @version 2.5
  * @since   2026-07-30
- * @updated 2026-08-23
+ * @updated 2026-08-24
  */
 @Slf4j
 @Controller
@@ -58,15 +59,18 @@ public class AdminPipelineController {
     private final PipelineHealthService healthService;
     private final NewsletterGenerationScheduler newsletterScheduler;
     private final MarketDigestService marketDigestService;
+    private final DeliverNewsletterUseCase deliverUseCase;
 
     public AdminPipelineController(PipelineHealthService healthService,
                                    NewsletterGenerationScheduler newsletterScheduler,
-                                   MarketDigestService marketDigestService) {
-        log.debug("AdminPipelineController() | healthService={}, newsletterScheduler={}, marketDigestService={}",
-                  healthService, newsletterScheduler, marketDigestService);
+                                   MarketDigestService marketDigestService,
+                                   DeliverNewsletterUseCase deliverUseCase) {
+        log.debug("AdminPipelineController() | healthService={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}",
+                  healthService, newsletterScheduler, marketDigestService, deliverUseCase);
         this.healthService = healthService;
         this.newsletterScheduler = newsletterScheduler;
         this.marketDigestService = marketDigestService;
+        this.deliverUseCase = deliverUseCase;
     }
 
     /**
@@ -232,7 +236,7 @@ public class AdminPipelineController {
 
         Instant start = Instant.now();
         try {
-            newsletterScheduler.runDailyDraftGeneration();
+            newsletterScheduler.runWeeklyDraftGeneration();
 
             long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
             Map<String, Object> result = new LinkedHashMap<>();
@@ -252,6 +256,45 @@ public class AdminPipelineController {
 
             log.error("generateAndSendNewsletter() | Pipeline failed: {}", ex.getMessage(), ex);
             log.debug("generateAndSendNewsletter() | return={}", result);
+            return ResponseEntity.internalServerError().body(result);
+        }
+    }
+
+    /**
+     * Manually triggers the FREE-tier digest send. Independent of the paid
+     * newsletter pipeline above — builds a fresh digest and delivers it to
+     * all active FREE subscribers. Use this if the scheduled daily run failed.
+     *
+     * @return JSON result with recipient count
+     */
+    @PostMapping("/digest/send")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> sendDigest() {
+        log.debug("sendDigest()");
+
+        Instant start = Instant.now();
+        try {
+            int recipientCount = deliverUseCase.deliverDigest();
+
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "SUCCESS");
+            result.put("message", "Digest sent to " + recipientCount + " free subscribers");
+            result.put("recipientCount", recipientCount);
+            result.put("durationMs", durationMs);
+
+            log.info("sendDigest() | Digest pipeline completed in {}ms, recipients={}", durationMs, recipientCount);
+            log.debug("sendDigest() | return={}", result);
+            return ResponseEntity.ok(result);
+        } catch (Exception ex) {
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "FAILED");
+            result.put("message", ex.getMessage());
+            result.put("durationMs", durationMs);
+
+            log.error("sendDigest() | Pipeline failed: {}", ex.getMessage(), ex);
+            log.debug("sendDigest() | return={}", result);
             return ResponseEntity.internalServerError().body(result);
         }
     }
@@ -326,9 +369,14 @@ public class AdminPipelineController {
                 "/monitoring/wiki/compile", "POST", false, "~5 min", "High (LLM cost)"));
 
         list.add(new PipelineInfo("newsletter-send", "Newsletter Generate & Send",
-                "Runs the full newsletter pipeline on demand: ingest today's articles, generate draft via AI, and deliver to all active subscribers. Use this if the scheduled run failed.",
-                "Daily midnight UTC", "NewsletterGenerationScheduler",
+                "Runs the full paid-newsletter pipeline on demand: ingest the trailing week's articles across all topics, generate draft via AI, and deliver to ENTERPRISE/SUBSCRIBER/DEMO subscribers. Use this if the scheduled run failed. Does not send the FREE digest — see below.",
+                "Weekly Monday 08:00 UTC", "NewsletterGenerationScheduler",
                 "/admin/pipelines/newsletter/generate-and-send", "POST", true, "~30 sec", "High (LLM cost)"));
+
+        list.add(new PipelineInfo("digest-send", "FREE Digest Send",
+                "Builds a fresh digest (with Article of the Day) and delivers it to all active FREE subscribers. Independent of the paid newsletter pipeline above. Use this if the scheduled daily run failed.",
+                "Daily midnight UTC", "DigestDeliveryScheduler",
+                "/admin/pipelines/digest/send", "POST", true, "~15 sec", "High (LLM cost)"));
 
         list.add(new PipelineInfo("wiki-gap-analysis", "Wiki Gap Analysis",
                 "Analyzes recent articles against wiki coverage to identify knowledge gaps with specific article references. Requires AI API key.",
