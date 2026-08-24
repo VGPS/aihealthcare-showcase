@@ -19,5 +19,5 @@ Also classify this section using EXACTLY one of these types:
 
 Respond in EXACTLY this format (do not add any other text):
 HEADLINE: <one punchy sentence summarising the key development>
-SUMMARY: <2-4 sentences expanding on the headline, citing specific findings where available>
+SUMMARY: <2-4 sentences expanding on the headline. When citing a specific finding or claim from one of the articles, include its bracket number as an inline citation, e.g. "A JAMA study [2] found..." or "Per [1], the FDA cleared...". Use only article numbers that appear in the article list above.>
 SECTION_TYPE: <one value from the list above>

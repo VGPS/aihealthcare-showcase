@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Pure domain service that transforms a list of {@link Contradiction} records
@@ -25,12 +26,22 @@ import java.util.Set;
  * the caller to omit the section entirely.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-05
- * @updated 2026-07-05
+ * @updated 2026-08-24
  */
 @Slf4j
 public class ReversalWatchSectionBuilder {
+
+    /**
+     * Matches "Article [N]", "Article N", "Articles N, M and P" — compilation-session
+     * position references produced by the wiki LLM that have no meaning in the newsletter.
+     * Stripped from claim text so subscribers don't see meaningless "[1]" dead references.
+     */
+    private static final Pattern ARTICLE_REF = Pattern.compile(
+            "\\bArticles?\\s+(?:\\[\\d+\\]|\\d+)(?:[,\\s]+(?:and\\s+)?(?:\\[\\d+\\]|\\d+))*\\s*",
+            Pattern.CASE_INSENSITIVE
+    );
 
     /**
      * Builds a REVERSAL_WATCH newsletter section from the given contradictions.
@@ -64,7 +75,7 @@ public class ReversalWatchSectionBuilder {
             String topicLabel = topic.substring(0, 1).toUpperCase() + topic.substring(1);
             summary.append("PRIOR:").append(topicLabel).append("|").append(c.priorClaim());
             summary.append("\n");
-            summary.append("NEW:").append(c.newClaim());
+            summary.append("NEW:").append(stripArticleRefs(c.newClaim()));
         }
 
         // Collect article IDs from all source refs
@@ -94,6 +105,25 @@ public class ReversalWatchSectionBuilder {
         );
 
         log.debug("build() | return={}", result);
+        return result;
+    }
+
+    /**
+     * Removes compilation-session article position references from a claim string.
+     *
+     * <p>The wiki compilation LLM receives articles numbered [1], [2], … and sometimes
+     * writes claims like "Article [1] (Forbes) reports..." or "Articles 27 and 17 state...".
+     * Those position numbers are meaningless outside the compilation session.  This method
+     * strips them so the output reads naturally: "(Forbes) reports..." or "state...".
+     */
+    String stripArticleRefs(String claim) {
+        log.debug("stripArticleRefs() | claim length={}", claim == null ? 0 : claim.length());
+        if (claim == null || claim.isBlank()) {
+            log.debug("stripArticleRefs() | return=empty");
+            return claim == null ? "" : claim;
+        }
+        String result = ARTICLE_REF.matcher(claim).replaceAll("").trim();
+        log.debug("stripArticleRefs() | return={}", result);
         return result;
     }
 }

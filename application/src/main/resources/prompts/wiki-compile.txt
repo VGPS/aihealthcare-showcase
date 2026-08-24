@@ -41,3 +41,4 @@ NEW_SOURCES: {pipe-separated articleIds}
 - Keep page content concise and factual — 3-5 paragraphs maximum
 - Use TYPE values exactly as shown: ENTITY, CONCEPT, COMPARISON, or OVERVIEW
 - If no pages need creating or updating, respond with: ### WARNING: No actionable content in this batch
+- In PRIOR_CLAIM and NEW_CLAIM fields, cite articles by publication name only (e.g. "Forbes reports..." or "A STAT News analysis finds..."). Do NOT use position references like "Article [1]" or "Articles 27 and 17" — these numbers are internal to this session and meaningless in the published newsletter.

@@ -6,7 +6,10 @@ import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,9 +34,9 @@ import java.util.regex.Pattern;
  * Java Streams — per project conventions.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-04-11
- * @updated 2026-08-17
+ * @updated 2026-08-24
  */
 @Slf4j
 public class NewsletterRenderer {
@@ -92,6 +95,12 @@ public class NewsletterRenderer {
                 .append(escapeHtml(draft.introduction()))
                 .append("</p>")
                 .append("</td></tr>");
+        }
+
+        // Build a lookup map so per-section article lists can be resolved for citation links
+        Map<String, NewsArticle> articleMap = new HashMap<>();
+        for (NewsArticle a : draft.sourceArticles()) {
+            articleMap.put(a.articleId(), a);
         }
 
         // Sections
@@ -186,8 +195,10 @@ public class NewsletterRenderer {
                 }
                 if (inList) html.append("</ul>");
             } else {
+                // Resolve this section's articles in order (matches [1],[2]... the LLM received)
+                List<NewsArticle> sectionArticles = resolveSectionArticles(section, articleMap);
                 html.append("<p style=\"margin: 0; font-size: 14px; line-height: 1.7; color: #444;\">")
-                    .append(escapeHtml(section.summary()))
+                    .append(linkCitationsHtml(section.summary(), sectionArticles))
                     .append("</p>");
             }
 
@@ -203,14 +214,20 @@ public class NewsletterRenderer {
                 .append("</td></tr>")
                 .append("<tr><td style=\"padding: 16px 32px;\">")
                 .append("<h3 style=\"margin: 0 0 12px; font-size: 15px; color: #555; ")
-                .append("text-transform: uppercase; letter-spacing: 0.5px;\">Sources</h3>")
+                .append("text-transform: uppercase; letter-spacing: 0.5px;\">Source Articles</h3>")
                 .append("<ul style=\"margin: 0; padding: 0 0 0 18px; line-height: 1.9;\">");
             for (NewsArticle article : draft.sourceArticles()) {
                 html.append("<li style=\"font-size: 13px; color: #555;\"><a href=\"")
                     .append(article.url())
                     .append("\" style=\"color: #0066cc; text-decoration: none;\">")
                     .append(escapeHtml(article.title()))
-                    .append("</a></li>");
+                    .append("</a>");
+                if (article.sourceName() != null && !article.sourceName().isBlank()) {
+                    html.append(" <span style=\"color: #999; font-style: italic;\">— ")
+                        .append(escapeHtml(article.sourceName()))
+                        .append("</span>");
+                }
+                html.append("</li>");
             }
             html.append("</ul>")
                 .append("</td></tr>");
@@ -318,10 +335,13 @@ public class NewsletterRenderer {
         }
 
         if (!draft.sourceArticles().isEmpty()) {
-            text.append("---\nSOURCES\n\n");
+            text.append("---\nSOURCE ARTICLES\n\n");
             for (NewsArticle article : draft.sourceArticles()) {
-                text.append("- ").append(article.title())
-                    .append(": ").append(article.url()).append("\n");
+                text.append("- ").append(article.title());
+                if (article.sourceName() != null && !article.sourceName().isBlank()) {
+                    text.append(" (").append(article.sourceName()).append(")");
+                }
+                text.append(": ").append(article.url()).append("\n");
             }
         }
 
@@ -336,6 +356,23 @@ public class NewsletterRenderer {
 
         String result = text.toString();
         log.debug("renderPlainText() | return=text[{} chars]", result.length());
+        return result;
+    }
+
+    /**
+     * Returns the ordered list of {@link NewsArticle} objects for a section,
+     * preserving the same order the LLM received them ([1], [2], …) so that
+     * inline citation references in the summary resolve to the correct URLs.
+     */
+    private List<NewsArticle> resolveSectionArticles(NewsletterSection section,
+                                                      Map<String, NewsArticle> articleMap) {
+        List<NewsArticle> result = new ArrayList<>();
+        for (String id : section.articleIds()) {
+            NewsArticle a = articleMap.get(id);
+            if (a != null) {
+                result.add(a);
+            }
+        }
         return result;
     }
 
