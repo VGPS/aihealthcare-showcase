@@ -35,9 +35,9 @@ import java.util.Optional;
  * filtering by type, tier gating, and cross-referenced deal detail views.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-04
- * @updated 2026-08-06
+ * @updated 2026-08-23
  */
 @Slf4j
 @Controller
@@ -47,7 +47,7 @@ public class DealSignalController {
             DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm").withZone(ZoneOffset.UTC);
 
     private static final int FREE_LIMIT = 10;
-    private static final int FULL_LIMIT = 100;
+    private static final int PAGE_SIZE = 25;
 
     private final DetectDealSignalsUseCase detectDealSignalsUseCase;
     private final SubscriberPort subscriberPort;
@@ -63,26 +63,31 @@ public class DealSignalController {
 
     @GetMapping({"/dashboard/deals", "/dashboard/deals/"})
     public String dealsPage(@RequestParam(required = false) String type,
+                             @RequestParam(defaultValue = "0") int page,
                              Principal principal,
                              Model model) {
-        log.debug("dealsPage() | type={}", type);
+        log.debug("dealsPage() | type={}, page={}", type, page);
 
         boolean fullAccess = hasFullAccess(principal);
-        int limit = fullAccess ? FULL_LIMIT : FREE_LIMIT;
+        int currentPage = fullAccess ? Math.max(0, page) : 0;
+
+        // Peek-ahead: fetch PAGE_SIZE+1 to detect next page without a COUNT query
+        int fetchSize = fullAccess ? PAGE_SIZE + 1 : FREE_LIMIT;
 
         List<DealSignal> signals;
-        if (type != null && !type.isBlank()) {
-            DealSignalType filterType = parseDealType(type);
-            if (filterType != null) {
-                signals = detectDealSignalsUseCase.getSignalsByType(filterType, limit);
-            } else {
-                signals = detectDealSignalsUseCase.getRecentSignals(limit);
-            }
+        DealSignalType filterType = (type != null && !type.isBlank()) ? parseDealType(type) : null;
+        if (filterType != null) {
+            signals = detectDealSignalsUseCase.getSignalsByType(filterType, fetchSize, currentPage);
         } else {
-            signals = detectDealSignalsUseCase.getRecentSignals(limit);
+            signals = detectDealSignalsUseCase.getRecentSignals(fetchSize, currentPage);
         }
 
         List<DealSignal> deduped = deduplicateByCompanyTypeAndDay(signals);
+
+        boolean hasNext = fullAccess && deduped.size() > PAGE_SIZE;
+        if (hasNext) {
+            deduped = deduped.subList(0, PAGE_SIZE);
+        }
 
         List<Map<String, Object>> signalList = new ArrayList<>();
         Map<String, Integer> typeCounts = new LinkedHashMap<>();
@@ -107,12 +112,16 @@ public class DealSignalController {
 
         model.addAttribute("signals", signalList);
         model.addAttribute("typeCounts", typeCounts);
-        model.addAttribute("totalSignals", deduped.size());
+        model.addAttribute("totalSignals", signalList.size());
         model.addAttribute("filterType", type);
         model.addAttribute("fullAccess", fullAccess);
+        model.addAttribute("currentPage", currentPage);
+        model.addAttribute("hasPrev", currentPage > 0);
+        model.addAttribute("hasNext", hasNext);
         model.addAttribute("activePage", "deals");
 
-        log.debug("dealsPage() | return=deals ({} signals)", signals.size());
+        log.debug("dealsPage() | return=deals ({} signals, page={}, hasNext={})",
+                signalList.size(), currentPage, hasNext);
         return "deals";
     }
 

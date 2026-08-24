@@ -59,7 +59,7 @@ class DealSignalRestControllerTest {
         DealSignal signal = new DealSignal("s1", "a1", "Funding News",
                 DealSignalType.FUNDING, "Acme", "Summary", 0.85, Instant.now(),
                 "$100M", "VC Fund", null, null);
-        when(detectDealSignalsUseCase.getRecentSignals(50)).thenReturn(List.of(signal));
+        when(detectDealSignalsUseCase.getRecentSignals(50, 0)).thenReturn(List.of(signal));
 
         mockMvc.perform(get("/api/v1/deals"))
                 .andExpect(status().isOk())
@@ -74,14 +74,14 @@ class DealSignalRestControllerTest {
     @WithMockUser
     @DisplayName("GET /api/v1/deals with custom limit")
     void getRecentSignals_withCustomLimit() throws Exception {
-        when(detectDealSignalsUseCase.getRecentSignals(10)).thenReturn(List.of());
+        when(detectDealSignalsUseCase.getRecentSignals(10, 0)).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/deals").param("limit", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
 
-        verify(detectDealSignalsUseCase).getRecentSignals(10);
+        verify(detectDealSignalsUseCase).getRecentSignals(10, 0);
     }
 
     @Test
@@ -112,7 +112,7 @@ class DealSignalRestControllerTest {
         DealSignal signal = new DealSignal("s1", "a1", "IPO News",
                 DealSignalType.IPO, "Co", "Summary", 0.7, Instant.now(),
                 null, null, null, null);
-        when(detectDealSignalsUseCase.getSignalsByType(DealSignalType.IPO, 50))
+        when(detectDealSignalsUseCase.getSignalsByType(DealSignalType.IPO, 50, 0))
                 .thenReturn(List.of(signal));
 
         mockMvc.perform(get("/api/v1/deals").param("type", "IPO"))

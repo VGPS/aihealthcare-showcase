@@ -60,7 +60,7 @@ class DealSignalAdapterTest {
                         "$100M", "Investor", "https://example.com", "Analysis")
         ));
 
-        List<DealSignal> result = adapter.findRecent(10);
+        List<DealSignal> result = adapter.findRecent(10, 0);
         assertThat(result).hasSize(2);
         assertThat(result.get(0).signalId()).isEqualTo("s2");
         assertThat(result.get(1).signalId()).isEqualTo("s1");
@@ -74,7 +74,7 @@ class DealSignalAdapterTest {
                 signal("s3", "a3", DealSignalType.PARTNERSHIP)
         ));
 
-        List<DealSignal> result = adapter.findRecent(2);
+        List<DealSignal> result = adapter.findRecent(2, 0);
         assertThat(result).hasSize(2);
     }
 
@@ -111,7 +111,7 @@ class DealSignalAdapterTest {
                 signal("s3", "a3", DealSignalType.FUNDING)
         ));
 
-        List<DealSignal> result = adapter.findByType("FUNDING", 10);
+        List<DealSignal> result = adapter.findByType("FUNDING", 10, 0);
         assertThat(result).hasSize(2);
         for (DealSignal s : result) {
             assertThat(s.signalType()).isEqualTo(DealSignalType.FUNDING);

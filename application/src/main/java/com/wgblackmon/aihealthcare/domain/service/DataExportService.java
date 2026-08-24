@@ -102,7 +102,7 @@ public class DataExportService implements ExportDataUseCase {
     }
 
     private DataExportResult exportDealSignals(DataExportRequest request) {
-        List<DealSignal> signals = dealSignalPort.findRecent(request.limit());
+        List<DealSignal> signals = dealSignalPort.findRecent(request.limit(), 0);
         int count = signals.size();
         String dateStr = LocalDate.now(ZoneOffset.UTC).toString();
 

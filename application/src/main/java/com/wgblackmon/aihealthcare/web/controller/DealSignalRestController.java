@@ -48,12 +48,12 @@ public class DealSignalRestController {
         if (type != null && !type.isBlank()) {
             DealSignalType filterType = parseDealType(type);
             if (filterType != null) {
-                signals = detectDealSignalsUseCase.getSignalsByType(filterType, limit);
+                signals = detectDealSignalsUseCase.getSignalsByType(filterType, limit, 0);
             } else {
-                signals = detectDealSignalsUseCase.getRecentSignals(limit);
+                signals = detectDealSignalsUseCase.getRecentSignals(limit, 0);
             }
         } else {
-            signals = detectDealSignalsUseCase.getRecentSignals(limit);
+            signals = detectDealSignalsUseCase.getRecentSignals(limit, 0);
         }
 
         List<DealSignal> deduped = deduplicateByCompanyTypeAndDay(signals);

@@ -152,6 +152,19 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination nav — SUBSCRIBER/DEMO/ADMIN only -->
+        <div th:if="${fullAccess}" class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
+            <a th:if="${hasPrev}"
+               th:href="@{/dashboard/deals(page=${currentPage - 1}, type=${filterType})}"
+               class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700">&#8592; Previous</a>
+            <span th:unless="${hasPrev}" class="px-4 py-2 text-sm text-gray-300">&#8592; Previous</span>
+            <span class="text-sm text-gray-500">Page <span th:text="${currentPage + 1}">1</span></span>
+            <a th:if="${hasNext}"
+               th:href="@{/dashboard/deals(page=${currentPage + 1}, type=${filterType})}"
+               class="px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700">Next &#8594;</a>
+            <span th:unless="${hasNext}" class="px-4 py-2 text-sm text-gray-300">Next &#8594;</span>
+        </div>
     </div>
 
 </main>

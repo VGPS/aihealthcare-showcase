@@ -145,12 +145,12 @@ class DealSignalDetectionServiceTest {
         DealSignal signal = new DealSignal("s1", "a1", "Title",
                 DealSignalType.FUNDING, "Company", "Summary", 0.8, Instant.now(),
                 null, null, null, null);
-        when(dealSignalPort.findRecent(10)).thenReturn(List.of(signal));
+        when(dealSignalPort.findRecent(10, 0)).thenReturn(List.of(signal));
 
-        List<DealSignal> result = service.getRecentSignals(10);
+        List<DealSignal> result = service.getRecentSignals(10, 0);
 
         assertThat(result).hasSize(1);
-        verify(dealSignalPort).findRecent(10);
+        verify(dealSignalPort).findRecent(10, 0);
     }
 
     @Test
@@ -172,12 +172,12 @@ class DealSignalDetectionServiceTest {
         DealSignal signal = new DealSignal("s1", "a1", "Title",
                 DealSignalType.FUNDING, "Company", "Summary", 0.8, Instant.now(),
                 null, null, null, null);
-        when(dealSignalPort.findByType("FUNDING", 10)).thenReturn(List.of(signal));
+        when(dealSignalPort.findByType("FUNDING", 10, 0)).thenReturn(List.of(signal));
 
-        List<DealSignal> result = service.getSignalsByType(DealSignalType.FUNDING, 10);
+        List<DealSignal> result = service.getSignalsByType(DealSignalType.FUNDING, 10, 0);
 
         assertThat(result).hasSize(1);
-        verify(dealSignalPort).findByType("FUNDING", 10);
+        verify(dealSignalPort).findByType("FUNDING", 10, 0);
     }
 
     @Test

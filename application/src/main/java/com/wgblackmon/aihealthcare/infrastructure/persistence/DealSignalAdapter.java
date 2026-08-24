@@ -46,9 +46,9 @@ public class DealSignalAdapter implements DealSignalPort {
     }
 
     @Override
-    public List<DealSignal> findRecent(int limit) {
-        log.debug("findRecent() | limit={}", limit);
-        List<DealSignalListView> views = repository.findRecentListView(PageRequest.of(0, limit));
+    public List<DealSignal> findRecent(int pageSize, int page) {
+        log.debug("findRecent() | pageSize={}, page={}", pageSize, page);
+        List<DealSignalListView> views = repository.findRecentListView(PageRequest.of(page, pageSize));
         List<DealSignal> result = new ArrayList<>();
         for (DealSignalListView view : views) {
             result.add(toDomainList(view));
@@ -76,10 +76,10 @@ public class DealSignalAdapter implements DealSignalPort {
     }
 
     @Override
-    public List<DealSignal> findByType(String signalType, int limit) {
-        log.debug("findByType() | signalType={}, limit={}", signalType, limit);
+    public List<DealSignal> findByType(String signalType, int pageSize, int page) {
+        log.debug("findByType() | signalType={}, pageSize={}, page={}", signalType, pageSize, page);
         List<DealSignalListView> views = repository.findBySignalTypeListView(
-                signalType, PageRequest.of(0, limit));
+                signalType, PageRequest.of(page, pageSize));
         List<DealSignal> result = new ArrayList<>();
         for (DealSignalListView view : views) {
             result.add(toDomainList(view));

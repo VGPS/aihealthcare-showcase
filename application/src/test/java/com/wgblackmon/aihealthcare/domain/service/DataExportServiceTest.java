@@ -100,7 +100,7 @@ class DataExportServiceTest {
                 "ds1", "art1", "Funding Round", DealSignalType.FUNDING,
                 "Acme Health", "Series B", 0.85, Instant.now(),
                 null, null, null, null);
-        when(dealSignalPort.findRecent(50)).thenReturn(List.of(signal));
+        when(dealSignalPort.findRecent(50, 0)).thenReturn(List.of(signal));
 
         DataExportRequest request = new DataExportRequest("deals", ExportFormat.CSV, 50, null);
         DataExportResult result = service.export(request);
@@ -118,7 +118,7 @@ class DataExportServiceTest {
                 "ds2", "art2", "Acquisition", DealSignalType.ACQUISITION,
                 "BigCo", "Acquired startup", 0.9, Instant.now(),
                 null, null, null, null);
-        when(dealSignalPort.findRecent(50)).thenReturn(List.of(signal));
+        when(dealSignalPort.findRecent(50, 0)).thenReturn(List.of(signal));
 
         DataExportRequest request = new DataExportRequest("deals", ExportFormat.JSON, 50, null);
         DataExportResult result = service.export(request);
@@ -168,7 +168,7 @@ class DataExportServiceTest {
 
     @Test
     void pdfExport_defaultBrand_usesAiHealthcareIntelligence() {
-        when(dealSignalPort.findRecent(10)).thenReturn(List.of());
+        when(dealSignalPort.findRecent(10, 0)).thenReturn(List.of());
 
         DataExportRequest request = new DataExportRequest("deals", ExportFormat.PDF, 10, null);
         DataExportResult result = service.export(request);
