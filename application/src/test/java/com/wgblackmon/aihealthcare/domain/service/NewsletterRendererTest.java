@@ -164,10 +164,67 @@ class NewsletterRendererTest {
     }
 
     @Test
-    @DisplayName("renderPlainText() contains SOURCES heading")
-    void renderPlainText_containsSourcesHeading() {
+    @DisplayName("renderPlainText() contains SOURCE ARTICLES heading")
+    void renderPlainText_containsSourceArticlesHeading() {
         String text = renderer.renderPlainText(draft);
-        assertThat(text).contains("SOURCES");
+        assertThat(text).contains("SOURCE ARTICLES");
+    }
+
+    @Test
+    @DisplayName("renderPlainText() includes publication name next to source article title")
+    void renderPlainText_includesSourcePublicationName() {
+        String text = renderer.renderPlainText(draft);
+        assertThat(text).contains("AI Improves Diagnostic Accuracy (PubMed AI Healthcare)");
+    }
+
+    @Test
+    @DisplayName("renderHtml() makes [1] citation in summary a clickable link to the source article")
+    void renderHtml_inlineCitationLinksToSourceArticle() {
+        // Build a section whose summary contains [1] — should become a hyperlink
+        NewsArticle citedArticle = new NewsArticle(
+                "art-cited",
+                "AI Outperforms Radiologists in Study",
+                URI.create("https://example.com/cited"),
+                "body text",
+                "AI diagnostics",
+                null, null, "PubMed", "ACADEMIC", 0.9, null
+        );
+        NewsletterSection citingSection = new NewsletterSection(
+                "section-cite",
+                SectionType.WHAT_SHIPPED,
+                "AI diagnostics",
+                "Radiology AI Milestone",
+                "A landmark study [1] found AI outperforms radiologists.",
+                List.of("art-cited")
+        );
+        NewsletterDraft citingDraft = new NewsletterDraft(
+                "draft-cite", "run-cite", "AI Weekly",
+                LocalDate.of(2026, 8, 24),
+                "Intro.",
+                List.of(citingSection),
+                List.of(citedArticle),
+                java.time.Instant.now()
+        );
+
+        String html = renderer.renderHtml(citingDraft);
+        // [1] should be replaced with a hyperlink to the cited article URL
+        assertThat(html).contains("href=\"https://example.com/cited\"");
+        // The link text should contain [1]
+        assertThat(html).contains("[1]");
+    }
+
+    @Test
+    @DisplayName("renderHtml() shows Source Articles heading (not Sources)")
+    void renderHtml_containsSourceArticlesHeading() {
+        String html = renderer.renderHtml(draft);
+        assertThat(html).contains("Source Articles");
+    }
+
+    @Test
+    @DisplayName("renderHtml() includes publication name in source articles list")
+    void renderHtml_sourceArticlesListIncludesPublicationName() {
+        String html = renderer.renderHtml(draft);
+        assertThat(html).contains("PubMed AI Healthcare");
     }
 
     // -------------------------------------------------------------------------

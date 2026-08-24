@@ -22,9 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * pure-Java service.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-05
- * @updated 2026-07-05
+ * @updated 2026-08-24
  */
 class ReversalWatchSectionBuilderTest {
 
@@ -129,5 +129,71 @@ class ReversalWatchSectionBuilderTest {
         NewsletterSection result = builder.build(List.of(noSources), "section-001");
 
         assertThat(result.articleIds()).containsExactly("contradiction-summary");
+    }
+
+    // -------------------------------------------------------------------------
+    // stripArticleRefs()
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("stripArticleRefs() removes 'Article [N] (Source)' pattern")
+    void stripArticleRefs_removesArticleBracketN() {
+        String result = builder.stripArticleRefs("Article [1] (Forbes) reports that AI will replace doctors.");
+        assertThat(result).isEqualTo("(Forbes) reports that AI will replace doctors.");
+    }
+
+    @Test
+    @DisplayName("stripArticleRefs() removes 'Article N' plain number pattern")
+    void stripArticleRefs_removesArticlePlainN() {
+        String result = builder.stripArticleRefs("Article 5 (BBC Science Focus) reports AI is deciding who gets healthcare.");
+        assertThat(result).isEqualTo("(BBC Science Focus) reports AI is deciding who gets healthcare.");
+    }
+
+    @Test
+    @DisplayName("stripArticleRefs() removes 'Articles N and M' multi-article pattern")
+    void stripArticleRefs_removesArticlesNandM() {
+        String result = builder.stripArticleRefs("Articles 27 and 17 state the FDA has authorized approximately 1,500 devices.");
+        assertThat(result).isEqualTo("state the FDA has authorized approximately 1,500 devices.");
+    }
+
+    @Test
+    @DisplayName("stripArticleRefs() removes 'Articles N, M, and P' list pattern")
+    void stripArticleRefs_removesArticlesList() {
+        String result = builder.stripArticleRefs("Multiple sources (articles 29, 28, and 16) consistently report the FDA has authorized 1,500 devices.");
+        // "articles 29, 28, and 16" is matched and removed
+        assertThat(result).doesNotContain("articles 29");
+        assertThat(result).contains("consistently report");
+    }
+
+    @Test
+    @DisplayName("stripArticleRefs() leaves pubmed ID references unchanged")
+    void stripArticleRefs_leavesPubmedIdsUnchanged() {
+        String result = builder.stripArticleRefs("pubmed:42594845 finds that LLMs systematically overcode.");
+        assertThat(result).isEqualTo("pubmed:42594845 finds that LLMs systematically overcode.");
+    }
+
+    @Test
+    @DisplayName("stripArticleRefs() leaves clean publication-name claims unchanged")
+    void stripArticleRefs_leavesCleanClaimsUnchanged() {
+        String result = builder.stripArticleRefs("Forbes coverage frames the autonomous AI replacement argument as mainstream.");
+        assertThat(result).isEqualTo("Forbes coverage frames the autonomous AI replacement argument as mainstream.");
+    }
+
+    @Test
+    @DisplayName("build() summary does not contain 'Article [N]' references")
+    void build_summaryDoesNotContainArticleRefNumbers() {
+        Contradiction withBadRef = new Contradiction(
+                "ai-doctor-debate",
+                "Prior claim about AI doctors.",
+                "Article [1] (Forbes) reports that autonomous AI should replace doctors entirely.",
+                List.of(PRIOR_SOURCE),
+                List.of(NEW_SOURCE),
+                Instant.now()
+        );
+
+        NewsletterSection result = builder.build(List.of(withBadRef), "section-001");
+
+        assertThat(result.summary()).doesNotContain("Article [1]");
+        assertThat(result.summary()).contains("(Forbes) reports that autonomous AI");
     }
 }
