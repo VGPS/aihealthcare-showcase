@@ -73,7 +73,8 @@ class LegalBriefSectionBuilderTest {
 
     @BeforeEach
     void setUp() {
-        builder = new LegalBriefSectionBuilder(articleIngestionPort, regulatoryUseCase);
+        builder = new LegalBriefSectionBuilder(articleIngestionPort, regulatoryUseCase,
+                new ArticleQualityFilter());
     }
 
     @Test

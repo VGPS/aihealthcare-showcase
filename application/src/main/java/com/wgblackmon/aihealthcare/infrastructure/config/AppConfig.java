@@ -24,6 +24,7 @@ import com.wgblackmon.aihealthcare.domain.service.IntelReportService;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.IntelReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyScrapingPort;
+import com.wgblackmon.aihealthcare.domain.service.ArticleQualityFilter;
 import com.wgblackmon.aihealthcare.domain.service.DeliveryService;
 import com.wgblackmon.aihealthcare.domain.service.DigestNewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterTeaserBuilder;
@@ -308,6 +309,12 @@ public class AppConfig {
         return registration;
     }
 
+    @Bean
+    public ArticleQualityFilter articleQualityFilter() {
+        log.debug("articleQualityFilter() | return=ArticleQualityFilter");
+        return new ArticleQualityFilter();
+    }
+
     /**
      * Creates the {@link DigestNewsletterRenderer} that builds the FREE-tier
      * daily article digest from recent RSS articles in the database.
@@ -319,19 +326,22 @@ public class AppConfig {
      * @param articleIngestionPort Port for fetching recent articles.
      * @param articleScoringPort   Port for LLM-based 1–10 significance scoring.
      * @param bodyFormattingPort   Port for LLM entity bolding of article body text.
+     * @param articleQualityFilter Filter that excludes source-label-only articles.
      * @return The wired {@link DigestNewsletterRenderer} instance.
      */
     @Bean
     public DigestNewsletterRenderer digestNewsletterRenderer(
             ArticleIngestionPort articleIngestionPort,
             ArticleScoringPort articleScoringPort,
-            ArticleBodyFormattingPort bodyFormattingPort) {
-        log.debug("digestNewsletterRenderer() | articleIngestionPort={}, articleScoringPort={}, bodyFormattingPort={}",
+            ArticleBodyFormattingPort bodyFormattingPort,
+            ArticleQualityFilter articleQualityFilter) {
+        log.debug("digestNewsletterRenderer() | articleIngestionPort={}, articleScoringPort={}, bodyFormattingPort={}, articleQualityFilter={}",
                   articleIngestionPort.getClass().getSimpleName(),
                   articleScoringPort.getClass().getSimpleName(),
-                  bodyFormattingPort.getClass().getSimpleName());
+                  bodyFormattingPort.getClass().getSimpleName(),
+                  articleQualityFilter.getClass().getSimpleName());
         DigestNewsletterRenderer result = new DigestNewsletterRenderer(
-                articleIngestionPort, articleScoringPort, bodyFormattingPort);
+                articleIngestionPort, articleScoringPort, bodyFormattingPort, articleQualityFilter);
         log.debug("digestNewsletterRenderer() | return={}", result.getClass().getSimpleName());
         return result;
     }
@@ -454,7 +464,7 @@ public class AppConfig {
         NewsletterRenderer renderer = new NewsletterRenderer();
         ReversalWatchSectionBuilder reversalWatchBuilder = new ReversalWatchSectionBuilder();
         LegalBriefSectionBuilder legalBriefBuilder = new LegalBriefSectionBuilder(
-                ingestionPort, regulatoryUseCase);
+                ingestionPort, regulatoryUseCase, articleQualityFilter());
         NewsletterService result = new NewsletterService(
                 ingestionPort, summarizationPort, renderer, newsletterRunPort, searchPort,
                 wikiQueryPort, reversalWatchBuilder, legalBriefBuilder);

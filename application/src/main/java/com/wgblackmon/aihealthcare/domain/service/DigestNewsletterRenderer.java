@@ -34,9 +34,9 @@ import java.util.Set;
  * without the featured block if scoring or formatting fails.
  *
  * @author  Bill Blackmon
- * @version 3.1
+ * @version 3.2
  * @since   2026-07-20
- * @updated 2026-08-17
+ * @updated 2026-08-23
  */
 @Slf4j
 public class DigestNewsletterRenderer {
@@ -52,20 +52,24 @@ public class DigestNewsletterRenderer {
             "Significant developments in AI healthcare: FDA approvals, clinical AI breakthroughs, "
             + "major partnerships, funding rounds, regulatory rulings, and commercial product launches.";
 
-    private final ArticleIngestionPort    articleIngestionPort;
-    private final ArticleScoringPort      articleScoringPort;
+    private final ArticleIngestionPort      articleIngestionPort;
+    private final ArticleScoringPort        articleScoringPort;
     private final ArticleBodyFormattingPort bodyFormattingPort;
+    private final ArticleQualityFilter      articleQualityFilter;
 
     public DigestNewsletterRenderer(ArticleIngestionPort articleIngestionPort,
                                     ArticleScoringPort articleScoringPort,
-                                    ArticleBodyFormattingPort bodyFormattingPort) {
-        log.debug("DigestNewsletterRenderer() | articleIngestionPort={}, articleScoringPort={}, bodyFormattingPort={}",
+                                    ArticleBodyFormattingPort bodyFormattingPort,
+                                    ArticleQualityFilter articleQualityFilter) {
+        log.debug("DigestNewsletterRenderer() | articleIngestionPort={}, articleScoringPort={}, bodyFormattingPort={}, articleQualityFilter={}",
                   articleIngestionPort.getClass().getSimpleName(),
                   articleScoringPort.getClass().getSimpleName(),
-                  bodyFormattingPort.getClass().getSimpleName());
+                  bodyFormattingPort.getClass().getSimpleName(),
+                  articleQualityFilter.getClass().getSimpleName());
         this.articleIngestionPort = articleIngestionPort;
         this.articleScoringPort   = articleScoringPort;
         this.bodyFormattingPort   = bodyFormattingPort;
+        this.articleQualityFilter = articleQualityFilter;
         log.debug("DigestNewsletterRenderer() | return=void");
     }
 
@@ -322,8 +326,8 @@ public class DigestNewsletterRenderer {
         for (NewsArticle article : articles) {
             String tier = article.sourceTier();
             if (tier != null && tier.equals("COMPETITOR")) continue;
+            if (!articleQualityFilter.isUsable(article)) continue;
             String title = article.title();
-            if (title == null || title.isBlank()) continue;
             if (isNonsenseTitle(title)) continue;
             String normalizedTitle = title.trim().toLowerCase();
             if (seenTitles.contains(normalizedTitle)) continue;

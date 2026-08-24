@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.service.ArticleQualityFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,7 +49,7 @@ class ArticleStorageAdapterTest {
 
     @BeforeEach
     void setUp() {
-        adapter = new ArticleStorageAdapter(repository);
+        adapter = new ArticleStorageAdapter(repository, new ArticleQualityFilter());
     }
 
     @Test
