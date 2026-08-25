@@ -38,6 +38,8 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.PasswordHashingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
+import com.wgblackmon.aihealthcare.domain.service.DocumentUploadService;
+import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentLibraryPort;
 import com.wgblackmon.aihealthcare.domain.service.MarketIntelligenceService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
@@ -535,10 +537,46 @@ public class AppConfig {
     @ConditionalOnMissingBean(IngestDocumentsUseCase.class)
     public IngestDocumentsUseCase noOpIngestDocumentsUseCase() {
         log.debug("noOpIngestDocumentsUseCase() | pgvector not configured — document ingestion disabled");
-        IngestDocumentsUseCase result = (directory, sourceLabel, chunkSize) ->
-                new DocumentIngestionResult(0, 0,
+        IngestDocumentsUseCase result = new IngestDocumentsUseCase() {
+            @Override
+            public DocumentIngestionResult ingest(String directory, String sourceLabel, int chunkSize) {
+                return new DocumentIngestionResult(0, 0,
                         List.of("Document ingestion is unavailable — pgvector is not configured in this environment."));
-        log.debug("noOpIngestDocumentsUseCase() | return=lambda");
+            }
+            @Override
+            public DocumentIngestionResult ingestFile(java.nio.file.Path file, String sourceLabel) {
+                return new DocumentIngestionResult(0, 0,
+                        List.of("Document ingestion is unavailable — pgvector is not configured in this environment."));
+            }
+        };
+        log.debug("noOpIngestDocumentsUseCase() | return=no-op");
+        return result;
+    }
+
+    /**
+     * Creates the {@link DocumentUploadService} that orchestrates the full
+     * browser-upload pipeline: vector ingestion + wiki compilation + status tracking.
+     *
+     * @param ingestUseCase           Use case for vector store ingestion.
+     * @param documentLibraryPort     Adapter for persisting document library records.
+     * @param knowledgeCompilationPort Wiki compilation port (may be null when wiki adapter is unavailable).
+     * @param parsers                 All registered file-parser adapters.
+     * @return The wired {@link DocumentUploadService} instance.
+     */
+    @Bean
+    public DocumentUploadService documentUploadService(
+            IngestDocumentsUseCase ingestUseCase,
+            DocumentLibraryPort documentLibraryPort,
+            @Autowired(required = false) KnowledgeCompilationPort knowledgeCompilationPort,
+            List<FileParserPort> parsers) {
+        log.debug("documentUploadService() | ingestUseCase={}, documentLibraryPort={}, knowledgeCompilationPort={}, parsers={}",
+                ingestUseCase.getClass().getSimpleName(),
+                documentLibraryPort.getClass().getSimpleName(),
+                knowledgeCompilationPort != null ? knowledgeCompilationPort.getClass().getSimpleName() : "null",
+                parsers.size());
+        DocumentUploadService result = new DocumentUploadService(
+                ingestUseCase, documentLibraryPort, knowledgeCompilationPort, parsers);
+        log.debug("documentUploadService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 
