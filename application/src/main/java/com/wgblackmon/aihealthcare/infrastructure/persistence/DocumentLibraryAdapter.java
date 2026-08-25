@@ -79,6 +79,7 @@ public class DocumentLibraryAdapter implements DocumentLibraryPort {
         entity.setDocId(record.docId());
         entity.setFilename(record.filename());
         entity.setSourceLabel(record.sourceLabel());
+        entity.setTopic(record.topic());
         entity.setUploadedAt(record.uploadedAt());
         entity.setChunkCount(record.chunkCount());
         entity.setWikiPageSlug(record.wikiPageSlug());
@@ -92,6 +93,7 @@ public class DocumentLibraryAdapter implements DocumentLibraryPort {
                 entity.getDocId(),
                 entity.getFilename(),
                 entity.getSourceLabel(),
+                entity.getTopic(),
                 entity.getUploadedAt(),
                 entity.getChunkCount(),
                 entity.getWikiPageSlug(),

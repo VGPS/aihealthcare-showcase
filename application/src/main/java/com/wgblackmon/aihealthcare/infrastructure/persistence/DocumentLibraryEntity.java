@@ -32,6 +32,9 @@ public class DocumentLibraryEntity {
     @Column(name = "source_label", nullable = false, length = 200)
     private String sourceLabel;
 
+    @Column(name = "topic", length = 200)
+    private String topic;
+
     @Column(name = "uploaded_at", nullable = false)
     private Instant uploadedAt;
 
@@ -58,6 +61,9 @@ public class DocumentLibraryEntity {
 
     public String getSourceLabel()                    { return sourceLabel; }
     public void setSourceLabel(String sourceLabel)    { this.sourceLabel = sourceLabel; }
+
+    public String getTopic()                          { return topic; }
+    public void setTopic(String topic)                { this.topic = topic; }
 
     public Instant getUploadedAt()                    { return uploadedAt; }
     public void setUploadedAt(Instant uploadedAt)     { this.uploadedAt = uploadedAt; }

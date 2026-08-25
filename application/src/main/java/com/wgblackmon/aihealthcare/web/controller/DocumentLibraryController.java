@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.DocumentRecord;
 import com.wgblackmon.aihealthcare.domain.model.DocumentStatus;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentLibraryPort;
 import com.wgblackmon.aihealthcare.domain.service.DocumentUploadService;
+import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -63,18 +64,22 @@ public class DocumentLibraryController {
 
     private final DocumentUploadService uploadService;
     private final DocumentLibraryPort   documentLibraryPort;
+    private final NewsTopicProperties   newsTopicProperties;
     private final String                uploadDir;
 
     public DocumentLibraryController(DocumentUploadService uploadService,
                                       DocumentLibraryPort documentLibraryPort,
+                                      NewsTopicProperties newsTopicProperties,
                                       @Value("${aihealthcare.documents.upload-dir:/tmp/aihealthcare-documents}")
                                       String uploadDir) {
-        log.debug("DocumentLibraryController() | uploadService={}, documentLibraryPort={}, uploadDir={}",
+        log.debug("DocumentLibraryController() | uploadService={}, documentLibraryPort={}, newsTopicProperties={}, uploadDir={}",
                 uploadService.getClass().getSimpleName(),
                 documentLibraryPort.getClass().getSimpleName(),
+                newsTopicProperties.getClass().getSimpleName(),
                 uploadDir);
         this.uploadService       = uploadService;
         this.documentLibraryPort = documentLibraryPort;
+        this.newsTopicProperties = newsTopicProperties;
         this.uploadDir           = uploadDir;
     }
 
@@ -102,6 +107,7 @@ public class DocumentLibraryController {
         model.addAttribute("documents", documents);
         model.addAttribute("documentCount", documents.size());
         model.addAttribute("uploadedAtMap", uploadedAtMap);
+        model.addAttribute("topicOptions", newsTopicProperties.getTopics());
         model.addAttribute("message", message);
         model.addAttribute("error", error);
 
@@ -116,15 +122,17 @@ public class DocumentLibraryController {
      *
      * @param file         The uploaded file.
      * @param sourceLabel  Attribution label from the upload form.
+     * @param topic        Topic to group this document under (drives wiki/news grouping).
      * @param redirectAttrs Spring MVC redirect attributes for flash messages.
      * @return Redirect to {@code GET /admin/documents}.
      */
     @PostMapping("/upload")
     public String upload(@RequestParam("file") MultipartFile file,
                          @RequestParam("sourceLabel") String sourceLabel,
+                         @RequestParam("topic") String topic,
                          RedirectAttributes redirectAttrs) {
-        log.debug("upload() | filename={}, sourceLabel={}, size={}",
-                file.getOriginalFilename(), sourceLabel, file.getSize());
+        log.debug("upload() | filename={}, sourceLabel={}, topic={}, size={}",
+                file.getOriginalFilename(), sourceLabel, topic, file.getSize());
 
         String filename = file.getOriginalFilename();
 
@@ -137,6 +145,12 @@ public class DocumentLibraryController {
         if (sourceLabel == null || sourceLabel.isBlank()) {
             log.warn("upload() | rejected: missing sourceLabel");
             redirectAttrs.addAttribute("error", "Source label is required.");
+            return "redirect:/admin/documents";
+        }
+
+        if (topic == null || topic.isBlank()) {
+            log.warn("upload() | rejected: missing topic");
+            redirectAttrs.addAttribute("error", "Topic is required.");
             return "redirect:/admin/documents";
         }
 
@@ -165,7 +179,7 @@ public class DocumentLibraryController {
         }
 
         try {
-            DocumentRecord result = uploadService.uploadAndIngest(savedPath, filename, sourceLabel.trim());
+            DocumentRecord result = uploadService.uploadAndIngest(savedPath, filename, sourceLabel.trim(), topic.trim());
             if (result.status() == DocumentStatus.FAILED) {
                 log.warn("upload() | upload failed docId={}, filename={}, errorMessage={}",
                         result.docId(), filename, result.errorMessage());
