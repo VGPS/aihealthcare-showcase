@@ -8,6 +8,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -40,7 +42,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.4
  * @since   2026-08-21
- * @updated 2026-08-23
+ * @updated 2026-08-25
  * @see ArticleToneClassifier
  */
 @Slf4j
@@ -325,13 +327,14 @@ public class LinkedInPostController {
                 if (!snippet.isBlank()) {
                     sb.append(snippet).append("\n");
                 }
-                sb.append("\n");
+                sb.append("\n\n");
             }
         }
 
         sb.append("Source links in the first comment below.\n\n");
         sb.append("Follow for daily AI healthcare intelligence.\n");
         sb.append("→ Full platform: ").append(SITE_URL).append("\n\n");
+        sb.append("Please contact me if you would like to contribute links with relevant information from reputable sources.\n\n");
         sb.append(toneClassifier.linkedInHashtags(articles));
 
         String result = sb.toString();
@@ -351,14 +354,15 @@ public class LinkedInPostController {
         log.debug("buildLinksBlock() | articles={}", articles.size());
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Sources:\n");
+        sb.append("Sources:\n\n");
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a    = articles.get(i);
-            String url       = a.url() != null ? a.url().toString() : "";
+            String rawUrl    = a.url() != null ? a.url().toString() : "";
+            String url       = resolveUrl(rawUrl);
             String toneEmoji = toneClassifier.toneEmoji(a);
             String entry = toneEmoji + cleanText(a.title()) + "\n"
-                    + (url.isBlank() ? "" : "   " + url + "\n")
-                    + "\n";
+                    + (url.isBlank() ? "" : url + "\n")
+                    + "\n\n";
             if (sb.length() + entry.length() > LINKS_BLOCK_LIMIT) {
                 sb.append("Full source list: ").append(SITE_URL).append("\n");
                 break;
@@ -371,6 +375,47 @@ public class LinkedInPostController {
         String result = sb.toString().trim();
         log.debug("buildLinksBlock() | return=length:{}", result.length());
         return result;
+    }
+
+    /**
+     * Follows redirect hops for Google News RSS URLs to surface the real article URL.
+     * Falls back to the original URL if resolution fails or times out.
+     */
+    private String resolveUrl(String rawUrl) {
+        log.debug("resolveUrl() | rawUrl={}", rawUrl);
+        if (rawUrl == null || rawUrl.isBlank() || !rawUrl.contains("news.google.com")) {
+            log.debug("resolveUrl() | return={}", rawUrl);
+            return rawUrl;
+        }
+        try {
+            String current = rawUrl;
+            for (int hop = 0; hop < 5; hop++) {
+                HttpURLConnection conn = (HttpURLConnection) new URL(current).openConnection();
+                conn.setRequestMethod("HEAD");
+                conn.setInstanceFollowRedirects(false);
+                conn.setConnectTimeout(2000);
+                conn.setReadTimeout(2000);
+                conn.setRequestProperty("User-Agent",
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+                int status = conn.getResponseCode();
+                conn.disconnect();
+                if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
+                    String location = conn.getHeaderField("Location");
+                    if (location == null || location.isBlank()) {
+                        break;
+                    }
+                    current = location;
+                } else {
+                    break;
+                }
+            }
+            log.debug("resolveUrl() | return={}", current);
+            return current;
+        } catch (Exception e) {
+            log.warn("resolveUrl() | resolution failed, returning raw. url={}", rawUrl);
+            log.debug("resolveUrl() | return={}", rawUrl);
+            return rawUrl;
+        }
     }
 
     private String extractSnippet(String bodyText) {
