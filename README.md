@@ -197,6 +197,7 @@ All LLM calls are routed through outbound port interfaces (`AiSearchPort`, `AiSu
 - **Deal signal detection** — M&A, funding, partnership identification with LLM confirmation
 - **Trend detection** — keyword frequency analysis across 30/90/180-day windows
 - **Wiki knowledge base** — LLM-compiled longitudinal context with contradiction detection
+- **Document Library** — admin browser upload (PDF/DOCX/TXT/MD, 50MB) with paragraph-aware chunking into the vector store, topic-tagged wiki compilation, and visible per-document failure reporting (scanned/image-only PDFs, wiki-compile errors) instead of silent partial success
 
 ### Content Delivery
 - **Weekly newsletter + daily digest** — AI-summarized weekly briefing for ENTERPRISE/SUBSCRIBER/DEMO tiers, generated on an independent schedule from the FREE-tier daily digest; digest features an **Article of the Day** block (top-scored article by LLM significance 1–10, formatted body with entity bolding) and 75-article feed capped by source weight; Reversal Watch section surfaces wiki contradictions as formatted bullet list; sent via AWS SES
