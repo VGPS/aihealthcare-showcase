@@ -23,7 +23,7 @@ import java.util.UUID;
  * <ol>
  *   <li>Validates and scans the target directory for supported files.</li>
  *   <li>Dispatches each file to the appropriate {@link FileParserPort} implementation.</li>
- *   <li>Splits the extracted text blocks into fixed-size chunks.</li>
+ *   <li>Splits the extracted text into chunks (fixed-size for batch, paragraph-aware for single-file).</li>
  *   <li>Delegates all chunks to {@link DocumentVectorPort} for embedding and storage.</li>
  * </ol>
  *
@@ -35,9 +35,9 @@ import java.util.UUID;
  * a {@code @Bean} so the application layer remains framework-free.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-27
- * @updated 2026-04-27
+ * @updated 2026-08-25
  */
 @Slf4j
 public class DocumentIngestionService implements IngestDocumentsUseCase {
@@ -109,6 +109,44 @@ public class DocumentIngestionService implements IngestDocumentsUseCase {
         log.info("ingest() | Complete: filesProcessed={}, chunksEmbedded={}, failures={}",
                  filesProcessed, chunksEmbedded, failures.size());
         log.debug("ingest() | return={}", result);
+        return result;
+    }
+
+    // -------------------------------------------------------------------------
+    // IngestDocumentsUseCase — single-file overload with paragraph-aware chunking
+    // -------------------------------------------------------------------------
+
+    @Override
+    public DocumentIngestionResult ingestFile(java.nio.file.Path file, String sourceLabel) {
+        log.debug("ingestFile() | file={}, sourceLabel={}", file.getFileName(), sourceLabel);
+
+        FileParserPort parser = findParser(file);
+        if (parser == null) {
+            DocumentIngestionResult result = new DocumentIngestionResult(
+                    0, 0, List.of("No parser available for: " + file.getFileName()));
+            log.debug("ingestFile() | return={}", result);
+            return result;
+        }
+
+        List<DocumentChunk> chunks;
+        try {
+            List<String> blocks = parser.parse(file);
+            chunks = buildParagraphChunks(blocks, file.getFileName().toString(), sourceLabel);
+        } catch (java.io.IOException e) {
+            DocumentIngestionResult result = new DocumentIngestionResult(
+                    0, 0, List.of(file.getFileName() + ": " + e.getMessage()));
+            log.warn("ingestFile() | parse failed: {}", e.getMessage());
+            log.debug("ingestFile() | return={}", result);
+            return result;
+        }
+
+        if (!chunks.isEmpty()) {
+            vectorPort.store(chunks);
+        }
+
+        DocumentIngestionResult result = new DocumentIngestionResult(1, chunks.size(), List.of());
+        log.info("ingestFile() | Complete: file={}, chunksEmbedded={}", file.getFileName(), chunks.size());
+        log.debug("ingestFile() | return={}", result);
         return result;
     }
 
@@ -219,6 +257,65 @@ public class DocumentIngestionService implements IngestDocumentsUseCase {
             }
         }
         log.debug("buildChunks() | return={} chunks", chunks.size());
+        return chunks;
+    }
+
+    /**
+     * Paragraph-aware chunking with 150-char overlap for single-file uploads.
+     *
+     * <p>Algorithm: split on double-newline → aggregate short paragraphs into
+     * the current chunk (up to 800 chars) → emit chunk → prepend 150-char tail
+     * of the emitted chunk as the overlap prefix for the next chunk.
+     */
+    List<DocumentChunk> buildParagraphChunks(List<String> blocks,
+                                             String sourceFile,
+                                             String sourceLabel) {
+        log.debug("buildParagraphChunks() | sourceFile={}, blocks={}", sourceFile, blocks.size());
+
+        final int MAX_CHUNK   = 800;
+        final int OVERLAP_LEN = 150;
+
+        List<String> paragraphs = new ArrayList<>();
+        for (String block : blocks) {
+            String[] parts = block.split("\n\n");
+            for (String part : parts) {
+                String trimmed = part.trim();
+                if (!trimmed.isBlank()) {
+                    paragraphs.add(trimmed);
+                }
+            }
+        }
+
+        List<DocumentChunk> chunks = new ArrayList<>();
+        int chunkIndex = 0;
+        String overlap = "";
+        StringBuilder current = new StringBuilder();
+
+        for (String para : paragraphs) {
+            if (current.length() == 0 && !overlap.isBlank()) {
+                current.append(overlap).append(" ");
+            }
+            if (current.length() + para.length() > MAX_CHUNK && current.length() > 0) {
+                String content = current.toString().trim();
+                if (!content.isBlank()) {
+                    chunks.add(new DocumentChunk(
+                            UUID.randomUUID().toString(), sourceFile, chunkIndex++, content, sourceLabel));
+                    int overlapStart = Math.max(0, content.length() - OVERLAP_LEN);
+                    overlap = content.substring(overlapStart);
+                }
+                current = new StringBuilder();
+                current.append(overlap).append(" ");
+            }
+            current.append(para).append("\n\n");
+        }
+
+        String remainder = current.toString().trim();
+        if (!remainder.isBlank()) {
+            chunks.add(new DocumentChunk(
+                    UUID.randomUUID().toString(), sourceFile, chunkIndex, remainder, sourceLabel));
+        }
+
+        log.debug("buildParagraphChunks() | return={} chunks", chunks.size());
         return chunks;
     }
 }

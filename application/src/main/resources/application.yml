@@ -201,6 +201,13 @@ aihealthcare:
     staleness-threshold-days: 30
 
   # ---------------------------------------------------------------------------
+  # Document Library — browser-uploaded files are saved here before ingestion.
+  # Override in application-aws.yml to use a persistent EBS path on EC2.
+  # ---------------------------------------------------------------------------
+  documents:
+    upload-dir: ${DOCUMENTS_UPLOAD_DIR:/tmp/aihealthcare-documents}
+
+  # ---------------------------------------------------------------------------
   # Market Analysis — daily AI-healthcare market digest pipeline.
   # Fires at 07:00 America/Chicago (zone is set in @Scheduled annotation).
   # ---------------------------------------------------------------------------

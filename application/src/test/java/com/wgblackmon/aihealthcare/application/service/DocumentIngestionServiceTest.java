@@ -35,9 +35,9 @@ import static org.mockito.Mockito.when;
  * avoid actual PDF/DOCX parsing or vector store calls.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-27
- * @updated 2026-04-27
+ * @updated 2026-08-25
  */
 @ExtendWith(MockitoExtension.class)
 class DocumentIngestionServiceTest {
@@ -183,5 +183,106 @@ class DocumentIngestionServiceTest {
         assertThat(result.filesProcessed()).isEqualTo(0);
         assertThat(result.chunksEmbedded()).isEqualTo(0);
         assertThat(result.failures()).isEmpty();
+    }
+
+    // -------------------------------------------------------------------------
+    // ingestFile() — single-file paragraph-aware chunking
+    // -------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("ingestFile() parses a supported file and stores paragraph chunks")
+    void ingestFile_supportedFile_parsesAndStoresChunks() throws IOException {
+        Path file = Files.createFile(tempDir.resolve("paper.txt"));
+
+        when(parserPort.supports(any(Path.class))).thenReturn(true);
+        when(parserPort.parse(any(Path.class)))
+                .thenReturn(List.of("First paragraph.\n\nSecond paragraph.\n\nThird paragraph."));
+
+        DocumentIngestionResult result = service.ingestFile(file, "Author Name");
+
+        assertThat(result.filesProcessed()).isEqualTo(1);
+        assertThat(result.chunksEmbedded()).isGreaterThan(0);
+        assertThat(result.failures()).isEmpty();
+        verify(vectorPort).store(anyList());
+    }
+
+    @Test
+    @DisplayName("ingestFile() returns failure when no parser supports the file")
+    void ingestFile_noParser_returnsFailure() throws IOException {
+        Path file = Files.createFile(tempDir.resolve("unknown.xyz"));
+        when(parserPort.supports(any(Path.class))).thenReturn(false);
+
+        DocumentIngestionResult result = service.ingestFile(file, "Label");
+
+        assertThat(result.filesProcessed()).isEqualTo(0);
+        assertThat(result.chunksEmbedded()).isEqualTo(0);
+        assertThat(result.failures()).hasSize(1);
+        verify(vectorPort, never()).store(anyList());
+    }
+
+    @Test
+    @DisplayName("ingestFile() returns failure when parser throws IOException")
+    void ingestFile_parseThrows_returnsFailure() throws IOException {
+        Path file = Files.createFile(tempDir.resolve("corrupt.pdf"));
+        when(parserPort.supports(any(Path.class))).thenReturn(true);
+        when(parserPort.parse(any(Path.class))).thenThrow(new IOException("corrupt"));
+
+        DocumentIngestionResult result = service.ingestFile(file, "Label");
+
+        assertThat(result.failures()).hasSize(1);
+        assertThat(result.chunksEmbedded()).isEqualTo(0);
+        verify(vectorPort, never()).store(anyList());
+    }
+
+    @Test
+    @DisplayName("ingestFile() skips blank paragraphs in paragraph chunking")
+    void ingestFile_blankParagraphsSkipped() throws IOException {
+        Path file = Files.createFile(tempDir.resolve("spaced.txt"));
+        when(parserPort.supports(any(Path.class))).thenReturn(true);
+        // blocks with blank lines and a real paragraph
+        when(parserPort.parse(any(Path.class)))
+                .thenReturn(List.of("\n\n\n\nReal content here.\n\n  \n\n"));
+
+        DocumentIngestionResult result = service.ingestFile(file, "Label");
+
+        assertThat(result.chunksEmbedded()).isGreaterThan(0);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<DocumentChunk>> captor = ArgumentCaptor.forClass(List.class);
+        verify(vectorPort).store(captor.capture());
+        for (DocumentChunk chunk : captor.getValue()) {
+            assertThat(chunk.content().isBlank()).isFalse();
+        }
+    }
+
+    @Test
+    @DisplayName("ingestFile() sets correct sourceLabel on paragraph chunks")
+    void ingestFile_setsSourceLabel() throws IOException {
+        Path file = Files.createFile(tempDir.resolve("study.txt"));
+        when(parserPort.supports(any(Path.class))).thenReturn(true);
+        when(parserPort.parse(any(Path.class))).thenReturn(List.of("Study findings text."));
+
+        service.ingestFile(file, "Research Label");
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<DocumentChunk>> captor = ArgumentCaptor.forClass(List.class);
+        verify(vectorPort).store(captor.capture());
+        assertThat(captor.getValue().get(0).sourceLabel()).isEqualTo("Research Label");
+    }
+
+    @Test
+    @DisplayName("ingestFile() produces multiple chunks for large text with overlap")
+    void ingestFile_largeText_producesMultipleChunksWithOverlap() throws IOException {
+        Path file = Files.createFile(tempDir.resolve("big.txt"));
+        when(parserPort.supports(any(Path.class))).thenReturn(true);
+        // 5 paragraphs of ~220 chars each — after 3 paras (~660 chars), para 4 pushes over 800
+        String para = "This paragraph contains enough words to ensure that the chunking algorithm is"
+                + " properly exercised by accumulating text until the 800-character per-chunk threshold"
+                + " is exceeded and a new chunk with overlap must be started for subsequent content.";
+        String blocks = para + "\n\n" + para + "\n\n" + para + "\n\n" + para + "\n\n" + para;
+        when(parserPort.parse(any(Path.class))).thenReturn(List.of(blocks));
+
+        DocumentIngestionResult result = service.ingestFile(file, "Big Doc");
+
+        assertThat(result.chunksEmbedded()).isGreaterThan(1);
     }
 }

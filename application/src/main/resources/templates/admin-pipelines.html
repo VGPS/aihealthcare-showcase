@@ -155,6 +155,29 @@
     <!-- Utility Cards -->
     <div class="grid grid-cols-[repeat(auto-fill,minmax(360px,1fr))] gap-4 mt-4">
 
+        <!-- Document Library -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Document Library</h3>
+                <span class="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold">Minimal</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Upload PDF, DOCX, or TXT files received from LinkedIn connections or other sources.
+                Files are ingested into the vector store and compiled into public wiki pages with source attribution.
+            </p>
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Supported: <span class="font-semibold">PDF, DOCX, TXT, MD</span></div>
+                <div>Max size: <span class="font-semibold">50 MB per file</span></div>
+                <div>Wiki: pages are public — inform contributors</div>
+            </div>
+            <div class="mt-auto">
+                <a href="/admin/documents"
+                   class="inline-block bg-primary-600 hover:bg-primary-700 text-white text-sm px-3 py-1.5 rounded font-semibold">
+                    Open Document Library
+                </a>
+            </div>
+        </div>
+
         <!-- Send Test Digest -->
         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
             <div class="flex justify-between items-start mb-2">

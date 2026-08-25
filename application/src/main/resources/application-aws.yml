@@ -61,6 +61,8 @@ aihealthcare:
     harvest-enabled: false
   newsletter:
     from-address: ${NEWSLETTER_FROM_ADDRESS:noreply@health.bigskylabs.ai}
+  documents:
+    upload-dir: /opt/aihealthcare/documents
 
 logging:
   level:
