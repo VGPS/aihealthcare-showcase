@@ -8,10 +8,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -181,6 +183,25 @@ public class DocumentLibraryController {
         }
 
         log.debug("upload() | return=redirect:/admin/documents");
+        return "redirect:/admin/documents";
+    }
+
+    /**
+     * Catches uploads that exceed {@code spring.servlet.multipart.max-file-size}
+     * (50 MB) at the servlet-container level, before {@link #upload} ever runs.
+     * Without this handler the browser would see a raw container 413 page
+     * instead of the same friendly error redirect used elsewhere in this
+     * controller.
+     *
+     * @param ex            The container-level size violation.
+     * @param redirectAttrs Spring MVC redirect attributes for flash messages.
+     * @return Redirect to {@code GET /admin/documents}.
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public String handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex, RedirectAttributes redirectAttrs) {
+        log.warn("handleMaxUploadSizeExceeded() | rejected: file exceeds container limit: {}", ex.getMessage());
+        redirectAttrs.addAttribute("error", "File exceeds maximum size of 50 MB.");
+        log.debug("handleMaxUploadSizeExceeded() | return=redirect:/admin/documents");
         return "redirect:/admin/documents";
     }
 

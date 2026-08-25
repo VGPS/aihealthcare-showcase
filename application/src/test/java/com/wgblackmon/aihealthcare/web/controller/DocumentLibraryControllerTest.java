@@ -19,10 +19,13 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 
 import java.time.Instant;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -138,6 +141,21 @@ class DocumentLibraryControllerTest {
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/admin/documents?error=*"));
+    }
+
+    @Test
+    @DisplayName("handleMaxUploadSizeExceeded redirects with a friendly error, not a raw 413")
+    void handleMaxUploadSizeExceeded_redirectsWithError() {
+        DocumentLibraryController controller =
+                new DocumentLibraryController(uploadService, documentLibraryPort, "/tmp/aihealthcare-test");
+        RedirectAttributesModelMap redirectAttrs = new RedirectAttributesModelMap();
+
+        String view = controller.handleMaxUploadSizeExceeded(
+                new MaxUploadSizeExceededException(52_428_800L), redirectAttrs);
+
+        assertThat(view).isEqualTo("redirect:/admin/documents");
+        assertThat(redirectAttrs)
+                .containsEntry("error", "File exceeds maximum size of 50 MB.");
     }
 
     @Test
