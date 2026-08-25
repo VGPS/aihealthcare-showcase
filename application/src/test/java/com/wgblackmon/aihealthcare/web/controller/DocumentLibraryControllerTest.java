@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentLibraryPort;
 import com.wgblackmon.aihealthcare.domain.service.DocumentUploadService;
+import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -42,8 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link DocumentLibraryController}.
  *
  * <p>Covers GET library listing, POST upload happy path, POST invalid extension,
- * POST oversized file guard, POST missing source label, redirect after success,
- * unauthenticated access redirect, and admin-only access.
+ * POST oversized file guard, POST missing source label, POST missing topic,
+ * redirect after success, unauthenticated access redirect, and admin-only access.
  *
  * @author  Bill Blackmon
  * @version 1.0
@@ -73,9 +74,12 @@ class DocumentLibraryControllerTest {
     @MockitoBean
     private NewsArticleRepository articleRepository;
 
+    @MockitoBean
+    private NewsTopicProperties newsTopicProperties;
+
     private DocumentRecord sampleRecord() {
         return new DocumentRecord(
-                "doc-1", "research.pdf", "Dr Smith", Instant.now(),
+                "doc-1", "research.pdf", "Dr Smith", "AI Healthcare Legal", Instant.now(),
                 42, "ai-drug-discovery", DocumentStatus.WIKI_COMPILED, null);
     }
 
@@ -108,7 +112,7 @@ class DocumentLibraryControllerTest {
     @WithMockUser(roles = "ADMIN")
     void postUpload_validPdf_redirectsWithSuccess() throws Exception {
         DocumentRecord rec = sampleRecord();
-        when(uploadService.uploadAndIngest(any(), anyString(), anyString())).thenReturn(rec);
+        when(uploadService.uploadAndIngest(any(), anyString(), anyString(), anyString())).thenReturn(rec);
 
         MockMultipartFile file = new MockMultipartFile(
                 "file", "study.pdf", MediaType.APPLICATION_PDF_VALUE,
@@ -117,6 +121,7 @@ class DocumentLibraryControllerTest {
         mockMvc.perform(multipart("/admin/documents/upload")
                         .file(file)
                         .param("sourceLabel", "Dr Smith — 2026 Study")
+                        .param("topic", "AI Healthcare Legal")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/admin/documents?message=*"));
@@ -127,9 +132,9 @@ class DocumentLibraryControllerTest {
     @WithMockUser(roles = "ADMIN")
     void postUpload_serviceReturnsFailedStatus_redirectsWithError() throws Exception {
         DocumentRecord failed = new DocumentRecord(
-                "doc-2", "study.pdf", "Dr Smith", Instant.now(),
+                "doc-2", "study.pdf", "Dr Smith", "AI Healthcare Legal", Instant.now(),
                 0, null, DocumentStatus.FAILED, "vector store unavailable");
-        when(uploadService.uploadAndIngest(any(), anyString(), anyString())).thenReturn(failed);
+        when(uploadService.uploadAndIngest(any(), anyString(), anyString(), anyString())).thenReturn(failed);
 
         MockMultipartFile file = new MockMultipartFile(
                 "file", "study.pdf", MediaType.APPLICATION_PDF_VALUE,
@@ -138,6 +143,7 @@ class DocumentLibraryControllerTest {
         mockMvc.perform(multipart("/admin/documents/upload")
                         .file(file)
                         .param("sourceLabel", "Dr Smith — 2026 Study")
+                        .param("topic", "AI Healthcare Legal")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/admin/documents?error=*"));
@@ -147,7 +153,7 @@ class DocumentLibraryControllerTest {
     @DisplayName("handleMaxUploadSizeExceeded redirects with a friendly error, not a raw 413")
     void handleMaxUploadSizeExceeded_redirectsWithError() {
         DocumentLibraryController controller =
-                new DocumentLibraryController(uploadService, documentLibraryPort, "/tmp/aihealthcare-test");
+                new DocumentLibraryController(uploadService, documentLibraryPort, newsTopicProperties, "/tmp/aihealthcare-test");
         RedirectAttributesModelMap redirectAttrs = new RedirectAttributesModelMap();
 
         String view = controller.handleMaxUploadSizeExceeded(
@@ -169,6 +175,7 @@ class DocumentLibraryControllerTest {
         mockMvc.perform(multipart("/admin/documents/upload")
                         .file(file)
                         .param("sourceLabel", "Some Label")
+                        .param("topic", "General AI Healthcare News")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/admin/documents?error=*"));
@@ -185,6 +192,24 @@ class DocumentLibraryControllerTest {
         mockMvc.perform(multipart("/admin/documents/upload")
                         .file(file)
                         .param("sourceLabel", "  ")
+                        .param("topic", "General AI Healthcare News")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/admin/documents?error=*"));
+    }
+
+    @Test
+    @DisplayName("POST upload with missing topic redirects with error")
+    @WithMockUser(roles = "ADMIN")
+    void postUpload_missingTopic_redirectsWithError() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "paper.pdf", MediaType.APPLICATION_PDF_VALUE,
+                "content".getBytes());
+
+        mockMvc.perform(multipart("/admin/documents/upload")
+                        .file(file)
+                        .param("sourceLabel", "Dr Smith")
+                        .param("topic", "  ")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/admin/documents?error=*"));
@@ -201,6 +226,7 @@ class DocumentLibraryControllerTest {
         mockMvc.perform(multipart("/admin/documents/upload")
                         .file(file)
                         .param("sourceLabel", "Label")
+                        .param("topic", "General AI Healthcare News")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("/admin/documents?error=*"));

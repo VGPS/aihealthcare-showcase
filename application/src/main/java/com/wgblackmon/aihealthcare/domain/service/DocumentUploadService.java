@@ -73,14 +73,16 @@ public class DocumentUploadService {
      * @param file        Path to the saved file on disk.
      * @param filename    Original filename as uploaded.
      * @param sourceLabel Human-readable attribution label from the upload form.
+     * @param topic       Topic to group this document under (drives wiki/news grouping).
      * @return The final {@link DocumentRecord} after all pipeline steps complete.
      */
-    public DocumentRecord uploadAndIngest(Path file, String filename, String sourceLabel) {
-        log.debug("uploadAndIngest() | file={}, filename={}, sourceLabel={}", file, filename, sourceLabel);
+    public DocumentRecord uploadAndIngest(Path file, String filename, String sourceLabel, String topic) {
+        log.debug("uploadAndIngest() | file={}, filename={}, sourceLabel={}, topic={}",
+                file, filename, sourceLabel, topic);
 
         String docId = UUID.randomUUID().toString();
         DocumentRecord initial = new DocumentRecord(
-                docId, filename, sourceLabel, Instant.now(), 0, null,
+                docId, filename, sourceLabel, topic, Instant.now(), 0, null,
                 DocumentStatus.UPLOADED, null);
         documentLibraryPort.save(initial);
 
@@ -103,6 +105,16 @@ public class DocumentUploadService {
         }
 
         int chunkCount = ingestionResult.chunksEmbedded();
+        if (chunkCount == 0) {
+            String err = "No extractable text found in '" + filename
+                    + "' — it may be a scanned/image-only PDF, empty, or corrupted.";
+            documentLibraryPort.updateStatus(docId, DocumentStatus.FAILED, 0, null, err);
+            log.warn("uploadAndIngest() | zero chunks extracted for docId={}, filename={}", docId, filename);
+            DocumentRecord result = documentLibraryPort.findById(docId).orElse(initial);
+            log.debug("uploadAndIngest() | return={}", result.status());
+            return result;
+        }
+
         documentLibraryPort.updateStatus(docId, DocumentStatus.INDEXED, chunkCount, null, null);
 
         if (knowledgeCompilationPort != null) {
@@ -115,7 +127,7 @@ public class DocumentUploadService {
                             sourceLabel + " — " + filename,
                             URI.create(DOCS_BACK_URL),
                             fullText,
-                            "Document",
+                            topic,
                             null, null,
                             sourceLabel,
                             "ACADEMIC",
@@ -128,6 +140,8 @@ public class DocumentUploadService {
                     log.info("uploadAndIngest() | wiki compiled for docId={}, slug={}", docId, slug);
                 }
             } catch (Exception e) {
+                String err = "Wiki compilation failed: " + e.getMessage();
+                documentLibraryPort.updateStatus(docId, DocumentStatus.INDEXED, chunkCount, null, err);
                 log.warn("uploadAndIngest() | wiki compilation failed for docId={}: {}", docId, e.getMessage());
             }
         }

@@ -32,7 +32,7 @@ class DocumentLibraryAdapterTest {
     private DocumentLibraryAdapter adapter;
 
     private DocumentRecord sample(String docId) {
-        return new DocumentRecord(docId, "paper.pdf", "Dr Smith",
+        return new DocumentRecord(docId, "paper.pdf", "Dr Smith", "AI Healthcare Legal",
                 Instant.now(), 0, null, DocumentStatus.UPLOADED, null);
     }
 
@@ -52,6 +52,7 @@ class DocumentLibraryAdapterTest {
         Optional<DocumentRecord> result = adapter.findById("doc-xyz");
         assertThat(result).isPresent();
         assertThat(result.get().filename()).isEqualTo("paper.pdf");
+        assertThat(result.get().topic()).isEqualTo("AI Healthcare Legal");
         assertThat(result.get().status()).isEqualTo(DocumentStatus.UPLOADED);
     }
 
