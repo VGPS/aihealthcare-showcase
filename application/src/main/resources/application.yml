@@ -96,6 +96,18 @@ spring:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:1025}
 
+  # ---------------------------------------------------------------------------
+  # Multipart upload limits — Document Library accepts files up to 50 MB
+  # (see DocumentLibraryController.MAX_BYTES). Spring Boot's defaults
+  # (1MB file / 10MB request) are too low and cause the servlet container
+  # to reject large uploads with a raw HTTP 413 before the controller's own
+  # validation ever runs.
+  # ---------------------------------------------------------------------------
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 51MB
+
 server:
   port: 8080
   error:
