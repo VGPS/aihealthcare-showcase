@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.DocumentRecord;
+import com.wgblackmon.aihealthcare.domain.model.DocumentStatus;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentLibraryPort;
 import com.wgblackmon.aihealthcare.domain.service.DocumentUploadService;
 import lombok.extern.slf4j.Slf4j;
@@ -163,9 +164,17 @@ public class DocumentLibraryController {
 
         try {
             DocumentRecord result = uploadService.uploadAndIngest(savedPath, filename, sourceLabel.trim());
-            log.info("upload() | ingested docId={}, filename={}, status={}", result.docId(), filename, result.status());
-            redirectAttrs.addAttribute("message",
-                    "'" + filename + "' uploaded and ingested successfully (" + result.chunkCount() + " chunks).");
+            if (result.status() == DocumentStatus.FAILED) {
+                log.warn("upload() | upload failed docId={}, filename={}, errorMessage={}",
+                        result.docId(), filename, result.errorMessage());
+                redirectAttrs.addAttribute("error",
+                        "'" + filename + "' upload failed: " + result.errorMessage());
+            } else {
+                log.info("upload() | upload succeeded docId={}, filename={}, status={}",
+                        result.docId(), filename, result.status());
+                redirectAttrs.addAttribute("message",
+                        "'" + filename + "' uploaded and ingested successfully (" + result.chunkCount() + " chunks).");
+            }
         } catch (Exception e) {
             log.error("upload() | ingestion failed for file={}: {}", filename, e.getMessage());
             redirectAttrs.addAttribute("error", "Ingestion failed: " + e.getMessage());
