@@ -8,8 +8,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -42,7 +45,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.4
  * @since   2026-08-21
- * @updated 2026-08-25
+ * @updated 2026-08-25b
  * @see ArticleToneClassifier
  */
 @Slf4j
@@ -52,7 +55,8 @@ public class LinkedInPostController {
     private static final int MAX_ARTICLES = 5;
     private static final int SNIPPET_MAX_CHARS = 220;
     private static final int POST_BODY_LIMIT = 2900;
-    private static final int LINKS_BLOCK_LIMIT = 1200;
+    // LinkedIn comment limit is 1,250 chars; reserve ~200 for hashtags + buffer
+    private static final int LINKS_BLOCK_LIMIT = 1050;
 
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy");
@@ -358,7 +362,7 @@ public class LinkedInPostController {
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a    = articles.get(i);
             String rawUrl    = a.url() != null ? a.url().toString() : "";
-            String url       = resolveUrl(rawUrl);
+            String url       = cleanUrlForDisplay(resolveUrl(rawUrl));
             String toneEmoji = toneClassifier.toneEmoji(a);
             String entry = toneEmoji + cleanText(a.title()) + "\n"
                     + (url.isBlank() ? "" : url + "\n")
@@ -377,9 +381,15 @@ public class LinkedInPostController {
         return result;
     }
 
+    private static final Set<String> TRACKING_PARAMS = Set.of(
+            "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+            "fc", "ff", "v", "oc", "hl", "gl", "ceid"
+    );
+
     /**
-     * Follows redirect hops for Google News RSS URLs to surface the real article URL.
-     * Falls back to the original URL if resolution fails or times out.
+     * Follows redirects for Google News RSS URLs using Java HttpClient.
+     * {@code HttpResponse.uri()} returns the final URI after all redirects.
+     * Falls back to the original URL on any failure.
      */
     private String resolveUrl(String rawUrl) {
         log.debug("resolveUrl() | rawUrl={}", rawUrl);
@@ -388,34 +398,59 @@ public class LinkedInPostController {
             return rawUrl;
         }
         try {
-            String current = rawUrl;
-            for (int hop = 0; hop < 5; hop++) {
-                HttpURLConnection conn = (HttpURLConnection) new URL(current).openConnection();
-                conn.setRequestMethod("HEAD");
-                conn.setInstanceFollowRedirects(false);
-                conn.setConnectTimeout(2000);
-                conn.setReadTimeout(2000);
-                conn.setRequestProperty("User-Agent",
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-                int status = conn.getResponseCode();
-                conn.disconnect();
-                if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
-                    String location = conn.getHeaderField("Location");
-                    if (location == null || location.isBlank()) {
-                        break;
-                    }
-                    current = location;
-                } else {
-                    break;
-                }
-            }
-            log.debug("resolveUrl() | return={}", current);
-            return current;
+            HttpClient client = HttpClient.newBuilder()
+                    .followRedirects(HttpClient.Redirect.ALWAYS)
+                    .connectTimeout(Duration.ofSeconds(3))
+                    .build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(rawUrl))
+                    .GET()
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .build();
+            HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+            String resolved = response.uri().toString();
+            log.debug("resolveUrl() | return={}", resolved);
+            return (resolved == null || resolved.isBlank()) ? rawUrl : resolved;
         } catch (Exception e) {
             log.warn("resolveUrl() | resolution failed, returning raw. url={}", rawUrl);
             log.debug("resolveUrl() | return={}", rawUrl);
             return rawUrl;
         }
+    }
+
+    /**
+     * Strips UTM/tracking query params and #snapshot fragments from URLs to shorten
+     * them for the LinkedIn comment block.
+     */
+    private String cleanUrlForDisplay(String url) {
+        log.debug("cleanUrlForDisplay() | url={}", url);
+        if (url == null || url.isBlank()) {
+            return url;
+        }
+        // Strip #snapshot-* fragments (not useful and waste chars)
+        int hashIdx = url.indexOf('#');
+        if (hashIdx > 0 && url.substring(hashIdx).startsWith("#snapshot")) {
+            url = url.substring(0, hashIdx);
+        }
+        // Strip query string when all params are known tracking params
+        int queryIdx = url.indexOf('?');
+        if (queryIdx > 0) {
+            String query = url.substring(queryIdx + 1);
+            String[] params = query.split("&");
+            boolean allTracking = true;
+            for (String param : params) {
+                String name = param.split("=")[0].toLowerCase();
+                if (!TRACKING_PARAMS.contains(name)) {
+                    allTracking = false;
+                    break;
+                }
+            }
+            if (allTracking) {
+                url = url.substring(0, queryIdx);
+            }
+        }
+        log.debug("cleanUrlForDisplay() | return={}", url);
+        return url;
     }
 
     private String extractSnippet(String bodyText) {
