@@ -120,6 +120,27 @@ class DocumentLibraryControllerTest {
     }
 
     @Test
+    @DisplayName("POST upload where service reports FAILED status redirects with error, not success")
+    @WithMockUser(roles = "ADMIN")
+    void postUpload_serviceReturnsFailedStatus_redirectsWithError() throws Exception {
+        DocumentRecord failed = new DocumentRecord(
+                "doc-2", "study.pdf", "Dr Smith", Instant.now(),
+                0, null, DocumentStatus.FAILED, "vector store unavailable");
+        when(uploadService.uploadAndIngest(any(), anyString(), anyString())).thenReturn(failed);
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "study.pdf", MediaType.APPLICATION_PDF_VALUE,
+                "PDF content".getBytes());
+
+        mockMvc.perform(multipart("/admin/documents/upload")
+                        .file(file)
+                        .param("sourceLabel", "Dr Smith — 2026 Study")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/admin/documents?error=*"));
+    }
+
+    @Test
     @DisplayName("POST upload with unsupported extension redirects with error")
     @WithMockUser(roles = "ADMIN")
     void postUpload_unsupportedExtension_redirectsWithError() throws Exception {
