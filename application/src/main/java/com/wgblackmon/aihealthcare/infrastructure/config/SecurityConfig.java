@@ -33,7 +33,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * @author  Bill Blackmon
  * @version 1.5
  * @since   2026-05-28
- * @updated 2026-08-17
+ * @updated 2026-08-25
  */
 @Slf4j
 @Configuration
@@ -77,7 +77,8 @@ public class SecurityConfig {
                 .requestMatchers("/monitoring/**").hasRole("ADMIN")
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/developer").permitAll()
-                .requestMatchers("/wiki", "/wiki/**").permitAll()
+                .requestMatchers("/wiki").permitAll()
+                .requestMatchers("/wiki/**").authenticated()
                 .requestMatchers("/stripe/**").permitAll()
                 .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 .requestMatchers("/newsletter/runs/**").hasRole("ADMIN")
