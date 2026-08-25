@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Thymeleaf controller that generates a Corrections Daily Post from recent
@@ -39,7 +40,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-08-22
- * @updated 2026-08-22
+ * @updated 2026-08-25
  */
 @Slf4j
 @Controller
@@ -50,7 +51,13 @@ public class CorrectionsPostController {
     private static final int    SNIPPET_MAX_CHARS = 200;
     private static final double MIN_WEIGHT        = 0.7;
     private static final int    POST_BODY_LIMIT   = 2900;
-    private static final int    LINKS_BLOCK_LIMIT = 1200;
+    // LinkedIn comment limit is 1,250 chars; reserve ~200 for footer + buffer
+    private static final int    LINKS_BLOCK_LIMIT = 1050;
+
+    private static final Set<String> TRACKING_PARAMS = Set.of(
+            "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+            "fc", "ff", "v", "oc", "hl", "gl", "ceid"
+    );
 
     private static final String APP_URL  = "https://app.bigskylabs.ai";
     private static final String SITE_URL = "https://bigskylabs.ai";
@@ -174,14 +181,14 @@ public class CorrectionsPostController {
             sb.append(wikiLine);
 
             for (NewsArticle a : entry.priorArticles()) {
-                String link = a.url().toString() + "\n";
+                String link = cleanUrlForDisplay(a.url().toString()) + "\n";
                 if (sb.length() + link.length() > LINKS_BLOCK_LIMIT) {
                     break;
                 }
                 sb.append(link);
             }
             for (NewsArticle a : entry.newArticles()) {
-                String link = a.url().toString() + "\n";
+                String link = cleanUrlForDisplay(a.url().toString()) + "\n";
                 if (sb.length() + link.length() > LINKS_BLOCK_LIMIT) {
                     break;
                 }
@@ -306,6 +313,39 @@ public class CorrectionsPostController {
             }
         }
         return false;
+    }
+
+    /**
+     * Strips UTM/tracking query params and #snapshot fragments to shorten URLs
+     * for the LinkedIn comment block.
+     */
+    private String cleanUrlForDisplay(String url) {
+        log.debug("cleanUrlForDisplay() | url={}", url);
+        if (url == null || url.isBlank()) {
+            return url;
+        }
+        int hashIdx = url.indexOf('#');
+        if (hashIdx > 0 && url.substring(hashIdx).startsWith("#snapshot")) {
+            url = url.substring(0, hashIdx);
+        }
+        int queryIdx = url.indexOf('?');
+        if (queryIdx > 0) {
+            String query = url.substring(queryIdx + 1);
+            String[] params = query.split("&");
+            boolean allTracking = true;
+            for (String param : params) {
+                String name = param.split("=")[0].toLowerCase();
+                if (!TRACKING_PARAMS.contains(name)) {
+                    allTracking = false;
+                    break;
+                }
+            }
+            if (allTracking) {
+                url = url.substring(0, queryIdx);
+            }
+        }
+        log.debug("cleanUrlForDisplay() | return={}", url);
+        return url;
     }
 
     /**
