@@ -57,15 +57,17 @@ import java.util.Map;
  *   <li>{@code GET /wiki/contradictions} — recent contradictions feed (Reversal Watch preview)</li>
  * </ul>
  *
- * <p>All wiki pages are public ({@code /wiki/**} is {@code permitAll()} in
- * {@link com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig}).
+ * <p>The index ({@code /wiki}) is public for SEO and marketing discovery.
+ * Detail pages ({@code /wiki/**}) require authentication (FREE tier or above) —
+ * unauthenticated visitors are redirected to the login/register page, turning
+ * every external link into a registration funnel.
  * Provenance links resolve {@link SourceRef#articleId()} to the original article URL
  * via {@link NewsArticleRepository}.
  *
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-04
- * @updated 2026-08-23
+ * @updated 2026-08-25
  */
 @Slf4j
 @Controller
