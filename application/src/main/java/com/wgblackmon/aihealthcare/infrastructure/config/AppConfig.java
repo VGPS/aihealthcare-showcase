@@ -130,12 +130,14 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionRe
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiSourceRefRepository;
 import com.wgblackmon.aihealthcare.infrastructure.research.LegacyGoogleResearchAdapter;
 import com.wgblackmon.aihealthcare.infrastructure.research.PerplexityResearchAdapter;
+import com.wgblackmon.aihealthcare.infrastructure.ai.DocumentIngestionAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -506,50 +508,58 @@ public class AppConfig {
     }
 
     /**
-     * Creates the {@link DocumentIngestionService} when a {@link DocumentVectorPort}
-     * bean is available (i.e., when pgvector is configured).
+     * Creates the single {@link IngestDocumentsUseCase} bean, choosing between the
+     * real vector-store-backed {@link DocumentIngestionService} and a no-op fallback
+     * based on whether a {@link VectorStore} is actually available.
+     *
+     * <p>This deliberately avoids {@code @ConditionalOnBean(VectorStore.class)} on a
+     * component-scanned class or {@code @Bean} method: Spring Boot evaluates such
+     * conditions while regular {@code @Configuration}/{@code @Component} classes are
+     * parsed, which happens BEFORE the {@code PgVectorStoreAutoConfiguration} (a
+     * deferred import) registers its bean definition. That ordering pitfall silently
+     * disabled document ingestion even when pgvector was fully configured and working
+     * — the {@code VectorStore} bean existed, but the condition checking for it had
+     * already evaluated to {@code false} by the time it ran. Resolving via
+     * {@link ObjectProvider#getIfAvailable()} inside the method body defers the check
+     * to actual singleton instantiation, by which point every auto-configured bean,
+     * including {@code PgVectorStore}, is guaranteed to be registered.
      *
      * <p>Spring injects all {@link FileParserPort} {@code @Component} beans as a list
      * automatically, so adding a new parser requires no change to this method.
      *
-     * @param parsers     All registered file-parser adapters (PDF, DOCX, plain-text).
-     * @param vectorPort  Adapter implementing vector-store writes (auto-detected).
-     * @return The wired {@link DocumentIngestionService} instance.
+     * @param parsers             All registered file-parser adapters (PDF, DOCX, plain-text).
+     * @param vectorStoreProvider Lazily-resolved {@link VectorStore}; absent when pgvector
+     *                            is not configured (e.g. the {@code h2} profile).
+     * @return The wired {@link IngestDocumentsUseCase} — real or no-op.
      */
     @Bean
-    @ConditionalOnBean(DocumentVectorPort.class)
-    public DocumentIngestionService documentIngestionService(List<FileParserPort> parsers,
-                                                              DocumentVectorPort vectorPort) {
-        log.debug("documentIngestionService() | parserCount={}, vectorPort={}",
-                  parsers.size(), vectorPort.getClass().getSimpleName());
-        DocumentIngestionService result = new DocumentIngestionService(parsers, vectorPort);
-        log.debug("documentIngestionService() | return={}", result.getClass().getSimpleName());
-        return result;
-    }
+    public IngestDocumentsUseCase ingestDocumentsUseCase(List<FileParserPort> parsers,
+                                                          ObjectProvider<VectorStore> vectorStoreProvider) {
+        VectorStore vectorStore = vectorStoreProvider.getIfAvailable();
+        log.debug("ingestDocumentsUseCase() | parserCount={}, vectorStoreAvailable={}",
+                  parsers.size(), vectorStore != null);
 
-    /**
-     * No-op fallback {@link IngestDocumentsUseCase} used when pgvector is not configured.
-     * Returns a result indicating that document ingestion is unavailable in this environment.
-     *
-     * @return a use case that always returns a descriptive failure result
-     */
-    @Bean
-    @ConditionalOnMissingBean(IngestDocumentsUseCase.class)
-    public IngestDocumentsUseCase noOpIngestDocumentsUseCase() {
-        log.debug("noOpIngestDocumentsUseCase() | pgvector not configured — document ingestion disabled");
-        IngestDocumentsUseCase result = new IngestDocumentsUseCase() {
-            @Override
-            public DocumentIngestionResult ingest(String directory, String sourceLabel, int chunkSize) {
-                return new DocumentIngestionResult(0, 0,
-                        List.of("Document ingestion is unavailable — pgvector is not configured in this environment."));
-            }
-            @Override
-            public DocumentIngestionResult ingestFile(java.nio.file.Path file, String sourceLabel) {
-                return new DocumentIngestionResult(0, 0,
-                        List.of("Document ingestion is unavailable — pgvector is not configured in this environment."));
-            }
-        };
-        log.debug("noOpIngestDocumentsUseCase() | return=no-op");
+        if (vectorStore == null) {
+            log.debug("ingestDocumentsUseCase() | pgvector not configured — document ingestion disabled");
+            IngestDocumentsUseCase result = new IngestDocumentsUseCase() {
+                @Override
+                public DocumentIngestionResult ingest(String directory, String sourceLabel, int chunkSize) {
+                    return new DocumentIngestionResult(0, 0,
+                            List.of("Document ingestion is unavailable — pgvector is not configured in this environment."));
+                }
+                @Override
+                public DocumentIngestionResult ingestFile(java.nio.file.Path file, String sourceLabel) {
+                    return new DocumentIngestionResult(0, 0,
+                            List.of("Document ingestion is unavailable — pgvector is not configured in this environment."));
+                }
+            };
+            log.debug("ingestDocumentsUseCase() | return=no-op");
+            return result;
+        }
+
+        DocumentVectorPort vectorPort = new DocumentIngestionAdapter(vectorStore);
+        DocumentIngestionService result = new DocumentIngestionService(parsers, vectorPort);
+        log.debug("ingestDocumentsUseCase() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

@@ -5,8 +5,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentVectorPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,19 +23,21 @@ import java.util.Map;
  *       {@code sourceLabel} for later retrieval filtering</li>
  * </ul>
  *
- * <p>This adapter is only registered when a {@link VectorStore} bean is present.
- * In the {@code h2} test profile the pgvector auto-configuration is excluded, so
- * this bean is absent and the controller is unavailable — consistent with the
- * behaviour of {@link com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler} and {@link VectorStoreArticleSearchAdapter}.
+ * <p>Not a {@code @Component} — instantiated directly by
+ * {@link com.wgblackmon.aihealthcare.infrastructure.config.AppConfig#ingestDocumentsUseCase}
+ * only when a {@link VectorStore} bean is actually resolvable. A prior version used
+ * {@code @Component @ConditionalOnBean(VectorStore.class)}, which is a documented
+ * Spring Boot anti-pattern: conditions on component-scanned classes are evaluated
+ * before deferred auto-configuration imports (like {@code PgVectorStoreAutoConfiguration})
+ * register their bean definitions, so the condition saw no {@code VectorStore} and
+ * silently disabled document ingestion even when pgvector was fully configured.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-27
- * @updated 2026-04-27
+ * @updated 2026-08-25
  */
 @Slf4j
-@Component
-@ConditionalOnBean(VectorStore.class)
 public class DocumentIngestionAdapter implements DocumentVectorPort {
 
     private final VectorStore vectorStore;
