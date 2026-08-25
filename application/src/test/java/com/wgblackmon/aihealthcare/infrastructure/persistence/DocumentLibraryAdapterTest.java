@@ -33,6 +33,7 @@ class DocumentLibraryAdapterTest {
 
     private DocumentRecord sample(String docId) {
         return new DocumentRecord(docId, "paper.pdf", "Dr Smith", "AI Healthcare Legal",
+                "Jane Requester", "jane@example.com",
                 Instant.now(), 0, null, DocumentStatus.UPLOADED, null);
     }
 
@@ -53,6 +54,8 @@ class DocumentLibraryAdapterTest {
         assertThat(result).isPresent();
         assertThat(result.get().filename()).isEqualTo("paper.pdf");
         assertThat(result.get().topic()).isEqualTo("AI Healthcare Legal");
+        assertThat(result.get().requesterName()).isEqualTo("Jane Requester");
+        assertThat(result.get().requesterEmail()).isEqualTo("jane@example.com");
         assertThat(result.get().status()).isEqualTo(DocumentStatus.UPLOADED);
     }
 

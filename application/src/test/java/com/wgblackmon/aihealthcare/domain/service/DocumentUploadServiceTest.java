@@ -57,7 +57,7 @@ class DocumentUploadServiceTest {
         when(documentLibraryPort.findById(anyString())).thenAnswer(invocation -> {
             String docId = invocation.getArgument(0);
             return Optional.of(new DocumentRecord(docId, "scanned.pdf", "Dr Smith", "AI Healthcare Legal",
-                    Instant.now(), 0, null, DocumentStatus.FAILED,
+                    null, null, Instant.now(), 0, null, DocumentStatus.FAILED,
                     "No extractable text found in 'scanned.pdf' — it may be a scanned/image-only PDF, empty, or corrupted."));
         });
 

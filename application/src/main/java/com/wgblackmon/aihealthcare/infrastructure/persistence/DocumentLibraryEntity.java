@@ -35,6 +35,12 @@ public class DocumentLibraryEntity {
     @Column(name = "topic", length = 200)
     private String topic;
 
+    @Column(name = "requester_name", length = 200)
+    private String requesterName;
+
+    @Column(name = "requester_email", length = 320)
+    private String requesterEmail;
+
     @Column(name = "uploaded_at", nullable = false)
     private Instant uploadedAt;
 
@@ -64,6 +70,12 @@ public class DocumentLibraryEntity {
 
     public String getTopic()                          { return topic; }
     public void setTopic(String topic)                { this.topic = topic; }
+
+    public String getRequesterName()                  { return requesterName; }
+    public void setRequesterName(String requesterName) { this.requesterName = requesterName; }
+
+    public String getRequesterEmail()                  { return requesterEmail; }
+    public void setRequesterEmail(String requesterEmail) { this.requesterEmail = requesterEmail; }
 
     public Instant getUploadedAt()                    { return uploadedAt; }
     public void setUploadedAt(Instant uploadedAt)     { this.uploadedAt = uploadedAt; }
