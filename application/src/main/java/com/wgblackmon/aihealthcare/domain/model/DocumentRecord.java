@@ -15,6 +15,11 @@ import java.time.Instant;
  * @param sourceLabel    Human-readable attribution label (e.g. "Dr Smith — 2026 paper").
  * @param topic          Topic this document is grouped under (e.g. "AI Healthcare Legal");
  *                       null for documents uploaded before topic support was added.
+ * @param requesterName  Name of the person who requested this document be added, when
+ *                       uploaded on their behalf (e.g. a paid ingestion request); null
+ *                       when not applicable.
+ * @param requesterEmail Email of the person who requested this document be added;
+ *                       null when not applicable.
  * @param uploadedAt     Timestamp when the file was received.
  * @param chunkCount     Number of text chunks embedded into the vector store; 0 until indexed.
  * @param wikiPageSlug   Slug of the wiki page compiled from this document; null until compiled.
@@ -32,6 +37,8 @@ public record DocumentRecord(
         String filename,
         String sourceLabel,
         String topic,
+        String requesterName,
+        String requesterEmail,
         Instant uploadedAt,
         int chunkCount,
         String wikiPageSlug,

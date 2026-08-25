@@ -82,7 +82,7 @@ public class DocumentUploadService {
 
         String docId = UUID.randomUUID().toString();
         DocumentRecord initial = new DocumentRecord(
-                docId, filename, sourceLabel, topic, Instant.now(), 0, null,
+                docId, filename, sourceLabel, topic, null, null, Instant.now(), 0, null,
                 DocumentStatus.UPLOADED, null);
         documentLibraryPort.save(initial);
 

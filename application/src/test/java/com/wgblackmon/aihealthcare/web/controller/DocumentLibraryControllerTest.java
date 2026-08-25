@@ -79,7 +79,7 @@ class DocumentLibraryControllerTest {
 
     private DocumentRecord sampleRecord() {
         return new DocumentRecord(
-                "doc-1", "research.pdf", "Dr Smith", "AI Healthcare Legal", Instant.now(),
+                "doc-1", "research.pdf", "Dr Smith", "AI Healthcare Legal", null, null, Instant.now(),
                 42, "ai-drug-discovery", DocumentStatus.WIKI_COMPILED, null);
     }
 
@@ -132,7 +132,7 @@ class DocumentLibraryControllerTest {
     @WithMockUser(roles = "ADMIN")
     void postUpload_serviceReturnsFailedStatus_redirectsWithError() throws Exception {
         DocumentRecord failed = new DocumentRecord(
-                "doc-2", "study.pdf", "Dr Smith", "AI Healthcare Legal", Instant.now(),
+                "doc-2", "study.pdf", "Dr Smith", "AI Healthcare Legal", null, null, Instant.now(),
                 0, null, DocumentStatus.FAILED, "vector store unavailable");
         when(uploadService.uploadAndIngest(any(), anyString(), anyString(), anyString())).thenReturn(failed);
 
