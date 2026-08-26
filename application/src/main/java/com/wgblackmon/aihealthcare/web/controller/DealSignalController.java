@@ -37,7 +37,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-08-04
- * @updated 2026-08-23
+ * @updated 2026-08-26
  */
 @Slf4j
 @Controller
@@ -82,12 +82,12 @@ public class DealSignalController {
             signals = detectDealSignalsUseCase.getRecentSignals(fetchSize, currentPage);
         }
 
-        List<DealSignal> deduped = deduplicateByCompanyTypeAndDay(signals);
-
-        boolean hasNext = fullAccess && deduped.size() > PAGE_SIZE;
+        boolean hasNext = fullAccess && signals.size() > PAGE_SIZE;
         if (hasNext) {
-            deduped = deduped.subList(0, PAGE_SIZE);
+            signals = signals.subList(0, PAGE_SIZE);
         }
+
+        List<DealSignal> deduped = deduplicateByCompanyTypeAndDay(signals);
 
         List<Map<String, Object>> signalList = new ArrayList<>();
         Map<String, Integer> typeCounts = new LinkedHashMap<>();
