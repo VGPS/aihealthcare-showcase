@@ -7,7 +7,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-05
+ * @updated 2026-08-26
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -44,16 +44,22 @@
 
     <!-- Company Filter -->
     <div class="bg-white rounded-lg shadow-card p-4 mb-6">
-        <form th:action="@{/dashboard/relationships}" method="get" class="flex items-center gap-3">
+        <form id="companyFilterForm" th:action="@{/dashboard/relationships}" method="get" class="flex items-center gap-3 flex-wrap">
             <label for="company" class="text-sm font-medium text-gray-700">Filter by company:</label>
-            <select id="company" name="company" class="border border-gray-300 rounded px-3 py-1.5 text-sm">
-                <option value="">All Companies</option>
-                <option th:each="name : ${companyNames}" th:value="${name}" th:text="${name}"
-                        th:selected="${name == filterCompany}">Company</option>
-            </select>
+            <input type="text" id="company" name="company" list="company-datalist"
+                   th:value="${filterCompany}"
+                   placeholder="Type to search…"
+                   autocomplete="off"
+                   class="border border-gray-300 rounded px-3 py-1.5 text-sm w-64 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"/>
+            <datalist id="company-datalist">
+                <option th:each="name : ${companyNames}" th:value="${name}"/>
+            </datalist>
             <button type="submit" class="bg-primary-600 text-white px-4 py-1.5 rounded text-sm hover:bg-primary-700">
                 Filter
             </button>
+            <a th:if="${filterCompany != null and filterCompany != ''}"
+               th:href="@{/dashboard/relationships}"
+               class="text-sm text-gray-500 hover:text-gray-700 underline">Clear</a>
         </form>
     </div>
 
@@ -166,6 +172,23 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
+// Auto-submit when user picks a datalist suggestion (input value matches an option exactly)
+(function () {
+    var input = document.getElementById('company');
+    var form  = document.getElementById('companyFilterForm');
+    if (!input || !form) return;
+    var options = document.querySelectorAll('#company-datalist option');
+    input.addEventListener('input', function () {
+        var val = input.value;
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].value === val) {
+                form.submit();
+                return;
+            }
+        }
+    });
+})();
+
 function toggleDetail(id) {
     var row = document.getElementById('detail-' + id);
     if (row) {
