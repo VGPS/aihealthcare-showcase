@@ -28,12 +28,13 @@ import static org.mockito.Mockito.when;
  * Unit tests for {@link AiSearchService}.
  *
  * <p>Verifies vector search delegation, multi-port synthesis fan-out,
- * empty/null query handling, and graceful degradation when a model fails.
+ * empty/null query handling, graceful degradation when a model fails, and
+ * that models reporting NO_MATCH are tracked separately from real syntheses.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-06-02
- * @updated 2026-07-10
+ * @updated 2026-08-25
  */
 class AiSearchServiceTest {
 
@@ -156,6 +157,25 @@ class AiSearchServiceTest {
         assertThat(result.syntheses().get(1).summary()).isEqualTo("Model not currently available.");
         assertThat(result.syntheses().get(2).modelName()).isEqualTo("Perplexity");
         verify(adminNotifier).notifyModelFailure(eq("GPT"), eq("gpt-4o"), eq("surgery AI"), any(RuntimeException.class));
+    }
+
+    @Test
+    void search_whenModelReturnsNoMatch_recordsModelNameSeparatelyFromSyntheses() {
+        NewsArticle a1 = sampleArticle("a1", "Unrelated hospital merger news");
+        when(vectorSearch.findSimilar(eq("Grelin Health business model"), eq(10))).thenReturn(List.of(a1));
+
+        AiSearchSynthesis claudeSynthesis = new AiSearchSynthesis(
+                "Claude", "Claude summary", List.of("Finding"), Instant.now());
+        when(claudePort.synthesize(eq("Grelin Health business model"), eq(List.of(a1)))).thenReturn(claudeSynthesis);
+        when(gptPort.synthesize(eq("Grelin Health business model"), eq(List.of(a1)))).thenReturn(null);
+        when(perplexityPort.synthesize(eq("Grelin Health business model"), eq(List.of(a1)))).thenReturn(null);
+
+        AiSearchResult result = service.search("Grelin Health business model", 10);
+
+        assertThat(result.syntheses()).hasSize(1);
+        assertThat(result.syntheses().get(0).modelName()).isEqualTo("Claude");
+        assertThat(result.noMatchModelNames()).containsExactly("GPT", "Perplexity");
+        verify(adminNotifier, never()).notifyModelFailure(anyString(), anyString(), anyString(), any(Exception.class));
     }
 
     @Test

@@ -51,7 +51,7 @@ class CachingAiSearchDecoratorTest {
                 "Body text", "AI Healthcare", "Author",
                 1L, "Source", "ACADEMIC", 0.9, Instant.now());
         return new AiSearchResult("s1", query, List.of(article),
-                Collections.emptyList(), Instant.now());
+                Collections.emptyList(), Collections.emptyList(), Instant.now());
     }
 
     @Test

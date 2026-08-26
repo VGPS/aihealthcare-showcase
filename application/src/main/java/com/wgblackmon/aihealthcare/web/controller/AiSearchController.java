@@ -51,9 +51,9 @@ import java.util.Optional;
  * via {@link ArticleSearchPort#findSimilar(String, int)}.
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 2.1
  * @since   2026-06-02
- * @updated 2026-08-07
+ * @updated 2026-08-25
  */
 @Slf4j
 @Controller
@@ -148,14 +148,16 @@ public class AiSearchController {
 
             List<NewsArticle> articles;
             List<AiSearchSynthesis> syntheses = Collections.emptyList();
+            List<String> noMatchModels = Collections.emptyList();
 
             // Try AI-enhanced search (vector + synthesis); fall back to vector-only
             try {
                 AiSearchResult result = aiSearchUseCase.search(q.trim(), resolvedTopK, models);
                 articles = result.articles();
                 syntheses = result.syntheses();
-                log.info("search() | AI search returned {} articles, {} syntheses",
-                         articles.size(), syntheses.size());
+                noMatchModels = result.noMatchModelNames();
+                log.info("search() | AI search returned {} articles, {} syntheses, {} no-match",
+                         articles.size(), syntheses.size(), noMatchModels.size());
             } catch (Exception ex) {
                 log.warn("search() | AI synthesis failed, falling back to vector-only: {}",
                          ex.getMessage());
@@ -178,6 +180,7 @@ public class AiSearchController {
             }
 
             model.addAttribute("syntheses", syntheses);
+            model.addAttribute("noMatchModels", noMatchModels);
             model.addAttribute("articles", articles);
             model.addAttribute("articleDates", articleDates);
             model.addAttribute("articleCount", articles.size());

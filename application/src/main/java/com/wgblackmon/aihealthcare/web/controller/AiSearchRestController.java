@@ -24,9 +24,9 @@ import java.util.List;
  * returning a JSON response with side-by-side model comparisons.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-06-02
- * @updated 2026-06-06
+ * @updated 2026-08-25
  */
 @Slf4j
 @RestController
@@ -78,6 +78,7 @@ public class AiSearchRestController {
                 result.query(),
                 result.articles().size(),
                 synthesisDtos,
+                result.noMatchModelNames(),
                 result.searchedAt());
 
         log.debug("aiSearch() | return=AiSearchResponse[articles={}, syntheses={}]",

@@ -50,9 +50,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * multi-model AI synthesis rendering, and usage tracking increments.
  *
  * @author  Bill Blackmon
- * @version 2.1
+ * @version 2.2
  * @since   2026-06-02
- * @updated 2026-07-10
+ * @updated 2026-08-25
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(AiSearchController.class)
@@ -125,7 +125,7 @@ class AiSearchControllerTest {
                 "Perplexity", "Perplexity synthesis highlights real-time research trends.",
                 List.of("Live source citations available", "Sonar model excels at aggregation"),
                 Instant.now());
-        return new AiSearchResult("search-1", query, List.of(a1), List.of(claude, gpt, perplexity), Instant.now());
+        return new AiSearchResult("search-1", query, List.of(a1), List.of(claude, gpt, perplexity), List.of(), Instant.now());
     }
 
     // -------------------------------------------------------------------------
@@ -184,13 +184,32 @@ class AiSearchControllerTest {
     void search_subscriberTier_withQuery_incrementsUsage() throws Exception {
         stubSubscriberTier("subscriber@example.com");
         AiSearchResult emptyResult = new AiSearchResult(
-                "s1", "test", List.of(), List.of(), Instant.now());
+                "s1", "test", List.of(), List.of(), List.of(), Instant.now());
         when(aiSearchUseCase.search(anyString(), anyInt(), any())).thenReturn(emptyResult);
 
         mockMvc.perform(get("/research/ai-search").param("q", "test query"))
                 .andExpect(status().isOk());
 
         verify(usageTrackingPort).incrementAndGet(eq("subscriber@example.com"), anyString());
+    }
+
+    @Test
+    @WithMockUser(username = "subscriber@example.com")
+    void search_subscriberTier_partialNoMatch_showsNoteAboutDecliningModels() throws Exception {
+        stubSubscriberTier("subscriber@example.com");
+        NewsArticle a1 = sampleArticle("id-1", "Unrelated hospital merger news");
+        AiSearchSynthesis claude = new AiSearchSynthesis(
+                "Claude", "Claude found key insights.", List.of("Finding"), Instant.now());
+        AiSearchResult result = new AiSearchResult(
+                "search-1", "Grelin Health business model", List.of(a1), List.of(claude),
+                List.of("GPT", "Perplexity"), Instant.now());
+        when(aiSearchUseCase.search(eq("Grelin Health business model"), eq(20), any())).thenReturn(result);
+
+        mockMvc.perform(get("/research/ai-search").param("q", "Grelin Health business model"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("noMatchModels", List.of("GPT", "Perplexity")))
+                .andExpect(content().string(containsString("GPT, Perplexity")))
+                .andExpect(content().string(containsString("found no relevant match")));
     }
 
     // -------------------------------------------------------------------------
@@ -223,7 +242,7 @@ class AiSearchControllerTest {
     void search_subscriberTier_emptyResults_showsEmptyState() throws Exception {
         stubSubscriberTier("subscriber@example.com");
         AiSearchResult emptyResult = new AiSearchResult(
-                "s1", "obscure topic", List.of(), List.of(), Instant.now());
+                "s1", "obscure topic", List.of(), List.of(), List.of(), Instant.now());
         when(aiSearchUseCase.search(anyString(), anyInt(), any())).thenReturn(emptyResult);
 
         mockMvc.perform(get("/research/ai-search").param("q", "obscure topic"))
