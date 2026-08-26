@@ -7,13 +7,23 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-10
- * @updated 2026-07-28
+ * @updated 2026-08-26
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/head :: head('Prompt the Wiki')}">
 </head>
+
+<style>
+    @media print {
+        header, nav, footer, .no-print { display: none !important; }
+        body { background: white !important; }
+        .shadow-sm { box-shadow: none !important; }
+        main { max-width: 100% !important; padding: 0.5rem !important; }
+        .border-l-4 { break-inside: avoid; page-break-inside: avoid; }
+    }
+</style>
 
 <body class="bg-surface font-sans text-on-surface">
 
@@ -102,10 +112,23 @@
         </form>
     </div>
 
+    <!-- Save Results toolbar -->
+    <div th:if="${syntheses != null && !syntheses.isEmpty()}" class="no-print flex justify-end gap-2 mb-3">
+        <button type="button" onclick="saveAsMarkdown()"
+                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
+            Download (.md)
+        </button>
+        <button type="button" onclick="window.print()"
+                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
+            Save as PDF
+        </button>
+    </div>
+
     <!-- AI Syntheses -->
     <div th:if="${syntheses != null && !syntheses.isEmpty()}">
         <div th:each="synthesis : ${syntheses}"
              class="bg-white rounded-lg shadow-sm p-5 mb-4 border-l-4"
+             th:attr="data-model=${synthesis.modelName()}"
              th:classappend="${#strings.toLowerCase(synthesis.modelName()) == 'claude'} ? 'border-amber-400 bg-amber-50/20'
                           : (${#strings.toLowerCase(synthesis.modelName()) == 'gpt'} ? 'border-emerald-500 bg-emerald-50/20'
                           : (${#strings.toLowerCase(synthesis.modelName()) == 'perplexity'} ? 'border-blue-500 bg-blue-50/20'
@@ -121,7 +144,7 @@
                       th:text="${synthesis.modelName()}">Claude</span>
                 <span class="text-sm font-semibold text-on-surface">Wiki Synthesis</span>
             </div>
-            <div class="text-sm leading-relaxed text-gray-700 mb-4"
+            <div class="text-sm leading-relaxed text-gray-700 mb-4" data-synthesis-summary
                  th:text="${synthesis.summary()}">
                 AI-generated summary grounded in wiki content...
             </div>
@@ -163,7 +186,7 @@
                                : (${page.pageType().name() == 'COMPARISON'} ? 'bg-amber-100 text-amber-800'
                                : 'bg-gray-200 text-gray-600'))"
                   th:text="${page.pageType().name()}">ENTITY</span>
-            <a class="text-sm font-medium text-on-surface hover:text-primary-600"
+            <a class="text-sm font-medium text-on-surface hover:text-primary-600" data-wiki-page
                th:href="@{/wiki/{slug}(slug=${page.slug()})}"
                th:text="${page.title()}">Page Title</a>
             <span class="text-xs text-primary-600 font-medium"
@@ -178,6 +201,61 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
+    function saveAsMarkdown() {
+        var params = new URLSearchParams(window.location.search);
+        var query = params.get('q') || 'Wiki Prompt';
+        var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        var lines = [];
+        lines.push('# Wiki Search Results');
+        lines.push('');
+        lines.push('**Query:** ' + query);
+        lines.push('**Date:** ' + dateStr);
+        lines.push('');
+        lines.push('---');
+        lines.push('');
+        var cards = document.querySelectorAll('[data-model]');
+        for (var i = 0; i < cards.length; i++) {
+            var modelName = cards[i].getAttribute('data-model');
+            var summaryEl = cards[i].querySelector('[data-synthesis-summary]');
+            var summary = summaryEl ? summaryEl.innerText.trim() : '';
+            lines.push('## ' + modelName + ' Wiki Synthesis');
+            lines.push('');
+            lines.push(summary);
+            lines.push('');
+            var findingEls = cards[i].querySelectorAll('li');
+            if (findingEls.length > 0) {
+                lines.push('**Key Findings:**');
+                lines.push('');
+                for (var j = 0; j < findingEls.length; j++) {
+                    lines.push('- ' + findingEls[j].innerText.trim());
+                }
+                lines.push('');
+            }
+            if (i < cards.length - 1) { lines.push('---'); lines.push(''); }
+        }
+        var pageLinks = document.querySelectorAll('[data-wiki-page]');
+        if (pageLinks.length > 0) {
+            lines.push('');
+            lines.push('## Source Wiki Pages');
+            lines.push('');
+            for (var k = 0; k < pageLinks.length; k++) {
+                var link = pageLinks[k];
+                lines.push((k + 1) + '. [' + link.textContent.trim() + '](' + link.href + ')');
+            }
+        }
+        var content = lines.join('\n');
+        var blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl;
+        var slug = query.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+        a.download = 'wiki-ask-' + slug + '-' + new Date().toISOString().slice(0, 10) + '.md';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objUrl);
+    }
+
     document.querySelector('form').addEventListener('submit', function() {
         var btn = document.getElementById('promptBtn');
         if (btn) btn.classList.add('loading');
