@@ -12,7 +12,7 @@
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-03-01
- * @updated 2026-08-25
+ * @updated 2026-08-26
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -28,6 +28,13 @@
     .cite-link:hover { color: #6d28d9; border-bottom-style: solid; }
     .source-card.cite-highlight { animation: citeFlash 2s ease-out; }
     @keyframes citeFlash { 0% { background: #ede9fe; } 100% { background: white; } }
+    @media print {
+        header, nav, footer, #loadingOverlay, .no-print { display: none !important; }
+        body { background: white !important; }
+        .shadow-sm { box-shadow: none !important; }
+        main { max-width: 100% !important; padding: 0.5rem !important; }
+        .border-l-4 { break-inside: avoid; page-break-inside: avoid; }
+    }
 </style>
 <body class="bg-surface font-sans text-on-surface">
 
@@ -141,9 +148,23 @@
         only the models below produced a synthesis.
     </div>
 
+    <!-- Save Results toolbar — hidden in print/PDF -->
+    <div th:if="${syntheses != null and !syntheses.isEmpty()}"
+         class="no-print flex justify-end gap-2 mb-3">
+        <button type="button" onclick="saveAsMarkdown()"
+                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
+            Download (.md)
+        </button>
+        <button type="button" onclick="window.print()"
+                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
+            Save as PDF
+        </button>
+    </div>
+
     <!-- AI Syntheses — stacked model cards -->
     <div th:if="${syntheses != null and !syntheses.isEmpty()}" class="mb-6">
         <div th:each="synthesis : ${syntheses}"
+             th:attr="data-model=${synthesis.modelName()}"
              th:classappend="${synthesis.modelName() == 'Claude'} ? 'border-amber-400 bg-amber-50/20'
                           : (${synthesis.modelName() == 'GPT'} ? 'border-emerald-500 bg-emerald-50/20'
                           : (${synthesis.modelName() == 'Perplexity'} ? 'border-blue-500 bg-blue-50/20'
@@ -230,6 +251,65 @@
 </div>
 
 <script>
+    function saveAsMarkdown() {
+        var params = new URLSearchParams(window.location.search);
+        var query = params.get('q') || 'AI Search';
+        var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        var lines = [];
+        lines.push('# AI Search Results');
+        lines.push('');
+        lines.push('**Query:** ' + query);
+        lines.push('**Date:** ' + dateStr);
+        lines.push('');
+        lines.push('---');
+        lines.push('');
+        var cards = document.querySelectorAll('[data-model]');
+        for (var i = 0; i < cards.length; i++) {
+            var modelName = cards[i].getAttribute('data-model') || 'Model';
+            var summaryEl = cards[i].querySelector('div.synthesis-text');
+            var summary = summaryEl ? summaryEl.innerText.trim() : '';
+            lines.push('## ' + modelName + ' Synthesis');
+            lines.push('');
+            lines.push(summary);
+            lines.push('');
+            var findingEls = cards[i].querySelectorAll('li.synthesis-text');
+            if (findingEls.length > 0) {
+                lines.push('**Key Findings:**');
+                lines.push('');
+                for (var j = 0; j < findingEls.length; j++) {
+                    lines.push('- ' + findingEls[j].innerText.trim());
+                }
+                lines.push('');
+            }
+            if (i < cards.length - 1) { lines.push('---'); lines.push(''); }
+        }
+        var sources = document.querySelectorAll('.source-card');
+        if (sources.length > 0) {
+            lines.push('');
+            lines.push('## Source Articles');
+            lines.push('');
+            for (var k = 0; k < sources.length; k++) {
+                var linkEl = sources[k].querySelector('a[href]');
+                var numEl = sources[k].querySelector('span.font-bold');
+                var num = numEl ? numEl.textContent.trim() : '[' + (k + 1) + ']';
+                var title = linkEl ? linkEl.textContent.trim() : 'Article';
+                var url = linkEl ? linkEl.href : '';
+                lines.push(num + ' [' + title + '](' + url + ')');
+            }
+        }
+        var content = lines.join('\n');
+        var blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl;
+        var slug = query.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+        a.download = 'ai-search-' + slug + '-' + new Date().toISOString().slice(0, 10) + '.md';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objUrl);
+    }
+
     document.querySelector('form').addEventListener('submit', function() {
         var btn = document.getElementById('searchBtn');
         if (btn) btn.classList.add('loading');
