@@ -12,9 +12,9 @@ import java.util.Optional;
  * and ordered listing for the UI.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-02
- * @updated 2026-08-02
+ * @updated 2026-08-26
  */
 public interface HealthcareAiCompanyRepository
         extends JpaRepository<HealthcareAiCompanyEntity, String> {
@@ -23,9 +23,13 @@ public interface HealthcareAiCompanyRepository
 
     Optional<HealthcareAiCompanyEntity> findByDomain(String domain);
 
+    Optional<HealthcareAiCompanyEntity> findBySlug(String slug);
+
     boolean existsByNameNormalized(String nameNormalized);
 
     boolean existsByDomain(String domain);
 
     List<HealthcareAiCompanyEntity> findAllByOrderByDiscoveredAtDesc();
+
+    List<HealthcareAiCompanyEntity> findAllByOrderByNameAsc();
 }

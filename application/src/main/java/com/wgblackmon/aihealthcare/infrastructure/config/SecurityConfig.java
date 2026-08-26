@@ -31,9 +31,9 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * session exists ({@code /api/**}, {@code /monitoring/**}, {@code /stripe/**}).
  *
  * @author  Bill Blackmon
- * @version 1.5
+ * @version 1.6
  * @since   2026-05-28
- * @updated 2026-08-25
+ * @updated 2026-08-26
  */
 @Slf4j
 @Configuration
@@ -69,7 +69,8 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login", "/register", "/choose-path", "/unsubscribe", "/unsubscribe/downgrade",
                                  "/forgot-password", "/reset-password",
                                  "/css/**", "/js/**", "/webjars/**",
-                                 "/pricing", "/about", "/press", "/press/og.png", "/error").permitAll()
+                                 "/pricing", "/about", "/press", "/press/og.png", "/error",
+                                 "/companies", "/companies/**").permitAll()
                 .requestMatchers("/api/v1/stripe/webhook").permitAll()
                 .requestMatchers("/api/v1/feedback/**").permitAll()
                 .requestMatchers("/api/v1/monitoring/**").hasRole("ADMIN")

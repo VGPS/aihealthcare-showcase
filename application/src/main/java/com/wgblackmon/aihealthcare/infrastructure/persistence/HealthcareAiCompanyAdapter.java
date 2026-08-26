@@ -18,9 +18,9 @@ import java.util.Optional;
  * in the database and converted to/from {@code List<String>} on the domain side.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-02
- * @updated 2026-08-02
+ * @updated 2026-08-26
  */
 @Slf4j
 @Component
@@ -70,6 +70,14 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
     }
 
     @Override
+    public Optional<HealthcareAiCompany> findBySlug(String slug) {
+        log.debug("findBySlug() | slug={}", slug);
+        Optional<HealthcareAiCompany> result = repository.findBySlug(slug).map(this::toDomain);
+        log.debug("findBySlug() | return={}", result.isPresent() ? "found" : "empty");
+        return result;
+    }
+
+    @Override
     public List<HealthcareAiCompany> findAll() {
         log.debug("findAll() |");
         List<HealthcareAiCompanyEntity> entities = repository.findAllByOrderByDiscoveredAtDesc();
@@ -81,13 +89,32 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
         return result;
     }
 
+    @Override
+    public List<HealthcareAiCompany> findAllByOrderByName() {
+        log.debug("findAllByOrderByName() |");
+        List<HealthcareAiCompanyEntity> entities = repository.findAllByOrderByNameAsc();
+        List<HealthcareAiCompany> result = new ArrayList<>();
+        for (HealthcareAiCompanyEntity entity : entities) {
+            result.add(toDomain(entity));
+        }
+        log.debug("findAllByOrderByName() | return={} companies", result.size());
+        return result;
+    }
+
     // -------------------------------------------------------------------------
     // Mapping helpers
     // -------------------------------------------------------------------------
 
+    /** Converts a display name to a URL-safe slug (e.g. "Grelin Health" → "grelin-health"). */
+    static String computeSlug(String name) {
+        if (name == null || name.isBlank()) return "";
+        return name.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+    }
+
     HealthcareAiCompanyEntity toEntity(HealthcareAiCompany company) {
         HealthcareAiCompanyEntity entity = new HealthcareAiCompanyEntity();
         entity.setCompanyId(company.companyId());
+        entity.setSlug(computeSlug(company.name()));
         entity.setName(company.name());
         entity.setNameNormalized(company.nameNormalized());
         entity.setDomain(company.domain());

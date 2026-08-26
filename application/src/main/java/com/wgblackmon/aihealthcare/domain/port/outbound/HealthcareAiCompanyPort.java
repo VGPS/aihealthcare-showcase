@@ -13,9 +13,9 @@ import java.util.Optional;
  * this port provides the lookup methods to support it.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-02
- * @updated 2026-08-02
+ * @updated 2026-08-26
  */
 public interface HealthcareAiCompanyPort {
 
@@ -35,6 +35,11 @@ public interface HealthcareAiCompanyPort {
     Optional<HealthcareAiCompany> findByDomain(String domain);
 
     /**
+     * Finds a company by its URL slug (derived from the display name).
+     */
+    Optional<HealthcareAiCompany> findBySlug(String slug);
+
+    /**
      * Returns true if a company with the given normalized name or domain exists.
      */
     boolean existsByNameOrDomain(String nameNormalized, String domain);
@@ -43,4 +48,9 @@ public interface HealthcareAiCompanyPort {
      * Returns all companies ordered by discoveredAt descending.
      */
     List<HealthcareAiCompany> findAll();
+
+    /**
+     * Returns all companies sorted alphabetically by name.
+     */
+    List<HealthcareAiCompany> findAllByOrderByName();
 }
