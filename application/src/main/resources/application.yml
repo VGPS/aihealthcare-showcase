@@ -492,6 +492,18 @@ aihealthcare:
         tier: INDUSTRY
         base-weight: 0.7
         max-items: 20
+      - topic-id: 1
+        name: Grelin Health Blog
+        topic: General AI Healthcare News
+        url: https://www.grelinhealth.com/resources/blog
+        tier: COMPETITOR
+        base-weight: 0.55
+        max-items: 5
+        keywords:
+          - artificial intelligence
+          - AI
+          - machine learning
+          - automation
       # -----------------------------------------------------------------
       # AI Healthcare Software Development
       # -----------------------------------------------------------------
