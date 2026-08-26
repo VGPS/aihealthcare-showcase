@@ -504,6 +504,18 @@ aihealthcare:
           - AI
           - machine learning
           - automation
+      - topic-id: 1
+        name: Grelin Health News
+        topic: General AI Healthcare News
+        url: https://www.grelinhealth.com/resources/news
+        tier: COMPETITOR
+        base-weight: 0.55
+        max-items: 5
+        keywords:
+          - artificial intelligence
+          - AI
+          - machine learning
+          - automation
       # -----------------------------------------------------------------
       # AI Healthcare Software Development
       # -----------------------------------------------------------------
