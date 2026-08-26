@@ -243,7 +243,7 @@
                 class="text-sm font-bold text-gray-700 border border-gray-400 rounded px-4 py-2 hover:bg-gray-100 bg-white">
             Download (.doc)
         </button>
-        <button type="button" onclick="window.print()"
+        <button type="button" onclick="saveAsPdf(event)"
                 class="text-sm font-bold text-gray-700 border border-gray-400 rounded px-4 py-2 hover:bg-gray-100 bg-white">
             Download (.pdf)
         </button>
@@ -426,6 +426,29 @@
         a.download = 'ai-search-' + slug + '-' + new Date().toISOString().slice(0, 10) + '.doc';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(objUrl);
+    }
+
+    function saveAsPdf(evt) {
+        var btn = evt.currentTarget;
+        var origText = btn.textContent.trim();
+        btn.textContent = 'Generating…';
+        btn.disabled = true;
+        var q = new URLSearchParams(window.location.search).get('q') || 'search';
+        var slug = q.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+        var filename = 'ai-search-' + slug + '-' + new Date().toISOString().slice(0, 10) + '.pdf';
+        var noPrint = document.querySelectorAll('.no-print');
+        var saved = [];
+        for (var i = 0; i < noPrint.length; i++) { saved.push(noPrint[i].style.display); noPrint[i].style.display = 'none'; }
+        function restore() { for (var i = 0; i < noPrint.length; i++) noPrint[i].style.display = saved[i]; btn.textContent = origText; btn.disabled = false; }
+        function doPdf() {
+            html2pdf().set({ margin: 0.5, filename: filename, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } })
+                .from(document.querySelector('main')).save().then(restore).catch(restore);
+        }
+        if (typeof html2pdf === 'undefined') {
+            var s = document.createElement('script');
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+            s.onload = doPdf; s.onerror = restore; document.head.appendChild(s);
+        } else { doPdf(); }
     }
 
     // Show save toolbar whenever a search has been executed (q param in URL) and user has access
