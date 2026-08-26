@@ -225,6 +225,8 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /dashboard/regulatory` | `RegulatoryController` | `regulatory.html` — FDA/CMS regulatory alerts with filter tabs + tier gating |
 | `GET /dashboard/deals` | `DealSignalController` | `deals.html` — deal signals with type filter, tier gating |
 | `GET /dashboard/deals/{signalId}` | `DealSignalController` | `deals-detail.html` — cross-referenced deal context (sentiment, framework, regulatory, profile) |
+| `GET /directory` | `PublicCompanyController` | `company-directory.html` — public company list with sector filter pills; no login required |
+| `GET /directory/{slug}` | `PublicCompanyController` | `company-directory-detail.html` — public company profile with clickable `[N]` citation anchors; JSON-LD SEO |
 
 ---
 
