@@ -70,7 +70,7 @@ public class SecurityConfig {
                                  "/forgot-password", "/reset-password",
                                  "/css/**", "/js/**", "/webjars/**",
                                  "/pricing", "/about", "/press", "/press/og.png", "/error",
-                                 "/companies", "/companies/**").permitAll()
+                                 "/directory", "/directory/**").permitAll()
                 .requestMatchers("/api/v1/stripe/webhook").permitAll()
                 .requestMatchers("/api/v1/feedback/**").permitAll()
                 .requestMatchers("/api/v1/monitoring/**").hasRole("ADMIN")

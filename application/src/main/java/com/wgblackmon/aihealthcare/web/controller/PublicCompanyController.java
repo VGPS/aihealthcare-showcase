@@ -35,7 +35,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Controller
-@RequestMapping("/companies")
+@RequestMapping("/directory")
 public class PublicCompanyController {
 
     private final BrowseCompaniesUseCase browseCompaniesUseCase;
@@ -111,8 +111,8 @@ public class PublicCompanyController {
 
         Optional<HealthcareAiCompany> found = browseCompaniesUseCase.getCompany(slug);
         if (found.isEmpty()) {
-            log.debug("detail() | return=redirect:/companies (not found)");
-            return "redirect:/companies";
+            log.debug("detail() | return=redirect:/directory (not found)");
+            return "redirect:/directory";
         }
 
         HealthcareAiCompany c = found.get();
