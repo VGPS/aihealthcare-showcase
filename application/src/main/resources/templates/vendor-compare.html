@@ -11,7 +11,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-02-01
- * @updated 2026-08-12
+ * @updated 2026-08-26
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -27,6 +27,13 @@
     .cite-link:hover { color: #6d28d9; border-bottom-style: solid; }
     .source-row.cite-highlight { animation: citeFlash 2s ease-out; }
     @keyframes citeFlash { 0% { background: #ede9fe; } 100% { background: transparent; } }
+    @media print {
+        header, nav, footer, #loadingOverlay, .no-print { display: none !important; }
+        body { background: white !important; }
+        .shadow-sm { box-shadow: none !important; }
+        main { max-width: 100% !important; padding: 0.5rem !important; }
+        .rounded-lg { break-inside: avoid; page-break-inside: avoid; }
+    }
 </style>
 <body class="bg-surface font-sans text-on-surface">
 
@@ -131,6 +138,18 @@
          class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm"
          th:text="${errorMessage}"></div>
 
+    <!-- Save Results toolbar -->
+    <div th:if="${hasResults}" class="no-print flex justify-end gap-2 mb-3">
+        <button type="button" onclick="saveAsMarkdown()"
+                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
+            Download (.md)
+        </button>
+        <button type="button" onclick="window.print()"
+                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
+            Save as PDF
+        </button>
+    </div>
+
     <!-- Results -->
     <div th:if="${hasResults}">
         <p class="text-sm text-gray-500 mb-4"
@@ -138,7 +157,8 @@
 
         <!-- Vendor grid -->
         <div class="grid gap-5 mb-8" style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr))">
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden" th:each="vendor : ${vendors}">
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden" th:each="vendor : ${vendors}"
+                 th:attr="data-vendor=${vendor.vendorName()}">
 
                 <!-- Card header -->
                 <div class="bg-gray-900 text-white px-5 py-3 flex justify-between items-center">
@@ -170,7 +190,7 @@
                     <!-- Strengths -->
                     <div class="mb-3">
                         <h4 class="text-xs font-semibold uppercase tracking-wider text-green-700 mb-2">Strengths</h4>
-                        <ul th:if="${!vendor.strengths().isEmpty()}" class="space-y-1">
+                        <ul th:if="${!vendor.strengths().isEmpty()}" class="space-y-1" data-list="strengths">
                             <li th:each="s : ${vendor.strengths()}"
                                 th:utext="${s}"
                                 class="synthesis-text text-xs text-gray-600 pl-4 relative before:content-['+'] before:absolute before:left-0 before:text-green-600 before:font-bold">
@@ -183,7 +203,7 @@
                     <!-- Weaknesses -->
                     <div>
                         <h4 class="text-xs font-semibold uppercase tracking-wider text-red-600 mb-2">Weaknesses</h4>
-                        <ul th:if="${!vendor.weaknesses().isEmpty()}" class="space-y-1">
+                        <ul th:if="${!vendor.weaknesses().isEmpty()}" class="space-y-1" data-list="weaknesses">
                             <li th:each="w : ${vendor.weaknesses()}"
                                 th:utext="${w}"
                                 class="synthesis-text text-xs text-gray-600 pl-4 relative before:content-['−'] before:absolute before:left-0 before:text-red-500 before:font-bold">
@@ -283,6 +303,80 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
+    function saveAsMarkdown() {
+        var params = new URLSearchParams(window.location.search);
+        var focusArea = params.get('focusArea') || '';
+        var query = params.get('query') || '';
+        var scoring = params.get('scoring') || 'DOC_FREQUENCY';
+        var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        var lines = [];
+        lines.push('# Vendor Comparison Results');
+        lines.push('');
+        if (focusArea) lines.push('**Focus Area:** ' + focusArea);
+        if (query) lines.push('**Query:** ' + query);
+        lines.push('**Scoring:** ' + (scoring === 'TF_IDF' ? 'TF-IDF' : 'Document Frequency'));
+        lines.push('**Date:** ' + dateStr);
+        lines.push('');
+        lines.push('---');
+        lines.push('');
+        var cards = document.querySelectorAll('[data-vendor]');
+        for (var i = 0; i < cards.length; i++) {
+            var vendorName = cards[i].getAttribute('data-vendor');
+            var scoreEl = cards[i].querySelector('.bg-gray-900 span:last-child');
+            var score = scoreEl ? scoreEl.textContent.trim() : '';
+            var labelEl = cards[i].querySelector('label');
+            var mentionInfo = labelEl ? labelEl.textContent.trim() : '';
+            lines.push('## ' + vendorName + ' — Relevance ' + score);
+            if (mentionInfo) { lines.push(''); lines.push('*' + mentionInfo + '*'); }
+            lines.push('');
+            var strengthEls = cards[i].querySelectorAll('[data-list="strengths"] li');
+            if (strengthEls.length > 0) {
+                lines.push('**Strengths:**');
+                for (var j = 0; j < strengthEls.length; j++) {
+                    lines.push('+ ' + strengthEls[j].innerText.trim());
+                }
+                lines.push('');
+            }
+            var weaknessEls = cards[i].querySelectorAll('[data-list="weaknesses"] li');
+            if (weaknessEls.length > 0) {
+                lines.push('**Weaknesses:**');
+                for (var k = 0; k < weaknessEls.length; k++) {
+                    lines.push('- ' + weaknessEls[k].innerText.trim());
+                }
+                lines.push('');
+            }
+            if (i < cards.length - 1) { lines.push('---'); lines.push(''); }
+        }
+        var rows = document.querySelectorAll('table tbody tr');
+        if (rows.length > 0) {
+            lines.push('');
+            lines.push('## Source Documents');
+            lines.push('');
+            for (var m = 0; m < rows.length; m++) {
+                var numEl = rows[m].querySelector('.ref-num');
+                var linkEl = rows[m].querySelector('.ref-title a');
+                var pubEl = rows[m].querySelector('.ref-pub');
+                var dtEl = rows[m].querySelector('.ref-date');
+                var num = numEl ? numEl.textContent.trim() : (m + 1);
+                var title = linkEl ? linkEl.textContent.trim() : '';
+                var url = linkEl ? linkEl.href : '';
+                var pub = pubEl ? pubEl.textContent.trim() : '';
+                var dt = dtEl ? dtEl.textContent.trim() : '';
+                lines.push('[' + num + '] [' + title + '](' + url + ')' + (pub && pub !== '—' ? ' — ' + pub : '') + (dt && dt !== '—' ? ' — ' + dt : ''));
+            }
+        }
+        var content = lines.join('\n');
+        var blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl;
+        a.download = 'vendor-compare-' + new Date().toISOString().slice(0, 10) + '.md';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objUrl);
+    }
+
     document.querySelector('form').addEventListener('submit', function() {
         var btn = document.getElementById('searchBtn');
         if (btn) btn.classList.add('loading');
