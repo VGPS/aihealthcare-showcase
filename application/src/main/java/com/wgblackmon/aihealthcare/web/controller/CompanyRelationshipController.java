@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -31,7 +32,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-05
+ * @updated 2026-08-26
  */
 @Slf4j
 @Controller
@@ -91,7 +92,9 @@ public class CompanyRelationshipController {
         model.addAttribute("typeCounts", typeCounts);
         model.addAttribute("totalRelationships", relList.size());
         model.addAttribute("companyCount", companyNames.size());
-        model.addAttribute("companyNames", new ArrayList<>(companyNames));
+        List<String> sortedCompanyNames = new ArrayList<>(companyNames);
+        Collections.sort(sortedCompanyNames);
+        model.addAttribute("companyNames", sortedCompanyNames);
         model.addAttribute("filterCompany", company);
         model.addAttribute("sort", sort);
         model.addAttribute("activePage", "relationships");
