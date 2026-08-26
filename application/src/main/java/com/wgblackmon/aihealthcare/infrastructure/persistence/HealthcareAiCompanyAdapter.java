@@ -72,9 +72,25 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
     @Override
     public Optional<HealthcareAiCompany> findBySlug(String slug) {
         log.debug("findBySlug() | slug={}", slug);
+        // Try the stored slug column first (fast path)
         Optional<HealthcareAiCompany> result = repository.findBySlug(slug).map(this::toDomain);
-        log.debug("findBySlug() | return={}", result.isPresent() ? "found" : "empty");
-        return result;
+        if (result.isPresent()) {
+            log.debug("findBySlug() | return=found (slug column)");
+            return result;
+        }
+        // Fall back: scan all companies matching by name-derived slug.
+        // Handles rows inserted before the slug column existed (slug IS NULL).
+        for (HealthcareAiCompanyEntity entity : repository.findAll()) {
+            if (slug.equals(computeSlug(entity.getName()))) {
+                // Opportunistically backfill the slug column so next lookup is fast
+                entity.setSlug(slug);
+                repository.save(entity);
+                log.debug("findBySlug() | return=found (name fallback, slug backfilled)");
+                return Optional.of(toDomain(entity));
+            }
+        }
+        log.debug("findBySlug() | return=empty");
+        return Optional.empty();
     }
 
     @Override
