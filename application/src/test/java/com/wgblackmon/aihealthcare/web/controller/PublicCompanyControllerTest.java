@@ -44,7 +44,7 @@ class PublicCompanyControllerTest {
     void directory_returnsOkWithCompanies() throws Exception {
         when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(sampleCompany()));
 
-        mockMvc.perform(get("/companies"))
+        mockMvc.perform(get("/directory"))
                .andExpect(status().isOk())
                .andExpect(view().name("company-directory"))
                .andExpect(model().attributeExists("companies"))
@@ -55,7 +55,7 @@ class PublicCompanyControllerTest {
     void directory_emptyList_returnsOk() throws Exception {
         when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of());
 
-        mockMvc.perform(get("/companies"))
+        mockMvc.perform(get("/directory"))
                .andExpect(status().isOk())
                .andExpect(view().name("company-directory"))
                .andExpect(model().attribute("totalCount", 0));
@@ -66,7 +66,7 @@ class PublicCompanyControllerTest {
         HealthcareAiCompany company = sampleCompany();
         when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(company));
 
-        mockMvc.perform(get("/companies").param("sector", "Healthcare AI"))
+        mockMvc.perform(get("/directory").param("sector", "Healthcare AI"))
                .andExpect(status().isOk())
                .andExpect(view().name("company-directory"))
                .andExpect(model().attributeExists("selectedSector"));
@@ -76,7 +76,7 @@ class PublicCompanyControllerTest {
     void directory_sectorFilter_excludesNonMatchingCompanies() throws Exception {
         when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(sampleCompany()));
 
-        mockMvc.perform(get("/companies").param("sector", "Other Sector"))
+        mockMvc.perform(get("/directory").param("sector", "Other Sector"))
                .andExpect(status().isOk())
                .andExpect(model().attribute("totalCount", 1)); // totalCount is unfiltered
     }
@@ -85,7 +85,7 @@ class PublicCompanyControllerTest {
     void detail_foundCompany_returnsDetailView() throws Exception {
         when(browseCompaniesUseCase.getCompany("grelin-health")).thenReturn(Optional.of(sampleCompany()));
 
-        mockMvc.perform(get("/companies/grelin-health"))
+        mockMvc.perform(get("/directory/grelin-health"))
                .andExpect(status().isOk())
                .andExpect(view().name("company-directory-detail"))
                .andExpect(model().attributeExists("company"))
@@ -96,9 +96,9 @@ class PublicCompanyControllerTest {
     void detail_notFound_redirectsToDirectory() throws Exception {
         when(browseCompaniesUseCase.getCompany("no-such-co")).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/companies/no-such-co"))
+        mockMvc.perform(get("/directory/no-such-co"))
                .andExpect(status().is3xxRedirection())
-               .andExpect(redirectedUrl("/companies"));
+               .andExpect(redirectedUrl("/directory"));
     }
 
     @Test
