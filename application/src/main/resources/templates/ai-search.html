@@ -148,19 +148,6 @@
         only the models below produced a synthesis.
     </div>
 
-    <!-- Save Results toolbar — shown by JS when URL has a non-empty q param and user is not access-denied -->
-    <div id="saveToolbar" style="display:none;"
-         class="no-print flex justify-end gap-2 mb-3">
-        <button type="button" onclick="saveAsMarkdown()"
-                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
-            Download (.md)
-        </button>
-        <button type="button" onclick="window.print()"
-                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
-            Save as PDF
-        </button>
-    </div>
-
     <!-- AI Syntheses — stacked model cards -->
     <div th:if="${syntheses != null and !syntheses.isEmpty()}" class="mb-6">
         <div th:each="synthesis : ${syntheses}"
@@ -241,6 +228,27 @@
         </div>
     </div>
 
+    <!-- Save Results toolbar — shown by JS at bottom of page when a search has been executed -->
+    <div id="saveToolbar" style="display:none;"
+         class="no-print mt-6 pt-4 border-t border-gray-200 flex flex-wrap justify-end gap-2">
+        <button type="button" onclick="saveAsMarkdown()"
+                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
+            Download (.md)
+        </button>
+        <button type="button" onclick="saveAsTxt()"
+                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
+            Download (.txt)
+        </button>
+        <button type="button" onclick="saveAsDoc()"
+                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
+            Download (.doc)
+        </button>
+        <button type="button" onclick="window.print()"
+                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
+            Save as PDF
+        </button>
+    </div>
+
 </main>
 
 <div id="loadingOverlay" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
@@ -311,6 +319,112 @@
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        URL.revokeObjectURL(objUrl);
+    }
+
+    function buildPlainText() {
+        var params = new URLSearchParams(window.location.search);
+        var query = params.get('q') || 'AI Search';
+        var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        var lines = [];
+        lines.push('AI SEARCH RESULTS');
+        lines.push('Query: ' + query);
+        lines.push('Date: ' + dateStr);
+        lines.push('');
+        var cards = document.querySelectorAll('[data-model]');
+        if (cards.length === 0) {
+            lines.push('All selected AI models found no relevant match among the retrieved articles for this query.');
+            lines.push('');
+        }
+        for (var i = 0; i < cards.length; i++) {
+            var modelName = cards[i].getAttribute('data-model') || 'Model';
+            var summaryEl = cards[i].querySelector('div.synthesis-text');
+            var summary = summaryEl ? summaryEl.innerText.trim() : '';
+            lines.push('--- ' + modelName + ' Synthesis ---');
+            lines.push('');
+            lines.push(summary);
+            lines.push('');
+            var findingEls = cards[i].querySelectorAll('li.synthesis-text');
+            if (findingEls.length > 0) {
+                lines.push('Key Findings:');
+                for (var j = 0; j < findingEls.length; j++) {
+                    lines.push('  * ' + findingEls[j].innerText.trim());
+                }
+                lines.push('');
+            }
+        }
+        var sources = document.querySelectorAll('.source-card');
+        if (sources.length > 0) {
+            lines.push('Source Articles:');
+            for (var k = 0; k < sources.length; k++) {
+                var linkEl = sources[k].querySelector('a[href]');
+                var numEl = sources[k].querySelector('span.font-bold');
+                var num = numEl ? numEl.textContent.trim() : '[' + (k + 1) + ']';
+                var title = linkEl ? linkEl.textContent.trim() : 'Article';
+                var url = linkEl ? linkEl.href : '';
+                lines.push(num + ' ' + title + ' — ' + url);
+            }
+        }
+        return lines.join('\n');
+    }
+
+    function saveAsTxt() {
+        var query = new URLSearchParams(window.location.search).get('q') || 'ai-search';
+        var content = buildPlainText();
+        var blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl;
+        var slug = query.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+        a.download = 'ai-search-' + slug + '-' + new Date().toISOString().slice(0, 10) + '.txt';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(objUrl);
+    }
+
+    function saveAsDoc() {
+        var params = new URLSearchParams(window.location.search);
+        var query = params.get('q') || 'AI Search';
+        var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"/><title>AI Search Results</title></head><body>';
+        html += '<h1>AI Search Results</h1>';
+        html += '<p><b>Query:</b> ' + query + '<br/><b>Date:</b> ' + dateStr + '</p><hr/>';
+        var cards = document.querySelectorAll('[data-model]');
+        if (cards.length === 0) {
+            html += '<p><i>All selected AI models found no relevant match among the retrieved articles for this query.</i></p>';
+        }
+        for (var i = 0; i < cards.length; i++) {
+            var modelName = cards[i].getAttribute('data-model') || 'Model';
+            var summaryEl = cards[i].querySelector('div.synthesis-text');
+            var summary = summaryEl ? summaryEl.innerHTML : '';
+            html += '<h2>' + modelName + ' Synthesis</h2><p>' + summary + '</p>';
+            var findingEls = cards[i].querySelectorAll('li.synthesis-text');
+            if (findingEls.length > 0) {
+                html += '<p><b>Key Findings:</b></p><ul>';
+                for (var j = 0; j < findingEls.length; j++) {
+                    html += '<li>' + findingEls[j].innerHTML + '</li>';
+                }
+                html += '</ul>';
+            }
+        }
+        var sources = document.querySelectorAll('.source-card');
+        if (sources.length > 0) {
+            html += '<h2>Source Articles</h2><ol>';
+            for (var k = 0; k < sources.length; k++) {
+                var linkEl = sources[k].querySelector('a[href]');
+                var title = linkEl ? linkEl.textContent.trim() : 'Article';
+                var url = linkEl ? linkEl.href : '';
+                html += '<li><a href="' + url + '">' + title + '</a></li>';
+            }
+            html += '</ol>';
+        }
+        html += '</body></html>';
+        var blob = new Blob([html], { type: 'application/msword' });
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl;
+        var slug = query.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+        a.download = 'ai-search-' + slug + '-' + new Date().toISOString().slice(0, 10) + '.doc';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(objUrl);
     }
 
