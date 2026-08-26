@@ -18,6 +18,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Framework Competitive Analysis** | Config-driven 6-dimension competitive scoring (clinical validation, regulatory, market adoption, tech depth, data assets, partnerships) |
 | **Deal Signal Detection** | LLM-enhanced deal classification extracting deal type, amount, counterparty, and confidence from article text |
 | **Deal Context Enrichment** | Cross-references deals against sentiment, framework, regulatory, and company profile data for 360-degree context |
+| **Public Company Directory** | No-login-required directory of all AI healthcare companies with sector filtering, company detail pages, clickable `[N]` citation anchors, and JSON-LD Organization schema for SEO |
 | **Company Intelligence Profiles** | Persistent company pages with real article linking, event timelines, trend indicators, and homepage links |
 | **Company Relationships** | Visual relationship mapping between companies showing partnerships, acquisitions, and competitive dynamics |
 | **Custom Watchlists** | Subscriber-defined keyword, company, and topic watchlists with automated matching against new articles and regulatory events |
@@ -42,14 +43,14 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Evidence Grade Classification** | Automatic source credibility badges (Peer-Reviewed, Regulatory, Industry, Vendor, News) with color-coded provenance |
 | **PII Masking** | LogSanitizer utility masks email addresses in log statements to prevent PII exposure in production logs |
 | **Branded Error Handling** | Custom error pages replacing Spring Boot's Whitelabel Error Page with consistent branded UI |
-| **48-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, watchlist, sentiment, frameworks, deals, and company pages |
-| **1,509+ Automated Tests** | Comprehensive test suite across 249 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **50-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, watchlist, sentiment, frameworks, deals, company pages, and public company directory |
+| **1,519+ Automated Tests** | Comprehensive test suite across 249 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 17, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 103 domain model records, 92 port interfaces, and 70 controllers — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **1,509+ automated tests** across 249 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **1,519+ automated tests** across 249 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
@@ -81,7 +82,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 **SaaS & Monetization**
 - Implemented **4-tier subscription model** (DEMO/FREE_PENDING/FREE/SUBSCRIBER) with **Stripe Billing** integration (SDK 28.2.0), Checkout sessions, customer portal, webhook signature verification, and per-feature usage metering
 - Built **Spring Security 6** session-based authentication with ADMIN/USER roles, BCrypt password hashing, tier-based feature gating, and API key authentication for REST endpoints
-- Delivered **48-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
+- Delivered **50-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
 
 **Performance Engineering & Load Testing**
 - Eliminated a critical **N+1 query problem** on the wiki index page (1,299 DB queries/request → 1), confirmed by k6 load testing that revealed 2% pass rate for `/wiki` under 50 concurrent VUs
@@ -314,7 +315,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Security Testing | spring-security-test (@WithMockUser) | — |
 | Web Testing | MockMvc (@WebMvcTest slices) | — |
 | Persistence Testing | @DataJpaTest (H2 in-memory) | — |
-| Coverage | 1,509+ tests across 249 test classes | — |
+| Coverage | 1,519+ tests across 249 test classes | — |
 
 ### Infrastructure & DevOps
 | Component | Technology | Version |
@@ -371,6 +372,7 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | Path Pattern | Access |
 |-------------|--------|
 | `/login`, `/register`, `/pricing`, `/unsubscribe/**` | Public |
+| `/directory`, `/directory/**` | Public (no login required) |
 | `/api/**`, `/monitoring/**`, `/stripe/**` | Public (secured separately via API keys / Stripe signatures) |
 | `/dashboard/**`, `/newsletter/**`, `/research/**`, `/wiki/**` | Requires login |
 | `/admin/**`, `/monitoring/**` | Requires ADMIN role |
@@ -426,6 +428,12 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | `/companies` | Company intelligence index — all tracked companies with article counts and trend indicators |
 | `/companies/{slug}` | Company detail — linked articles, event timeline, discovered/updated dates, homepage link |
 | `/companies/{slug}/relationships` | Company relationship network — partnerships, acquisitions, integrations, competitive dynamics |
+
+### Public Directory (no login required)
+| URL | Description |
+|-----|-------------|
+| `/directory` | Public AI healthcare company directory — alphabetical grid with sector filter pills, anonymous visitor CTA |
+| `/directory/{slug}` | Company profile — sector badges, funding stage, website, HQ, clickable `[N]` citation anchors linking to Discovery Sources |
 
 ### Newsletter & Content
 | URL | Description |
@@ -682,12 +690,12 @@ AIHealthcare/
 │   │   ├── research/        # Perplexity + legacy Google research adapters
 │   │   └── scheduler/       # Pipeline orchestrator, newsletter generation, demo expiration
 │   └── web/
-│       ├── controller/      # 70 REST + Thymeleaf controllers
+│       ├── controller/      # 71 REST + Thymeleaf controllers
 │       └── dto/             # Request/response records
 ├── application/src/main/resources/
 │   ├── prompts/             # 18 AI prompt templates
-│   └── templates/           # 48 Thymeleaf HTML templates + 6 fragments
-├── application/src/test/    # 249 test classes (1,509+ tests)
+│   └── templates/           # 50 Thymeleaf HTML templates + 6 fragments
+├── application/src/test/    # 249 test classes (1,519+ tests)
 ├── docs/                    # Architecture, conventions, QA plan documentation
 ├── pom.xml
 └── CLAUDE.md                # AI assistant project context
