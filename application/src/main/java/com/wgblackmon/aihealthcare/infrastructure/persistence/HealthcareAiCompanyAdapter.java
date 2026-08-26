@@ -20,7 +20,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-08-02
- * @updated 2026-08-26
+ * @updated 2026-08-27
  */
 @Slf4j
 @Component
@@ -139,21 +139,29 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
                 entity.getCompanyId(),
                 entity.getName(),
                 entity.getNameNormalized(),
-                entity.getDomain(),
-                entity.getDescription(),
-                entity.getHqLocation(),
+                cleanStr(entity.getDomain()),
+                cleanStr(entity.getDescription()),
+                cleanStr(entity.getHqLocation()),
                 entity.getFoundedYear(),
-                entity.getSector(),
-                entity.getSubSector(),
-                entity.getFundingStage(),
-                entity.getEstimatedFunding(),
-                entity.getFoundersJson(),
+                cleanStr(entity.getSector()),
+                cleanStr(entity.getSubSector()),
+                cleanStr(entity.getFundingStage()),
+                cleanStr(entity.getEstimatedFunding()),
+                cleanStr(entity.getFoundersJson()),
                 parsePipe(entity.getSourceUrlsPipe()),
                 entity.isValidated(),
                 parsePipe(entity.getValidationSourcesPipe()),
                 entity.getDiscoveredAt(),
                 entity.getLastValidatedAt()
         );
+    }
+
+    /** Returns null when the value is Java null, blank, or the literal string "null". */
+    private static String cleanStr(String value) {
+        if (value == null || value.isBlank() || "null".equalsIgnoreCase(value.trim())) {
+            return null;
+        }
+        return value;
     }
 
     private List<String> parsePipe(String pipe) {
