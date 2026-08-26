@@ -12,7 +12,7 @@
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-03-01
- * @updated 2026-08-26
+ * @updated 2026-08-27
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -148,8 +148,8 @@
         only the models below produced a synthesis.
     </div>
 
-    <!-- Save Results toolbar — hidden in print/PDF -->
-    <div th:if="${syntheses != null and !syntheses.isEmpty()}"
+    <!-- Save Results toolbar — hidden in print/PDF; shown whenever a search was executed -->
+    <div th:if="${articles != null}"
          class="no-print flex justify-end gap-2 mb-3">
         <button type="button" onclick="saveAsMarkdown()"
                 class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
@@ -264,6 +264,10 @@
         lines.push('---');
         lines.push('');
         var cards = document.querySelectorAll('[data-model]');
+        if (cards.length === 0) {
+            lines.push('*All selected AI models found no relevant match among the retrieved articles for this query.*');
+            lines.push('');
+        }
         for (var i = 0; i < cards.length; i++) {
             var modelName = cards[i].getAttribute('data-model') || 'Model';
             var summaryEl = cards[i].querySelector('div.synthesis-text');
