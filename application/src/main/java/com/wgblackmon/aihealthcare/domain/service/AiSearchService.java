@@ -28,9 +28,9 @@ import java.util.UUID;
  * {@link com.wgblackmon.aihealthcare.infrastructure.config.AppConfig}.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-06-02
- * @updated 2026-07-10
+ * @updated 2026-08-25
  */
 @Slf4j
 public class AiSearchService implements ConductAiSearchUseCase {
@@ -68,7 +68,7 @@ public class AiSearchService implements ConductAiSearchUseCase {
             log.warn("search() | blank query — returning empty result");
             AiSearchResult result = new AiSearchResult(
                     UUID.randomUUID().toString(), "",
-                    Collections.emptyList(), Collections.emptyList(), Instant.now());
+                    Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Instant.now());
             log.debug("search() | return={}", result);
             return result;
         }
@@ -79,7 +79,7 @@ public class AiSearchService implements ConductAiSearchUseCase {
         if (articles.isEmpty()) {
             AiSearchResult result = new AiSearchResult(
                     UUID.randomUUID().toString(), query,
-                    Collections.emptyList(), Collections.emptyList(), Instant.now());
+                    Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Instant.now());
             log.debug("search() | return=AiSearchResult[articles=0, syntheses=0]");
             return result;
         }
@@ -109,6 +109,7 @@ public class AiSearchService implements ConductAiSearchUseCase {
         }
 
         List<AiSearchSynthesis> syntheses = new ArrayList<>();
+        List<String> noMatchModelNames = new ArrayList<>();
         for (AiSearchPort port : selectedPorts) {
             try {
                 log.info("search() | synthesizing with model '{}'", port.modelName());
@@ -118,6 +119,7 @@ public class AiSearchService implements ConductAiSearchUseCase {
                     log.info("search() | synthesis complete from '{}': {} key findings",
                              port.modelName(), synthesis.keyFindings().size());
                 } else {
+                    noMatchModelNames.add(port.modelName());
                     log.info("search() | model '{}' reported NO_MATCH — articles not relevant", port.modelName());
                 }
             } catch (Exception e) {
@@ -132,9 +134,9 @@ public class AiSearchService implements ConductAiSearchUseCase {
 
         AiSearchResult result = new AiSearchResult(
                 UUID.randomUUID().toString(), query,
-                articles, syntheses, Instant.now());
-        log.debug("search() | return=AiSearchResult[articles={}, syntheses={}]",
-                  articles.size(), syntheses.size());
+                articles, syntheses, noMatchModelNames, Instant.now());
+        log.debug("search() | return=AiSearchResult[articles={}, syntheses={}, noMatch={}]",
+                  articles.size(), syntheses.size(), noMatchModelNames.size());
         return result;
     }
 

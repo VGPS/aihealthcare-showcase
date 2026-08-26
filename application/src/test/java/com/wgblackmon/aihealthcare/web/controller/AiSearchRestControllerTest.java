@@ -36,9 +36,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * empty results, missing query parameter, and authentication requirements.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-06-02
- * @updated 2026-06-02
+ * @updated 2026-08-25
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(AiSearchRestController.class)
@@ -78,7 +78,7 @@ class AiSearchRestControllerTest {
         AiSearchSynthesis perplexity = new AiSearchSynthesis(
                 "Perplexity", "Perplexity summary", List.of("Finding 4", "Finding 5"), Instant.now());
         AiSearchResult result = new AiSearchResult(
-                "search-1", "AI diagnostics", List.of(a1), List.of(claude, gpt, perplexity), Instant.now());
+                "search-1", "AI diagnostics", List.of(a1), List.of(claude, gpt, perplexity), List.of(), Instant.now());
 
         when(aiSearchUseCase.search(eq("AI diagnostics"), eq(10), isNull())).thenReturn(result);
 
@@ -96,6 +96,26 @@ class AiSearchRestControllerTest {
                 .andExpect(jsonPath("$.syntheses[2].keyFindings", hasSize(2)));
     }
 
+    @Test
+    @WithMockUser
+    void aiSearch_partialNoMatch_returnsNoMatchModelsInResponse() throws Exception {
+        NewsArticle a1 = sampleArticle("a1", "Unrelated hospital merger news");
+        AiSearchSynthesis claude = new AiSearchSynthesis(
+                "Claude", "Claude summary", List.of("Finding 1"), Instant.now());
+        AiSearchResult result = new AiSearchResult(
+                "search-3", "Grelin Health business model", List.of(a1), List.of(claude),
+                List.of("GPT", "Perplexity"), Instant.now());
+
+        when(aiSearchUseCase.search(eq("Grelin Health business model"), eq(10), isNull())).thenReturn(result);
+
+        mockMvc.perform(get("/api/v1/search/ai").param("q", "Grelin Health business model"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.syntheses", hasSize(1)))
+                .andExpect(jsonPath("$.noMatchModels", hasSize(2)))
+                .andExpect(jsonPath("$.noMatchModels[0]", is("GPT")))
+                .andExpect(jsonPath("$.noMatchModels[1]", is("Perplexity")));
+    }
+
     // -------------------------------------------------------------------------
     // Empty results
     // -------------------------------------------------------------------------
@@ -104,7 +124,7 @@ class AiSearchRestControllerTest {
     @WithMockUser
     void aiSearch_noArticlesFound_returns200WithEmptySyntheses() throws Exception {
         AiSearchResult empty = new AiSearchResult(
-                "search-2", "obscure", List.of(), List.of(), Instant.now());
+                "search-2", "obscure", List.of(), List.of(), List.of(), Instant.now());
         when(aiSearchUseCase.search(eq("obscure"), eq(10), isNull())).thenReturn(empty);
 
         mockMvc.perform(get("/api/v1/search/ai").param("q", "obscure"))

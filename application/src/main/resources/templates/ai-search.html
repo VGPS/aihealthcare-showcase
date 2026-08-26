@@ -10,9 +10,9 @@
  * article cards with numbered citations when syntheses are present.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-03-01
- * @updated 2026-08-12
+ * @updated 2026-08-25
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -133,6 +133,14 @@
         </form>
     </div>
 
+    <!-- Partial NO_MATCH — some models found a match, others correctly declined -->
+    <div th:if="${syntheses != null and !syntheses.isEmpty() and noMatchModels != null and !noMatchModels.isEmpty()}"
+         class="bg-gray-50 border border-gray-200 text-gray-600 text-sm px-4 py-3 rounded-lg mb-4">
+        <span th:text="${#strings.listJoin(noMatchModels, ', ')}">Model list</span>
+        found no relevant match among the retrieved articles for this query and returned no result;
+        only the models below produced a synthesis.
+    </div>
+
     <!-- AI Syntheses — stacked model cards -->
     <div th:if="${syntheses != null and !syntheses.isEmpty()}" class="mb-6">
         <div th:each="synthesis : ${syntheses}"
@@ -167,7 +175,10 @@
     <!-- No syntheses — articles found but AI deemed them irrelevant -->
     <div th:if="${syntheses != null and syntheses.isEmpty() and articles != null and !articles.isEmpty()}"
          class="py-8 text-center text-gray-400 italic">
-        AI models found no relevant match for "<span th:text="${q}">query</span>" among
+        <span th:if="${noMatchModels != null and !noMatchModels.isEmpty()}"
+              th:text="${#strings.listJoin(noMatchModels, ', ') + ' found no relevant match for'}">AI models found no relevant match for</span><span
+              th:unless="${noMatchModels != null and !noMatchModels.isEmpty()}">AI models found no relevant match for</span>
+        "<span th:text="${q}">query</span>" among
         <span th:text="${articleCount}">0</span> retrieved articles. Try broadening your query.
     </div>
 
