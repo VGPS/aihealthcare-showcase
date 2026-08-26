@@ -12,7 +12,7 @@
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-03-01
- * @updated 2026-08-27
+ * @updated 2026-08-26
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -52,7 +52,7 @@
     </div>
 
     <!-- Upgrade banner for FREE-tier users -->
-    <div th:if="${accessDenied}"
+    <div th:if="${accessDenied}" id="accessDeniedBanner"
          class="bg-gradient-to-r from-primary-600 to-purple-600 text-white p-4 rounded-lg mb-6 flex items-center justify-between shadow-md">
         <span class="text-sm leading-relaxed">
             <strong>AI-Enhanced Search is a Subscriber feature.</strong><br/>
@@ -148,8 +148,8 @@
         only the models below produced a synthesis.
     </div>
 
-    <!-- Save Results toolbar — hidden in print/PDF; shown whenever a search was executed -->
-    <div th:if="${articles != null}"
+    <!-- Save Results toolbar — shown by JS when URL has a non-empty q param and user is not access-denied -->
+    <div id="saveToolbar" style="display:none;"
          class="no-print flex justify-end gap-2 mb-3">
         <button type="button" onclick="saveAsMarkdown()"
                 class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
@@ -314,7 +314,15 @@
         URL.revokeObjectURL(objUrl);
     }
 
-    document.querySelector('form').addEventListener('submit', function() {
+    // Show save toolbar whenever a search has been executed (q param in URL) and user has access
+    (function() {
+        var q = new URLSearchParams(window.location.search).get('q');
+        if (q && q.trim() && !document.getElementById('accessDeniedBanner')) {
+            document.getElementById('saveToolbar').style.display = 'flex';
+        }
+    })();
+
+    document.querySelector('form') && document.querySelector('form').addEventListener('submit', function() {
         var btn = document.getElementById('searchBtn');
         if (btn) btn.classList.add('loading');
         var spinner = btn ? btn.querySelector('.spinner') : null;
