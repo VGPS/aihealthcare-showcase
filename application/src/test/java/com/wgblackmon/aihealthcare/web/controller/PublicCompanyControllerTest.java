@@ -102,6 +102,33 @@ class PublicCompanyControllerTest {
     }
 
     @Test
+    void buildDescriptionHtml_convertsCitationMarkersToAnchorLinks() {
+        String html = PublicCompanyController.buildDescriptionHtml(
+                "AI-powered platform [1] built on research [2].");
+        org.assertj.core.api.Assertions.assertThat(html)
+                .contains("<a href=\"#source-1\"")
+                .contains("<a href=\"#source-2\"")
+                .contains("[1]")
+                .contains("[2]")
+                .doesNotContain("<p");
+    }
+
+    @Test
+    void buildDescriptionHtml_escapesHtmlBeforeConvertingLinks() {
+        String html = PublicCompanyController.buildDescriptionHtml("A & B <test> [1]");
+        org.assertj.core.api.Assertions.assertThat(html)
+                .contains("&amp;")
+                .contains("&lt;test&gt;")
+                .contains("<a href=\"#source-1\"");
+    }
+
+    @Test
+    void buildDescriptionHtml_returnsNullForNullInput() {
+        org.assertj.core.api.Assertions.assertThat(
+                PublicCompanyController.buildDescriptionHtml(null)).isNull();
+    }
+
+    @Test
     void toSlug_convertsNameCorrectly() {
         org.assertj.core.api.Assertions.assertThat(PublicCompanyController.toSlug("Grelin Health"))
                 .isEqualTo("grelin-health");
