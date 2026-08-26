@@ -119,6 +119,7 @@ public class PublicCompanyController {
         model.addAttribute("company", c);
         model.addAttribute("slug", slug);
         model.addAttribute("jsonLd", buildJsonLd(c));
+        model.addAttribute("descriptionHtml", buildDescriptionHtml(c.description()));
 
         log.debug("detail() | return=company-directory-detail, name={}", c.name());
         return "company-directory-detail";
@@ -128,6 +129,17 @@ public class PublicCompanyController {
     static String toSlug(String name) {
         if (name == null || name.isBlank()) return "";
         return name.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+    }
+
+    /** Converts [N] citation markers in description text to anchor links targeting #source-N. */
+    static String buildDescriptionHtml(String description) {
+        if (description == null || description.isBlank()) return null;
+        String escaped = description
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
+        return escaped.replaceAll("\\[(\\d+)\\]",
+                "<a href=\"#source-$1\" class=\"text-primary-600 hover:underline font-medium\">[$1]</a>");
     }
 
     private static String buildJsonLd(HealthcareAiCompany c) {
