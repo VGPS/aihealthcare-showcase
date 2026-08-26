@@ -16,9 +16,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code @DataJpaTest} tests for {@link HealthcareAiCompanyAdapter}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-02
- * @updated 2026-08-02
+ * @updated 2026-08-26
  */
 @DataJpaTest
 @Import(HealthcareAiCompanyAdapter.class)
@@ -97,6 +97,42 @@ class HealthcareAiCompanyAdapterTest {
         assertThat(found.sourceUrls()).containsExactly("https://a.com", "https://b.com");
         assertThat(found.validationSources()).containsExactly("https://v1.com", "https://v2.com");
         assertThat(found.foundersJson()).isEqualTo("[{\"name\":\"CEO\"}]");
+    }
+
+    @Test
+    void findBySlug_findsCompanyBySavedSlug() {
+        adapter.save(company("id-slug-1", "Grelin Health", "grelin health", "grelinhealth.com"));
+
+        Optional<HealthcareAiCompany> found = adapter.findBySlug("grelin-health");
+        assertThat(found).isPresent();
+        assertThat(found.get().name()).isEqualTo("Grelin Health");
+    }
+
+    @Test
+    void findBySlug_returnsEmptyForUnknownSlug() {
+        Optional<HealthcareAiCompany> found = adapter.findBySlug("does-not-exist");
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    void computeSlug_convertsNameToUrlSafeSlug() {
+        assertThat(HealthcareAiCompanyAdapter.computeSlug("Grelin Health")).isEqualTo("grelin-health");
+        assertThat(HealthcareAiCompanyAdapter.computeSlug("Tempus AI")).isEqualTo("tempus-ai");
+        assertThat(HealthcareAiCompanyAdapter.computeSlug("Viz.ai")).isEqualTo("viz-ai");
+        assertThat(HealthcareAiCompanyAdapter.computeSlug(null)).isEqualTo("");
+    }
+
+    @Test
+    void findAllByOrderByName_returnsAlphabetical() {
+        adapter.save(company("id-a", "Zebra Health", "zebra health", "zebra.com"));
+        adapter.save(company("id-b", "Abridge", "abridge", "abridge.com"));
+        adapter.save(company("id-c", "Nuance", "nuance", "nuance.com"));
+
+        List<HealthcareAiCompany> sorted = adapter.findAllByOrderByName();
+        assertThat(sorted).hasSize(3);
+        assertThat(sorted.get(0).name()).isEqualTo("Abridge");
+        assertThat(sorted.get(1).name()).isEqualTo("Nuance");
+        assertThat(sorted.get(2).name()).isEqualTo("Zebra Health");
     }
 
     private HealthcareAiCompany company(String id, String name, String normalized, String domain) {

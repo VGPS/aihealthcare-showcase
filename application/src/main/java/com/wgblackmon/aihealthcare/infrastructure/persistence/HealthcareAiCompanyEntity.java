@@ -15,9 +15,9 @@ import java.time.Instant;
  * as pipe-delimited strings.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-02
- * @updated 2026-08-02
+ * @updated 2026-08-26
  */
 @Entity
 @Table(name = "healthcare_ai_companies")
@@ -25,6 +25,9 @@ public class HealthcareAiCompanyEntity {
 
     @Id
     private String companyId;
+
+    @Column(length = 200)
+    private String slug;
 
     @Column(nullable = false)
     private String name;
@@ -73,6 +76,9 @@ public class HealthcareAiCompanyEntity {
 
     public String getCompanyId() { return companyId; }
     public void setCompanyId(String companyId) { this.companyId = companyId; }
+
+    public String getSlug() { return slug; }
+    public void setSlug(String slug) { this.slug = slug; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

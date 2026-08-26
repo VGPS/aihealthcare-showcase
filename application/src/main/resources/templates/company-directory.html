@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Public AI healthcare company directory.
+ *
+ * Displays all companies discovered by the Perplexity pipeline, sorted
+ * alphabetically with optional sector filtering. No authentication required.
+ * Each card links to the company detail page at /companies/{slug}.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-26
+ * @updated 2026-08-26
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('AI Healthcare Company Directory')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
+    <p class="text-primary-200 text-sm mt-0.5">AI-in-Healthcare Intelligence Platform</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('company-directory')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Page header -->
+    <div class="mb-6">
+        <h2 class="font-display text-2xl font-bold text-on-surface">AI Healthcare Company Directory</h2>
+        <p class="text-sm text-on-surface-variant mt-1">
+            <span th:text="${totalCount}">0</span> companies tracked by our AI discovery pipeline.
+            Updated continuously from Perplexity-powered research.
+        </p>
+    </div>
+
+    <!-- Sector filter pills -->
+    <div th:if="${sectors != null and !sectors.isEmpty()}" class="mb-6 flex flex-wrap gap-2">
+        <a th:href="@{/companies}"
+           th:classappend="${selectedSector == null} ? ' bg-primary-600 text-white' : ' bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+           class="inline-block px-3 py-1 rounded-full text-sm font-medium transition-colors">
+            All sectors
+        </a>
+        <a th:each="s : ${sectors}"
+           th:href="@{/companies(sector=${s})}"
+           th:text="${s}"
+           th:classappend="${s == selectedSector} ? ' bg-primary-600 text-white' : ' bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+           class="inline-block px-3 py-1 rounded-full text-sm font-medium transition-colors">
+        </a>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${companies == null or companies.isEmpty()}" class="text-center py-16 text-on-surface-variant">
+        <div class="text-5xl mb-4">🏢</div>
+        <p class="text-lg font-medium">No companies found yet.</p>
+        <p class="text-sm mt-1">The discovery pipeline runs nightly — check back soon.</p>
+    </div>
+
+    <!-- Company grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div th:each="company : ${companies}"
+             class="bg-white rounded-lg border border-outline-variant shadow-sm hover:shadow-md transition-shadow flex flex-col">
+
+            <!-- Card header -->
+            <div class="p-4 flex-1">
+                <div class="flex items-start justify-between mb-2">
+                    <a th:href="@{/companies/{slug}(slug=${slugs[company.companyId()]})}"
+                       th:text="${company.name()}"
+                       class="font-display font-semibold text-primary-700 hover:text-primary-900 text-base leading-tight">
+                        Company Name
+                    </a>
+                    <span th:if="${company.validated()}"
+                          class="ml-2 flex-shrink-0 inline-block px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
+                        Verified
+                    </span>
+                </div>
+
+                <!-- Badges row -->
+                <div class="flex flex-wrap gap-1 mb-2">
+                    <span th:if="${company.sector() != null and !company.sector().isEmpty()}"
+                          class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700"
+                          th:text="${company.sector()}">Sector</span>
+                    <span th:if="${company.subSector() != null and !company.subSector().isEmpty()}"
+                          class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700"
+                          th:text="${company.subSector()}">Sub-Sector</span>
+                    <span th:if="${company.fundingStage() != null and !company.fundingStage().isEmpty()}"
+                          class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700"
+                          th:text="${company.fundingStage()}">Stage</span>
+                </div>
+
+                <!-- Description -->
+                <p th:if="${company.description() != null and !company.description().isEmpty()}"
+                   class="text-xs text-on-surface-variant leading-relaxed line-clamp-3"
+                   th:text="${#strings.abbreviate(company.description(), 160)}">Description</p>
+            </div>
+
+            <!-- Card footer -->
+            <div class="px-4 pb-3 pt-2 border-t border-outline-variant flex items-center justify-between">
+                <div class="text-xs text-on-surface-variant">
+                    <span th:if="${company.hqLocation() != null and !company.hqLocation().isEmpty()}"
+                          th:text="${company.hqLocation()}">Location</span>
+                    <span th:if="${company.foundedYear() != null}">
+                        <span th:if="${company.hqLocation() != null and !company.hqLocation().isEmpty()}"> · </span>
+                        Est. <span th:text="${company.foundedYear()}">2020</span>
+                    </span>
+                </div>
+                <a th:href="@{/companies/{slug}(slug=${slugs[company.companyId()]})}"
+                   class="text-xs text-primary-600 hover:text-primary-800 font-medium">
+                    View profile →
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login CTA for visitors -->
+    <div sec:authorize="isAnonymous()" class="mt-10 bg-primary-50 border border-primary-200 rounded-lg p-6 text-center">
+        <h3 class="font-display font-semibold text-lg text-primary-800 mb-1">Want deeper intelligence?</h3>
+        <p class="text-sm text-primary-700 mb-4">
+            Subscribers get deal signals, sentiment analysis, framework benchmarking, and regulatory alerts for every company in this directory.
+        </p>
+        <a href="/pricing" class="inline-block bg-primary-600 text-white px-5 py-2 rounded font-medium text-sm hover:bg-primary-700 transition-colors mr-2">
+            View Plans
+        </a>
+        <a href="/login" class="inline-block border border-primary-600 text-primary-600 px-5 py-2 rounded font-medium text-sm hover:bg-primary-50 transition-colors">
+            Log In
+        </a>
+    </div>
+
+</main>
+
+<!-- JSON-LD for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "AI Healthcare Company Directory",
+  "description": "Comprehensive directory of AI-in-healthcare companies tracked by the AIHealthcare intelligence platform.",
+  "url": "https://app.bigskylabs.ai/companies"
+}
+</script>
+
+</body>
+</html>

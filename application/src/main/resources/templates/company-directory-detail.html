@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Public company profile page for the AI healthcare company directory.
+ *
+ * Displays a full HealthcareAiCompany profile with sector, funding stage,
+ * founders, location, and source citations. No authentication required.
+ * Includes JSON-LD Organization schema for SEO.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-26
+ * @updated 2026-08-26
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head(${company.name() + ' | AI Healthcare Company Directory'})}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
+    <p class="text-primary-200 text-sm mt-0.5">AI-in-Healthcare Intelligence Platform</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('company-directory')}"></nav>
+
+<main class="max-w-4xl mx-auto px-4 py-6">
+
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-on-surface-variant mb-4">
+        <a href="/companies" class="hover:text-primary-600">Company Directory</a>
+        <span class="mx-2">/</span>
+        <span th:text="${company.name()}" class="text-on-surface">Company</span>
+    </nav>
+
+    <!-- Company header card -->
+    <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-6 mb-6">
+        <div class="flex items-start justify-between mb-3">
+            <h2 class="font-display text-2xl font-bold text-on-surface" th:text="${company.name()}">Company Name</h2>
+            <span th:if="${company.validated()}"
+                  class="ml-4 flex-shrink-0 inline-block px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800">
+                ✓ Verified
+            </span>
+        </div>
+
+        <!-- Badges -->
+        <div class="flex flex-wrap gap-2 mb-4">
+            <span th:if="${company.sector() != null and !company.sector().isEmpty()}"
+                  class="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                  th:text="${company.sector()}">Sector</span>
+            <span th:if="${company.subSector() != null and !company.subSector().isEmpty()}"
+                  class="inline-block px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800"
+                  th:text="${company.subSector()}">Sub-Sector</span>
+            <span th:if="${company.fundingStage() != null and !company.fundingStage().isEmpty()}"
+                  class="inline-block px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800"
+                  th:text="${company.fundingStage()}">Stage</span>
+        </div>
+
+        <!-- Description -->
+        <p th:if="${company.description() != null and !company.description().isEmpty()}"
+           class="text-sm text-on-surface leading-relaxed"
+           th:text="${company.description()}">Description</p>
+    </div>
+
+    <!-- Profile grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
+        <!-- Company details -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <h3 class="font-display font-semibold text-base text-on-surface mb-3">Company Details</h3>
+            <dl class="space-y-2 text-sm">
+                <div th:if="${company.domain() != null and !company.domain().isEmpty()}" class="flex">
+                    <dt class="w-32 text-on-surface-variant flex-shrink-0">Website</dt>
+                    <dd>
+                        <a th:href="'https://' + ${company.domain()}"
+                           th:text="${company.domain()}"
+                           target="_blank" rel="noopener noreferrer"
+                           class="text-primary-600 hover:text-primary-800 hover:underline">domain</a>
+                    </dd>
+                </div>
+                <div th:if="${company.hqLocation() != null and !company.hqLocation().isEmpty()}" class="flex">
+                    <dt class="w-32 text-on-surface-variant flex-shrink-0">Headquarters</dt>
+                    <dd class="text-on-surface" th:text="${company.hqLocation()}">Location</dd>
+                </div>
+                <div th:if="${company.foundedYear() != null}" class="flex">
+                    <dt class="w-32 text-on-surface-variant flex-shrink-0">Founded</dt>
+                    <dd class="text-on-surface" th:text="${company.foundedYear()}">Year</dd>
+                </div>
+                <div th:if="${company.estimatedFunding() != null and !company.estimatedFunding().isEmpty()}" class="flex">
+                    <dt class="w-32 text-on-surface-variant flex-shrink-0">Funding</dt>
+                    <dd class="text-on-surface font-medium" th:text="${company.estimatedFunding()}">Amount</dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Anonymous visitor: upgrade CTA -->
+        <div sec:authorize="isAnonymous()"
+             class="bg-primary-50 border border-primary-200 rounded-lg p-5 flex flex-col justify-between">
+            <div>
+                <h3 class="font-display font-semibold text-base text-primary-800 mb-2">Subscriber Intelligence</h3>
+                <ul class="text-sm text-primary-700 space-y-1 mb-4">
+                    <li>• Deal signal alerts for this company</li>
+                    <li>• Sentiment &amp; risk scoring</li>
+                    <li>• Competitive framework analysis</li>
+                    <li>• Regulatory event monitoring</li>
+                </ul>
+            </div>
+            <div class="flex gap-2">
+                <a href="/pricing" class="inline-block bg-primary-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-primary-700 transition-colors">
+                    View Plans
+                </a>
+                <a href="/login" class="inline-block border border-primary-600 text-primary-600 px-4 py-2 rounded text-sm font-medium hover:bg-white transition-colors">
+                    Log In
+                </a>
+            </div>
+        </div>
+
+        <!-- Authenticated user: link to subscriber dashboard -->
+        <div sec:authorize="isAuthenticated()"
+             class="bg-primary-50 border border-primary-200 rounded-lg p-5 flex flex-col justify-between">
+            <div>
+                <h3 class="font-display font-semibold text-base text-primary-800 mb-2">Subscriber Intelligence</h3>
+                <ul class="text-sm text-primary-700 space-y-1 mb-4">
+                    <li>• Deal signals, sentiment &amp; risk</li>
+                    <li>• Competitive framework benchmarking</li>
+                    <li>• Regulatory &amp; FDA event monitoring</li>
+                    <li>• AI search across company articles</li>
+                </ul>
+            </div>
+            <div class="flex gap-2">
+                <a href="/dashboard/companies" class="inline-block bg-primary-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-primary-700 transition-colors">
+                    Company Intelligence →
+                </a>
+                <a href="/dashboard/deals" class="inline-block border border-primary-600 text-primary-600 px-4 py-2 rounded text-sm font-medium hover:bg-white transition-colors">
+                    Deal Signals
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Source citations -->
+    <div th:if="${company.sourceUrls() != null and !company.sourceUrls().isEmpty()}"
+         class="bg-white rounded-lg border border-outline-variant shadow-sm p-5 mb-6">
+        <h3 class="font-display font-semibold text-base text-on-surface mb-3">Discovery Sources</h3>
+        <ul class="space-y-1">
+            <li th:each="url, iter : ${company.sourceUrls()}" class="text-sm">
+                <a th:href="${url}"
+                   th:text="'[' + ${iter.index + 1} + '] ' + ${url}"
+                   target="_blank" rel="noopener noreferrer"
+                   class="text-primary-600 hover:text-primary-800 hover:underline break-all">url</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Back link -->
+    <a href="/companies" class="text-sm text-primary-600 hover:text-primary-800 font-medium">
+        ← Back to Company Directory
+    </a>
+
+</main>
+
+<!-- JSON-LD Organization schema for SEO (pre-built in controller) -->
+<script type="application/ld+json" th:utext="${jsonLd}"></script>
+
+</body>
+</html>

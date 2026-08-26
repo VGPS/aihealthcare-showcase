@@ -77,6 +77,7 @@ import com.wgblackmon.aihealthcare.domain.service.DailyBriefingRenderer;
 import com.wgblackmon.aihealthcare.domain.service.DailyBriefingService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FrameworkLlmPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SentimentAnalysisPort;
+import com.wgblackmon.aihealthcare.domain.service.BrowseCompaniesService;
 import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyResearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
@@ -1148,6 +1149,21 @@ public class AppConfig {
         PerplexityCompanyDiscoveryService result = new PerplexityCompanyDiscoveryService(
                 researchPort, companyPort, citationPort, maxCompaniesPerRun);
         log.debug("perplexityCompanyDiscoveryService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link BrowseCompaniesService} bean — powers the public-facing
+     * company directory at {@code /companies}.
+     *
+     * @param companyPort Company persistence adapter (auto-detected).
+     * @return The wired {@link BrowseCompaniesService} instance.
+     */
+    @Bean
+    public BrowseCompaniesService browseCompaniesService(HealthcareAiCompanyPort companyPort) {
+        log.debug("browseCompaniesService() | companyPort={}", companyPort.getClass().getSimpleName());
+        BrowseCompaniesService result = new BrowseCompaniesService(companyPort);
+        log.debug("browseCompaniesService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

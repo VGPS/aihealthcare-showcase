@@ -13,7 +13,7 @@
  *
  * activePage values: dashboard | news | newsletter | research | vendors | ai-search |
  *                    wiki | trends | trend-history | regulatory | legal | legal-trends |
- *                    clinical-trials | companies | risk | frameworks | watchlist | notes |
+ *                    clinical-trials | companies | company-directory | risk | frameworks | watchlist | notes |
  *                    relationships | search | pricing | about | profile | developer | webhooks | admin | admin-pipelines |
  *                    intelligence | deals | market | market-history
  *
@@ -24,7 +24,7 @@
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-28
- * @updated 2026-08-23
+ * @updated 2026-08-26
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org"
@@ -110,7 +110,7 @@
     <!-- Reference group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'wiki' || activePage == 'clinical-trials' || activePage == 'companies' || activePage == 'risk' || activePage == 'relationships'} ? ' active'">
+                th:classappend="${activePage == 'wiki' || activePage == 'clinical-trials' || activePage == 'companies' || activePage == 'company-directory' || activePage == 'risk' || activePage == 'relationships'} ? ' active'">
             Reference ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
@@ -118,6 +118,8 @@
                th:classappend="${activePage == 'clinical-trials'} ? ' active'">Clinical Trials</a>
             <a th:href="@{/dashboard/companies}"
                th:classappend="${activePage == 'companies'} ? ' active'">Companies</a>
+            <a th:href="@{/companies}"
+               th:classappend="${activePage == 'company-directory'} ? ' active'">Company Directory</a>
             <a th:href="@{/dashboard/relationships}"
                th:classappend="${activePage == 'relationships'} ? ' active'">Relationships</a>
             <a th:href="@{/dashboard/risk}"
