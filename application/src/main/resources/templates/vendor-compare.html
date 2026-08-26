@@ -138,18 +138,6 @@
          class="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm"
          th:text="${errorMessage}"></div>
 
-    <!-- Save Results toolbar -->
-    <div th:if="${hasResults}" class="no-print flex justify-end gap-2 mb-3">
-        <button type="button" onclick="saveAsMarkdown()"
-                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
-            Download (.md)
-        </button>
-        <button type="button" onclick="window.print()"
-                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
-            Save as PDF
-        </button>
-    </div>
-
     <!-- Results -->
     <div th:if="${hasResults}">
         <p class="text-sm text-gray-500 mb-4"
@@ -291,6 +279,27 @@
         No vendor assessments were produced. Try selecting different vendors or adjusting the healthcare focus area.
     </div>
 
+    <!-- Save Results toolbar -->
+    <div th:if="${hasResults}"
+         class="no-print mt-6 pt-4 border-t border-gray-300 flex flex-wrap justify-center gap-3">
+        <button type="button" onclick="saveAsMarkdown()"
+                class="text-sm font-bold text-gray-700 border border-gray-400 rounded px-4 py-2 hover:bg-gray-100 bg-white">
+            Download (.md)
+        </button>
+        <button type="button" onclick="saveAsTxt()"
+                class="text-sm font-bold text-gray-700 border border-gray-400 rounded px-4 py-2 hover:bg-gray-100 bg-white">
+            Download (.txt)
+        </button>
+        <button type="button" onclick="saveAsDoc()"
+                class="text-sm font-bold text-gray-700 border border-gray-400 rounded px-4 py-2 hover:bg-gray-100 bg-white">
+            Download (.doc)
+        </button>
+        <button type="button" onclick="window.print()"
+                class="text-sm font-bold text-gray-700 border border-gray-400 rounded px-4 py-2 hover:bg-gray-100 bg-white">
+            Download (.pdf)
+        </button>
+    </div>
+
 </main>
 
 <div id="loadingOverlay" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
@@ -374,6 +383,79 @@
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        URL.revokeObjectURL(objUrl);
+    }
+
+    function saveAsTxt() {
+        var params = new URLSearchParams(window.location.search);
+        var focusArea = params.get('focusArea') || '';
+        var query = params.get('query') || '';
+        var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        var lines = [];
+        lines.push('VENDOR COMPARISON RESULTS');
+        if (focusArea) lines.push('Focus Area: ' + focusArea);
+        if (query) lines.push('Query: ' + query);
+        lines.push('Date: ' + dateStr);
+        lines.push('');
+        var cards = document.querySelectorAll('[data-vendor]');
+        for (var i = 0; i < cards.length; i++) {
+            var vendorName = cards[i].getAttribute('data-vendor');
+            lines.push('--- ' + vendorName + ' ---');
+            var strengthEls = cards[i].querySelectorAll('[data-list="strengths"] li');
+            if (strengthEls.length > 0) {
+                lines.push('Strengths:');
+                for (var j = 0; j < strengthEls.length; j++) lines.push('  + ' + strengthEls[j].innerText.trim());
+            }
+            var weaknessEls = cards[i].querySelectorAll('[data-list="weaknesses"] li');
+            if (weaknessEls.length > 0) {
+                lines.push('Weaknesses:');
+                for (var k = 0; k < weaknessEls.length; k++) lines.push('  - ' + weaknessEls[k].innerText.trim());
+            }
+            lines.push('');
+        }
+        var blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl;
+        a.download = 'vendor-compare-' + new Date().toISOString().slice(0, 10) + '.txt';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(objUrl);
+    }
+
+    function saveAsDoc() {
+        var params = new URLSearchParams(window.location.search);
+        var focusArea = params.get('focusArea') || '';
+        var query = params.get('query') || '';
+        var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"/><title>Vendor Comparison</title></head><body>';
+        html += '<h1>Vendor Comparison Results</h1>';
+        if (focusArea) html += '<p><b>Focus Area:</b> ' + focusArea + '</p>';
+        if (query) html += '<p><b>Query:</b> ' + query + '</p>';
+        html += '<p><b>Date:</b> ' + dateStr + '</p><hr/>';
+        var cards = document.querySelectorAll('[data-vendor]');
+        for (var i = 0; i < cards.length; i++) {
+            var vendorName = cards[i].getAttribute('data-vendor');
+            html += '<h2>' + vendorName + '</h2>';
+            var strengthEls = cards[i].querySelectorAll('[data-list="strengths"] li');
+            if (strengthEls.length > 0) {
+                html += '<p><b>Strengths:</b></p><ul>';
+                for (var j = 0; j < strengthEls.length; j++) html += '<li>' + strengthEls[j].innerHTML + '</li>';
+                html += '</ul>';
+            }
+            var weaknessEls = cards[i].querySelectorAll('[data-list="weaknesses"] li');
+            if (weaknessEls.length > 0) {
+                html += '<p><b>Weaknesses:</b></p><ul>';
+                for (var k = 0; k < weaknessEls.length; k++) html += '<li>' + weaknessEls[k].innerHTML + '</li>';
+                html += '</ul>';
+            }
+        }
+        html += '</body></html>';
+        var blob = new Blob([html], { type: 'application/msword' });
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl;
+        a.download = 'vendor-compare-' + new Date().toISOString().slice(0, 10) + '.doc';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(objUrl);
     }
 

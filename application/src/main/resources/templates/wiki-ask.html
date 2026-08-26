@@ -112,18 +112,6 @@
         </form>
     </div>
 
-    <!-- Save Results toolbar -->
-    <div th:if="${syntheses != null && !syntheses.isEmpty()}" class="no-print flex justify-end gap-2 mb-3">
-        <button type="button" onclick="saveAsMarkdown()"
-                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
-            Download (.md)
-        </button>
-        <button type="button" onclick="window.print()"
-                class="text-xs font-medium text-gray-600 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50 bg-white">
-            Save as PDF
-        </button>
-    </div>
-
     <!-- AI Syntheses -->
     <div th:if="${syntheses != null && !syntheses.isEmpty()}">
         <div th:each="synthesis : ${syntheses}"
@@ -196,6 +184,27 @@
         </div>
     </div>
 
+    <!-- Save Results toolbar -->
+    <div th:if="${syntheses != null && !syntheses.isEmpty()}"
+         class="no-print mt-6 pt-4 border-t border-gray-300 flex flex-wrap justify-center gap-3">
+        <button type="button" onclick="saveAsMarkdown()"
+                class="text-sm font-bold text-gray-700 border border-gray-400 rounded px-4 py-2 hover:bg-gray-100 bg-white">
+            Download (.md)
+        </button>
+        <button type="button" onclick="saveAsTxt()"
+                class="text-sm font-bold text-gray-700 border border-gray-400 rounded px-4 py-2 hover:bg-gray-100 bg-white">
+            Download (.txt)
+        </button>
+        <button type="button" onclick="saveAsDoc()"
+                class="text-sm font-bold text-gray-700 border border-gray-400 rounded px-4 py-2 hover:bg-gray-100 bg-white">
+            Download (.doc)
+        </button>
+        <button type="button" onclick="window.print()"
+                class="text-sm font-bold text-gray-700 border border-gray-400 rounded px-4 py-2 hover:bg-gray-100 bg-white">
+            Download (.pdf)
+        </button>
+    </div>
+
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
@@ -253,6 +262,86 @@
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        URL.revokeObjectURL(objUrl);
+    }
+
+    function saveAsTxt() {
+        var params = new URLSearchParams(window.location.search);
+        var query = params.get('q') || 'Wiki Prompt';
+        var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        var lines = [];
+        lines.push('WIKI SEARCH RESULTS');
+        lines.push('Query: ' + query);
+        lines.push('Date: ' + dateStr);
+        lines.push('');
+        var cards = document.querySelectorAll('[data-model]');
+        for (var i = 0; i < cards.length; i++) {
+            var modelName = cards[i].getAttribute('data-model');
+            var summaryEl = cards[i].querySelector('[data-synthesis-summary]');
+            lines.push('--- ' + modelName + ' Wiki Synthesis ---');
+            lines.push('');
+            lines.push(summaryEl ? summaryEl.innerText.trim() : '');
+            lines.push('');
+            var findingEls = cards[i].querySelectorAll('li');
+            if (findingEls.length > 0) {
+                lines.push('Key Findings:');
+                for (var j = 0; j < findingEls.length; j++) lines.push('  * ' + findingEls[j].innerText.trim());
+                lines.push('');
+            }
+        }
+        var pageLinks = document.querySelectorAll('[data-wiki-page]');
+        if (pageLinks.length > 0) {
+            lines.push('Source Wiki Pages:');
+            for (var k = 0; k < pageLinks.length; k++) {
+                lines.push('  ' + (k + 1) + '. ' + pageLinks[k].textContent.trim() + ' — ' + pageLinks[k].href);
+            }
+        }
+        var blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl;
+        var slug = query.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+        a.download = 'wiki-ask-' + slug + '-' + new Date().toISOString().slice(0, 10) + '.txt';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(objUrl);
+    }
+
+    function saveAsDoc() {
+        var params = new URLSearchParams(window.location.search);
+        var query = params.get('q') || 'Wiki Prompt';
+        var dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"/><title>Wiki Search Results</title></head><body>';
+        html += '<h1>Wiki Search Results</h1>';
+        html += '<p><b>Query:</b> ' + query + '<br/><b>Date:</b> ' + dateStr + '</p><hr/>';
+        var cards = document.querySelectorAll('[data-model]');
+        for (var i = 0; i < cards.length; i++) {
+            var modelName = cards[i].getAttribute('data-model');
+            var summaryEl = cards[i].querySelector('[data-synthesis-summary]');
+            html += '<h2>' + modelName + ' Wiki Synthesis</h2>';
+            html += '<p>' + (summaryEl ? summaryEl.innerHTML : '') + '</p>';
+            var findingEls = cards[i].querySelectorAll('li');
+            if (findingEls.length > 0) {
+                html += '<p><b>Key Findings:</b></p><ul>';
+                for (var j = 0; j < findingEls.length; j++) html += '<li>' + findingEls[j].innerHTML + '</li>';
+                html += '</ul>';
+            }
+        }
+        var pageLinks = document.querySelectorAll('[data-wiki-page]');
+        if (pageLinks.length > 0) {
+            html += '<h2>Source Wiki Pages</h2><ol>';
+            for (var k = 0; k < pageLinks.length; k++) {
+                html += '<li><a href="' + pageLinks[k].href + '">' + pageLinks[k].textContent.trim() + '</a></li>';
+            }
+            html += '</ol>';
+        }
+        html += '</body></html>';
+        var blob = new Blob([html], { type: 'application/msword' });
+        var objUrl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = objUrl;
+        var slug = query.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+        a.download = 'wiki-ask-' + slug + '-' + new Date().toISOString().slice(0, 10) + '.doc';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(objUrl);
     }
 
