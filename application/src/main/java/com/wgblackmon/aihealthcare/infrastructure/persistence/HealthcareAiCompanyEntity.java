@@ -50,6 +50,9 @@ public class HealthcareAiCompanyEntity {
     @Column(length = 100)
     private String subSector;
 
+    @Column(length = 100)
+    private String category;
+
     @Column(length = 50)
     private String fundingStage;
 
@@ -103,6 +106,9 @@ public class HealthcareAiCompanyEntity {
 
     public String getSubSector() { return subSector; }
     public void setSubSector(String subSector) { this.subSector = subSector; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
     public String getFundingStage() { return fundingStage; }
     public void setFundingStage(String fundingStage) { this.fundingStage = fundingStage; }

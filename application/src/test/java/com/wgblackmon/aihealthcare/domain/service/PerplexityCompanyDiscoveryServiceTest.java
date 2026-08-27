@@ -40,7 +40,7 @@ class PerplexityCompanyDiscoveryServiceTest {
         researchPort = mock(CompanyResearchPort.class);
         companyPort = mock(HealthcareAiCompanyPort.class);
         citationPort = mock(PerplexityCitationPort.class);
-        service = new PerplexityCompanyDiscoveryService(researchPort, companyPort, citationPort, 30);
+        service = new PerplexityCompanyDiscoveryService(researchPort, companyPort, citationPort, new com.wgblackmon.aihealthcare.domain.service.HealthcareAiCompanyClassifier(), 30);
     }
 
     @Test
@@ -95,7 +95,7 @@ class PerplexityCompanyDiscoveryServiceTest {
 
     @Test
     void runDiscoveryCycle_limitsMaxCompaniesPerRun() {
-        service = new PerplexityCompanyDiscoveryService(researchPort, companyPort, citationPort, 1);
+        service = new PerplexityCompanyDiscoveryService(researchPort, companyPort, citationPort, new com.wgblackmon.aihealthcare.domain.service.HealthcareAiCompanyClassifier(), 1);
         when(researchPort.isAvailable()).thenReturn(true);
         when(researchPort.discoverCompanies(anyString())).thenReturn(
                 new CompanyResearchPort.DiscoveryResult(
