@@ -101,7 +101,8 @@ public class TrendController {
         if (latest.isPresent() && !latest.get().risingTopics().isEmpty()) {
             TrendSnapshot snapshot = latest.get();
             SubscriptionTier tier = resolveTier(principal);
-            boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO;
+            boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
+                    || tier == SubscriptionTier.ENTERPRISE;
 
             List<TrendSignal> rawRising;
             if (fullAccess || isAdmin(principal)) {

@@ -305,6 +305,7 @@ public class WatchlistController {
             return true;
         }
         SubscriptionTier tier = user.tier() != null ? user.tier() : SubscriptionTier.FREE;
-        return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO;
+        return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.ENTERPRISE;
     }
 }

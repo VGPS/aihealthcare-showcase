@@ -323,7 +323,8 @@ public class TrendHistoryController {
             return false;
         }
         SubscriptionTier tier = subscriber.get().tier();
-        return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO;
+        return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.ENTERPRISE;
     }
 
     private boolean isAdmin(Principal principal) {

@@ -284,7 +284,8 @@ public class SentimentDashboardController {
         Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
         if (subscriber.isPresent()) {
             SubscriptionTier tier = subscriber.get().tier();
-            return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO;
+            return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
+                    || tier == SubscriptionTier.ENTERPRISE;
         }
         return false;
     }
