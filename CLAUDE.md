@@ -252,7 +252,17 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**LLM-Enhanced Deal Signal Alerts (DS-1) — COMPLETE — 70 selective tests passing**
+**Company Directory Signal Scoring — COMPLETE — 14 selective tests passing**
+- [x] Domain: `CompanySignal` record — 9 fields (articleCount90d, latestDealType/Amount/Date, sentimentScore/Label, hasSentimentData, relevanceScore) with `hasRecentFunding()`, `isWatchList()`, `isTrending()` derived booleans
+- [x] Domain: `CompanySignalService` — 3-port cross-reference (articles 90d, FUNDING deals, sentiment) in single pass; no Spring deps
+- [x] Ports: `BrowseCompaniesUseCase.computeSignals()` added; `BrowseCompaniesService` now accepts and delegates to `CompanySignalService`
+- [x] Config: `AppConfig` — `companySignalService()` bean wired with `ArticleIngestionPort` + `DealSignalPort` + `CompanySentimentPort`; `browseCompaniesService()` updated with signal service param
+- [x] Web: `PublicCompanyController` — `sort` param (relevance/trending/funded/watchlist), `GET /directory/export.csv` CSV download
+- [x] Template: `company-directory.html` — scoring explanation card, sort tabs with live count badges, signal badges (🔥/💰/⚠) per card, relevance score chip, sector pills preserve sort across navigation
+- [x] Infrastructure bug fixes (same session): Intelligence Service URL double-encoding (URI.create fix), regulatory "Prompt" → "Run Harvest" button, sector filter normalization via HealthcareAiCompanyClassifier
+- [x] Tests: `PublicCompanyControllerTest` — 14 tests covering sort modes, export, sector filter, detail page, utility methods
+
+**Previously complete: LLM-Enhanced Deal Signal Alerts (DS-1) — COMPLETE — 70 selective tests passing**
 - [x] Domain: `DealSignal` extended from 8→12 fields (added `dealAmount`, `counterpartyName`, `sourceUrl`, `llmAnalysis` — all nullable)
 - [x] Domain: `DealContext` enrichment wrapper record (signal + sentiment + framework + regulatoryEvents + companyProfile)
 - [x] Domain: `DealClassificationPort` outbound port — `classifyDeals(List<NewsArticle>)` for LLM deal confirmation
