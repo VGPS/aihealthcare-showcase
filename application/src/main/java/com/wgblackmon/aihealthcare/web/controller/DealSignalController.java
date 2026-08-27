@@ -114,17 +114,15 @@ public class DealSignalController {
         Map<String, Long> current30d = detectDealSignalsUseCase.getTypeStats(thirtyDaysAgo, now);
         Map<String, Long> prior30d   = detectDealSignalsUseCase.getTypeStats(sixtyDaysAgo, thirtyDaysAgo);
 
-        List<Map<String, Object>> typeStats = buildTypeStats(current30d, prior30d);
-        String partnerAcqRatio      = formatRatio(current30d.getOrDefault("PARTNERSHIP", 0L),
-                                                  current30d.getOrDefault("ACQUISITION", 0L));
-        String priorPartnerAcqRatio = formatRatio(prior30d.getOrDefault("PARTNERSHIP", 0L),
-                                                  prior30d.getOrDefault("ACQUISITION", 0L));
+        List<Map<String, Object>> typeStats  = buildTypeStats(current30d, prior30d);
+        List<Map<String, Object>> ratioStats = buildRatioStats(current30d, prior30d);
+        Map<String, Object> velocity         = buildVelocity(current30d, prior30d);
 
         model.addAttribute("signals", signalList);
         model.addAttribute("totalSignals", signalList.size());
         model.addAttribute("typeStats", typeStats);
-        model.addAttribute("partnerAcqRatio", partnerAcqRatio);
-        model.addAttribute("priorPartnerAcqRatio", priorPartnerAcqRatio);
+        model.addAttribute("ratioStats", ratioStats);
+        model.addAttribute("velocity", velocity);
         model.addAttribute("hasPriorData", !prior30d.isEmpty());
         model.addAttribute("filterType", type);
         model.addAttribute("fullAccess", fullAccess);
@@ -212,11 +210,115 @@ public class DealSignalController {
         return stats;
     }
 
-    private String formatRatio(long partnership, long acquisition) {
-        if (acquisition == 0) {
-            return partnership > 0 ? partnership + ":0" : "—";
+    private List<Map<String, Object>> buildRatioStats(Map<String, Long> cur, Map<String, Long> prev) {
+        List<Map<String, Object>> ratios = new ArrayList<>();
+
+        long curPartner  = cur.getOrDefault("PARTNERSHIP",    0L);
+        long curAcq      = cur.getOrDefault("ACQUISITION",    0L);
+        long curFunding  = cur.getOrDefault("FUNDING",        0L);
+        long curIpo      = cur.getOrDefault("IPO",            0L);
+        long curLaunch   = cur.getOrDefault("PRODUCT_LAUNCH", 0L);
+
+        long prvPartner  = prev.getOrDefault("PARTNERSHIP",    0L);
+        long prvAcq      = prev.getOrDefault("ACQUISITION",    0L);
+        long prvFunding  = prev.getOrDefault("FUNDING",        0L);
+        long prvIpo      = prev.getOrDefault("IPO",            0L);
+        long prvLaunch   = prev.getOrDefault("PRODUCT_LAUNCH", 0L);
+
+        ratios.add(ratio("Partnership : Acquisition",
+                "Strategic alignment vs ownership intent. Are companies choosing low-commitment deals or taking full control?",
+                "High (>2:1) — Market is uncertain or targets are expensive; buyers prefer partnerships over ownership risk.",
+                "Low (<1:1) — Acquirers are confident. They're taking ownership, not testing the waters.",
+                curPartner, curAcq, prvPartner, prvAcq));
+
+        ratios.add(ratio("Funding : Acquisition",
+                "Ecosystem growth vs consolidation. Is new money flowing in faster than companies are being absorbed?",
+                "High (>3:1) — Early-stage ecosystem is healthy; capital is backing new companies faster than large players can acquire them.",
+                "Low (<1.5:1) — Consolidation is underway; large players are absorbing the field. Late-cycle signal.",
+                curFunding, curAcq, prvFunding, prvAcq));
+
+        ratios.add(ratio("Product Launch : Acquisition",
+                "Build vs Buy. Are companies shipping their own technology or buying it from others?",
+                "High (>3:1) — R&D is productive; companies believe they can out-build competitors.",
+                "Low (<1:1) — Buying is faster or cheaper than building right now. May signal depressed target valuations.",
+                curLaunch, curAcq, prvLaunch, prvAcq));
+
+        ratios.add(ratio("Funding : (Acquisition + IPO)",
+                "Capital formation vs capital exit. Money entering the ecosystem vs companies being absorbed or going public.",
+                "High (>2:1) — More capital is being deployed into new ventures than leaving via exits. Early-stage health.",
+                "Low (<1:1) — Exits are outpacing new investment. Often a late-cycle or market-contraction signal.",
+                curFunding, curAcq + curIpo, prvFunding, prvAcq + prvIpo));
+
+        ratios.add(ratio("IPO : Acquisition",
+                "Exit path preference. Are companies choosing public markets or selling to a strategic buyer?",
+                "High (>0.5:1) — Founders and investors believe public markets will reward them; IPO window is open.",
+                "Low (<0.1:1) — M&A dominates exits; founders or investors prefer the certainty of a strategic sale over public market risk.",
+                curIpo, curAcq, prvIpo, prvAcq));
+
+        return ratios;
+    }
+
+    private Map<String, Object> buildVelocity(Map<String, Long> cur, Map<String, Long> prev) {
+        long curTotal = 0L;
+        for (long v : cur.values()) { curTotal += v; }
+        long prvTotal = 0L;
+        for (long v : prev.values()) { prvTotal += v; }
+
+        String changeLabel;
+        String changeClass;
+        if (prvTotal == 0) {
+            changeLabel = "—";
+            changeClass = "text-gray-400";
+        } else {
+            long diff = curTotal - prvTotal;
+            long pct  = Math.round(100.0 * diff / prvTotal);
+            changeLabel = (diff >= 0 ? "+" : "") + pct + "%";
+            changeClass = diff > 0 ? "text-green-600 font-semibold"
+                                   : (diff < 0 ? "text-red-500 font-semibold" : "text-gray-500");
         }
-        return String.format("%.1f:1", (double) partnership / acquisition);
+
+        Map<String, Object> v = new LinkedHashMap<>();
+        v.put("currentTotal", curTotal);
+        v.put("priorTotal",   prvTotal > 0 ? prvTotal : null);
+        v.put("changeLabel",  changeLabel);
+        v.put("changeClass",  changeClass);
+        return v;
+    }
+
+    private Map<String, Object> ratio(String name, String headline,
+                                       String highMeans, String lowMeans,
+                                       long curNum, long curDen,
+                                       long prvNum, long prvDen) {
+        String current = formatRatio(curNum, curDen);
+        String prior   = (prvNum == 0 && prvDen == 0) ? null : formatRatio(prvNum, prvDen);
+
+        String direction  = "—";
+        String dirClass   = "text-gray-400";
+        if (prior != null && curDen > 0 && prvDen > 0) {
+            double curVal = (double) curNum / curDen;
+            double prvVal = (double) prvNum / prvDen;
+            if      (curVal > prvVal * 1.05) { direction = "↑"; dirClass = "text-green-600 font-bold"; }
+            else if (curVal < prvVal * 0.95) { direction = "↓"; dirClass = "text-red-500 font-bold"; }
+            else                             { direction = "→"; dirClass = "text-gray-500"; }
+        }
+
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("name",      name);
+        m.put("headline",  headline);
+        m.put("highMeans", highMeans);
+        m.put("lowMeans",  lowMeans);
+        m.put("current",   current);
+        m.put("prior",     prior);
+        m.put("direction", direction);
+        m.put("dirClass",  dirClass);
+        return m;
+    }
+
+    private String formatRatio(long numerator, long denominator) {
+        if (denominator == 0) {
+            return numerator > 0 ? numerator + ":0" : "—";
+        }
+        return String.format("%.1f:1", (double) numerator / denominator);
     }
 
     private boolean hasFullAccess(Principal principal) {

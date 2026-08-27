@@ -84,14 +84,47 @@
                      th:text="${stat.label}">TYPE</div>
             </div>
         </div>
-        <!-- Key ratio row -->
-        <div class="border-t border-gray-100 pt-3 flex flex-wrap gap-6 text-sm">
-            <div class="flex items-center gap-2">
-                <span class="text-gray-500">Partnership:Acquisition ratio</span>
-                <span class="font-bold text-blue-700 text-base" th:text="${partnerAcqRatio}">—</span>
-                <span th:if="${hasPriorData}" class="text-xs text-gray-400">
-                    (prior 30d: <span th:text="${priorPartnerAcqRatio}">—</span>)
-                </span>
+        <!-- Signal velocity row -->
+        <div class="border-t border-gray-100 pt-3 flex flex-wrap gap-6 text-sm items-center">
+            <span class="text-gray-500">Total signals this 30d:</span>
+            <span class="font-bold text-gray-800 text-base" th:text="${velocity.currentTotal}">0</span>
+            <span th:if="${velocity.priorTotal != null}" class="text-xs text-gray-400">
+                vs <span th:text="${velocity.priorTotal}">0</span> prior 30d
+            </span>
+            <span class="text-sm" th:classappend="${velocity.changeClass}" th:text="${velocity.changeLabel}">—</span>
+        </div>
+    </div>
+
+    <!-- Key Ratios — what each one means -->
+    <div class="bg-white rounded-lg shadow-card p-5 mb-6">
+        <div class="mb-4">
+            <h2 class="text-base font-semibold text-gray-700">Key Ratios — What They Mean</h2>
+            <p class="text-xs text-gray-400 mt-1">Each ratio compares two deal types in the last 30 days. Prior 30d shown for comparison. These are the numbers that signal where the market is heading.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div th:each="r : ${ratioStats}"
+                 class="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                <!-- Ratio value -->
+                <div class="flex items-baseline gap-2 mb-1">
+                    <span class="text-3xl font-bold text-primary-700" th:text="${r.current}">—</span>
+                    <span class="text-lg" th:classappend="${r.dirClass}" th:text="${r.direction}">—</span>
+                    <span th:if="${r.prior != null}" class="text-xs text-gray-400 ml-auto">
+                        prior: <span th:text="${r.prior}">—</span>
+                    </span>
+                    <span th:if="${r.prior == null}" class="text-xs text-gray-300 ml-auto italic">no prior data</span>
+                </div>
+                <!-- Ratio name -->
+                <div class="text-sm font-semibold text-gray-700 mb-2" th:text="${r.name}">Name</div>
+                <!-- What it measures -->
+                <p class="text-xs text-gray-500 mb-3 leading-relaxed" th:text="${r.headline}">Headline</p>
+                <!-- High / Low interpretation -->
+                <div class="space-y-1">
+                    <div class="text-xs text-green-700 bg-green-50 rounded px-2 py-1 leading-relaxed"
+                         th:text="${r.highMeans}">High means...</div>
+                    <div class="text-xs text-red-700 bg-red-50 rounded px-2 py-1 leading-relaxed"
+                         th:text="${r.lowMeans}">Low means...</div>
+                </div>
             </div>
         </div>
     </div>
