@@ -18,7 +18,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Framework Competitive Analysis** | Config-driven 6-dimension competitive scoring (clinical validation, regulatory, market adoption, tech depth, data assets, partnerships) |
 | **Deal Signal Detection** | LLM-enhanced deal classification extracting deal type, amount, counterparty, and confidence from article text |
 | **Deal Context Enrichment** | Cross-references deals against sentiment, framework, regulatory, and company profile data for 360-degree context |
-| **Public Company Directory** | No-login-required directory of all AI healthcare companies with sector filtering, company detail pages, clickable `[N]` citation anchors, and JSON-LD Organization schema for SEO |
+| **Public Company Directory** | No-login-required directory ranked by live signal scoring (article velocity + deal bonus − sentiment penalty) with sort tabs (Trending / Recently Funded / Watch List), sector filter pills, signal badges (🔥/💰/⚠) per card, CSV export, and JSON-LD Organization schema for SEO |
 | **Company Intelligence Profiles** | Persistent company pages with real article linking, event timelines, trend indicators, and homepage links |
 | **Company Relationships** | Visual relationship mapping between companies showing partnerships, acquisitions, and competitive dynamics |
 | **Custom Watchlists** | Subscriber-defined keyword, company, and topic watchlists with automated matching against new articles and regulatory events |
@@ -44,13 +44,13 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **PII Masking** | LogSanitizer utility masks email addresses in log statements to prevent PII exposure in production logs |
 | **Branded Error Handling** | Custom error pages replacing Spring Boot's Whitelabel Error Page with consistent branded UI |
 | **50-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, watchlist, sentiment, frameworks, deals, company pages, and public company directory |
-| **1,519+ Automated Tests** | Comprehensive test suite across 249 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **1,533+ Automated Tests** | Comprehensive test suite across 249 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 17, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 103 domain model records, 92 port interfaces, and 70 controllers — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **1,519+ automated tests** across 249 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **1,533+ automated tests** across 249 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
@@ -73,7 +73,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 
 **Knowledge Management**
 - Architected an **LLM-compiled knowledge wiki** that synthesizes harvested articles into persistent, versioned pages with source provenance tracking, cross-references, contradiction detection ("Reversal Watch"), and orphan/stale-ref linting
-- Built a **company intelligence platform** with persistent profiles, real article linking, event timelines, relationship mapping (partnerships, acquisitions, competitive dynamics), and trend indicators
+- Built a **company intelligence platform** with persistent profiles, real article linking, event timelines, relationship mapping (partnerships, acquisitions, competitive dynamics), and a signal-scored public directory (article velocity + deal bonus + sentiment penalty) with sort tabs (Trending / Recently Funded / Watch List), canonical 7-category classifier, and CSV export
 
 **Newsletter & Content Delivery**
 - Developed **automated daily newsletter generation** with AI-summarized topic sections, TinyMCE 7.9.0 WYSIWYG editing, and tier-routed delivery (SUBSCRIBER=full newsletter, FREE=digest summary) via Spring Boot Mail + Amazon SES
@@ -315,7 +315,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Security Testing | spring-security-test (@WithMockUser) | — |
 | Web Testing | MockMvc (@WebMvcTest slices) | — |
 | Persistence Testing | @DataJpaTest (H2 in-memory) | — |
-| Coverage | 1,519+ tests across 249 test classes | — |
+| Coverage | 1,533+ tests across 249 test classes | — |
 
 ### Infrastructure & DevOps
 | Component | Technology | Version |
@@ -432,8 +432,9 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 ### Public Directory (no login required)
 | URL | Description |
 |-----|-------------|
-| `/directory` | Public AI healthcare company directory — alphabetical grid with sector filter pills, anonymous visitor CTA |
-| `/directory/{slug}` | Company profile — sector badges, funding stage, website, HQ, clickable `[N]` citation anchors linking to Discovery Sources |
+| `/directory` | Public AI healthcare company directory — ranked by live signal score with sort tabs (Trending / Recently Funded / Watch List), sector filter pills, signal badges, CSV export |
+| `/directory/export.csv` | CSV download of all companies with signal data (articles 90d, deal amount, sentiment score, relevance score) |
+| `/directory/{slug}` | Company profile — category, funding stage, website, HQ, clickable `[N]` citation anchors linking to Discovery Sources |
 
 ### Newsletter & Content
 | URL | Description |
@@ -646,7 +647,7 @@ aihealthcare:
 
 ## Testing
 
-1,509+ tests across 249 test classes — all pass with no live AI or network calls.
+1,533+ tests across 249 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
@@ -695,7 +696,7 @@ AIHealthcare/
 ├── application/src/main/resources/
 │   ├── prompts/             # 18 AI prompt templates
 │   └── templates/           # 50 Thymeleaf HTML templates + 6 fragments
-├── application/src/test/    # 249 test classes (1,519+ tests)
+├── application/src/test/    # 249 test classes (1,533+ tests)
 ├── docs/                    # Architecture, conventions, QA plan documentation
 ├── pom.xml
 └── CLAUDE.md                # AI assistant project context
