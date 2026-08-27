@@ -8,7 +8,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-06
+ * @updated 2026-08-26
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -64,15 +64,35 @@
         </a>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <div th:each="entry : ${typeCounts}" class="bg-white rounded-lg shadow-card p-4 text-center">
-            <div class="text-2xl font-bold text-primary-600" th:text="${entry.value}">0</div>
-            <div class="text-xs text-gray-500 uppercase mt-1" th:text="${entry.key}">TYPE</div>
+    <!-- Deal Activity Stats — Last 30 Days vs Prior 30 Days -->
+    <div class="bg-white rounded-lg shadow-card p-5 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-base font-semibold text-gray-700">Deal Activity — Last 30 Days vs Prior 30 Days</h2>
+            <span class="text-xs text-gray-400">DB-level counts · updated continuously</span>
         </div>
-        <div class="bg-white rounded-lg shadow-card p-4 text-center">
-            <div class="text-2xl font-bold text-gray-700" th:text="${totalSignals}">0</div>
-            <div class="text-xs text-gray-500 uppercase mt-1">Total</div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+            <div th:each="stat : ${typeStats}"
+                 class="rounded-lg border border-gray-100 bg-gray-50 p-3 text-center">
+                <div class="text-2xl font-bold text-gray-800" th:text="${stat.currentCount}">0</div>
+                <div th:if="${stat.priorCount != null}"
+                     class="text-xs text-gray-400 mt-0.5"
+                     th:text="'vs ' + ${stat.priorCount}">vs 0</div>
+                <div th:if="${stat.priorCount == null}"
+                     class="text-xs text-gray-300 mt-0.5">no prior data</div>
+                <div class="text-xs mt-0.5" th:classappend="${stat.changeClass}" th:text="${stat.changeLabel}">—</div>
+                <div class="text-xs uppercase mt-1 font-medium text-gray-600"
+                     th:text="${stat.label}">TYPE</div>
+            </div>
+        </div>
+        <!-- Key ratio row -->
+        <div class="border-t border-gray-100 pt-3 flex flex-wrap gap-6 text-sm">
+            <div class="flex items-center gap-2">
+                <span class="text-gray-500">Partnership:Acquisition ratio</span>
+                <span class="font-bold text-blue-700 text-base" th:text="${partnerAcqRatio}">—</span>
+                <span th:if="${hasPriorData}" class="text-xs text-gray-400">
+                    (prior 30d: <span th:text="${priorPartnerAcqRatio}">—</span>)
+                </span>
+            </div>
         </div>
     </div>
 

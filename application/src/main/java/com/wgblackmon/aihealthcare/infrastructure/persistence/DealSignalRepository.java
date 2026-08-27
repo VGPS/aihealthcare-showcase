@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -21,9 +22,9 @@ import java.util.List;
  * </ul>
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-04
- * @updated 2026-08-23
+ * @updated 2026-08-26
  */
 public interface DealSignalRepository extends JpaRepository<DealSignalEntity, String> {
 
@@ -52,4 +53,17 @@ public interface DealSignalRepository extends JpaRepository<DealSignalEntity, St
      */
     @Query("SELECT d FROM DealSignalEntity d WHERE d.signalType = :signalType ORDER BY d.detectedAt DESC")
     List<DealSignalListView> findBySignalTypeListView(@Param("signalType") String signalType, Pageable pageable);
+
+    /**
+     * Returns signal counts grouped by {@code signalType} for records whose
+     * {@code detectedAt} falls within the half-open interval {@code [from, to)}.
+     * Each row is a two-element array: {@code [signalType (String), count (Long)]}.
+     *
+     * @param from inclusive start (epoch)
+     * @param to   exclusive end (epoch)
+     * @return list of {@code [signalType, count]} arrays; empty if no records in window
+     */
+    @Query("SELECT d.signalType, COUNT(d) FROM DealSignalEntity d " +
+           "WHERE d.detectedAt >= :from AND d.detectedAt < :to GROUP BY d.signalType")
+    List<Object[]> countBySignalTypeInPeriod(@Param("from") Instant from, @Param("to") Instant to);
 }

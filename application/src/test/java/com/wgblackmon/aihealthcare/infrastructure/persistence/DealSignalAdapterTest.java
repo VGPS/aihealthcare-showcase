@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,9 +17,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Integration tests for {@link DealSignalAdapter} using H2 in-memory DB.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-26
  */
 @DataJpaTest
 class DealSignalAdapterTest {
@@ -116,6 +117,32 @@ class DealSignalAdapterTest {
         for (DealSignal s : result) {
             assertThat(s.signalType()).isEqualTo(DealSignalType.FUNDING);
         }
+    }
+
+    @Test
+    void countByTypeInPeriod_returnsGroupedCounts() {
+        Instant base = Instant.parse("2026-08-01T00:00:00Z");
+        adapter.saveAll(List.of(
+                new DealSignal("s1", "a1", "T", DealSignalType.FUNDING,     "Co", "S", 0.8, base.plusSeconds(1),  null, null, null, null),
+                new DealSignal("s2", "a2", "T", DealSignalType.FUNDING,     "Co", "S", 0.8, base.plusSeconds(2),  null, null, null, null),
+                new DealSignal("s3", "a3", "T", DealSignalType.ACQUISITION, "Co", "S", 0.8, base.plusSeconds(3),  null, null, null, null),
+                new DealSignal("s4", "a4", "T", DealSignalType.PARTNERSHIP, "Co", "S", 0.8, base.minusSeconds(1), null, null, null, null)
+        ));
+
+        Instant from = base;
+        Instant to   = base.plusSeconds(10);
+        Map<String, Long> result = adapter.countByTypeInPeriod(from, to);
+
+        assertThat(result).containsEntry("FUNDING", 2L);
+        assertThat(result).containsEntry("ACQUISITION", 1L);
+        assertThat(result).doesNotContainKey("PARTNERSHIP"); // before window
+    }
+
+    @Test
+    void countByTypeInPeriod_emptyWindowReturnsEmptyMap() {
+        Instant future = Instant.parse("2099-01-01T00:00:00Z");
+        Map<String, Long> result = adapter.countByTypeInPeriod(future, future.plusSeconds(60));
+        assertThat(result).isEmpty();
     }
 
     @Test

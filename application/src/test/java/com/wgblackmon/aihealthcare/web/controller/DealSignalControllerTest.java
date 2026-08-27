@@ -8,6 +8,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -34,9 +37,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link DealSignalController}.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-04
- * @updated 2026-08-23
+ * @updated 2026-08-26
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(DealSignalController.class)
@@ -57,6 +60,13 @@ class DealSignalControllerTest {
     @MockitoBean
     private SubscriberPort subscriberPort;
 
+    @BeforeEach
+    void stubTypeStats() {
+        // getTypeStats is called on every dealsPage() invocation; stub with empty map to avoid NPE
+        when(detectDealSignalsUseCase.getTypeStats(any(Instant.class), any(Instant.class)))
+                .thenReturn(Map.of());
+    }
+
     // FREE user (no subscriber record) fetches FREE_LIMIT=10, page=0
     @Test
     @WithMockUser
@@ -70,7 +80,8 @@ class DealSignalControllerTest {
         mockMvc.perform(get("/dashboard/deals"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("deals"))
-                .andExpect(model().attributeExists("signals", "typeCounts", "totalSignals"));
+                .andExpect(model().attributeExists("signals", "typeStats", "totalSignals",
+                        "partnerAcqRatio", "priorPartnerAcqRatio", "hasPriorData"));
     }
 
     @Test
@@ -166,6 +177,19 @@ class DealSignalControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("deals-detail"))
                 .andExpect(model().attributeExists("signal", "regulatoryEvents"));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /dashboard/deals computes ratio from type stats")
+    void dealsPage_withTypeStats_computesRatio() throws Exception {
+        when(detectDealSignalsUseCase.getRecentSignals(anyInt(), anyInt())).thenReturn(List.of());
+        when(detectDealSignalsUseCase.getTypeStats(any(Instant.class), any(Instant.class)))
+                .thenReturn(Map.of("PARTNERSHIP", 10L, "ACQUISITION", 5L));
+
+        mockMvc.perform(get("/dashboard/deals"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("partnerAcqRatio", "2.0:1"));
     }
 
     @Test
