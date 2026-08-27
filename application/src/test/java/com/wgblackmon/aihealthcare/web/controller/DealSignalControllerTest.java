@@ -81,7 +81,7 @@ class DealSignalControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("deals"))
                 .andExpect(model().attributeExists("signals", "typeStats", "totalSignals",
-                        "partnerAcqRatio", "priorPartnerAcqRatio", "hasPriorData"));
+                        "ratioStats", "velocity", "hasPriorData"));
     }
 
     @Test
@@ -181,15 +181,15 @@ class DealSignalControllerTest {
 
     @Test
     @WithMockUser
-    @DisplayName("GET /dashboard/deals computes ratio from type stats")
-    void dealsPage_withTypeStats_computesRatio() throws Exception {
+    @DisplayName("GET /dashboard/deals populates ratioStats and velocity model attrs")
+    void dealsPage_populatesRatioStatsAndVelocity() throws Exception {
         when(detectDealSignalsUseCase.getRecentSignals(anyInt(), anyInt())).thenReturn(List.of());
         when(detectDealSignalsUseCase.getTypeStats(any(Instant.class), any(Instant.class)))
-                .thenReturn(Map.of("PARTNERSHIP", 10L, "ACQUISITION", 5L));
+                .thenReturn(Map.of("PARTNERSHIP", 10L, "ACQUISITION", 5L, "FUNDING", 20L));
 
         mockMvc.perform(get("/dashboard/deals"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("partnerAcqRatio", "2.0:1"));
+                .andExpect(model().attributeExists("ratioStats", "velocity"));
     }
 
     @Test
