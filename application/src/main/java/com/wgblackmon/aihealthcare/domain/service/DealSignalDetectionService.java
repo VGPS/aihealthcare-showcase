@@ -29,9 +29,9 @@ import java.util.UUID;
  * keyword-only detection.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-04
- * @updated 2026-08-06
+ * @updated 2026-08-26
  */
 public class DealSignalDetectionService implements DetectDealSignalsUseCase {
 
@@ -125,6 +125,11 @@ public class DealSignalDetectionService implements DetectDealSignalsUseCase {
     @Override
     public List<DealSignal> getSignalsByType(DealSignalType type, int pageSize, int page) {
         return dealSignalPort.findByType(type.name(), pageSize, page);
+    }
+
+    @Override
+    public Map<String, Long> getTypeStats(Instant from, Instant to) {
+        return dealSignalPort.countByTypeInPeriod(from, to);
     }
 
     @Override

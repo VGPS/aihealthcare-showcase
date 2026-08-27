@@ -8,8 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * JPA-backed implementation of {@link DealSignalPort}.
@@ -19,9 +22,9 @@ import java.util.List;
  * TEXT column. Detail lookups ({@code findById}) use the full entity.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-04
- * @updated 2026-08-23
+ * @updated 2026-08-26
  */
 @Slf4j
 @Component
@@ -85,6 +88,18 @@ public class DealSignalAdapter implements DealSignalPort {
             result.add(toDomainList(view));
         }
         log.debug("findByType() | return={} signals", result.size());
+        return result;
+    }
+
+    @Override
+    public Map<String, Long> countByTypeInPeriod(Instant from, Instant to) {
+        log.debug("countByTypeInPeriod() | from={}, to={}", from, to);
+        List<Object[]> rows = repository.countBySignalTypeInPeriod(from, to);
+        Map<String, Long> result = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            result.put((String) row[0], (Long) row[1]);
+        }
+        log.debug("countByTypeInPeriod() | return={}", result);
         return result;
     }
 

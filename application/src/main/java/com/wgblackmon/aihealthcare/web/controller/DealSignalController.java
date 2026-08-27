@@ -17,8 +17,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,7 +37,7 @@ import java.util.Optional;
  * filtering by type, tier gating, and cross-referenced deal detail views.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-04
  * @updated 2026-08-26
  */
@@ -90,8 +92,6 @@ public class DealSignalController {
         List<DealSignal> deduped = deduplicateByCompanyTypeAndDay(signals);
 
         List<Map<String, Object>> signalList = new ArrayList<>();
-        Map<String, Integer> typeCounts = new LinkedHashMap<>();
-
         for (DealSignal signal : deduped) {
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("signalId", signal.signalId());
@@ -105,14 +105,27 @@ public class DealSignalController {
             entry.put("counterpartyName", signal.counterpartyName());
             entry.put("sourceUrl", signal.sourceUrl());
             signalList.add(entry);
-
-            String typeName = signal.signalType().name();
-            typeCounts.put(typeName, typeCounts.getOrDefault(typeName, 0) + 1);
         }
 
+        // 30-day vs prior-30-day aggregate counts (from DB, independent of current page)
+        Instant now = Instant.now();
+        Instant thirtyDaysAgo = now.minus(30, ChronoUnit.DAYS);
+        Instant sixtyDaysAgo = now.minus(60, ChronoUnit.DAYS);
+        Map<String, Long> current30d = detectDealSignalsUseCase.getTypeStats(thirtyDaysAgo, now);
+        Map<String, Long> prior30d   = detectDealSignalsUseCase.getTypeStats(sixtyDaysAgo, thirtyDaysAgo);
+
+        List<Map<String, Object>> typeStats = buildTypeStats(current30d, prior30d);
+        String partnerAcqRatio      = formatRatio(current30d.getOrDefault("PARTNERSHIP", 0L),
+                                                  current30d.getOrDefault("ACQUISITION", 0L));
+        String priorPartnerAcqRatio = formatRatio(prior30d.getOrDefault("PARTNERSHIP", 0L),
+                                                  prior30d.getOrDefault("ACQUISITION", 0L));
+
         model.addAttribute("signals", signalList);
-        model.addAttribute("typeCounts", typeCounts);
         model.addAttribute("totalSignals", signalList.size());
+        model.addAttribute("typeStats", typeStats);
+        model.addAttribute("partnerAcqRatio", partnerAcqRatio);
+        model.addAttribute("priorPartnerAcqRatio", priorPartnerAcqRatio);
+        model.addAttribute("hasPriorData", !prior30d.isEmpty());
         model.addAttribute("filterType", type);
         model.addAttribute("fullAccess", fullAccess);
         model.addAttribute("currentPage", currentPage);
@@ -161,6 +174,49 @@ public class DealSignalController {
 
         log.debug("dealDetail() | return=deals-detail for {}", signalId);
         return "deals-detail";
+    }
+
+    private static final String[] TYPE_NAMES   = {"FUNDING", "ACQUISITION", "PARTNERSHIP", "IPO", "PRODUCT_LAUNCH"};
+    private static final String[] TYPE_COLORS  = {"green",   "red",         "blue",        "purple", "yellow"};
+
+    private List<Map<String, Object>> buildTypeStats(Map<String, Long> current, Map<String, Long> prior) {
+        List<Map<String, Object>> stats = new ArrayList<>();
+        for (int i = 0; i < TYPE_NAMES.length; i++) {
+            String typeName = TYPE_NAMES[i];
+            long cur  = current.getOrDefault(typeName, 0L);
+            long prev = prior.getOrDefault(typeName, 0L);
+
+            String changeLabel;
+            String changeClass;
+            if (prev == 0) {
+                changeLabel = "—";
+                changeClass = "text-gray-400";
+            } else {
+                long diff = cur - prev;
+                long pct  = Math.round(100.0 * diff / prev);
+                changeLabel = (diff >= 0 ? "+" : "") + pct + "%";
+                changeClass = diff > 0 ? "text-green-600 font-semibold"
+                                       : (diff < 0 ? "text-red-600 font-semibold" : "text-gray-500");
+            }
+
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("type",        typeName);
+            entry.put("label",       typeName.replace("_", " "));
+            entry.put("color",       TYPE_COLORS[i]);
+            entry.put("currentCount", cur);
+            entry.put("priorCount",  prev > 0 ? prev : null);
+            entry.put("changeLabel", changeLabel);
+            entry.put("changeClass", changeClass);
+            stats.add(entry);
+        }
+        return stats;
+    }
+
+    private String formatRatio(long partnership, long acquisition) {
+        if (acquisition == 0) {
+            return partnership > 0 ? partnership + ":0" : "—";
+        }
+        return String.format("%.1f:1", (double) partnership / acquisition);
     }
 
     private boolean hasFullAccess(Principal principal) {
