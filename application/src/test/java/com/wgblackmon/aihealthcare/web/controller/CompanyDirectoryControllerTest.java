@@ -92,7 +92,7 @@ class CompanyDirectoryControllerTest {
         return new HealthcareAiCompany(
                 id, name, name.toLowerCase(), name.toLowerCase().replace(" ", "") + ".com",
                 "An AI healthcare company", "San Francisco, CA", 2019,
-                "Healthcare AI", subSector, "Series B", "$50M", null,
+                "Healthcare AI", subSector, null, "Series B", "$50M", null,
                 List.of("https://src.com"), validated, List.of("https://val.com"),
                 Instant.now(), Instant.now());
     }

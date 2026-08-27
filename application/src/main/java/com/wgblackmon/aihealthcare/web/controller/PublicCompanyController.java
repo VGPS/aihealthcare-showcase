@@ -61,12 +61,12 @@ public class PublicCompanyController {
 
         List<HealthcareAiCompany> all = browseCompaniesUseCase.listCompanies();
 
-        // Apply optional sector filter
+        // Apply optional category filter
         List<HealthcareAiCompany> companies;
         if (sector != null && !sector.isBlank()) {
             companies = new ArrayList<>();
             for (HealthcareAiCompany c : all) {
-                if (sector.equalsIgnoreCase(c.sector())) {
+                if (sector.equalsIgnoreCase(c.category())) {
                     companies.add(c);
                 }
             }
@@ -80,11 +80,11 @@ public class PublicCompanyController {
             slugs.put(c.companyId(), toSlug(c.name()));
         }
 
-        // Collect distinct sectors for filter pills
+        // Collect distinct canonical categories for filter pills
         List<String> sectors = new ArrayList<>();
         for (HealthcareAiCompany c : all) {
-            if (c.sector() != null && !c.sector().isBlank() && !sectors.contains(c.sector())) {
-                sectors.add(c.sector());
+            if (c.category() != null && !c.category().isBlank() && !sectors.contains(c.category())) {
+                sectors.add(c.category());
             }
         }
 

@@ -2,6 +2,8 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
+import com.wgblackmon.aihealthcare.domain.service.HealthcareAiCompanyClassifier;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -27,10 +29,18 @@ import java.util.Optional;
 public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
 
     private final HealthcareAiCompanyRepository repository;
+    private final HealthcareAiCompanyClassifier classifier;
 
-    public HealthcareAiCompanyAdapter(HealthcareAiCompanyRepository repository) {
+    public HealthcareAiCompanyAdapter(HealthcareAiCompanyRepository repository,
+                                       HealthcareAiCompanyClassifier classifier) {
         log.debug("HealthcareAiCompanyAdapter() | repository={}", repository.getClass().getSimpleName());
         this.repository = repository;
+        this.classifier = classifier;
+    }
+
+    @PostConstruct
+    public void backfillCategoriesOnStartup() {
+        backfillCategories();
     }
 
     @Override
@@ -117,6 +127,26 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
         return result;
     }
 
+    @Override
+    public void backfillCategories() {
+        log.debug("backfillCategories() |");
+        List<HealthcareAiCompanyEntity> all = repository.findAll();
+        List<HealthcareAiCompanyEntity> toSave = new ArrayList<>();
+        for (HealthcareAiCompanyEntity entity : all) {
+            if (entity.getCategory() == null || entity.getCategory().isBlank()) {
+                String category = classifier.classify(entity.getName(),
+                        entity.getDescription(), entity.getSubSector());
+                entity.setCategory(category);
+                toSave.add(entity);
+            }
+        }
+        if (!toSave.isEmpty()) {
+            repository.saveAll(toSave);
+            log.info("backfillCategories() | backfilled {} companies", toSave.size());
+        }
+        log.debug("backfillCategories() | return=void");
+    }
+
     // -------------------------------------------------------------------------
     // Mapping helpers
     // -------------------------------------------------------------------------
@@ -139,6 +169,8 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
         entity.setFoundedYear(company.foundedYear());
         entity.setSector(company.sector());
         entity.setSubSector(company.subSector());
+        entity.setCategory(company.category() != null ? company.category()
+                : classifier.classify(company.name(), company.description(), company.subSector()));
         entity.setFundingStage(company.fundingStage());
         entity.setEstimatedFunding(company.estimatedFunding());
         entity.setFoundersJson(company.foundersJson());
@@ -161,6 +193,7 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
                 entity.getFoundedYear(),
                 cleanStr(entity.getSector()),
                 cleanStr(entity.getSubSector()),
+                cleanStr(entity.getCategory()),
                 cleanStr(entity.getFundingStage()),
                 cleanStr(entity.getEstimatedFunding()),
                 cleanStr(entity.getFoundersJson()),

@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import com.wgblackmon.aihealthcare.domain.service.HealthcareAiCompanyClassifier;
 import org.springframework.context.annotation.Import;
 
 import java.time.Instant;
@@ -18,10 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-08-02
- * @updated 2026-08-26
+ * @updated 2026-08-27
  */
 @DataJpaTest
-@Import(HealthcareAiCompanyAdapter.class)
+@Import({HealthcareAiCompanyAdapter.class, HealthcareAiCompanyClassifier.class})
 class HealthcareAiCompanyAdapterTest {
 
     @Autowired
@@ -69,10 +70,10 @@ class HealthcareAiCompanyAdapterTest {
         Instant later = Instant.parse("2026-06-01T00:00:00Z");
 
         adapter.save(new HealthcareAiCompany("id-1", "First Co", "first co", null,
-                null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null,
                 List.of(), false, List.of(), earlier, null));
         adapter.save(new HealthcareAiCompany("id-2", "Second Co", "second co", null,
-                null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null,
                 List.of(), false, List.of(), later, null));
 
         List<HealthcareAiCompany> all = adapter.findAll();
@@ -84,7 +85,7 @@ class HealthcareAiCompanyAdapterTest {
     void pipeDelimited_roundTrip() {
         HealthcareAiCompany company = new HealthcareAiCompany(
                 "id-1", "Multi Source", "multi source", "multi.com",
-                "desc", "NYC", 2020, "AI", "imaging", "Series A", "$10M",
+                "desc", "NYC", 2020, "AI", "imaging", null, "Series A", "$10M",
                 "[{\"name\":\"CEO\"}]",
                 List.of("https://a.com", "https://b.com"),
                 true,
@@ -138,7 +139,7 @@ class HealthcareAiCompanyAdapterTest {
     private HealthcareAiCompany company(String id, String name, String normalized, String domain) {
         return new HealthcareAiCompany(
                 id, name, normalized, domain, "AI company", "San Francisco", 2020,
-                "Healthcare AI", "diagnostics", "Series B", "$50M", null,
+                "Healthcare AI", "diagnostics", null, "Series B", "$50M", null,
                 List.of("https://src.com"), true, List.of("https://val.com"),
                 Instant.now(), Instant.now());
     }

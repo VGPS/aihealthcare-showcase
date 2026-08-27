@@ -53,4 +53,10 @@ public interface HealthcareAiCompanyPort {
      * Returns all companies sorted alphabetically by name.
      */
     List<HealthcareAiCompany> findAllByOrderByName();
+
+    /**
+     * Classifies any companies whose {@code category} column is null and persists
+     * the result. Safe to call repeatedly — only rows missing a category are touched.
+     */
+    void backfillCategories();
 }

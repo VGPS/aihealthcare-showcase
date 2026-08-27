@@ -23,6 +23,7 @@ import java.util.List;
  * @param foundedYear        year founded (nullable if unknown)
  * @param sector             broad sector (e.g. "Healthcare AI")
  * @param subSector          specific focus (e.g. "clinical documentation")
+ * @param category           normalized category (e.g. "Clinical Documentation") — set by {@link com.wgblackmon.aihealthcare.domain.service.HealthcareAiCompanyClassifier}
  * @param fundingStage       latest funding stage (e.g. "Series C", "Public")
  * @param estimatedFunding   total funding as free-text (e.g. "$200M")
  * @param foundersJson       JSON array of founders: [{"name":"...","title":"..."}]
@@ -35,7 +36,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-02
- * @updated 2026-08-02
+ * @updated 2026-08-27
  */
 public record HealthcareAiCompany(
         String companyId,
@@ -47,6 +48,7 @@ public record HealthcareAiCompany(
         Integer foundedYear,
         String sector,
         String subSector,
+        String category,
         String fundingStage,
         String estimatedFunding,
         String foundersJson,

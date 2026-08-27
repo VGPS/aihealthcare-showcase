@@ -142,7 +142,7 @@ class PublicCompanyControllerTest {
         return new HealthcareAiCompany(
                 "grelin-id", "Grelin Health", "grelin health", "grelinhealth.com",
                 "AI-powered healthcare analytics", "Austin, TX", 2021,
-                "Healthcare AI", "clinical analytics", "Seed", "$5M", null,
+                "Healthcare AI", "clinical analytics", null, "Seed", "$5M", null,
                 List.of("https://perplexity.ai/sources/grelin"),
                 false, List.of(),
                 Instant.parse("2026-08-01T00:00:00Z"), null);

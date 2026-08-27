@@ -78,6 +78,7 @@ import com.wgblackmon.aihealthcare.domain.service.DailyBriefingService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FrameworkLlmPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SentimentAnalysisPort;
 import com.wgblackmon.aihealthcare.domain.service.BrowseCompaniesService;
+import com.wgblackmon.aihealthcare.domain.service.HealthcareAiCompanyClassifier;
 import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyResearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
@@ -1136,10 +1137,17 @@ public class AppConfig {
      * @return The wired {@link PerplexityCompanyDiscoveryService} instance.
      */
     @Bean
+    public HealthcareAiCompanyClassifier healthcareAiCompanyClassifier() {
+        log.debug("healthcareAiCompanyClassifier() | return=HealthcareAiCompanyClassifier");
+        return new HealthcareAiCompanyClassifier();
+    }
+
+    @Bean
     public PerplexityCompanyDiscoveryService perplexityCompanyDiscoveryService(
             CompanyResearchPort researchPort,
             HealthcareAiCompanyPort companyPort,
             PerplexityCitationPort citationPort,
+            HealthcareAiCompanyClassifier healthcareAiCompanyClassifier,
             @Value("${aihealthcare.company-discovery.max-companies-per-run:30}") int maxCompaniesPerRun) {
         log.debug("perplexityCompanyDiscoveryService() | researchPort={}, companyPort={}, citationPort={}, max={}",
                 researchPort.getClass().getSimpleName(),
@@ -1147,7 +1155,7 @@ public class AppConfig {
                 citationPort.getClass().getSimpleName(),
                 maxCompaniesPerRun);
         PerplexityCompanyDiscoveryService result = new PerplexityCompanyDiscoveryService(
-                researchPort, companyPort, citationPort, maxCompaniesPerRun);
+                researchPort, companyPort, citationPort, healthcareAiCompanyClassifier, maxCompaniesPerRun);
         log.debug("perplexityCompanyDiscoveryService() | return={}", result.getClass().getSimpleName());
         return result;
     }

@@ -51,7 +51,7 @@ class HealthcareAiCompanyTest {
     void nullDiscoveredAt_throws() {
         assertThatThrownBy(() -> new HealthcareAiCompany(
                 "id", "Name", "name", null, null, null, null,
-                null, null, null, null, null, null, false, null, null, null))
+                null, null, null, null, null, null, null, false, null, null, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("discoveredAt");
     }
@@ -60,7 +60,7 @@ class HealthcareAiCompanyTest {
     void nullSourceUrls_defaultsToEmptyList() {
         HealthcareAiCompany company = new HealthcareAiCompany(
                 "id", "Name", "name", null, null, null, null,
-                null, null, null, null, null, null, false, null,
+                null, null, null, null, null, null, null, false, null,
                 Instant.now(), null);
         assertThat(company.sourceUrls()).isEmpty();
         assertThat(company.validationSources()).isEmpty();
@@ -72,7 +72,7 @@ class HealthcareAiCompanyTest {
         urls.add("https://example.com");
         HealthcareAiCompany company = new HealthcareAiCompany(
                 "id", "Name", "name", null, null, null, null,
-                null, null, null, null, null, urls, false, null,
+                null, null, null, null, null, null, urls, false, null,
                 Instant.now(), null);
         assertThat(company.sourceUrls()).hasSize(1);
         assertThatThrownBy(() -> company.sourceUrls().add("new"))
@@ -83,7 +83,7 @@ class HealthcareAiCompanyTest {
         return new HealthcareAiCompany(
                 id, name, normalized, "example.com", "A company",
                 "San Francisco, CA", 2020, "Healthcare AI", "diagnostics",
-                "Series B", "$50M", null, List.of("https://src.com"),
+                null, "Series B", "$50M", null, List.of("https://src.com"),
                 true, List.of("https://val.com"), Instant.now(), Instant.now());
     }
 }
