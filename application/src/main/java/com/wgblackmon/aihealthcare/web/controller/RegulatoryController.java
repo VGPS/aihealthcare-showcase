@@ -82,6 +82,7 @@ public class RegulatoryController {
         SubscriptionTier tier = resolveTier(principal);
         boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
                 || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.ENTERPRISE
                 || isAdmin(principal);
         int limit = fullAccess ? FULL_EVENT_LIMIT : FREE_EVENT_LIMIT;
 

@@ -109,6 +109,7 @@ public class LegalTimelineController {
         SubscriptionTier tier = resolveTier(principal);
         boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
                 || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.ENTERPRISE
                 || isAdmin(principal);
 
         // Clamp FREE users to 30 days max

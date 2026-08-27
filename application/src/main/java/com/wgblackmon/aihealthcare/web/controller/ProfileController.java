@@ -132,7 +132,8 @@ public class ProfileController {
 
         // Tier limits for display
         TierLimitProperties.TierConfig limits;
-        if (tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO) {
+        if (tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.ENTERPRISE) {
             limits = tierLimitProperties.getSubscriber();
         } else {
             limits = tierLimitProperties.getFree();
