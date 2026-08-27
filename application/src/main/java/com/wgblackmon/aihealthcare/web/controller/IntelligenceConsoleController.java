@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestClient;
 
+import java.net.URI;
 import java.security.Principal;
 import java.time.YearMonth;
 import java.util.Optional;
@@ -45,7 +46,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 3.0
  * @since   2026-08-08
- * @updated 2026-08-14
+ * @updated 2026-08-27
  */
 @Slf4j
 @Controller
@@ -193,7 +194,7 @@ public class IntelligenceConsoleController {
         boolean isHtml = forwardPath.contains("/history/files/") && !forwardPath.endsWith("/files");
         try {
             String result = restClient.get()
-                    .uri(fullPath)
+                    .uri(URI.create(baseUrl + fullPath))
                     .retrieve()
                     .body(String.class);
             log.debug("proxyGet() | return=200, length={}", result != null ? result.length() : 0);
