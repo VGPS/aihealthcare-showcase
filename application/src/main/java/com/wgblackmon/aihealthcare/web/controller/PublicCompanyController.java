@@ -2,11 +2,16 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.CompanySignal;
 import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.BrowseCompaniesUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,8 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,19 +34,21 @@ import java.util.Optional;
  * {@code GET /directory/{slug}} (company detail). Both routes are
  * {@code permitAll()} in Spring Security — no login required.
  *
- * <p>The directory supports four views driven by a {@code sort} parameter:
+ * <p>Sort-tab access is tiered:
  * <ul>
- *   <li><b>relevance</b> (default) — composite score (article velocity + deal bonus − sentiment penalty)</li>
- *   <li><b>trending</b> — companies with 3+ article mentions in the last 90 days, highest first</li>
- *   <li><b>funded</b> — companies with a detected FUNDING signal, most recent deal first</li>
- *   <li><b>watchlist</b> — companies with negative sentiment score (risk flags), most negative first</li>
+ *   <li><b>Public</b> — Relevance (default) view; basic article-count badge on cards</li>
+ *   <li><b>FREE+</b> — Trending tab (article velocity sort)</li>
+ *   <li><b>SUBSCRIBER / DEMO</b> — Recently Funded + Watch List tabs</li>
+ *   <li><b>ENTERPRISE</b> — CSV export at {@code GET /directory/export.csv}</li>
+ *   <li><b>ADMIN</b> — all of the above</li>
  * </ul>
  *
- * <p>A {@code GET /directory/export.csv} endpoint streams all companies with their
- * signal data as a downloadable CSV file.
+ * <p>Server-side enforcement: if a lower-tier user manually constructs a gated sort URL,
+ * the controller falls back to the relevance view and sets {@code upgradeRequired=true}
+ * so the template can display an upgrade prompt.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-26
  * @updated 2026-08-27
  */
@@ -51,31 +57,50 @@ import java.util.Optional;
 @RequestMapping("/directory")
 public class PublicCompanyController {
 
-    private static final DateTimeFormatter DATE_FMT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneOffset.UTC);
-
     private final BrowseCompaniesUseCase browseCompaniesUseCase;
+    private final SubscriberPort subscriberPort;
 
-    public PublicCompanyController(BrowseCompaniesUseCase browseCompaniesUseCase) {
-        log.debug("PublicCompanyController() | browseCompaniesUseCase={}",
-                  browseCompaniesUseCase.getClass().getSimpleName());
+    public PublicCompanyController(BrowseCompaniesUseCase browseCompaniesUseCase,
+                                    SubscriberPort subscriberPort) {
+        log.debug("PublicCompanyController() | browseCompaniesUseCase={}, subscriberPort={}",
+                  browseCompaniesUseCase.getClass().getSimpleName(),
+                  subscriberPort.getClass().getSimpleName());
         this.browseCompaniesUseCase = browseCompaniesUseCase;
+        this.subscriberPort = subscriberPort;
     }
 
     /**
      * Renders the public company directory listing.
      *
-     * @param sector optional canonical category filter (e.g. "Medical Imaging & Diagnostics")
-     * @param sort   optional sort mode: "trending", "funded", "watchlist", or null (relevance)
-     * @param model  Thymeleaf model
+     * @param sector    optional canonical category filter
+     * @param sort      optional sort mode: "trending", "funded", "watchlist", or null (relevance)
+     * @param principal authenticated user, or null for anonymous visitors
+     * @param model     Thymeleaf model
      * @return the "company-directory" view name
      */
     @GetMapping
     public String directory(
             @RequestParam(required = false) String sector,
             @RequestParam(required = false) String sort,
+            Principal principal,
             Model model) {
-        log.debug("directory() | sector={}, sort={}", sector, sort);
+        log.debug("directory() | sector={}, sort={}, user={}", sector, sort,
+                  principal != null ? principal.getName() : "anonymous");
+
+        boolean canTrending     = canUseTrending(principal);
+        boolean canAdvancedSort = canUseAdvancedSort(principal);
+        boolean canExport       = canExport(principal);
+
+        // Gate sort server-side — downgrade and flag for upgrade prompt
+        boolean upgradeRequired = false;
+        String effectiveSort = sort;
+        if ("trending".equals(sort) && !canTrending) {
+            effectiveSort = null;
+            upgradeRequired = true;
+        } else if (("funded".equals(sort) || "watchlist".equals(sort)) && !canAdvancedSort) {
+            effectiveSort = null;
+            upgradeRequired = true;
+        }
 
         List<HealthcareAiCompany> all = browseCompaniesUseCase.listCompanies();
         Map<String, CompanySignal> signals = browseCompaniesUseCase.computeSignals(all);
@@ -93,16 +118,13 @@ public class PublicCompanyController {
             filtered = new ArrayList<>(all);
         }
 
-        // Apply sort mode and optional view filter
-        List<HealthcareAiCompany> companies = applySortAndFilter(filtered, signals, sort);
+        List<HealthcareAiCompany> companies = applySortAndFilter(filtered, signals, effectiveSort);
 
-        // Build slug map for template link generation
         Map<String, String> slugs = new HashMap<>();
         for (HealthcareAiCompany c : all) {
             slugs.put(c.companyId(), toSlug(c.name()));
         }
 
-        // Collect distinct canonical categories for sector pills
         List<String> sectors = new ArrayList<>();
         for (HealthcareAiCompany c : all) {
             if (c.category() != null && !c.category().isBlank() && !sectors.contains(c.category())) {
@@ -110,7 +132,6 @@ public class PublicCompanyController {
             }
         }
 
-        // Counts for sort tab badges
         int trendingCount = 0;
         int fundedCount = 0;
         int watchlistCount = 0;
@@ -127,11 +148,15 @@ public class PublicCompanyController {
         model.addAttribute("slugs", slugs);
         model.addAttribute("sectors", sectors);
         model.addAttribute("selectedSector", sector);
-        model.addAttribute("selectedSort", sort);
+        model.addAttribute("selectedSort", effectiveSort);
         model.addAttribute("totalCount", all.size());
         model.addAttribute("trendingCount", trendingCount);
         model.addAttribute("fundedCount", fundedCount);
         model.addAttribute("watchlistCount", watchlistCount);
+        model.addAttribute("canTrending", canTrending);
+        model.addAttribute("canAdvancedSort", canAdvancedSort);
+        model.addAttribute("canExport", canExport);
+        model.addAttribute("upgradeRequired", upgradeRequired);
 
         log.debug("directory() | return=company-directory, shown={}, total={}", companies.size(), all.size());
         return "company-directory";
@@ -139,10 +164,16 @@ public class PublicCompanyController {
 
     /**
      * Streams all companies and their signals as a CSV file download.
+     * Requires ENTERPRISE tier or ADMIN role — others are redirected to /pricing.
      */
     @GetMapping("/export.csv")
-    public ResponseEntity<byte[]> exportCsv() {
-        log.debug("exportCsv() |");
+    public Object exportCsv(Principal principal) {
+        log.debug("exportCsv() | user={}", principal != null ? principal.getName() : "anonymous");
+
+        if (!canExport(principal)) {
+            log.debug("exportCsv() | return=redirect:/pricing (tier insufficient)");
+            return "redirect:/pricing";
+        }
 
         List<HealthcareAiCompany> all = browseCompaniesUseCase.listCompanies();
         Map<String, CompanySignal> signals = browseCompaniesUseCase.computeSignals(all);
@@ -176,10 +207,6 @@ public class PublicCompanyController {
 
     /**
      * Renders the public company detail page.
-     *
-     * @param slug  URL slug for the company (e.g. "grelin-health")
-     * @param model Thymeleaf model
-     * @return "company-detail" view, or redirect to directory if not found
      */
     @GetMapping("/{slug}")
     public String detail(@PathVariable String slug, Model model) {
@@ -201,7 +228,44 @@ public class PublicCompanyController {
         return "company-directory-detail";
     }
 
-    // ── Sorting ──────────────────────────────────────────────────────────────
+    // ── Tier checks ───────────────────────────────────────────────────────────
+
+    /** FREE+ (any authenticated user) can use the Trending sort tab. */
+    private boolean canUseTrending(Principal principal) {
+        return principal != null;
+    }
+
+    /** SUBSCRIBER / DEMO / ENTERPRISE / ADMIN can use Funded and Watch List tabs. */
+    private boolean canUseAdvancedSort(Principal principal) {
+        if (principal == null) return false;
+        if (isAdmin(principal)) return true;
+        Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
+        if (sub.isEmpty()) return false;
+        SubscriptionTier tier = sub.get().tier();
+        return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.ENTERPRISE;
+    }
+
+    /** Only ENTERPRISE tier and ADMIN can download the CSV export. */
+    private boolean canExport(Principal principal) {
+        if (principal == null) return false;
+        if (isAdmin(principal)) return true;
+        Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
+        if (sub.isEmpty()) return false;
+        return sub.get().tier() == SubscriptionTier.ENTERPRISE;
+    }
+
+    private boolean isAdmin(Principal principal) {
+        if (principal instanceof Authentication) {
+            Authentication auth = (Authentication) principal;
+            for (GrantedAuthority authority : auth.getAuthorities()) {
+                if ("ROLE_ADMIN".equals(authority.getAuthority())) return true;
+            }
+        }
+        return false;
+    }
+
+    // ── Sorting ───────────────────────────────────────────────────────────────
 
     private List<HealthcareAiCompany> applySortAndFilter(List<HealthcareAiCompany> companies,
                                                           Map<String, CompanySignal> signals,

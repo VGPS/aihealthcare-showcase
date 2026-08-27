@@ -3,12 +3,14 @@
 /**
  * Public AI healthcare company directory — ranked, sorted, and signal-enriched.
  *
- * Sort modes: Relevance (default) | Trending | Recently Funded | Watch List
- * Sector filter: canonical 7-category pills from HealthcareAiCompanyClassifier.
- * Export: GET /directory/export.csv streams all companies with signal data.
+ * Sort modes (tier-gated):
+ *   Public     → Relevance (default)
+ *   FREE+      → + Trending
+ *   SUBSCRIBER → + Recently Funded, Watch List
+ *   ENTERPRISE → + CSV export
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-26
  * @updated 2026-08-27
  */
@@ -37,10 +39,20 @@
                 <span th:text="${totalCount}">0</span> companies tracked by our AI discovery pipeline.
             </p>
         </div>
-        <a href="/directory/export.csv"
-           class="inline-flex items-center gap-1.5 px-4 py-2 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
-            ⬇ Save CSV
-        </a>
+        <!-- Export button — Enterprise only -->
+        <div>
+            <a th:if="${canExport}"
+               href="/directory/export.csv"
+               class="inline-flex items-center gap-1.5 px-4 py-2 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+                ⬇ Save CSV
+            </a>
+            <a th:if="${!canExport}"
+               href="/pricing#enterprise"
+               title="CSV export requires Enterprise tier"
+               class="inline-flex items-center gap-1.5 px-4 py-2 rounded border border-gray-200 bg-gray-50 text-sm font-medium text-gray-400 cursor-not-allowed">
+                🔒 Save CSV <span class="text-xs text-purple-600 font-semibold ml-1">Enterprise</span>
+            </a>
+        </div>
     </div>
 
     <!-- Scoring logic explanation -->
@@ -50,39 +62,73 @@
         <span class="inline-flex items-center gap-1 ml-1 mr-0.5 font-medium text-orange-700">🔥 Trending</span> adds up to 30 pts (3 pts per article mention in the last 90 days).
         <span class="inline-flex items-center gap-1 mr-0.5 font-medium text-green-700">💰 Funded</span> adds 20 pts when a funding deal signal is detected.
         <span class="inline-flex items-center gap-1 mr-0.5 font-medium text-red-700">⚠ Watch</span> subtracts 15 pts when negative sentiment is detected.
-        Use the sort tabs below to pivot across all three dimensions.
+        Sort tabs below let you pivot across all three dimensions — advanced views require a subscription.
+    </div>
+
+    <!-- Upgrade prompt (shown when a gated sort was attempted) -->
+    <div th:if="${upgradeRequired}" class="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <p class="text-sm text-amber-800">
+            That view requires a higher subscription tier.
+            <a th:href="@{/pricing}" class="text-primary-600 underline font-medium">View plans</a>
+            to unlock Recently Funded, Watch List, and CSV export.
+        </p>
     </div>
 
     <!-- Sort tabs -->
     <div class="mb-4 flex flex-wrap gap-2">
+        <!-- Relevance — always available -->
         <a th:href="@{/directory(sector=${selectedSector})}"
            th:classappend="${selectedSort == null} ? ' bg-primary-600 text-white shadow-sm' : ' bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
            class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors">
             Relevance
         </a>
-        <a th:href="@{/directory(sector=${selectedSector}, sort='trending')}"
+
+        <!-- Trending — FREE+ -->
+        <a th:if="${canTrending}"
+           th:href="@{/directory(sector=${selectedSector}, sort='trending')}"
            th:classappend="${selectedSort == 'trending'} ? ' bg-orange-500 text-white shadow-sm' : ' bg-white text-gray-700 border border-gray-300 hover:bg-orange-50'"
            class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors">
             🔥 Trending
-            <span th:if="${trendingCount > 0}"
-                  th:text="${trendingCount}"
+            <span th:if="${trendingCount > 0}" th:text="${trendingCount}"
                   class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold rounded-full px-1.5 py-0.5 leading-none"></span>
         </a>
-        <a th:href="@{/directory(sector=${selectedSector}, sort='funded')}"
+        <a th:if="${!canTrending}"
+           href="/login"
+           title="Sign in to unlock Trending view"
+           class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-gray-50 text-gray-400 border border-gray-200 cursor-not-allowed">
+            🔒 Trending <span class="text-xs text-gray-500 ml-0.5">Sign in</span>
+        </a>
+
+        <!-- Recently Funded — SUBSCRIBER+ -->
+        <a th:if="${canAdvancedSort}"
+           th:href="@{/directory(sector=${selectedSector}, sort='funded')}"
            th:classappend="${selectedSort == 'funded'} ? ' bg-green-600 text-white shadow-sm' : ' bg-white text-gray-700 border border-gray-300 hover:bg-green-50'"
            class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors">
             💰 Recently Funded
-            <span th:if="${fundedCount > 0}"
-                  th:text="${fundedCount}"
+            <span th:if="${fundedCount > 0}" th:text="${fundedCount}"
                   class="inline-block bg-green-100 text-green-800 text-xs font-semibold rounded-full px-1.5 py-0.5 leading-none"></span>
         </a>
-        <a th:href="@{/directory(sector=${selectedSector}, sort='watchlist')}"
+        <a th:if="${!canAdvancedSort}"
+           href="/pricing#subscriber"
+           title="Recently Funded requires Subscriber tier"
+           class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-gray-50 text-gray-400 border border-gray-200 cursor-not-allowed">
+            🔒 Recently Funded <span class="text-xs text-primary-600 font-semibold ml-0.5">Subscriber</span>
+        </a>
+
+        <!-- Watch List — SUBSCRIBER+ -->
+        <a th:if="${canAdvancedSort}"
+           th:href="@{/directory(sector=${selectedSector}, sort='watchlist')}"
            th:classappend="${selectedSort == 'watchlist'} ? ' bg-red-600 text-white shadow-sm' : ' bg-white text-gray-700 border border-gray-300 hover:bg-red-50'"
            class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors">
             ⚠ Watch List
-            <span th:if="${watchlistCount > 0}"
-                  th:text="${watchlistCount}"
+            <span th:if="${watchlistCount > 0}" th:text="${watchlistCount}"
                   class="inline-block bg-red-100 text-red-800 text-xs font-semibold rounded-full px-1.5 py-0.5 leading-none"></span>
+        </a>
+        <a th:if="${!canAdvancedSort}"
+           href="/pricing#subscriber"
+           title="Watch List requires Subscriber tier"
+           class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium bg-gray-50 text-gray-400 border border-gray-200 cursor-not-allowed">
+            🔒 Watch List <span class="text-xs text-primary-600 font-semibold ml-0.5">Subscriber</span>
         </a>
     </div>
 
@@ -116,7 +162,6 @@
              th:with="sig=${signals[company.companyId()]}"
              class="bg-white rounded-lg border border-outline-variant shadow-sm hover:shadow-md transition-shadow flex flex-col">
 
-            <!-- Card header -->
             <div class="p-4 flex-1">
                 <div class="flex items-start justify-between mb-2">
                     <a th:href="@{/directory/{slug}(slug=${slugs[company.companyId()]})}"
@@ -124,12 +169,10 @@
                        class="font-display font-semibold text-primary-700 hover:text-primary-900 text-base leading-tight">
                         Company Name
                     </a>
-                    <div class="flex items-center gap-1 ml-2 flex-shrink-0">
-                        <span th:if="${company.validated()}"
-                              class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
-                            Verified
-                        </span>
-                    </div>
+                    <span th:if="${company.validated()}"
+                          class="ml-2 flex-shrink-0 inline-block px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
+                        Verified
+                    </span>
                 </div>
 
                 <!-- Taxonomy badges -->
@@ -144,7 +187,6 @@
 
                 <!-- Signal badges -->
                 <div th:if="${sig != null}" class="flex flex-wrap gap-1 mb-2">
-                    <!-- Trending -->
                     <span th:if="${sig.isTrending()}"
                           th:title="${sig.articleCount90d()} + ' articles in last 90 days'"
                           class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-semibold bg-orange-100 text-orange-800">
@@ -154,19 +196,16 @@
                           class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
                         <span th:text="${sig.articleCount90d()}">0</span> articles
                     </span>
-                    <!-- Funding -->
                     <span th:if="${sig.hasRecentFunding()}"
                           th:title="${sig.latestDealAmount() != null ? sig.latestDealAmount() : 'Amount undisclosed'}"
                           class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
                         💰 <span th:text="${sig.latestDealAmount() != null ? sig.latestDealAmount() : 'Funded'}">Funded</span>
                     </span>
-                    <!-- Watch list -->
                     <span th:if="${sig.isWatchList()}"
                           th:title="'Sentiment score: ' + ${#numbers.formatDecimal(sig.sentimentScore(), 1, 2)}"
                           class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800">
                         ⚠ Negative sentiment
                     </span>
-                    <!-- Relevance score chip -->
                     <span th:if="${sig.relevanceScore() > 0}"
                           th:title="'Relevance score: ' + ${sig.relevanceScore()}"
                           class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
@@ -174,13 +213,11 @@
                     </span>
                 </div>
 
-                <!-- Description -->
                 <p th:if="${company.description() != null and !company.description().isEmpty()}"
                    class="text-xs text-on-surface-variant leading-relaxed line-clamp-3"
                    th:text="${#strings.abbreviate(company.description(), 160)}">Description</p>
             </div>
 
-            <!-- Card footer -->
             <div class="px-4 pb-3 pt-2 border-t border-outline-variant flex items-center justify-between">
                 <div class="text-xs text-on-surface-variant">
                     <span th:if="${company.hqLocation() != null and !company.hqLocation().isEmpty()}"
@@ -198,11 +235,12 @@
         </div>
     </div>
 
-    <!-- Login CTA for visitors -->
+    <!-- Login CTA for anonymous visitors -->
     <div sec:authorize="isAnonymous()" class="mt-10 bg-primary-50 border border-primary-200 rounded-lg p-6 text-center">
-        <h3 class="font-display font-semibold text-lg text-primary-800 mb-1">Want deeper intelligence?</h3>
+        <h3 class="font-display font-semibold text-lg text-primary-800 mb-1">Unlock the full intelligence layer</h3>
         <p class="text-sm text-primary-700 mb-4">
-            Subscribers get deal signals, sentiment analysis, framework benchmarking, and regulatory alerts for every company in this directory.
+            Sign in to see Trending companies. Subscribe for Recently Funded and Watch List views.
+            Enterprise unlocks full CSV export.
         </p>
         <a href="/pricing" class="inline-block bg-primary-600 text-white px-5 py-2 rounded font-medium text-sm hover:bg-primary-700 transition-colors mr-2">
             View Plans
@@ -214,7 +252,6 @@
 
 </main>
 
-<!-- JSON-LD for SEO -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
