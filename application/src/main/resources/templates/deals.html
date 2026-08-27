@@ -8,26 +8,26 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-26
+ * @updated 2026-08-26 (copy/label cleanup)
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/head :: head('Deal Signals')}">
+<head th:replace="~{fragments/head :: head('Deal Activity')}">
 </head>
 
 <body class="bg-surface font-sans text-on-surface">
 
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
-    <h1 class="font-display text-2xl font-bold tracking-tight">Deal Signals</h1>
-    <p class="text-primary-200 text-sm mt-0.5">Funding, acquisitions, partnerships, and launches in AI Healthcare</p>
+    <h1 class="font-display text-2xl font-bold tracking-tight">Deal Activity</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Funding rounds, acquisitions, partnerships, IPOs, and product launches in AI Healthcare</p>
 </header>
 
 <nav th:replace="~{fragments/nav :: nav('deals')}"></nav>
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
-    <p class="text-sm text-gray-500 leading-relaxed mb-6">Deal signal intelligence. Automatically detected funding rounds, acquisitions, partnerships, IPOs, and product launches across AI healthcare companies. Filter by deal type, sort any column, and click a title to view cross-referenced context including sentiment analysis, competitive framework scores, and related regulatory events.</p>
+    <p class="text-sm text-gray-500 leading-relaxed mb-6">Funding rounds, acquisitions, partnerships, IPOs, and product launches across AI healthcare companies — sourced from daily news and research monitoring. Filter by deal type, sort any column, or click a title for a deeper view including company sentiment, competitive scores, and related regulatory events.</p>
 
     <!-- Filter Bar -->
     <div class="bg-white rounded-lg shadow-card p-4 mb-6 flex flex-wrap items-center gap-3">
@@ -68,7 +68,7 @@
     <div class="bg-white rounded-lg shadow-card p-5 mb-6">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-base font-semibold text-gray-700">Deal Activity — Last 30 Days vs Prior 30 Days</h2>
-            <span class="text-xs text-gray-400">DB-level counts · updated continuously</span>
+            <span class="text-xs text-gray-400">Updated daily</span>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
             <div th:each="stat : ${typeStats}"
@@ -78,18 +78,19 @@
                      class="text-xs text-gray-400 mt-0.5"
                      th:text="'vs ' + ${stat.priorCount}">vs 0</div>
                 <div th:if="${stat.priorCount == null}"
-                     class="text-xs text-gray-300 mt-0.5">no prior data</div>
+                     class="text-xs text-gray-300 mt-0.5">—</div>
                 <div class="text-xs mt-0.5" th:classappend="${stat.changeClass}" th:text="${stat.changeLabel}">—</div>
-                <div class="text-xs uppercase mt-1 font-medium text-gray-600"
-                     th:text="${stat.label}">TYPE</div>
+                <div class="text-xs mt-1 font-medium text-gray-600"
+                     th:text="${stat.label}">Type</div>
             </div>
         </div>
-        <!-- Signal velocity row -->
-        <div class="border-t border-gray-100 pt-3 flex flex-wrap gap-6 text-sm items-center">
-            <span class="text-gray-500">Total signals this 30d:</span>
+        <!-- Deal pace row -->
+        <div class="border-t border-gray-100 pt-3 flex flex-wrap gap-3 text-sm items-center">
+            <span class="text-gray-500">Deal pace — last 30 days:</span>
             <span class="font-bold text-gray-800 text-base" th:text="${velocity.currentTotal}">0</span>
+            <span class="text-gray-400">deals</span>
             <span th:if="${velocity.priorTotal != null}" class="text-xs text-gray-400">
-                vs <span th:text="${velocity.priorTotal}">0</span> prior 30d
+                vs <span th:text="${velocity.priorTotal}">0</span> the prior month
             </span>
             <span class="text-sm" th:classappend="${velocity.changeClass}" th:text="${velocity.changeLabel}">—</span>
         </div>
@@ -99,7 +100,7 @@
     <div class="bg-white rounded-lg shadow-card p-5 mb-6">
         <div class="mb-4">
             <h2 class="text-base font-semibold text-gray-700">Key Ratios — What They Mean</h2>
-            <p class="text-xs text-gray-400 mt-1">Each ratio compares two deal types in the last 30 days. Prior 30d shown for comparison. These are the numbers that signal where the market is heading.</p>
+            <p class="text-xs text-gray-400 mt-1">Each ratio compares two types of deals over the last 30 days. The prior month is shown for comparison. Read the green and red boxes to understand what each direction means.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -112,7 +113,7 @@
                     <span th:if="${r.prior != null}" class="text-xs text-gray-400 ml-auto">
                         prior: <span th:text="${r.prior}">—</span>
                     </span>
-                    <span th:if="${r.prior == null}" class="text-xs text-gray-300 ml-auto italic">no prior data</span>
+                    <span th:if="${r.prior == null}" class="text-xs text-gray-300 ml-auto italic">prior month: —</span>
                 </div>
                 <!-- Ratio name -->
                 <div class="text-sm font-semibold text-gray-700 mb-2" th:text="${r.name}">Name</div>
@@ -132,18 +133,18 @@
     <!-- Tier Gate Message -->
     <div th:if="${!fullAccess}" class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
         <p class="text-sm text-amber-800">
-            Showing the <strong>10 most recent</strong> deal signals.
+            Showing the <strong>10 most recent</strong> deals.
             <a th:href="@{/pricing}" class="text-primary-600 underline font-medium">Upgrade to Subscriber</a>
-            for full access to all signals and cross-referenced deal analysis.
+            for full access to all deals and the cross-referenced detail view.
         </p>
     </div>
 
-    <!-- Signals Table -->
+    <!-- Deals Table -->
     <div class="bg-white rounded-lg shadow-card p-6">
-        <h2 class="text-xl font-semibold text-primary-700 mb-4">Recent Signals</h2>
+        <h2 class="text-xl font-semibold text-primary-700 mb-4">Recent Deals</h2>
 
         <div th:if="${#lists.isEmpty(signals)}" class="text-gray-500 text-sm py-8 text-center">
-            No deal signals detected yet. Signals are detected automatically during pipeline runs.
+            No deals recorded yet. New deals are added automatically each day from news and research sources.
         </div>
 
         <div th:unless="${#lists.isEmpty(signals)}" class="overflow-x-auto">
@@ -165,10 +166,10 @@
                         <th class="pb-2 pr-4">Amount
                             <span class="sort-arrow" onclick="sortTable(this, 4, 'asc')" title="Low-High">&#8593;</span><span class="sort-arrow" onclick="sortTable(this, 4, 'desc')" title="High-Low">&#8595;</span>
                         </th>
-                        <th class="pb-2 pr-4">Confidence
+                        <th class="pb-2 pr-4" title="How confident the system is that this is a real deal, based on article language. Higher is more reliable.">Confidence ⓘ
                             <span class="sort-arrow" onclick="sortTable(this, 5, 'asc')" title="Low-High">&#8593;</span><span class="sort-arrow" onclick="sortTable(this, 5, 'desc')" title="High-Low">&#8595;</span>
                         </th>
-                        <th class="pb-2">Detected
+                        <th class="pb-2">Date
                             <span class="sort-arrow" onclick="sortTable(this, 6, 'asc')" title="Oldest first">&#8593;</span><span class="sort-arrow" onclick="sortTable(this, 6, 'desc')" title="Newest first">&#8595;</span>
                         </th>
                     </tr>
@@ -182,7 +183,7 @@
                                                   (${signal.signalType == 'PARTNERSHIP'} ? 'bg-blue-100 text-blue-800' :
                                                   (${signal.signalType == 'IPO'} ? 'bg-purple-100 text-purple-800' :
                                                   'bg-yellow-100 text-yellow-800')))"
-                                  th:text="${signal.signalType}">TYPE</span>
+                                  th:text="${signal.signalTypeLabel}">Type</span>
                         </td>
                         <td class="py-3 pr-4 max-w-md">
                             <a th:href="@{/dashboard/deals/{id}(id=${signal.signalId})}"
@@ -233,8 +234,7 @@ function sortTable(arrow, colIndex, direction) {
     var headerText = headerCells[colIndex] ? headerCells[colIndex].textContent.trim().toLowerCase() : '';
     var isDateCol = headerText.indexOf('date') >= 0 || headerText.indexOf('generated') >= 0
         || headerText.indexOf('week') >= 0 || headerText.indexOf('discovered') >= 0
-        || headerText.indexOf('created') >= 0 || headerText.indexOf('matched') >= 0
-        || headerText.indexOf('detected') >= 0;
+        || headerText.indexOf('created') >= 0 || headerText.indexOf('matched') >= 0;
     rows.sort(function(a, b) {
         var valA = (a.cells[colIndex] ? a.cells[colIndex].textContent : '').trim().toLowerCase();
         var valB = (b.cells[colIndex] ? b.cells[colIndex].textContent : '').trim().toLowerCase();

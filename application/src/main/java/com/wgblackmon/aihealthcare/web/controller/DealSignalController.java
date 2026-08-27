@@ -37,7 +37,7 @@ import java.util.Optional;
  * filtering by type, tier gating, and cross-referenced deal detail views.
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-08-04
  * @updated 2026-08-26
  */
@@ -97,6 +97,7 @@ public class DealSignalController {
             entry.put("signalId", signal.signalId());
             entry.put("title", signal.title());
             entry.put("signalType", signal.signalType().name());
+            entry.put("signalTypeLabel", toDisplayLabel(signal.signalType()));
             entry.put("companyName", signal.companyName());
             entry.put("summary", signal.summary());
             entry.put("confidence", String.format("%.0f%%", signal.confidence() * 100));
@@ -175,6 +176,7 @@ public class DealSignalController {
     }
 
     private static final String[] TYPE_NAMES   = {"FUNDING", "ACQUISITION", "PARTNERSHIP", "IPO", "PRODUCT_LAUNCH"};
+    private static final String[] TYPE_LABELS  = {"Funding", "Acquisition", "Partnership", "IPO", "Product Launch"};
     private static final String[] TYPE_COLORS  = {"green",   "red",         "blue",        "purple", "yellow"};
 
     private List<Map<String, Object>> buildTypeStats(Map<String, Long> current, Map<String, Long> prior) {
@@ -199,7 +201,7 @@ public class DealSignalController {
 
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("type",        typeName);
-            entry.put("label",       typeName.replace("_", " "));
+            entry.put("label",       TYPE_LABELS[i]);
             entry.put("color",       TYPE_COLORS[i]);
             entry.put("currentCount", cur);
             entry.put("priorCount",  prev > 0 ? prev : null);
@@ -226,33 +228,33 @@ public class DealSignalController {
         long prvLaunch   = prev.getOrDefault("PRODUCT_LAUNCH", 0L);
 
         ratios.add(ratio("Partnership : Acquisition",
-                "Strategic alignment vs ownership intent. Are companies choosing low-commitment deals or taking full control?",
-                "High (>2:1) — Market is uncertain or targets are expensive; buyers prefer partnerships over ownership risk.",
-                "Low (<1:1) — Acquirers are confident. They're taking ownership, not testing the waters.",
+                "Strategic alignment vs ownership. Are companies forming alliances or taking full control?",
+                "When high — Market is cautious or target prices are steep. Companies prefer low-commitment deals over taking on ownership risk.",
+                "When low — Acquirers are confident and moving decisively. Full ownership, not just a handshake agreement.",
                 curPartner, curAcq, prvPartner, prvAcq));
 
         ratios.add(ratio("Funding : Acquisition",
-                "Ecosystem growth vs consolidation. Is new money flowing in faster than companies are being absorbed?",
-                "High (>3:1) — Early-stage ecosystem is healthy; capital is backing new companies faster than large players can acquire them.",
-                "Low (<1.5:1) — Consolidation is underway; large players are absorbing the field. Late-cycle signal.",
+                "Ecosystem growth vs consolidation. Is new investment flowing in faster than companies are being absorbed?",
+                "When high — Fresh capital is backing new companies faster than larger players can acquire them. Healthy early-stage activity.",
+                "When low — The market is consolidating. Larger players are absorbing smaller ones at a faster pace than new money is arriving.",
                 curFunding, curAcq, prvFunding, prvAcq));
 
         ratios.add(ratio("Product Launch : Acquisition",
-                "Build vs Buy. Are companies shipping their own technology or buying it from others?",
-                "High (>3:1) — R&D is productive; companies believe they can out-build competitors.",
-                "Low (<1:1) — Buying is faster or cheaper than building right now. May signal depressed target valuations.",
+                "Build vs Buy. Are companies shipping their own technology or acquiring it from others?",
+                "When high — Companies believe they can out-build the competition. R&D is paying off.",
+                "When low — Buying is faster or cheaper than building right now. Can signal that acquisition targets are available at reasonable prices.",
                 curLaunch, curAcq, prvLaunch, prvAcq));
 
-        ratios.add(ratio("Funding : (Acquisition + IPO)",
-                "Capital formation vs capital exit. Money entering the ecosystem vs companies being absorbed or going public.",
-                "High (>2:1) — More capital is being deployed into new ventures than leaving via exits. Early-stage health.",
-                "Low (<1:1) — Exits are outpacing new investment. Often a late-cycle or market-contraction signal.",
+        ratios.add(ratio("Funding : (Acquisitions + IPOs)",
+                "Money entering the ecosystem vs money leaving it through exits.",
+                "When high — More capital is flowing into new ventures than companies are exiting. A sign of early-stage market health.",
+                "When low — Exits are outpacing new investment. Can signal a late-cycle market or a slowdown in new company formation.",
                 curFunding, curAcq + curIpo, prvFunding, prvAcq + prvIpo));
 
         ratios.add(ratio("IPO : Acquisition",
-                "Exit path preference. Are companies choosing public markets or selling to a strategic buyer?",
-                "High (>0.5:1) — Founders and investors believe public markets will reward them; IPO window is open.",
-                "Low (<0.1:1) — M&A dominates exits; founders or investors prefer the certainty of a strategic sale over public market risk.",
+                "Exit path preference. Are founders choosing public markets or selling to a strategic buyer?",
+                "When high — Founders and investors believe the public markets will reward them. The IPO window is open.",
+                "When low — Private sales dominate. Founders or investors prefer the certainty of a strategic buyer over public market risk.",
                 curIpo, curAcq, prvIpo, prvAcq));
 
         return ratios;
@@ -312,6 +314,17 @@ public class DealSignalController {
         m.put("direction", direction);
         m.put("dirClass",  dirClass);
         return m;
+    }
+
+    private String toDisplayLabel(DealSignalType type) {
+        switch (type) {
+            case FUNDING:        return "Funding";
+            case ACQUISITION:    return "Acquisition";
+            case PARTNERSHIP:    return "Partnership";
+            case IPO:            return "IPO";
+            case PRODUCT_LAUNCH: return "Product Launch";
+            default:             return type.name();
+        }
     }
 
     private String formatRatio(long numerator, long denominator) {
