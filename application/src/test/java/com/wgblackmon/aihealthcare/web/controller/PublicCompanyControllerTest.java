@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.CompanySignal;
 import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 import com.wgblackmon.aihealthcare.domain.port.inbound.BrowseCompaniesUseCase;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
@@ -13,8 +14,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -23,9 +26,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc slice tests for {@link PublicCompanyController}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-26
- * @updated 2026-08-26
+ * @updated 2026-08-27
  */
 @WebMvcTest(PublicCompanyController.class)
 @Import(SecurityConfig.class)
@@ -42,7 +45,9 @@ class PublicCompanyControllerTest {
 
     @Test
     void directory_returnsOkWithCompanies() throws Exception {
-        when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(sampleCompany()));
+        HealthcareAiCompany c = sampleCompany();
+        when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(c));
+        when(browseCompaniesUseCase.computeSignals(any())).thenReturn(Map.of());
 
         mockMvc.perform(get("/directory"))
                .andExpect(status().isOk())
@@ -54,6 +59,7 @@ class PublicCompanyControllerTest {
     @Test
     void directory_emptyList_returnsOk() throws Exception {
         when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of());
+        when(browseCompaniesUseCase.computeSignals(any())).thenReturn(Map.of());
 
         mockMvc.perform(get("/directory"))
                .andExpect(status().isOk())
@@ -63,10 +69,10 @@ class PublicCompanyControllerTest {
 
     @Test
     void directory_sectorFilter_passesDownstream() throws Exception {
-        HealthcareAiCompany company = sampleCompany();
-        when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(company));
+        when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(sampleCompany()));
+        when(browseCompaniesUseCase.computeSignals(any())).thenReturn(Map.of());
 
-        mockMvc.perform(get("/directory").param("sector", "Healthcare AI"))
+        mockMvc.perform(get("/directory").param("sector", "Medical Imaging & Diagnostics"))
                .andExpect(status().isOk())
                .andExpect(view().name("company-directory"))
                .andExpect(model().attributeExists("selectedSector"));
@@ -75,10 +81,58 @@ class PublicCompanyControllerTest {
     @Test
     void directory_sectorFilter_excludesNonMatchingCompanies() throws Exception {
         when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(sampleCompany()));
+        when(browseCompaniesUseCase.computeSignals(any())).thenReturn(Map.of());
 
         mockMvc.perform(get("/directory").param("sector", "Other Sector"))
                .andExpect(status().isOk())
                .andExpect(model().attribute("totalCount", 1)); // totalCount is unfiltered
+    }
+
+    @Test
+    void directory_sortTrending_setsSelectedSort() throws Exception {
+        when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(sampleCompany()));
+        when(browseCompaniesUseCase.computeSignals(any())).thenReturn(Map.of());
+
+        mockMvc.perform(get("/directory").param("sort", "trending"))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("selectedSort", "trending"));
+    }
+
+    @Test
+    void directory_sortFunded_filtersToFundedCompanies() throws Exception {
+        HealthcareAiCompany c = sampleCompany();
+        CompanySignal sig = new CompanySignal(c.companyId(), 5, "FUNDING", "$50M",
+                Instant.now(), 0.1, "POSITIVE", true, 35);
+        when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(c));
+        when(browseCompaniesUseCase.computeSignals(any())).thenReturn(Map.of(c.companyId(), sig));
+
+        mockMvc.perform(get("/directory").param("sort", "funded"))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("selectedSort", "funded"));
+    }
+
+    @Test
+    void directory_sortWatchlist_filtersToNegativeSentiment() throws Exception {
+        HealthcareAiCompany c = sampleCompany();
+        CompanySignal sig = new CompanySignal(c.companyId(), 1, null, null, null,
+                -0.5, "NEGATIVE", true, 0);
+        when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(c));
+        when(browseCompaniesUseCase.computeSignals(any())).thenReturn(Map.of(c.companyId(), sig));
+
+        mockMvc.perform(get("/directory").param("sort", "watchlist"))
+               .andExpect(status().isOk())
+               .andExpect(model().attribute("selectedSort", "watchlist"));
+    }
+
+    @Test
+    void exportCsv_returnsCSVContentType() throws Exception {
+        when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(sampleCompany()));
+        when(browseCompaniesUseCase.computeSignals(any())).thenReturn(Map.of());
+
+        mockMvc.perform(get("/directory/export.csv"))
+               .andExpect(status().isOk())
+               .andExpect(header().string("Content-Disposition",
+                       "attachment; filename=\"ai-healthcare-companies.csv\""));
     }
 
     @Test

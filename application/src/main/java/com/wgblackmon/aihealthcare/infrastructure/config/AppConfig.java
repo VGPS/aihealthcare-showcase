@@ -78,6 +78,7 @@ import com.wgblackmon.aihealthcare.domain.service.DailyBriefingService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FrameworkLlmPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SentimentAnalysisPort;
 import com.wgblackmon.aihealthcare.domain.service.BrowseCompaniesService;
+import com.wgblackmon.aihealthcare.domain.service.CompanySignalService;
 import com.wgblackmon.aihealthcare.domain.service.HealthcareAiCompanyClassifier;
 import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyResearchPort;
@@ -1161,16 +1162,33 @@ public class AppConfig {
     }
 
     /**
+     * Creates the {@link CompanySignalService} bean — cross-references articles,
+     * deal signals, and sentiment to score companies for the directory ranking.
+     */
+    @Bean
+    public CompanySignalService companySignalService(ArticleIngestionPort articleIngestionPort,
+                                                      DealSignalPort dealSignalPort,
+                                                      CompanySentimentPort companySentimentPort) {
+        log.debug("companySignalService() | ports wired");
+        CompanySignalService result = new CompanySignalService(
+                articleIngestionPort, dealSignalPort, companySentimentPort);
+        log.debug("companySignalService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
      * Creates the {@link BrowseCompaniesService} bean — powers the public-facing
      * company directory at {@code /companies}.
      *
-     * @param companyPort Company persistence adapter (auto-detected).
+     * @param companyPort   Company persistence adapter (auto-detected).
+     * @param signalService Signal scoring service (auto-detected).
      * @return The wired {@link BrowseCompaniesService} instance.
      */
     @Bean
-    public BrowseCompaniesService browseCompaniesService(HealthcareAiCompanyPort companyPort) {
+    public BrowseCompaniesService browseCompaniesService(HealthcareAiCompanyPort companyPort,
+                                                          CompanySignalService signalService) {
         log.debug("browseCompaniesService() | companyPort={}", companyPort.getClass().getSimpleName());
-        BrowseCompaniesService result = new BrowseCompaniesService(companyPort);
+        BrowseCompaniesService result = new BrowseCompaniesService(companyPort, signalService);
         log.debug("browseCompaniesService() | return={}", result.getClass().getSimpleName());
         return result;
     }

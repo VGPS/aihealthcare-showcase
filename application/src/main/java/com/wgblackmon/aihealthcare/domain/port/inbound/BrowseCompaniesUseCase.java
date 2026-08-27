@@ -1,8 +1,10 @@
 package com.wgblackmon.aihealthcare.domain.port.inbound;
 
+import com.wgblackmon.aihealthcare.domain.model.CompanySignal;
 import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -15,7 +17,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-26
- * @updated 2026-08-26
+ * @updated 2026-08-27
  */
 public interface BrowseCompaniesUseCase {
 
@@ -30,4 +32,14 @@ public interface BrowseCompaniesUseCase {
      * @param slug  URL-safe slug derived from the company name (e.g. "grelin-health")
      */
     Optional<HealthcareAiCompany> getCompany(String slug);
+
+    /**
+     * Computes signal scores (article velocity, deal presence, sentiment) for
+     * the supplied list of companies. Returns a map keyed by
+     * {@link HealthcareAiCompany#companyId()}.
+     *
+     * @param companies list to score; must not be null
+     * @return map from companyId to its {@link CompanySignal}; never null
+     */
+    Map<String, CompanySignal> computeSignals(List<HealthcareAiCompany> companies);
 }

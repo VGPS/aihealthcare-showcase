@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <!--
 /**
- * Public AI healthcare company directory.
+ * Public AI healthcare company directory — ranked, sorted, and signal-enriched.
  *
- * Displays all companies discovered by the Perplexity pipeline, sorted
- * alphabetically with optional sector filtering. No authentication required.
- * Each card links to the company detail page at /directory/{slug}.
+ * Sort modes: Relevance (default) | Trending | Recently Funded | Watch List
+ * Sector filter: canonical 7-category pills from HealthcareAiCompanyClassifier.
+ * Export: GET /directory/export.csv streams all companies with signal data.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-26
- * @updated 2026-08-26
+ * @updated 2026-08-27
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -30,23 +30,71 @@
 <main class="max-w-7xl mx-auto px-4 py-6">
 
     <!-- Page header -->
-    <div class="mb-6">
-        <h2 class="font-display text-2xl font-bold text-on-surface">AI Healthcare Company Directory</h2>
-        <p class="text-sm text-on-surface-variant mt-1">
-            <span th:text="${totalCount}">0</span> companies tracked by our AI discovery pipeline.
-            Updated continuously from Perplexity-powered research.
-        </p>
+    <div class="mb-4 flex items-center justify-between">
+        <div>
+            <h2 class="font-display text-2xl font-bold text-on-surface">AI Healthcare Company Directory</h2>
+            <p class="text-sm text-on-surface-variant mt-1">
+                <span th:text="${totalCount}">0</span> companies tracked by our AI discovery pipeline.
+            </p>
+        </div>
+        <a href="/directory/export.csv"
+           class="inline-flex items-center gap-1.5 px-4 py-2 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+            ⬇ Save CSV
+        </a>
+    </div>
+
+    <!-- Scoring logic explanation -->
+    <div class="mb-5 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-900">
+        <strong class="font-semibold">How companies are ranked:</strong>
+        companies earn a <em>relevance score</em> from three live signals refreshed each day.
+        <span class="inline-flex items-center gap-1 ml-1 mr-0.5 font-medium text-orange-700">🔥 Trending</span> adds up to 30 pts (3 pts per article mention in the last 90 days).
+        <span class="inline-flex items-center gap-1 mr-0.5 font-medium text-green-700">💰 Funded</span> adds 20 pts when a funding deal signal is detected.
+        <span class="inline-flex items-center gap-1 mr-0.5 font-medium text-red-700">⚠ Watch</span> subtracts 15 pts when negative sentiment is detected.
+        Use the sort tabs below to pivot across all three dimensions.
+    </div>
+
+    <!-- Sort tabs -->
+    <div class="mb-4 flex flex-wrap gap-2">
+        <a th:href="@{/directory(sector=${selectedSector})}"
+           th:classappend="${selectedSort == null} ? ' bg-primary-600 text-white shadow-sm' : ' bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+           class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors">
+            Relevance
+        </a>
+        <a th:href="@{/directory(sector=${selectedSector}, sort='trending')}"
+           th:classappend="${selectedSort == 'trending'} ? ' bg-orange-500 text-white shadow-sm' : ' bg-white text-gray-700 border border-gray-300 hover:bg-orange-50'"
+           class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors">
+            🔥 Trending
+            <span th:if="${trendingCount > 0}"
+                  th:text="${trendingCount}"
+                  class="inline-block bg-orange-100 text-orange-800 text-xs font-semibold rounded-full px-1.5 py-0.5 leading-none"></span>
+        </a>
+        <a th:href="@{/directory(sector=${selectedSector}, sort='funded')}"
+           th:classappend="${selectedSort == 'funded'} ? ' bg-green-600 text-white shadow-sm' : ' bg-white text-gray-700 border border-gray-300 hover:bg-green-50'"
+           class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors">
+            💰 Recently Funded
+            <span th:if="${fundedCount > 0}"
+                  th:text="${fundedCount}"
+                  class="inline-block bg-green-100 text-green-800 text-xs font-semibold rounded-full px-1.5 py-0.5 leading-none"></span>
+        </a>
+        <a th:href="@{/directory(sector=${selectedSector}, sort='watchlist')}"
+           th:classappend="${selectedSort == 'watchlist'} ? ' bg-red-600 text-white shadow-sm' : ' bg-white text-gray-700 border border-gray-300 hover:bg-red-50'"
+           class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors">
+            ⚠ Watch List
+            <span th:if="${watchlistCount > 0}"
+                  th:text="${watchlistCount}"
+                  class="inline-block bg-red-100 text-red-800 text-xs font-semibold rounded-full px-1.5 py-0.5 leading-none"></span>
+        </a>
     </div>
 
     <!-- Sector filter pills -->
     <div th:if="${sectors != null and !sectors.isEmpty()}" class="mb-6 flex flex-wrap gap-2">
-        <a th:href="@{/directory}"
+        <a th:href="@{/directory(sort=${selectedSort})}"
            th:classappend="${selectedSector == null} ? ' bg-primary-600 text-white' : ' bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
            class="inline-block px-3 py-1 rounded-full text-sm font-medium transition-colors">
             All sectors
         </a>
         <a th:each="s : ${sectors}"
-           th:href="@{/directory(sector=${s})}"
+           th:href="@{/directory(sector=${s}, sort=${selectedSort})}"
            th:text="${s}"
            th:classappend="${s == selectedSector} ? ' bg-primary-600 text-white' : ' bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
            class="inline-block px-3 py-1 rounded-full text-sm font-medium transition-colors">
@@ -56,13 +104,16 @@
     <!-- Empty state -->
     <div th:if="${companies == null or companies.isEmpty()}" class="text-center py-16 text-on-surface-variant">
         <div class="text-5xl mb-4">🏢</div>
-        <p class="text-lg font-medium">No companies found yet.</p>
+        <p th:if="${selectedSort == 'funded'}" class="text-lg font-medium">No recently funded companies detected yet.</p>
+        <p th:if="${selectedSort == 'watchlist'}" class="text-lg font-medium">No companies currently on the watch list.</p>
+        <p th:if="${selectedSort != 'funded' and selectedSort != 'watchlist'}" class="text-lg font-medium">No companies found.</p>
         <p class="text-sm mt-1">The discovery pipeline runs nightly — check back soon.</p>
     </div>
 
     <!-- Company grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div th:each="company : ${companies}"
+             th:with="sig=${signals[company.companyId()]}"
              class="bg-white rounded-lg border border-outline-variant shadow-sm hover:shadow-md transition-shadow flex flex-col">
 
             <!-- Card header -->
@@ -73,23 +124,54 @@
                        class="font-display font-semibold text-primary-700 hover:text-primary-900 text-base leading-tight">
                         Company Name
                     </a>
-                    <span th:if="${company.validated()}"
-                          class="ml-2 flex-shrink-0 inline-block px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
-                        Verified
-                    </span>
+                    <div class="flex items-center gap-1 ml-2 flex-shrink-0">
+                        <span th:if="${company.validated()}"
+                              class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
+                            Verified
+                        </span>
+                    </div>
                 </div>
 
-                <!-- Badges row -->
+                <!-- Taxonomy badges -->
                 <div class="flex flex-wrap gap-1 mb-2">
-                    <span th:if="${company.sector() != null and !company.sector().isEmpty()}"
+                    <span th:if="${company.category() != null and !company.category().isEmpty()}"
                           class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700"
-                          th:text="${company.sector()}">Sector</span>
-                    <span th:if="${company.subSector() != null and !company.subSector().isEmpty()}"
-                          class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700"
-                          th:text="${company.subSector()}">Sub-Sector</span>
+                          th:text="${company.category()}">Category</span>
                     <span th:if="${company.fundingStage() != null and !company.fundingStage().isEmpty()}"
                           class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700"
                           th:text="${company.fundingStage()}">Stage</span>
+                </div>
+
+                <!-- Signal badges -->
+                <div th:if="${sig != null}" class="flex flex-wrap gap-1 mb-2">
+                    <!-- Trending -->
+                    <span th:if="${sig.isTrending()}"
+                          th:title="${sig.articleCount90d()} + ' articles in last 90 days'"
+                          class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-semibold bg-orange-100 text-orange-800">
+                        🔥 <span th:text="${sig.articleCount90d()}">0</span> articles
+                    </span>
+                    <span th:if="${!sig.isTrending() and sig.articleCount90d() > 0}"
+                          class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                        <span th:text="${sig.articleCount90d()}">0</span> articles
+                    </span>
+                    <!-- Funding -->
+                    <span th:if="${sig.hasRecentFunding()}"
+                          th:title="${sig.latestDealAmount() != null ? sig.latestDealAmount() : 'Amount undisclosed'}"
+                          class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
+                        💰 <span th:text="${sig.latestDealAmount() != null ? sig.latestDealAmount() : 'Funded'}">Funded</span>
+                    </span>
+                    <!-- Watch list -->
+                    <span th:if="${sig.isWatchList()}"
+                          th:title="'Sentiment score: ' + ${#numbers.formatDecimal(sig.sentimentScore(), 1, 2)}"
+                          class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800">
+                        ⚠ Negative sentiment
+                    </span>
+                    <!-- Relevance score chip -->
+                    <span th:if="${sig.relevanceScore() > 0}"
+                          th:title="'Relevance score: ' + ${sig.relevanceScore()}"
+                          class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500">
+                        ★ <span th:text="${sig.relevanceScore()}">0</span>
+                    </span>
                 </div>
 
                 <!-- Description -->
