@@ -23,7 +23,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-08-28
  */
 @Slf4j
 @Component
@@ -111,9 +111,11 @@ public class TrendSnapshotAdapter implements TrendSnapshotPort {
             return List.of();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<List<TrendSignal>>() {});
+            List<TrendSignal> result = objectMapper.readValue(json, new TypeReference<List<TrendSignal>>() {});
+            log.debug("fromJson() | deserialized {} signals from {} chars", result.size(), json.length());
+            return result;
         } catch (JsonProcessingException e) {
-            log.error("fromJson() | failed to deserialize TrendSignal list", e);
+            log.error("fromJson() | failed to deserialize TrendSignal list (json length={})", json.length(), e);
             return List.of();
         }
     }

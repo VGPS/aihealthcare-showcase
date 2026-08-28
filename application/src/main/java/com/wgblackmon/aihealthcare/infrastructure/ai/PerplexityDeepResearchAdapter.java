@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-28
- * @updated 2026-07-28
+ * @updated 2026-08-28
  */
 @Slf4j
 @Component
@@ -209,9 +209,12 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(userMessage);
 
+        Map<String, Object> innerRequest = new LinkedHashMap<>();
+        innerRequest.put("model", MODEL_ID);
+        innerRequest.put("messages", messages);
+
         Map<String, Object> requestBody = new LinkedHashMap<>();
-        requestBody.put("model", MODEL_ID);
-        requestBody.put("messages", messages);
+        requestBody.put("request", innerRequest);
 
         try {
             DeepResearchResponse response = restClient.post()
