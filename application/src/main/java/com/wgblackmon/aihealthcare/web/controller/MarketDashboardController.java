@@ -7,6 +7,9 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionQueryService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.ReactionHorizon;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.RollupEntry;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollup;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollupService;
@@ -23,11 +26,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,20 +67,25 @@ public class MarketDashboardController {
 
     private static final int FREE_LIMIT = 3;
 
-    private final MarketDigestService  marketDigestService;
-    private final WeeklyRollupService  weeklyRollupService;
-    private final SubscriberPort       subscriberPort;
+    private final MarketDigestService        marketDigestService;
+    private final WeeklyRollupService        weeklyRollupService;
+    private final SubscriberPort             subscriberPort;
+    private final PriceReactionQueryService  priceReactionQueryService;
 
     public MarketDashboardController(MarketDigestService marketDigestService,
                                      WeeklyRollupService weeklyRollupService,
-                                     SubscriberPort subscriberPort) {
-        log.debug("MarketDashboardController() | marketDigestService={}, weeklyRollupService={}, subscriberPort={}",
+                                     SubscriberPort subscriberPort,
+                                     PriceReactionQueryService priceReactionQueryService) {
+        log.debug("MarketDashboardController() | marketDigestService={}, weeklyRollupService={}, "
+                        + "subscriberPort={}, priceReactionQueryService={}",
                 marketDigestService.getClass().getSimpleName(),
                 weeklyRollupService.getClass().getSimpleName(),
-                subscriberPort.getClass().getSimpleName());
+                subscriberPort.getClass().getSimpleName(),
+                priceReactionQueryService.getClass().getSimpleName());
         this.marketDigestService = marketDigestService;
         this.weeklyRollupService = weeklyRollupService;
         this.subscriberPort      = subscriberPort;
+        this.priceReactionQueryService = priceReactionQueryService;
         log.debug("MarketDashboardController() | return=void");
     }
 
@@ -175,6 +185,7 @@ public class MarketDashboardController {
             row.put("confirmed",         re.factClassification() == FactClassification.CONFIRMED);
             row.put("occurrenceCount",   re.occurrenceCount());
             row.put("companies",         companyLabels(re.representative().affectedCompanies()));
+            row.put("reactions",         reactionBadges(re.representative()));
             row.put("sourceUrls",        re.representative().newsItem().sourceUrls());
             entryRows.add(row);
         }
@@ -295,9 +306,54 @@ public class MarketDashboardController {
             map.put("sourceUrls", entry.newsItem().sourceUrls());
             map.put("companies", companyLabels(entry.affectedCompanies()));
             map.put("impactSummary", firstImpactRationale(entry.impactAssessments()));
+            map.put("reactions", reactionBadges(entry));
             result.add(map);
         }
         return result;
+    }
+
+    private List<Map<String, Object>> reactionBadges(MarketDigestEntry entry) {
+        List<Map<String, Object>> badges = new ArrayList<>();
+        for (AffectedCompany company : entry.affectedCompanies()) {
+            if (company.tickerSymbol() == null || company.tickerSymbol().isBlank()) {
+                continue;
+            }
+
+            List<PriceReactionSnapshot> snapshots = priceReactionQueryService.findReactions(
+                    company.tickerSymbol(), entry.newsItem().publishedAt());
+            Map<ReactionHorizon, PriceReactionSnapshot> byHorizon = new EnumMap<>(ReactionHorizon.class);
+            for (PriceReactionSnapshot snapshot : snapshots) {
+                byHorizon.put(snapshot.horizon(), snapshot);
+            }
+
+            for (ReactionHorizon horizon : ReactionHorizon.values()) {
+                PriceReactionSnapshot snapshot = byHorizon.get(horizon);
+                if (snapshot == null) {
+                    continue;
+                }
+                Map<String, Object> badge = new LinkedHashMap<>();
+                badge.put("label", company.tickerSymbol() + " " + horizonLabel(horizon)
+                        + " " + formatPct(snapshot.pctChange()));
+                badge.put("positive", snapshot.pctChange().compareTo(BigDecimal.ZERO) >= 0);
+                badges.add(badge);
+            }
+        }
+        return badges;
+    }
+
+    private String horizonLabel(ReactionHorizon horizon) {
+        switch (horizon) {
+            case ONE_HOUR:  return "1h";
+            case FOUR_HOUR: return "4h";
+            case ONE_DAY:   return "1d";
+            case THREE_DAY: return "3d";
+            default:        return horizon.name();
+        }
+    }
+
+    private String formatPct(BigDecimal pct) {
+        String sign = pct.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "";
+        return sign + pct.toPlainString() + "%";
     }
 
     private List<String> companyLabels(List<AffectedCompany> companies) {

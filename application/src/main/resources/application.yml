@@ -228,6 +228,8 @@ aihealthcare:
     notify-address: "${MARKET_DIGEST_NOTIFY_ADDRESS:newsletter@bigskylabs.ai}"
     dedup:
       similarity-threshold: 0.93
+    reaction:
+      schedule: "0 0 * * * *"
 
   # Trend Detection — weekly keyword frequency analysis across rolling windows.
   # Schedule default: Sunday 08:00 UTC (after wiki lint completes).

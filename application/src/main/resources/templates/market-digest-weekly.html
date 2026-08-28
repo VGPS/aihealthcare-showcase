@@ -133,6 +133,14 @@
                       th:text="${company}">Company</span>
             </div>
 
+            <!-- Price-reaction badges (populated once a horizon comes due) -->
+            <div th:if="${not #lists.isEmpty(entry.reactions)}" class="ml-10 mb-2 flex flex-wrap gap-1">
+                <span th:each="reaction : ${entry.reactions}"
+                      class="inline-block text-xs font-medium rounded px-2 py-0.5"
+                      th:classappend="${reaction.positive} ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                      th:text="${reaction.label}">DOCS 1d +8.25%</span>
+            </div>
+
             <!-- Source links -->
             <div th:if="${not #lists.isEmpty(entry.sourceUrls)}"
                  class="ml-10 flex flex-wrap gap-2 mt-2">

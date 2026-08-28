@@ -6,6 +6,8 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionQueryService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
 import com.wgblackmon.aihealthcare.web.dto.MarketDigestEntryResponse;
 import com.wgblackmon.aihealthcare.web.dto.MarketDigestResponse;
 import com.wgblackmon.aihealthcare.web.dto.MarketDigestSummary;
@@ -48,10 +50,14 @@ import java.util.Optional;
 public class MarketDigestController {
 
     private final MarketDigestService marketDigestService;
+    private final PriceReactionQueryService priceReactionQueryService;
 
-    public MarketDigestController(MarketDigestService marketDigestService) {
-        log.debug("MarketDigestController() | marketDigestService={}", marketDigestService);
+    public MarketDigestController(MarketDigestService marketDigestService,
+                                   PriceReactionQueryService priceReactionQueryService) {
+        log.debug("MarketDigestController() | marketDigestService={}, priceReactionQueryService={}",
+                marketDigestService, priceReactionQueryService);
         this.marketDigestService = marketDigestService;
+        this.priceReactionQueryService = priceReactionQueryService;
         log.debug("MarketDigestController() | return=void");
     }
 
@@ -215,7 +221,8 @@ public class MarketDigestController {
                     c.name(),
                     c.tickerSymbol(),
                     c.role(),
-                    c.peerGroup() != null ? c.peerGroup().name() : null
+                    c.peerGroup() != null ? c.peerGroup().name() : null,
+                    toReactionResponses(c, entry)
             ));
         }
 
@@ -231,5 +238,27 @@ public class MarketDigestController {
                 assessments,
                 companies
         );
+    }
+
+    private List<MarketDigestEntryResponse.PriceReactionResponse> toReactionResponses(
+            AffectedCompany company, MarketDigestEntry entry) {
+        if (company.tickerSymbol() == null || company.tickerSymbol().isBlank()) {
+            return new ArrayList<>();
+        }
+
+        List<PriceReactionSnapshot> snapshots = priceReactionQueryService.findReactions(
+                company.tickerSymbol(), entry.newsItem().publishedAt());
+
+        List<MarketDigestEntryResponse.PriceReactionResponse> result = new ArrayList<>();
+        for (PriceReactionSnapshot snapshot : snapshots) {
+            result.add(new MarketDigestEntryResponse.PriceReactionResponse(
+                    snapshot.horizon().name(),
+                    snapshot.baselinePrice(),
+                    snapshot.observedPrice(),
+                    snapshot.pctChange(),
+                    snapshot.measuredAt()
+            ));
+        }
+        return result;
     }
 }

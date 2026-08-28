@@ -11,6 +11,9 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketImpactRank;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketNewsItem;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionQueryService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.ReactionHorizon;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.RollupEntry;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollup;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollupService;
@@ -26,12 +29,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -70,6 +77,9 @@ class MarketDashboardControllerTest {
 
     @MockitoBean
     private ApiKeyPort apiKeyPort;
+
+    @MockitoBean
+    private PriceReactionQueryService priceReactionQueryService;
 
     // ─── helpers ────────────────────────────────────────────────────────────
 
@@ -149,6 +159,33 @@ class MarketDashboardControllerTest {
 
     @Test
     @WithMockUser
+    @DisplayName("GET /dashboard/market includes a reaction badge when a snapshot exists")
+    void marketLatest_withReactionSnapshot_includesReactionBadge() throws Exception {
+        when(marketDigestService.findLatest()).thenReturn(Optional.of(digestWithEntries(NewsCategory.EARNINGS)));
+        PriceReactionSnapshot snapshot = new PriceReactionSnapshot(
+                "entry-1", "ACME", ReactionHorizon.ONE_DAY,
+                new BigDecimal("10.00"), new BigDecimal("10.80"),
+                new BigDecimal("8.00"), Instant.now());
+        when(priceReactionQueryService.findReactions("ACME", Instant.parse("2026-08-19T10:00:00Z")))
+                .thenReturn(List.of(snapshot));
+
+        MvcResult result = mockMvc.perform(get("/dashboard/market"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> entries =
+                (List<Map<String, Object>>) result.getModelAndView().getModel().get("entries");
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> reactions = (List<Map<String, Object>>) entries.get(0).get("reactions");
+
+        assertThat(reactions).hasSize(1);
+        assertThat(reactions.get(0).get("label")).isEqualTo("ACME 1d +8.00%");
+        assertThat(reactions.get(0).get("positive")).isEqualTo(true);
+    }
+
+    @Test
+    @WithMockUser
     @DisplayName("GET /dashboard/market/{date} returns digest for that date")
     void marketByDate_withDigest_returnsView() throws Exception {
         LocalDate date = LocalDate.of(2026, 8, 19);
@@ -213,7 +250,9 @@ class MarketDashboardControllerTest {
     @DisplayName("GET /dashboard/market/history?days=7 filters digests to last 7 days")
     void marketHistory_withDaysParam_filtersResults() throws Exception {
         // Digest from today — should be included in a 7-day window
-        MarketDigest recent = digestWithEntries(NewsCategory.EARNINGS);
+        MarketDigest fixedDateDigest = digestWithEntries(NewsCategory.EARNINGS);
+        MarketDigest recent = new MarketDigest(
+                LocalDate.now(), fixedDateDigest.entries(), fixedDateDigest.generatedAt());
         when(marketDigestService.findAll()).thenReturn(List.of(recent));
 
         mockMvc.perform(get("/dashboard/market/history").param("days", "7"))
@@ -252,5 +291,36 @@ class MarketDashboardControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("market-digest-weekly"))
                 .andExpect(model().attribute("totalEntries", 1));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /dashboard/market/weekly includes a reaction badge when a snapshot exists")
+    void weekly_withReactionSnapshot_includesReactionBadge() throws Exception {
+        LocalDate weekStart = LocalDate.of(2026, 8, 17);
+        MarketDigestEntry entry = digestWithEntries(NewsCategory.EARNINGS).entries().get(0);
+        RollupEntry rollupEntry = new RollupEntry(entry, entry.rank(), FactClassification.CONFIRMED, 2);
+        WeeklyRollup rollup = new WeeklyRollup(weekStart, List.of(rollupEntry), java.time.Instant.now());
+        when(weeklyRollupService.buildRollup(weekStart)).thenReturn(rollup);
+
+        PriceReactionSnapshot snapshot = new PriceReactionSnapshot(
+                "entry-1", "ACME", ReactionHorizon.ONE_DAY,
+                new BigDecimal("10.00"), new BigDecimal("10.80"),
+                new BigDecimal("8.00"), Instant.now());
+        when(priceReactionQueryService.findReactions("ACME", Instant.parse("2026-08-19T10:00:00Z")))
+                .thenReturn(List.of(snapshot));
+
+        MvcResult result = mockMvc.perform(get("/dashboard/market/weekly").param("weekOf", "2026-08-17"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> entries =
+                (List<Map<String, Object>>) result.getModelAndView().getModel().get("entries");
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> reactions = (List<Map<String, Object>>) entries.get(0).get("reactions");
+
+        assertThat(reactions).hasSize(1);
+        assertThat(reactions.get(0).get("label")).isEqualTo("ACME 1d +8.00%");
     }
 }
