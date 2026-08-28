@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.web.dto;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -47,12 +48,29 @@ public record MarketDigestEntryResponse(
      * @author  Bill Blackmon
      * @version 1.0
      * @since   2026-08-19
-     * @updated 2026-08-19
+     * @updated 2026-08-28  added reactions field (price-reaction scoring)
      */
     public record AffectedCompanyResponse(
             String name,
             String tickerSymbol,
             String role,
-            String peerGroup
+            String peerGroup,
+            List<PriceReactionResponse> reactions
+    ) {}
+
+    /**
+     * Nested record for one captured price-reaction measurement on an affected company.
+     *
+     * @author  Bill Blackmon
+     * @version 1.0
+     * @since   2026-08-28
+     * @updated 2026-08-28
+     */
+    public record PriceReactionResponse(
+            String horizon,
+            BigDecimal baselinePrice,
+            BigDecimal observedPrice,
+            BigDecimal pctChange,
+            Instant measuredAt
     ) {}
 }

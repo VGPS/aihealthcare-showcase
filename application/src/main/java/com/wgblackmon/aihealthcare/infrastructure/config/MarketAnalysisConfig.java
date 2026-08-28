@@ -2,6 +2,8 @@ package com.wgblackmon.aihealthcare.infrastructure.config;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.GuidanceQueryService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionQueryService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollupService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.CorporateActionPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.EntryEmbeddingPort;
@@ -11,6 +13,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.PriceReactionPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.SecondaryNewsCheckPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,6 +112,38 @@ public class MarketAnalysisConfig {
         log.debug("guidanceQueryService() | guidancePort={}", guidancePort.getClass().getSimpleName());
         GuidanceQueryService result = new GuidanceQueryService(guidancePort);
         log.debug("guidanceQueryService() | return={}", result);
+        return result;
+    }
+
+    /**
+     * Wires the price-reaction polling service with the Alpaca market-data port
+     * and its own persistence adapter.
+     *
+     * @param reactionPort   JPA-backed adapter — persists/queries reaction snapshots
+     * @param marketDataPort Alpaca adapter — quote + price history lookup
+     * @return configured {@link PriceReactionService} bean
+     */
+    @Bean
+    public PriceReactionService priceReactionService(PriceReactionPort reactionPort,
+                                                       MarketDataPort marketDataPort) {
+        log.debug("priceReactionService() | reactionPort={}, marketDataPort={}",
+                reactionPort.getClass().getSimpleName(), marketDataPort.getClass().getSimpleName());
+        PriceReactionService result = new PriceReactionService(reactionPort, marketDataPort);
+        log.debug("priceReactionService() | return={}", result);
+        return result;
+    }
+
+    /**
+     * Wires the read-side price-reaction query service used by controllers.
+     *
+     * @param reactionPort JPA-backed adapter — queries reaction snapshots
+     * @return configured {@link PriceReactionQueryService} bean
+     */
+    @Bean
+    public PriceReactionQueryService priceReactionQueryService(PriceReactionPort reactionPort) {
+        log.debug("priceReactionQueryService() | reactionPort={}", reactionPort.getClass().getSimpleName());
+        PriceReactionQueryService result = new PriceReactionQueryService(reactionPort);
+        log.debug("priceReactionQueryService() | return={}", result);
         return result;
     }
 

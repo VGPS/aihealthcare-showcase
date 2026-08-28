@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.marketanalysis.AffectedCompany;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.FactClassification;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
@@ -7,6 +8,9 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketImpactRank;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketNewsItem;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionQueryService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.ReactionHorizon;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -14,6 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -46,6 +51,9 @@ class MarketDigestControllerTest {
     @MockBean
     private MarketDigestService marketDigestService;
 
+    @MockBean
+    private PriceReactionQueryService priceReactionQueryService;
+
     private static final LocalDate DATE = LocalDate.of(2026, 8, 19);
 
     // ─── GET /api/market-digest/latest ──────────────────────────────────────
@@ -60,6 +68,31 @@ class MarketDigestControllerTest {
                 .andExpect(jsonPath("$.date").value("2026-08-19"))
                 .andExpect(jsonPath("$.entryCount").value(1))
                 .andExpect(jsonPath("$.entries[0].headline").value("EARNINGS headline"));
+    }
+
+    @Test
+    @WithMockUser
+    void getLatest_withReactionSnapshot_includesReactionInResponse() throws Exception {
+        Instant publishedAt = Instant.parse("2026-08-19T12:00:00Z");
+        MarketNewsItem item = new MarketNewsItem(
+                "EARNINGS headline", "Summary text.", List.of(), publishedAt, NewsCategory.EARNINGS, null);
+        AffectedCompany company = new AffectedCompany("Doximity", "DOCS", "earnings subject", null);
+        MarketDigestEntry entry = new MarketDigestEntry(
+                item, List.of(), FactClassification.CONFIRMED, new MarketImpactRank(1), List.of(company));
+        when(marketDigestService.findLatest())
+                .thenReturn(Optional.of(new MarketDigest(DATE, List.of(entry), Instant.now())));
+
+        PriceReactionSnapshot snapshot = new PriceReactionSnapshot(
+                "entry-1", "DOCS", ReactionHorizon.ONE_DAY,
+                new BigDecimal("10.00"), new BigDecimal("10.80"),
+                new BigDecimal("8.00"), Instant.now());
+        when(priceReactionQueryService.findReactions("DOCS", publishedAt)).thenReturn(List.of(snapshot));
+
+        mockMvc.perform(get("/api/market-digest/latest"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.entries[0].affectedCompanies[0].tickerSymbol").value("DOCS"))
+                .andExpect(jsonPath("$.entries[0].affectedCompanies[0].reactions[0].horizon").value("ONE_DAY"))
+                .andExpect(jsonPath("$.entries[0].affectedCompanies[0].reactions[0].pctChange").value(8.00));
     }
 
     @Test
