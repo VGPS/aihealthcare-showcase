@@ -2,6 +2,9 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.ReactionHorizon;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
@@ -18,6 +21,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -42,9 +46,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link AdminPipelineController}.
  *
  * @author  Bill Blackmon
- * @version 3.3
+ * @version 3.4
  * @since   2026-07-30
- * @updated 2026-08-24
+ * @updated 2026-08-28
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(AdminPipelineController.class)
@@ -67,6 +71,9 @@ class AdminPipelineControllerTest {
 
     @MockitoBean
     private DeliverNewsletterUseCase deliverUseCase;
+
+    @MockitoBean
+    private PriceReactionService priceReactionService;
 
     // --- Page rendering ---
 
@@ -93,7 +100,7 @@ class AdminPipelineControllerTest {
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("pipelineCount", 20));
+                .andExpect(model().attribute("pipelineCount", 21));
     }
 
     @Test
@@ -323,5 +330,35 @@ class AdminPipelineControllerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value("FAILED"))
                 .andExpect(jsonPath("$.message").value("Perplexity API unavailable"));
+    }
+
+    // --- Price reaction capture endpoint ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void captureMarketPriceReactionsReturnsSuccess() throws Exception {
+        PriceReactionSnapshot snapshot = new PriceReactionSnapshot(
+                "entry-1", "DOCS", ReactionHorizon.ONE_DAY,
+                new BigDecimal("10.00"), new BigDecimal("10.80"),
+                new BigDecimal("8.00"), Instant.now());
+        when(priceReactionService.capturePendingReactions(org.mockito.ArgumentMatchers.any(Instant.class)))
+                .thenReturn(List.of(snapshot));
+
+        mockMvc.perform(post("/admin/pipelines/market-digest/price-reactions/capture").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.snapshotCount").value(1));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void captureMarketPriceReactionsReturnsFailureOnException() throws Exception {
+        when(priceReactionService.capturePendingReactions(org.mockito.ArgumentMatchers.any(Instant.class)))
+                .thenThrow(new RuntimeException("Alpaca API unavailable"));
+
+        mockMvc.perform(post("/admin/pipelines/market-digest/price-reactions/capture").with(csrf()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.message").value("Alpaca API unavailable"));
     }
 }
