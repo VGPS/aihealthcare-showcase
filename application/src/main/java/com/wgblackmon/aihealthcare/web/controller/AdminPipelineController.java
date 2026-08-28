@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
@@ -39,9 +41,9 @@ import java.util.Map;
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 2.5
+ * @version 2.6
  * @since   2026-07-30
- * @updated 2026-08-24
+ * @updated 2026-08-28
  */
 @Slf4j
 @Controller
@@ -60,17 +62,20 @@ public class AdminPipelineController {
     private final NewsletterGenerationScheduler newsletterScheduler;
     private final MarketDigestService marketDigestService;
     private final DeliverNewsletterUseCase deliverUseCase;
+    private final PriceReactionService priceReactionService;
 
     public AdminPipelineController(PipelineHealthService healthService,
                                    NewsletterGenerationScheduler newsletterScheduler,
                                    MarketDigestService marketDigestService,
-                                   DeliverNewsletterUseCase deliverUseCase) {
-        log.debug("AdminPipelineController() | healthService={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}",
-                  healthService, newsletterScheduler, marketDigestService, deliverUseCase);
+                                   DeliverNewsletterUseCase deliverUseCase,
+                                   PriceReactionService priceReactionService) {
+        log.debug("AdminPipelineController() | healthService={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}",
+                  healthService, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService);
         this.healthService = healthService;
         this.newsletterScheduler = newsletterScheduler;
         this.marketDigestService = marketDigestService;
         this.deliverUseCase = deliverUseCase;
+        this.priceReactionService = priceReactionService;
     }
 
     /**
@@ -340,6 +345,45 @@ public class AdminPipelineController {
         }
     }
 
+    /**
+     * Manually triggers one pass of the price-reaction poller for all due,
+     * uncaptured horizons across recent market digest entries.
+     * Idempotent — skips horizons already captured.
+     *
+     * @return JSON result with snapshot count and duration
+     */
+    @PostMapping("/market-digest/price-reactions/capture")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> captureMarketPriceReactions() {
+        log.debug("captureMarketPriceReactions()");
+
+        Instant start = Instant.now();
+        try {
+            List<PriceReactionSnapshot> captured = priceReactionService.capturePendingReactions(start);
+
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "SUCCESS");
+            result.put("message", "Captured " + captured.size() + " price-reaction snapshot(s)");
+            result.put("snapshotCount", captured.size());
+            result.put("durationMs", durationMs);
+
+            log.info("captureMarketPriceReactions() | captured={}", captured.size());
+            log.debug("captureMarketPriceReactions() | return={}", result);
+            return ResponseEntity.ok(result);
+        } catch (Exception ex) {
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "FAILED");
+            result.put("message", ex.getMessage());
+            result.put("durationMs", durationMs);
+
+            log.error("captureMarketPriceReactions() | failed: {}", ex.getMessage(), ex);
+            log.debug("captureMarketPriceReactions() | return={}", result);
+            return ResponseEntity.internalServerError().body(result);
+        }
+    }
+
     private String formatRunSummary(PipelineHealthService.PipelineRunRecord run) {
         if ("SUCCESS".equals(run.status())) {
             return "OK in " + run.durationMs() + "ms";
@@ -362,6 +406,11 @@ public class AdminPipelineController {
                 "Generates the daily AI healthcare market digest: researches news via Perplexity, classifies market impact via Claude, persists digest. Idempotent — safe to re-run for today.",
                 "Daily 07:00 AM CT", "MarketDigestScheduler",
                 "/admin/pipelines/market-digest/generate", "POST", true, "~3 min", "High (LLM cost)"));
+
+        list.add(new PipelineInfo("price-reaction-capture", "Market Price Reaction Capture",
+                "Polls Alpaca for stock price moves at 1h/4h/1d/3d horizons after each qualifying market digest entry. Idempotent — skips horizons already captured. Run after market hours to pick up 1d/3d closes.",
+                "Hourly (top of hour)", "MarketAnalysisScheduler",
+                "/admin/pipelines/market-digest/price-reactions/capture", "POST", true, "~15 sec", "Low"));
 
         list.add(new PipelineInfo("wiki-compile", "Wiki Compilation",
                 "Compiles recent articles into wiki pages via LLM with provenance and contradiction detection. Requires AI API key.",
