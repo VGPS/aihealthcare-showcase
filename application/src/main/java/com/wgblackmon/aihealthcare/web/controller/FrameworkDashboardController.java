@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * Thymeleaf controller that renders the healthcare framework competitive
@@ -34,7 +35,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-04
+ * @updated 2026-08-29
  */
 @Slf4j
 @Controller
@@ -44,12 +45,44 @@ public class FrameworkDashboardController {
             DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm")
                     .withZone(ZoneId.of("America/New_York"));
 
+    // Strips LLM-generated [1], [2], [1,2] citation markers that have no reference list on the page
+    private static final Pattern CITATION_PATTERN = Pattern.compile("\\[\\d+(?:[,;]\\s*\\d+)*\\]");
+
     private static final DateTimeFormatter NOTE_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final List<String> CHART_COLORS = List.of(
             "#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899");
+
+    private static String stripCitations(String text) {
+        if (text == null || text.isBlank()) return text;
+        String stripped = CITATION_PATTERN.matcher(text).replaceAll("").replaceAll("  +", " ").trim();
+        return stripped.isBlank() ? text : stripped;
+    }
+
+    private static List<String> stripCitationsList(List<String> items) {
+        List<String> result = new ArrayList<>();
+        for (String item : items) {
+            result.add(stripCitations(item));
+        }
+        return result;
+    }
+
+    private static FrameworkAnalysis cleanAnalysis(FrameworkAnalysis a) {
+        List<FrameworkDimension> cleanDims = new ArrayList<>();
+        for (FrameworkDimension dim : a.dimensions()) {
+            cleanDims.add(new FrameworkDimension(dim.name(), dim.score(), stripCitations(dim.rationale())));
+        }
+        return new FrameworkAnalysis(
+                a.companySlug(), a.companyName(),
+                stripCitations(a.overallAssessment()),
+                cleanDims,
+                stripCitationsList(a.strengths()),
+                stripCitationsList(a.weaknesses()),
+                stripCitationsList(a.recentDevelopments()),
+                a.overallScore(), a.articleCount(), a.analyzedAt());
+    }
 
     private final AnalyzeFrameworksUseCase frameworksUseCase;
     private final SubscriberPort subscriberPort;
@@ -76,7 +109,11 @@ public class FrameworkDashboardController {
     public String frameworkOverview(Model model) {
         log.debug("frameworkOverview()");
 
-        List<FrameworkAnalysis> analyses = frameworksUseCase.getAll();
+        List<FrameworkAnalysis> rawAnalyses = frameworksUseCase.getAll();
+        List<FrameworkAnalysis> analyses = new ArrayList<>();
+        for (FrameworkAnalysis a : rawAnalyses) {
+            analyses.add(cleanAnalysis(a));
+        }
 
         if (analyses.isEmpty()) {
             model.addAttribute("hasAnalyses", false);
@@ -153,7 +190,7 @@ public class FrameworkDashboardController {
             return "redirect:/dashboard/frameworks";
         }
 
-        FrameworkAnalysis analysis = opt.get();
+        FrameworkAnalysis analysis = cleanAnalysis(opt.get());
 
         // Dimension names and scores for single-company radar chart
         List<String> dimNames = new ArrayList<>();

@@ -78,37 +78,38 @@ OVERALL_ASSESSMENT:
 Write 2-3 paragraphs providing a balanced, analyst-grade assessment of {companyName}
 as a healthcare AI platform. Summarize the company's current positioning, its strongest
 competitive advantages, its most significant gaps or risks, and how it compares to the
-broader healthcare AI competitive landscape. Cite source articles using inline markers
-such as [1], [2], etc. End with a forward-looking statement on trajectory — is this
-company's healthcare position strengthening, plateauing, or at risk?
+broader healthcare AI competitive landscape. Reference evidence naturally within the prose
+(e.g., "a recently announced partnership with..." or "published clinical data shows...") —
+do NOT use numbered citation markers like [1] or [2]. End with a forward-looking statement
+on trajectory — is this company's healthcare position strengthening, plateauing, or at risk?
 
 DIMENSIONS:
-[Technical Maturity] SCORE | One to three sentences grounding the score in source evidence. Cite articles with [N] markers.
-[Clinical Validation] SCORE | One to three sentences grounding the score in source evidence. Cite articles with [N] markers.
-[Regulatory Positioning] SCORE | One to three sentences grounding the score in source evidence. Cite articles with [N] markers.
-[Platform Strategy] SCORE | One to three sentences grounding the score in source evidence. Cite articles with [N] markers.
-[Market Momentum] SCORE | One to three sentences grounding the score in source evidence. Cite articles with [N] markers.
-[Developer Experience] SCORE | One to three sentences grounding the score in source evidence. Cite articles with [N] markers.
+[Technical Maturity] SCORE | One to three sentences grounding the score in source evidence. Reference evidence in prose — do not use [N] markers.
+[Clinical Validation] SCORE | One to three sentences grounding the score in source evidence. Reference evidence in prose — do not use [N] markers.
+[Regulatory Positioning] SCORE | One to three sentences grounding the score in source evidence. Reference evidence in prose — do not use [N] markers.
+[Platform Strategy] SCORE | One to three sentences grounding the score in source evidence. Reference evidence in prose — do not use [N] markers.
+[Market Momentum] SCORE | One to three sentences grounding the score in source evidence. Reference evidence in prose — do not use [N] markers.
+[Developer Experience] SCORE | One to three sentences grounding the score in source evidence. Reference evidence in prose — do not use [N] markers.
 
 STRENGTHS:
-- Strength with supporting evidence and source citation [N]
-- Strength with supporting evidence and source citation [N]
+- Strength with specific supporting evidence described in prose (no [N] markers)
+- Strength with specific supporting evidence described in prose (no [N] markers)
 - (up to 5 bullet points; omit this section entirely if no strengths are evidenced)
 
 WEAKNESSES:
-- Weakness or risk with explanation and source citation [N] where available
+- Weakness or risk with explanation in prose (no [N] markers)
 - Weakness or risk with explanation
 - (up to 5 bullet points; include gaps in source coverage as a weakness if relevant)
 
 RECENT_DEVELOPMENTS:
-- Recent development with date context and source citation [N]
-- Recent development with date context and source citation [N]
+- Recent development with date context described in prose (no [N] markers)
+- Recent development with date context described in prose (no [N] markers)
 - (up to 5 bullet points covering the most significant recent events; prefer developments from the last 90 days)
 
 --- RULES ---
 
 - SCORE must be an integer from 1 to 10 inclusive. No decimals, no ranges.
-- Every DIMENSIONS rationale must cite at least one source article by number.
+- Every DIMENSIONS rationale must reference at least one source article in prose.
   If no source covers a dimension, score it 1-2 and state "No source coverage."
 - STRENGTHS and WEAKNESSES bullets must be substantive phrases, not single words.
 - RECENT_DEVELOPMENTS bullets should include approximate timing when available
