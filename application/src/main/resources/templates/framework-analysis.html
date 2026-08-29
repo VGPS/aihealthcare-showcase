@@ -27,6 +27,8 @@
 
 <nav th:replace="~{fragments/nav :: nav('frameworks')}"></nav>
 
+<div th:replace="~{fragments/tier-utils :: enterpriseBanner}"></div>
+
 <main class="max-w-7xl mx-auto px-4 py-6">
 
     <!-- Trigger analysis button (ADMIN only) -->
@@ -109,8 +111,11 @@
 
             <!-- Footer: detail link + article count -->
             <div class="flex justify-between items-center pt-3 border-t border-gray-100">
-                <a th:href="@{/dashboard/frameworks/{slug}(slug=${analysis.companySlug()})}"
-                   class="text-sm text-blue-600 hover:underline">View Full Analysis &rarr;</a>
+                <div class="flex items-center gap-2">
+                    <a th:href="@{/dashboard/frameworks/{slug}(slug=${analysis.companySlug()})}"
+                       class="text-sm text-blue-600 hover:underline">View Full Analysis &rarr;</a>
+                    <span th:unless="${isEnterprise}" class="text-xs bg-purple-100 text-purple-700 font-semibold px-1.5 py-0.5 rounded">Enterprise</span>
+                </div>
                 <span class="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full"
                       th:text="${analysis.articleCount()} + ' articles'">12 articles</span>
             </div>

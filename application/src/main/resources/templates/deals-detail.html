@@ -23,7 +23,14 @@
 
 <nav th:replace="~{fragments/nav :: nav('deals')}"></nav>
 
+<div th:replace="~{fragments/tier-utils :: enterpriseBanner}"></div>
+
 <main class="max-w-5xl mx-auto px-4 py-6">
+
+    <!-- Enterprise upgrade gate -->
+    <div th:if="${upgradeRequired}" th:replace="~{fragments/tier-utils :: enterprisePageGate}"></div>
+
+    <div th:unless="${upgradeRequired}">
 
     <p class="text-sm text-gray-500 leading-relaxed mb-4">Deal detail view. Shows the detected deal signal with extracted metadata, LLM-generated analysis, and cross-referenced intelligence from sentiment scoring, competitive framework analysis, regulatory filings, and company profiles when available.</p>
 
@@ -167,6 +174,8 @@
         </div>
 
     </div>
+
+    </div><!-- end th:unless upgradeRequired -->
 
 </main>
 

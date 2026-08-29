@@ -74,7 +74,7 @@ class FrameworkDashboardControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void detail_rendersForValidSlug() throws Exception {
         when(frameworksUseCase.getBySlug("anthropic"))
                 .thenReturn(Optional.of(buildAnalysis("anthropic", "Anthropic")));
@@ -90,7 +90,7 @@ class FrameworkDashboardControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void detail_redirectsForUnknownSlug() throws Exception {
         when(frameworksUseCase.getBySlug("unknown")).thenReturn(Optional.empty());
 

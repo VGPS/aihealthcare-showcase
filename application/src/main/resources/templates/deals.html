@@ -186,10 +186,13 @@
                                   th:text="${signal.signalTypeLabel}">Type</span>
                         </td>
                         <td class="py-3 pr-4 max-w-md">
+                            <div class="flex items-center gap-1.5">
                             <a th:href="@{/dashboard/deals/{id}(id=${signal.signalId})}"
-                               class="font-medium text-primary-600 hover:text-primary-800 truncate block">
+                               class="font-medium text-primary-600 hover:text-primary-800 truncate">
                                 <span th:text="${signal.title}">Title</span>
                             </a>
+                            <span class="shrink-0 text-xs bg-purple-100 text-purple-700 font-semibold px-1.5 py-0.5 rounded">Enterprise</span>
+                            </div>
                             <div class="text-xs text-gray-500 mt-0.5 truncate" th:text="${signal.summary}">Summary</div>
                         </td>
                         <td class="py-3 pr-4 text-gray-600" th:text="${signal.companyName}">Company</td>

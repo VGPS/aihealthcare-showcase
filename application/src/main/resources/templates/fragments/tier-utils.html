@@ -3,35 +3,92 @@
 /**
  * Thymeleaf fragments for tier-based UI gating.
  *
- * upgradeCard — full-width card shown in locked tab content areas.
- * lockBadge   — inline badge appended to locked nav buttons.
+ * upgradeCard       — full-width card shown in locked Intelligence Console tab content areas.
+ * lockBadge         — inline badge appended to locked nav buttons.
+ * enterpriseBanner  — page-top ribbon identifying a page as an Enterprise feature.
+ * enterprisePageGate — full-page upgrade wall for pages gated to Enterprise tier.
  *
  * @author  Bill Blackmon
  * @since   2026-08-14
- * @updated 2026-08-14
+ * @updated 2026-08-29
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!--/* UpgradeCard: replaces locked tab content for SUBSCRIBER users */-->
+<!--/* upgradeCard: replaces locked tab content inside the Intelligence Console */-->
 <div th:fragment="upgradeCard"
      class="flex flex-col items-center justify-center text-center py-16 px-8">
     <div style="font-size:2.5rem;margin-bottom:1rem;">&#128274;</div>
     <h3 style="font-size:1.1rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem;">Enterprise Feature</h3>
-    <p style="font-size:0.9rem;color:#64748b;max-width:380px;margin-bottom:1.5rem;">
+    <p style="font-size:0.9rem;color:#64748b;max-width:420px;margin-bottom:1.5rem;">
         This tab is available on the Enterprise plan. Upgrade to unlock AI Audit cross-verification,
-        confidence trend tracking, intelligence trending, and temporal diff analysis.
+        confidence trend tracking, intelligence trending, temporal diff analysis, framework competitive
+        scoring, deal intelligence briefs, company signal feed, and AI accountability scorecards.
     </p>
     <a href="/pricing#enterprise"
        style="display:inline-block;padding:0.625rem 1.75rem;background:#7c3aed;color:#fff;font-weight:600;border-radius:0.5rem;font-size:0.875rem;text-decoration:none;transition:background 0.15s;"
        onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">
         Upgrade to Enterprise
     </a>
+    <p style="font-size:0.8rem;color:#94a3b8;margin-top:0.75rem;">
+        New users get a <a href="/register" style="color:#7c3aed;text-decoration:underline;">7-day Enterprise trial</a> — no credit card required.
+    </p>
 </div>
 
-<!--/* lockBadge: inline badge for locked nav tabs */-->
+<!--/* lockBadge: inline badge for locked nav tab labels */-->
 <span th:fragment="lockBadge" class="tab-lock-badge">Enterprise</span>
+
+<!--/* enterpriseBanner: horizontal ribbon shown at top of Enterprise-only pages */-->
+<div th:fragment="enterpriseBanner"
+     class="bg-purple-50 border-b border-purple-200 px-6 py-2 flex items-center gap-3">
+    <span class="inline-flex items-center gap-1.5 bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+        &#x1F4BC; Enterprise
+    </span>
+    <span class="text-sm text-purple-800">
+        This is an Enterprise feature.
+        <a href="/pricing#enterprise" class="font-semibold underline hover:text-purple-600">View plans</a>
+        &nbsp;&mdash;&nbsp;
+        <a href="/register" class="font-semibold underline hover:text-purple-600">Start your 7-day trial</a>
+    </span>
+</div>
+
+<!--/* enterpriseTrialBanner: variant for users currently on a DEMO trial */-->
+<div th:fragment="enterpriseTrialBanner"
+     class="bg-purple-50 border-b border-purple-200 px-6 py-2 flex items-center gap-3">
+    <span class="inline-flex items-center gap-1.5 bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+        &#x1F4BC; Enterprise Trial
+    </span>
+    <span class="text-sm text-purple-800">
+        You're accessing this as part of your 7-day Enterprise trial.
+        <a href="/pricing#enterprise" class="font-semibold underline hover:text-purple-600">Upgrade to keep access</a>
+    </span>
+</div>
+
+<!--/* enterprisePageGate: full-page upgrade wall for pages gated to Enterprise tier */-->
+<div th:fragment="enterprisePageGate"
+     class="max-w-lg mx-auto my-16 text-center px-6">
+    <div class="bg-white rounded-xl shadow-sm border border-purple-200 p-8">
+        <div style="font-size:3rem;margin-bottom:1rem;">&#128274;</div>
+        <span class="inline-block bg-purple-100 text-purple-800 text-xs font-bold px-3 py-1 rounded-full mb-4">Enterprise Feature</span>
+        <h2 class="font-display text-xl font-bold text-on-surface mb-3">Upgrade to unlock this analysis</h2>
+        <p class="text-sm text-gray-500 leading-relaxed mb-6">
+            Deep-dive intelligence briefs — framework competitive scoring, deal cross-context,
+            sentiment risk profiles, and company signal feeds — are available on the Enterprise plan.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="/pricing#enterprise"
+               class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-6 rounded-md text-sm transition-colors no-underline">
+                View Enterprise Plans
+            </a>
+            <a href="/register"
+               class="inline-block bg-white hover:bg-gray-50 text-purple-700 font-semibold py-2.5 px-6 rounded-md text-sm border border-purple-300 transition-colors no-underline">
+                Start 7-Day Trial
+            </a>
+        </div>
+        <p class="text-xs text-gray-400 mt-4">No credit card required for trial &middot; Full Enterprise access for 7 days</p>
+    </div>
+</div>
 
 </body>
 </html>

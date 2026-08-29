@@ -16,13 +16,21 @@
 <body class="bg-surface font-sans text-on-surface">
 
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
-    <h1 class="font-display text-2xl font-bold tracking-tight" th:text="${sentiment.companyName() + ' — Sentiment Detail'}">Company Detail</h1>
+    <h1 class="font-display text-2xl font-bold tracking-tight"
+        th:text="${upgradeRequired} ? 'Sentiment Risk Detail — Enterprise Feature' : (${sentiment.companyName()} + ' — Sentiment Detail')">Company Detail</h1>
     <p class="text-primary-200 text-sm mt-0.5">Article-level sentiment breakdown and risk assessment</p>
 </header>
 
 <nav th:replace="~{fragments/nav :: nav('risk')}"></nav>
 
+<div th:replace="~{fragments/tier-utils :: enterpriseBanner}"></div>
+
 <main class="max-w-5xl mx-auto px-4 py-6">
+
+    <!-- Enterprise upgrade gate -->
+    <div th:if="${upgradeRequired}" th:replace="~{fragments/tier-utils :: enterprisePageGate}"></div>
+
+    <div th:unless="${upgradeRequired}">
 
     <!-- Back link -->
     <a href="/dashboard/risk" class="text-blue-600 hover:underline text-sm mb-4 inline-block">&larr; Back to Risk Dashboard</a>
@@ -148,12 +156,14 @@
     <div sec:authorize="isAuthenticated()"
          th:insert="~{fragments/notes-inline :: notes('COMPANY', ${sentiment.companySlug()}, ${sentiment.companyName()}, ${analystNotes}, ${analystNoteDates}, ${returnUrl})}"></div>
 
+    </div><!-- end th:unless upgradeRequired -->
+
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script th:inline="javascript">
+<script th:unless="${upgradeRequired}" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script th:unless="${upgradeRequired}" th:inline="javascript">
     var distData = /*[[${distributionData}]]*/ [0, 0, 0, 0];
 
     new Chart(document.getElementById('distributionChart'), {

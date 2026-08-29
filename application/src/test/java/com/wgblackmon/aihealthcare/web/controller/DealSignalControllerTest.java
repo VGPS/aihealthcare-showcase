@@ -164,7 +164,7 @@ class DealSignalControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     @DisplayName("GET /dashboard/deals/{signalId} returns detail page")
     void dealDetail_existingSignal_returnsDetailView() throws Exception {
         DealSignal signal = new DealSignal("s1", "a1", "Funding",
@@ -193,7 +193,7 @@ class DealSignalControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     @DisplayName("GET /dashboard/deals/{signalId} missing signal redirects")
     void dealDetail_missingSignal_redirects() throws Exception {
         when(detectDealSignalsUseCase.getSignalWithContext("missing")).thenReturn(null);
