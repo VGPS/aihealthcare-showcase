@@ -7,7 +7,9 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.ReactionHorizon;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
+import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
@@ -46,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link AdminPipelineController}.
  *
  * @author  Bill Blackmon
- * @version 3.4
+ * @version 3.5
  * @since   2026-07-30
  * @updated 2026-08-28
  */
@@ -74,6 +76,9 @@ class AdminPipelineControllerTest {
 
     @MockitoBean
     private PriceReactionService priceReactionService;
+
+    @MockitoBean
+    private DetectTrendsUseCase detectTrendsUseCase;
 
     // --- Page rendering ---
 
@@ -360,5 +365,36 @@ class AdminPipelineControllerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value("FAILED"))
                 .andExpect(jsonPath("$.message").value("Alpaca API unavailable"));
+    }
+
+    // --- Trend detection endpoint ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void runTrendDetectionReturnsSuccess() throws Exception {
+        TrendSnapshot snapshot = new TrendSnapshot(
+                java.time.Instant.now(), 30,
+                java.util.List.of(), java.util.List.of(), java.util.List.of(), 20);
+        when(detectTrendsUseCase.detectTrends()).thenReturn(snapshot);
+
+        mockMvc.perform(post("/admin/pipelines/trend-detection/run").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.risingCount").value(0))
+                .andExpect(jsonPath("$.totalKeywords").value(20));
+
+        verify(detectTrendsUseCase).detectTrends();
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void runTrendDetectionReturnsFailureOnException() throws Exception {
+        when(detectTrendsUseCase.detectTrends())
+                .thenThrow(new RuntimeException("LLM service unavailable"));
+
+        mockMvc.perform(post("/admin/pipelines/trend-detection/run").with(csrf()))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value("FAILED"))
+                .andExpect(jsonPath("$.message").value("LLM service unavailable"));
     }
 }

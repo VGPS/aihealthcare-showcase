@@ -67,3 +67,7 @@ aihealthcare:
 logging:
   level:
     com.wgblackmon: INFO
+    # Adapter-level DEBUG for diagnosing pipeline deserialization and external API calls
+    com.wgblackmon.aihealthcare.infrastructure.persistence.TrendSnapshotAdapter: DEBUG
+    com.wgblackmon.aihealthcare.infrastructure.ai.PerplexityDeepResearchAdapter: DEBUG
+    com.wgblackmon.aihealthcare.infrastructure.ai.DealClassificationAdapter: DEBUG
