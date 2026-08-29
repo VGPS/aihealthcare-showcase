@@ -23,13 +23,20 @@
 
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
     <h1 class="font-display text-2xl font-bold tracking-tight"
-        th:text="${analysis.companyName()} + ' — Framework Analysis'">Company — Framework Analysis</h1>
+        th:text="${upgradeRequired} ? 'Framework Analysis — Enterprise Feature' : (${analysis.companyName()} + ' — Framework Analysis')">Company — Framework Analysis</h1>
     <p class="text-primary-200 text-sm mt-0.5">Deep competitive analysis of healthcare AI capabilities</p>
 </header>
 
 <nav th:replace="~{fragments/nav :: nav('frameworks')}"></nav>
 
+<div th:replace="~{fragments/tier-utils :: enterpriseBanner}"></div>
+
 <main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Enterprise upgrade gate -->
+    <div th:if="${upgradeRequired}" th:replace="~{fragments/tier-utils :: enterprisePageGate}"></div>
+
+    <div th:unless="${upgradeRequired}">
 
     <!-- Back link -->
     <a href="/dashboard/frameworks" class="text-blue-600 hover:underline text-sm mb-4 inline-block">&larr; Back to Framework Analysis</a>
@@ -151,12 +158,14 @@
     <div sec:authorize="isAuthenticated()"
          th:insert="~{fragments/notes-inline :: notes('COMPANY', ${analysis.companySlug()}, ${analysis.companyName()}, ${analystNotes}, ${analystNoteDates}, ${returnUrl})}"></div>
 
+    </div><!-- end th:unless upgradeRequired -->
+
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script th:inline="javascript">
+<script th:unless="${upgradeRequired}" src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script th:unless="${upgradeRequired}" th:inline="javascript">
     var dimNames = /*[[${dimNames}]]*/ [];
     var dimScores = /*[[${dimScores}]]*/ [];
 

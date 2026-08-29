@@ -103,7 +103,7 @@ class SentimentDashboardControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void companyDetail_rendersForValidSlug() throws Exception {
         when(sentimentUseCase.getBySlug("tempus-ai")).thenReturn(
                 Optional.of(buildSentiment("tempus-ai", "Tempus AI", SentimentLabel.POSITIVE, 0.5)));
@@ -121,7 +121,7 @@ class SentimentDashboardControllerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void companyDetail_returns404ForMissingSlug() throws Exception {
         when(sentimentUseCase.getBySlug("nonexistent")).thenReturn(Optional.empty());
 

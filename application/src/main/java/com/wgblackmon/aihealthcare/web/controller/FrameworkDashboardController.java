@@ -4,6 +4,8 @@ import com.wgblackmon.aihealthcare.domain.model.AnalystNote;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkAnalysis;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkDimension;
 import com.wgblackmon.aihealthcare.domain.model.NoteTargetType;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeFrameworksUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
@@ -12,6 +14,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.security.Principal;
 import java.time.Instant;
@@ -54,6 +59,19 @@ public class FrameworkDashboardController {
 
     private static final List<String> CHART_COLORS = List.of(
             "#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899");
+
+    private boolean isEnterpriseTier(Principal principal) {
+        if (principal instanceof Authentication auth) {
+            for (GrantedAuthority a : auth.getAuthorities()) {
+                if ("ROLE_ADMIN".equals(a.getAuthority())) return true;
+            }
+        }
+        if (principal == null) return false;
+        Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
+        if (sub.isEmpty()) return false;
+        SubscriptionTier tier = sub.get().tier();
+        return tier == SubscriptionTier.ENTERPRISE || tier == SubscriptionTier.DEMO;
+    }
 
     private static String stripCitations(String text) {
         if (text == null || text.isBlank()) return text;
@@ -106,8 +124,9 @@ public class FrameworkDashboardController {
      * @return the "framework-analysis" view name
      */
     @GetMapping("/dashboard/frameworks")
-    public String frameworkOverview(Model model) {
-        log.debug("frameworkOverview()");
+    public String frameworkOverview(Model model, Principal principal) {
+        log.debug("frameworkOverview() | principal={}", principal != null ? principal.getName() : "anonymous");
+        model.addAttribute("isEnterprise", isEnterpriseTier(principal));
 
         List<FrameworkAnalysis> rawAnalyses = frameworksUseCase.getAll();
         List<FrameworkAnalysis> analyses = new ArrayList<>();
@@ -184,6 +203,13 @@ public class FrameworkDashboardController {
     public String frameworkDetail(@PathVariable String slug, Model model, Principal principal) {
         log.debug("frameworkDetail() | slug={}, principal={}", slug, principal != null ? principal.getName() : "anonymous");
 
+        if (!isEnterpriseTier(principal)) {
+            log.debug("frameworkDetail() | return=framework-detail (upgrade required) for slug={}", slug);
+            model.addAttribute("upgradeRequired", true);
+            model.addAttribute("activePage", "frameworks");
+            return "framework-detail";
+        }
+
         Optional<FrameworkAnalysis> opt = frameworksUseCase.getBySlug(slug);
         if (opt.isEmpty()) {
             log.debug("frameworkDetail() | return=redirect (not found: {})", slug);
@@ -191,6 +217,7 @@ public class FrameworkDashboardController {
         }
 
         FrameworkAnalysis analysis = cleanAnalysis(opt.get());
+        model.addAttribute("upgradeRequired", false);
 
         // Dimension names and scores for single-company radar chart
         List<String> dimNames = new ArrayList<>();

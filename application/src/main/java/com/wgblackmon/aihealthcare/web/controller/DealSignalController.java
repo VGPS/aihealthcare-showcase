@@ -141,7 +141,14 @@ public class DealSignalController {
     public String dealDetail(@PathVariable String signalId,
                               Principal principal,
                               Model model) {
-        log.debug("dealDetail() | signalId={}", signalId);
+        log.debug("dealDetail() | signalId={}, principal={}", signalId, principal != null ? principal.getName() : "anonymous");
+
+        if (!isEnterpriseTier(principal)) {
+            log.debug("dealDetail() | upgrade required for signalId={}", signalId);
+            model.addAttribute("upgradeRequired", true);
+            model.addAttribute("activePage", "deals");
+            return "deals-detail";
+        }
 
         DealContext context = detectDealSignalsUseCase.getSignalWithContext(signalId);
         if (context == null) {
@@ -169,6 +176,7 @@ public class DealSignalController {
         model.addAttribute("framework", context.framework());
         model.addAttribute("regulatoryEvents", context.regulatoryEvents());
         model.addAttribute("companyProfile", context.companyProfile());
+        model.addAttribute("upgradeRequired", false);
         model.addAttribute("activePage", "deals");
 
         log.debug("dealDetail() | return=deals-detail for {}", signalId);
@@ -332,6 +340,19 @@ public class DealSignalController {
             return numerator > 0 ? numerator + ":0" : "—";
         }
         return String.format("%.1f:1", (double) numerator / denominator);
+    }
+
+    private boolean isEnterpriseTier(Principal principal) {
+        if (principal == null) return false;
+        if (principal instanceof Authentication auth) {
+            for (GrantedAuthority a : auth.getAuthorities()) {
+                if ("ROLE_ADMIN".equals(a.getAuthority())) return true;
+            }
+        }
+        Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
+        if (sub.isEmpty()) return false;
+        SubscriptionTier tier = sub.get().tier();
+        return tier == SubscriptionTier.ENTERPRISE || tier == SubscriptionTier.DEMO;
     }
 
     private boolean hasFullAccess(Principal principal) {

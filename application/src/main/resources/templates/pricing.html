@@ -33,23 +33,24 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-        <!-- DEMO -->
-        <div class="bg-white rounded-lg shadow-sm border border-outline-variant p-6 flex flex-col">
-            <div class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-1">Demo</div>
+        <!-- DEMO — 7-Day Enterprise Trial -->
+        <div class="bg-white rounded-lg shadow-sm border-2 border-purple-300 p-6 flex flex-col relative">
+            <span class="absolute -top-2.5 left-4 bg-purple-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-pill">Enterprise Trial</span>
+            <div class="text-xs font-bold uppercase tracking-wider text-purple-600 mb-1">7-Day Trial</div>
             <div class="text-3xl font-bold text-on-surface mb-1">$0 <span class="text-sm font-normal text-on-surface-variant">/ 7 days</span></div>
-            <p class="text-sm text-on-surface-variant mb-4">Try the full platform free for 7 days. No credit card required.</p>
+            <p class="text-sm text-on-surface-variant mb-4">Full Enterprise access free for 7 days. No credit card required.</p>
             <ul class="text-sm text-on-surface-variant space-y-2 mb-6 flex-1">
-                <li><span class="text-green-600 mr-1">&#10003;</span> Full newsletter content</li>
-                <li><span class="text-green-600 mr-1">&#10003;</span> Unlimited article archive</li>
-                <li><span class="text-green-600 mr-1">&#10003;</span> Semantic / vector search</li>
-                <li><span class="text-green-600 mr-1">&#10003;</span> <span th:text="${subscriberQueryLimit} + ' AI research queries'">200 AI research queries</span></li>
-                <li><span class="text-green-600 mr-1">&#10003;</span> LLM model choice</li>
-                <li><span class="text-green-600 mr-1">&#10003;</span> Vendor comparisons</li>
-                <li><span class="text-green-600 mr-1">&#10003;</span> 7-day full access trial</li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> Everything in Subscriber</li>
+                <li><span class="text-purple-600 mr-1 font-bold">&#10003;</span> <strong>Framework Competitive Analysis</strong></li>
+                <li><span class="text-purple-600 mr-1 font-bold">&#10003;</span> <strong>Deal Intelligence Briefs</strong></li>
+                <li><span class="text-purple-600 mr-1 font-bold">&#10003;</span> <strong>Company Signal Feed</strong></li>
+                <li><span class="text-purple-600 mr-1 font-bold">&#10003;</span> <strong>Sentiment Risk Profiles</strong></li>
+                <li><span class="text-purple-600 mr-1 font-bold">&#10003;</span> <strong>AI Audit &amp; Confidence Trends</strong></li>
+                <li><span class="text-purple-600 mr-1 font-bold">&#10003;</span> <strong>All Intelligence Console tabs</strong></li>
             </ul>
             <a th:href="@{/register}"
-               class="block text-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-md text-sm transition-colors">
-                Start Free Trial
+               class="block text-center bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-md text-sm transition-colors">
+                Start Enterprise Trial
             </a>
         </div>
 
@@ -119,10 +120,15 @@
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> All Subscriber features</div>
+            <div class="text-sm font-semibold text-purple-900"><span class="text-purple-600 mr-1">&#10003;</span> Framework Competitive Analysis</div>
+            <div class="text-sm font-semibold text-purple-900"><span class="text-purple-600 mr-1">&#10003;</span> Deal Intelligence Briefs</div>
+            <div class="text-sm font-semibold text-purple-900"><span class="text-purple-600 mr-1">&#10003;</span> Company Signal Feed</div>
+            <div class="text-sm font-semibold text-purple-900"><span class="text-purple-600 mr-1">&#10003;</span> Sentiment Risk Profiles</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> AI Audit — multi-LLM verification</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Confidence trend heatmap</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Intelligence Trending over time</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> What Changed? weekly diff</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> AI Accountability scorecards</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Source provenance — study-level attribution</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Platform Race tracker (6 vendors)</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Cross-domain synthesis (7 domains)</div>
@@ -181,10 +187,15 @@
                 <tr><td>LLM model choice</td><td>Multiple models</td><td><span class="text-red-400">&#10007;</span></td><td>Multiple models</td><td>Multiple models</td></tr>
                 <tr><td>Vendor comparison reports</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
                 <tr><td>Research run history</td><td>Unlimited</td><td><span class="text-red-400">&#10007;</span></td><td>Unlimited</td><td>Unlimited</td></tr>
-                <tr><td>AI Audit (multi-LLM verification)</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; GPT-4o, Gemini, Nova</td></tr>
-                <tr><td>Source provenance dashboard</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; Study-level attribution</td></tr>
-                <tr><td>Confidence trend heatmap</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td></tr>
-                <tr><td>What Changed? weekly diff</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td></tr>
+                <tr style="background:#faf5ff;"><td style="font-weight:600;color:#6b21a8;">Framework Competitive Analysis</td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; 6-dimension LLM scoring</td></tr>
+                <tr style="background:#faf5ff;"><td style="font-weight:600;color:#6b21a8;">Deal Intelligence Briefs</td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; Cross-referenced context</td></tr>
+                <tr style="background:#faf5ff;"><td style="font-weight:600;color:#6b21a8;">Company Signal Feed</td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; Trending, funded &amp; watchlist signals</td></tr>
+                <tr style="background:#faf5ff;"><td style="font-weight:600;color:#6b21a8;">Sentiment Risk Profiles</td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; Article-level breakdown</td></tr>
+                <tr><td>AI Audit (multi-LLM verification)</td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; GPT-4o, Gemini, Nova</td></tr>
+                <tr><td>Source provenance dashboard</td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; Study-level attribution</td></tr>
+                <tr><td>Confidence trend heatmap</td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td></tr>
+                <tr><td>What Changed? weekly diff</td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td></tr>
+                <tr><td>AI Accountability scorecards</td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td></tr>
                 <tr><td>REST API access</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; 10 API keys</td></tr>
                 <tr><td>Directory: Trending view</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
                 <tr><td>Directory: Funded &amp; Watch List</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td></tr>

@@ -181,6 +181,14 @@ public class SentimentDashboardController {
         log.debug("companyRiskDetail() | slug={}, sort={}, principal={}", slug, sort,
                   principal != null ? principal.getName() : "anonymous");
 
+        if (!isEnterpriseTier(principal)) {
+            log.debug("companyRiskDetail() | upgrade required for slug={}", slug);
+            model.addAttribute("upgradeRequired", true);
+            model.addAttribute("activePage", "risk");
+            return "risk-detail";
+        }
+        model.addAttribute("upgradeRequired", false);
+
         Optional<CompanySentiment> opt = sentimentUseCase.getBySlug(slug);
         if (opt.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company sentiment not found: " + slug);
@@ -272,6 +280,15 @@ public class SentimentDashboardController {
 
         log.debug("companyRiskDetail() | return=risk-detail for {} ({} articles, {} notes)", slug, sortedArticles.size(), analystNotes.size());
         return "risk-detail";
+    }
+
+    private boolean isEnterpriseTier(Principal principal) {
+        if (principal == null) return false;
+        if (isAdmin(principal)) return true;
+        Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
+        if (sub.isEmpty()) return false;
+        SubscriptionTier tier = sub.get().tier();
+        return tier == SubscriptionTier.ENTERPRISE || tier == SubscriptionTier.DEMO;
     }
 
     private boolean hasFullAccess(Principal principal) {
