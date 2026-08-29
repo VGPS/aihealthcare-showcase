@@ -9,7 +9,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-28
+ * @updated 2026-08-28
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -31,11 +31,11 @@
         <p class="text-sm text-gray-500 leading-relaxed">Keyword trend analysis across 30, 90, and 180-day windows. Rising trends show increasing frequency, fading trends show decline, and new trends are recently emerging keywords. Use the date range filter to focus on a specific period.</p>
     </div>
 
-    <!-- Prompt button (ADMIN only) -->
+    <!-- Manual trigger (ADMIN only) -->
     <div sec:authorize="hasRole('ADMIN')" class="mb-6">
         <button id="detectBtn" onclick="runDetection()"
                 class="px-5 py-2 bg-green-600 text-white border-none rounded-md cursor-pointer text-sm hover:bg-green-700 transition-colors">
-            Prompt
+            Run Detection
         </button>
         <span id="detectStatus" class="ml-3 text-sm text-gray-500"></span>
     </div>
@@ -55,7 +55,7 @@
             </div>
             <button type="submit"
                     class="px-4 py-1.5 bg-primary-600 text-white border-none rounded-md cursor-pointer text-sm hover:bg-primary-700 transition-colors">
-                Prompt
+                Apply
             </button>
             <a th:href="@{/dashboard/trends}" class="text-sm text-gray-500 hover:text-primary-600 no-underline">Reset</a>
         </form>
@@ -68,7 +68,7 @@
     </div>
 
     <div th:unless="${hasSnapshot}" class="py-8 text-center text-gray-500">
-        <p>No trend data available yet. Click <b>Prompt</b> above to run detection or wait for the weekly run.</p>
+        <p>No trend data available yet. Click <b>Run Detection</b> above (admin only) or wait for the weekly Sunday run.</p>
     </div>
 
     <!-- Scoring Rubric legend -->
@@ -186,7 +186,7 @@
 <div id="loadingOverlay" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
     <div class="bg-white rounded-xl shadow-xl px-8 py-6 flex flex-col items-center gap-3">
         <div class="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
-        <p class="text-sm font-semibold text-on-surface">Prompting<span class="thinking-dots"></span></p>
+        <p class="text-sm font-semibold text-on-surface">Running trend detection<span class="thinking-dots"></span></p>
     </div>
 </div>
 
@@ -239,13 +239,15 @@
             headers[csrfHeader.getAttribute('content')] = csrfMeta.getAttribute('content');
         }
 
-        fetch('/api/v1/trends/detect', {method: 'POST', headers: headers})
-            .then(function(resp) {
-                if (resp.ok) {
-                    status.textContent = 'Done! Reloading...';
+        fetch('/admin/pipelines/trend-detection/run', {method: 'POST', headers: headers})
+            .then(function(resp) { return resp.json().then(function(data) { return {ok: resp.ok, data: data}; }); })
+            .then(function(result) {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                if (result.ok) {
+                    status.textContent = 'Done — ' + result.data.message + '. Reloading...';
                     window.location.reload();
                 } else {
-                    status.textContent = 'Error: ' + resp.status;
+                    status.textContent = 'Failed: ' + (result.data.message || 'unknown error');
                     btn.disabled = false;
                 }
             })
