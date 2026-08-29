@@ -84,12 +84,19 @@ public class TrendSnapshotAdapter implements TrendSnapshotPort {
     private TrendSnapshot toDomain(TrendSnapshotEntity entity) {
         log.debug("toDomain() | id={}, generatedAt={}", entity.getId(), entity.getGeneratedAt());
 
+        List<TrendSignal> rising = fromJson(entity.getRisingJson());
+        List<TrendSignal> fading = fromJson(entity.getFadingJson());
+        List<TrendSignal> newTopics = fromJson(entity.getNewJson());
+
+        log.info("toDomain() | id={}, rising={}, fading={}, new={}",
+                 entity.getId(), rising.size(), fading.size(), newTopics.size());
+
         TrendSnapshot result = new TrendSnapshot(
                 entity.getGeneratedAt(),
                 entity.getWindowDays(),
-                fromJson(entity.getRisingJson()),
-                fromJson(entity.getFadingJson()),
-                fromJson(entity.getNewJson()),
+                rising,
+                fading,
+                newTopics,
                 entity.getTotalKeywords()
         );
 
@@ -112,7 +119,7 @@ public class TrendSnapshotAdapter implements TrendSnapshotPort {
         }
         try {
             List<TrendSignal> result = objectMapper.readValue(json, new TypeReference<List<TrendSignal>>() {});
-            log.debug("fromJson() | deserialized {} signals from {} chars", result.size(), json.length());
+            log.info("fromJson() | deserialized {} signals from {} chars", result.size(), json.length());
             return result;
         } catch (JsonProcessingException e) {
             log.error("fromJson() | failed to deserialize TrendSignal list (json length={})", json.length(), e);

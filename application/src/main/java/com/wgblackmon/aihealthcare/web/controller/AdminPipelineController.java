@@ -16,7 +16,9 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
+import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 
@@ -41,7 +43,7 @@ import java.util.Map;
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 2.6
+ * @version 2.7
  * @since   2026-07-30
  * @updated 2026-08-28
  */
@@ -63,19 +65,22 @@ public class AdminPipelineController {
     private final MarketDigestService marketDigestService;
     private final DeliverNewsletterUseCase deliverUseCase;
     private final PriceReactionService priceReactionService;
+    private final DetectTrendsUseCase detectTrendsUseCase;
 
     public AdminPipelineController(PipelineHealthService healthService,
                                    NewsletterGenerationScheduler newsletterScheduler,
                                    MarketDigestService marketDigestService,
                                    DeliverNewsletterUseCase deliverUseCase,
-                                   PriceReactionService priceReactionService) {
-        log.debug("AdminPipelineController() | healthService={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}",
-                  healthService, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService);
+                                   PriceReactionService priceReactionService,
+                                   DetectTrendsUseCase detectTrendsUseCase) {
+        log.debug("AdminPipelineController() | healthService={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}",
+                  healthService, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase);
         this.healthService = healthService;
         this.newsletterScheduler = newsletterScheduler;
         this.marketDigestService = marketDigestService;
         this.deliverUseCase = deliverUseCase;
         this.priceReactionService = priceReactionService;
+        this.detectTrendsUseCase = detectTrendsUseCase;
     }
 
     /**
@@ -384,6 +389,53 @@ public class AdminPipelineController {
         }
     }
 
+    /**
+     * Manually triggers keyword trend detection — the same pipeline that runs
+     * automatically on Sunday mornings. Analyzes keyword frequency across 30/90/180-day
+     * windows, classifies rising/fading/new signals, generates Perplexity summaries,
+     * and persists the snapshot. Runs synchronously — expect 15-20 minutes.
+     *
+     * @return JSON result with signal count and duration
+     */
+    @PostMapping("/trend-detection/run")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> runTrendDetection() {
+        log.debug("runTrendDetection()");
+
+        Instant start = Instant.now();
+        try {
+            TrendSnapshot snapshot = detectTrendsUseCase.detectTrends();
+
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "SUCCESS");
+            result.put("message", "Trend detection complete: " + snapshot.risingTopics().size()
+                    + " rising, " + snapshot.fadingTopics().size() + " fading, "
+                    + snapshot.newTopics().size() + " new signals");
+            result.put("risingCount", snapshot.risingTopics().size());
+            result.put("fadingCount", snapshot.fadingTopics().size());
+            result.put("newCount", snapshot.newTopics().size());
+            result.put("totalKeywords", snapshot.totalKeywords());
+            result.put("durationMs", durationMs);
+
+            log.info("runTrendDetection() | rising={}, fading={}, new={}, durationMs={}",
+                     snapshot.risingTopics().size(), snapshot.fadingTopics().size(),
+                     snapshot.newTopics().size(), durationMs);
+            log.debug("runTrendDetection() | return={}", result);
+            return ResponseEntity.ok(result);
+        } catch (Exception ex) {
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "FAILED");
+            result.put("message", ex.getMessage());
+            result.put("durationMs", durationMs);
+
+            log.error("runTrendDetection() | pipeline failed: {}", ex.getMessage(), ex);
+            log.debug("runTrendDetection() | return={}", result);
+            return ResponseEntity.internalServerError().body(result);
+        }
+    }
+
     private String formatRunSummary(PipelineHealthService.PipelineRunRecord run) {
         if ("SUCCESS".equals(run.status())) {
             return "OK in " + run.durationMs() + "ms";
@@ -502,9 +554,9 @@ public class AdminPipelineController {
                 "/monitoring/clinical-trials-harvest", "POST", true, "~1 min", "Low"));
 
         list.add(new PipelineInfo("trend-detection", "Trend Detection",
-                "Analyzes keyword frequency across 30/90/180-day windows to identify rising, fading, and new trends.",
+                "Analyzes keyword frequency across 30/90/180-day windows to identify rising, fading, and new trends. LLM scores articles per keyword then calls Perplexity Deep Research for analyst summaries — runs synchronously, expect 15-20 minutes.",
                 "Weekly Sunday 08:00 UTC", "TrendDetectionScheduler",
-                "/api/v1/trends/detect", "POST", false, "~30 sec", "Low"));
+                "/admin/pipelines/trend-detection/run", "POST", true, "~15-20 min", "High (LLM cost)"));
 
         // ── Minimal ──────────────────────────────────────────────────────────
         list.add(new PipelineInfo("wiki-lint", "Wiki Linting",
