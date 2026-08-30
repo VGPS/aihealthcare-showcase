@@ -184,7 +184,8 @@
                 to:    e.to,
                 label: e.label,
                 value: e.value,
-                color: { color: e.color, highlight: e.color, hover: e.color }
+                width: 2,
+                color: { color: e.color, highlight: e.color, hover: e.color, inherit: false }
             });
         }
         return result;
@@ -220,7 +221,7 @@
                     background: '#EFF6FF',
                     border: '#3B82F6',
                     highlight: { background: '#DBEAFE', border: '#1D4ED8' },
-                    hover:     { background: '#BFDBFE', border: '#2563EB' }
+                    hover:     { background: '#FEF9C3', border: '#CA8A04' }
                 }
             },
             edges: {
@@ -241,6 +242,7 @@
             },
             interaction: {
                 hover: true,
+                hoverConnectedEdges: true,
                 hideEdgesOnDrag: true,
                 navigationButtons: false,
                 keyboard: false
