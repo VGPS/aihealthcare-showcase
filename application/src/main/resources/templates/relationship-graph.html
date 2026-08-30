@@ -190,27 +190,37 @@
         return result;
     }
 
+    function buildVisNodes(nodes) {
+        var result = [];
+        for (var i = 0; i < nodes.length; i++) {
+            var n = nodes[i];
+            result.push({ id: n.id, label: n.label, value: n.value, size: 22 });
+        }
+        return result;
+    }
+
     function initNetwork(nodes, edges) {
         var container = document.getElementById('network-container');
-        nodesDs = new vis.DataSet(nodes);
+        nodesDs = new vis.DataSet(buildVisNodes(nodes));
         edgesDs = new vis.DataSet(buildVisEdges(edges));
 
         var options = {
             nodes: {
                 shape: 'dot',
+                size: 22,
                 scaling: {
-                    min: 25,
-                    max: 60,
+                    min: 18,
+                    max: 45,
                     label: { enabled: true, min: 12, max: 18, drawThreshold: 5 }
                 },
-                font: { size: 12, face: 'Inter, ui-sans-serif, sans-serif', color: '#374151' },
+                font: { size: 13, face: 'Inter, ui-sans-serif, sans-serif', color: '#374151' },
                 borderWidth: 2,
                 borderWidthSelected: 3,
                 color: {
                     background: '#EFF6FF',
                     border: '#3B82F6',
                     highlight: { background: '#DBEAFE', border: '#1D4ED8' },
-                    hover:     { background: '#DBEAFE', border: '#2563EB' }
+                    hover:     { background: '#BFDBFE', border: '#2563EB' }
                 }
             },
             edges: {
@@ -230,25 +240,24 @@
                 }
             },
             interaction: {
-                tooltipDelay: 150,
-                hideEdgesOnDrag: true,
                 hover: true,
-                navigationButtons: true,
+                hideEdgesOnDrag: true,
+                navigationButtons: false,
                 keyboard: false
             }
         };
 
         network = new vis.Network(container, { nodes: nodesDs, edges: edgesDs }, options);
 
-        network.on('click', function (params) {
-            if (params.nodes.length > 0) {
-                showNodeSidebar(params.nodes[0]);
-            } else if (params.edges.length > 0) {
-                showEdgeSidebar(params.edges[0]);
-            } else {
-                hideSidebar();
-            }
+        // Use selectNode/selectEdge — more reliable than generic 'click' in vis-network 9.x
+        network.on('selectNode', function (params) {
+            if (params.nodes.length > 0) { showNodeSidebar(params.nodes[0]); }
         });
+        network.on('selectEdge', function (params) {
+            if (params.edges.length > 0) { showEdgeSidebar(params.edges[0]); }
+        });
+        network.on('deselectNode', hideSidebar);
+        network.on('deselectEdge', hideSidebar);
 
         network.on('stabilizationIterationsDone', function () {
             network.setOptions({ physics: { enabled: false } });
@@ -357,7 +366,7 @@
 
         nodesDs.clear();
         edgesDs.clear();
-        nodesDs.add(filteredNodes);
+        nodesDs.add(buildVisNodes(filteredNodes));
         edgesDs.add(buildVisEdges(filteredEdges));
         updateNodeCount(filteredNodes.length, filteredEdges.length);
 
