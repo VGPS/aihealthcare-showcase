@@ -32,7 +32,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-26
+ * @updated 2026-08-30
  */
 @Slf4j
 @Controller
@@ -47,6 +47,14 @@ public class CompanyRelationshipController {
         log.debug("CompanyRelationshipController() | mapRelationshipsUseCase={}",
                 mapRelationshipsUseCase.getClass().getSimpleName());
         this.mapRelationshipsUseCase = mapRelationshipsUseCase;
+    }
+
+    @GetMapping("/dashboard/relationships/graph")
+    public String relationshipGraphPage(Model model) {
+        log.debug("relationshipGraphPage()");
+        model.addAttribute("activePage", "relationships");
+        log.debug("relationshipGraphPage() | return=relationship-graph");
+        return "relationship-graph";
     }
 
     @GetMapping("/dashboard/relationships")

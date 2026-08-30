@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-08-30
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(CompanyRelationshipRestController.class)
@@ -95,6 +95,46 @@ class CompanyRelationshipRestControllerTest {
     @DisplayName("GET /api/v1/relationships unauthenticated redirects to login")
     void getAllRelationships_unauthenticated_redirectsToLogin() throws Exception {
         mockMvc.perform(get("/api/v1/relationships"))
+                .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /api/v1/relationships/graph returns nodes and edges")
+    void getGraphData_returnsNodesAndEdges() throws Exception {
+        Instant now = Instant.now();
+        CompanyRelationship rel1 = new CompanyRelationship("r1", "Google", "DeepMind",
+                CompanyRelationshipType.ACQUISITION, "a1", "Google acquires DeepMind", 0.9, now);
+        CompanyRelationship rel2 = new CompanyRelationship("r2", "Epic", "Oracle",
+                CompanyRelationshipType.PARTNERSHIP, "a2", "Epic partners with Oracle", 0.7, now);
+        when(mapRelationshipsUseCase.getAllRelationships()).thenReturn(List.of(rel1, rel2));
+
+        mockMvc.perform(get("/api/v1/relationships/graph"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes").isArray())
+                .andExpect(jsonPath("$.edges").isArray())
+                .andExpect(jsonPath("$.nodes.length()").value(4))
+                .andExpect(jsonPath("$.edges.length()").value(2))
+                .andExpect(jsonPath("$.edges[0].color").value("#EF4444"));
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /api/v1/relationships/graph with no data returns empty arrays")
+    void getGraphData_noData_returnsEmptyGraph() throws Exception {
+        when(mapRelationshipsUseCase.getAllRelationships()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/v1/relationships/graph"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nodes").isArray())
+                .andExpect(jsonPath("$.nodes.length()").value(0))
+                .andExpect(jsonPath("$.edges.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/relationships/graph unauthenticated redirects to login")
+    void getGraphData_unauthenticated_redirectsToLogin() throws Exception {
+        mockMvc.perform(get("/api/v1/relationships/graph"))
                 .andExpect(status().is3xxRedirection());
     }
 }

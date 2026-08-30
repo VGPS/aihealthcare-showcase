@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Company Relationship Graph — interactive force-directed visualization of
+ * partnerships, acquisitions, investments, and integrations in AI Healthcare.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-30
+ * @updated 2026-08-30
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Company Relationship Graph')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Company Relationship Graph</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Partnerships, acquisitions, investments, and integrations in AI Healthcare</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('relationships')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Tab bar: Table | Graph -->
+    <div class="flex gap-0 mb-6 border-b border-gray-200">
+        <a th:href="@{/dashboard/relationships}"
+           class="px-5 py-2.5 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent">
+            Table
+        </a>
+        <a th:href="@{/dashboard/relationships/graph}"
+           class="px-5 py-2.5 text-sm font-medium text-primary-600 border-b-2 border-primary-600">
+            Graph
+        </a>
+    </div>
+
+    <!-- Type filter checkboxes -->
+    <div class="bg-white rounded-lg shadow-card p-4 mb-4 flex flex-wrap gap-4 items-center">
+        <span class="text-sm font-medium text-gray-700 mr-1">Show:</span>
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+            <input type="checkbox" value="PARTNERSHIP" checked onchange="onFilterChange(this)"
+                   class="rounded border-gray-300 text-blue-500 focus:ring-blue-400"/>
+            <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:#3B82F6;"></span>
+            Partnership
+        </label>
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+            <input type="checkbox" value="ACQUISITION" checked onchange="onFilterChange(this)"
+                   class="rounded border-gray-300 text-red-500 focus:ring-red-400"/>
+            <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:#EF4444;"></span>
+            Acquisition
+        </label>
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+            <input type="checkbox" value="INVESTMENT" checked onchange="onFilterChange(this)"
+                   class="rounded border-gray-300 text-green-500 focus:ring-green-400"/>
+            <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:#22C55E;"></span>
+            Investment
+        </label>
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+            <input type="checkbox" value="COMPETITOR" checked onchange="onFilterChange(this)"
+                   class="rounded border-gray-300 text-orange-500 focus:ring-orange-400"/>
+            <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:#F97316;"></span>
+            Competitor
+        </label>
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+            <input type="checkbox" value="SUPPLIER" checked onchange="onFilterChange(this)"
+                   class="rounded border-gray-300 text-gray-500 focus:ring-gray-400"/>
+            <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:#6B7280;"></span>
+            Supplier
+        </label>
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+            <input type="checkbox" value="INTEGRATION" checked onchange="onFilterChange(this)"
+                   class="rounded border-gray-300 text-purple-500 focus:ring-purple-400"/>
+            <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:#A855F7;"></span>
+            Integration
+        </label>
+        <span class="ml-auto text-xs text-gray-400" id="graph-node-count"></span>
+    </div>
+
+    <!-- Graph canvas + sidebar -->
+    <div class="flex gap-4">
+        <div id="network-container"
+             class="flex-1 bg-white rounded-lg shadow-card border border-gray-100"
+             style="height:620px; min-width:0; position:relative;">
+            <div id="graph-loading" class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+                Loading graph data…
+            </div>
+        </div>
+        <div id="sidebar"
+             class="hidden w-72 flex-shrink-0 bg-white rounded-lg shadow-card p-5 text-sm overflow-y-auto border border-gray-100"
+             style="height:620px;">
+            <div class="flex justify-between items-start mb-3">
+                <span class="text-xs font-medium text-gray-400 uppercase tracking-wide" id="sidebar-type-label">Selection</span>
+                <button onclick="hideSidebar()" class="text-gray-300 hover:text-gray-500 text-lg leading-none">&times;</button>
+            </div>
+            <div id="sidebar-content"></div>
+        </div>
+    </div>
+
+    <!-- Empty state (shown when graph loads with 0 nodes) -->
+    <div id="graph-empty" class="hidden mt-6 bg-white rounded-lg shadow-card p-12 text-center text-gray-400">
+        <div class="text-4xl mb-3">&#128257;</div>
+        <div class="font-medium text-gray-600 mb-1">No relationship data yet</div>
+        <div class="text-sm">Run the detection pipeline to populate the graph.</div>
+        <a th:href="@{/admin/pipelines}" class="inline-block mt-4 text-sm text-primary-600 hover:underline">
+            Go to Pipelines &rarr;
+        </a>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<!-- vis-network standalone build (pinned version, CDN) -->
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+
+<script>
+(function () {
+    var EDGE_COLORS = {
+        PARTNERSHIP: '#3B82F6',
+        ACQUISITION: '#EF4444',
+        COMPETITOR:  '#F97316',
+        INVESTMENT:  '#22C55E',
+        SUPPLIER:    '#6B7280',
+        INTEGRATION: '#A855F7'
+    };
+
+    // Track which types are currently visible
+    var activeTypes = {
+        PARTNERSHIP: true, ACQUISITION: true, INVESTMENT: true,
+        COMPETITOR:  true, SUPPLIER:    true, INTEGRATION: true
+    };
+
+    var allNodes = [];
+    var allEdges = [];
+    var network;
+    var nodesDs;
+    var edgesDs;
+
+    function esc(s) {
+        if (!s) { return ''; }
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    // Load graph data from the REST endpoint
+    fetch('/api/v1/relationships/graph')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            document.getElementById('graph-loading').style.display = 'none';
+            if (!data.nodes || data.nodes.length === 0) {
+                document.getElementById('graph-empty').classList.remove('hidden');
+                return;
+            }
+            allNodes = data.nodes;
+            allEdges = data.edges;
+            updateNodeCount(data.nodes.length, data.edges.length);
+            initNetwork(data.nodes, data.edges);
+        })
+        .catch(function () {
+            var el = document.getElementById('graph-loading');
+            if (el) { el.textContent = 'Error loading graph data. Please refresh.'; }
+        });
+
+    function updateNodeCount(nodeCount, edgeCount) {
+        var el = document.getElementById('graph-node-count');
+        if (el) {
+            el.textContent = nodeCount + ' companies · ' + edgeCount + ' relationships';
+        }
+    }
+
+    function buildVisEdges(edges) {
+        var result = [];
+        for (var i = 0; i < edges.length; i++) {
+            var e = edges[i];
+            result.push({
+                id:    e.id,
+                from:  e.from,
+                to:    e.to,
+                label: e.label,
+                value: e.value,
+                title: e.title,
+                color: { color: e.color, highlight: e.color, hover: e.color }
+            });
+        }
+        return result;
+    }
+
+    function initNetwork(nodes, edges) {
+        var container = document.getElementById('network-container');
+        nodesDs = new vis.DataSet(nodes);
+        edgesDs = new vis.DataSet(buildVisEdges(edges));
+
+        var options = {
+            nodes: {
+                shape: 'dot',
+                scaling: {
+                    min: 10,
+                    max: 40,
+                    label: { enabled: true, min: 10, max: 16, drawThreshold: 5 }
+                },
+                font: { size: 12, face: 'Inter, ui-sans-serif, sans-serif', color: '#374151' },
+                borderWidth: 2,
+                borderWidthSelected: 3,
+                color: {
+                    background: '#EFF6FF',
+                    border: '#3B82F6',
+                    highlight: { background: '#DBEAFE', border: '#1D4ED8' },
+                    hover:     { background: '#DBEAFE', border: '#2563EB' }
+                }
+            },
+            edges: {
+                scaling: { min: 1, max: 4 },
+                arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+                smooth: { enabled: true, type: 'dynamic' },
+                font: { size: 10, align: 'middle', strokeWidth: 2, strokeColor: '#ffffff' },
+                selectionWidth: 3
+            },
+            physics: {
+                stabilization: { enabled: true, iterations: 250, fit: true },
+                barnesHut: {
+                    gravitationalConstant: -25000,
+                    springConstant: 0.04,
+                    springLength: 160,
+                    damping: 0.09
+                }
+            },
+            interaction: {
+                tooltipDelay: 150,
+                hideEdgesOnDrag: true,
+                hover: true,
+                navigationButtons: true,
+                keyboard: false
+            }
+        };
+
+        network = new vis.Network(container, { nodes: nodesDs, edges: edgesDs }, options);
+
+        network.on('click', function (params) {
+            if (params.nodes.length > 0) {
+                showNodeSidebar(params.nodes[0]);
+            } else if (params.edges.length > 0) {
+                showEdgeSidebar(params.edges[0]);
+            } else {
+                hideSidebar();
+            }
+        });
+
+        network.on('stabilizationIterationsDone', function () {
+            network.setOptions({ physics: { enabled: false } });
+        });
+    }
+
+    function showNodeSidebar(nodeId) {
+        var node = nodesDs.get(nodeId);
+        if (!node) { return; }
+
+        var counts = {};
+        var rawEdges = edgesDs.get();
+        for (var i = 0; i < rawEdges.length; i++) {
+            var e = rawEdges[i];
+            if (e.from === nodeId || e.to === nodeId) {
+                counts[e.label] = (counts[e.label] || 0) + 1;
+            }
+        }
+
+        var html = '<h3 class="font-semibold text-gray-900 text-base mb-2">' + esc(node.label) + '</h3>';
+        html += '<div class="text-gray-500 mb-4">Relationships: <span class="font-semibold text-gray-700">' + node.value + '</span></div>';
+        html += '<div class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">By Type</div>';
+        html += '<div class="space-y-1.5">';
+        for (var type in counts) {
+            if (!Object.prototype.hasOwnProperty.call(counts, type)) { continue; }
+            var dotColor = EDGE_COLORS[type] || '#6B7280';
+            html += '<div class="flex items-center gap-2">';
+            html += '<span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:' + dotColor + ';"></span>';
+            html += '<span class="text-gray-700">' + esc(type) + '</span>';
+            html += '<span class="ml-auto text-gray-400 font-mono text-xs">' + counts[type] + '</span>';
+            html += '</div>';
+        }
+        html += '</div>';
+        html += '<div class="mt-5 pt-4 border-t border-gray-100">';
+        html += '<a href="/dashboard/relationships?company=' + encodeURIComponent(nodeId) + '" ';
+        html += 'class="text-xs text-primary-600 hover:underline">View in table &rarr;</a>';
+        html += '</div>';
+
+        document.getElementById('sidebar-type-label').textContent = 'Company';
+        document.getElementById('sidebar-content').innerHTML = html;
+        document.getElementById('sidebar').classList.remove('hidden');
+    }
+
+    function showEdgeSidebar(edgeId) {
+        var edge = edgesDs.get(edgeId);
+        if (!edge) { return; }
+
+        var dotColor = EDGE_COLORS[edge.label] || '#6B7280';
+        var confPct = Math.round((edge.value || 0) * 100);
+
+        var html = '<div class="flex items-center gap-2 mb-1">';
+        html += '<span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:' + dotColor + ';"></span>';
+        html += '<span class="font-semibold text-gray-900">' + esc(edge.label) + '</span>';
+        html += '</div>';
+        html += '<div class="text-gray-500 text-xs mb-4">';
+        html += esc(edge.from) + ' &rarr; ' + esc(edge.to);
+        html += '</div>';
+
+        html += '<div class="space-y-4">';
+        html += '<div>';
+        html += '<div class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1.5">Confidence</div>';
+        html += '<div class="flex items-center gap-2">';
+        html += '<div class="flex-1 bg-gray-200 rounded-full h-1.5">';
+        html += '<div class="h-1.5 rounded-full" style="width:' + confPct + '%;background:' + dotColor + ';"></div>';
+        html += '</div>';
+        html += '<span class="text-xs font-mono text-gray-600 w-8 text-right">' + confPct + '%</span>';
+        html += '</div></div>';
+        html += '</div>';
+
+        document.getElementById('sidebar-type-label').textContent = 'Relationship';
+        document.getElementById('sidebar-content').innerHTML = html;
+        document.getElementById('sidebar').classList.remove('hidden');
+    }
+
+    function hideSidebar() {
+        document.getElementById('sidebar').classList.add('hidden');
+    }
+    window.hideSidebar = hideSidebar;
+
+    function onFilterChange(checkbox) {
+        activeTypes[checkbox.value] = checkbox.checked;
+        applyFilters();
+    }
+    window.onFilterChange = onFilterChange;
+
+    function applyFilters() {
+        var filteredEdges = [];
+        for (var i = 0; i < allEdges.length; i++) {
+            if (activeTypes[allEdges[i].label]) {
+                filteredEdges.push(allEdges[i]);
+            }
+        }
+
+        // Only show nodes that appear in at least one visible edge
+        var visibleIds = {};
+        for (var j = 0; j < filteredEdges.length; j++) {
+            visibleIds[filteredEdges[j].from] = true;
+            visibleIds[filteredEdges[j].to]   = true;
+        }
+        var filteredNodes = [];
+        for (var k = 0; k < allNodes.length; k++) {
+            if (visibleIds[allNodes[k].id]) {
+                filteredNodes.push(allNodes[k]);
+            }
+        }
+
+        nodesDs.clear();
+        edgesDs.clear();
+        nodesDs.add(filteredNodes);
+        edgesDs.add(buildVisEdges(filteredEdges));
+        updateNodeCount(filteredNodes.length, filteredEdges.length);
+
+        if (network) {
+            network.setOptions({ physics: { enabled: true } });
+            setTimeout(function () {
+                if (network) {
+                    network.setOptions({ physics: { enabled: false } });
+                }
+            }, 1500);
+        }
+    }
+})();
+</script>
+
+</body>
+</html>

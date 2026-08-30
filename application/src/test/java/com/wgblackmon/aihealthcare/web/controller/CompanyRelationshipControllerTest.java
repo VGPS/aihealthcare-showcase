@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-05
+ * @updated 2026-08-30
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(CompanyRelationshipController.class)
@@ -113,6 +113,23 @@ class CompanyRelationshipControllerTest {
     @DisplayName("GET /dashboard/relationships unauthenticated redirects to login")
     void relationshipsPage_unauthenticated_redirects() throws Exception {
         mockMvc.perform(get("/dashboard/relationships"))
+                .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /dashboard/relationships/graph returns relationship-graph view")
+    void graphPage_returnsView() throws Exception {
+        mockMvc.perform(get("/dashboard/relationships/graph"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("relationship-graph"))
+                .andExpect(model().attribute("activePage", "relationships"));
+    }
+
+    @Test
+    @DisplayName("GET /dashboard/relationships/graph unauthenticated redirects to login")
+    void graphPage_unauthenticated_redirects() throws Exception {
+        mockMvc.perform(get("/dashboard/relationships/graph"))
                 .andExpect(status().is3xxRedirection());
     }
 }
