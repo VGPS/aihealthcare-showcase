@@ -188,14 +188,17 @@
         for (var i = 0; i < edges.length; i++) {
             var e = edges[i];
             result.push({
-                id:      e.id,
-                from:    e.from,
-                to:      e.to,
-                label:   EDGE_VERBS[e.label] || e.label.toLowerCase(),
-                typeKey: e.label,
-                value:   e.value,
-                width:   2,
-                color:   { color: e.color, highlight: e.color, hover: e.color, inherit: false }
+                id:          e.id,
+                from:        e.from,
+                to:          e.to,
+                label:       EDGE_VERBS[e.label] || e.label.toLowerCase(),
+                typeKey:     e.label,
+                value:       e.value,
+                width:       2,
+                color:       { color: e.color, highlight: e.color, hover: e.color, inherit: false },
+                evidenceUrl: e.evidenceUrl,
+                summary:     e.summary,
+                detectedAt:  e.detectedAt
             });
         }
         return result;
@@ -280,29 +283,21 @@
         var node = nodesDs.get(nodeId);
         if (!node) { return; }
 
-        var counts = {};
+        var nodeEdges = [];
         var rawEdges = edgesDs.get();
         for (var i = 0; i < rawEdges.length; i++) {
             var e = rawEdges[i];
-            if (e.from === nodeId || e.to === nodeId) {
-                var tk = e.typeKey || e.label;
-                counts[tk] = (counts[tk] || 0) + 1;
-            }
+            if (e.from === nodeId || e.to === nodeId) { nodeEdges.push(e); }
         }
 
-        var html = '<h3 class="font-semibold text-gray-900 text-base mb-2">' + esc(node.label) + '</h3>';
-        html += '<div class="text-gray-500 mb-4">Relationships: <span class="font-semibold text-gray-700">' + node.value + '</span></div>';
-        html += '<div class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">By Type</div>';
-        html += '<div class="space-y-1.5">';
-        for (var type in counts) {
-            if (!Object.prototype.hasOwnProperty.call(counts, type)) { continue; }
-            var dotColor = EDGE_COLORS[type] || '#6B7280';
-            html += '<div class="flex items-center gap-2">';
-            html += '<span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:' + dotColor + ';"></span>';
-            html += '<span class="text-gray-700">' + esc(type) + '</span>';
-            html += '<span class="ml-auto text-gray-400 font-mono text-xs">' + counts[type] + '</span>';
-            html += '</div>';
+        var html = '<h3 class="font-semibold text-gray-900 text-base mb-1">' + esc(node.label) + '</h3>';
+        html += '<div class="text-gray-400 text-xs mb-4">' + nodeEdges.length + ' relationship' + (nodeEdges.length !== 1 ? 's' : '') + '</div>';
+        html += '<div class="space-y-4">';
+
+        for (var j = 0; j < nodeEdges.length; j++) {
+            html += buildRelCard(nodeEdges[j], nodeId);
         }
+
         html += '</div>';
         html += '<div class="mt-5 pt-4 border-t border-gray-100">';
         html += '<a href="/dashboard/relationships?company=' + encodeURIComponent(nodeId) + '" ';
@@ -314,33 +309,65 @@
         document.getElementById('sidebar').classList.remove('hidden');
     }
 
+    // Shared card builder used by both edge-click and node-click sidebars.
+    // focusNodeId is optional — when set, the sentence bolds that company name.
+    function buildRelCard(edge, focusNodeId) {
+        var edgeType = edge.typeKey || edge.label;
+        var dotColor = EDGE_COLORS[edgeType] || '#6B7280';
+        var verb     = EDGE_VERBS[edgeType] || edgeType.toLowerCase();
+        var confPct  = Math.round((edge.value || 0) * 100);
+
+        var fromPart = (focusNodeId && edge.from === focusNodeId)
+            ? '<strong>' + esc(edge.from) + '</strong>'
+            : esc(edge.from);
+        var toPart = (focusNodeId && edge.to === focusNodeId)
+            ? '<strong>' + esc(edge.to) + '</strong>'
+            : esc(edge.to);
+
+        var html = '<div class="border-l-2 pl-3 py-1" style="border-color:' + dotColor + ';">';
+        html += '<div class="text-xs font-semibold mb-1" style="color:' + dotColor + ';">' + esc(edgeType) + '</div>';
+        html += '<div class="text-sm text-gray-800 mb-2">';
+        html += fromPart + ' <span class="italic text-gray-500">' + verb + '</span> ' + toPart;
+        html += '</div>';
+
+        // Confidence bar
+        html += '<div class="flex items-center gap-2 mb-2">';
+        html += '<div class="flex-1 bg-gray-200 rounded-full h-1.5">';
+        html += '<div class="h-1.5 rounded-full" style="width:' + confPct + '%;background:' + dotColor + ';"></div>';
+        html += '</div>';
+        html += '<span class="text-xs font-mono text-gray-500 w-10 text-right">Conf ' + confPct + '%</span>';
+        html += '</div>';
+
+        // Detected date
+        if (edge.detectedAt) {
+            html += '<div class="text-xs text-gray-400 mb-2">Detected: ' + esc(edge.detectedAt) + '</div>';
+        }
+
+        // Summary
+        if (edge.summary) {
+            html += '<div class="text-xs text-gray-600 mb-2 italic">' + esc(edge.summary) + '</div>';
+        }
+
+        // Evidence article link (only render as link when it looks like a URL)
+        if (edge.evidenceUrl) {
+            html += '<div class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-0.5">Evidence Article</div>';
+            if (edge.evidenceUrl.indexOf('http') === 0) {
+                html += '<a href="' + esc(edge.evidenceUrl) + '" target="_blank" rel="noopener noreferrer" ';
+                html += 'class="text-xs text-primary-600 hover:underline break-all">' + esc(edge.evidenceUrl) + '</a>';
+            } else {
+                html += '<span class="text-xs text-gray-500">' + esc(edge.evidenceUrl) + '</span>';
+            }
+        }
+
+        html += '</div>';
+        return html;
+    }
+
     function showEdgeSidebar(edgeId) {
         var edge = edgesDs.get(edgeId);
         if (!edge) { return; }
 
-        var edgeType = edge.typeKey || edge.label;
-        var dotColor = EDGE_COLORS[edgeType] || '#6B7280';
-        var confPct = Math.round((edge.value || 0) * 100);
-
-        var html = '<div class="flex items-center gap-2 mb-1">';
-        html += '<span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:' + dotColor + ';"></span>';
-        html += '<span class="font-semibold text-gray-900">' + esc(edgeType) + '</span>';
-        html += '</div>';
-        var verb = EDGE_VERBS[edgeType] || edgeType.toLowerCase();
-        html += '<div class="text-gray-700 text-sm mb-4">';
-        html += esc(edge.from) + ' <span class="italic text-gray-500">' + verb + '</span> ' + esc(edge.to);
-        html += '</div>';
-
-        html += '<div class="space-y-4">';
-        html += '<div>';
-        html += '<div class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1.5">Confidence</div>';
-        html += '<div class="flex items-center gap-2">';
-        html += '<div class="flex-1 bg-gray-200 rounded-full h-1.5">';
-        html += '<div class="h-1.5 rounded-full" style="width:' + confPct + '%;background:' + dotColor + ';"></div>';
-        html += '</div>';
-        html += '<span class="text-xs font-mono text-gray-600 w-8 text-right">' + confPct + '%</span>';
-        html += '</div></div>';
-        html += '</div>';
+        var html = buildRelCard(edge, null);
 
         document.getElementById('sidebar-type-label').textContent = 'Relationship';
         document.getElementById('sidebar-content').innerHTML = html;
