@@ -128,6 +128,15 @@
         INTEGRATION: '#A855F7'
     };
 
+    var EDGE_VERBS = {
+        PARTNERSHIP: 'partners with',
+        ACQUISITION: 'acquires',
+        COMPETITOR:  'competes with',
+        INVESTMENT:  'invests in',
+        SUPPLIER:    'supplies',
+        INTEGRATION: 'integrates with'
+    };
+
     // Track which types are currently visible
     var activeTypes = {
         PARTNERSHIP: true, ACQUISITION: true, INVESTMENT: true,
@@ -179,13 +188,14 @@
         for (var i = 0; i < edges.length; i++) {
             var e = edges[i];
             result.push({
-                id:    e.id,
-                from:  e.from,
-                to:    e.to,
-                label: e.label,
-                value: e.value,
-                width: 2,
-                color: { color: e.color, highlight: e.color, hover: e.color, inherit: false }
+                id:      e.id,
+                from:    e.from,
+                to:      e.to,
+                label:   EDGE_VERBS[e.label] || e.label.toLowerCase(),
+                typeKey: e.label,
+                value:   e.value,
+                width:   2,
+                color:   { color: e.color, highlight: e.color, hover: e.color, inherit: false }
             });
         }
         return result;
@@ -275,7 +285,8 @@
         for (var i = 0; i < rawEdges.length; i++) {
             var e = rawEdges[i];
             if (e.from === nodeId || e.to === nodeId) {
-                counts[e.label] = (counts[e.label] || 0) + 1;
+                var tk = e.typeKey || e.label;
+                counts[tk] = (counts[tk] || 0) + 1;
             }
         }
 
@@ -307,12 +318,13 @@
         var edge = edgesDs.get(edgeId);
         if (!edge) { return; }
 
-        var dotColor = EDGE_COLORS[edge.label] || '#6B7280';
+        var edgeType = edge.typeKey || edge.label;
+        var dotColor = EDGE_COLORS[edgeType] || '#6B7280';
         var confPct = Math.round((edge.value || 0) * 100);
 
         var html = '<div class="flex items-center gap-2 mb-1">';
         html += '<span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:' + dotColor + ';"></span>';
-        html += '<span class="font-semibold text-gray-900">' + esc(edge.label) + '</span>';
+        html += '<span class="font-semibold text-gray-900">' + esc(edgeType) + '</span>';
         html += '</div>';
         html += '<div class="text-gray-500 text-xs mb-4">';
         html += esc(edge.from) + ' &rarr; ' + esc(edge.to);
