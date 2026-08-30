@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -91,33 +89,13 @@ public class CompanyRelationshipRestController {
                     degreeMap.getOrDefault(rel.targetCompany(), 0) + 1);
         }
 
-        // type breakdown: company name → (type → count)
-        Map<String, Map<String, Integer>> typeBreakdown = new LinkedHashMap<>();
-        for (CompanyRelationship rel : deduped) {
-            String typeName = rel.relationshipType().name();
-
-            if (!typeBreakdown.containsKey(rel.sourceCompany())) {
-                typeBreakdown.put(rel.sourceCompany(), new LinkedHashMap<>());
-            }
-            Map<String, Integer> srcCounts = typeBreakdown.get(rel.sourceCompany());
-            srcCounts.put(typeName, srcCounts.getOrDefault(typeName, 0) + 1);
-
-            if (!typeBreakdown.containsKey(rel.targetCompany())) {
-                typeBreakdown.put(rel.targetCompany(), new LinkedHashMap<>());
-            }
-            Map<String, Integer> tgtCounts = typeBreakdown.get(rel.targetCompany());
-            tgtCounts.put(typeName, tgtCounts.getOrDefault(typeName, 0) + 1);
-        }
-
         List<VisNode> nodes = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : degreeMap.entrySet()) {
             String name = entry.getKey();
             int degree = entry.getValue();
-            Map<String, Integer> breakdown = typeBreakdown.getOrDefault(name, new LinkedHashMap<>());
-            nodes.add(new VisNode(name, name, degree, buildNodeTitle(name, degree, breakdown)));
+            nodes.add(new VisNode(name, name, degree));
         }
 
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneOffset.UTC);
         List<VisEdge> edges = new ArrayList<>();
         for (CompanyRelationship rel : deduped) {
             edges.add(new VisEdge(
@@ -126,8 +104,7 @@ public class CompanyRelationshipRestController {
                     rel.targetCompany(),
                     rel.relationshipType().name(),
                     colorForType(rel.relationshipType()),
-                    rel.confidence(),
-                    buildEdgeTitle(rel, fmt)));
+                    rel.confidence()));
         }
 
         RelationshipGraphResponse response = new RelationshipGraphResponse(nodes, edges);
@@ -172,24 +149,4 @@ public class CompanyRelationshipRestController {
         }
     }
 
-    private String buildNodeTitle(String name, int degree, Map<String, Integer> breakdown) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<b>").append(name).append("</b><br/>");
-        sb.append("Relationships: ").append(degree).append("<br/>");
-        for (Map.Entry<String, Integer> e : breakdown.entrySet()) {
-            sb.append(e.getKey()).append(": ").append(e.getValue()).append("<br/>");
-        }
-        return sb.toString();
-    }
-
-    private String buildEdgeTitle(CompanyRelationship rel, DateTimeFormatter fmt) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<b>").append(rel.relationshipType().name()).append("</b><br/>");
-        if (rel.summary() != null && !rel.summary().isBlank()) {
-            sb.append(rel.summary()).append("<br/>");
-        }
-        sb.append("Confidence: ").append(Math.round(rel.confidence() * 100)).append("%<br/>");
-        sb.append("Detected: ").append(fmt.format(rel.detectedAt()));
-        return sb.toString();
-    }
 }
