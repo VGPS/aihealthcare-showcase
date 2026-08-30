@@ -77,6 +77,12 @@
             <span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:#A855F7;"></span>
             Integration
         </label>
+        <span class="w-px h-4 bg-gray-200 mx-1 flex-shrink-0"></span>
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none text-gray-400">
+            <input type="checkbox" id="show-isolated" onchange="onIsolatedChange(this)"
+                   class="rounded border-gray-300 text-gray-400 focus:ring-gray-300"/>
+            Show isolated pairs
+        </label>
         <span class="ml-auto text-xs text-gray-400" id="graph-node-count"></span>
     </div>
 
@@ -143,6 +149,8 @@
         COMPETITOR:  true, SUPPLIER:    true, INTEGRATION: true
     };
 
+    var showIsolated = false;   // isolated pairs hidden by default
+
     var allNodes = [];
     var allEdges = [];
     var network;
@@ -168,18 +176,20 @@
             }
             allNodes = data.nodes;
             allEdges = data.edges;
-            updateNodeCount(data.nodes.length, data.edges.length);
-            initNetwork(data.nodes, data.edges);
+            initNetwork();
+            applyFilters();
         })
         .catch(function () {
             var el = document.getElementById('graph-loading');
             if (el) { el.textContent = 'Error loading graph data. Please refresh.'; }
         });
 
-    function updateNodeCount(nodeCount, edgeCount) {
+    function updateNodeCount(nodeCount, edgeCount, hiddenCount) {
         var el = document.getElementById('graph-node-count');
         if (el) {
-            el.textContent = nodeCount + ' companies · ' + edgeCount + ' relationships';
+            var text = nodeCount + ' companies · ' + edgeCount + ' relationships';
+            if (hiddenCount) { text += ' · ' + hiddenCount + ' isolated hidden'; }
+            el.textContent = text;
         }
     }
 
@@ -213,10 +223,10 @@
         return result;
     }
 
-    function initNetwork(nodes, edges) {
+    function initNetwork() {
         var container = document.getElementById('network-container');
-        nodesDs = new vis.DataSet(buildVisNodes(nodes));
-        edgesDs = new vis.DataSet(buildVisEdges(edges));
+        nodesDs = new vis.DataSet([]);
+        edgesDs = new vis.DataSet([]);
 
         var options = {
             nodes: {
@@ -385,7 +395,14 @@
     }
     window.onFilterChange = onFilterChange;
 
+    function onIsolatedChange(checkbox) {
+        showIsolated = checkbox.checked;
+        applyFilters();
+    }
+    window.onIsolatedChange = onIsolatedChange;
+
     function applyFilters() {
+        // Step 1: filter edges by type
         var filteredEdges = [];
         for (var i = 0; i < allEdges.length; i++) {
             if (activeTypes[allEdges[i].label]) {
@@ -393,16 +410,44 @@
             }
         }
 
-        // Only show nodes that appear in at least one visible edge
-        var visibleIds = {};
+        // Step 2: compute effective degree per node after type filter
+        var degree = {};
         for (var j = 0; j < filteredEdges.length; j++) {
-            visibleIds[filteredEdges[j].from] = true;
-            visibleIds[filteredEdges[j].to]   = true;
+            var e = filteredEdges[j];
+            degree[e.from] = (degree[e.from] || 0) + 1;
+            degree[e.to]   = (degree[e.to]   || 0) + 1;
+        }
+
+        // Step 3: when hiding isolated pairs, drop edges where both endpoints only connect to each other
+        var hiddenCount = 0;
+        if (!showIsolated) {
+            var kept = [];
+            var hiddenIds = {};
+            for (var k = 0; k < filteredEdges.length; k++) {
+                var fe = filteredEdges[k];
+                if (degree[fe.from] === 1 && degree[fe.to] === 1) {
+                    hiddenIds[fe.from] = true;
+                    hiddenIds[fe.to]   = true;
+                } else {
+                    kept.push(fe);
+                }
+            }
+            for (var h in hiddenIds) {
+                if (Object.prototype.hasOwnProperty.call(hiddenIds, h)) { hiddenCount++; }
+            }
+            filteredEdges = kept;
+        }
+
+        // Step 4: collect visible node IDs
+        var visibleIds = {};
+        for (var m = 0; m < filteredEdges.length; m++) {
+            visibleIds[filteredEdges[m].from] = true;
+            visibleIds[filteredEdges[m].to]   = true;
         }
         var filteredNodes = [];
-        for (var k = 0; k < allNodes.length; k++) {
-            if (visibleIds[allNodes[k].id]) {
-                filteredNodes.push(allNodes[k]);
+        for (var p = 0; p < allNodes.length; p++) {
+            if (visibleIds[allNodes[p].id]) {
+                filteredNodes.push(allNodes[p]);
             }
         }
 
@@ -410,14 +455,12 @@
         edgesDs.clear();
         nodesDs.add(buildVisNodes(filteredNodes));
         edgesDs.add(buildVisEdges(filteredEdges));
-        updateNodeCount(filteredNodes.length, filteredEdges.length);
+        updateNodeCount(filteredNodes.length, filteredEdges.length, hiddenCount);
 
         if (network) {
             network.setOptions({ physics: { enabled: true } });
             setTimeout(function () {
-                if (network) {
-                    network.setOptions({ physics: { enabled: false } });
-                }
+                if (network) { network.setOptions({ physics: { enabled: false } }); }
             }, 1500);
         }
     }
