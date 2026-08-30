@@ -326,8 +326,9 @@
         html += '<span class="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:' + dotColor + ';"></span>';
         html += '<span class="font-semibold text-gray-900">' + esc(edgeType) + '</span>';
         html += '</div>';
-        html += '<div class="text-gray-500 text-xs mb-4">';
-        html += esc(edge.from) + ' &rarr; ' + esc(edge.to);
+        var verb = EDGE_VERBS[edgeType] || edgeType.toLowerCase();
+        html += '<div class="text-gray-700 text-sm mb-4">';
+        html += esc(edge.from) + ' <span class="italic text-gray-500">' + verb + '</span> ' + esc(edge.to);
         html += '</div>';
 
         html += '<div class="space-y-4">';
