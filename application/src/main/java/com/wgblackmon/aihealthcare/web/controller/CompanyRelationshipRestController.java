@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -104,7 +107,10 @@ public class CompanyRelationshipRestController {
                     rel.targetCompany(),
                     rel.relationshipType().name(),
                     colorForType(rel.relationshipType()),
-                    rel.confidence()));
+                    rel.confidence(),
+                    rel.evidenceArticleId(),
+                    rel.summary(),
+                    formatDate(rel.detectedAt())));
         }
 
         RelationshipGraphResponse response = new RelationshipGraphResponse(nodes, edges);
@@ -134,6 +140,20 @@ public class CompanyRelationshipRestController {
             }
         }
         log.debug("dedup() | return={}", result.size());
+        return result;
+    }
+
+    private static final DateTimeFormatter DATE_FMT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneOffset.UTC);
+
+    private String formatDate(Instant instant) {
+        log.debug("formatDate() | instant={}", instant);
+        if (instant == null) {
+            log.debug("formatDate() | return=null");
+            return null;
+        }
+        String result = DATE_FMT.format(instant);
+        log.debug("formatDate() | return={}", result);
         return result;
     }
 

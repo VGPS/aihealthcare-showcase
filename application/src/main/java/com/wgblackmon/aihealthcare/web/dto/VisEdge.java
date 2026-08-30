@@ -5,9 +5,9 @@ package com.wgblackmon.aihealthcare.web.dto;
  *
  * <p>{@code from} and {@code to} must match existing {@link VisNode#id()} values.
  * {@code color} is a hex string; the client wraps it in vis-network's
- * {@code {color, highlight, hover}} object. {@code value} sets edge width
- * via vis-network scaling. No {@code title} is set — detail is shown in the
- * sidebar panel on click.
+ * {@code {color, highlight, hover, inherit:false}} object. {@code value} drives edge
+ * width via vis-network scaling. {@code evidenceUrl}, {@code summary}, and
+ * {@code detectedAt} are rendered in the sidebar panel on click.
  *
  * @author  Bill Blackmon
  * @version 1.0
@@ -20,5 +20,8 @@ public record VisEdge(
         String to,
         String label,
         String color,
-        double value
+        double value,
+        String evidenceUrl,
+        String summary,
+        String detectedAt
 ) {}
