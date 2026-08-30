@@ -7,7 +7,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-26
+ * @updated 2026-08-30
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -87,27 +87,23 @@
             <table class="min-w-full text-sm">
                 <thead>
                     <tr class="border-b border-gray-200 text-left text-gray-500 uppercase text-xs">
-                        <th class="pb-2 pr-4">Type
+                        <th class="pb-2 pr-4">Source
                             <span class="sort-arrow" onclick="sortTable(this, 0, 'asc')" title="Sort A-Z">&#8593;</span>
                             <span class="sort-arrow" onclick="sortTable(this, 0, 'desc')" title="Sort Z-A">&#8595;</span>
                         </th>
-                        <th class="pb-2 pr-4">Source
-                            <span class="sort-arrow" onclick="sortTable(this, 1, 'asc')" title="Sort A-Z">&#8593;</span>
-                            <span class="sort-arrow" onclick="sortTable(this, 1, 'desc')" title="Sort Z-A">&#8595;</span>
-                        </th>
-                        <th class="pb-2 pr-4"></th>
+                        <th class="pb-2 pr-4">Relationship</th>
                         <th class="pb-2 pr-4">Target
-                            <span class="sort-arrow" onclick="sortTable(this, 3, 'asc')" title="Sort A-Z">&#8593;</span>
-                            <span class="sort-arrow" onclick="sortTable(this, 3, 'desc')" title="Sort Z-A">&#8595;</span>
+                            <span class="sort-arrow" onclick="sortTable(this, 2, 'asc')" title="Sort A-Z">&#8593;</span>
+                            <span class="sort-arrow" onclick="sortTable(this, 2, 'desc')" title="Sort Z-A">&#8595;</span>
                         </th>
                         <th class="pb-2 pr-4">Summary</th>
                         <th class="pb-2 pr-4">Confidence
-                            <span class="sort-arrow" onclick="sortTable(this, 5, 'asc')" title="Sort low-high">&#8593;</span>
-                            <span class="sort-arrow" onclick="sortTable(this, 5, 'desc')" title="Sort high-low">&#8595;</span>
+                            <span class="sort-arrow" onclick="sortTable(this, 4, 'asc')" title="Sort low-high">&#8593;</span>
+                            <span class="sort-arrow" onclick="sortTable(this, 4, 'desc')" title="Sort high-low">&#8595;</span>
                         </th>
                         <th class="pb-2">Detected Date
-                            <span class="sort-arrow" onclick="sortTable(this, 6, 'asc')" title="Oldest first">&#8593;</span>
-                            <span class="sort-arrow" onclick="sortTable(this, 6, 'desc')" title="Newest first">&#8595;</span>
+                            <span class="sort-arrow" onclick="sortTable(this, 5, 'asc')" title="Oldest first">&#8593;</span>
+                            <span class="sort-arrow" onclick="sortTable(this, 5, 'desc')" title="Newest first">&#8595;</span>
                         </th>
                     </tr>
                 </thead>
@@ -116,22 +112,25 @@
                     <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
                         th:data-relid="${rel.relationshipId}"
                         onclick="toggleDetail(this.getAttribute('data-relid'))">
-                        <td class="py-3 pr-4">
-                            <span class="inline-block px-2 py-0.5 rounded text-xs font-medium"
+                        <td class="py-3 pr-4 font-medium">
+                            <a th:href="@{/dashboard/relationships(company=${rel.sourceCompany})}"
+                               class="text-primary-600 hover:text-primary-800 hover:underline"
+                               th:text="${rel.sourceCompany}" onclick="event.stopPropagation();">Source</a>
+                        </td>
+                        <td class="py-3 pr-4 text-center">
+                            <span class="inline-block px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap"
                                   th:classappend="${rel.relationshipType == 'PARTNERSHIP'} ? 'bg-blue-100 text-blue-800' :
                                                   (${rel.relationshipType == 'ACQUISITION'} ? 'bg-red-100 text-red-800' :
                                                   (${rel.relationshipType == 'INVESTMENT'} ? 'bg-green-100 text-green-800' :
                                                   (${rel.relationshipType == 'COMPETITOR'} ? 'bg-orange-100 text-orange-800' :
                                                   (${rel.relationshipType == 'SUPPLIER'} ? 'bg-yellow-100 text-yellow-800' :
                                                   'bg-purple-100 text-purple-800'))))"
-                                  th:text="${rel.relationshipType}">TYPE</span>
+                                  th:text="${rel.relationshipType == 'PARTNERSHIP'} ? 'partners with' :
+                                           (${rel.relationshipType == 'ACQUISITION'} ? 'acquires' :
+                                           (${rel.relationshipType == 'INVESTMENT'} ? 'invests in' :
+                                           (${rel.relationshipType == 'COMPETITOR'} ? 'competes with' :
+                                           (${rel.relationshipType == 'SUPPLIER'} ? 'supplies' : 'integrates with'))))">verb</span>
                         </td>
-                        <td class="py-3 pr-4 font-medium">
-                            <a th:href="@{/dashboard/relationships(company=${rel.sourceCompany})}"
-                               class="text-primary-600 hover:text-primary-800 hover:underline"
-                               th:text="${rel.sourceCompany}" onclick="event.stopPropagation();">Source</a>
-                        </td>
-                        <td class="py-3 pr-4 text-gray-400">→</td>
                         <td class="py-3 pr-4 font-medium">
                             <a th:href="@{/dashboard/relationships(company=${rel.targetCompany})}"
                                class="text-primary-600 hover:text-primary-800 hover:underline"
@@ -145,7 +144,7 @@
                         </td>
                     </tr>
                     <tr th:id="'detail-' + ${rel.relationshipId}" class="hidden bg-gray-50">
-                        <td colspan="7" class="px-6 py-4">
+                        <td colspan="6" class="px-6 py-4">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                 <div>
                                     <span class="font-medium text-gray-700">Summary:</span>

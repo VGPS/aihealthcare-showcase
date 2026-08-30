@@ -64,7 +64,25 @@ git status
 
 Review staged files before committing.
 
-Then commit:
+### 4a. Update README before committing
+
+Before running `git commit`, update `README.md` to reflect this deploy's changes:
+
+- **New pages / endpoints** — add any new Thymeleaf pages or REST endpoints to the relevant table
+- **Test count** — update the test count line (e.g. "1,533+ tests") to match the current suite
+- **Feature list** — add a bullet or section entry for any significant new feature shipped in this commit
+- **Architecture notes** — update module/dependency notes only if the architecture genuinely changed
+
+Keep edits minimal and accurate — only document what this commit actually added. Do not rewrite
+existing sections or add speculative content.
+
+After editing README.md, stage it with the rest of the commit:
+
+```bash
+git add README.md
+```
+
+Then commit everything together:
 
 ```bash
 git commit -m "<descriptive message of what changed>"
@@ -72,7 +90,7 @@ git commit -m "<descriptive message of what changed>"
 
 End the message with:
 ```
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 ```
 
 ### 5. Push to private repo

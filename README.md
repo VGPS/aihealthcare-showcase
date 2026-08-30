@@ -18,7 +18,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Framework Competitive Analysis** | Config-driven 6-dimension competitive scoring (clinical validation, regulatory, market adoption, tech depth, data assets, partnerships) |
 | **Deal Signal Detection** | LLM-enhanced deal classification extracting deal type, amount, counterparty, and confidence from article text |
 | **Deal Context Enrichment** | Cross-references deals against sentiment, framework, regulatory, and company profile data for 360-degree context |
-| **Public Company Directory** | No-login-required directory ranked by live signal scoring (article velocity + deal bonus − sentiment penalty) with sort tabs (Trending / Recently Funded / Watch List), sector filter pills, signal badges (🔥/💰/⚠) per card, CSV export, and JSON-LD Organization schema for SEO |
+| **Public Company Directory** | No-login-required directory ranked by live signal scoring (article velocity + deal bonus − sentiment penalty) with sort tabs (Trending / Recently Funded / Watch List), sector filter pills, signal badges (🔥/💰/⚠) per card, CSV export, JSON-LD Organization schema for SEO, and a minimal public nav (Sign In / Pricing / About only — hides all member-only pages from unauthenticated visitors) |
 | **Company Intelligence Profiles** | Persistent company pages with real article linking, event timelines, trend indicators, and homepage links |
 | **Company Relationships** | Visual relationship mapping between companies showing partnerships, acquisitions, and competitive dynamics |
 | **Custom Watchlists** | Subscriber-defined keyword, company, and topic watchlists with automated matching against new articles and regulatory events |

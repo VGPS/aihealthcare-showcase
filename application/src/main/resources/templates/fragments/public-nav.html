@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Minimal navigation fragment for public-facing pages that require no login.
+ *
+ * Shows only: brand icon, the active public page, Pricing, About, and a
+ * Sign In button. Authenticated users additionally see Dashboard and Logout.
+ * Hides all member-only groups (Content, Research, Legal, Reference) so
+ * unauthenticated visitors arriving from external links (LinkedIn, etc.) are
+ * not presented with pages they cannot access.
+ *
+ * Usage: <nav th:replace="~{fragments/public-nav :: public-nav('company-directory')}">
+ *
+ * activePage values: company-directory | wiki | pricing | about
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-08-30
+ * @updated 2026-08-30
+ */
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<nav th:fragment="public-nav(activePage)" class="nav-bar">
+
+    <!-- Brand icon -->
+    <a th:href="@{/directory}" class="nav-link" style="padding: 0 0.5rem;">
+        <img th:src="@{/images/brand-icon.png}" alt="AI in Healthcare"
+             height="78" width="78" style="display:block;flex-shrink:0;border-radius:8px;"/>
+    </a>
+
+    <!-- Public pages -->
+    <a th:href="@{/directory}"
+       th:classappend="${activePage == 'company-directory'} ? ' active'"
+       class="nav-link">Company Directory</a>
+
+    <a th:href="@{/about}"
+       th:classappend="${activePage == 'about'} ? ' active'"
+       class="nav-link">About</a>
+
+    <a th:href="@{/pricing}"
+       th:classappend="${activePage == 'pricing'} ? ' active'"
+       class="nav-link">Pricing</a>
+
+    <!-- Authenticated: show Dashboard + Logout -->
+    <a sec:authorize="isAuthenticated()" th:href="@{/dashboard}"
+       class="nav-link">Dashboard</a>
+
+    <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
+       class="nav-link nav-logout">Logout</a>
+
+    <!-- Unauthenticated: show Sign In -->
+    <a sec:authorize="!isAuthenticated()" th:href="@{/login}"
+       class="nav-link nav-logout" style="background:#1e3a5f;color:#fff;border-radius:6px;padding:0.4rem 1rem;">Sign In</a>
+
+</nav>
+</html>
