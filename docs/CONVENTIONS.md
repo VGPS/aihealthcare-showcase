@@ -2,7 +2,7 @@
 
 > **This file is referenced by `CLAUDE.md` and must be kept up to date.**
 > All rules here apply to every Java file in this project unless explicitly noted otherwise.
-> Last updated: 2026-04-04 | Author: Bill Blackmon
+> Last updated: 2026-09-02 | Author: Bill Blackmon
 
 ---
 
@@ -111,35 +111,32 @@ public class NewsletterService {
 
 ---
 
-## 3. Looping — No Streams
+## 3. Looping — Streams Allowed Going Forward
 
-Java Streams (`stream()`, `.map()`, `.filter()`, `.collect()`, etc.) are **prohibited**
-for iteration and transformation. Use traditional `for` loops instead.
+As of 2026-09-02, Java Streams (`stream()`, `.map()`, `.filter()`, `.collect()`, etc.)
+are permitted in **new code**. This is a going-forward change only — existing `for`
+loops are **not** being retroactively converted. Do not rewrite an existing loop to a
+stream as a drive-by change while touching nearby code; only use streams when writing
+new iteration/transformation logic.
 
-| Prohibited | Use instead |
-|---|---|
-| `list.stream().map(f).collect(toList())` | `for` loop + `new ArrayList<>()` |
-| `list.stream().filter(p).toList()` | `for` loop with `if` guard |
-| `list.stream().forEach(f)` | `for (T item : list)` |
-| `map.entrySet().stream()...` | `for (Map.Entry<K,V> e : map.entrySet())` |
-| `.flatMap()`, `.reduce()`, `.anyMatch()` | Equivalent explicit loops |
-
-**Rationale:** Explicit loops are easier to step through in a debugger, simpler to
-add log statements to, and more readable for developers unfamiliar with functional idioms.
+**Original rationale (still applies — choose accordingly):** explicit `for` loops are
+easier to step through in a debugger and simpler to attach `log.debug()` tracing to
+(see Section 2, Per-Method Logging). Prefer a `for` loop when the loop body needs
+per-iteration log statements, breakpoints, or non-trivial branching. Streams are fine
+for simple, self-contained transformations that don't need step-through debugging.
 
 ### Example
 
 ```java
-// WRONG
-List<String> ids = articles.stream()
-    .map(NewsArticle::articleId)
-    .collect(Collectors.toList());
-
-// CORRECT
+// Both are acceptable in new code
 List<String> ids = new ArrayList<>();
 for (NewsArticle article : articles) {
     ids.add(article.articleId());
 }
+
+List<String> ids = articles.stream()
+    .map(NewsArticle::articleId)
+    .collect(Collectors.toList());
 ```
 
 ---

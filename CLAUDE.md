@@ -128,7 +128,7 @@ publishedAt  Instant  optional — null if not determinable
 - **Spec-Driven**: Always update `openapi.yaml` before implementing an endpoint. Use OpenAPI Generator Maven plugin to regenerate DTOs after spec changes.
 - **Incremental slices**: Build one vertical slice at a time; each slice must be green before starting the next.
 - **No orphan code**: Don't create classes, methods, or fields not yet required by the current slice.
-- **No Streams**: Use traditional `for` loops for all iteration and transformation. No `.stream()`, `.map()`, `.collect()` etc.
+- **Streams**: Permitted in new code as of 2026-09-02 (see `docs/CONVENTIONS.md` §3). Existing `for` loops are not being retroactively converted — this is going-forward only.
 - **Logging**: Lombok `@Slf4j` on every concrete class. First line logs all args: `log.debug("methodName() | param={}", val)`. Last line before every `return` logs the result: `log.debug("methodName() | return={}", result)`. Void methods log `return=void`.
 - **Class headers**: Every file must have a Javadoc block with `@author Bill Blackmon`, `@since`, and `@updated` fields.
 - **DI**: Constructor injection only — no `@Autowired` field injection.
