@@ -668,6 +668,11 @@ public class AdminPipelineController {
                 "Weekly Sunday 06:00 UTC", "CompanyDiscoveryScheduler",
                 "/api/v1/monitoring/company-discovery", "POST", false, "~5 min", "Medium (LLM)"));
 
+        list.add(new PipelineInfo("deal-signals", "Deal Signal Detection",
+                "Keyword-scans the last 7 days of articles for funding/acquisition/partnership/IPO/product-launch signals, then sends matches to Claude for confirmation and enrichment (amount, counterparty, analysis). Falls back to keyword-only classification only when no LLM port is configured — not when an LLM call transiently fails, so a bad API key can silently drop keyword-matched candidates. Previously only ran as a step inside Run Full Cascade with no way to test it in isolation.",
+                "Manual only (also runs inside Run Full Cascade)", "StartupPipelineOrchestrator (cascade step)",
+                "/api/v1/deals/detect", "POST", false, "~1-3 min", "Medium (LLM)"));
+
         // ── Medium (no LLM) ──────────────────────────────────────────────────
         list.add(new PipelineInfo("legal-backfill", "Legal & Regulatory Backfill",
                 "Backfills legal articles from CourtListener and PubMed, plus regulatory events. Configurable lookback window.",

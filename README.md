@@ -448,7 +448,7 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | URL | Description |
 |-----|-------------|
 | `/admin` | User management table + system status dashboard (ADMIN only) |
-| `/admin/pipelines` | Pipeline management — manual trigger controls for all 11 pipeline steps (ADMIN only) |
+| `/admin/pipelines` | Pipeline management — manual trigger controls for 23 individually-triggerable pipelines, including Deal Signal Detection (ADMIN only) |
 | `/pricing` | Tier comparison (Demo/Free/Subscriber) with Stripe Checkout integration |
 | `/profile` | Subscriber self-service — tier badge, usage meter, Stripe customer portal link |
 | `/login` | Session-based form login with "Remember Me" |
