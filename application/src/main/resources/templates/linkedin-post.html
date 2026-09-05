@@ -20,7 +20,8 @@
 <body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
 
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
-    <h1 class="font-display text-2xl font-bold tracking-tight">LinkedIn Post Generator</h1>
+    <h1 class="font-display text-2xl font-bold tracking-tight"
+        th:text="${pageTitle ?: 'LinkedIn Post Generator'}">LinkedIn Post Generator</h1>
     <p class="text-primary-200 text-sm mt-0.5">
         Top articles from <span th:text="${dateLabel}">today</span> &middot;
         <span th:text="${articleCount}">0</span> articles &middot;

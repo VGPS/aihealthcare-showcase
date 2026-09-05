@@ -22,6 +22,11 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -43,9 +48,9 @@ import java.util.Map;
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 2.7
+ * @version 2.8
  * @since   2026-07-30
- * @updated 2026-08-28
+ * @updated 2026-09-05
  */
 @Slf4j
 @Controller
@@ -436,6 +441,153 @@ public class AdminPipelineController {
         }
     }
 
+    /**
+     * Syncs the NotebookLM corpus from EC2 to the local dev machine via SSH + SCP.
+     *
+     * <p>EC2 runs {@code ResearchHarvestScheduler} (06:00 &amp; 12:00 UTC daily) and
+     * {@code MarketIntelligenceScheduler} (monthly), continuously writing article
+     * {@code .txt} files and date-stamped summaries into
+     * {@code /opt/aihealthcare/NotebookLMDirectory}. This endpoint:
+     * <ol>
+     *   <li>SSH-creates a tar of all article files and the summaries directory on EC2.</li>
+     *   <li>SCPs the tar to the local machine's temp directory.</li>
+     *   <li>Extracts into {@code NotebookLMDirectory} — never overwriting files already
+     *       present locally ({@code --keep-old-files}).</li>
+     *   <li>Removes the temp tar from both sides.</li>
+     * </ol>
+     *
+     * <p>Returns 503 immediately if the EC2 PEM key is not found at its expected
+     * local path — this endpoint only functions on the dev machine, not when the
+     * app is deployed to EC2 itself.
+     *
+     * @return JSON result with article and summary counts before/after sync
+     */
+    @PostMapping("/notebooklm/sync")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> syncNotebookLm() {
+        log.debug("syncNotebookLm()");
+
+        Instant start = Instant.now();
+        Path keyPath = Paths.get("C:/workspaces/SpringAIClaude/N_VaKeyPair.pem");
+
+        if (!Files.exists(keyPath)) {
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "FAILED");
+            result.put("message", "EC2 PEM key not found at " + keyPath
+                    + " — this pipeline only works on the local dev machine, not EC2.");
+            result.put("durationMs", 0L);
+            log.warn("syncNotebookLm() | key not found: {}", keyPath);
+            log.debug("syncNotebookLm() | return=503");
+            return ResponseEntity.status(503).body(result);
+        }
+
+        String key     = keyPath.toString();
+        String ip      = "100.61.13.237";
+        String ssh     = "C:/Windows/System32/OpenSSH/ssh.exe";
+        String scp     = "C:/Windows/System32/OpenSSH/scp.exe";
+        String tmpTar  = System.getProperty("java.io.tmpdir").replace('\\', '/') + "/notebooklm_full.tar.gz";
+        String localDir = "NotebookLMDirectory";
+
+        try {
+            int articlesBefore  = countFiles(localDir, ".txt");
+            int summariesBefore = countFiles(localDir + "/summaries", null);
+
+            // Step 1 — create tar on EC2 (articles + summaries)
+            log.info("syncNotebookLm() | step 1: creating EC2 tar");
+            runProcess(ssh, "-i", key, "-o", "StrictHostKeyChecking=no",
+                    "ec2-user@" + ip,
+                    "cd /opt/aihealthcare/NotebookLMDirectory && tar -czf /tmp/notebooklm_full.tar.gz *.txt summaries/");
+
+            // Step 2 — download tar
+            log.info("syncNotebookLm() | step 2: downloading tar from EC2");
+            runProcess(scp, "-i", key, "-o", "StrictHostKeyChecking=no",
+                    "ec2-user@" + ip + ":/tmp/notebooklm_full.tar.gz", tmpTar);
+
+            // Step 3 — extract locally, never overwriting existing files
+            log.info("syncNotebookLm() | step 3: extracting to {}", localDir);
+            runProcess("tar", "-xzf", tmpTar, "-C", localDir, "--keep-old-files");
+
+            // Step 4 — cleanup
+            Files.deleteIfExists(Paths.get(tmpTar));
+            runProcess(ssh, "-i", key, "-o", "StrictHostKeyChecking=no",
+                    "ec2-user@" + ip, "rm -f /tmp/notebooklm_full.tar.gz");
+
+            int articlesAfter  = countFiles(localDir, ".txt");
+            int summariesAfter = countFiles(localDir + "/summaries", null);
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "SUCCESS");
+            result.put("message", "Synced +" + (articlesAfter - articlesBefore) + " article files, +"
+                    + (summariesAfter - summariesBefore) + " summary files ("
+                    + articlesAfter + " articles and " + summariesAfter + " summaries total locally)");
+            result.put("articlesBefore",  articlesBefore);
+            result.put("articlesAfter",   articlesAfter);
+            result.put("summariesBefore", summariesBefore);
+            result.put("summariesAfter",  summariesAfter);
+            result.put("durationMs", durationMs);
+
+            log.info("syncNotebookLm() | complete: +{} articles, +{} summaries in {}ms",
+                    articlesAfter - articlesBefore, summariesAfter - summariesBefore, durationMs);
+            log.debug("syncNotebookLm() | return={}", result);
+            return ResponseEntity.ok(result);
+
+        } catch (Exception ex) {
+            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("status", "FAILED");
+            result.put("message", ex.getMessage());
+            result.put("durationMs", durationMs);
+            log.error("syncNotebookLm() | sync failed: {}", ex.getMessage(), ex);
+            log.debug("syncNotebookLm() | return=error");
+            return ResponseEntity.internalServerError().body(result);
+        }
+    }
+
+    /**
+     * Runs an external process and blocks until it exits. Throws {@link IOException}
+     * with captured output if the exit code is non-zero.
+     *
+     * @param cmd command and arguments
+     * @throws IOException          if the process fails or cannot start
+     * @throws InterruptedException if the calling thread is interrupted while waiting
+     */
+    private void runProcess(String... cmd) throws IOException, InterruptedException {
+        log.debug("runProcess() | cmd={}", String.join(" ", cmd));
+        Process process = new ProcessBuilder(cmd)
+                .redirectErrorStream(true)
+                .start();
+        byte[] output = process.getInputStream().readAllBytes();
+        process.waitFor();
+        int exit = process.exitValue();
+        if (exit != 0) {
+            throw new IOException("Command failed (exit=" + exit + "): " + new String(output).trim());
+        }
+        log.debug("runProcess() | return=void (exit=0)");
+    }
+
+    /**
+     * Counts files in a directory, optionally filtered by extension suffix.
+     *
+     * @param dir       directory path (relative or absolute)
+     * @param extension file extension filter (e.g. {@code ".txt"}); null counts all files
+     * @return file count; 0 if directory does not exist
+     */
+    private int countFiles(String dir, String extension) {
+        log.debug("countFiles() | dir={}, extension={}", dir, extension);
+        File d = new File(dir);
+        if (!d.exists() || !d.isDirectory()) {
+            log.debug("countFiles() | return=0 (not found)");
+            return 0;
+        }
+        String[] files = extension != null
+                ? d.list((f, name) -> name.endsWith(extension))
+                : d.list((f, name) -> new File(f, name).isFile());
+        int count = files != null ? files.length : 0;
+        log.debug("countFiles() | return={}", count);
+        return count;
+    }
+
     private String formatRunSummary(PipelineHealthService.PipelineRunRecord run) {
         if ("SUCCESS".equals(run.status())) {
             return "OK in " + run.durationMs() + "ms";
@@ -563,6 +715,20 @@ public class AdminPipelineController {
                 "Checks wiki pages for orphans, broken cross-references, stale content (>30 days), missing provenance.",
                 "Daily 08:00 UTC", "WikiLintScheduler",
                 "/monitoring/wiki/lint", "POST", false, "~10 sec", "Minimal"));
+
+        list.add(new PipelineInfo("notebooklm-sync", "Download NotebookLM Corpus",
+                "Syncs the NotebookLM corpus from EC2 to this local machine via SSH + SCP. " +
+                "EC2 runs ResearchHarvestScheduler (06:00 & 12:00 UTC daily) and MarketIntelligenceScheduler (monthly), " +
+                "continuously writing article .txt files and date-stamped summaries into /opt/aihealthcare/NotebookLMDirectory. " +
+                "This pipeline: (1) SSH-tars all EC2 article files and the summaries/ directory into /tmp/notebooklm_full.tar.gz, " +
+                "(2) SCPs the tar to this machine's temp dir, " +
+                "(3) extracts into local NotebookLMDirectory — never overwriting files already present locally, " +
+                "(4) removes /tmp artifacts from both sides. " +
+                "Run this after the local app has been dark for several days, or before uploading to Google NotebookLM. " +
+                "LOCAL-ONLY: returns 503 when triggered from EC2 (PEM key not present there). " +
+                "Also available as /goDownloadNotebookLM Claude skill for dev-machine use.",
+                "Manual only", "goDownloadNotebookLM (Claude skill)",
+                "/admin/pipelines/notebooklm/sync", "POST", true, "~2-3 min (SSH + SCP)", "Low"));
 
         log.debug("buildPipelineList() | return={} pipelines", list.size());
         return list;

@@ -331,6 +331,42 @@
             </div>
         </div>
 
+        <!-- LinkedIn Research Summary Post Generator -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">LinkedIn Research Summary Post</h3>
+                <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Manual</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Generates a LinkedIn post from the most recent NotebookLM research summary
+                (written daily by ResearchHarvestScheduler to <code class="text-xs bg-gray-100 px-1 rounded">NotebookLMDirectory/summaries/</code>).
+                Extracts the executive summary and numbered source list from the HTML summary file.
+                Same two-block format as the Daily Post: post body without links + source links for first comment.
+            </p>
+
+            <!-- Posting workflow -->
+            <div class="bg-blue-50 border border-blue-100 rounded px-3 py-2 mb-3 text-xs text-blue-900">
+                <p class="font-semibold mb-1">Posting workflow</p>
+                <ol class="list-decimal ml-3 space-y-0.5">
+                    <li>Click <strong>Open Generator</strong> — the most recent summary is loaded automatically.</li>
+                    <li>Copy the <strong>Post Body</strong> and paste into a new LinkedIn post. Publish it.</li>
+                    <li>Immediately open the published post → <em>Add a comment</em> → paste the <strong>Source Links</strong> block.</li>
+                    <li>Submit the comment. LinkedIn pins your own first comment automatically.</li>
+                </ol>
+                <p class="mt-1.5 text-blue-700"><strong>Why links in a comment?</strong> LinkedIn's algorithm suppresses posts with external URLs by 40–60%. Keeping links in the comment preserves reach while still providing sources.</p>
+            </div>
+
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Page: <span class="font-mono text-primary-600">/dashboard/linkedin/research-summary</span></div>
+                <div>Est. duration: <span>Instant (reads from local NotebookLMDirectory/summaries/)</span></div>
+                <div>Best time to post: <span class="font-semibold">Tue–Thu, 7–9 AM local time</span> (highest LinkedIn B2B engagement)</div>
+                <div>Tip: Run <span class="font-mono">/goDownloadNotebookLM</span> first if the local corpus is stale (local app was off).</div>
+            </div>
+            <div class="flex items-center gap-2 mt-auto">
+                <a href="/dashboard/linkedin/research-summary" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open Generator</a>
+            </div>
+        </div>
+
         <!-- Facebook Daily Post Generator -->
         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
             <div class="flex justify-between items-start mb-2">
