@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.DailySummaryPort;
 import com.wgblackmon.aihealthcare.web.util.ArticleToneClassifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -32,9 +34,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link LinkedInPostController}.
  *
  * @author  Bill Blackmon
- * @version 1.3
+ * @version 1.4
  * @since   2026-08-21
- * @updated 2026-08-23
+ * @updated 2026-09-05
  */
 @WebMvcTest(LinkedInPostController.class)
 class LinkedInPostControllerTest {
@@ -47,6 +49,9 @@ class LinkedInPostControllerTest {
 
     @MockitoBean
     private ArticleToneClassifier toneClassifier;
+
+    @MockitoBean
+    private DailySummaryPort dailySummaryPort;
 
     @BeforeEach
     void setUpToneClassifier() {
@@ -355,6 +360,50 @@ class LinkedInPostControllerTest {
         mockMvc.perform(get("/dashboard/linkedin"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("linksBlock", containsString("#HealthcareAI")));
+    }
+
+    @Test
+    @WithMockUser
+    void researchSummaryPost_rendersWhenNoSummary() throws Exception {
+        when(dailySummaryPort.findMostRecentSummaryDate()).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/dashboard/linkedin/research-summary"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("linkedin-post"))
+                .andExpect(model().attribute("articleCount", 0))
+                .andExpect(model().attribute("pageTitle", "Research Summary — LinkedIn Post"));
+    }
+
+    @Test
+    @WithMockUser
+    void researchSummaryPost_rendersFromHtml() throws Exception {
+        String summaryHtml = """
+                <!DOCTYPE html><html><head></head><body>
+                <h1>Research: Health Tech Innovation</h1>
+                <div style="background:#f0f7ff; border:1px solid #b8d4f0;">
+                  <div style="font-size:0.95em; line-height:1.6;">
+                    <p>AI adoption is accelerating <a href="#article-1">[1]</a>.</p>
+                  </div>
+                </div>
+                <div id="article-1">
+                  <div><a href="https://example.com/a1">aha.org — Market Scan</a></div>
+                </div>
+                </body></html>
+                """;
+        when(dailySummaryPort.findMostRecentSummaryDate())
+                .thenReturn(Optional.of(java.time.LocalDate.of(2026, 9, 4)));
+        when(dailySummaryPort.getHtmlSummary(java.time.LocalDate.of(2026, 9, 4)))
+                .thenReturn(Optional.of(summaryHtml));
+
+        mockMvc.perform(get("/dashboard/linkedin/research-summary"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("linkedin-post"))
+                .andExpect(model().attribute("articleCount", 1))
+                .andExpect(model().attribute("pageTitle", "Research Summary — LinkedIn Post"))
+                .andExpect(model().attribute("postBody",
+                        containsString("AI Healthcare Intelligence — Research: Health Tech Innovation")))
+                .andExpect(model().attribute("linksBlock",
+                        containsString("https://example.com/a1")));
     }
 
     // ------------------------------------------------------------------

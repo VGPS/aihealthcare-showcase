@@ -44,13 +44,13 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **PII Masking** | LogSanitizer utility masks email addresses in log statements to prevent PII exposure in production logs |
 | **Branded Error Handling** | Custom error pages replacing Spring Boot's Whitelabel Error Page with consistent branded UI |
 | **50-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, watchlist, sentiment, frameworks, deals, company pages, and public company directory |
-| **2,358+ Automated Tests** | Comprehensive test suite across 305 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **2,360+ Automated Tests** | Comprehensive test suite across 305 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 17, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 103 domain model records, 92 port interfaces, and 70 controllers — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **2,358+ automated tests** across 305 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **2,360+ automated tests** across 305 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
@@ -112,7 +112,7 @@ AIHealthcare runs multiple automated pipelines that collectively build a compreh
 10. **Enrich Deals** — Cross-references detected deals against sentiment scores, framework analyses, regulatory events, and company profiles for 360-degree deal context
 11. **Evaluate Prompts** — LLM-as-judge scoring across 5 quality dimensions with A/B variant comparison for prompt optimization
 12. **Deliver** — Generates a daily newsletter draft for review; SUBSCRIBER tier gets full newsletter, FREE tier gets a digest summary; send manually after editing in the TinyMCE WYSIWYG editor
-13. **Export** — NotebookLM-compatible article exports with HTML summaries grouped by source; CSV export for articles, companies, trends, and deals
+13. **Export** — NotebookLM-compatible article exports with numbered HTML summaries (citation [N] anchors match visible article numbers); CSV export for articles, companies, trends, and deals; LinkedIn research summary post generator at `/dashboard/linkedin/research-summary`
 14. **Regulate** — Harvests FDA 510(k) clearances, De Novo authorizations, and CMS rules from openFDA and Federal Register APIs; matches against subscriber watchlists
 15. **Discover** — Scrapes startup directories (YC, TopStartups), classifies companies by healthcare AI subcategory, builds persistent intelligence profiles with real article linking
 16. **Watch** — Subscriber-defined keyword, company, and topic watchlists with automated matching against incoming articles and regulatory events

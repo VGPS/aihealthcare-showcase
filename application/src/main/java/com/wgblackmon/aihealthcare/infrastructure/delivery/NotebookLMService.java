@@ -72,7 +72,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 8.0
  * @since   2026-04-13
- * @updated 2026-08-05
+ * @updated 2026-09-05
  */
 @Slf4j
 @Service
@@ -482,6 +482,7 @@ public class NotebookLMService {
             sb.append("    <div id=\"article-").append(articleIndex)
               .append("\" style=\"background:#fff; padding:18px 22px;").append(borderTop).append("\">\n");
             sb.append("      <div style=\"font-size:1.05em; font-weight:bold; margin-bottom:6px;\">")
+              .append(articleIndex).append(". ")
               .append("<a href=\"").append(escapeHtml(url))
               .append("\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a3a5c; text-decoration:underline;\">")
               .append(escapeHtml(Jsoup.parse(articleTitle).text())).append("</a>");

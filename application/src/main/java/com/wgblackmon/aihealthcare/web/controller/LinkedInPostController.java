@@ -2,7 +2,11 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.DailySummaryPort;
 import com.wgblackmon.aihealthcare.web.util.ArticleToneClassifier;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +23,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -43,9 +48,9 @@ import java.util.Set;
  * <p>No LLM calls are made; classification uses keyword matching only.
  *
  * @author  Bill Blackmon
- * @version 1.4
+ * @version 1.5
  * @since   2026-08-21
- * @updated 2026-08-25b
+ * @updated 2026-09-05
  * @see ArticleToneClassifier
  */
 @Slf4j
@@ -105,12 +110,15 @@ public class LinkedInPostController {
 
     private final ArticleIngestionPort  articleIngestionPort;
     private final ArticleToneClassifier toneClassifier;
+    private final DailySummaryPort      dailySummaryPort;
 
     public LinkedInPostController(ArticleIngestionPort articleIngestionPort,
-                                  ArticleToneClassifier toneClassifier) {
+                                  ArticleToneClassifier toneClassifier,
+                                  DailySummaryPort dailySummaryPort) {
         log.debug("LinkedInPostController() | articleIngestionPort={}", articleIngestionPort);
         this.articleIngestionPort = articleIngestionPort;
         this.toneClassifier       = toneClassifier;
+        this.dailySummaryPort     = dailySummaryPort;
     }
 
     /**
@@ -467,6 +475,143 @@ public class LinkedInPostController {
             truncated = truncated.substring(0, lastSpace);
         }
         return truncated + "…";
+    }
+
+    /**
+     * Renders a LinkedIn post generator page populated from the most recent
+     * NotebookLM research summary (HTML) rather than today's live article feed.
+     *
+     * <p>Reads the executive summary and numbered source list from
+     * {@code NotebookLMDirectory/summaries/yyyy_MM_dd.html} via
+     * {@link DailySummaryPort#findMostRecentSummaryDate()} →
+     * {@link DailySummaryPort#getHtmlSummary(java.time.LocalDate)}.
+     * Falls back gracefully when no summary file is available.
+     *
+     * @param model Thymeleaf model
+     * @return the "linkedin-post" view name
+     */
+    @GetMapping("/dashboard/linkedin/research-summary")
+    public String researchSummaryPost(Model model) {
+        log.debug("researchSummaryPost() | entry");
+
+        LocalDate summaryDate = dailySummaryPort.findMostRecentSummaryDate().orElse(null);
+
+        if (summaryDate == null) {
+            model.addAttribute("postBody",
+                    "No research summary available. Run a research harvest first.");
+            model.addAttribute("linksBlock", "");
+            model.addAttribute("articleCount", 0);
+            model.addAttribute("dateLabel",
+                    DATE_FMT.format(LocalDate.now(ZoneId.of("America/Chicago"))));
+            model.addAttribute("postBodyLength", 0);
+            model.addAttribute("linksBlockLength", 0);
+            model.addAttribute("pageTitle", "Research Summary — LinkedIn Post");
+            log.debug("researchSummaryPost() | return=linkedin-post, no summary found");
+            return "linkedin-post";
+        }
+
+        Optional<String> htmlOpt = dailySummaryPort.getHtmlSummary(summaryDate);
+        if (htmlOpt.isEmpty()) {
+            String dateLabel = DATE_FMT.format(summaryDate);
+            model.addAttribute("postBody",
+                    "Research summary file not found for " + dateLabel + ".");
+            model.addAttribute("linksBlock", "");
+            model.addAttribute("articleCount", 0);
+            model.addAttribute("dateLabel", dateLabel);
+            model.addAttribute("postBodyLength", 0);
+            model.addAttribute("linksBlockLength", 0);
+            model.addAttribute("pageTitle", "Research Summary — LinkedIn Post");
+            log.debug("researchSummaryPost() | return=linkedin-post, html empty");
+            return "linkedin-post";
+        }
+
+        Document doc = Jsoup.parse(htmlOpt.get());
+        String pageHeading = doc.select("h1").text();
+        String dateLabel   = DATE_FMT.format(summaryDate);
+
+        String summaryText = "";
+        Element summaryDiv = doc
+                .select("div[style*=background:#f0f7ff] div[style*=font-size:0.95em]")
+                .first();
+        if (summaryDiv != null) {
+            summaryText = summaryDiv.text();
+        }
+
+        List<String[]> articles = new ArrayList<>();
+        for (Element articleDiv : doc.select("div[id^=article-]")) {
+            Element link = articleDiv.select("a[href]").first();
+            if (link != null) {
+                articles.add(new String[]{link.text(), link.attr("href")});
+            }
+        }
+
+        String postBody   = buildResearchPostBody(pageHeading, dateLabel, summaryText, articles.size());
+        String linksBlock = buildResearchLinksBlock(articles, dateLabel);
+
+        model.addAttribute("postBody", postBody);
+        model.addAttribute("linksBlock", linksBlock);
+        model.addAttribute("articleCount", articles.size());
+        model.addAttribute("dateLabel", dateLabel + " — " + pageHeading);
+        model.addAttribute("postBodyLength", postBody.length());
+        model.addAttribute("linksBlockLength", linksBlock.length());
+        model.addAttribute("pageTitle", "Research Summary — LinkedIn Post");
+
+        log.debug("researchSummaryPost() | return=linkedin-post, articles={}, postBodyLength={}",
+                articles.size(), postBody.length());
+        return "linkedin-post";
+    }
+
+    private String buildResearchPostBody(String pageHeading, String dateLabel,
+                                         String summaryText, int articleCount) {
+        log.debug("buildResearchPostBody() | pageHeading={}, dateLabel={}, articleCount={}",
+                pageHeading, dateLabel, articleCount);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("AI Healthcare Intelligence — ").append(pageHeading).append("\n");
+        sb.append(dateLabel).append(" • ").append(articleCount).append(" sources\n\n");
+
+        if (!summaryText.isBlank()) {
+            sb.append(summaryText).append("\n\n");
+        }
+
+        sb.append("Source links in the first comment below.\n\n");
+        sb.append("Follow for daily AI healthcare intelligence.\n");
+        sb.append("→ Full platform: ").append(SITE_URL).append("\n\n");
+        sb.append("#AIHealthcare #HealthcareAI #DigitalHealth #HealthTech #MedicalInnovation");
+
+        String result = sb.toString();
+        if (result.length() > POST_BODY_LIMIT) {
+            result = result.substring(0, POST_BODY_LIMIT);
+            int lastNewline = result.lastIndexOf('\n');
+            if (lastNewline > POST_BODY_LIMIT - 200) {
+                result = result.substring(0, lastNewline);
+            }
+        }
+
+        log.debug("buildResearchPostBody() | return=length:{}", result.length());
+        return result;
+    }
+
+    private String buildResearchLinksBlock(List<String[]> articles, String dateLabel) {
+        log.debug("buildResearchLinksBlock() | articles={}, dateLabel={}", articles.size(), dateLabel);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Sources (").append(dateLabel).append("):\n\n");
+        for (int i = 0; i < articles.size(); i++) {
+            String[] entry = articles.get(i);
+            String item = (i + 1) + ". " + entry[0] + "\n" + entry[1] + "\n\n";
+            if (sb.length() + item.length() > LINKS_BLOCK_LIMIT) {
+                sb.append("Full source list: ").append(SITE_URL).append("\n");
+                break;
+            }
+            sb.append(item);
+        }
+
+        sb.append("\n#AIHealthcare #HealthcareAI #DigitalHealth");
+
+        String result = sb.toString().trim();
+        log.debug("buildResearchLinksBlock() | return=length:{}", result.length());
+        return result;
     }
 
     /**
