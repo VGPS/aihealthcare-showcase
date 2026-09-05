@@ -6,12 +6,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Integration tests for {@link DealSignalAdapter} using H2 in-memory DB.
@@ -158,5 +164,42 @@ class DealSignalAdapterTest {
         assertThat(loaded.counterpartyName()).isEqualTo("SoftBank");
         assertThat(loaded.sourceUrl()).isEqualTo("https://example.com/art");
         assertThat(loaded.llmAnalysis()).isEqualTo("LLM analysis text");
+    }
+
+    @Test
+    void saveAll_truncatesOversizedLlmExtractedFields_ratherThanFailing() {
+        String oversizedCompany = "A".repeat(600);
+        String oversizedCounterparty = "B".repeat(600);
+        String oversizedAmount = "C".repeat(150);
+        String oversizedArticleId = "D".repeat(600);
+
+        DealSignal oversized = new DealSignal(
+                "s-oversized", oversizedArticleId, "Title", DealSignalType.FUNDING,
+                oversizedCompany, "Summary", 0.8, Instant.now(),
+                oversizedAmount, oversizedCounterparty, null, null);
+
+        adapter.saveAll(List.of(oversized));
+
+        DealSignal loaded = adapter.findById("s-oversized");
+        assertThat(loaded).isNotNull();
+        assertThat(loaded.articleId()).hasSize(500);
+        assertThat(loaded.companyName()).hasSize(500);
+        assertThat(loaded.counterpartyName()).hasSize(500);
+        assertThat(loaded.dealAmount()).hasSize(100);
+    }
+
+    @Test
+    void saveAll_isolatesOneFailedSignal_othersStillPersist() {
+        DealSignalRepository failingRepo = mock(DealSignalRepository.class);
+        doThrow(new DataIntegrityViolationException("value too long for type character varying(500)"))
+                .when(failingRepo).save(any());
+        DealSignalAdapter isolatedAdapter = new DealSignalAdapter(failingRepo);
+
+        DealSignal first = signal("bad", "a1", DealSignalType.FUNDING);
+        DealSignal second = signal("good", "a2", DealSignalType.ACQUISITION);
+
+        isolatedAdapter.saveAll(List.of(first, second));
+
+        verify(failingRepo, times(2)).save(any());
     }
 }

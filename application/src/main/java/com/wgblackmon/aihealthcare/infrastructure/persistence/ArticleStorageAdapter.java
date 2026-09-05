@@ -30,6 +30,12 @@ import java.util.List;
 @Component
 public class ArticleStorageAdapter implements ArticleStoragePort {
 
+    private static final int ARTICLE_ID_MAX_LENGTH = 1024;
+    private static final int TITLE_MAX_LENGTH = 1024;
+    private static final int URL_MAX_LENGTH = 2048;
+    private static final int TOPIC_MAX_LENGTH = 512;
+    private static final int AUTHOR_MAX_LENGTH = 512;
+
     private final NewsArticleRepository repository;
     private final ArticleQualityFilter   articleQualityFilter;
 
@@ -67,8 +73,14 @@ public class ArticleStorageAdapter implements ArticleStoragePort {
                 log.debug("save() | skipping duplicate url={}", urlString);
                 skipped++;
             } else {
-                repository.save(toEntity(article));
-                saved++;
+                try {
+                    repository.save(toEntity(article));
+                    saved++;
+                } catch (RuntimeException e) {
+                    log.warn("save() | failed to persist article {} — skipping. cause={}",
+                            article.articleId(), e.getMessage());
+                    skipped++;
+                }
             }
         }
 
@@ -79,13 +91,14 @@ public class ArticleStorageAdapter implements ArticleStoragePort {
     private NewsArticleEntity toEntity(NewsArticle article) {
         log.debug("toEntity() | articleId={}", article.articleId());
 
+        String url = article.url() != null ? article.url().toString() : "";
         NewsArticleEntity entity = new NewsArticleEntity();
-        entity.setArticleId(article.articleId());
-        entity.setTitle(article.title());
-        entity.setUrl(article.url() != null ? article.url().toString() : "");
+        entity.setArticleId(truncate(article.articleId(), article.articleId(), "articleId", ARTICLE_ID_MAX_LENGTH));
+        entity.setTitle(truncate(article.articleId(), article.title(), "title", TITLE_MAX_LENGTH));
+        entity.setUrl(truncate(article.articleId(), url, "url", URL_MAX_LENGTH));
         entity.setBodyText(article.bodyText());
-        entity.setTopic(article.topic());
-        entity.setAuthor(article.author());
+        entity.setTopic(truncate(article.articleId(), article.topic(), "topic", TOPIC_MAX_LENGTH));
+        entity.setAuthor(truncate(article.articleId(), article.author(), "author", AUTHOR_MAX_LENGTH));
         entity.setTopicId(article.topicId());
         entity.setSourceName(article.sourceName());
         entity.setSourceTier(article.sourceTier());
@@ -94,5 +107,27 @@ public class ArticleStorageAdapter implements ArticleStoragePort {
 
         log.debug("toEntity() | return={}", entity.getArticleId());
         return entity;
+    }
+
+    /**
+     * Clips a value to the database column's max length, logging a warning
+     * when clipping actually occurs. RSS entry URIs (used as both the
+     * article id and the url) have no length guarantee — some feeds
+     * (Google News in particular) emit URLs long enough to overflow even
+     * these generous bounds.
+     *
+     * @param articleId the owning article's id, for the warning log
+     * @param value     the value to clip; null passes through unchanged
+     * @param fieldName the column name, for the warning log
+     * @param maxLength the column's max length
+     * @return the value, clipped to {@code maxLength} characters if needed
+     */
+    private String truncate(String articleId, String value, String fieldName, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        log.warn("truncate() | article {} field '{}' is {} chars, exceeding column limit of {} — clipping",
+                articleId, fieldName, value.length(), maxLength);
+        return value.substring(0, maxLength);
     }
 }

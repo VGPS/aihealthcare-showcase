@@ -21,6 +21,9 @@ import java.util.List;
 @Component
 public class CompanyRelationshipAdapter implements CompanyRelationshipPort {
 
+    private static final int COMPANY_NAME_MAX_LENGTH = 500;
+    private static final int EVIDENCE_ARTICLE_ID_MAX_LENGTH = 500;
+
     private final CompanyRelationshipRepository repository;
 
     public CompanyRelationshipAdapter(CompanyRelationshipRepository repository) {
@@ -31,12 +34,17 @@ public class CompanyRelationshipAdapter implements CompanyRelationshipPort {
     @Override
     public void saveAll(List<CompanyRelationship> relationships) {
         log.debug("saveAll() | relationships={}", relationships.size());
-        List<CompanyRelationshipEntity> entities = new ArrayList<>();
+        int saved = 0;
         for (CompanyRelationship rel : relationships) {
-            entities.add(toEntity(rel));
+            try {
+                repository.save(toEntity(rel));
+                saved++;
+            } catch (RuntimeException e) {
+                log.warn("saveAll() | failed to persist relationship {} — skipping. cause={}",
+                        rel.relationshipId(), e.getMessage());
+            }
         }
-        repository.saveAll(entities);
-        log.debug("saveAll() | return=void");
+        log.debug("saveAll() | return=void, saved={}/{}", saved, relationships.size());
     }
 
     @Override
@@ -80,14 +88,34 @@ public class CompanyRelationshipAdapter implements CompanyRelationshipPort {
     private CompanyRelationshipEntity toEntity(CompanyRelationship rel) {
         CompanyRelationshipEntity entity = new CompanyRelationshipEntity();
         entity.setRelationshipId(rel.relationshipId());
-        entity.setSourceCompany(rel.sourceCompany());
-        entity.setTargetCompany(rel.targetCompany());
+        entity.setSourceCompany(truncate(rel.relationshipId(), rel.sourceCompany(), "sourceCompany", COMPANY_NAME_MAX_LENGTH));
+        entity.setTargetCompany(truncate(rel.relationshipId(), rel.targetCompany(), "targetCompany", COMPANY_NAME_MAX_LENGTH));
         entity.setRelationshipType(rel.relationshipType().name());
-        entity.setEvidenceArticleId(rel.evidenceArticleId());
+        entity.setEvidenceArticleId(truncate(rel.relationshipId(), rel.evidenceArticleId(), "evidenceArticleId", EVIDENCE_ARTICLE_ID_MAX_LENGTH));
         entity.setSummary(rel.summary());
         entity.setConfidence(rel.confidence());
         entity.setDetectedAt(rel.detectedAt());
         return entity;
+    }
+
+    /**
+     * Clips a value to the database column's max length, logging a warning
+     * when clipping actually occurs. Company names and article ids here are
+     * LLM-extracted or sourced from RSS entry URIs with no length guarantee.
+     *
+     * @param relationshipId the owning relationship's id, for the warning log
+     * @param value          the value to clip; null passes through unchanged
+     * @param fieldName      the column name, for the warning log
+     * @param maxLength      the column's max length
+     * @return the value, clipped to {@code maxLength} characters if needed
+     */
+    private String truncate(String relationshipId, String value, String fieldName, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        log.warn("truncate() | relationship {} field '{}' is {} chars, exceeding column limit of {} — clipping",
+                relationshipId, fieldName, value.length(), maxLength);
+        return value.substring(0, maxLength);
     }
 
     private CompanyRelationship toDomain(CompanyRelationshipEntity entity) {

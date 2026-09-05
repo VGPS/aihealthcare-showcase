@@ -28,6 +28,14 @@ import java.util.Optional;
 @Component
 public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
 
+    private static final int SLUG_MAX_LENGTH = 200;
+    private static final int DEFAULT_MAX_LENGTH = 255;
+    private static final int SECTOR_MAX_LENGTH = 100;
+    private static final int SUB_SECTOR_MAX_LENGTH = 100;
+    private static final int CATEGORY_MAX_LENGTH = 100;
+    private static final int FUNDING_STAGE_MAX_LENGTH = 50;
+    private static final int ESTIMATED_FUNDING_MAX_LENGTH = 100;
+
     private final HealthcareAiCompanyRepository repository;
     private final HealthcareAiCompanyClassifier classifier;
 
@@ -159,20 +167,22 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
 
     HealthcareAiCompanyEntity toEntity(HealthcareAiCompany company) {
         HealthcareAiCompanyEntity entity = new HealthcareAiCompanyEntity();
+        String category = company.category() != null ? company.category()
+                : classifier.classify(company.name(), company.description(), company.subSector());
+
         entity.setCompanyId(company.companyId());
-        entity.setSlug(computeSlug(company.name()));
-        entity.setName(company.name());
-        entity.setNameNormalized(company.nameNormalized());
-        entity.setDomain(company.domain());
+        entity.setSlug(truncate(company.companyId(), computeSlug(company.name()), "slug", SLUG_MAX_LENGTH));
+        entity.setName(truncate(company.companyId(), company.name(), "name", DEFAULT_MAX_LENGTH));
+        entity.setNameNormalized(truncate(company.companyId(), company.nameNormalized(), "nameNormalized", DEFAULT_MAX_LENGTH));
+        entity.setDomain(truncate(company.companyId(), company.domain(), "domain", DEFAULT_MAX_LENGTH));
         entity.setDescription(company.description());
-        entity.setHqLocation(company.hqLocation());
+        entity.setHqLocation(truncate(company.companyId(), company.hqLocation(), "hqLocation", DEFAULT_MAX_LENGTH));
         entity.setFoundedYear(company.foundedYear());
-        entity.setSector(company.sector());
-        entity.setSubSector(company.subSector());
-        entity.setCategory(company.category() != null ? company.category()
-                : classifier.classify(company.name(), company.description(), company.subSector()));
-        entity.setFundingStage(company.fundingStage());
-        entity.setEstimatedFunding(company.estimatedFunding());
+        entity.setSector(truncate(company.companyId(), company.sector(), "sector", SECTOR_MAX_LENGTH));
+        entity.setSubSector(truncate(company.companyId(), company.subSector(), "subSector", SUB_SECTOR_MAX_LENGTH));
+        entity.setCategory(truncate(company.companyId(), category, "category", CATEGORY_MAX_LENGTH));
+        entity.setFundingStage(truncate(company.companyId(), company.fundingStage(), "fundingStage", FUNDING_STAGE_MAX_LENGTH));
+        entity.setEstimatedFunding(truncate(company.companyId(), company.estimatedFunding(), "estimatedFunding", ESTIMATED_FUNDING_MAX_LENGTH));
         entity.setFoundersJson(company.foundersJson());
         entity.setSourceUrlsPipe(String.join("|", company.sourceUrls()));
         entity.setValidated(company.validated());
@@ -180,6 +190,31 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
         entity.setDiscoveredAt(company.discoveredAt());
         entity.setLastValidatedAt(company.lastValidatedAt());
         return entity;
+    }
+
+    /**
+     * Clips a value to the database column's max length, logging a warning
+     * when clipping actually occurs.
+     *
+     * <p>These fields are extracted from freeform Perplexity LLM output —
+     * "Series B" is expected in {@code fundingStage}, but a model that
+     * ignores the schema hint can return a full descriptive sentence instead.
+     * Truncating here keeps the company record instead of losing it to a
+     * {@code DataIntegrityViolationException}.
+     *
+     * @param companyId the owning company's id, for the warning log
+     * @param value     the value to clip; null passes through unchanged
+     * @param fieldName the column name, for the warning log
+     * @param maxLength the column's max length
+     * @return the value, clipped to {@code maxLength} characters if needed
+     */
+    private String truncate(String companyId, String value, String fieldName, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        log.warn("truncate() | company {} field '{}' is {} chars, exceeding column limit of {} — clipping",
+                companyId, fieldName, value.length(), maxLength);
+        return value.substring(0, maxLength);
     }
 
     HealthcareAiCompany toDomain(HealthcareAiCompanyEntity entity) {
