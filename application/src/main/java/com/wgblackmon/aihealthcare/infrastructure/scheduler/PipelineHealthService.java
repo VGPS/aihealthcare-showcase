@@ -123,6 +123,13 @@ public class PipelineHealthService {
                 }
                 break;
 
+            case "deal-signals":
+                if (!isAnthropicKeyReady()) {
+                    warnings.add("ANTHROPIC_API_KEY not configured — LLM confirmation will fail and "
+                            + "keyword-matched candidates will be dropped rather than saved as keyword-only signals");
+                }
+                break;
+
             case "wiki-gap-analysis":
                 if (!isAnthropicKeyReady()) {
                     warnings.add("ANTHROPIC_API_KEY not configured — gap analysis will fail");
@@ -460,6 +467,8 @@ public class PipelineHealthService {
                 return "Will generate monthly competitive landscape report via AI";
             case "company-discovery":
                 return "Will discover AI healthcare companies via Perplexity API, extract structured fields, cross-validate, and persist new entries";
+            case "deal-signals":
+                return "Will keyword-scan the last 7 days of articles for deal signals, confirm and enrich matches via Claude, and persist new signals";
             case "wiki-gap-analysis":
                 return "Will analyze recent articles against wiki pages to identify coverage gaps via LLM";
             default:

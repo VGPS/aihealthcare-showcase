@@ -123,6 +123,19 @@ class PipelineHealthServiceTest {
     }
 
     @Test
+    void preFlightCheck_dealSignalsWarnsWithoutAnthropicKey() {
+        List<String> warnings = serviceNoKeys.preFlightCheck("deal-signals");
+        assertThat(warnings).hasSize(1);
+        assertThat(warnings.get(0)).contains("ANTHROPIC_API_KEY");
+    }
+
+    @Test
+    void preFlightCheck_dealSignalsNoWarningsWhenKeyPresent() {
+        List<String> warnings = serviceWithAnthropicKey.preFlightCheck("deal-signals");
+        assertThat(warnings).isEmpty();
+    }
+
+    @Test
     void preFlightCheckAll_returnsResultsForAllPipelines() {
         Map<String, List<String>> results = serviceNoKeys.preFlightCheckAll(
                 List.of("rss-feeds", "competitor", "wiki-compile"));
