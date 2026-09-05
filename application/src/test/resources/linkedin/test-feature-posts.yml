@@ -1,0 +1,87 @@
+# Test fixture for YamlFeaturePostAdapterTest.
+# Deliberately contains three good posts and three bad ones, to prove that a
+# malformed entry is skipped rather than costing the whole library.
+
+meta:
+  site_base_url: "https://example.test"
+  trial_url: "https://example.test/register"
+
+posts:
+
+  - id: good-monday
+    feature: "Regulatory Alerts"
+    menu_path: "Intelligence > Regulatory"
+    url: "/dashboard/regulatory"
+    slot: { week: 1, weekday: MONDAY }
+    theme: signal
+    hook: "An evergreen hook."
+    body: |
+      A body with a resolved link reference: {{trial_url}}
+    live_variant: |
+      {{N}} clearances landed this week at {{site_base_url}}.
+    first_comment: |
+      Alerts: {{site_base_url}}/dashboard/regulatory
+      Trial: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#FDA"]
+    screenshot:
+      page: "/dashboard/regulatory"
+      prompt: "None — set the filter tab to FDA."
+      capture: "The alert list."
+      redact: "Nothing — public data."
+      alt_text: "Regulatory alerts page."
+
+  - id: good-tuesday
+    feature: "AI Search"
+    menu_path: "Research > AI Search"
+    url: "/research/ai-search"
+    slot: { week: 1, weekday: TUESDAY }
+    theme: ask-it
+    hook: "Another hook."
+    body: "A short body with no tokens at all."
+    live_variant: "Fully resolved, no placeholders left."
+    first_comment: "Search: {{site_base_url}}/research/ai-search"
+    hashtags: ["#LLM"]
+    screenshot:
+      page: "/research/ai-search"
+      prompt: "What is the evidence for AI sepsis prediction?"
+      capture: "Query box and answer."
+      redact: "CRITICAL — blur the API key panel."
+      alt_text: "AI search results."
+
+  - id: good-week-three
+    feature: "Trend Detection"
+    menu_path: "Intelligence > Trends"
+    url: "/dashboard/trends"
+    slot: { week: 3, weekday: FRIDAY }
+    theme: signal
+    hook: "Third-week hook."
+    body: "Body for the week three post."
+    live_variant: "No tokens here either."
+    first_comment: "Trends: {{site_base_url}}/dashboard/trends"
+    hashtags: []
+    screenshot:
+      page: "/dashboard/trends"
+      prompt: "None."
+      capture: "The three buckets."
+      redact: "Nav bar email."
+      alt_text: "Trend buckets."
+
+  # Bad: weekend slots are not part of a weekday rotation.
+  - id: bad-weekend
+    feature: "Weekend Feature"
+    url: "/nowhere"
+    slot: { week: 1, weekday: SATURDAY }
+    body: "Should be skipped."
+
+  # Bad: no slot block at all.
+  - id: bad-no-slot
+    feature: "Slotless Feature"
+    url: "/nowhere"
+    body: "Should also be skipped."
+
+  # Bad: week zero is not a valid slot.
+  - id: bad-week-zero
+    feature: "Zero Week Feature"
+    url: "/nowhere"
+    slot: { week: 0, weekday: MONDAY }
+    body: "Skipped as well."
