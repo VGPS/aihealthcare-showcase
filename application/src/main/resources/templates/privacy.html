@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Privacy Policy page — public data-handling and email-practices disclosure.
+ *
+ * Publicly accessible (no auth required). Linked from the site footer on
+ * every page. Describes what data is collected, how newsletter/digest email
+ * is sent and how recipients opt out, and that data is never sold or shared
+ * with third parties for marketing.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-09-05
+ * @updated 2026-09-05
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Privacy Policy')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
+
+<!-- Header -->
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+        <div>
+            <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
+            <p class="text-primary-200 text-sm mt-0.5">AI-Powered Healthcare Intelligence Platform</p>
+        </div>
+        <div class="flex gap-3">
+            <a sec:authorize="!isAuthenticated()" th:href="@{/register}"
+               class="bg-white text-primary-700 font-semibold text-sm px-4 py-2 rounded-md hover:bg-primary-50 transition-colors">
+                Try Free
+            </a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/dashboard}"
+               class="bg-white text-primary-700 font-semibold text-sm px-4 py-2 rounded-md hover:bg-primary-50 transition-colors">
+                Dashboard
+            </a>
+        </div>
+    </div>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('privacy')}"></nav>
+
+<main class="flex-1">
+    <section class="px-4 py-12">
+        <div class="max-w-3xl mx-auto">
+            <h2 class="font-display text-3xl font-bold tracking-tight mb-1">Privacy Policy</h2>
+            <p class="text-on-surface-variant text-sm mb-8">Last updated: September 5, 2026</p>
+
+            <div class="space-y-6 text-on-surface leading-relaxed">
+
+                <section>
+                    <h3 class="font-display text-lg font-semibold mb-2">What we collect</h3>
+                    <p>
+                        When you register for an account or sign up for our free daily digest, we collect
+                        your email address and the display name you provide. If you upgrade to a paid plan,
+                        billing details are collected and processed directly by Stripe — we never see or
+                        store your card number.
+                    </p>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-lg font-semibold mb-2">How we use it</h3>
+                    <p>
+                        Your email address is used solely to deliver the content you signed up for: the
+                        free daily AI-in-healthcare digest, or the full newsletter for paid subscribers.
+                        We do not sell, rent, or share your email address with third parties for marketing
+                        purposes. We do not purchase or import third-party mailing lists — every recipient
+                        signed up directly through this website.
+                    </p>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-lg font-semibold mb-2">How you're added to our mailing list</h3>
+                    <p>
+                        You're only added to our mailing list through explicit action on your part: creating
+                        an account at <a th:href="@{/register}" class="text-primary-600 hover:underline">/register</a>,
+                        or explicitly choosing to continue receiving the free digest after your trial period
+                        ends. We never add an email address to our list without that direct action.
+                    </p>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-lg font-semibold mb-2">Unsubscribing</h3>
+                    <p>
+                        Every email we send includes a one-click unsubscribe link unique to your address.
+                        Clicking it immediately and permanently removes you from future mailings — no login,
+                        no confirmation step, no waiting period. You can also reach us directly (see below)
+                        to request removal.
+                    </p>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-lg font-semibold mb-2">Bounces and complaints</h3>
+                    <p>
+                        If an email to your address bounces or you mark a message as spam, our mail provider
+                        automatically suppresses future sends to that address — you will not continue to
+                        receive mail after a bounce or complaint is registered.
+                    </p>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-lg font-semibold mb-2">Data retention</h3>
+                    <p>
+                        We retain your account and subscription information for as long as your account is
+                        active. If you unsubscribe or delete your account, your record is deactivated and
+                        excluded from all future mailings.
+                    </p>
+                </section>
+
+                <section>
+                    <h3 class="font-display text-lg font-semibold mb-2">Contact</h3>
+                    <p>
+                        Questions about this policy or your data? Email us at
+                        <a href="mailto:newsletter@bigskylabs.ai" class="text-primary-600 hover:underline">newsletter@bigskylabs.ai</a>
+                        — we typically respond within 24 hours.
+                    </p>
+                </section>
+
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

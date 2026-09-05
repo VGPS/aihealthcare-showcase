@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -31,9 +32,9 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * session exists ({@code /api/**}, {@code /monitoring/**}, {@code /stripe/**}).
  *
  * @author  Bill Blackmon
- * @version 1.6
+ * @version 1.7
  * @since   2026-05-28
- * @updated 2026-08-26
+ * @updated 2026-09-02
  */
 @Slf4j
 @Configuration
@@ -69,11 +70,13 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login", "/register", "/choose-path", "/unsubscribe", "/unsubscribe/downgrade",
                                  "/forgot-password", "/reset-password",
                                  "/css/**", "/js/**", "/webjars/**",
-                                 "/pricing", "/about", "/press", "/press/og.png", "/error",
+                                 "/pricing", "/about", "/press", "/press/og.png", "/error", "/privacy",
                                  "/directory", "/directory/**").permitAll()
                 .requestMatchers("/api/v1/stripe/webhook").permitAll()
                 .requestMatchers("/api/v1/feedback/**").permitAll()
                 .requestMatchers("/api/v1/monitoring/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/v1/subscribers").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/subscribers/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()
                 .requestMatchers("/monitoring/**").hasRole("ADMIN")
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
