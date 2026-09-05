@@ -30,13 +30,19 @@ import java.util.Map;
  * rather than errors.
  *
  * <p>This class has no Spring or Lombok dependencies. It is wired via {@code AppConfig}.
+ * Per the project's domain-purity convention this class uses the JDK's
+ * {@code System.Logger} rather than Lombok's {@code @Slf4j}, which is not
+ * available inside the domain package.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-27
- * @updated 2026-08-27
+ * @updated 2026-09-05
  */
 public class CompanySignalService {
+
+    private static final System.Logger log =
+            System.getLogger(CompanySignalService.class.getName());
 
     private static final int ARTICLE_VELOCITY_CAP = 30;
     private static final int ARTICLE_VELOCITY_PTS = 3;
@@ -53,6 +59,9 @@ public class CompanySignalService {
     public CompanySignalService(ArticleIngestionPort articlePort,
                                  DealSignalPort dealPort,
                                  CompanySentimentPort sentimentPort) {
+        log.log(System.Logger.Level.DEBUG,
+                () -> "CompanySignalService() | articlePort=" + articlePort
+                        + ", dealPort=" + dealPort + ", sentimentPort=" + sentimentPort);
         this.articlePort = articlePort;
         this.dealPort = dealPort;
         this.sentimentPort = sentimentPort;
@@ -66,6 +75,8 @@ public class CompanySignalService {
      * @return map from companyId to its computed signal (never null, may be empty)
      */
     public Map<String, CompanySignal> buildSignalMap(List<HealthcareAiCompany> companies) {
+        log.log(System.Logger.Level.DEBUG,
+                () -> "buildSignalMap() | companies=" + companies.size());
         List<NewsArticle> recentArticles = articlePort.fetchRecentArticles(ARTICLE_LOOKBACK_DAYS);
         List<DealSignal> fundingDeals = dealPort.findByType("FUNDING", MAX_FUNDING_SIGNALS, 0);
 
@@ -80,6 +91,8 @@ public class CompanySignalService {
             result.put(company.companyId(),
                     buildSignal(company, recentArticles, fundingDeals, sentimentBySlug));
         }
+        log.log(System.Logger.Level.DEBUG,
+                () -> "buildSignalMap() | return=" + result.size());
         return result;
     }
 

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<!--
+/**
+ * LinkedIn feature-post page at GET /dashboard/linkedin/features.
+ *
+ * Shows the rotating feature post due on a given date: the post body ready to
+ * copy, the live-variant opener with any outstanding placeholders flagged, the
+ * first-comment links block, and the screenshot shot list for the image.
+ *
+ * Companion to linkedin-post.html — that page posts the day's harvested
+ * articles, this one posts a product feature on a six-week rotation.
+ *
+ * @author  Bill Blackmon
+ * @since   2026-09-05
+ * @updated 2026-09-05
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('LinkedIn Feature Post')}">
+</head>
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight"
+        th:text="${pageTitle ?: 'LinkedIn Feature Post'}">LinkedIn Feature Post</h1>
+    <p class="text-primary-200 text-sm mt-0.5">
+        <span th:text="${dateLabel}">today</span> &middot;
+        <span th:text="${cycleWeeks}">6</span>-week rotation &middot;
+        <span th:text="${#lists.size(schedule)}">30</span> posts in library
+    </p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('admin-pipelines')}"></nav>
+
+<main class="max-w-4xl mx-auto px-4 py-6 space-y-6 w-full">
+
+    <!-- Date navigation -->
+    <div class="flex items-center justify-between">
+        <a th:href="@{/dashboard/linkedin/features(date=${previousDate})}"
+           class="text-sm text-primary-700 hover:underline">&larr; Previous day</a>
+        <a th:href="@{/dashboard/linkedin/features}"
+           class="text-sm font-semibold text-primary-700 hover:underline">Today</a>
+        <a th:href="@{/dashboard/linkedin/features(date=${nextDate})}"
+           class="text-sm text-primary-700 hover:underline">Next day &rarr;</a>
+    </div>
+
+    <div th:if="${post == null}"
+         class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+        No feature posts are loaded. Check that
+        <code>linkedin/feature-posts.yml</code> is on the classpath and parsed
+        cleanly at startup — the adapter logs a warning rather than failing the
+        application when it can't read the library.
+    </div>
+
+    <div th:if="${post != null}" class="space-y-6">
+
+        <!-- Weekend / off-schedule notice -->
+        <div th:unless="${scheduledToday}"
+             class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
+            Nothing is scheduled for this date — the rotation runs Monday to
+            Friday. Showing the next post due so you can draft ahead.
+        </div>
+
+        <!-- Feature header -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="font-display text-xl font-bold text-on-surface"
+                        th:text="${post.feature()}">Feature</h2>
+                    <p class="text-sm text-on-surface-variant mt-0.5"
+                       th:text="${post.menuPath()}">Menu path</p>
+                </div>
+                <div class="text-right shrink-0">
+                    <span class="inline-block bg-primary-100 text-primary-800 text-xs
+                                 font-semibold px-2.5 py-1 rounded-full"
+                          th:text="'Week ' + ${post.slot().week()} + ' &middot; '
+                                   + ${post.slot().weekday()}">Week 1 MONDAY</span>
+                    <p class="text-xs text-on-surface-variant mt-1"
+                       th:text="${post.theme()}">theme</p>
+                </div>
+            </div>
+            <p class="mt-3 text-sm">
+                <span class="text-on-surface-variant">Page:</span>
+                <a th:href="${post.url()}" th:text="${post.url()}"
+                   class="font-mono text-primary-700 hover:underline">/url</a>
+            </p>
+        </div>
+
+        <!-- Post body -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="font-semibold text-on-surface">Post Body</h2>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-on-surface-variant">Paste directly into LinkedIn (no links — avoids reach penalty)</span>
+                    <button type="button" onclick="copyText('postBody', 'postBodyStatus')"
+                            class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-4 py-1.5 rounded-md transition-colors">
+                        Copy Post
+                    </button>
+                    <span id="postBodyStatus" class="text-xs"></span>
+                </div>
+            </div>
+            <textarea id="postBody" th:text="${post.body()}" readonly
+                      class="w-full h-72 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
+                      spellcheck="false"></textarea>
+            <div class="mt-1 text-xs text-on-surface-variant text-right">
+                <span th:text="${post.bodyLength()}" class="font-medium">0</span> / 3,000 characters
+            </div>
+        </div>
+
+        <!-- Live variant opener -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="font-semibold text-on-surface">Live Opener <span class="font-normal text-on-surface-variant text-sm">(optional, stronger)</span></h2>
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="copyText('liveVariant', 'liveVariantStatus')"
+                            class="bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-1.5 rounded-md transition-colors">
+                        Copy Opener
+                    </button>
+                    <span id="liveVariantStatus" class="text-xs"></span>
+                </div>
+            </div>
+            <div th:if="${!#lists.isEmpty(unresolvedTokens)}"
+                 class="mb-3 bg-amber-50 border border-amber-200 rounded-md p-3 text-sm text-amber-900">
+                <p class="font-semibold mb-1">Fill these in from the screenshot before posting:</p>
+                <ul class="list-disc ml-5">
+                    <li th:each="token : ${unresolvedTokens}" th:text="${token}" class="font-mono text-xs">TOKEN</li>
+                </ul>
+            </div>
+            <textarea id="liveVariant" th:text="${post.liveVariant()}" readonly
+                      class="w-full h-24 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
+                      spellcheck="false"></textarea>
+            <p class="mt-1 text-xs text-on-surface-variant">
+                Replaces the first line of the post body. Use the evergreen opening instead if you don't have the numbers today.
+            </p>
+        </div>
+
+        <!-- Screenshot spec -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <h2 class="font-semibold text-on-surface mb-3">Screenshot</h2>
+
+            <div th:if="${post.screenshot().hasCriticalRedaction()}"
+                 class="mb-4 bg-red-50 border border-red-300 rounded-md p-3 text-sm text-red-900">
+                <p class="font-bold">Secrets on this page — redact before posting.</p>
+                <p th:text="${post.screenshot().redact()}">redaction instructions</p>
+            </div>
+
+            <dl class="space-y-3 text-sm">
+                <div>
+                    <dt class="font-semibold text-on-surface-variant text-xs uppercase tracking-wide">Page</dt>
+                    <dd class="font-mono" th:text="${post.screenshot().page()}">/page</dd>
+                </div>
+                <div th:if="${post.screenshot().hasPrompt()}">
+                    <dt class="font-semibold text-on-surface-variant text-xs uppercase tracking-wide">Prompt to type</dt>
+                    <dd class="flex items-start gap-3">
+                        <textarea id="shotPrompt" th:text="${post.screenshot().prompt()}" readonly
+                                  class="flex-1 h-16 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-2 resize-y focus:outline-none"
+                                  spellcheck="false"></textarea>
+                        <button type="button" onclick="copyText('shotPrompt', 'shotPromptStatus')"
+                                class="bg-gray-700 hover:bg-gray-800 text-white text-xs font-semibold px-3 py-1.5 rounded-md transition-colors shrink-0">
+                            Copy
+                        </button>
+                        <span id="shotPromptStatus" class="text-xs"></span>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="font-semibold text-on-surface-variant text-xs uppercase tracking-wide">Capture</dt>
+                    <dd th:text="${post.screenshot().capture()}">what to capture</dd>
+                </div>
+                <div th:unless="${post.screenshot().hasCriticalRedaction()}">
+                    <dt class="font-semibold text-on-surface-variant text-xs uppercase tracking-wide">Redact</dt>
+                    <dd th:text="${post.screenshot().redact()}">what to redact</dd>
+                </div>
+                <div>
+                    <dt class="font-semibold text-on-surface-variant text-xs uppercase tracking-wide">Alt text (paste into LinkedIn)</dt>
+                    <dd class="flex items-start gap-3">
+                        <textarea id="altText" th:text="${post.screenshot().altText()}" readonly
+                                  class="flex-1 h-16 text-sm bg-gray-50 border border-gray-200 rounded-md p-2 resize-y focus:outline-none"
+                                  spellcheck="false"></textarea>
+                        <button type="button" onclick="copyText('altText', 'altTextStatus')"
+                                class="bg-gray-700 hover:bg-gray-800 text-white text-xs font-semibold px-3 py-1.5 rounded-md transition-colors shrink-0">
+                            Copy
+                        </button>
+                        <span id="altTextStatus" class="text-xs"></span>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- First comment -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="font-semibold text-on-surface">Links — Paste as First Comment</h2>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-on-surface-variant">Post first, then paste this as comment #1</span>
+                    <button type="button" onclick="copyText('firstComment', 'firstCommentStatus')"
+                            class="bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-1.5 rounded-md transition-colors">
+                        Copy Links
+                    </button>
+                    <span id="firstCommentStatus" class="text-xs"></span>
+                </div>
+            </div>
+            <textarea id="firstComment" th:text="${post.firstComment()}" readonly
+                      class="w-full h-28 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
+                      spellcheck="false"></textarea>
+        </div>
+
+        <!-- Hashtags -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="font-semibold text-on-surface">Hashtags</h2>
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="copyText('hashtags', 'hashtagsStatus')"
+                            class="bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-1.5 rounded-md transition-colors">
+                        Copy Hashtags
+                    </button>
+                    <span id="hashtagsStatus" class="text-xs"></span>
+                </div>
+            </div>
+            <textarea id="hashtags" th:text="${post.hashtagLine()}" readonly
+                      class="w-full h-12 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-none focus:outline-none"
+                      spellcheck="false"></textarea>
+        </div>
+
+        <!-- This week -->
+        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+            <h2 class="font-semibold text-on-surface mb-3">This Week</h2>
+            <ul class="divide-y divide-outline-variant">
+                <li th:each="weekPost : ${weekPosts}" class="py-2 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-mono text-on-surface-variant w-24 inline-block"
+                              th:text="${weekPost.slot().weekday()}">MONDAY</span>
+                        <a th:href="@{/dashboard/linkedin/features(id=${weekPost.id()})}"
+                           th:text="${weekPost.feature()}"
+                           class="text-primary-700 hover:underline font-medium">Feature</a>
+                    </div>
+                    <span class="text-xs text-on-surface-variant shrink-0" th:text="${weekPost.theme()}">theme</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Posting workflow -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
+            <p class="font-semibold mb-1">Posting workflow</p>
+            <ol class="list-decimal ml-4 space-y-1 text-blue-800">
+                <li>Capture the screenshot per the spec above — check the redaction line first.</li>
+                <li>Copy the <strong>Post Body</strong> and paste into a new LinkedIn post.</li>
+                <li>Optionally swap the first line for the <strong>Live Opener</strong>, with the placeholders filled in.</li>
+                <li>Attach the image and paste the <strong>Alt text</strong> into LinkedIn's alt-text field.</li>
+                <li>Publish, then immediately paste the <strong>Links</strong> block as comment #1.</li>
+            </ol>
+        </div>
+
+    </div>
+
+    <!-- Full schedule -->
+    <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
+        <h2 class="font-semibold text-on-surface mb-3">Full Rotation</h2>
+        <table class="w-full text-sm">
+            <thead>
+            <tr class="text-left text-xs uppercase tracking-wide text-on-surface-variant border-b border-outline-variant">
+                <th class="py-2 pr-3">Slot</th>
+                <th class="py-2 pr-3">Feature</th>
+                <th class="py-2">Theme</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${schedule}" class="border-b border-outline-variant last:border-0">
+                <td class="py-2 pr-3 font-mono text-xs whitespace-nowrap"
+                    th:text="'W' + ${item.slot().week()} + ' ' + ${item.slot().weekday()}">W1 MONDAY</td>
+                <td class="py-2 pr-3">
+                    <a th:href="@{/dashboard/linkedin/features(id=${item.id()})}"
+                       th:text="${item.feature()}"
+                       class="text-primary-700 hover:underline">Feature</a>
+                </td>
+                <td class="py-2 text-on-surface-variant" th:text="${item.theme()}">theme</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+function copyText(textareaId, statusId) {
+    var el = document.getElementById(textareaId);
+    var statusEl = document.getElementById(statusId);
+    if (!el) { return; }
+    navigator.clipboard.writeText(el.value).then(function() {
+        statusEl.textContent = 'Copied!';
+        statusEl.className = 'text-xs text-green-700 font-semibold';
+        setTimeout(function() {
+            statusEl.textContent = '';
+        }, 3000);
+    }).catch(function() {
+        el.select();
+        statusEl.textContent = 'Select + Ctrl-C to copy';
+        statusEl.className = 'text-xs text-yellow-700 font-semibold';
+    });
+}
+</script>
+</body>
+</html>
