@@ -110,11 +110,12 @@ class SubscriberControllerTest {
     }
 
     // -------------------------------------------------------------------------
-    // GET /api/v1/subscribers
+    // GET /api/v1/subscribers — ADMIN only
     // -------------------------------------------------------------------------
 
     @Test
-    void listSubscribers_returns200WithList() throws Exception {
+    @WithMockUser(roles = "ADMIN")
+    void listSubscribers_asAdmin_returns200WithList() throws Exception {
         when(manageSubscribersUseCase.listSubscribers()).thenReturn(List.of(SUBSCRIBER));
 
         mockMvc.perform(get("/api/v1/subscribers"))
@@ -125,6 +126,7 @@ class SubscriberControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void listSubscribers_emptyList_returns200WithEmptyArray() throws Exception {
         when(manageSubscribersUseCase.listSubscribers()).thenReturn(List.of());
 
@@ -134,12 +136,19 @@ class SubscriberControllerTest {
                 .andExpect(jsonPath("$").isEmpty());
     }
 
+    @Test
+    void listSubscribers_asNonAdmin_returns403() throws Exception {
+        mockMvc.perform(get("/api/v1/subscribers"))
+                .andExpect(status().isForbidden());
+    }
+
     // -------------------------------------------------------------------------
-    // DELETE /api/v1/subscribers/{email}
+    // DELETE /api/v1/subscribers/{email} — ADMIN only
     // -------------------------------------------------------------------------
 
     @Test
-    void removeSubscriber_returns204() throws Exception {
+    @WithMockUser(roles = "ADMIN")
+    void removeSubscriber_asAdmin_returns204() throws Exception {
         mockMvc.perform(delete("/api/v1/subscribers/{email}", EMAIL))
                 .andExpect(status().isNoContent());
 
@@ -147,6 +156,7 @@ class SubscriberControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void removeSubscriber_unknownEmail_returns404() throws Exception {
         doThrow(new SubscriberNotFoundException(EMAIL))
                 .when(manageSubscribersUseCase).removeSubscriber(EMAIL);
@@ -154,5 +164,13 @@ class SubscriberControllerTest {
         mockMvc.perform(delete("/api/v1/subscribers/{email}", EMAIL))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void removeSubscriber_asNonAdmin_returns403() throws Exception {
+        mockMvc.perform(delete("/api/v1/subscribers/{email}", EMAIL))
+                .andExpect(status().isForbidden());
+
+        verify(manageSubscribersUseCase, org.mockito.Mockito.never()).removeSubscriber(anyString());
     }
 }
