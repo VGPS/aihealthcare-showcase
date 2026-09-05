@@ -37,6 +37,9 @@ import java.util.UUID;
  */
 public class PerplexityCompanyDiscoveryService {
 
+    private static final System.Logger log =
+            System.getLogger(PerplexityCompanyDiscoveryService.class.getName());
+
     private static final String DISCOVERY_PROMPT =
             "Find all notable companies currently operating in AI-powered healthcare. " +
             "Include clinical AI, diagnostics AI, health AI copilots, digital health AI startups, " +
@@ -57,15 +60,18 @@ public class PerplexityCompanyDiscoveryService {
     private final CompanyResearchPort researchPort;
     private final HealthcareAiCompanyPort companyPort;
     private final PerplexityCitationPort citationPort;
+    private final HealthcareAiCompanyClassifier classifier;
     private final int maxCompaniesPerRun;
 
     public PerplexityCompanyDiscoveryService(CompanyResearchPort researchPort,
                                               HealthcareAiCompanyPort companyPort,
                                               PerplexityCitationPort citationPort,
+                                              HealthcareAiCompanyClassifier classifier,
                                               int maxCompaniesPerRun) {
         this.researchPort = researchPort;
         this.companyPort = companyPort;
         this.citationPort = citationPort;
+        this.classifier = classifier;
         this.maxCompaniesPerRun = maxCompaniesPerRun;
     }
 
@@ -110,7 +116,9 @@ public class PerplexityCompanyDiscoveryService {
                     persisted++;
                 }
             } catch (Exception e) {
-                // Log and continue — don't let one company failure stop the pipeline
+                log.log(System.Logger.Level.WARNING,
+                        () -> "runDiscoveryCycle() | failed to process/persist company '" + name
+                                + "' — skipping. cause=" + e.getMessage());
             }
         }
 
@@ -154,16 +162,21 @@ public class PerplexityCompanyDiscoveryService {
             return null;
         }
 
+        String description = getStringField(fields, "description", "");
+        String subSector = getStringField(fields, "subSector", null);
+        String category = classifier.classify(name, description, subSector);
+
         return new HealthcareAiCompany(
                 companyId,
                 name,
                 normalized,
                 domain,
-                getStringField(fields, "description", ""),
+                description,
                 getStringField(fields, "hqLocation", null),
                 getIntegerField(fields, "foundedYear"),
                 getStringField(fields, "sector", "Healthcare AI"),
-                getStringField(fields, "subSector", null),
+                subSector,
+                category,
                 getStringField(fields, "fundingStage", null),
                 getStringField(fields, "estimatedFunding", null),
                 getStringField(fields, "foundersJson", null),
