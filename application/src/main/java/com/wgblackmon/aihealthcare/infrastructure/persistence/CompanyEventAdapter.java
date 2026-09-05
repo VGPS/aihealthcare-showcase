@@ -24,6 +24,9 @@ import java.util.List;
 @Component
 public class CompanyEventAdapter implements CompanyEventPort {
 
+    private static final int TITLE_MAX_LENGTH = 1024;
+    private static final int SOURCE_ARTICLE_ID_MAX_LENGTH = 255;
+
     private final CompanyEventRepository repository;
 
     public CompanyEventAdapter(CompanyEventRepository repository) {
@@ -78,12 +81,32 @@ public class CompanyEventAdapter implements CompanyEventPort {
         entity.setEventId(event.eventId());
         entity.setCompanySlug(event.companySlug());
         entity.setEventType(event.eventType().name());
-        entity.setTitle(event.title());
+        entity.setTitle(truncate(event.eventId(), event.title(), "title", TITLE_MAX_LENGTH));
         entity.setDescription(event.description());
-        entity.setSourceArticleId(event.sourceArticleId());
+        entity.setSourceArticleId(truncate(event.eventId(), event.sourceArticleId(), "sourceArticleId", SOURCE_ARTICLE_ID_MAX_LENGTH));
         entity.setOccurredAt(event.occurredAt());
         entity.setDetectedAt(event.detectedAt());
         return entity;
+    }
+
+    /**
+     * Clips a value to the database column's max length, logging a warning
+     * when clipping actually occurs. {@code sourceArticleId} in particular
+     * mirrors the source article's own id, which can be a long RSS entry URI.
+     *
+     * @param eventId   the owning event's id, for the warning log
+     * @param value     the value to clip; null passes through unchanged
+     * @param fieldName the column name, for the warning log
+     * @param maxLength the column's max length
+     * @return the value, clipped to {@code maxLength} characters if needed
+     */
+    private String truncate(String eventId, String value, String fieldName, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        log.warn("truncate() | event {} field '{}' is {} chars, exceeding column limit of {} — clipping",
+                eventId, fieldName, value.length(), maxLength);
+        return value.substring(0, maxLength);
     }
 
     private CompanyEvent toDomain(CompanyEventEntity entity) {

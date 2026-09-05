@@ -29,6 +29,15 @@ import java.util.Optional;
 @Component
 public class RegulatoryEventAdapter implements RegulatoryEventPort {
 
+    private static final int TITLE_MAX_LENGTH = 1000;
+    private static final int REFERENCE_NUMBER_MAX_LENGTH = 50;
+    private static final int APPLICANT_NAME_MAX_LENGTH = 500;
+    private static final int DEVICE_NAME_MAX_LENGTH = 500;
+    private static final int SOURCE_URL_MAX_LENGTH = 2048;
+    private static final int LINKED_ARTICLE_ID_MAX_LENGTH = 255;
+    private static final int CLEARANCE_TYPE_MAX_LENGTH = 50;
+    private static final int PREDICATE_DEVICE_NUMBER_MAX_LENGTH = 50;
+
     private final RegulatoryEventRepository repository;
 
     public RegulatoryEventAdapter(RegulatoryEventRepository repository) {
@@ -46,12 +55,17 @@ public class RegulatoryEventAdapter implements RegulatoryEventPort {
     @Override
     public void saveAll(List<RegulatoryEvent> events) {
         log.debug("saveAll() | count={}", events.size());
-        List<RegulatoryEventEntity> entities = new ArrayList<>();
+        int saved = 0;
         for (RegulatoryEvent event : events) {
-            entities.add(toEntity(event));
+            try {
+                repository.save(toEntity(event));
+                saved++;
+            } catch (RuntimeException e) {
+                log.warn("saveAll() | failed to persist event {} — skipping. cause={}",
+                        event.eventId(), e.getMessage());
+            }
         }
-        repository.saveAll(entities);
-        log.debug("saveAll() | return=void");
+        log.debug("saveAll() | return=void, saved={}/{}", saved, events.size());
     }
 
     @Override
@@ -141,21 +155,41 @@ public class RegulatoryEventAdapter implements RegulatoryEventPort {
         entity.setEventId(event.eventId());
         entity.setEventType(event.eventType().name());
         entity.setRegulatoryBody(event.regulatoryBody().name());
-        entity.setTitle(event.title());
+        entity.setTitle(truncate(event.eventId(), event.title(), "title", TITLE_MAX_LENGTH));
         entity.setSummary(event.summary());
-        entity.setReferenceNumber(event.referenceNumber());
-        entity.setApplicantName(event.applicantName());
-        entity.setDeviceName(event.deviceName());
-        entity.setSourceUrl(event.sourceUrl());
-        entity.setLinkedArticleId(event.linkedArticleId());
+        entity.setReferenceNumber(truncate(event.eventId(), event.referenceNumber(), "referenceNumber", REFERENCE_NUMBER_MAX_LENGTH));
+        entity.setApplicantName(truncate(event.eventId(), event.applicantName(), "applicantName", APPLICANT_NAME_MAX_LENGTH));
+        entity.setDeviceName(truncate(event.eventId(), event.deviceName(), "deviceName", DEVICE_NAME_MAX_LENGTH));
+        entity.setSourceUrl(truncate(event.eventId(), event.sourceUrl(), "sourceUrl", SOURCE_URL_MAX_LENGTH));
+        entity.setLinkedArticleId(truncate(event.eventId(), event.linkedArticleId(), "linkedArticleId", LINKED_ARTICLE_ID_MAX_LENGTH));
         entity.setPublishedAt(event.publishedAt());
         entity.setDiscoveredAt(event.discoveredAt());
         entity.setAiHealthcareKeywords(joinKeywords(event.aiHealthcareKeywords()));
         entity.setOutcomeStatus(event.outcomeStatus() != null ? event.outcomeStatus().name() : null);
         entity.setOutcomeUpdatedAt(event.outcomeUpdatedAt());
-        entity.setClearanceType(event.clearanceType());
-        entity.setPredicateDeviceNumber(event.predicateDeviceNumber());
+        entity.setClearanceType(truncate(event.eventId(), event.clearanceType(), "clearanceType", CLEARANCE_TYPE_MAX_LENGTH));
+        entity.setPredicateDeviceNumber(truncate(event.eventId(), event.predicateDeviceNumber(), "predicateDeviceNumber", PREDICATE_DEVICE_NUMBER_MAX_LENGTH));
         return entity;
+    }
+
+    /**
+     * Clips a value to the database column's max length, logging a warning
+     * when clipping actually occurs. FDA/CMS source data is semi-structured
+     * external text with no length guarantee on names or reference numbers.
+     *
+     * @param eventId   the owning event's id, for the warning log
+     * @param value     the value to clip; null passes through unchanged
+     * @param fieldName the column name, for the warning log
+     * @param maxLength the column's max length
+     * @return the value, clipped to {@code maxLength} characters if needed
+     */
+    private String truncate(String eventId, String value, String fieldName, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        log.warn("truncate() | event {} field '{}' is {} chars, exceeding column limit of {} — clipping",
+                eventId, fieldName, value.length(), maxLength);
+        return value.substring(0, maxLength);
     }
 
     private RegulatoryEvent toDomain(RegulatoryEventEntity entity) {

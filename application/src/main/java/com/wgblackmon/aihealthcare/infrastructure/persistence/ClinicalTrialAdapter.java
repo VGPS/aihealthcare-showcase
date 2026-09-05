@@ -29,6 +29,10 @@ import java.util.Optional;
 @Component
 public class ClinicalTrialAdapter implements ClinicalTrialPort {
 
+    private static final int TITLE_MAX_LENGTH = 1000;
+    private static final int SPONSOR_MAX_LENGTH = 500;
+    private static final int SOURCE_URL_MAX_LENGTH = 2048;
+
     private final ClinicalTrialRepository repository;
 
     public ClinicalTrialAdapter(ClinicalTrialRepository repository) {
@@ -46,12 +50,17 @@ public class ClinicalTrialAdapter implements ClinicalTrialPort {
     @Override
     public void saveAll(List<ClinicalTrial> trials) {
         log.debug("saveAll() | count={}", trials.size());
-        List<ClinicalTrialEntity> entities = new ArrayList<>();
+        int saved = 0;
         for (ClinicalTrial trial : trials) {
-            entities.add(toEntity(trial));
+            try {
+                repository.save(toEntity(trial));
+                saved++;
+            } catch (RuntimeException e) {
+                log.warn("saveAll() | failed to persist trial {} — skipping. cause={}",
+                        trial.trialId(), e.getMessage());
+            }
         }
-        repository.saveAll(entities);
-        log.debug("saveAll() | return=void");
+        log.debug("saveAll() | return=void, saved={}/{}", saved, trials.size());
     }
 
     @Override
@@ -123,18 +132,38 @@ public class ClinicalTrialAdapter implements ClinicalTrialPort {
         ClinicalTrialEntity entity = new ClinicalTrialEntity();
         entity.setTrialId(trial.trialId());
         entity.setNctId(trial.nctId());
-        entity.setTitle(trial.title());
-        entity.setSponsor(trial.sponsor());
+        entity.setTitle(truncate(trial.trialId(), trial.title(), "title", TITLE_MAX_LENGTH));
+        entity.setSponsor(truncate(trial.trialId(), trial.sponsor(), "sponsor", SPONSOR_MAX_LENGTH));
         entity.setStatus(trial.status().name());
         entity.setPhase(trial.phase() != null ? trial.phase().name() : null);
         entity.setConditions(joinPipeDelimited(trial.conditions()));
         entity.setBriefSummary(trial.briefSummary());
-        entity.setSourceUrl(trial.sourceUrl());
+        entity.setSourceUrl(truncate(trial.trialId(), trial.sourceUrl(), "sourceUrl", SOURCE_URL_MAX_LENGTH));
         entity.setStudyType(trial.studyType());
         entity.setStartDate(trial.startDate());
         entity.setDiscoveredAt(trial.discoveredAt());
         entity.setAiHealthcareKeywords(joinPipeDelimited(trial.aiHealthcareKeywords()));
         return entity;
+    }
+
+    /**
+     * Clips a value to the database column's max length, logging a warning
+     * when clipping actually occurs. Titles and sponsor names come from the
+     * ClinicalTrials.gov API with no length guarantee.
+     *
+     * @param trialId   the owning trial's id, for the warning log
+     * @param value     the value to clip; null passes through unchanged
+     * @param fieldName the column name, for the warning log
+     * @param maxLength the column's max length
+     * @return the value, clipped to {@code maxLength} characters if needed
+     */
+    private String truncate(String trialId, String value, String fieldName, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        log.warn("truncate() | trial {} field '{}' is {} chars, exceeding column limit of {} — clipping",
+                trialId, fieldName, value.length(), maxLength);
+        return value.substring(0, maxLength);
     }
 
     private ClinicalTrial toDomain(ClinicalTrialEntity entity) {

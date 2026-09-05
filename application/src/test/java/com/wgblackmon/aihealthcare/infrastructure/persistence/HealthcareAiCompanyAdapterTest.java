@@ -136,6 +136,25 @@ class HealthcareAiCompanyAdapterTest {
         assertThat(sorted.get(2).name()).isEqualTo("Zebra Health");
     }
 
+    @Test
+    void save_truncatesOversizedLlmExtractedFields_ratherThanFailing() {
+        HealthcareAiCompany oversized = new HealthcareAiCompany(
+                "id-oversized", "Oversized Co", "oversized co", "oversized.com",
+                "desc", "HQ".repeat(200), 2020,
+                "S".repeat(150), "SS".repeat(150), null,
+                "F".repeat(80), "E".repeat(150), null,
+                List.of(), false, List.of(), Instant.now(), null);
+
+        adapter.save(oversized);
+
+        HealthcareAiCompany loaded = adapter.findByNameNormalized("oversized co").orElseThrow();
+        assertThat(loaded.hqLocation()).hasSize(255);
+        assertThat(loaded.sector()).hasSize(100);
+        assertThat(loaded.subSector()).hasSize(100);
+        assertThat(loaded.fundingStage()).hasSize(50);
+        assertThat(loaded.estimatedFunding()).hasSize(100);
+    }
+
     private HealthcareAiCompany company(String id, String name, String normalized, String domain) {
         return new HealthcareAiCompany(
                 id, name, normalized, domain, "AI company", "San Francisco", 2020,

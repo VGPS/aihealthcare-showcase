@@ -37,6 +37,9 @@ import java.util.UUID;
  */
 public class PerplexityCompanyDiscoveryService {
 
+    private static final System.Logger log =
+            System.getLogger(PerplexityCompanyDiscoveryService.class.getName());
+
     private static final String DISCOVERY_PROMPT =
             "Find all notable companies currently operating in AI-powered healthcare. " +
             "Include clinical AI, diagnostics AI, health AI copilots, digital health AI startups, " +
@@ -113,7 +116,9 @@ public class PerplexityCompanyDiscoveryService {
                     persisted++;
                 }
             } catch (Exception e) {
-                // Log and continue — don't let one company failure stop the pipeline
+                log.log(System.Logger.Level.WARNING,
+                        () -> "runDiscoveryCycle() | failed to process/persist company '" + name
+                                + "' — skipping. cause=" + e.getMessage());
             }
         }
 
