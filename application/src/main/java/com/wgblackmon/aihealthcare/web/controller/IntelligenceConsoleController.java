@@ -46,7 +46,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 3.0
  * @since   2026-08-08
- * @updated 2026-08-27
+ * @updated 2026-09-06
  */
 @Slf4j
 @Controller
@@ -104,8 +104,8 @@ public class IntelligenceConsoleController {
     @GetMapping
     public String console(Model model, Principal principal) {
         log.debug("console() | principal={}", principal != null ? principal.getName() : "anonymous");
-        SubscriptionTier tier = isAdmin(principal) ? SubscriptionTier.ENTERPRISE : resolveTier(principal);
-        boolean isEnterprise = isEnterpriseTier(tier);
+        SubscriptionTier tier = resolveTier(principal);
+        boolean isEnterprise = isEnterpriseTier(tier) || isAdmin(principal);
         boolean isSubscriber = isSubscriberOrAbove(tier);
         model.addAttribute("baseUrl", baseUrl);
         model.addAttribute("activeTab", "chat");
@@ -274,11 +274,10 @@ public class IntelligenceConsoleController {
     }
 
     private SubscriptionTier resolveTier(Principal principal) {
-        if (principal == null) {
-            return SubscriptionTier.FREE;
-        }
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        return subscriber.map(Subscriber::tier).orElse(SubscriptionTier.FREE);
+        if (principal == null) return SubscriptionTier.FREE;
+        if (isAdmin(principal)) return SubscriptionTier.SUBSCRIBER;
+        return subscriberPort.findByEmail(principal.getName())
+                .map(Subscriber::tier).orElse(SubscriptionTier.FREE);
     }
 
     private String escapeJson(String value) {

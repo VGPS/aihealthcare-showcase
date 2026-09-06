@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
 import com.wgblackmon.aihealthcare.domain.service.HealthcareAiCompanyClassifier;
+import com.wgblackmon.aihealthcare.domain.service.SlugUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -161,8 +162,7 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
 
     /** Converts a display name to a URL-safe slug (e.g. "Grelin Health" → "grelin-health"). */
     static String computeSlug(String name) {
-        if (name == null || name.isBlank()) return "";
-        return name.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+        return SlugUtils.toSlug(name);
     }
 
     HealthcareAiCompanyEntity toEntity(HealthcareAiCompany company) {

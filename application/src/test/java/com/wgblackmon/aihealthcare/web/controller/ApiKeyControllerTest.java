@@ -1,10 +1,10 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.ApiKey;
-import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
-import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-03
- * @updated 2026-08-04
+ * @updated 2026-09-06
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(ApiKeyController.class)
@@ -51,13 +51,13 @@ class ApiKeyControllerTest {
     private ApiKeyPort apiKeyPort;
 
     @MockitoBean
-    private AppUserPort appUserPort;
+    private SubscriberPort subscriberPort;
 
     private static final Instant NOW = Instant.parse("2026-08-04T12:00:00Z");
 
     private void stubUser(String email, SubscriptionTier tier) {
-        AppUser user = new AppUser(email, "hashed", "Test User", "USER", true, tier, null);
-        when(appUserPort.findByEmail(email)).thenReturn(Optional.of(user));
+        Subscriber subscriber = new Subscriber(email, "Test User", true, NOW, tier, null, null, null);
+        when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(subscriber));
     }
 
     @Test

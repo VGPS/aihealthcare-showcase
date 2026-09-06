@@ -1,16 +1,15 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.ApiKey;
-import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
-import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
 import com.wgblackmon.aihealthcare.web.dto.ApiKeyResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +32,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-09-06
  */
 @Slf4j
 @Controller
@@ -43,18 +42,18 @@ public class DeveloperPortalController {
 
     private final ApiKeyPort apiKeyPort;
     private final UsageTrackingPort usageTrackingPort;
-    private final AppUserPort appUserPort;
+    private final SubscriberPort subscriberPort;
 
     public DeveloperPortalController(ApiKeyPort apiKeyPort,
                                      UsageTrackingPort usageTrackingPort,
-                                     AppUserPort appUserPort) {
-        log.debug("DeveloperPortalController() | apiKeyPort={}, usageTrackingPort={}, appUserPort={}",
+                                     SubscriberPort subscriberPort) {
+        log.debug("DeveloperPortalController() | apiKeyPort={}, usageTrackingPort={}, subscriberPort={}",
                   apiKeyPort.getClass().getSimpleName(),
                   usageTrackingPort.getClass().getSimpleName(),
-                  appUserPort.getClass().getSimpleName());
+                  subscriberPort.getClass().getSimpleName());
         this.apiKeyPort = apiKeyPort;
         this.usageTrackingPort = usageTrackingPort;
-        this.appUserPort = appUserPort;
+        this.subscriberPort = subscriberPort;
     }
 
     /**
@@ -80,8 +79,8 @@ public class DeveloperPortalController {
             String email = principal.getName();
             model.addAttribute("email", email);
 
-            SubscriptionTier tier = resolveTier(email);
-            boolean isAdmin = isAdmin();
+            SubscriptionTier tier = resolveTier(principal);
+            boolean isAdmin = isAdmin(principal);
             model.addAttribute("tier", tier.name());
             model.addAttribute("isAdmin", isAdmin);
 
@@ -125,16 +124,18 @@ public class DeveloperPortalController {
         return "developer";
     }
 
-    private SubscriptionTier resolveTier(String email) {
-        Optional<AppUser> userOpt = appUserPort.findByEmail(email);
-        if (userOpt.isPresent() && userOpt.get().tier() != null) {
-            return userOpt.get().tier();
-        }
-        return SubscriptionTier.FREE;
+    private SubscriptionTier resolveTier(Principal principal) {
+        if (principal == null) return SubscriptionTier.FREE;
+        if (isAdmin(principal)) return SubscriptionTier.SUBSCRIBER;
+        return subscriberPort.findByEmail(principal.getName())
+                .map(Subscriber::tier).orElse(SubscriptionTier.FREE);
     }
 
-    private boolean isAdmin() {
-        return SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+    private boolean isAdmin(Principal principal) {
+        if (principal instanceof Authentication auth) {
+            return auth.getAuthorities().stream()
+                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        }
+        return false;
     }
 }

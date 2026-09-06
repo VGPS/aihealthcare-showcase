@@ -1,17 +1,18 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistItem;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistItemType;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
-import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +46,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-08-07
+ * @updated 2026-09-06
  */
 @Slf4j
 @Controller
@@ -59,21 +60,21 @@ public class WatchlistController {
 
     private final WatchlistPort watchlistPort;
     private final WatchlistMatchPort watchlistMatchPort;
-    private final AppUserPort appUserPort;
+    private final SubscriberPort subscriberPort;
     private final NewsArticleRepository articleRepository;
 
     public WatchlistController(WatchlistPort watchlistPort,
                                 WatchlistMatchPort watchlistMatchPort,
-                                AppUserPort appUserPort,
+                                SubscriberPort subscriberPort,
                                 NewsArticleRepository articleRepository) {
-        log.debug("WatchlistController() | watchlistPort={}, watchlistMatchPort={}, appUserPort={}, articleRepository={}",
+        log.debug("WatchlistController() | watchlistPort={}, watchlistMatchPort={}, subscriberPort={}, articleRepository={}",
                 watchlistPort.getClass().getSimpleName(),
                 watchlistMatchPort.getClass().getSimpleName(),
-                appUserPort.getClass().getSimpleName(),
+                subscriberPort.getClass().getSimpleName(),
                 articleRepository.getClass().getSimpleName());
         this.watchlistPort = watchlistPort;
         this.watchlistMatchPort = watchlistMatchPort;
-        this.appUserPort = appUserPort;
+        this.subscriberPort = subscriberPort;
         this.articleRepository = articleRepository;
     }
 
@@ -88,8 +89,8 @@ public class WatchlistController {
 
         String email = principal != null ? principal.getName() : "";
 
-        // Tier gate — only SUBSCRIBER and DEMO can access
-        if (!hasWatchlistAccess(email)) {
+        // Tier gate — only SUBSCRIBER, DEMO, ENTERPRISE, and ADMIN can access
+        if (!hasWatchlistAccess(principal)) {
             log.debug("index() | return=redirect:/pricing (tier gate)");
             return "redirect:/pricing";
         }
@@ -244,7 +245,7 @@ public class WatchlistController {
 
         String email = principal != null ? principal.getName() : "";
 
-        if (!hasWatchlistAccess(email)) {
+        if (!hasWatchlistAccess(principal)) {
             log.debug("addItem() | return=redirect:/pricing (tier gate)");
             return "redirect:/pricing";
         }
@@ -293,19 +294,31 @@ public class WatchlistController {
     }
 
     /**
-     * Returns true if the user has SUBSCRIBER or DEMO tier (or is ADMIN).
+     * Returns true if the user has SUBSCRIBER, DEMO, or ENTERPRISE tier, or is ADMIN.
      */
-    private boolean hasWatchlistAccess(String email) {
-        Optional<AppUser> userOpt = appUserPort.findByEmail(email);
-        if (userOpt.isEmpty()) {
+    private boolean hasWatchlistAccess(Principal principal) {
+        log.debug("hasWatchlistAccess() | principal={}", principal != null ? principal.getName() : "null");
+        if (principal == null) {
+            log.debug("hasWatchlistAccess() | return=false (no principal)");
             return false;
         }
-        AppUser user = userOpt.get();
-        if ("ADMIN".equals(user.role())) {
+        if (isAdmin(principal)) {
+            log.debug("hasWatchlistAccess() | return=true (admin)");
             return true;
         }
-        SubscriptionTier tier = user.tier() != null ? user.tier() : SubscriptionTier.FREE;
-        return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
+        SubscriptionTier tier = subscriberPort.findByEmail(principal.getName())
+                .map(Subscriber::tier).orElse(SubscriptionTier.FREE);
+        boolean result = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
                 || tier == SubscriptionTier.ENTERPRISE;
+        log.debug("hasWatchlistAccess() | return={} (tier={})", result, tier);
+        return result;
+    }
+
+    private boolean isAdmin(Principal principal) {
+        if (principal instanceof Authentication auth) {
+            return auth.getAuthorities().stream()
+                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        }
+        return false;
     }
 }

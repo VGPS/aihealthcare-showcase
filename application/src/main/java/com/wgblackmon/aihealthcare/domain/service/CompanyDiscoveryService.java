@@ -83,7 +83,7 @@ public class CompanyDiscoveryService implements DiscoverCompaniesUseCase {
     }
 
     private NewsArticle toNewsArticle(Company company) {
-        String articleId = "startup-" + company.name().toLowerCase().replaceAll("[^a-z0-9]", "-");
+        String articleId = "startup-" + SlugUtils.toSlug(company.name());
 
         URI url;
         if (company.companySite() != null && !company.companySite().isBlank()) {

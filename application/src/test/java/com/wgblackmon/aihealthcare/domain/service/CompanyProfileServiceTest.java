@@ -208,7 +208,7 @@ class CompanyProfileServiceTest {
     @Test
     void toSlugStripsSpecialCharacters() {
         assertThat(service.toSlug("Acme, Inc.")).isEqualTo("acme-inc");
-        assertThat(service.toSlug("Health+AI")).isEqualTo("healthai");
+        assertThat(service.toSlug("Health+AI")).isEqualTo("health-ai");
     }
 
     // --- helpers ---

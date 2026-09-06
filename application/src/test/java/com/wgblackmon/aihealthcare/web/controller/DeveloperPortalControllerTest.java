@@ -1,10 +1,10 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
-import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
@@ -15,6 +15,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-09-06
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(DeveloperPortalController.class)
@@ -47,11 +48,11 @@ class DeveloperPortalControllerTest {
     private UsageTrackingPort usageTrackingPort;
 
     @MockitoBean
-    private AppUserPort appUserPort;
+    private SubscriberPort subscriberPort;
 
     private void stubUser(String email, SubscriptionTier tier) {
-        AppUser user = new AppUser(email, "hashed", "Test User", "USER", true, tier, null);
-        when(appUserPort.findByEmail(email)).thenReturn(Optional.of(user));
+        Subscriber subscriber = new Subscriber(email, "Test User", true, Instant.now(), tier, null, null, null);
+        when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(subscriber));
         when(apiKeyPort.findAllByOwnerEmail(email)).thenReturn(List.of());
         when(usageTrackingPort.getOrCreateUsage(anyString(), anyString()))
                 .thenReturn(new UsageRecord(email, "2026-08", 10, 200));

@@ -1,12 +1,13 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistItem;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistItemType;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
@@ -47,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-08-04
+ * @updated 2026-09-06
  */
 @Import(SecurityConfig.class)
 @WithMockUser
@@ -67,33 +68,30 @@ class WatchlistControllerTest {
     private AppUserPort appUserPort;
 
     @MockitoBean
+    private SubscriberPort subscriberPort;
+
+    @MockitoBean
     private ApiKeyPort apiKeyPort;
 
     @MockitoBean
     private NewsArticleRepository articleRepository;
 
     private void stubSubscriberUser() {
-        AppUser user = new AppUser("user", "hashed", "Test User", "USER", true,
-                SubscriptionTier.SUBSCRIBER, null);
-        when(appUserPort.findByEmail("user")).thenReturn(Optional.of(user));
+        Subscriber subscriber = new Subscriber("user", "Test User", true, Instant.now(),
+                SubscriptionTier.SUBSCRIBER, null, null, null);
+        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
     }
 
     private void stubDemoUser() {
-        AppUser user = new AppUser("user", "hashed", "Demo User", "USER", true,
-                SubscriptionTier.DEMO, null);
-        when(appUserPort.findByEmail("user")).thenReturn(Optional.of(user));
+        Subscriber subscriber = new Subscriber("user", "Demo User", true, Instant.now(),
+                SubscriptionTier.DEMO, null, null, null);
+        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
     }
 
     private void stubFreeUser() {
-        AppUser user = new AppUser("user", "hashed", "Free User", "USER", true,
-                SubscriptionTier.FREE, null);
-        when(appUserPort.findByEmail("user")).thenReturn(Optional.of(user));
-    }
-
-    private void stubAdminUser() {
-        AppUser user = new AppUser("user", "hashed", "Admin User", "ADMIN", true,
-                SubscriptionTier.FREE, null);
-        when(appUserPort.findByEmail("user")).thenReturn(Optional.of(user));
+        Subscriber subscriber = new Subscriber("user", "Free User", true, Instant.now(),
+                SubscriptionTier.FREE, null, null, null);
+        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
     }
 
     @Test
@@ -135,8 +133,8 @@ class WatchlistControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void getWatchlist_adminUser_rendersPage() throws Exception {
-        stubAdminUser();
         when(watchlistPort.findByUser("user")).thenReturn(List.of());
         when(watchlistMatchPort.findByUser("user", 50)).thenReturn(List.of());
 
@@ -207,7 +205,7 @@ class WatchlistControllerTest {
     @Test
     @WithMockUser(username = "unauthenticated_test")
     void getWatchlist_unknownUser_redirectsToPricing() throws Exception {
-        when(appUserPort.findByEmail("unauthenticated_test")).thenReturn(Optional.empty());
+        when(subscriberPort.findByEmail("unauthenticated_test")).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/watchlist"))
                 .andExpect(status().is3xxRedirection())

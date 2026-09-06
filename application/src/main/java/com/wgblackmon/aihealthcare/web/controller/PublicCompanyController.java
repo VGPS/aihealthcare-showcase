@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.CompanySignal;
+import com.wgblackmon.aihealthcare.domain.service.SlugUtils;
 import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
@@ -311,8 +312,7 @@ public class PublicCompanyController {
 
     /** Converts a display name to a URL-safe slug (e.g. "Grelin Health" → "grelin-health"). */
     static String toSlug(String name) {
-        if (name == null || name.isBlank()) return "";
-        return name.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+        return SlugUtils.toSlug(name);
     }
 
     /** Converts [N] citation markers in description text to anchor links targeting #source-N. */
