@@ -50,7 +50,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 2.8
  * @since   2026-07-30
- * @updated 2026-09-05
+ * @updated 2026-09-06
  */
 @Slf4j
 @Controller
@@ -62,8 +62,8 @@ public class AdminPipelineController {
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final DateTimeFormatter SHORT_FMT =
-            DateTimeFormatter.ofPattern("HH:mm:ss")
-                    .withZone(ZoneId.of("America/New_York"));
+            DateTimeFormatter.ofPattern("EEEE, MMM d z HH:mm:ss")
+                    .withZone(ZoneId.of("America/Chicago"));
 
     private final PipelineHealthService healthService;
     private final NewsletterGenerationScheduler newsletterScheduler;
