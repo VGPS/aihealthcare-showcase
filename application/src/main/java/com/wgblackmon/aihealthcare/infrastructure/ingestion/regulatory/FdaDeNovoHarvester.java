@@ -16,9 +16,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -42,7 +39,6 @@ public class FdaDeNovoHarvester implements RegulatorySourceHarvester {
     private static final String BASE_URL = "https://api.fda.gov/device/classification.json";
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);
     private static final int MAX_RESULTS = 100;
-    private static final DateTimeFormatter FDA_DATE = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -67,11 +63,7 @@ public class FdaDeNovoHarvester implements RegulatorySourceHarvester {
 
         List<RegulatoryEvent> events = new ArrayList<>();
         try {
-            String fromDate = LocalDate.now(ZoneOffset.UTC).minusDays(lookbackDays).format(FDA_DATE);
-            String toDate = LocalDate.now(ZoneOffset.UTC).format(FDA_DATE);
-
-            String url = BASE_URL + "?search=date_premarket_decision:[" + fromDate + "+TO+" + toDate + "]"
-                    + "+AND+submission_type_id:4"
+            String url = BASE_URL + "?search=submission_type_id:4"
                     + "&limit=" + MAX_RESULTS;
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -103,17 +95,18 @@ public class FdaDeNovoHarvester implements RegulatorySourceHarvester {
                 String deviceName = textOrNull(node, "device_name");
                 String deviceClass = textOrNull(node, "device_class");
                 String medSpecialty = textOrNull(node, "medical_specialty_description");
-                String decisionDate = textOrNull(node, "date_premarket_decision");
+                String definition = textOrNull(node, "definition");
 
-                // Check AI-relevance
+                // Check AI-relevance in device name + specialty + definition
                 String searchText = (deviceName != null ? deviceName : "")
-                        + " " + (medSpecialty != null ? medSpecialty : "");
+                        + " " + (medSpecialty != null ? medSpecialty : "")
+                        + " " + (definition != null ? definition : "");
                 List<String> matchedKeywords = matchKeywords(searchText, aiKeywords);
                 if (matchedKeywords.isEmpty()) {
                     continue;
                 }
 
-                Instant publishedAt = parseDate(decisionDate);
+                Instant publishedAt = null;
                 String sourceUrl = "https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpmn/denovo.cfm?id=" + deNovoNumber;
 
                 RegulatoryEvent event = new RegulatoryEvent(
@@ -148,18 +141,6 @@ public class FdaDeNovoHarvester implements RegulatorySourceHarvester {
 
     private List<String> matchKeywords(String text, List<String> aiKeywords) {
         return RegulatoryKeywordMatcher.matchKeywords(text, aiKeywords);
-    }
-
-    private Instant parseDate(String dateStr) {
-        if (dateStr == null || dateStr.length() < 8) {
-            return null;
-        }
-        try {
-            LocalDate date = LocalDate.parse(dateStr.substring(0, 8), FDA_DATE);
-            return date.atStartOfDay(ZoneOffset.UTC).toInstant();
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private String buildSummary(String deviceName, String deviceClass, String medSpecialty) {
