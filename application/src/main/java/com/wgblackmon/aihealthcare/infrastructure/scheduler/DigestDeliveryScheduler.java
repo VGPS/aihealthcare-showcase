@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Scheduled job that sends the FREE-tier daily digest.
+ * Scheduled job that sends the daily digest to all active subscribers.
  *
  * <p>Runs on the cron schedule defined by {@code aihealthcare.digest.schedule}
  * in {@code application.yml} (default: daily at midnight UTC). Deliberately
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-24
- * @updated 2026-08-24
+ * @updated 2026-09-06
  */
 @Slf4j
 @Component
@@ -37,7 +37,7 @@ public class DigestDeliveryScheduler {
     }
 
     /**
-     * Daily tick — builds and sends the FREE-tier digest.
+     * Daily tick — builds and sends the digest to all active subscribers.
      *
      * <p>Invoked by Spring on the schedule configured by
      * {@code aihealthcare.digest.schedule}. Failures are logged and swallowed
