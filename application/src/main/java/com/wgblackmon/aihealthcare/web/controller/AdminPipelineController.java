@@ -444,8 +444,8 @@ public class AdminPipelineController {
     /**
      * Syncs the NotebookLM corpus from EC2 to the local dev machine via SSH + SCP.
      *
-     * <p>EC2 runs {@code ResearchHarvestScheduler} (06:00 &amp; 12:00 UTC daily) and
-     * {@code MarketIntelligenceScheduler} (monthly), continuously writing article
+     * <p>EC2 runs {@code ResearchHarvestScheduler} (06:00 &amp; 12:00 UTC daily),
+     * continuously writing article
      * {@code .txt} files and date-stamped summaries into
      * {@code /opt/aihealthcare/NotebookLMDirectory}. This endpoint:
      * <ol>
@@ -636,11 +636,6 @@ public class AdminPipelineController {
                 "Weekly after wiki lint", "FeedHarvestScheduler",
                 "/monitoring/wiki/gap-analysis", "POST", false, "~2 min", "High (LLM cost)"));
 
-        list.add(new PipelineInfo("market-intelligence", "Market Intelligence Report",
-                "Generates monthly competitive landscape report via AI. Writes HTML to NotebookLMDirectory/summaries/.",
-                "Monthly 1st at 08:00 UTC", "MarketIntelligenceScheduler",
-                "/api/v1/market-intelligence/refresh", "POST", false, "~2 min", "High (LLM cost)"));
-
         list.add(new PipelineInfo("topic-summaries", "Topic Summary Generation",
                 "Generates AI-powered 3-sentence summaries for each news topic. Requires AI API key.",
                 "After daily feed harvest", "FeedHarvestScheduler",
@@ -723,7 +718,7 @@ public class AdminPipelineController {
 
         list.add(new PipelineInfo("notebooklm-sync", "Download NotebookLM Corpus",
                 "Syncs the NotebookLM corpus from EC2 to this local machine via SSH + SCP. " +
-                "EC2 runs ResearchHarvestScheduler (06:00 & 12:00 UTC daily) and MarketIntelligenceScheduler (monthly), " +
+                "EC2 runs ResearchHarvestScheduler (06:00 & 12:00 UTC daily), " +
                 "continuously writing article .txt files and date-stamped summaries into /opt/aihealthcare/NotebookLMDirectory. " +
                 "This pipeline: (1) SSH-tars all EC2 article files and the summaries/ directory into /tmp/notebooklm_full.tar.gz, " +
                 "(2) SCPs the tar to this machine's temp dir, " +

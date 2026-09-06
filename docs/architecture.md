@@ -41,7 +41,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | 6 | Prompt Refactoring (search_prompts, PerplexityHarvester stub) | 323 |
 | 7 | RAG Generation + Document Ingestion + HTML Export | 333 |
 | 8 | Newsletter Filtering, section ordering, HTML link fixes | ~347 |
-| 9 | Market Intelligence Service (monthly AI report) | 358 |
+| 9 | ~~Market Intelligence Service~~ (removed — superseded by Intelligence Console) | 358 |
 | 10 | Analytics Dashboard REST (ingestion / runs / evaluations) | 372 |
 | 11 | Analytics Dashboard UI — Thymeleaf at `/dashboard` | 379 |
 | 12 | Research Refactor: Perplexity-style staged research architecture | 415 |
@@ -245,7 +245,6 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | POST/POST/POST/POST/GET | `/monitoring/harvest`, `/monitoring/competitor`, `/monitoring/huggingface`, `/monitoring/summaries`, `/monitoring/hashes` | `WebMonitoringController` |
 | GET/GET/PUT | `/api/v1/search-prompts`, `/api/v1/search-prompts/{engine}` | `SearchPromptController` |
 | POST | `/api/v1/documents/ingest` | `DocumentIngestionController` |
-| POST | `/api/v1/market-intelligence/refresh` | `MarketIntelligenceController` |
 | GET | `/api/v1/analytics/ingestion`, `/api/v1/analytics/runs`, `/api/v1/analytics/evaluations` | `AnalyticsController` |
 | POST | `/api/v1/research` | `ResearchController` |
 | GET/GET | `/api/v1/research/runs`, `/api/v1/research/runs/{runId}` | `ResearchRunController` |
@@ -297,7 +296,6 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | `WebMonitoringScheduler` | 05:00 daily (competitors) + 05:30 (HuggingFace) | `aihealthcare.harvest.competitor-cron`, `huggingface-cron` | Web scrape + HF discovery → DB |
 | `EmbeddingScheduler` | 07:00 daily | `aihealthcare.embedding.schedule` | Embed all articles into vector store |
 | `NewsletterGenerationScheduler` | 00:00 daily (midnight) | `aihealthcare.newsletter.schedule` | Ingest → generate DRAFT (no auto-send) |
-| `MarketIntelligenceScheduler` | 1st of month, 08:00 | `aihealthcare.market-intelligence.schedule` | AI-generated market intelligence report |
 | `TrendDetectionScheduler` | Sunday 08:00 | `aihealthcare.trends.schedule` | Keyword frequency analysis → TrendSnapshot |
 | `RegulatoryHarvestScheduler` | 04:30 daily | `aihealthcare.regulatory.schedule` | FDA/CMS harvest → dedup → save → watchlist match |
 
