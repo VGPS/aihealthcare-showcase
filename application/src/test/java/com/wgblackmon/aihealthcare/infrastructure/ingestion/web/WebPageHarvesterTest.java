@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -31,10 +32,14 @@ import static org.mockito.Mockito.*;
  * @updated 2026-05-20
  */
 @ExtendWith(MockitoExtension.class)
+@org.mockito.junit.jupiter.MockitoSettings(strictness = org.mockito.quality.Strictness.LENIENT)
 class WebPageHarvesterTest {
 
     @Mock
     private ContentHashPort contentHashPort;
+
+    @Mock
+    private RobotsTxtGate robotsTxtGate;
 
     private WebPageHarvester harvester;
 
@@ -45,6 +50,8 @@ class WebPageHarvesterTest {
 
     @BeforeEach
     void setUp() {
+        when(robotsTxtGate.isAllowed(anyString())).thenReturn(true);
+
         FeedSourceProperties properties = new FeedSourceProperties();
         FeedSourceProperties.FeedEntry entry = new FeedSourceProperties.FeedEntry();
         entry.setTopicId(1L);
@@ -57,7 +64,7 @@ class WebPageHarvesterTest {
         entry.setKeywords(List.of());
         properties.setSources(List.of(entry));
 
-        harvester = spy(new WebPageHarvester(properties, contentHashPort));
+        harvester = spy(new WebPageHarvester(properties, contentHashPort, robotsTxtGate));
     }
 
     @Test
@@ -182,7 +189,7 @@ class WebPageHarvesterTest {
         entry.setKeywords(List.of("healthcare"));
         props.setSources(List.of(entry));
 
-        WebPageHarvester filteredHarvester = spy(new WebPageHarvester(props, contentHashPort));
+        WebPageHarvester filteredHarvester = spy(new WebPageHarvester(props, contentHashPort, robotsTxtGate));
         doReturn("<html><head><title>Anthropic in Healthcare</title></head>" +
                  "<body><main>New healthcare AI content from Anthropic</main></body></html>")
                 .when(filteredHarvester).fetchPageHtml("https://example.com/anthropic");
@@ -209,7 +216,7 @@ class WebPageHarvesterTest {
         entry.setKeywords(List.of("healthcare"));
         props.setSources(List.of(entry));
 
-        WebPageHarvester filteredHarvester = spy(new WebPageHarvester(props, contentHashPort));
+        WebPageHarvester filteredHarvester = spy(new WebPageHarvester(props, contentHashPort, robotsTxtGate));
         doReturn("<html><head><title>Anthropic Safety Research</title></head>" +
                  "<body><main>New safety policy announcement with no medical content</main></body></html>")
                 .when(filteredHarvester).fetchPageHtml("https://example.com/anthropic");
@@ -220,5 +227,30 @@ class WebPageHarvesterTest {
         assertThat(result).isEmpty();
         // Hash must still be saved to avoid re-triggering on unchanged content next cycle
         verify(contentHashPort).saveHash(eq("https://example.com/anthropic"), anyString());
+    }
+
+    @Test
+    void harvestChangedPages_robotsBlocked_skipsPage() {
+        when(robotsTxtGate.isAllowed("https://example.com/health")).thenReturn(false);
+
+        List<NewsArticle> result = harvester.harvestChangedPages();
+
+        assertThat(result).isEmpty();
+        verify(harvester, never()).fetchPageHtml(anyString());
+    }
+
+    @Test
+    void harvestChangedPages_bodyTextTruncatedTo500Chars() {
+        String longContent = "First sentence about healthcare AI. " + "X".repeat(1000);
+        doReturn("<html><head><title>Long Page</title></head>" +
+                 "<body><main>" + longContent + "</main></body></html>")
+                .when(harvester).fetchPageHtml("https://example.com/health");
+        when(contentHashPort.getHash("https://example.com/health")).thenReturn(null);
+
+        List<NewsArticle> result = harvester.harvestChangedPages();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).bodyText().length())
+                .isLessThanOrEqualTo(WebPageHarvester.MAX_BODY_LENGTH);
     }
 }

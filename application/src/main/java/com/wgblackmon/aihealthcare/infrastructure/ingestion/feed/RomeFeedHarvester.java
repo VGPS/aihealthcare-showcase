@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion.feed;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.ArticleRelevanceFilter;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.ExcerptTruncator;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
@@ -45,11 +46,13 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-10
- * @updated 2026-05-19
+ * @updated 2026-09-05
  */
 @Slf4j
 @Component
 public class RomeFeedHarvester implements ArticleHarvestingPort {
+
+    private static final int RSS_EXCERPT_MAX_CHARS = 2000;
 
     private final List<FeedSourceConfig> feedSources;
     private final ArticleRelevanceFilter relevanceFilter;
@@ -207,7 +210,8 @@ public class RomeFeedHarvester implements ArticleHarvestingPort {
 
         String bodyText = "";
         if (entry.getDescription() != null && entry.getDescription().getValue() != null) {
-            bodyText = entry.getDescription().getValue().trim();
+            bodyText = ExcerptTruncator.truncate(
+                    entry.getDescription().getValue().trim(), RSS_EXCERPT_MAX_CHARS);
         }
 
         String author = entry.getAuthor() != null && !entry.getAuthor().isBlank()

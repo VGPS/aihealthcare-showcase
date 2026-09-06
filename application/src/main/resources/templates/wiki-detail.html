@@ -7,7 +7,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-15
- * @updated 2026-08-03
+ * @updated 2026-09-06
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -58,8 +58,25 @@
         </div>
     </div>
 
+    <!-- Subscriber upgrade prompt (FREE tier teaser) -->
+    <div th:unless="${fullAccess}" class="bg-white rounded-lg shadow-sm p-6 mb-6 text-center border border-primary-200">
+        <div style="font-size:2rem;margin-bottom:0.75rem;">&#128274;</div>
+        <h3 class="font-display text-lg font-semibold text-on-surface mb-2">Subscribe to read full wiki analysis</h3>
+        <p class="text-sm text-gray-500 leading-relaxed mb-4 max-w-md mx-auto">
+            Full wiki content — including source provenance, contradiction tracking, related pages,
+            and analyst notes — is available to Subscriber members.
+        </p>
+        <a th:href="@{/pricing}"
+           class="inline-block px-5 py-2.5 bg-primary-600 text-white rounded-md text-sm font-semibold hover:bg-primary-700 no-underline">
+            View Plans &amp; Subscribe
+        </a>
+        <p class="text-xs text-gray-400 mt-3">
+            New users get a <a th:href="@{/register}" class="text-primary-600 underline">7-day trial</a> — no credit card required.
+        </p>
+    </div>
+
     <!-- Rendered content -->
-    <div class="bg-white rounded-lg shadow-sm p-5 mb-6">
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-6" th:if="${fullAccess}">
         <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-5">Content</h2>
         <div class="wiki-content leading-relaxed text-sm text-gray-700" th:utext="${renderedContent}">
             <p>Wiki content renders here.</p>
@@ -67,7 +84,7 @@
     </div>
 
     <!-- Sources & Provenance -->
-    <div class="bg-white rounded-lg shadow-sm p-5 mb-6" th:if="${!displaySources.isEmpty()}">
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-6" th:if="${fullAccess and !displaySources.isEmpty()}">
         <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-5">Sources &amp; Provenance</h2>
         <table class="w-full border-collapse text-sm">
             <thead>
@@ -113,7 +130,7 @@
     </div>
 
     <!-- Contradictions -->
-    <div class="bg-white rounded-lg shadow-sm p-5 mb-6" th:if="${!contradictions.isEmpty()}">
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-6" th:if="${fullAccess and !contradictions.isEmpty()}">
         <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-5">Contradictions</h2>
         <div class="border-l-4 border-red-400 pl-4 mb-6"
              th:each="c : ${contradictions}">
@@ -140,7 +157,7 @@
     </div>
 
     <!-- Related pages -->
-    <div class="bg-white rounded-lg shadow-sm p-5 mb-6" th:if="${!relatedPages.isEmpty()}">
+    <div class="bg-white rounded-lg shadow-sm p-5 mb-6" th:if="${fullAccess and !relatedPages.isEmpty()}">
         <h2 class="font-display text-lg font-semibold text-on-surface border-b-2 border-outline-variant pb-2 mb-5">Related Pages</h2>
         <div class="flex flex-wrap gap-2">
             <a class="inline-block bg-primary-50 text-primary-700 px-3 py-1 rounded-md text-sm hover:bg-primary-100 no-underline"
@@ -152,8 +169,8 @@
         </div>
     </div>
 
-    <!-- Analyst Notes (authenticated users only — wiki is public) -->
-    <div sec:authorize="isAuthenticated()"
+    <!-- Analyst Notes (subscribers only) -->
+    <div th:if="${fullAccess}" sec:authorize="isAuthenticated()"
          th:insert="~{fragments/notes-inline :: notes('WIKI_PAGE', ${page.slug()}, ${page.title()}, ${analystNotes}, ${analystNoteDates}, ${returnUrl})}"></div>
 
     <a class="inline-block mt-2 text-primary-600 hover:text-primary-700 text-sm"

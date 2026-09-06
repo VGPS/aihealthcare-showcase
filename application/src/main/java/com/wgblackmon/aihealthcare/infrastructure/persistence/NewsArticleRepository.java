@@ -23,7 +23,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-07-30
+ * @updated 2026-09-05
  */
 public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, String>,
                 JpaSpecificationExecutor<NewsArticleEntity> {

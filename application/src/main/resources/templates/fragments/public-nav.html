@@ -34,6 +34,10 @@
        th:classappend="${activePage == 'company-directory'} ? ' active'"
        class="nav-link">Company Directory</a>
 
+    <a th:href="@{/wiki}"
+       th:classappend="${activePage == 'wiki'} ? ' active'"
+       class="nav-link">Knowledge Wiki</a>
+
     <a th:href="@{/about}"
        th:classappend="${activePage == 'about'} ? ' active'"
        class="nav-link">About</a>

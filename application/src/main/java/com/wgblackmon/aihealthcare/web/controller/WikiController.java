@@ -8,8 +8,11 @@ import com.wgblackmon.aihealthcare.domain.model.NoteTargetType;
 import com.wgblackmon.aihealthcare.domain.model.SourceRef;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.model.WikiPageType;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
@@ -24,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,7 +72,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-04
- * @updated 2026-08-25
+ * @updated 2026-09-06
  */
 @Slf4j
 @Controller
@@ -90,6 +95,7 @@ public class WikiController {
     private final NewsArticleRepository articleRepository;
     private final List<AiSearchPort> aiSearchPorts;
     private final AnalystNotePort analystNotePort;
+    private final SubscriberPort subscriberPort;
     private final String baseUrl;
     private final Parser markdownParser;
     private final HtmlRenderer htmlRenderer;
@@ -101,9 +107,10 @@ public class WikiController {
                            NewsArticleRepository articleRepository,
                            List<AiSearchPort> aiSearchPorts,
                            AnalystNotePort analystNotePort,
+                           SubscriberPort subscriberPort,
                            @Value("${aihealthcare.base-url}") String baseUrl) {
         log.debug("WikiController() | wikiQueryPort={}, pageRepository={}, revisionRepository={}, "
-                + "contradictionRepository={}, articleRepository={}, aiSearchPortCount={}, analystNotePort={}, baseUrl={}",
+                + "contradictionRepository={}, articleRepository={}, aiSearchPortCount={}, analystNotePort={}, subscriberPort={}, baseUrl={}",
                 wikiQueryPort.getClass().getSimpleName(),
                 pageRepository.getClass().getSimpleName(),
                 revisionRepository.getClass().getSimpleName(),
@@ -111,6 +118,7 @@ public class WikiController {
                 articleRepository.getClass().getSimpleName(),
                 aiSearchPorts.size(),
                 analystNotePort.getClass().getSimpleName(),
+                subscriberPort.getClass().getSimpleName(),
                 baseUrl);
         this.wikiQueryPort = wikiQueryPort;
         this.pageRepository = pageRepository;
@@ -119,6 +127,7 @@ public class WikiController {
         this.articleRepository = articleRepository;
         this.aiSearchPorts = aiSearchPorts;
         this.analystNotePort = analystNotePort;
+        this.subscriberPort = subscriberPort;
         this.baseUrl = baseUrl;
         this.markdownParser = Parser.builder().build();
         this.htmlRenderer = HtmlRenderer.builder().build();
@@ -205,6 +214,12 @@ public class WikiController {
             log.warn("wikiPage() | page not found for slug={}", slug);
             return "redirect:/wiki";
         }
+
+        SubscriptionTier tier = resolveTier(principal);
+        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
+                || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.ENTERPRISE
+                || isAdmin(principal);
 
         // Render markdown to HTML
         String renderedContent = htmlRenderer.render(markdownParser.parse(
@@ -325,9 +340,10 @@ public class WikiController {
         model.addAttribute("analystNotes", analystNotes);
         model.addAttribute("analystNoteDates", analystNoteDates);
         model.addAttribute("returnUrl", "/wiki/" + slug);
+        model.addAttribute("fullAccess", fullAccess);
 
-        log.debug("wikiPage() | return=wiki-detail (slug={}, sources={}, contradictions={}, notes={})",
-                slug, page.sources().size(), contradictions.size(), analystNotes.size());
+        log.debug("wikiPage() | return=wiki-detail (slug={}, sources={}, contradictions={}, notes={}, fullAccess={})",
+                slug, page.sources().size(), contradictions.size(), analystNotes.size(), fullAccess);
         return "wiki-detail";
     }
 
@@ -341,8 +357,17 @@ public class WikiController {
      */
     @GetMapping("/contradictions")
     public String contradictions(@RequestParam(defaultValue = "90") int days,
+                                  Principal principal,
                                   Model model) {
-        log.debug("contradictions() | days={}", days);
+        log.debug("contradictions() | days={}, principal={}", days,
+                  principal != null ? principal.getName() : "anonymous");
+
+        SubscriptionTier tier = resolveTier(principal);
+        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
+                || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.ENTERPRISE
+                || isAdmin(principal);
+        model.addAttribute("fullAccess", fullAccess);
 
         Instant since = Instant.now().minus(days, ChronoUnit.DAYS);
         List<Contradiction> contradictions = wikiQueryPort.recentContradictions(since);
@@ -419,8 +444,18 @@ public class WikiController {
      * @return view name "wiki-digest"
      */
     @GetMapping("/digest")
-    public String digest(@RequestParam(defaultValue = "7") int days, Model model) {
-        log.debug("digest() | days={}", days);
+    public String digest(@RequestParam(defaultValue = "7") int days,
+                         Principal principal,
+                         Model model) {
+        log.debug("digest() | days={}, principal={}", days,
+                  principal != null ? principal.getName() : "anonymous");
+
+        SubscriptionTier tier = resolveTier(principal);
+        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
+                || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.ENTERPRISE
+                || isAdmin(principal);
+        model.addAttribute("fullAccess", fullAccess);
 
         Instant since = Instant.now().minus(days, ChronoUnit.DAYS);
 
@@ -506,8 +541,17 @@ public class WikiController {
     public String askWiki(@RequestParam(required = false) String q,
                            @RequestParam(required = false, defaultValue = "5") int maxPages,
                            @RequestParam(required = false) List<String> models,
+                           Principal principal,
                            Model model) {
-        log.debug("askWiki() | q={}, maxPages={}, models={}", q, maxPages, models);
+        log.debug("askWiki() | q={}, maxPages={}, models={}, principal={}", q, maxPages, models,
+                  principal != null ? principal.getName() : "anonymous");
+
+        SubscriptionTier tier = resolveTier(principal);
+        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
+                || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.ENTERPRISE
+                || isAdmin(principal);
+        model.addAttribute("fullAccess", fullAccess);
 
         if (q != null && !q.isBlank()) {
             int resolvedMax = Math.max(1, Math.min(maxPages, 20));
@@ -770,5 +814,33 @@ public class WikiController {
         if ("Vendor".equals(grade)) return "#6c757d";
         if ("News Report".equals(grade)) return "#495057";
         return "#888";
+    }
+
+    private SubscriptionTier resolveTier(Principal principal) {
+        log.debug("resolveTier() | principal={}", principal != null ? principal.getName() : "null");
+        if (principal == null) {
+            log.debug("resolveTier() | return={}", SubscriptionTier.FREE);
+            return SubscriptionTier.FREE;
+        }
+        if (isAdmin(principal)) {
+            log.debug("resolveTier() | ADMIN role detected, return={}", SubscriptionTier.SUBSCRIBER);
+            return SubscriptionTier.SUBSCRIBER;
+        }
+        SubscriptionTier result = subscriberPort.findByEmail(principal.getName())
+                .map(Subscriber::tier)
+                .orElse(SubscriptionTier.FREE);
+        log.debug("resolveTier() | return={}", result);
+        return result;
+    }
+
+    private boolean isAdmin(Principal principal) {
+        if (principal instanceof Authentication auth) {
+            for (GrantedAuthority authority : auth.getAuthorities()) {
+                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

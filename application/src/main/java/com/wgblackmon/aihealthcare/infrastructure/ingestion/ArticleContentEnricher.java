@@ -35,14 +35,14 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-25
- * @updated 2026-05-31
+ * @updated 2026-09-05
  */
 @Slf4j
 @Component
 public class ArticleContentEnricher {
 
     static final int CONNECT_TIMEOUT_MS = 15_000;
-    static final int MAX_BODY_LENGTH = 10_000;
+    static final int MAX_BODY_LENGTH = 2_000;
     static final int MIN_USEFUL_LENGTH = 50;
 
     /**
@@ -132,9 +132,7 @@ public class ArticleContentEnricher {
             return article;
         }
 
-        String truncated = content.length() > MAX_BODY_LENGTH
-                ? content.substring(0, MAX_BODY_LENGTH)
-                : content;
+        String truncated = ExcerptTruncator.truncate(content, MAX_BODY_LENGTH);
 
         log.info("enrichFromUrl() | enriched '{}' with {} chars from {}",
                  article.title(), truncated.length(), article.url());
