@@ -29,15 +29,13 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
-    <div class="max-w-7xl mx-auto px-4 pt-4 pb-2">
-        <p class="text-sm text-gray-500 leading-relaxed">Legal trend analysis. Track emerging patterns in healthcare AI regulation, policy shifts, and enforcement actions over time.</p>
-    </div>
+    <p class="text-sm text-gray-500 leading-relaxed text-left mb-2">Legal trend analysis. Track emerging patterns in healthcare AI regulation, policy shifts, and enforcement actions over time.</p>
 
-<!-- Snapshot meta -->
-    <div th:if="${hasSnapshot}" class="mb-6 text-gray-500 text-sm">
+    <!-- Snapshot meta -->
+    <p th:if="${hasSnapshot}" class="text-sm text-gray-500 text-left mb-6">
         Last updated: <span th:text="${generatedAt}">N/A</span>
         &nbsp;|&nbsp; <span th:text="${totalKeywords}">0</span> topics analyzed
-    </div>
+    </p>
 
     <!-- Summary badges -->
     <div th:if="${hasSnapshot}" class="flex flex-wrap gap-3 mb-6">
