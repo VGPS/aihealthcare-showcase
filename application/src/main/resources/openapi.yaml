@@ -719,28 +719,6 @@ paths:
                 $ref: '#/components/schemas/CompanyDiscoveryResponse'
 
   # ---------------------------------------------------------------------------
-  # Market intelligence report
-  # ---------------------------------------------------------------------------
-  /api/v1/market-intelligence/refresh:
-    post:
-      summary: Trigger on-demand market intelligence report generation
-      description: >
-        Sends the MARKET_INTELLIGENCE prompt to the configured AI model and writes
-        the resulting HTML to a dated file in the NotebookLM summaries directory.
-        The prompt is editable via PUT /api/v1/search-prompts/MARKET_INTELLIGENCE.
-        If a file already exists for today's date it is overwritten.
-      operationId: refreshMarketIntelligence
-      responses:
-        '200':
-          description: Report generated and written successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MarketIntelligenceRefreshResponse'
-        '500':
-          description: Generation or file write failed (prompt not configured or I/O error)
-
-  # ---------------------------------------------------------------------------
   # Analytics dashboard
   # ---------------------------------------------------------------------------
   /api/v1/analytics/ingestion:
@@ -1378,22 +1356,6 @@ components:
         active:
           type: boolean
           description: Whether this prompt is currently used during harvesting
-
-    MarketIntelligenceRefreshResponse:
-      type: object
-      properties:
-        filePath:
-          type: string
-          description: Absolute path of the written HTML file.
-          example: "C:/workspaces/SpringAIClaude/AIHealthcare/NotebookLMDirectory/summaries/healthcare_ai_market_intelligence_2026_05_02.html"
-        reportDate:
-          type: string
-          description: ISO-8601 date of the report (yyyy-MM-dd).
-          example: "2026-05-02"
-        htmlLength:
-          type: integer
-          description: Number of bytes in the generated HTML file.
-          example: 48200
 
     CountByLabelResponse:
       type: object

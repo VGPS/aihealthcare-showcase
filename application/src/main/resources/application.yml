@@ -1430,15 +1430,6 @@ aihealthcare:
     source-order: "Google News AI Healthcare,Google News Clinical AI,MIT Technology Review AI"
 
   # ---------------------------------------------------------------------------
-  # Market Intelligence — monthly competitive landscape report generation.
-  # schedule: cron expression for MarketIntelligenceScheduler (1st of month, 8am).
-  # On-demand trigger: POST /api/v1/market-intelligence/refresh
-  # Edit the prompt: PUT /api/v1/search-prompts/MARKET_INTELLIGENCE
-  # ---------------------------------------------------------------------------
-  market-intelligence:
-    schedule: "0 0 8 1 * *"
-
-  # ---------------------------------------------------------------------------
   # Newsletter delivery — from address used in outgoing emails.
   # SMTP connection settings live in the active profile (dev or prod).
   #

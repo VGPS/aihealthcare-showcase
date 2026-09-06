@@ -40,7 +40,6 @@ import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import com.wgblackmon.aihealthcare.domain.service.DocumentIngestionService;
 import com.wgblackmon.aihealthcare.domain.service.DocumentUploadService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentLibraryPort;
-import com.wgblackmon.aihealthcare.domain.service.MarketIntelligenceService;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterRenderer;
 import com.wgblackmon.aihealthcare.domain.service.NewsletterService;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
@@ -590,25 +589,6 @@ public class AppConfig {
         DocumentUploadService result = new DocumentUploadService(
                 ingestUseCase, documentLibraryPort, knowledgeCompilationPort, parsers);
         log.debug("documentUploadService() | return={}", result.getClass().getSimpleName());
-        return result;
-    }
-
-    /**
-     * Creates the {@link MarketIntelligenceService} bean that implements
-     * {@link com.wgblackmon.aihealthcare.domain.port.inbound.GenerateMarketIntelligenceUseCase}.
-     *
-     * @param searchPromptPort Port for loading the configured prompt template (auto-detected).
-     * @param aiReportPort     Port for sending the prompt to the AI model (auto-detected).
-     * @return The wired {@link MarketIntelligenceService} instance.
-     */
-    @Bean
-    public MarketIntelligenceService marketIntelligenceService(SearchPromptPort searchPromptPort,
-                                                                AiReportPort aiReportPort) {
-        log.debug("marketIntelligenceService() | searchPromptPort={}, aiReportPort={}",
-                  searchPromptPort.getClass().getSimpleName(),
-                  aiReportPort.getClass().getSimpleName());
-        MarketIntelligenceService result = new MarketIntelligenceService(searchPromptPort, aiReportPort);
-        log.debug("marketIntelligenceService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

@@ -508,7 +508,6 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/v1/documents/ingest` | Ingest documents for RAG (PDF, DOCX, TXT) |
-| POST | `/api/v1/market-intelligence/refresh` | Trigger market intelligence report |
 
 ### Analytics
 | Method | Endpoint | Description |
@@ -569,7 +568,6 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 | Embedding | 07:00 daily | `aihealthcare.embedding.schedule` | Vector store refresh (after harvests) |
 | Trend Detection | Sunday 08:00 | `aihealthcare.trends.schedule` | Keyword frequency analysis -> TrendSnapshot |
 | Newsletter Draft | 00:00 daily | `aihealthcare.newsletter.schedule` | Generate DRAFT (review + send manually) |
-| Market Intelligence | 1st of month, 08:00 | `aihealthcare.market-intelligence.schedule` | Monthly AI market report |
 | Demo Expiration | Daily | `aihealthcare.demo.expiration-cron` | Expire DEMO accounts after 7-day trial |
 
 ## Configuration
