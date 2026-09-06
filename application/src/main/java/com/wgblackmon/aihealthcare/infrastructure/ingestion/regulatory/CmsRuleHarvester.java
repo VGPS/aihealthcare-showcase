@@ -31,7 +31,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-30
+ * @updated 2026-09-06
  */
 @Slf4j
 @Component
@@ -174,14 +174,7 @@ public class CmsRuleHarvester implements RegulatorySourceHarvester {
     }
 
     private List<String> matchKeywords(String text, List<String> aiKeywords) {
-        String lower = text.toLowerCase();
-        List<String> matched = new ArrayList<>();
-        for (String keyword : aiKeywords) {
-            if (lower.contains(keyword.toLowerCase())) {
-                matched.add(keyword);
-            }
-        }
-        return matched;
+        return RegulatoryKeywordMatcher.matchKeywords(text, aiKeywords);
     }
 
     private Instant parseDate(String dateStr) {
