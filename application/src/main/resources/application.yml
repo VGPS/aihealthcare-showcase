@@ -286,6 +286,12 @@ aihealthcare:
       - "algorithm"
       - "deep learning"
       - "neural network"
+      - "AI"
+      - "computer-aided"
+      - "computer aided"
+      - "automated detection"
+      - "predictive"
+      - "diagnostic software"
 
   # ---------------------------------------------------------------------------
   # Clinical Trial Integration — ClinicalTrials.gov v2 API harvesting.
