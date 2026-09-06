@@ -10,9 +10,10 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **AI Newsletter Generation** | Daily automated newsletter drafts with topic-grouped sections, attributed sources, and TinyMCE WYSIWYG editing |
 | **Multi-Model AI Search** | Fan-out synthesis across Claude, GPT, Perplexity Sonar, and Gemini with numbered citation references |
 | **Staged Research Pipeline** | AI-planned query decomposition, multi-source retrieval, citation assembly, and synthesized research answers |
-| **LLM-Compiled Knowledge Wiki** | AI synthesizes harvested articles into a persistent, searchable wiki with revision history and cross-references |
+| **LLM-Compiled Knowledge Wiki** | AI synthesizes harvested articles into a persistent, searchable wiki with revision history and cross-references — public nav link for discovery/SEO; detail pages, Reversal Watch, Digest, and Ask are tier-gated (SUBSCRIBER/DEMO/ENTERPRISE/ADMIN get full access, FREE sees teaser + upgrade prompt) |
 | **Source Provenance Tracking** | Every wiki claim links to its original PubMed, FDA, or industry source for verifiable trust |
 | **Contradiction Detection** | Automatically flags when new evidence contradicts prior wiki claims — a "Reversal Watch" for healthcare AI |
+| **Copyright-Safe Content Retention** | Sentence-boundary excerpt truncation (500 chars COMPETITOR, 2,000 chars RSS/enriched), robots.txt compliance gate with 24h cache + domain denylist — all articles retained permanently as repository of record |
 | **Regulatory Alert System** | Automated FDA 510(k)/De Novo clearance and CMS rule harvesting from openFDA and Federal Register APIs |
 | **Sentiment & Risk Scoring** | LLM-powered per-article sentiment classification aggregated into company-level risk scores with confidence metrics |
 | **Framework Competitive Analysis** | Config-driven 6-dimension competitive scoring (clinical validation, regulatory, market adoption, tech depth, data assets, partnerships) |
@@ -44,13 +45,13 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **PII Masking** | LogSanitizer utility masks email addresses in log statements to prevent PII exposure in production logs |
 | **Branded Error Handling** | Custom error pages replacing Spring Boot's Whitelabel Error Page with consistent branded UI |
 | **51-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, watchlist, sentiment, frameworks, deals, company pages, public company directory, and LinkedIn feature post rotation |
-| **2,387+ Automated Tests** | Comprehensive test suite across 307 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **2,400+ Automated Tests** | Comprehensive test suite across 309 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 17, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 103 domain model records, 92 port interfaces, and 70 controllers — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **2,387+ automated tests** across 307 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **2,400+ automated tests** across 309 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
@@ -82,7 +83,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 **SaaS & Monetization**
 - Implemented **4-tier subscription model** (DEMO/FREE_PENDING/FREE/SUBSCRIBER) with **Stripe Billing** integration (SDK 28.2.0), Checkout sessions, customer portal, webhook signature verification, and per-feature usage metering
 - Built **Spring Security 6** session-based authentication with ADMIN/USER roles, BCrypt password hashing, tier-based feature gating, and API key authentication for REST endpoints
-- Delivered **50-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
+- Delivered **51-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
 
 **Performance Engineering & Load Testing**
 - Eliminated a critical **N+1 query problem** on the wiki index page (1,299 DB queries/request → 1), confirmed by k6 load testing that revealed 2% pass rate for `/wiki` under 50 concurrent VUs
@@ -315,7 +316,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Security Testing | spring-security-test (@WithMockUser) | — |
 | Web Testing | MockMvc (@WebMvcTest slices) | — |
 | Persistence Testing | @DataJpaTest (H2 in-memory) | — |
-| Coverage | 2,385+ tests across 307 test classes | — |
+| Coverage | 2,400+ tests across 309 test classes | — |
 
 ### Infrastructure & DevOps
 | Component | Technology | Version |
@@ -373,8 +374,9 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 |-------------|--------|
 | `/login`, `/register`, `/pricing`, `/privacy`, `/unsubscribe/**` | Public |
 | `/directory`, `/directory/**` | Public (no login required) |
+| `/wiki` | Public (index page, no login required) |
 | `/api/**`, `/monitoring/**`, `/stripe/**` | Public (secured separately via API keys / Stripe signatures) |
-| `/dashboard/**`, `/newsletter/**`, `/research/**`, `/wiki/**` | Requires login |
+| `/dashboard/**`, `/newsletter/**`, `/research/**`, `/wiki/**` (except index) | Requires login |
 | `/admin/**`, `/monitoring/**` | Requires ADMIN role |
 | `/watchlist`, `/api/v1/companies/discover` | Requires SUBSCRIBER tier |
 
@@ -416,11 +418,11 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 ### Wiki & Knowledge Base
 | URL | Description |
 |-----|-------------|
-| `/wiki` | Searchable wiki page grid with type filter (Entity/Concept/Comparison/Overview) |
-| `/wiki/{slug}` | Wiki page detail — rendered markdown, provenance table, contradictions, related pages, revision history |
-| `/wiki/contradictions` | Reversal Watch — contradiction feed with side-by-side claim comparison and date filter |
-| `/wiki/digest` | What Changed digest — new pages, updates, and contradictions over configurable time window |
-| `/wiki/ask` | Wiki Q&A — ask natural language questions answered from wiki knowledge base |
+| `/wiki` | Searchable wiki page grid with type filter (Entity/Concept/Comparison/Overview) — **public, no login required** |
+| `/wiki/{slug}` | Wiki page detail — rendered markdown, provenance, contradictions, related pages; **tier-gated** (FREE=teaser, SUBSCRIBER+=full) |
+| `/wiki/contradictions` | Reversal Watch — contradiction feed with claim comparison and date filter; **SUBSCRIBER only** |
+| `/wiki/digest` | What Changed digest — new pages, updates, and contradictions over configurable time window; **SUBSCRIBER only** |
+| `/wiki/ask` | Wiki Q&A — ask natural language questions answered from wiki knowledge base; **SUBSCRIBER only** |
 
 ### Company Intelligence
 | URL | Description |
@@ -606,6 +608,8 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 | Framework Analysis | Yes | Limited | Yes |
 | Deal Signals | 100 signals | 10 signals | 100 signals |
 | Trend History | Full archive | 4 snapshots | Full archive |
+| Wiki Detail Pages | Full content | Teaser + upgrade prompt | Full content |
+| Reversal Watch / Digest / Ask | Yes | Upgrade prompt | Yes |
 | Webhook Notifications | Yes | No | Yes |
 | Trend Analysis | Yes | Yes | Yes |
 | Company Profiles | Yes | Yes | Yes |
@@ -648,7 +652,7 @@ aihealthcare:
 
 ## Testing
 
-2,385+ tests across 307 test classes — all pass with no live AI or network calls.
+2,400+ tests across 309 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
@@ -697,7 +701,7 @@ AIHealthcare/
 ├── application/src/main/resources/
 │   ├── prompts/             # 18 AI prompt templates
 │   └── templates/           # 51 Thymeleaf HTML templates + 6 fragments
-├── application/src/test/    # 307 test classes (2,385+ tests)
+├── application/src/test/    # 309 test classes (2,400+ tests)
 ├── docs/                    # Architecture, conventions, QA plan documentation
 ├── pom.xml
 └── CLAUDE.md                # AI assistant project context
