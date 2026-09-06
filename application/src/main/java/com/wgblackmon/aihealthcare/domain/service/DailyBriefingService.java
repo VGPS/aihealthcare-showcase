@@ -27,7 +27,7 @@ import java.util.Optional;
 
 /**
  * Orchestrates the personalized daily briefing pipeline for all eligible
- * subscribers (SUBSCRIBER and DEMO tiers).
+ * subscribers (SUBSCRIBER, DEMO, and ENTERPRISE tiers).
  *
  * <p>For each subscriber, assembles recent watchlist matches, sentiment
  * data for watched companies, and recently modified analyst notes into
@@ -41,7 +41,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-09-06
  */
 @Slf4j
 public class DailyBriefingService {
@@ -87,6 +87,10 @@ public class DailyBriefingService {
         }
         List<Subscriber> demoTier = subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO);
         for (Subscriber s : demoTier) {
+            subscribers.add(s);
+        }
+        List<Subscriber> enterpriseTier = subscriberPort.findAllActiveByTier(SubscriptionTier.ENTERPRISE);
+        for (Subscriber s : enterpriseTier) {
             subscribers.add(s);
         }
 

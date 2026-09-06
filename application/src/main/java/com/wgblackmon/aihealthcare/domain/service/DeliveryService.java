@@ -14,6 +14,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,7 +36,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-04-13
- * @updated 2026-08-24
+ * @updated 2026-09-06
  */
 @Slf4j
 public class DeliveryService implements ManageSubscribersUseCase, DeliverNewsletterUseCase {
@@ -148,32 +149,45 @@ public class DeliveryService implements ManageSubscribersUseCase, DeliverNewslet
      * {@inheritDoc}
      *
      * <p>Builds a fresh digest via {@link DigestNewsletterRenderer} and sends it to
-     * all active FREE-tier subscribers. Runs independently of {@link #deliver(String)}
-     * so the FREE digest's daily cadence is not tied to the paid newsletter's schedule.
+     * all active subscribers (FREE, SUBSCRIBER, DEMO, and ENTERPRISE).
+     * Runs independently of {@link #deliver(String)} on its own daily schedule.
      */
     @Override
     public int deliverDigest() {
         log.debug("deliverDigest() | (no args)");
 
-        List<Subscriber> freeRecipients = subscriberPort.findAllActiveByTier(SubscriptionTier.FREE);
-        if (freeRecipients.isEmpty()) {
-            log.info("deliverDigest() | No active FREE subscribers — skipping digest");
+        List<Subscriber> recipients = new ArrayList<>();
+        for (Subscriber s : subscriberPort.findAllActiveByTier(SubscriptionTier.FREE)) {
+            recipients.add(s);
+        }
+        for (Subscriber s : subscriberPort.findAllActiveByTier(SubscriptionTier.SUBSCRIBER)) {
+            recipients.add(s);
+        }
+        for (Subscriber s : subscriberPort.findAllActiveByTier(SubscriptionTier.DEMO)) {
+            recipients.add(s);
+        }
+        for (Subscriber s : subscriberPort.findAllActiveByTier(SubscriptionTier.ENTERPRISE)) {
+            recipients.add(s);
+        }
+
+        if (recipients.isEmpty()) {
+            log.info("deliverDigest() | No active subscribers — skipping digest");
             log.debug("deliverDigest() | return=0");
             return 0;
         }
 
         Optional<NewsletterRun> digestOpt = digestRenderer.buildDigest();
         if (digestOpt.isEmpty()) {
-            log.info("deliverDigest() | No articles today — skipping digest for {} free subscribers", freeRecipients.size());
+            log.info("deliverDigest() | No articles today — skipping digest for {} subscribers", recipients.size());
             log.debug("deliverDigest() | return=0");
             return 0;
         }
 
-        newsletterDeliveryPort.deliver(digestOpt.get(), freeRecipients);
-        log.info("deliverDigest() | Digest newsletter sent to {} free subscribers", freeRecipients.size());
+        newsletterDeliveryPort.deliver(digestOpt.get(), recipients);
+        log.info("deliverDigest() | Digest newsletter sent to {} subscribers", recipients.size());
 
-        log.debug("deliverDigest() | return={}", freeRecipients.size());
-        return freeRecipients.size();
+        log.debug("deliverDigest() | return={}", recipients.size());
+        return recipients.size();
     }
 
     // -------------------------------------------------------------------------
