@@ -151,13 +151,13 @@ class ArticleContentEnricherTest {
     @Test
     void enrich_longContent_truncatedToMaxLength() {
         NewsArticle a = article("a-001", "");
-        String longContent = "X".repeat(ArticleContentEnricher.MAX_BODY_LENGTH + 500);
+        String longContent = "First sentence here. " + "X".repeat(ArticleContentEnricher.MAX_BODY_LENGTH + 500);
         doReturn("<html><body><main>" + longContent + "</main></body></html>")
                 .when(enricher).fetchPageHtml("https://example.com/a-001");
 
         List<NewsArticle> result = enricher.enrich(List.of(a));
 
-        assertThat(result.get(0).bodyText().length()).isEqualTo(ArticleContentEnricher.MAX_BODY_LENGTH);
+        assertThat(result.get(0).bodyText().length()).isLessThanOrEqualTo(ArticleContentEnricher.MAX_BODY_LENGTH);
     }
 
     // -------------------------------------------------------------------------

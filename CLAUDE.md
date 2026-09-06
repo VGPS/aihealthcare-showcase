@@ -252,7 +252,18 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Company Directory Signal Scoring — COMPLETE — 14 selective tests passing**
+**Copyright-Safe Content Retention (CR-1) — COMPLETE — 45 selective tests passing**
+- [x] Infrastructure: `ExcerptTruncator` — static utility, sentence-boundary truncation with configurable char cap
+- [x] Infrastructure: `RobotsTxtGate` — robots.txt fetcher/parser with 24h cache + domain denylist; scoped to `WebPageHarvester` only
+- [x] Harvester: `WebPageHarvester` — `MAX_BODY_LENGTH` 10,000→500 chars (COMPETITOR tier), uses `ExcerptTruncator` for sentence-boundary trim, checks `RobotsTxtGate.isAllowed()` before fetch
+- [x] Harvester: `RomeFeedHarvester` — RSS bodyText capped at 2,000 chars via `ExcerptTruncator`
+- [x] Harvester: `ArticleContentEnricher` — `MAX_BODY_LENGTH` 10,000→2,000 chars, uses `ExcerptTruncator` instead of raw substring
+- [x] Config: `application.yml` — `aihealthcare.ingestion.domain-denylist`
+- [x] No article deletion — this app is the repository of record; all articles are retained permanently
+- [x] Tests: `ExcerptTruncatorTest` (10), `RobotsTxtGateTest` (6), `WebPageHarvesterTest` (+2=13), `ArticleContentEnricherTest` (11 unchanged), `ArticleStorageAdapterTest` (5 unchanged)
+- [x] Plan: `.claude/plans/cr-1-content-retention.md`
+
+**Previously complete: Company Directory Signal Scoring — COMPLETE — 14 selective tests passing**
 - [x] Domain: `CompanySignal` record — 9 fields (articleCount90d, latestDealType/Amount/Date, sentimentScore/Label, hasSentimentData, relevanceScore) with `hasRecentFunding()`, `isWatchList()`, `isTrending()` derived booleans
 - [x] Domain: `CompanySignalService` — 3-port cross-reference (articles 90d, FUNDING deals, sentiment) in single pass; no Spring deps
 - [x] Ports: `BrowseCompaniesUseCase.computeSignals()` added; `BrowseCompaniesService` now accepts and delegates to `CompanySignalService`

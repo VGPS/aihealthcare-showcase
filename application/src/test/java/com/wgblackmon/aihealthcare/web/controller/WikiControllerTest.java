@@ -5,9 +5,12 @@ import com.wgblackmon.aihealthcare.domain.model.Contradiction;
 import com.wgblackmon.aihealthcare.domain.model.SourceRef;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.model.WikiPageType;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
@@ -31,6 +34,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 
@@ -53,7 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-09-06
  */
 @Import(SecurityConfig.class)
 @WithMockUser
@@ -86,6 +90,9 @@ class WikiControllerTest {
 
     @MockBean
     private AnalystNotePort analystNotePort;
+
+    @MockBean
+    private SubscriberPort subscriberPort;
 
     private static final Instant NOW = Instant.parse("2026-07-04T10:00:00Z");
 
@@ -337,5 +344,100 @@ class WikiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("wiki-detail"))
                 .andExpect(model().attributeExists("evidenceGrades", "evidenceColors"));
+    }
+
+    // --- Tier gating tests ---
+
+    @Test
+    void wikiPage_freeUser_rendersTeaser() throws Exception {
+        WikiPage page = buildTestPage("fda-ai-guidance", "FDA AI Guidance", WikiPageType.ENTITY);
+        when(wikiQueryPort.getPage("fda-ai-guidance")).thenReturn(page);
+        when(revisionRepository.findByPageSlugOrderByRevisionDesc("fda-ai-guidance"))
+                .thenReturn(List.of());
+        when(contradictionRepository.findByPageSlug("fda-ai-guidance"))
+                .thenReturn(List.of());
+        when(articleRepository.findByArticleIdIn(List.of("art-001")))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/wiki/fda-ai-guidance"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-detail"))
+                .andExpect(model().attribute("fullAccess", false));
+    }
+
+    @Test
+    void wikiPage_subscriberUser_rendersFullContent() throws Exception {
+        WikiPage page = buildTestPage("fda-ai-guidance", "FDA AI Guidance", WikiPageType.ENTITY);
+        when(wikiQueryPort.getPage("fda-ai-guidance")).thenReturn(page);
+        when(revisionRepository.findByPageSlugOrderByRevisionDesc("fda-ai-guidance"))
+                .thenReturn(List.of());
+        when(contradictionRepository.findByPageSlug("fda-ai-guidance"))
+                .thenReturn(List.of());
+        when(articleRepository.findByArticleIdIn(List.of("art-001")))
+                .thenReturn(List.of());
+        when(subscriberPort.findByEmail("user"))
+                .thenReturn(Optional.of(new Subscriber("user", "Test User", true,
+                        NOW, SubscriptionTier.SUBSCRIBER, null, null, null)));
+
+        mockMvc.perform(get("/wiki/fda-ai-guidance"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-detail"))
+                .andExpect(model().attribute("fullAccess", true));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void wikiPage_adminUser_getsFullAccess() throws Exception {
+        WikiPage page = buildTestPage("fda-ai-guidance", "FDA AI Guidance", WikiPageType.ENTITY);
+        when(wikiQueryPort.getPage("fda-ai-guidance")).thenReturn(page);
+        when(revisionRepository.findByPageSlugOrderByRevisionDesc("fda-ai-guidance"))
+                .thenReturn(List.of());
+        when(contradictionRepository.findByPageSlug("fda-ai-guidance"))
+                .thenReturn(List.of());
+        when(articleRepository.findByArticleIdIn(List.of("art-001")))
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/wiki/fda-ai-guidance"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-detail"))
+                .andExpect(model().attribute("fullAccess", true));
+    }
+
+    @Test
+    void contradictions_freeUser_rendersUpgrade() throws Exception {
+        when(wikiQueryPort.recentContradictions(any(Instant.class))).thenReturn(List.of());
+
+        mockMvc.perform(get("/wiki/contradictions"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-contradictions"))
+                .andExpect(model().attribute("fullAccess", false));
+    }
+
+    @Test
+    void digest_freeUser_rendersUpgrade() throws Exception {
+        when(pageRepository.findByCreatedAtAfterOrderByCreatedAtDesc(any(Instant.class)))
+                .thenReturn(List.of());
+        when(pageRepository.findByUpdatedAtAfterAndRevisionGreaterThanOrderByUpdatedAtDesc(
+                any(Instant.class), anyInt()))
+                .thenReturn(List.of());
+        when(wikiQueryPort.recentContradictions(any(Instant.class)))
+                .thenReturn(List.of());
+        when(pageRepository.count()).thenReturn(0L);
+
+        mockMvc.perform(get("/wiki/digest"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-digest"))
+                .andExpect(model().attribute("fullAccess", false));
+    }
+
+    @Test
+    void askWiki_freeUser_rendersUpgrade() throws Exception {
+        when(aiSearchPort.modelName()).thenReturn("Claude");
+        when(aiSearchPort.isAvailable()).thenReturn(true);
+
+        mockMvc.perform(get("/wiki/ask"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("wiki-ask"))
+                .andExpect(model().attribute("fullAccess", false));
     }
 }

@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion.web;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ContentHashPort;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.ExcerptTruncator;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceConfig;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.feed.FeedSourceProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -41,23 +42,26 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-19
- * @updated 2026-05-20
+ * @updated 2026-09-05
  */
 @Slf4j
 @Component
 public class WebPageHarvester {
 
     private static final int CONNECT_TIMEOUT_MS = 15_000;
-    private static final int MAX_BODY_LENGTH = 10_000;
+    static final int MAX_BODY_LENGTH = 500;
 
     private final List<FeedSourceConfig> competitorSources;
     private final ContentHashPort contentHashPort;
+    private final RobotsTxtGate robotsTxtGate;
 
     public WebPageHarvester(FeedSourceProperties properties,
-                            ContentHashPort contentHashPort) {
-        log.debug("WebPageHarvester() | properties={}, contentHashPort={}",
+                            ContentHashPort contentHashPort,
+                            RobotsTxtGate robotsTxtGate) {
+        log.debug("WebPageHarvester() | properties={}, contentHashPort={}, robotsTxtGate={}",
                   properties.getClass().getSimpleName(),
-                  contentHashPort.getClass().getSimpleName());
+                  contentHashPort.getClass().getSimpleName(),
+                  robotsTxtGate.getClass().getSimpleName());
         List<FeedSourceConfig> filtered = new ArrayList<>();
         for (FeedSourceConfig config : properties.toFeedSourceConfigs()) {
             if (config.tier() == FeedSourceConfig.FeedTier.COMPETITOR) {
@@ -66,6 +70,7 @@ public class WebPageHarvester {
         }
         this.competitorSources = List.copyOf(filtered);
         this.contentHashPort = contentHashPort;
+        this.robotsTxtGate = robotsTxtGate;
         log.debug("WebPageHarvester() | initialized with {} competitor sources",
                   competitorSources.size());
     }
@@ -109,6 +114,12 @@ public class WebPageHarvester {
     private NewsArticle harvestPage(FeedSourceConfig source) {
         log.debug("harvestPage() | source={}, url={}", source.name(), source.url());
 
+        if (!robotsTxtGate.isAllowed(source.url())) {
+            log.warn("harvestPage() | robots.txt disallows '{}' — skipping", source.url());
+            log.debug("harvestPage() | return=null");
+            return null;
+        }
+
         Document doc = Jsoup.parse(fetchPageHtml(source.url()));
         String mainContent = extractMainContent(doc);
         String newHash = sha256(mainContent);
@@ -134,9 +145,7 @@ public class WebPageHarvester {
         }
 
         String title = doc.title().isBlank() ? source.name() : doc.title();
-        String bodyText = mainContent.length() > MAX_BODY_LENGTH
-                ? mainContent.substring(0, MAX_BODY_LENGTH)
-                : mainContent;
+        String bodyText = ExcerptTruncator.truncate(mainContent, MAX_BODY_LENGTH);
 
         long epochSeconds = Instant.now().getEpochSecond();
         URI snapshotUrl = URI.create(source.url() + "#snapshot-" + epochSeconds);

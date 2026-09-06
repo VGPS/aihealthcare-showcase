@@ -1538,3 +1538,10 @@ aihealthcare:
         url: https://aws.amazon.com/health/
         topics:
           - Amazon Connect Health
+
+  # ---------------------------------------------------------------------------
+  # Ingestion — domain denylist for WebPageHarvester robots.txt gate.
+  # Domains listed here are blocked regardless of their robots.txt content.
+  # ---------------------------------------------------------------------------
+  ingestion:
+    domain-denylist: []

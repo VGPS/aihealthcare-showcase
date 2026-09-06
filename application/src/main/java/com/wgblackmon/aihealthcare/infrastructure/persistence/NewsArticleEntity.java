@@ -29,7 +29,7 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-11
- * @updated 2026-08-23
+ * @updated 2026-09-05
  */
 @Entity
 @Table(name = "news_articles",
