@@ -91,13 +91,9 @@
                     <span class="sort-arrow" onclick="sortTable(this, 3, 'asc')" title="Sort ascending">&#8593;</span>
                     <span class="sort-arrow" onclick="sortTable(this, 3, 'desc')" title="Sort descending">&#8595;</span>
                 </th>
-                <th class="p-2">Outcome
-                    <span class="sort-arrow" onclick="sortTable(this, 4, 'asc')" title="Sort A-Z">&#8593;</span>
-                    <span class="sort-arrow" onclick="sortTable(this, 4, 'desc')" title="Sort Z-A">&#8595;</span>
-                </th>
                 <th class="p-2">Published Date
-                    <span class="sort-arrow" onclick="sortTable(this, 5, 'asc')" title="Oldest first">&#8593;</span>
-                    <span class="sort-arrow" onclick="sortTable(this, 5, 'desc')" title="Newest first">&#8595;</span>
+                    <span class="sort-arrow" onclick="sortTable(this, 4, 'asc')" title="Oldest first">&#8593;</span>
+                    <span class="sort-arrow" onclick="sortTable(this, 4, 'desc')" title="Newest first">&#8595;</span>
                 </th>
                 <th class="p-2">Keywords</th>
             </tr>
@@ -141,29 +137,6 @@
                 </td>
                 <td class="p-2 text-sm font-mono">
                     <span th:if="${event.referenceNumber() != null}" th:text="${event.referenceNumber()}">K241234</span>
-                </td>
-                <td class="p-2">
-                    <span th:if="${event.outcomeStatus() != null}" th:switch="${event.outcomeStatus().name()}">
-                        <span th:case="'CLEARED'"
-                              class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Cleared</span>
-                        <span th:case="'APPROVED'"
-                              class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Approved</span>
-                        <span th:case="'PENDING'"
-                              class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-semibold">Pending</span>
-                        <span th:case="'DENIED'"
-                              class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-semibold">Denied</span>
-                        <span th:case="'WITHDRAWN'"
-                              class="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold">Withdrawn</span>
-                        <span th:case="'MARKETED'"
-                              class="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-semibold">Marketed</span>
-                        <span th:case="'CMS_COVERED'"
-                              class="inline-block bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-xs font-semibold">CMS Covered</span>
-                        <span th:case="'CMS_NON_COVERED'"
-                              class="inline-block bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-semibold">Not Covered</span>
-                        <span th:case="*"
-                              class="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs"
-                              th:text="${event.outcomeStatus().name()}">Status</span>
-                    </span>
                 </td>
                 <td class="p-2 text-sm whitespace-nowrap"
                     th:text="${eventDates.get(event.eventId()) ?: discoveredDates.get(event.eventId())}">Jan 1, 2026</td>
