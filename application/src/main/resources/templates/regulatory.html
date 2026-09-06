@@ -9,7 +9,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-30
+ * @updated 2026-09-06
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -95,7 +95,10 @@
                     <span class="sort-arrow" onclick="sortTable(this, 4, 'asc')" title="Oldest first">&#8593;</span>
                     <span class="sort-arrow" onclick="sortTable(this, 4, 'desc')" title="Newest first">&#8595;</span>
                 </th>
-                <th class="p-2">Keywords</th>
+                <th class="p-2">Keywords
+                    <span class="sort-arrow" onclick="sortTable(this, 5, 'asc')" title="Sort A-Z">&#8593;</span>
+                    <span class="sort-arrow" onclick="sortTable(this, 5, 'desc')" title="Sort Z-A">&#8595;</span>
+                </th>
             </tr>
             </thead>
             <tbody>
