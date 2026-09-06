@@ -197,10 +197,7 @@ public class CompanyProfileService {
      * Converts a company name to a URL-safe kebab-case slug.
      */
     public String toSlug(String name) {
-        return name.toLowerCase()
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .trim()
-                .replaceAll("\\s+", "-");
+        return SlugUtils.toSlug(name);
     }
 
     // --- Private helpers ---

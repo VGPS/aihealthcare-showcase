@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-29
+ * @updated 2026-09-06
  */
 @Slf4j
 @Controller
@@ -70,7 +70,8 @@ public class FrameworkDashboardController {
         Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
         if (sub.isEmpty()) return false;
         SubscriptionTier tier = sub.get().tier();
-        return tier == SubscriptionTier.ENTERPRISE || tier == SubscriptionTier.DEMO;
+        return tier == SubscriptionTier.ENTERPRISE || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.SUBSCRIBER;
     }
 
     private static String stripCitations(String text) {

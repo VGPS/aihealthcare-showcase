@@ -161,7 +161,6 @@ public class CompanySignalService {
 
     /** Converts a display name to a URL-safe slug matching the slug stored in the DB. */
     static String toSlug(String name) {
-        if (name == null) return "";
-        return name.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+        return SlugUtils.toSlug(name);
     }
 }

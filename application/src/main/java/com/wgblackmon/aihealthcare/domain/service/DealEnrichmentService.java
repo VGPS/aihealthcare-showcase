@@ -13,7 +13,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -112,8 +111,6 @@ public class DealEnrichmentService {
         if (name == null || name.isBlank()) {
             return null;
         }
-        return name.toLowerCase(Locale.ENGLISH)
-                .replaceAll("[^a-z0-9]+", "-")
-                .replaceAll("^-|-$", "");
+        return SlugUtils.toSlug(name);
     }
 }

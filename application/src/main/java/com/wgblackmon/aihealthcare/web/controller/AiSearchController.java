@@ -53,7 +53,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 2.1
  * @since   2026-06-02
- * @updated 2026-08-25
+ * @updated 2026-09-06
  */
 @Slf4j
 @Controller
@@ -237,6 +237,11 @@ public class AiSearchController {
         if (principal == null) {
             log.debug("resolveTier() | return={}", SubscriptionTier.FREE);
             return SubscriptionTier.FREE;
+        }
+
+        if (isAdmin(principal)) {
+            log.debug("resolveTier() | return={} (admin bypass)", SubscriptionTier.SUBSCRIBER);
+            return SubscriptionTier.SUBSCRIBER;
         }
 
         Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());

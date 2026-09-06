@@ -3,18 +3,17 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.exception.ApiKeyCreationException;
 import com.wgblackmon.aihealthcare.domain.exception.ApiKeyNotFoundException;
 import com.wgblackmon.aihealthcare.domain.model.ApiKey;
-import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
-import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.ApiKeyAuthenticationFilter;
 import com.wgblackmon.aihealthcare.web.dto.ApiKeyRequest;
 import com.wgblackmon.aihealthcare.web.dto.ApiKeyResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,7 +41,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-03
- * @updated 2026-08-04
+ * @updated 2026-09-06
  */
 @Slf4j
 @RestController
@@ -53,13 +52,13 @@ public class ApiKeyController {
     private static final int MAX_KEYS_ENTERPRISE = 10;
 
     private final ApiKeyPort apiKeyPort;
-    private final AppUserPort appUserPort;
+    private final SubscriberPort subscriberPort;
 
-    public ApiKeyController(ApiKeyPort apiKeyPort, AppUserPort appUserPort) {
-        log.debug("ApiKeyController() | apiKeyPort={}, appUserPort={}",
-                  apiKeyPort.getClass().getSimpleName(), appUserPort.getClass().getSimpleName());
+    public ApiKeyController(ApiKeyPort apiKeyPort, SubscriberPort subscriberPort) {
+        log.debug("ApiKeyController() | apiKeyPort={}, subscriberPort={}",
+                  apiKeyPort.getClass().getSimpleName(), subscriberPort.getClass().getSimpleName());
         this.apiKeyPort = apiKeyPort;
-        this.appUserPort = appUserPort;
+        this.subscriberPort = subscriberPort;
     }
 
     /**
@@ -88,8 +87,8 @@ public class ApiKeyController {
         }
 
         String ownerEmail = principal.getName();
-        SubscriptionTier tier = resolveTier(ownerEmail);
-        boolean isAdmin = isAdmin();
+        SubscriptionTier tier = resolveTier(principal);
+        boolean isAdmin = isAdmin(principal);
 
         if (!isAdmin && tier != SubscriptionTier.SUBSCRIBER && tier != SubscriptionTier.ENTERPRISE) {
             throw new ApiKeyCreationException(
@@ -171,7 +170,7 @@ public class ApiKeyController {
         }
 
         ApiKey key = keyOpt.get();
-        boolean isAdmin = isAdmin();
+        boolean isAdmin = isAdmin(principal);
         if (!isAdmin && !key.ownerEmail().equals(principal.getName())) {
             log.debug("deleteKey() | return=403, ownership mismatch");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -182,16 +181,18 @@ public class ApiKeyController {
         return ResponseEntity.noContent().build();
     }
 
-    private SubscriptionTier resolveTier(String email) {
-        Optional<AppUser> userOpt = appUserPort.findByEmail(email);
-        if (userOpt.isPresent() && userOpt.get().tier() != null) {
-            return userOpt.get().tier();
-        }
-        return SubscriptionTier.FREE;
+    private SubscriptionTier resolveTier(Principal principal) {
+        if (principal == null) return SubscriptionTier.FREE;
+        if (isAdmin(principal)) return SubscriptionTier.SUBSCRIBER;
+        return subscriberPort.findByEmail(principal.getName())
+                .map(Subscriber::tier).orElse(SubscriptionTier.FREE);
     }
 
-    private boolean isAdmin() {
-        return SecurityContextHolder.getContext().getAuthentication()
-                .getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+    private boolean isAdmin(Principal principal) {
+        if (principal instanceof Authentication auth) {
+            return auth.getAuthorities().stream()
+                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        }
+        return false;
     }
 }

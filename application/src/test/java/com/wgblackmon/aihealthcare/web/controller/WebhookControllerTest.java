@@ -1,12 +1,12 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.WebhookChannel;
 import com.wgblackmon.aihealthcare.domain.model.WebhookChannelType;
 import com.wgblackmon.aihealthcare.domain.model.WebhookEventType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
-import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WebhookChannelPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WebhookNotificationPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
@@ -41,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-09-06
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(WebhookController.class)
@@ -57,7 +57,7 @@ class WebhookControllerTest {
     private WebhookNotificationPort webhookNotificationPort;
 
     @MockitoBean
-    private AppUserPort appUserPort;
+    private SubscriberPort subscriberPort;
 
     @MockitoBean
     private ApiKeyPort apiKeyPort;
@@ -65,8 +65,8 @@ class WebhookControllerTest {
     private static final Instant NOW = Instant.parse("2026-08-04T12:00:00Z");
 
     private void stubUser(String email, SubscriptionTier tier) {
-        AppUser user = new AppUser(email, "hashed", "Test User", "USER", true, tier, null);
-        when(appUserPort.findByEmail(email)).thenReturn(Optional.of(user));
+        Subscriber subscriber = new Subscriber(email, "Test User", true, NOW, tier, null, null, null);
+        when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(subscriber));
     }
 
     private WebhookChannel testChannel(String id, String owner) {

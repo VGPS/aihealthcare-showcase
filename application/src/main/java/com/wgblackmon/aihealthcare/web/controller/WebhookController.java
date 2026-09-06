@@ -1,12 +1,12 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.domain.model.AppUser;
+import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.WebhookChannel;
 import com.wgblackmon.aihealthcare.domain.model.WebhookChannelType;
 import com.wgblackmon.aihealthcare.domain.model.WebhookEventType;
 import com.wgblackmon.aihealthcare.domain.model.WebhookPayload;
-import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WebhookChannelPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WebhookNotificationPort;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
@@ -40,7 +41,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-07
+ * @updated 2026-09-06
  */
 @Slf4j
 @RestController
@@ -49,18 +50,18 @@ public class WebhookController {
 
     private final WebhookChannelPort webhookChannelPort;
     private final WebhookNotificationPort webhookNotificationPort;
-    private final AppUserPort appUserPort;
+    private final SubscriberPort subscriberPort;
 
     public WebhookController(WebhookChannelPort webhookChannelPort,
                               WebhookNotificationPort webhookNotificationPort,
-                              AppUserPort appUserPort) {
-        log.debug("WebhookController() | webhookChannelPort={}, webhookNotificationPort={}, appUserPort={}",
+                              SubscriberPort subscriberPort) {
+        log.debug("WebhookController() | webhookChannelPort={}, webhookNotificationPort={}, subscriberPort={}",
                   webhookChannelPort.getClass().getSimpleName(),
                   webhookNotificationPort.getClass().getSimpleName(),
-                  appUserPort.getClass().getSimpleName());
+                  subscriberPort.getClass().getSimpleName());
         this.webhookChannelPort = webhookChannelPort;
         this.webhookNotificationPort = webhookNotificationPort;
-        this.appUserPort = appUserPort;
+        this.subscriberPort = subscriberPort;
     }
 
     @PostMapping
@@ -73,7 +74,7 @@ public class WebhookController {
         }
 
         String email = principal.getName();
-        SubscriptionTier tier = resolveTier(email);
+        SubscriptionTier tier = resolveTier(principal);
         if (tier != SubscriptionTier.SUBSCRIBER && tier != SubscriptionTier.ENTERPRISE && !isAdmin(principal)) {
             log.debug("createChannel() | return=403 (tier={})", tier);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -224,22 +225,20 @@ public class WebhookController {
         }
     }
 
-    private SubscriptionTier resolveTier(String email) {
-        log.debug("resolveTier() | email={}", email);
-        Optional<AppUser> user = appUserPort.findByEmail(email);
-        SubscriptionTier tier = user.map(AppUser::tier).orElse(SubscriptionTier.FREE);
+    private SubscriptionTier resolveTier(Principal principal) {
+        log.debug("resolveTier() | principal={}", principal != null ? principal.getName() : "null");
+        if (principal == null) return SubscriptionTier.FREE;
+        if (isAdmin(principal)) return SubscriptionTier.SUBSCRIBER;
+        SubscriptionTier tier = subscriberPort.findByEmail(principal.getName())
+                .map(Subscriber::tier).orElse(SubscriptionTier.FREE);
         log.debug("resolveTier() | return={}", tier);
         return tier;
     }
 
     private boolean isAdmin(Principal principal) {
-        if (!(principal instanceof org.springframework.security.authentication.UsernamePasswordAuthenticationToken auth)) {
-            return false;
-        }
-        for (var authority : auth.getAuthorities()) {
-            if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                return true;
-            }
+        if (principal instanceof Authentication auth) {
+            return auth.getAuthorities().stream()
+                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
         }
         return false;
     }
