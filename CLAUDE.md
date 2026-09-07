@@ -731,47 +731,52 @@ Compilation will run after harvest via the existing `@Scheduled` trigger (wired 
 The Market Analysis module tracks daily market-moving news in AI-powered healthcare — regulatory actions, public-company earnings/guidance, funding rounds, and M&A — and produces a ranked, fact-vs-speculation-separated digest. It reuses the existing Deep Research + scheduled-job pattern already established for the Trends pipeline, and adds a lightweight market-data lookup step for any publicly traded company mentioned in the news.
 
 **Architecture decisions (locked in — do not re-litigate):**
-- **No Flyway** — use JPA `@Entity` classes with the existing `ddl-auto: create-drop` pattern (same as every other entity in this project). Prompt 1.3 references Flyway migrations; ignore that and use JPA instead.
-- **No Bedrock** — use the existing Spring AI `ChatClient` wired to the direct Anthropic API (same `ChatClient` bean already used throughout this app). Prompt 1.5 references `Claude/Bedrock`; use the existing ChatClient bean pattern instead.
-- **No streams** — all iteration uses `for` loops per project convention. Code samples in the spec use `.stream().map()`; convert all of those to `for` loops in the actual implementation.
-- **Provider locked:** market data = Alpaca; private funding = Perplexity Search API (reuse existing client); analyst ratings = Benzinga ($99/mo, Slice 3.2).
+- **No Flyway** — use JPA `@Entity` classes with the existing `ddl-auto: create-drop` pattern (same as every other entity in this project). Spec prompts reference Flyway migrations; ignore that and use JPA instead.
+- **No Bedrock** — use the existing Spring AI `ChatClient` wired to the direct Anthropic API (same `ChatClient` bean already used throughout this app). Spec prompts reference `Claude/Bedrock`; use the existing ChatClient bean pattern instead.
+- **No React** — all UI is Thymeleaf server-rendered (same as every other page in this project). Spec references "React frontend"; use Thymeleaf templates instead.
+- **Flat packages** — use the existing project package structure (`domain.model`, `domain.port.outbound`, `domain.service`, `infrastructure.ai`, `infrastructure.persistence`, `web.controller`). Spec proposes feature-scoped sub-packages (`domain/marketanalysis/`); do NOT create sub-packages. All domain records go in `domain.model`, all ports in `domain.port.outbound`, all services in `domain.service`.
+- **Streams OK** — streams are permitted in new code as of 2026-09-02 (see `docs/CONVENTIONS.md` §3). Use streams or for-loops as appropriate for each case.
+- **Provider locked:** market data = Alpaca (free); private funding = Perplexity Search API (reuse existing client); analyst ratings = Benzinga ($99/mo, Slice 3.2).
 
-### Domain model (hexagonal — domain layer)
+### Domain model (all records in `domain.model`, ports in `domain.port.outbound`)
 
-Package root: `com.wgblackmon.aihealthcare.domain.marketanalysis`
+**Records & enums:**
+| Type | Fields | Notes |
+|------|--------|-------|
+| `MarketNewsItem` | headline, summary, sourceUrls, publishedAt, category | 5 fields |
+| `NewsCategory` | EARNINGS, REGULATORY, FUNDING, M_AND_A, MAJOR_PARTNERSHIP, OTHER | enum (6 values) |
+| `FactClassification` | CONFIRMED, SPECULATIVE | enum |
+| `ImpactDimension` | REVENUE, EARNINGS, VALUATION, INVESTOR_SENTIMENT, FUTURE_GROWTH | enum |
+| `ImpactAssessment` | dimension, direction (POSITIVE/NEGATIVE/NEUTRAL), rationale | 3 fields |
+| `MarketImpactRank` | rank 1 (highest) .. 5 (lowest) | record with int validation |
+| `AffectedCompany` | name, tickerSymbol (nullable), role, peerGroup | 4 fields |
+| `PeerGroup` | AI_SCRIBE_DOCUMENTATION, VALUE_BASED_CARE_PLATFORM, DIAGNOSTIC_IMAGING_AI, DRUG_DISCOVERY_AI, DIGITAL_THERAPEUTICS, OTHER | enum |
+| `MarketDigestEntry` | newsItem + impacts + factClassification + rank + companies + optional DealTerms/PrivateFundingRound/RegulatoryTracker | aggregate |
+| `MarketDigest` | date, entries list, generatedAt | aggregate |
+| `PrivateFundingRound` | companyName, roundStage, amountUsd, leadInvestors, announcedAt | Phase 3 |
+| `DealTerms` | upfrontCashUsd, milestonePaymentsUsd, equityStakePct, royaltyPct, disclosedPortion | Phase 3 |
+| `AnalystRatingChange` | firm, tickerSymbol, previousRating, newRating, previousPriceTarget, newPriceTarget, changedAt | Phase 3 |
+| `GuidanceComparison` | tickerSymbol, priorGuidanceLow/High, newGuidanceLow/High, metric | Phase 2 |
+| `RulemakingStage` | DISCUSSION_PAPER, COMMENT_PERIOD, DRAFT_GUIDANCE, FINAL_GUIDANCE, ENFORCEMENT | enum, Phase 2 |
+| `Jurisdiction` | US_FDA, EU_AI_ACT, UK_MHRA, US_STATE, OTHER | enum, Phase 2 |
+| `RegulatoryTracker` | jurisdiction, stage, docketId, commentDeadline, lastUpdatedAt | Phase 2 |
 
-```
-domain/
-  marketanalysis/
-    MarketNewsItem.java          // record: headline, summary, sourceUrls, publishedAt, category
-    NewsCategory.java            // enum: EARNINGS, REGULATORY, FUNDING, M_AND_A, MAJOR_PARTNERSHIP, OTHER
-    FactClassification.java      // enum: CONFIRMED, SPECULATIVE
-    ImpactDimension.java         // enum: REVENUE, EARNINGS, VALUATION, INVESTOR_SENTIMENT, FUTURE_GROWTH
-    ImpactAssessment.java        // record: dimension, direction (POSITIVE/NEGATIVE/NEUTRAL), rationale
-    MarketImpactRank.java        // 1 (highest) .. 5 (lowest)
-    AffectedCompany.java         // record: name, tickerSymbol (nullable), role, peerGroup
-    PeerGroup.java               // enum: AI_SCRIBE_DOCUMENTATION, VALUE_BASED_CARE_PLATFORM, DIAGNOSTIC_IMAGING_AI, DRUG_DISCOVERY_AI, DIGITAL_THERAPEUTICS, OTHER
-    PrivateFundingRound.java     // record: companyName, roundStage, amountUsd, leadInvestors, announcedAt
-    DealTerms.java               // record: upfrontCashUsd, milestonePaymentsUsd, equityStakePct, royaltyPct, disclosedPortion (FULL/PARTIAL/UNDISCLOSED)
-    AnalystRatingChange.java     // record: firm, tickerSymbol, previousRating, newRating, previousPriceTarget, newPriceTarget, changedAt
-    GuidanceComparison.java      // record: tickerSymbol, priorGuidanceLow, priorGuidanceHigh, newGuidanceLow, newGuidanceHigh, metric
-    RulemakingStage.java         // enum: DISCUSSION_PAPER, COMMENT_PERIOD, DRAFT_GUIDANCE, FINAL_GUIDANCE, ENFORCEMENT
-    Jurisdiction.java            // enum: US_FDA, EU_AI_ACT, UK_MHRA, US_STATE, OTHER
-    RegulatoryTracker.java       // record: jurisdiction, stage, docketId, commentDeadline, lastUpdatedAt
-    MarketDigestEntry.java       // aggregate: NewsItem + ImpactAssessments + FactClassification + rank + AffectedCompanies + optional DealTerms/PrivateFundingRound/RegulatoryTracker
-    MarketDigest.java            // aggregate: date, List<MarketDigestEntry>, generatedAt
-    port/
-      MarketNewsResearchPort.java    // findRecentAiHealthcareNews(Instant since) → List<MarketNewsItem>
-      MarketDataPort.java            // getQuote(ticker) → Optional<Quote>; getPriceHistory(ticker, start, end) → Optional<PriceHistory>
-      PrivateFundingPort.java        // findRecentRounds(since, peerGroupFilter) → List<PrivateFundingRound>
-      AnalystRatingPort.java         // findRecentChanges(ticker, since) → List<AnalystRatingChange>
-      GuidancePort.java              // getPriorGuidance(ticker, metric) + recordGuidance(comparison)
-      RegulatoryTrackerRepository.java  // upsert(tracker); findApproachingDeadlines(within) → List<RegulatoryTracker>
-      MarketDigestRepository.java    // save(digest); findByDate(date) → Optional<MarketDigest>
-      MarketDigestNotifier.java      // notify(digest) — called only when digest has ≥1 qualifying entry
-      ImpactClassifierPort.java      // classify(List<MarketDigestEntry>) → List<MarketDigestEntry>
-      TickerWatchlistRepository.java // findWatchedTickers(subscriberId) → List<String>
-```
+**Outbound ports (all in `domain.port.outbound`):**
+| Port | Methods |
+|------|---------|
+| `MarketNewsResearchPort` | `findRecentAiHealthcareNews(Instant since)` → `List<MarketNewsItem>` |
+| `MarketDataPort` | `getQuote(ticker)` → `Optional<Quote>` |
+| `ImpactClassifierPort` | `classify(List<MarketDigestEntry>)` → `List<MarketDigestEntry>` |
+| `MarketDigestPort` | `save(digest)`, `findByDate(date)`, `findLatest()`, `findBetween(from, to)` |
+| `MarketDigestNotifierPort` | `notify(digest)` — called only when digest has ≥1 qualifying entry |
+| `PrivateFundingPort` | `findRecentRounds(since, peerGroupFilter)` → Phase 3 |
+| `AnalystRatingPort` | `findRecentChanges(ticker, since)` → Phase 3 |
+| `GuidancePort` | `getPriorGuidance(ticker, metric)` + `recordGuidance(comparison)` → Phase 2 |
+| `TickerWatchlistPort` | `findWatchedTickers(subscriberEmail)` → Phase 3 |
+
+**Inbound port:** `ProduceMarketDigestUseCase` in `domain.port.inbound` — `runDaily()`, `getDigest(date)`, `getLatest()`, `getRange(from, to)`
+
+**Domain service:** `MarketDigestService` in `domain.service` — orchestrates news research → LLM classification → market data enrichment → qualifying-bar filter → ranking → persistence → notification
 
 ### Qualifying bar (`isMarketMoving`)
 
@@ -784,64 +789,238 @@ An entry qualifies when:
 
 ### Scheduler
 
-Daily at 7:00 AM America/Chicago — `@Scheduled(cron = "0 0 7 * * *", zone = "America/Chicago")`
+Daily cron externalized to `application.yml`:
+```yaml
+aihealthcare:
+  market-analysis:
+    schedule: "0 0 12 * * *"   # daily noon UTC (7:00 AM Chicago)
+    enabled: true
+```
+`MarketAnalysisScheduler` in `infrastructure.scheduler` — uses `@Scheduled(cron = "${aihealthcare.market-analysis.schedule}")`.
 Runs on a dedicated async executor bean `"marketAnalysisExecutor"` (corePoolSize=2, maxPoolSize=4) — distinct from the Trends pipeline's executor.
 
 ### Persistence (JPA — no Flyway)
 
-Four core Phase-1 tables (JPA auto-creates):
-- `market_digest` — id BIGSERIAL PK, digest_date DATE UNIQUE, generated_at TIMESTAMPTZ
-- `market_digest_entry` — id BIGSERIAL PK, digest_id FK, headline, summary, source_urls TEXT[], category, fact_classification, market_impact_rank SMALLINT (1-5), published_at, embedding VECTOR(1536) nullable
-- `market_digest_impact_assessment` — id BIGSERIAL PK, entry_id FK, dimension, direction, rationale
-- `market_digest_affected_company` — id BIGSERIAL PK, entry_id FK, company_name, ticker_symbol nullable, role, peer_group nullable, quote_price, quote_change_pct, market_cap
+Four core Phase-1 entities (JPA auto-creates via `ddl-auto`):
+- `MarketDigestEntity` — id BIGSERIAL PK, digestDate DATE UNIQUE, generatedAt TIMESTAMPTZ
+- `MarketDigestEntryEntity` — id BIGSERIAL PK, digest FK, headline, summary, sourceUrls TEXT, category, factClassification, marketImpactRank SMALLINT (1-5), publishedAt, embedding VECTOR(1536) nullable
+- `MarketDigestImpactEntity` — id BIGSERIAL PK, entry FK, dimension, direction, rationale
+- `MarketDigestCompanyEntity` — id BIGSERIAL PK, entry FK, companyName, tickerSymbol nullable, role, peerGroup nullable, quotePrice, quoteChangePct, marketCap
 
-Additional Phase-2/3 tables: `guidance_history`, `regulatory_tracker`, `private_funding_round`, `analyst_rating_change`, `ticker_watchlist` — add as nullable columns or separate entities when their slice lands; must not break existing digest deserialization.
+All entities in `infrastructure.persistence`. Repositories as Spring Data `JpaRepository` interfaces in the same package.
 
-Use pgvector cosine similarity (<=>) on `embedding` for 7-day rolling dedup to suppress re-notification on resurface stories (threshold configurable via `market-analysis.dedup.similarity-threshold`, starting 0.92-0.95). Dedup suppresses notification only — every entry is always persisted.
+Additional Phase-2/3 entities: `GuidanceHistoryEntity`, `RegulatoryTrackerEntity`, `PrivateFundingRoundEntity`, `AnalystRatingChangeEntity`, `TickerWatchlistEntity` — added when their slice lands; must not break existing digest deserialization.
+
+Use pgvector cosine similarity (<=>) on `embedding` for 7-day rolling dedup to suppress re-notification on resurface stories (threshold configurable via `aihealthcare.market-analysis.dedup-similarity-threshold`, default 0.93). Dedup suppresses notification only — every entry is always persisted.
 
 ### REST API
 
+All endpoints in `web.controller.MarketDigestController` and `web.controller.MarketDigestRestController`:
 ```
-GET  /api/market-digest/{date}               → MarketDigestResponse (404 if none)
-GET  /api/market-digest/latest               → MarketDigestResponse (most recent)
-GET  /api/market-digest?from=&to=            → paginated List<MarketDigestSummary>
-GET  /api/market-digest/weekly-rollup?weekOf= → WeeklyRollupResponse
-POST /api/market-digest/subscribe            → subscribe current user (idempotent)
-GET  /api/market-digest/watchlist            → current user's tracked tickers
-PUT  /api/market-digest/watchlist            → replace tracked ticker list
+GET  /api/v1/market-digest/{date}               → MarketDigestResponse (404 if none)
+GET  /api/v1/market-digest/latest               → MarketDigestResponse (most recent)
+GET  /api/v1/market-digest?from=&to=            → paginated List<MarketDigestSummary>
+GET  /api/v1/market-digest/weekly-rollup?weekOf= → WeeklyRollupResponse (Phase 3)
+GET  /api/v1/market-digest/watchlist            → current user's tracked tickers (Phase 3)
+PUT  /api/v1/market-digest/watchlist            → replace tracked ticker list (Phase 3)
 ```
+
+### Thymeleaf UI
+
+| URL | Controller | Template | Notes |
+|-----|-----------|----------|-------|
+| `GET /dashboard/market` | `MarketDigestController` | `market-digest.html` | Daily digest view: ranked entries with fact/spec badges, impact cards, company chips |
+| `GET /dashboard/market/{date}` | `MarketDigestController` | `market-digest-detail.html` | Single-day detail: full entry cards with impact assessments, source links |
+| `GET /dashboard/market/history` | `MarketDigestController` | `market-digest-history.html` | Date-range browser with summary table |
+
+Tier gating: FREE=latest digest only, SUBSCRIBER/DEMO/ADMIN=full history + watchlists.
 
 ### Infrastructure adapters
 
 | Adapter | Port | Package |
 |---------|------|---------|
-| `PerplexityMarketNewsAdapter` | `MarketNewsResearchPort` | `infrastructure.marketanalysis.perplexity` |
-| `AlpacaMarketDataAdapter` | `MarketDataPort` | `infrastructure.marketanalysis.marketdata` |
-| `ClaudeImpactClassifierAdapter` | `ImpactClassifierPort` | `infrastructure.marketanalysis.ai` |
-| `SesMarketDigestNotifier` | `MarketDigestNotifier` | `infrastructure.marketanalysis.notification` |
-| `MarketDigestRepositoryAdapter` | `MarketDigestRepository` | `infrastructure.marketanalysis.persistence` |
-| `EntryEmbeddingService` | (internal — wraps existing pgvector embedding) | `infrastructure.marketanalysis.embedding` |
+| `PerplexityMarketNewsAdapter` | `MarketNewsResearchPort` | `infrastructure.research` |
+| `AlpacaMarketDataAdapter` | `MarketDataPort` | `infrastructure.ai` |
+| `MarketImpactClassifierAdapter` | `ImpactClassifierPort` | `infrastructure.ai` |
+| `MarketDigestNotifierAdapter` | `MarketDigestNotifierPort` | `infrastructure.delivery` |
+| `MarketDigestAdapter` | `MarketDigestPort` | `infrastructure.persistence` |
 
-### Build order (from market-analysis-slices.md)
+### Build order
 
 ```
-1.1 domain model + ports
-1.2 qualifying-bar filter + ranking logic (MarketDigestService partial)
-1.3 JPA entities + repository adapter
-{1.4 Perplexity news adapter, 1.5 Claude classifier adapter, 1.7 Alpaca market data adapter} — parallel
-1.6 scheduler + pipeline wiring (depends on 1.2, 1.3, 1.4, 1.5)
-1.8 SES notifier + REST endpoints (depends on 1.6)
-1.9 pgvector dedup (depends only on 1.3)
-Phase 2: 2.1 guidance history, 2.2 peer tagging, 2.3 regulatory tracker (2.1→2.3 sequential — shared DTO)
-Phase 3: 3.1 private funding, 3.2 analyst ratings, 3.3 deal terms, 3.4 watchlists, 3.5 weekly rollup
+Phase 1 — Core daily digest loop:
+  1.1 domain records + enums + ports (domain.model, domain.port.outbound, domain.port.inbound)
+  1.2 MarketDigestService + qualifying-bar filter + ranking logic (domain.service)
+  1.3 JPA entities + MarketDigestAdapter (infrastructure.persistence)
+  {1.4 PerplexityMarketNewsAdapter, 1.5 MarketImpactClassifierAdapter, 1.7 AlpacaMarketDataAdapter} — parallel
+  1.6 MarketAnalysisScheduler + pipeline wiring in AppConfig (depends on 1.2-1.5)
+  1.8 MarketDigestNotifierAdapter + REST endpoints + Thymeleaf pages (depends on 1.6)
+  1.9 pgvector embedding dedup (depends on 1.3)
+
+Phase 2 — Enrichment:
+  2.1 guidance history (GuidanceComparison, GuidancePort, GuidanceHistoryEntity)
+  2.2 peer-group tagging (PeerGroup resolver using existing company DB)
+  2.3 regulatory lifecycle tracker (RegulatoryTracker, Jurisdiction, RulemakingStage)
+  2.4 state legislation registry — seed + read-only REST + Thymeleaf (see below)
+  2.5 state legislation monitor — source freshness + Perplexity discovery + candidate review
+
+Phase 3 — Premium features:
+  3.1 private funding (PrivateFundingRound, Perplexity Search adapter)
+  3.2 analyst ratings (AnalystRatingChange, Benzinga adapter — $99/mo)
+  3.3 deal terms extraction (DealTerms record, classifier prompt update)
+  3.4 ticker watchlists (TickerWatchlistPort, per-subscriber watchlist + filtered notifications)
+  3.5 weekly rollup (WeeklyRollupService, rollup REST endpoint + Thymeleaf page)
+  3.6 Alpaca News cross-check (secondary source validation for LLM-discovered news)
+  3.7 corporate actions confirmation (dividends, splits, M&A via Alpaca Corporate Actions API)
 ```
 
 ### Testing notes
 
 - Unit test `isMarketMoving()` against each `NewsCategory` boundary, especially the $50M funding threshold and exact-equals edge case.
-- Contract-test `ClaudeImpactClassifierAdapter` with a fixed prompt fixture and golden JSON response (catch schema drift early).
+- Contract-test `MarketImpactClassifierAdapter` with a fixed prompt fixture and golden JSON response (catch schema drift early).
 - Integration test the full pipeline against a stubbed `MarketNewsResearchPort` (canned news items: one earnings beat + one sub-threshold funding round) to verify end-to-end filtering and ranking.
 - Snapshot-test `MarketDigestFormatter.toHtml()` to catch email template regressions.
+
+---
+
+## State Health-AI Legislation Registry
+
+### Overview
+
+A durable, source-linked registry of every enacted U.S. state law regulating AI in healthcare. Seeded from a researched 43-record JSON dataset (41 enacted laws across 24 states + 2 NOT_ENACTED for dedup suppression). Kept current by a weekly source-freshness monitor (re-fetching official URLs and flagging content changes) and a weekly Perplexity Search discovery sweep for newly enacted or amended bills. New candidates require human promotion — nothing is auto-written to the registry.
+
+**Architecture decisions:**
+- **No Flyway** — JPA entities with `ddl-auto: create-drop`, same as all other entities.
+- **Flat packages** — records in `domain.model`, ports in `domain.port.outbound`, service in `domain.service`, entities in `infrastructure.persistence`, adapters in their respective infrastructure packages.
+- **Seed data via `ApplicationRunner`** — idempotent upsert on startup from `state_health_ai_laws_seed.json` in `src/main/resources/data/`. Field names and enum codes must match the JSON exactly.
+- **Human review required** — `NewBillCandidate` records discovered by Perplexity are never auto-promoted to the registry. Admin reviews and promotes/dismisses via REST endpoints.
+- **Thymeleaf UI** — no React.
+
+### Domain model (all in `domain.model`)
+
+**Records & enums:**
+| Type | Fields | Notes |
+|------|--------|-------|
+| `StateLaw` | id (slug), stateCode, stateName, billNumber, title, yearEnacted, dateSigned, dateSignedNote, effectiveDate, effectiveDateNote, status, statusDetail, categories, regulatedParties, keyRequirements, enforcement, sources, notes, datasetVersion, createdAt, updatedAt | 21-field aggregate root |
+| `StateCode` | AL, AK, AZ, ... DC (51 values) | enum |
+| `LawStatus` | ENACTED, ENACTED_STAYED, NOT_ENACTED, PENDING | enum |
+| `LawCategory` | PAYER_UTILIZATION_REVIEW, CLAIMS_DOWNCODING, PROVIDER_CLINICAL_USE, PROVIDER_DISCLOSURE_CONSENT, MENTAL_HEALTH_PSYCHOTHERAPY, CONSUMER_CHATBOTS, COMPREHENSIVE_AI_ACT, OTHER | enum (8 values) |
+| `LawSource` | sourceType, url, lastFetchedAt, lastContentHash, lastHttpStatus, changedSinceLastReview | 6 fields |
+| `SourceType` | OFFICIAL, SECONDARY | enum |
+| `LawChangeEvent` | lawId, detectedAt, changeType, detail, reviewed | 5 fields |
+| `NewBillCandidate` | stateCode, billNumber, title, summary, sourceUrls, discoveredAt, confidence, reviewed, promotedLawId | 9 fields |
+
+### Ports (all in `domain.port.outbound`)
+
+| Port | Methods |
+|------|---------|
+| `StateLawPort` | `upsert(StateLaw)`, `findById(id)`, `findAll()`, `findByState(stateCode)`, `findByCategory(category)`, `findEffectiveBetween(from, to)`, `search(query)` |
+| `LawChangeEventPort` | `recordChangeEvent(event)`, `findUnreviewed()`, `markReviewed(eventId)` |
+| `NewBillCandidatePort` | `saveCandidate(candidate)`, `findUnreviewed()`, `markReviewed(candidateId)`, `promote(candidateId, StateLaw)`, `dismiss(candidateId)` |
+| `LawSourceMonitorPort` | `checkUrl(url)` → `SourceCheckResult` (status, contentHash, changed) |
+| `LegislationDiscoveryPort` | `discoverNewBills()` → `List<NewBillCandidate>` |
+| `LawChangeNotifierPort` | `notifyChanges(List<LawChangeEvent>, List<NewBillCandidate>)` |
+
+**Inbound port:** `ManageStateLawsUseCase` in `domain.port.inbound` — `getAll()`, `getById(id)`, `getByState(stateCode)`, `getByCategory(category)`, `getUpcoming(days)`, `search(query)`, `getUnreviewedChanges()`, `reviewChange(eventId)`, `getUnreviewedCandidates()`, `promoteCandidate(id, StateLaw)`, `dismissCandidate(id)`, `triggerRefresh()`
+
+**Domain service:** `StateLawService` in `domain.service`
+
+### Persistence (JPA — no Flyway)
+
+Five tables (JPA auto-creates):
+- `state_laws` — id VARCHAR PK (slug like `ca-ab-3030`), stateCode, stateName, billNumber, title, yearEnacted, dateSigned, effectiveDate, status, categories (pipe-delimited), regulatedParties TEXT, keyRequirements TEXT, enforcement TEXT, notes TEXT, datasetVersion, createdAt, updatedAt
+- `state_law_sources` — id BIGSERIAL PK, lawId FK, sourceType, url VARCHAR(2048), lastFetchedAt, lastContentHash, lastHttpStatus, changedSinceLastReview
+- `law_change_events` — id BIGSERIAL PK, lawId FK, detectedAt, changeType, detail TEXT, reviewed BOOLEAN
+- `new_bill_candidates` — id BIGSERIAL PK, stateCode, billNumber, title, summary TEXT, sourceUrls TEXT (pipe-delimited), discoveredAt, confidence DECIMAL, reviewed BOOLEAN, promotedLawId nullable
+- `new_bill_candidate_embeddings` — candidateId FK, embedding VECTOR(1536) — for dedup against existing laws
+
+All entities + repositories in `infrastructure.persistence`. Adapter: `StateLawAdapter` implements `StateLawPort` + `LawChangeEventPort` + `NewBillCandidatePort`.
+
+### Seed data
+
+File: `application/src/main/resources/data/state_health_ai_laws_seed.json`
+Source: `state_health/extracted/data/state_health_ai_laws_seed.json` (43 records, 41 enacted + 2 NOT_ENACTED)
+
+Loaded by `StateLawSeedRunner` (`ApplicationRunner`, `@Order(1)`) — idempotent upsert by `id` field. Runs on every startup; existing records are updated if `datasetVersion` in JSON is newer.
+
+### Scheduler
+
+Two weekly jobs externalized to `application.yml`:
+```yaml
+aihealthcare:
+  legislation:
+    source-check-schedule: "0 30 10 * * MON"    # Monday 10:30 UTC (5:30 AM Chicago)
+    discovery-schedule: "0 0 11 * * MON"          # Monday 11:00 UTC (6:00 AM Chicago)
+    enabled: true
+```
+`LegislationMonitorScheduler` in `infrastructure.scheduler` — two `@Scheduled` methods using the externalized crons. Reuses the `marketAnalysisExecutor` async thread pool.
+
+### REST API
+
+All endpoints in `web.controller.StateLawRestController`:
+```
+GET  /api/v1/legislation/state-laws                         → List (filters: state, category, status, effectiveFrom/To, q)
+GET  /api/v1/legislation/state-laws/{id}                    → StateLawResponse (404 if none)
+GET  /api/v1/legislation/state-laws/upcoming?days=90        → List of laws with upcoming effective dates
+GET  /api/v1/legislation/state-laws/by-state                → Map<StateCode, List<StateLawSummary>> (for map view)
+GET  /api/v1/legislation/changes?unreviewedOnly=true        → List<LawChangeEvent>
+POST /api/v1/legislation/changes/{id}/review                → mark change event reviewed (ADMIN)
+GET  /api/v1/legislation/candidates?unreviewedOnly=true     → List<NewBillCandidate>
+POST /api/v1/legislation/candidates/{id}/promote            → promote to registry (ADMIN)
+POST /api/v1/legislation/candidates/{id}/dismiss            → dismiss candidate (ADMIN)
+POST /api/v1/legislation/refresh                            → async 202 (ADMIN)
+```
+
+### Thymeleaf UI
+
+| URL | Controller | Template | Notes |
+|-----|-----------|----------|-------|
+| `GET /legislation` | `StateLawController` | `legislation-index.html` | Searchable table of all laws with state/category/status filter pills |
+| `GET /legislation/{id}` | `StateLawController` | `legislation-detail.html` | Full law detail: requirements, enforcement, sources with freshness status, change history |
+| `GET /legislation/map` | `StateLawController` | `legislation-map.html` | State-by-state summary: count badges per state, clickable to filtered list |
+| `GET /legislation/upcoming` | `StateLawController` | `legislation-upcoming.html` | Laws with upcoming effective dates, timeline view |
+
+Tier gating: Public index page (SEO), detail pages require login. FREE=5 law details, SUBSCRIBER/DEMO/ADMIN=full access + candidate review.
+
+### Infrastructure adapters
+
+| Adapter | Port | Package |
+|---------|------|---------|
+| `StateLawAdapter` | `StateLawPort`, `LawChangeEventPort`, `NewBillCandidatePort` | `infrastructure.persistence` |
+| `HttpSourceMonitorAdapter` | `LawSourceMonitorPort` | `infrastructure.ingestion.web` |
+| `PerplexityLegislationDiscoveryAdapter` | `LegislationDiscoveryPort` | `infrastructure.research` |
+| `LegislationChangeNotifierAdapter` | `LawChangeNotifierPort` | `infrastructure.delivery` |
+
+### Build order
+
+```
+2.4 — Seed + Read-Only:
+  - Domain records + enums + ports
+  - JPA entities + StateLawAdapter
+  - StateLawSeedRunner (ApplicationRunner, idempotent upsert from JSON)
+  - StateLawService (domain.service)
+  - StateLawRestController (read-only endpoints)
+  - StateLawController + Thymeleaf templates (legislation-index, detail, map, upcoming)
+  - Tests: StateLawTest (domain), StateLawAdapterTest, StateLawSeedRunnerTest, StateLawControllerTest, StateLawRestControllerTest
+
+2.5 — Monitor + Discovery:
+  - HttpSourceMonitorAdapter (fetch URL, SHA-256 hash, compare)
+  - PerplexityLegislationDiscoveryAdapter (Perplexity Search for new bills)
+  - pgvector candidate dedup (suppress re-discovery of known laws)
+  - LegislationChangeNotifierAdapter (SES email digest)
+  - Admin endpoints: promote/dismiss/review + refresh trigger
+  - LegislationMonitorScheduler (two weekly @Scheduled crons)
+  - AppConfig wiring
+  - Tests: HttpSourceMonitorAdapterTest, PerplexityLegislationDiscoveryAdapterTest, LegislationMonitorSchedulerTest
+```
+
+### Testing notes
+
+- Unit test `StateLaw` record validation (required fields, enum parsing, date handling).
+- Test `StateLawSeedRunner` idempotency: run twice, assert same row count.
+- Test category/state/status filter combinations in `StateLawAdapter`.
+- Contract-test `PerplexityLegislationDiscoveryAdapter` with a canned Perplexity response.
+- Test candidate dedup: re-discovering an existing law should not create a new candidate.
 
 ---
 
