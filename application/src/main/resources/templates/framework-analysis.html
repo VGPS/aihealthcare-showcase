@@ -31,15 +31,6 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
-    <!-- Trigger analysis button (ADMIN only) -->
-    <div sec:authorize="hasRole('ADMIN')" class="mb-6">
-        <button id="analyzeBtn" onclick="runFrameworkAnalysis()"
-                class="px-5 py-2 bg-blue-800 text-white border-none rounded-md cursor-pointer text-sm hover:bg-blue-900 transition-colors">
-            Run Framework Analysis
-        </button>
-        <span id="analyzeStatus" class="ml-3 text-sm text-gray-500"></span>
-    </div>
-
     <!-- Empty state -->
     <div th:if="${!hasAnalyses}" class="bg-gray-50 rounded-lg p-12 text-center">
         <p class="text-gray-500 text-lg mb-2">No framework analyses available yet.</p>
@@ -187,37 +178,6 @@
             }
         }
     });
-</script>
-<script>
-    function runFrameworkAnalysis() {
-        var btn = document.getElementById('analyzeBtn');
-        var status = document.getElementById('analyzeStatus');
-        btn.disabled = true;
-        btn.textContent = 'Analyzing...';
-        status.textContent = 'Running framework analysis on all companies...';
-
-        var csrfMeta = document.querySelector('meta[name="_csrf"]');
-        var csrfHeader = document.querySelector('meta[name="_csrf_header"]');
-        var headers = {'Content-Type': 'application/json'};
-        if (csrfMeta && csrfHeader) {
-            headers[csrfHeader.getAttribute('content')] = csrfMeta.getAttribute('content');
-        }
-
-        fetch('/api/v1/frameworks/analyze', { method: 'POST', headers: headers })
-            .then(function(res) {
-                if (res.ok) { return res.json(); }
-                throw new Error('HTTP ' + res.status);
-            })
-            .then(function(data) {
-                status.textContent = 'Analysis complete. Refreshing...';
-                setTimeout(function() { location.reload(); }, 1500);
-            })
-            .catch(function(err) {
-                status.textContent = 'Error: ' + err.message;
-                btn.disabled = false;
-                btn.textContent = 'Run Framework Analysis';
-            });
-    }
 </script>
 </body>
 </html>
