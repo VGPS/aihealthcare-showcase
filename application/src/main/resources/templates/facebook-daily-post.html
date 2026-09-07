@@ -1,21 +1,16 @@
 <!DOCTYPE html>
 <!--
 /**
- * Facebook Daily Post page — Facebook-ready copy blocks for the day's top-weighted
- * AI healthcare articles.
+ * Facebook Daily Post page — a single ready-to-copy Facebook post containing
+ * the day's top AI healthcare articles with titles, snippets, and source URLs.
  *
- * Shows:
- *   - Copyable post body (≤390 chars, fits above Facebook "See more" fold):
- *     lead article (label + title + snippet) + bullet headlines for remaining articles
- *   - Copyable comment block with full titles, snippets, and source URLs
- *   - Visual preview of each selected article
- *
- * Unlike LinkedIn, links are OK in Facebook post body — no reach penalty.
+ * Facebook allows 63,206 chars per post and does not penalize external links,
+ * so everything fits in one post — no separate comment needed.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-08-22
- * @updated 2026-08-22
+ * @updated 2026-09-07
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -27,7 +22,7 @@
     <h1 class="font-display text-2xl font-bold tracking-tight">Facebook Daily Post</h1>
     <p class="text-primary-200 text-sm mt-0.5">
         <span th:text="${articleCount}">0</span> article(s) · <span th:text="${dateLabel}">today</span>
-        &middot; Post: <span th:text="${postBodyLength}">0</span> / 390 chars
+        &middot; <span th:text="${postBodyLength}">0</span> chars
         &middot; <a href="https://bigskylabs.ai" target="_blank" class="underline text-primary-100">bigskylabs.ai</a>
         &middot; <a href="https://app.bigskylabs.ai" target="_blank" class="underline text-primary-100">App</a>
     </p>
@@ -39,7 +34,7 @@
 
     <!-- Back link -->
     <div class="flex items-center justify-between">
-        <a href="/admin/pipelines" class="text-xs text-primary-600 hover:underline">← Pipelines</a>
+        <a href="/admin/pipelines" class="text-xs text-primary-600 hover:underline">&larr; Pipelines</a>
         <p class="text-xs text-gray-400">Articles from the last 24 hours · top 5 by priority + weight</p>
     </div>
 
@@ -53,17 +48,17 @@
         </p>
     </div>
 
-    <!-- ======================== COPY BLOCKS ======================== -->
+    <!-- ======================== COPY BLOCK ======================== -->
     <div class="space-y-6">
 
-        <!-- Post body — ≤390 chars, lead story + bullets -->
+        <!-- Single merged post -->
         <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
             <div class="flex items-center justify-between mb-3">
                 <div>
-                    <h2 class="font-semibold text-on-surface">Post Body</h2>
+                    <h2 class="font-semibold text-on-surface">Facebook Post</h2>
                     <p class="text-xs text-on-surface-variant mt-0.5">
-                        Lead story above Facebook's "See more" fold (≤ 390 chars).
-                        Links are OK in Facebook posts — no reach penalty.
+                        Complete post with titles, snippets, and source links.
+                        Copy and paste directly into Facebook.
                     </p>
                 </div>
                 <div class="flex items-center gap-3">
@@ -75,40 +70,15 @@
                 </div>
             </div>
             <textarea id="postBody" th:text="${postBody}" readonly
-                      class="w-full h-48 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
+                      class="w-full h-72 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
                       spellcheck="false"></textarea>
             <div class="mt-1 flex items-center justify-between text-xs text-on-surface-variant">
                 <span class="text-blue-700 font-medium">
-                    Facebook: links don't reduce reach — SITE_URL is already in the post body
+                    Facebook allows 63,206 chars — links don't reduce reach
                 </span>
                 <span>
-                    <span th:text="${postBodyLength}"
-                          th:classappend="${postBodyLength > 360} ? 'text-orange-600 font-bold' : 'font-medium'">0</span>
-                    / 390 characters
+                    <span th:text="${postBodyLength}" class="font-medium">0</span> characters
                 </span>
-            </div>
-        </div>
-
-        <!-- Comment block — full sources + snippets -->
-        <div class="bg-white rounded-lg border border-outline-variant shadow-sm p-5">
-            <div class="flex items-center justify-between mb-3">
-                <div>
-                    <h2 class="font-semibold text-on-surface">Comment — Full Sources</h2>
-                    <p class="text-xs text-on-surface-variant mt-0.5">Paste as first comment after publishing (optional but recommended)</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <button type="button" onclick="copyText('commentBlock', 'commentBlockStatus')"
-                            class="bg-gray-700 hover:bg-gray-800 text-white text-sm font-semibold px-4 py-1.5 rounded-md transition-colors">
-                        Copy Comment
-                    </button>
-                    <span id="commentBlockStatus" class="text-xs"></span>
-                </div>
-            </div>
-            <textarea id="commentBlock" th:text="${commentBlock}" readonly
-                      class="w-full h-56 font-mono text-sm bg-gray-50 border border-gray-200 rounded-md p-3 resize-y focus:outline-none"
-                      spellcheck="false"></textarea>
-            <div class="mt-1 text-xs text-on-surface-variant text-right">
-                <span th:text="${commentBlockLength}" class="font-medium">0</span> characters
             </div>
         </div>
 
@@ -116,14 +86,11 @@
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
             <p class="font-semibold mb-1">Posting workflow</p>
             <ol class="list-decimal ml-4 space-y-1 text-xs text-blue-800">
-                <li>Copy the <strong>Post Body</strong> and paste into a new Facebook Page post.</li>
-                <li>Publish the post.</li>
-                <li>Open the published post → <em>Write a comment</em> → paste the <strong>Comment</strong> block for full sources.</li>
-                <li>Submit the comment.</li>
+                <li>Copy the <strong>Facebook Post</strong> above.</li>
+                <li>Paste into a new Facebook Page post and publish.</li>
             </ol>
             <p class="mt-2 text-xs text-blue-700">
-                <strong>Format:</strong> Lead story shows title + snippet above the fold. Additional stories appear as bullet headlines.
-                Readers who tap "See more" see the full post — but the hook must land in the first 390 chars.
+                Each article includes its title, a snippet, and a clickable source link.
             </p>
         </div>
 
@@ -178,7 +145,7 @@
             </p>
             <p class="text-xs text-primary-700">
                 Daily AI healthcare news, regulatory alerts, trend signals, and competitive intelligence.
-                <a href="https://bigskylabs.ai" target="_blank" class="underline font-semibold">Start your 7-day free demo →</a>
+                <a href="https://bigskylabs.ai" target="_blank" class="underline font-semibold">Start your 7-day free demo &rarr;</a>
             </p>
         </div>
 

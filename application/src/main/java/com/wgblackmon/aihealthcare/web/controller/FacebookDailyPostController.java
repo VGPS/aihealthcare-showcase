@@ -25,17 +25,10 @@ import java.util.Set;
  * {@link ArticleIngestionPort}, filtered, sorted by topic priority then
  * source weight, deduplicated by title, capped at 5.
  *
- * <p>Facebook-specific formatting (vs LinkedIn):
- * <ul>
- *   <li><strong>Post body ≤ 390 chars</strong> — numbered list of all selected
- *       articles (title only, no snippet). All 5 items appear in both the post
- *       body and the comment so the counts always match.</li>
- *   <li><strong>Links are OK in the post body</strong> — Facebook does not
- *       suppress reach for external links in posts. The SITE_URL is included
- *       in the post body itself.</li>
- *   <li><strong>Comment block</strong> — same numbered list with full snippets
- *       and source URLs. Facebook comments allow ~8,000 chars.</li>
- * </ul>
+ * <p>Facebook-specific formatting (vs LinkedIn): everything in a single post.
+ * Facebook allows 63,206 chars per post and does NOT suppress reach for
+ * external links, so each article includes its full title, a snippet, and
+ * the source URL inline. No separate comment block needed.
  *
  * <p>No LLM calls are made; classification uses the same keyword matching as
  * the LinkedIn generator.
@@ -43,7 +36,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-22
- * @updated 2026-08-23
+ * @updated 2026-09-07
  * @see ArticleToneClassifier
  */
 @Slf4j
@@ -51,9 +44,8 @@ import java.util.Set;
 public class FacebookDailyPostController {
 
     private static final int MAX_ARTICLES    = 5;
-    private static final int ITEM_TITLE_MAX  = 52;  // "N. ⚠️ " = 5 chars, leaving ~52 for title
-    private static final int POST_BODY_LIMIT = 390;
-    private static final int COMMENT_LIMIT     = 7900;
+    private static final int SNIPPET_MAX     = 160;
+    private static final int POST_LIMIT      = 63000;
 
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy");
@@ -127,17 +119,14 @@ public class FacebookDailyPostController {
         List<NewsArticle> deduped = deduplicateByTitle(sorted);
         List<NewsArticle> top    = limitList(deduped, MAX_ARTICLES);
 
-        String dateLabel    = DATE_FMT.format(LocalDate.now(ZoneId.of("America/Chicago")));
-        String postBody     = buildPostBody(top, dateLabel);
-        String commentBlock = buildCommentBlock(top);
+        String dateLabel = DATE_FMT.format(LocalDate.now(ZoneId.of("America/Chicago")));
+        String postBody  = buildPost(top, dateLabel);
 
-        model.addAttribute("postBody",          postBody);
-        model.addAttribute("commentBlock",      commentBlock);
-        model.addAttribute("articleCount",      top.size());
-        model.addAttribute("dateLabel",         dateLabel);
-        model.addAttribute("postBodyLength",    postBody.length());
-        model.addAttribute("commentBlockLength", commentBlock.length());
-        model.addAttribute("articles",          top);
+        model.addAttribute("postBody",       postBody);
+        model.addAttribute("articleCount",   top.size());
+        model.addAttribute("dateLabel",      dateLabel);
+        model.addAttribute("postBodyLength", postBody.length());
+        model.addAttribute("articles",       top);
 
         log.debug("facebookDailyPost() | return=facebook-daily-post, articles={}, postBodyLength={}",
                 top.size(), postBody.length());
@@ -145,88 +134,51 @@ public class FacebookDailyPostController {
     }
 
     // ------------------------------------------------------------------
-    // Post body — lead story + bullet headlines, ≤ 390 chars
+    // Single merged post — title + snippet + URL per article, all inline
     // ------------------------------------------------------------------
 
-    private String buildPostBody(List<NewsArticle> articles, String dateLabel) {
-        log.debug("buildPostBody() | articles={}, dateLabel={}", articles.size(), dateLabel);
+    private String buildPost(List<NewsArticle> articles, String dateLabel) {
+        log.debug("buildPost() | articles={}, dateLabel={}", articles.size(), dateLabel);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("AI in Healthcare — ").append(dateLabel).append("\n\n");
+        sb.append("AI in Healthcare — ").append(dateLabel).append("\n");
 
         if (articles.isEmpty()) {
-            sb.append("No new articles in the last 24 hours.\n\n");
+            sb.append("\nNo new articles in the last 24 hours.\n\n");
             sb.append(SITE_URL);
             String empty = sb.toString();
-            log.debug("buildPostBody() | return=length:{}", empty.length());
+            log.debug("buildPost() | return=length:{}", empty.length());
             return empty;
         }
 
-        // Numbered list — all items, tone emoji + title (no snippet).
-        // Budget: 390 - header(~37) - footer(~37) = ~316 for up to 5 items at ~63 chars each.
-        String footer = "\nSources in comment ↓\n" + SITE_URL;
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
-            String tone  = toneClassifier.classifyTone(a);
-            String emoji = toneClassifier.toneEmoji(tone);
-            String title = truncate(cleanText(a.title()), ITEM_TITLE_MAX);
-            String line  = (i + 1) + ". " + emoji + title + "\n";
-            if (sb.length() + line.length() + footer.length() > POST_BODY_LIMIT) {
-                break;
-            }
-            sb.append(line);
-        }
-
-        sb.append(footer);
-
-        String result = sb.toString();
-        if (result.length() > POST_BODY_LIMIT) {
-            result = result.substring(0, POST_BODY_LIMIT - 3) + "...";
-        }
-
-        log.debug("buildPostBody() | return=length:{}", result.length());
-        return result;
-    }
-
-    // ------------------------------------------------------------------
-    // Comment block — full articles + URLs (Facebook comments: ~8,000 chars)
-    // ------------------------------------------------------------------
-
-    private String buildCommentBlock(List<NewsArticle> articles) {
-        log.debug("buildCommentBlock() | articles={}", articles.size());
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("Sources:\n\n");
-
-        for (int i = 0; i < articles.size(); i++) {
-            NewsArticle a = articles.get(i);
-            String tone  = toneClassifier.classifyTone(a);
-            String emoji = toneClassifier.toneEmoji(tone);
+            String emoji   = toneClassifier.toneEmoji(toneClassifier.classifyTone(a));
+            String label   = classifyLabel(a);
             String title   = cleanText(a.title());
-            String snippet = extractSnippet(a.bodyText(), 160);
+            String snippet = extractSnippet(a.bodyText(), SNIPPET_MAX);
             String url     = a.url() != null ? a.url().toString() : "";
 
-            StringBuilder entry = new StringBuilder();
-            entry.append(emoji).append(title).append("\n");
+            sb.append("\n");
+            sb.append(i + 1).append(". ").append(emoji).append(label).append(title).append("\n");
             if (!snippet.isBlank()) {
-                entry.append(snippet).append("\n");
+                sb.append(snippet).append("\n");
             }
             if (!url.isBlank()) {
-                entry.append(url).append("\n");
+                sb.append(url).append("\n");
             }
-            entry.append("\n");
-
-            if (sb.length() + entry.length() > COMMENT_LIMIT) {
-                break;
-            }
-            sb.append(entry);
         }
 
-        sb.append("Full platform: ").append(APP_URL).append("\n\n");
+        sb.append("\n");
+        sb.append(SITE_URL).append("\n\n");
         sb.append(toneClassifier.facebookHashtags(articles));
 
         String result = sb.toString();
-        log.debug("buildCommentBlock() | return=length:{}", result.length());
+        if (result.length() > POST_LIMIT) {
+            result = result.substring(0, POST_LIMIT - 3) + "...";
+        }
+
+        log.debug("buildPost() | return=length:{}", result.length());
         return result;
     }
 

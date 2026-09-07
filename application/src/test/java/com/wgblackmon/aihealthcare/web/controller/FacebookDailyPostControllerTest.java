@@ -18,9 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -33,14 +31,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * MockMvc tests for {@link FacebookDailyPostController}.
  *
- * Mirrors {@link LinkedInPostControllerTest} but validates Facebook-specific
- * formatting: 390-char post body limit, lead + bullets structure, comment block
- * with full URLs, and same LEGAL-first priority ordering.
+ * Validates single merged post format: each article shows title, snippet, and
+ * source URL inline. No separate comment block.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-08-22
- * @updated 2026-08-23
+ * @updated 2026-09-07
  */
 @WebMvcTest(FacebookDailyPostController.class)
 class FacebookDailyPostControllerTest {
@@ -90,7 +87,7 @@ class FacebookDailyPostControllerTest {
     }
 
     // ------------------------------------------------------------------
-    // Post body character limit (390)
+    // Merged post — contains titles, snippets, and URLs
     // ------------------------------------------------------------------
 
     @Test
@@ -106,20 +103,44 @@ class FacebookDailyPostControllerTest {
 
     @Test
     @WithMockUser
-    void postBody_neverExceeds390Chars() throws Exception {
-        List<NewsArticle> many = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            many.add(article("a" + i,
-                    "FDA Issues Comprehensive New Guidance on Artificial Intelligence Medical Device Approval Process " + i,
-                    "The FDA released sweeping new guidance covering the full lifecycle of AI-enabled medical devices "
-                            + "including pre-market submissions, post-market surveillance requirements, and real-world performance monitoring.",
-                    "REGULATORY", 0.9));
-        }
-        when(articleIngestionPort.fetchRecentArticles(anyInt())).thenReturn(many);
+    void postBody_containsSourceUrl() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt()))
+                .thenReturn(List.of(legalArticle("a1", 0.9)));
 
-        mockMvc.perform(get("/dashboard/facebook"))
+        MvcResult result = mockMvc.perform(get("/dashboard/facebook"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("postBodyLength", lessThanOrEqualTo(390)));
+                .andReturn();
+
+        String postBody = (String) result.getModelAndView().getModel().get("postBody");
+        assertThat(postBody).contains("example.com");
+    }
+
+    @Test
+    @WithMockUser
+    void postBody_containsSnippet() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt()))
+                .thenReturn(List.of(legalArticle("a1", 0.9)));
+
+        MvcResult result = mockMvc.perform(get("/dashboard/facebook"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String postBody = (String) result.getModelAndView().getModel().get("postBody");
+        assertThat(postBody).contains("FDA has filed a lawsuit");
+    }
+
+    @Test
+    @WithMockUser
+    void postBody_containsHashtags() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(anyInt()))
+                .thenReturn(List.of(legalArticle("a1", 0.9)));
+
+        MvcResult result = mockMvc.perform(get("/dashboard/facebook"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String postBody = (String) result.getModelAndView().getModel().get("postBody");
+        assertThat(postBody).contains("#HealthcareAI");
     }
 
     @Test
@@ -129,7 +150,7 @@ class FacebookDailyPostControllerTest {
 
         mockMvc.perform(get("/dashboard/facebook"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("postBodyLength", greaterThan(0))); // still has header + URL
+                .andExpect(model().attribute("postBodyLength", greaterThan(0)));
     }
 
     // ------------------------------------------------------------------
@@ -153,8 +174,7 @@ class FacebookDailyPostControllerTest {
         String postBody = (String) result.getModelAndView().getModel().get("postBody");
         int legalIdx   = postBody.indexOf("[LEGAL]");
         int generalIdx = postBody.indexOf("AI Tool Improves");
-        assert legalIdx < generalIdx
-                : "LEGAL article should appear before GENERAL; legalIdx=" + legalIdx + " generalIdx=" + generalIdx;
+        assertThat(legalIdx).isLessThan(generalIdx);
     }
 
     // ------------------------------------------------------------------
@@ -205,25 +225,6 @@ class FacebookDailyPostControllerTest {
     }
 
     // ------------------------------------------------------------------
-    // Comment block
-    // ------------------------------------------------------------------
-
-    @Test
-    @WithMockUser
-    void commentBlock_containsArticleUrl() throws Exception {
-        when(articleIngestionPort.fetchRecentArticles(anyInt()))
-                .thenReturn(List.of(legalArticle("a1", 0.9)));
-
-        MvcResult result = mockMvc.perform(get("/dashboard/facebook"))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String comment = (String) result.getModelAndView().getModel().get("commentBlock");
-        assert comment != null && comment.contains("example.com")
-                : "Comment block should contain source URL";
-    }
-
-    // ------------------------------------------------------------------
     // Classification helper
     // ------------------------------------------------------------------
 
@@ -233,8 +234,7 @@ class FacebookDailyPostControllerTest {
                 articleIngestionPort, new ArticleToneClassifier());
         NewsArticle a = article("x", "FDA Sues AI Startup Over Lawsuit Settlement",
                 "body", "INDUSTRY", 0.9);
-        assert "[LEGAL] ".equals(ctrl.classifyLabel(a))
-                : "Expected [LEGAL], got: " + ctrl.classifyLabel(a);
+        assertThat(ctrl.classifyLabel(a)).isEqualTo("[LEGAL] ");
     }
 
     @Test
@@ -243,20 +243,18 @@ class FacebookDailyPostControllerTest {
                 articleIngestionPort, new ArticleToneClassifier());
         NewsArticle a = article("x", "Epic Systems acquires AI startup for $2.1B",
                 "body", "INDUSTRY", 0.9);
-        assert "[MARKETPLACE] ".equals(ctrl.classifyLabel(a))
-                : "Expected [MARKETPLACE], got: " + ctrl.classifyLabel(a);
+        assertThat(ctrl.classifyLabel(a)).isEqualTo("[MARKETPLACE] ");
     }
 
     // ------------------------------------------------------------------
-    // Text helpers  (tone tests moved to ArticleToneClassifierTest)
+    // Text helpers
     // ------------------------------------------------------------------
 
     @Test
     void cleanText_stripsHtmlAndEntities() {
         FacebookDailyPostController ctrl = new FacebookDailyPostController(
                 articleIngestionPort, new ArticleToneClassifier());
-        assert "FDA cleared device".equals(ctrl.cleanText("FDA&nbsp;cleared <b>device</b>"))
-                : "cleanText failed";
+        assertThat(ctrl.cleanText("FDA&nbsp;cleared <b>device</b>")).isEqualTo("FDA cleared device");
     }
 
     @Test
@@ -265,8 +263,8 @@ class FacebookDailyPostControllerTest {
                 articleIngestionPort, new ArticleToneClassifier());
         String long200 = "word ".repeat(50);
         String result  = ctrl.extractSnippet(long200, 100);
-        assert result.length() <= 101 : "Too long: " + result.length();
-        assert result.endsWith("…") : "Should end with ellipsis";
+        assertThat(result.length()).isLessThanOrEqualTo(101);
+        assertThat(result).endsWith("…");
     }
 
     @Test
@@ -274,26 +272,8 @@ class FacebookDailyPostControllerTest {
         FacebookDailyPostController ctrl = new FacebookDailyPostController(
                 articleIngestionPort, new ArticleToneClassifier());
         String result = ctrl.truncate("The FDA has issued new guidance on AI devices today", 30);
-        assert result.length() <= 31 && result.endsWith("…")
-                : "Expected truncated with ellipsis, got: " + result;
-    }
-
-    // ------------------------------------------------------------------
-    // Hashtags
-    // ------------------------------------------------------------------
-
-    @Test
-    @WithMockUser
-    void commentBlock_containsHashtags() throws Exception {
-        when(articleIngestionPort.fetchRecentArticles(anyInt()))
-                .thenReturn(List.of(legalArticle("a1", 0.9)));
-
-        MvcResult result = mockMvc.perform(get("/dashboard/facebook"))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        String comment = (String) result.getModelAndView().getModel().get("commentBlock");
-        assertThat(comment).contains("#HealthcareAI");
+        assertThat(result.length()).isLessThanOrEqualTo(31);
+        assertThat(result).endsWith("…");
     }
 
     // ------------------------------------------------------------------
