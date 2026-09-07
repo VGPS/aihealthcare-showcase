@@ -126,7 +126,8 @@
             <div class="text-xs text-gray-500 mb-3 space-y-1">
                 <div>Schedule: <span class="font-semibold" th:text="${p.schedule()}">Daily</span></div>
                 <div>Scheduler: <span class="font-mono" th:text="${p.schedulerClass()}">Class</span></div>
-                <div>Endpoint: <span class="font-mono text-primary-600" th:text="${p.triggerUrl()}">/api/...</span></div>
+                <div th:if="${p.triggerUrl() != null}">Endpoint: <span class="font-mono text-primary-600" th:text="${p.triggerUrl()}">/api/...</span></div>
+                <div th:if="${p.triggerUrl() == null}">Endpoint: <span class="text-gray-400 italic">auto — no manual trigger</span></div>
                 <div>Est. duration: <span th:text="${p.estimatedDuration()}">~1 min</span></div>
             </div>
 
@@ -141,12 +142,13 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <button type="button" class="btn-search text-sm px-3 py-1.5"
+                <button th:if="${p.triggerUrl() != null}" type="button" class="btn-search text-sm px-3 py-1.5"
                         th:data-id="${p.id()}"
                         th:data-name="${p.name()}"
                         onclick="triggerPipeline(this)">
                     Run Now
                 </button>
+                <span th:if="${p.triggerUrl() == null}" class="text-xs text-gray-400 italic">Runs on startup only</span>
                 <span th:id="'status-' + ${p.id()}" class="text-xs"></span>
             </div>
         </div>

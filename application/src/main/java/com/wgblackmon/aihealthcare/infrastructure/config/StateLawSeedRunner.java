@@ -80,9 +80,14 @@ public class StateLawSeedRunner implements ApplicationRunner {
             int count = 0;
 
             for (Map<String, Object> raw : rawList) {
-                StateLaw law = mapToStateLaw(raw, now);
-                stateLawPort.upsert(law);
-                count++;
+                try {
+                    StateLaw law = mapToStateLaw(raw, now);
+                    stateLawPort.upsert(law);
+                    count++;
+                } catch (Exception e) {
+                    log.warn("run() | skipping seed record id={}: {}",
+                             raw.get("id"), e.getMessage());
+                }
             }
 
             log.info("StateLawSeedRunner | seeded {} laws (state + federal)", count);

@@ -700,6 +700,14 @@ public class AdminPipelineController {
                 "Daily 04:30 UTC", "RegulatoryHarvestScheduler",
                 "/monitoring/regulatory/harvest", "POST", false, "~1 min", "Low"));
 
+        list.add(new PipelineInfo("legislation-seed", "Legislation Registry Seed",
+                "Seeds 58 health-AI laws (43 state + 15 federal) from bundled JSON on every startup. " +
+                "Covers enacted statutes, executive orders, agency rules (FDA/CMS/ONC/HHS), and pending bills. " +
+                "Idempotent — existing records are updated only if the dataset version is newer. " +
+                "No manual trigger needed; runs automatically via StateLawSeedRunner (@Order 1).",
+                "Every startup", "StateLawSeedRunner",
+                null, null, false, "<1 sec", "Minimal"));
+
         list.add(new PipelineInfo("clinical-trials", "Clinical Trial Harvest",
                 "Harvests AI-related clinical trials from ClinicalTrials.gov. Deduplicates by NCT ID. Matches watchlists.",
                 "Daily 05:00 UTC", "ClinicalTrialHarvestScheduler",

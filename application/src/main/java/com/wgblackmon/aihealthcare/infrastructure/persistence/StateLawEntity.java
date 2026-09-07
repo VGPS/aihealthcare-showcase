@@ -34,7 +34,7 @@ public class StateLawEntity {
     @Column(name = "state_name", nullable = false, length = 100)
     private String stateName;
 
-    @Column(name = "bill_number", nullable = false, length = 50)
+    @Column(name = "bill_number", nullable = false, length = 200)
     private String billNumber;
 
     @Column(name = "title", nullable = false, length = 500)
@@ -55,7 +55,7 @@ public class StateLawEntity {
     @Column(name = "effective_date_note", columnDefinition = "TEXT")
     private String effectiveDateNote;
 
-    @Column(name = "status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 30)
     private String status;
 
     @Column(name = "status_detail", columnDefinition = "TEXT")
