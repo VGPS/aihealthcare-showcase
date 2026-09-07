@@ -50,7 +50,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 2.8
  * @since   2026-07-30
- * @updated 2026-09-06
+ * @updated 2026-09-07
  */
 @Slf4j
 @Controller
@@ -685,10 +685,10 @@ public class AdminPipelineController {
                 "Daily 04:00 UTC", "FeedHarvestScheduler",
                 "/api/v1/monitoring/feeds", "POST", false, "~2 min", "Low"));
 
-        list.add(new PipelineInfo("competitor", "Competitor & Policy Web Pages",
-                "Scrapes competitor pages (Anthropic, Perplexity, Google, OpenAI) and 16 healthcare AI policy/legal sources (ECRI, CHAI, CDT, EFF, AMA, KFF, NCSL, NAIC, Stanford HAI, Epstein Becker Green, Sheppard Mullin, Public Citizen, FPF, HAPI, Hastings Center, Transparency Coalition) for content changes via SHA-256 hashing.",
+        list.add(new PipelineInfo("competitor", "Competitor Web Pages",
+                "Scrapes competitor pages (Anthropic, Perplexity, Google, OpenAI, Epic) for content changes via SHA-256 hashing. Saves changed content as articles to news_articles table.",
                 "Daily 05:00 UTC", "WebMonitoringScheduler",
-                "/api/v1/monitoring/harvest", "POST", false, "~3 min", "Low"));
+                "/api/v1/monitoring/harvest", "POST", false, "~1 min", "Low"));
 
         list.add(new PipelineInfo("huggingface", "HuggingFace Model Discovery",
                 "Discovers healthcare AI models from HuggingFace API with metadata (likes, library, card data).",
@@ -709,9 +709,12 @@ public class AdminPipelineController {
                 null, null, false, "<1 sec", "Minimal"));
 
         list.add(new PipelineInfo("legislation-monitor", "Legislation Source Monitor",
-                "Re-fetches all law source URLs, computes SHA-256 content hashes, and records change events " +
-                "when content has drifted since the last check. Detects amended statutes, updated agency rules, " +
-                "and URLs that have gone offline. Review detected changes at /api/v1/legislation/changes.",
+                "Re-fetches all law source URLs across the 58-law registry (43 state + 15 federal), " +
+                "computes SHA-256 content hashes, and records LawChangeEvent records in the law_change_events table " +
+                "when content has drifted since the last check. Updates state_law_sources with lastFetchedAt, " +
+                "lastContentHash, lastHttpStatus, and changedSinceLastReview. Detects amended statutes, " +
+                "updated agency rules, and URLs that have gone offline (HTTP 4xx/5xx). " +
+                "Review detected changes at /legislation/changes or /api/v1/legislation/changes.",
                 "Weekly Monday 10:30 UTC", "LegislationMonitorScheduler",
                 "/api/v1/legislation/refresh", "POST", true, "~2-5 min", "Low"));
 
