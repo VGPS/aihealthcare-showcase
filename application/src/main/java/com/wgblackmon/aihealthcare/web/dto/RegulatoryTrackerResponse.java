@@ -18,5 +18,6 @@ public record RegulatoryTrackerResponse(
         String docketId,
         String title,
         String commentDeadline,
-        String lastUpdatedAt
+        String lastUpdatedAt,
+        String sourceUrl
 ) {}

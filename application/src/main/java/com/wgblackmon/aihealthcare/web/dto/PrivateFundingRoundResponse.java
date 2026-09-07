@@ -19,5 +19,6 @@ public record PrivateFundingRoundResponse(
         String roundStage,
         Long amountUsd,
         List<String> leadInvestors,
-        String announcedAt
+        String announcedAt,
+        String sourceUrl
 ) {}

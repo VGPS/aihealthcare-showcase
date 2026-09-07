@@ -42,7 +42,7 @@ class DealTermsAdapterTest {
                 100_000_000L,
                 new BigDecimal("15.0"),
                 null,
-                DisclosedPortion.PARTIAL
+                DisclosedPortion.PARTIAL, null
         );
 
         adapter.save(HEADLINE, terms);
@@ -59,9 +59,9 @@ class DealTermsAdapterTest {
     @Test
     void save_replacesExistingTermsForSameHeadline() {
         DealTerms original = new DealTerms(
-                100_000_000L, null, null, null, DisclosedPortion.UNDISCLOSED);
+                100_000_000L, null, null, null, DisclosedPortion.UNDISCLOSED, null);
         DealTerms updated = new DealTerms(
-                500_000_000L, null, null, null, DisclosedPortion.FULL);
+                500_000_000L, null, null, null, DisclosedPortion.FULL, null);
 
         adapter.save(HEADLINE, original);
         adapter.save(HEADLINE, updated);
@@ -74,7 +74,7 @@ class DealTermsAdapterTest {
 
     @Test
     void save_allNullFinancials_succeeds() {
-        DealTerms terms = new DealTerms(null, null, null, null, DisclosedPortion.UNDISCLOSED);
+        DealTerms terms = new DealTerms(null, null, null, null, DisclosedPortion.UNDISCLOSED, null);
 
         adapter.save(HEADLINE, terms);
 
@@ -87,8 +87,8 @@ class DealTermsAdapterTest {
 
     @Test
     void findByEntryHeadline_differentiatesByHeadline() {
-        adapter.save("Deal One", new DealTerms(10L, null, null, null, DisclosedPortion.FULL));
-        adapter.save("Deal Two", new DealTerms(20L, null, null, null, DisclosedPortion.FULL));
+        adapter.save("Deal One", new DealTerms(10L, null, null, null, DisclosedPortion.FULL, null));
+        adapter.save("Deal Two", new DealTerms(20L, null, null, null, DisclosedPortion.FULL, null));
 
         Optional<DealTerms> one = adapter.findByEntryHeadline("Deal One");
         assertThat(one).isPresent();

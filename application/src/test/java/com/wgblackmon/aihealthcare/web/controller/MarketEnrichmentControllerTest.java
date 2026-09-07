@@ -86,15 +86,15 @@ class MarketEnrichmentControllerTest {
     void adminSeesFullEnrichmentPage() throws Exception {
         RegulatoryTracker tracker = new RegulatoryTracker(
                 Jurisdiction.US_FDA, RulemakingStage.COMMENT_PERIOD,
-                "FDA-2026-N-0001", "FDA AI Device Rule", LocalDate.now().plusDays(15), Instant.now());
+                "FDA-2026-N-0001", "FDA AI Device Rule", LocalDate.now().plusDays(15), Instant.now(), null);
         when(regulatoryTrackerRepository.findAll()).thenReturn(List.of(tracker));
         when(regulatoryTrackerRepository.findApproachingDeadlines(any())).thenReturn(List.of(tracker));
 
         PrivateFundingRound round = new PrivateFundingRound(
-                "HealthTech Inc", "Series B", 75_000_000L, List.of("Sequoia"), Instant.now());
+                "HealthTech Inc", "Series B", 75_000_000L, List.of("Sequoia"), Instant.now(), null);
         when(privateFundingPort.findRecentRounds(any(), any())).thenReturn(List.of(round));
 
-        DealTerms terms = new DealTerms(500_000_000L, 200_000_000L, null, null, DisclosedPortion.PARTIAL);
+        DealTerms terms = new DealTerms(500_000_000L, 200_000_000L, null, null, DisclosedPortion.PARTIAL, null);
         when(dealTermsPort.findAllWithHeadlines()).thenReturn(Map.of("Acme acquires BetaCo", terms));
 
         mockMvc.perform(get("/dashboard/market/enrichment"))

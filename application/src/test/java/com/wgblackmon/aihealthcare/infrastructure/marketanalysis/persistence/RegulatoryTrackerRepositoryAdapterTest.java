@@ -38,7 +38,7 @@ class RegulatoryTrackerRepositoryAdapterTest {
     private RegulatoryTracker tracker(String docketId, Jurisdiction j, RulemakingStage stage,
                                       LocalDate deadline) {
         return new RegulatoryTracker(j, stage, docketId,
-                "Rule: " + docketId, deadline, NOW);
+                "Rule: " + docketId, deadline, NOW, null);
     }
 
     @Test
