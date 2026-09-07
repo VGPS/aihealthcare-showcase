@@ -1354,25 +1354,28 @@ public class AppConfig {
 
     /**
      * Wires the {@link com.wgblackmon.aihealthcare.domain.service.StateLawService}
-     * domain service with its three outbound ports for the legislation registry.
+     * domain service with its four outbound ports for the legislation registry.
      *
-     * @param stateLawPort     law persistence port
-     * @param changeEventPort  change event persistence port
-     * @param candidatePort    new bill candidate persistence port
+     * @param stateLawPort      law persistence port
+     * @param changeEventPort   change event persistence port
+     * @param candidatePort     new bill candidate persistence port
+     * @param sourceMonitorPort source URL freshness monitor port
      * @return the wired service
      */
     @Bean
     public com.wgblackmon.aihealthcare.domain.service.StateLawService stateLawService(
             com.wgblackmon.aihealthcare.domain.port.outbound.StateLawPort stateLawPort,
             com.wgblackmon.aihealthcare.domain.port.outbound.LawChangeEventPort changeEventPort,
-            com.wgblackmon.aihealthcare.domain.port.outbound.NewBillCandidatePort candidatePort) {
-        log.debug("stateLawService() | stateLawPort={}, changeEventPort={}, candidatePort={}",
+            com.wgblackmon.aihealthcare.domain.port.outbound.NewBillCandidatePort candidatePort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.LawSourceMonitorPort sourceMonitorPort) {
+        log.debug("stateLawService() | stateLawPort={}, changeEventPort={}, candidatePort={}, sourceMonitorPort={}",
                   stateLawPort.getClass().getSimpleName(),
                   changeEventPort.getClass().getSimpleName(),
-                  candidatePort.getClass().getSimpleName());
+                  candidatePort.getClass().getSimpleName(),
+                  sourceMonitorPort.getClass().getSimpleName());
         com.wgblackmon.aihealthcare.domain.service.StateLawService result =
                 new com.wgblackmon.aihealthcare.domain.service.StateLawService(
-                        stateLawPort, changeEventPort, candidatePort);
+                        stateLawPort, changeEventPort, candidatePort, sourceMonitorPort);
         log.debug("stateLawService() | return={}", result.getClass().getSimpleName());
         return result;
     }

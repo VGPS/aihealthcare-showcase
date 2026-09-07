@@ -708,6 +708,13 @@ public class AdminPipelineController {
                 "Every startup", "StateLawSeedRunner",
                 null, null, false, "<1 sec", "Minimal"));
 
+        list.add(new PipelineInfo("legislation-monitor", "Legislation Source Monitor",
+                "Re-fetches all law source URLs, computes SHA-256 content hashes, and records change events " +
+                "when content has drifted since the last check. Detects amended statutes, updated agency rules, " +
+                "and URLs that have gone offline. Review detected changes at /api/v1/legislation/changes.",
+                "Weekly Monday 10:30 UTC", "LegislationMonitorScheduler",
+                "/api/v1/legislation/refresh", "POST", true, "~2-5 min", "Low"));
+
         list.add(new PipelineInfo("clinical-trials", "Clinical Trial Harvest",
                 "Harvests AI-related clinical trials from ClinicalTrials.gov. Deduplicates by NCT ID. Matches watchlists.",
                 "Daily 05:00 UTC", "ClinicalTrialHarvestScheduler",

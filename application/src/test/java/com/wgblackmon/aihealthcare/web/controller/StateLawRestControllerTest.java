@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.LawCategory;
+import com.wgblackmon.aihealthcare.domain.model.LawChangeEvent;
 import com.wgblackmon.aihealthcare.domain.model.LawSource;
 import com.wgblackmon.aihealthcare.domain.model.LawStatus;
 import com.wgblackmon.aihealthcare.domain.model.SourceType;
@@ -19,8 +20,11 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -142,6 +146,43 @@ class StateLawRestControllerTest {
         mockMvc.perform(get("/api/v1/legislation/state-laws"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void getChanges_admin_returnsJson() throws Exception {
+        LawChangeEvent event = new LawChangeEvent(1L, "ca-ab-3030",
+                Instant.parse("2026-09-07T10:30:00Z"), "CONTENT_CHANGED",
+                "Source content hash changed", false);
+        when(legislationUseCase.getUnreviewedChanges()).thenReturn(List.of(event));
+
+        mockMvc.perform(get("/api/v1/legislation/changes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].lawId").value("ca-ab-3030"))
+                .andExpect(jsonPath("$[0].changeType").value("CONTENT_CHANGED"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void reviewChange_admin_returns200() throws Exception {
+        mockMvc.perform(post("/api/v1/legislation/changes/42/review")
+                        .with(csrf()))
+                .andExpect(status().isOk());
+
+        verify(legislationUseCase).reviewChange(42L);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void triggerRefresh_admin_returnsCompletedStatus() throws Exception {
+        when(legislationUseCase.triggerRefresh()).thenReturn(3);
+
+        mockMvc.perform(post("/api/v1/legislation/refresh")
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("completed"))
+                .andExpect(jsonPath("$.sourcesChanged").value(3));
     }
 
     // --- Helper ---

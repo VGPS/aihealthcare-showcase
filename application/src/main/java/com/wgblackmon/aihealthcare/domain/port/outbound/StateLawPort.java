@@ -66,4 +66,20 @@ public interface StateLawPort {
      * and notes. Returns matching laws ordered by relevance.
      */
     List<StateLaw> search(String query);
+
+    /**
+     * Updates the monitoring fields on a single source record identified by
+     * law ID and URL. Sets the last-fetched timestamp, content hash, HTTP
+     * status, and changed-since-last-review flag.
+     *
+     * @param lawId         the slug identifier of the law
+     * @param sourceUrl     the source URL to update
+     * @param fetchedAt     when the URL was fetched
+     * @param contentHash   SHA-256 hex digest of the response body (nullable)
+     * @param httpStatus    HTTP status code of the fetch attempt (nullable)
+     * @param changed       whether the content hash changed since the last check
+     */
+    void updateSourceMonitoringFields(String lawId, String sourceUrl,
+                                       java.time.Instant fetchedAt, String contentHash,
+                                       Integer httpStatus, boolean changed);
 }

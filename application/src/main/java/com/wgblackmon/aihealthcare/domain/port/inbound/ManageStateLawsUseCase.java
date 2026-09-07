@@ -73,4 +73,13 @@ public interface ManageStateLawsUseCase {
      * Returns all new-bill candidates that have not yet been admin-reviewed.
      */
     List<NewBillCandidate> getUnreviewedCandidates();
+
+    /**
+     * Triggers a source-freshness check across all law source URLs.
+     * For each source, fetches the URL, computes a SHA-256 hash, and
+     * records a {@link LawChangeEvent} if the content changed.
+     *
+     * @return the number of source URLs that had content changes
+     */
+    int triggerRefresh();
 }

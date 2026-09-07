@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.LawCategory;
+import com.wgblackmon.aihealthcare.domain.model.LawChangeEvent;
 import com.wgblackmon.aihealthcare.domain.model.LawSource;
 import com.wgblackmon.aihealthcare.domain.model.LawStatus;
 import com.wgblackmon.aihealthcare.domain.model.SourceType;
@@ -22,8 +23,11 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
@@ -168,6 +172,32 @@ class StateLawControllerTest {
                 .andExpect(view().name("legislation-index"));
 
         verify(legislationUseCase).getByStatus(LawStatus.ENACTED);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void legislation_changes_admin_returnsOk() throws Exception {
+        LawChangeEvent event = new LawChangeEvent(1L, "ca-ab-3030",
+                Instant.parse("2026-09-07T10:30:00Z"), "CONTENT_CHANGED",
+                "Source content hash changed", false);
+        when(legislationUseCase.getUnreviewedChanges()).thenReturn(List.of(event));
+
+        mockMvc.perform(get("/legislation/changes"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("legislation-changes"))
+                .andExpect(model().attributeExists("changes"))
+                .andExpect(model().attribute("changeCount", 1));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void legislation_reviewChange_admin_redirects() throws Exception {
+        mockMvc.perform(post("/legislation/changes/42/review")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/legislation/changes"));
+
+        verify(legislationUseCase).reviewChange(42L);
     }
 
     // --- Helper ---

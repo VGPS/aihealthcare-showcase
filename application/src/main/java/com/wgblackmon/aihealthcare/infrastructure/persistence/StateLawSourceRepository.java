@@ -20,5 +20,7 @@ public interface StateLawSourceRepository extends JpaRepository<StateLawSourceEn
 
     List<StateLawSourceEntity> findByLawId(String lawId);
 
+    java.util.Optional<StateLawSourceEntity> findByLawIdAndUrl(String lawId, String url);
+
     void deleteByLawId(String lawId);
 }
