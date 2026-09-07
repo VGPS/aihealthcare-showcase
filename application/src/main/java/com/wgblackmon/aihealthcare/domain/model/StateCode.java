@@ -3,7 +3,9 @@ package com.wgblackmon.aihealthcare.domain.model;
 import java.util.Optional;
 
 /**
- * Enumeration of all 50 US states plus the District of Columbia.
+ * Enumeration of all 50 US states, the District of Columbia, and the
+ * federal jurisdiction ({@code US}) for federal laws, executive orders,
+ * and agency rules.
  *
  * <p>Each value carries a human-readable {@code displayName} (e.g. "Alabama")
  * used for UI labels and search results. The static {@link #fromCode(String)}
@@ -16,6 +18,7 @@ import java.util.Optional;
  */
 public enum StateCode {
 
+    US("United States (Federal)"),
     AL("Alabama"),
     AK("Alaska"),
     AZ("Arizona"),
