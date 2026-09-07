@@ -151,7 +151,8 @@ class MarketDigestServiceDedupTest {
 
     private MarketDigestService serviceWithEmbeddingPort(EntryEmbeddingPort port) {
         return new MarketDigestService(
-                newsResearch, marketData, impactClassifier, repository, notifier, port, THRESHOLD, null, null);
+                newsResearch, marketData, impactClassifier, repository, notifier, port, THRESHOLD, null, null,
+                null, null, null);
     }
 
     private MarketDigestEntry entry(String headline) {

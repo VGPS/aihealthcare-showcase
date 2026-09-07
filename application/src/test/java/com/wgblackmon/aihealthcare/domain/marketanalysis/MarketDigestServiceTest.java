@@ -1,10 +1,13 @@
 package com.wgblackmon.aihealthcare.domain.marketanalysis;
 
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.DealTermsPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.PrivateFundingPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.RegulatoryTrackerRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.SecondaryNewsCheckPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +29,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-07
  */
 class MarketDigestServiceTest {
 
@@ -40,10 +43,8 @@ class MarketDigestServiceTest {
                 mock(ImpactClassifierPort.class),
                 mock(MarketDigestRepository.class),
                 mock(MarketDigestNotifier.class),
-                null,
-                0.93,
-                null,
-                null
+                null, 0.93, null, null,
+                null, null, null
         );
     }
 
@@ -151,7 +152,8 @@ class MarketDigestServiceTest {
                 mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort.class),
                 mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort.class),
                 mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository.class),
-                null, null, 0.93, port, null);
+                null, null, 0.93, port, null,
+                null, null, null);
 
         MarketNewsItem primary = makeItem("Primary Headline", NewsCategory.EARNINGS);
         MarketNewsItem secondary = makeItem("Novel Secondary Headline", NewsCategory.REGULATORY);
@@ -173,7 +175,8 @@ class MarketDigestServiceTest {
                 mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort.class),
                 mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort.class),
                 mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository.class),
-                null, null, 0.93, port, null);
+                null, null, 0.93, port, null,
+                null, null, null);
 
         MarketNewsItem primary = makeItem("Doximity Q2 Earnings Beat Estimates!", NewsCategory.EARNINGS);
         MarketNewsItem duplicate = makeItem("doximity q2 earnings beat estimates!", NewsCategory.EARNINGS);
@@ -193,7 +196,8 @@ class MarketDigestServiceTest {
                 mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort.class),
                 mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort.class),
                 mock(com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository.class),
-                null, null, 0.93, port, null);
+                null, null, 0.93, port, null,
+                null, null, null);
 
         MarketNewsItem primary = makeItem("Primary Headline", NewsCategory.M_AND_A);
         when(port.findRecentNews(any(), any())).thenThrow(new RuntimeException("API error"));
@@ -213,7 +217,198 @@ class MarketDigestServiceTest {
                 .isEqualTo("helloworld");
     }
 
+    // --- inferJurisdiction ---
+
+    @Test
+    void inferJurisdiction_fda() {
+        assertThat(MarketDigestService.inferJurisdiction("FDA clears new AI device")).isEqualTo(Jurisdiction.US_FDA);
+    }
+
+    @Test
+    void inferJurisdiction_euAiAct() {
+        assertThat(MarketDigestService.inferJurisdiction("EU AI Act deadline approaching")).isEqualTo(Jurisdiction.EU_AI_ACT);
+    }
+
+    @Test
+    void inferJurisdiction_mhra() {
+        assertThat(MarketDigestService.inferJurisdiction("UK MHRA issues guidance")).isEqualTo(Jurisdiction.UK_MHRA);
+    }
+
+    @Test
+    void inferJurisdiction_stateLaw() {
+        assertThat(MarketDigestService.inferJurisdiction("state law banning AI in diagnostics")).isEqualTo(Jurisdiction.US_STATE);
+    }
+
+    @Test
+    void inferJurisdiction_unknown() {
+        assertThat(MarketDigestService.inferJurisdiction("something happened")).isEqualTo(Jurisdiction.OTHER);
+    }
+
+    // --- inferRulemakingStage ---
+
+    @Test
+    void inferStage_enforcement() {
+        assertThat(MarketDigestService.inferRulemakingStage("penalties enforced")).isEqualTo(RulemakingStage.ENFORCEMENT);
+    }
+
+    @Test
+    void inferStage_finalGuidance() {
+        assertThat(MarketDigestService.inferRulemakingStage("FDA approved new clearance")).isEqualTo(RulemakingStage.FINAL_GUIDANCE);
+    }
+
+    @Test
+    void inferStage_commentPeriod() {
+        assertThat(MarketDigestService.inferRulemakingStage("public comment period opens")).isEqualTo(RulemakingStage.COMMENT_PERIOD);
+    }
+
+    @Test
+    void inferStage_draftGuidance() {
+        assertThat(MarketDigestService.inferRulemakingStage("draft guidance released")).isEqualTo(RulemakingStage.DRAFT_GUIDANCE);
+    }
+
+    // --- extractDocketId ---
+
+    @Test
+    void extractDocketId_findsPattern() {
+        assertThat(MarketDigestService.extractDocketId("FDA-2024-N-2177 finalizes rule", "headline"))
+                .isEqualTo("FDA-2024-N-2177");
+    }
+
+    @Test
+    void extractDocketId_fallsBackToHash() {
+        String result = MarketDigestService.extractDocketId("no docket here", "headline");
+        assertThat(result).startsWith("REG-");
+    }
+
+    // --- inferFundingStage ---
+
+    @Test
+    void inferFundingStage_seriesA() {
+        assertThat(MarketDigestService.inferFundingStage("raises $50M in Series A round")).isEqualTo("Series A");
+    }
+
+    @Test
+    void inferFundingStage_seed() {
+        assertThat(MarketDigestService.inferFundingStage("seed round completed")).isEqualTo("Seed");
+    }
+
+    @Test
+    void inferFundingStage_undisclosed() {
+        assertThat(MarketDigestService.inferFundingStage("new funding round")).isEqualTo("Undisclosed");
+    }
+
+    // --- extractRegulatoryTrackers ---
+
+    @Test
+    void extractRegulatoryTrackers_nullPort_noOp() {
+        service.extractRegulatoryTrackers(List.of(
+                makeEntry(NewsCategory.REGULATORY, null, 1)));
+    }
+
+    @Test
+    void extractRegulatoryTrackers_upsertsForRegulatoryEntries() {
+        RegulatoryTrackerRepository trackerRepo = mock(RegulatoryTrackerRepository.class);
+        MarketDigestService svc = new MarketDigestService(
+                mock(MarketNewsResearchPort.class), mock(MarketDataPort.class),
+                mock(ImpactClassifierPort.class), mock(MarketDigestRepository.class),
+                null, null, 0.93, null, null,
+                trackerRepo, null, null);
+
+        svc.extractRegulatoryTrackers(List.of(
+                makeEntryWithHeadline("FDA clears new AI diagnostic", NewsCategory.REGULATORY),
+                makeEntryWithHeadline("Doximity beats estimates", NewsCategory.EARNINGS)));
+
+        org.mockito.Mockito.verify(trackerRepo, org.mockito.Mockito.times(1))
+                .upsert(any(RegulatoryTracker.class));
+    }
+
+    // --- extractPrivateFundingRounds ---
+
+    @Test
+    void extractPrivateFundingRounds_savesForPrivateCompanies() {
+        PrivateFundingPort fundingPort = mock(PrivateFundingPort.class);
+        MarketDigestService svc = new MarketDigestService(
+                mock(MarketNewsResearchPort.class), mock(MarketDataPort.class),
+                mock(ImpactClassifierPort.class), mock(MarketDigestRepository.class),
+                null, null, 0.93, null, null,
+                null, fundingPort, null);
+
+        AffectedCompany privateCompany = new AffectedCompany("Abridge", null, "subject", PeerGroup.AI_SCRIBE_DOCUMENTATION);
+        MarketNewsItem item = new MarketNewsItem("Abridge raises $150M Series B",
+                "Summary.", List.of("https://example.com"), Instant.now(), NewsCategory.FUNDING, 150_000_000L);
+        MarketDigestEntry entry = new MarketDigestEntry(item, List.of(),
+                FactClassification.CONFIRMED, new MarketImpactRank(2), List.of(privateCompany));
+
+        svc.extractPrivateFundingRounds(List.of(entry));
+
+        org.mockito.Mockito.verify(fundingPort, org.mockito.Mockito.times(1))
+                .save(any(PrivateFundingRound.class), any(PeerGroup.class));
+    }
+
+    @Test
+    void extractPrivateFundingRounds_skipsPublicCompanies() {
+        PrivateFundingPort fundingPort = mock(PrivateFundingPort.class);
+        MarketDigestService svc = new MarketDigestService(
+                mock(MarketNewsResearchPort.class), mock(MarketDataPort.class),
+                mock(ImpactClassifierPort.class), mock(MarketDigestRepository.class),
+                null, null, 0.93, null, null,
+                null, fundingPort, null);
+
+        AffectedCompany publicCompany = new AffectedCompany("Doximity", "DOCS", "subject", null);
+        MarketDigestEntry entry = new MarketDigestEntry(
+                makeItem("Doximity raises capital", NewsCategory.FUNDING),
+                List.of(), FactClassification.CONFIRMED, new MarketImpactRank(2), List.of(publicCompany));
+
+        svc.extractPrivateFundingRounds(List.of(entry));
+
+        org.mockito.Mockito.verify(fundingPort, org.mockito.Mockito.never())
+                .save(any(PrivateFundingRound.class), any(PeerGroup.class));
+    }
+
+    // --- extractDealTerms ---
+
+    @Test
+    void extractDealTerms_savesForMAndA() {
+        DealTermsPort termsPort = mock(DealTermsPort.class);
+        MarketDigestService svc = new MarketDigestService(
+                mock(MarketNewsResearchPort.class), mock(MarketDataPort.class),
+                mock(ImpactClassifierPort.class), mock(MarketDigestRepository.class),
+                null, null, 0.93, null, null,
+                null, null, termsPort);
+
+        MarketDigestEntry entry = new MarketDigestEntry(
+                makeItem("Big acquisition completed", NewsCategory.M_AND_A),
+                List.of(), FactClassification.CONFIRMED, new MarketImpactRank(1), List.of());
+
+        svc.extractDealTerms(List.of(entry));
+
+        org.mockito.Mockito.verify(termsPort, org.mockito.Mockito.times(1))
+                .save(any(String.class), any(DealTerms.class));
+    }
+
+    @Test
+    void extractDealTerms_skipsNonMAndA() {
+        DealTermsPort termsPort = mock(DealTermsPort.class);
+        MarketDigestService svc = new MarketDigestService(
+                mock(MarketNewsResearchPort.class), mock(MarketDataPort.class),
+                mock(ImpactClassifierPort.class), mock(MarketDigestRepository.class),
+                null, null, 0.93, null, null,
+                null, null, termsPort);
+
+        svc.extractDealTerms(List.of(makeEntry(NewsCategory.EARNINGS, null, 1)));
+
+        org.mockito.Mockito.verify(termsPort, org.mockito.Mockito.never())
+                .save(any(String.class), any(DealTerms.class));
+    }
+
     // --- helper ---
+
+    private static MarketDigestEntry makeEntryWithHeadline(String headline, NewsCategory category) {
+        MarketNewsItem item = new MarketNewsItem(headline, "Summary.",
+                List.of("https://example.com"), Instant.now(), category, null);
+        return new MarketDigestEntry(item, List.of(), FactClassification.CONFIRMED,
+                new MarketImpactRank(1), List.of());
+    }
 
     private static MarketNewsItem makeItem(String headline, NewsCategory category) {
         return new MarketNewsItem(

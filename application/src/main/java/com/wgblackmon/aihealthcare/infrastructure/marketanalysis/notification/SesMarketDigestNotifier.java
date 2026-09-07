@@ -1,11 +1,14 @@
 package com.wgblackmon.aihealthcare.infrastructure.marketanalysis.notification;
 
+import com.wgblackmon.aihealthcare.domain.marketanalysis.AffectedCompany;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.FactClassification;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.TickerWatchlistRepository;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -13,7 +16,11 @@ import org.springframework.stereotype.Component;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * SMTP-backed notifier implementing {@link MarketDigestNotifier}.
@@ -35,7 +42,7 @@ import java.util.Locale;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-07  added per-subscriber watchlist filtering
  */
 @Slf4j
 @Component
@@ -47,16 +54,19 @@ public class SesMarketDigestNotifier implements MarketDigestNotifier {
     private final JavaMailSender mailSender;
     private final String fromAddress;
     private final String notifyAddress;
+    private final TickerWatchlistRepository watchlistRepository;
 
     public SesMarketDigestNotifier(
             JavaMailSender mailSender,
             @Value("${aihealthcare.newsletter.from-address}") String fromAddress,
-            @Value("${aihealthcare.market-analysis.notify-address}") String notifyAddress) {
-        log.debug("SesMarketDigestNotifier() | fromAddress={}, notifyAddress={}",
-                fromAddress, notifyAddress);
-        this.mailSender    = mailSender;
-        this.fromAddress   = fromAddress;
-        this.notifyAddress = notifyAddress;
+            @Value("${aihealthcare.market-analysis.notify-address}") String notifyAddress,
+            @Autowired(required = false) TickerWatchlistRepository watchlistRepository) {
+        log.debug("SesMarketDigestNotifier() | fromAddress={}, notifyAddress={}, watchlistPresent={}",
+                fromAddress, notifyAddress, watchlistRepository != null);
+        this.mailSender            = mailSender;
+        this.fromAddress           = fromAddress;
+        this.notifyAddress         = notifyAddress;
+        this.watchlistRepository   = watchlistRepository;
         log.debug("SesMarketDigestNotifier() | return=void");
     }
 
@@ -64,23 +74,80 @@ public class SesMarketDigestNotifier implements MarketDigestNotifier {
     public void notify(MarketDigest digest) {
         log.debug("notify() | date={}, entries={}", digest.date(), digest.entries().size());
 
+        sendDigestToRecipient(digest, notifyAddress);
+
+        if (watchlistRepository != null) {
+            sendFilteredDigestsToWatchlistSubscribers(digest);
+        }
+
+        log.debug("notify() | return=void");
+    }
+
+    private void sendDigestToRecipient(MarketDigest digest, String recipientAddress) {
+        log.debug("sendDigestToRecipient() | to={}, entries={}", recipientAddress, digest.entries().size());
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(fromAddress);
-            helper.setTo(notifyAddress);
+            helper.setTo(recipientAddress);
             helper.setSubject(buildSubject(digest));
             helper.setText(buildPlainText(digest), buildHtml(digest));
 
             mailSender.send(message);
-            log.info("notify() | alert sent to {} — {} entries for {}",
-                    notifyAddress, digest.entries().size(), digest.date());
+            log.info("sendDigestToRecipient() | alert sent to {} — {} entries for {}",
+                    recipientAddress, digest.entries().size(), digest.date());
         } catch (Exception e) {
-            log.error("notify() | failed to send market alert for {}: {}", digest.date(), e.getMessage());
+            log.error("sendDigestToRecipient() | failed to send to {}: {}", recipientAddress, e.getMessage());
+        }
+        log.debug("sendDigestToRecipient() | return=void");
+    }
+
+    private void sendFilteredDigestsToWatchlistSubscribers(MarketDigest digest) {
+        log.debug("sendFilteredDigestsToWatchlistSubscribers() | date={}", digest.date());
+
+        List<String> subscriberIds = watchlistRepository.findAllSubscriberIds();
+        int sent = 0;
+
+        for (String subscriberId : subscriberIds) {
+            if (subscriberId.equalsIgnoreCase(notifyAddress)) {
+                continue;
+            }
+
+            List<String> watchedTickers = watchlistRepository.findWatchedTickers(subscriberId);
+            if (watchedTickers.isEmpty()) {
+                continue;
+            }
+
+            Set<String> tickerSet = new HashSet<>(watchedTickers);
+            List<MarketDigestEntry> filtered = filterByTickers(digest.entries(), tickerSet);
+
+            if (!filtered.isEmpty()) {
+                MarketDigest filteredDigest = new MarketDigest(digest.date(), filtered, digest.generatedAt());
+                sendDigestToRecipient(filteredDigest, subscriberId);
+                sent++;
+            }
         }
 
-        log.debug("notify() | return=void");
+        log.info("sendFilteredDigestsToWatchlistSubscribers() | sent {} subscriber-filtered alerts", sent);
+        log.debug("sendFilteredDigestsToWatchlistSubscribers() | return=void");
+    }
+
+    List<MarketDigestEntry> filterByTickers(List<MarketDigestEntry> entries, Set<String> tickers) {
+        log.debug("filterByTickers() | entries={}, tickers={}", entries.size(), tickers.size());
+
+        List<MarketDigestEntry> result = new ArrayList<>();
+        for (MarketDigestEntry entry : entries) {
+            for (AffectedCompany company : entry.affectedCompanies()) {
+                if (company.tickerSymbol() != null && tickers.contains(company.tickerSymbol().toUpperCase())) {
+                    result.add(entry);
+                    break;
+                }
+            }
+        }
+
+        log.debug("filterByTickers() | return.size={}", result.size());
+        return result;
     }
 
     // ─── private helpers ────────────────────────────────────────────────────

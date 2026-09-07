@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.marketanalysis.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,7 +12,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-07  added findDistinctSubscriberIds()
  */
 public interface TickerWatchlistJpaRepository extends JpaRepository<TickerWatchlistEntity, Long> {
 
@@ -22,4 +23,7 @@ public interface TickerWatchlistJpaRepository extends JpaRepository<TickerWatchl
     void deleteBySubscriberId(String subscriberId);
 
     boolean existsBySubscriberIdAndTickerSymbol(String subscriberId, String tickerSymbol);
+
+    @Query("SELECT DISTINCT e.subscriberId FROM TickerWatchlistEntity e")
+    List<String> findDistinctSubscriberIds();
 }

@@ -13,7 +13,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-07  added findAllSubscriberIds()
  */
 public interface TickerWatchlistRepository {
 
@@ -41,4 +41,10 @@ public interface TickerWatchlistRepository {
      * Passing an empty list clears the watchlist.
      */
     void replaceWatchlist(String subscriberId, List<String> tickers);
+
+    /**
+     * Returns all distinct subscriber IDs who have at least one ticker on their watchlist.
+     * Used by the notification layer to send per-subscriber filtered digests.
+     */
+    List<String> findAllSubscriberIds();
 }
