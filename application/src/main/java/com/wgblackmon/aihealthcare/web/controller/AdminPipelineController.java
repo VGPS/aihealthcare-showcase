@@ -685,10 +685,10 @@ public class AdminPipelineController {
                 "Daily 04:00 UTC", "FeedHarvestScheduler",
                 "/api/v1/monitoring/feeds", "POST", false, "~2 min", "Low"));
 
-        list.add(new PipelineInfo("competitor", "Competitor Web Pages",
-                "Scrapes competitor pages (Anthropic, Perplexity, Google, OpenAI) for content changes via SHA-256 hashing.",
+        list.add(new PipelineInfo("competitor", "Competitor & Policy Web Pages",
+                "Scrapes competitor pages (Anthropic, Perplexity, Google, OpenAI) and healthcare AI policy orgs (ECRI, CHAI, CDT, Hastings Center, EFF, Transparency Coalition) for content changes via SHA-256 hashing.",
                 "Daily 05:00 UTC", "WebMonitoringScheduler",
-                "/api/v1/monitoring/harvest", "POST", false, "~1 min", "Low"));
+                "/api/v1/monitoring/harvest", "POST", false, "~2 min", "Low"));
 
         list.add(new PipelineInfo("huggingface", "HuggingFace Model Discovery",
                 "Discovers healthcare AI models from HuggingFace API with metadata (likes, library, card data).",
