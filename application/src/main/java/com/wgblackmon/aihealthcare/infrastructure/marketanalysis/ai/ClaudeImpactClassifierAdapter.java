@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.infrastructure.marketanalysis.ai;
 
+import com.wgblackmon.aihealthcare.domain.marketanalysis.AffectedCompany;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.FactClassification;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.ImpactAssessment;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.ImpactDimension;
@@ -31,7 +32,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-07
  */
 @Slf4j
 @Component
@@ -118,6 +119,7 @@ public class ClaudeImpactClassifierAdapter implements ImpactClassifierPort {
         FactClassification currentFact = FactClassification.SPECULATIVE;
         int currentRank = 5;
         List<ImpactAssessment> currentAssessments = new ArrayList<>();
+        List<AffectedCompany> currentCompanies = new ArrayList<>();
 
         for (String line : response.split("\n")) {
             String trimmed = line.trim();
@@ -125,7 +127,7 @@ public class ClaudeImpactClassifierAdapter implements ImpactClassifierPort {
             if (trimmed.startsWith("ENTRY: ")) {
                 if (currentIndex >= 0 && currentIndex < originals.size()) {
                     results.set(currentIndex, enrichEntry(originals.get(currentIndex),
-                            currentFact, currentRank, currentAssessments));
+                            currentFact, currentRank, currentAssessments, currentCompanies));
                 }
                 try {
                     currentIndex = Integer.parseInt(trimmed.substring("ENTRY: ".length()).trim()) - 1;
@@ -136,6 +138,7 @@ public class ClaudeImpactClassifierAdapter implements ImpactClassifierPort {
                 currentFact        = FactClassification.SPECULATIVE;
                 currentRank        = 5;
                 currentAssessments = new ArrayList<>();
+                currentCompanies   = new ArrayList<>();
 
             } else if (trimmed.startsWith("FACT: ")) {
                 String factStr = trimmed.substring("FACT: ".length()).trim();
@@ -153,6 +156,9 @@ public class ClaudeImpactClassifierAdapter implements ImpactClassifierPort {
                     log.warn("parseResponse() | bad RANK '{}' — defaulting to 5", trimmed);
                 }
 
+            } else if (trimmed.startsWith("COMPANIES: ")) {
+                currentCompanies = parseCompaniesLine(trimmed.substring("COMPANIES: ".length()).trim());
+
             } else {
                 ImpactAssessment assessment = parseDimensionLine(trimmed);
                 if (assessment != null) {
@@ -164,7 +170,7 @@ public class ClaudeImpactClassifierAdapter implements ImpactClassifierPort {
         // Flush last entry
         if (currentIndex >= 0 && currentIndex < originals.size()) {
             results.set(currentIndex, enrichEntry(originals.get(currentIndex),
-                    currentFact, currentRank, currentAssessments));
+                    currentFact, currentRank, currentAssessments, currentCompanies));
         }
 
         log.debug("parseResponse() | return={} entries", results.size());
@@ -218,20 +224,48 @@ public class ClaudeImpactClassifierAdapter implements ImpactClassifierPort {
     private MarketDigestEntry enrichEntry(MarketDigestEntry original,
                                           FactClassification fact,
                                           int rankValue,
-                                          List<ImpactAssessment> assessments) {
+                                          List<ImpactAssessment> assessments,
+                                          List<AffectedCompany> companies) {
         MarketImpactRank rank;
         try {
             rank = new MarketImpactRank(rankValue);
         } catch (IllegalArgumentException e) {
             rank = new MarketImpactRank(5);
         }
+        List<AffectedCompany> effectiveCompanies = companies.isEmpty()
+                ? original.affectedCompanies() : companies;
         return new MarketDigestEntry(
                 original.newsItem(),
                 assessments,
                 fact,
                 rank,
-                original.affectedCompanies()
+                effectiveCompanies
         );
+    }
+
+    List<AffectedCompany> parseCompaniesLine(String value) {
+        log.debug("parseCompaniesLine() | value={}", value);
+        List<AffectedCompany> companies = new ArrayList<>();
+        if (value == null || value.isBlank() || "NONE".equalsIgnoreCase(value.trim())) {
+            log.debug("parseCompaniesLine() | return=[] (none)");
+            return companies;
+        }
+        for (String segment : value.split(";")) {
+            String trimmed = segment.trim();
+            if (trimmed.isEmpty()) continue;
+            String[] parts = trimmed.split("\\|");
+            if (parts.length < 2) {
+                log.warn("parseCompaniesLine() | skipping malformed segment: '{}'", trimmed);
+                continue;
+            }
+            String name = parts[0].trim();
+            String tickerOrPrivate = parts.length > 1 ? parts[1].trim() : "PRIVATE";
+            String role = parts.length > 2 ? parts[2].trim() : "SUBJECT";
+            String ticker = "PRIVATE".equalsIgnoreCase(tickerOrPrivate) ? null : tickerOrPrivate;
+            companies.add(new AffectedCompany(name, ticker, role, null));
+        }
+        log.debug("parseCompaniesLine() | return={} companies", companies.size());
+        return companies;
     }
 
     private List<MarketDigestEntry> applyDefaults(List<MarketDigestEntry> originals) {
