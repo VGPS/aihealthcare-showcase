@@ -21,9 +21,9 @@ import java.util.List;
  * {@code ResearchRun} record — vendor comparisons are transient UI operations.
  *
  * @author  Bill Blackmon
- * @version 1.4
+ * @version 1.5
  * @since   2026-05-14
- * @updated 2026-07-07
+ * @updated 2026-09-07
  */
 public interface CompareVendorsUseCase {
 
@@ -45,15 +45,18 @@ public interface CompareVendorsUseCase {
      *
      * <p>Articles are fetched directly per vendor topic name (e.g. "Anthropic Healthcare"),
      * bypassing query decomposition and relevance filtering.  An optional {@code focusArea}
-     * narrows the AI comparison to a specific healthcare domain.
+     * narrows the AI comparison to a specific healthcare domain.  When a {@code query} is
+     * provided, the user's research question is used as the primary prompt to the AI instead
+     * of a synthetic vendor-comparison query.
      *
      * @param vendorTopics Non-empty list of vendor topic names matching feed config topics.
      * @param focusArea    Optional healthcare focus area (e.g. "radiology"); may be null or blank.
+     * @param query        Optional user research question; may be null or blank.
      * @param maxSources   Maximum source documents per vendor topic; must be &ge; 1.
      * @param scoring      Scoring algorithm: {@code "TF_IDF"} or {@code "DOC_FREQUENCY"}.
      * @return A {@link VendorCompareResult} containing vendors sorted by relevance descending.
      * @throws IllegalArgumentException if {@code vendorTopics} is empty or {@code maxSources} &lt; 1.
      */
     VendorCompareResult compareSelected(List<String> vendorTopics, String focusArea,
-                                         int maxSources, String scoring);
+                                         String query, int maxSources, String scoring);
 }

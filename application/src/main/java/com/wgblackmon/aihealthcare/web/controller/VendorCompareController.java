@@ -40,9 +40,9 @@ import java.util.Set;
  * <p>Vendor comparison runs are transient — no {@code ResearchRun} record is persisted.
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 2.1
  * @since   2026-05-14
- * @updated 2026-07-19
+ * @updated 2026-09-07
  */
 @Slf4j
 @Controller
@@ -137,10 +137,10 @@ public class VendorCompareController {
         try {
             if (hasVendorSelection) {
                 // Vendor-select mode: fetch articles per vendor topic directly
-                log.info("compare() | vendor-select mode: vendors={}, focusArea={}, scoring={}",
-                         vendors, focusArea, scoring);
+                log.info("compare() | vendor-select mode: vendors={}, focusArea={}, query={}, scoring={}",
+                         vendors, focusArea, query, scoring);
                 VendorCompareResult result = compareVendorsUseCase.compareSelected(
-                        vendors, focusArea, cappedMax, scoring);
+                        vendors, focusArea, query, cappedMax, scoring);
                 vendorResults = result.vendors();
                 citations = result.citations();
             } else {

@@ -60,9 +60,9 @@ import java.util.UUID;
  * in {@link com.wgblackmon.aihealthcare.infrastructure.config.AppConfig}.
  *
  * @author  Bill Blackmon
- * @version 2.1
+ * @version 2.2
  * @since   2026-05-04
- * @updated 2026-07-07
+ * @updated 2026-09-07
  */
 @Slf4j
 public class ResearchOrchestratorService implements ConductResearchUseCase, CompareVendorsUseCase {
@@ -250,9 +250,9 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
      */
     @Override
     public VendorCompareResult compareSelected(List<String> vendorTopics, String focusArea,
-                                                int maxSources, String scoring) {
-        log.debug("compareSelected() | vendorTopics={}, focusArea={}, maxSources={}, scoring={}",
-                  vendorTopics, focusArea, maxSources, scoring);
+                                                String query, int maxSources, String scoring) {
+        log.debug("compareSelected() | vendorTopics={}, focusArea={}, query={}, maxSources={}, scoring={}",
+                  vendorTopics, focusArea, query, maxSources, scoring);
 
         if (vendorTopics == null || vendorTopics.isEmpty()) {
             throw new IllegalArgumentException("vendorTopics must not be empty");
@@ -274,8 +274,8 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
 
         log.info("compareSelected() | total sources from DB: {}", allSources.size());
 
-        // Build the query string for the AI prompt
-        String query = buildVendorQuery(vendorTopics, focusArea);
+        // Build the query string for the AI prompt — use user's query when provided
+        String effectiveQuery = buildVendorQuery(vendorTopics, focusArea, query);
 
         // Assemble citations
         List<SourceCitation> citations = citationAssembler.assemble(allSources);
@@ -289,7 +289,7 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
 
         // Vendor-structured synthesis with pre-specified vendor names
         List<VendorAssessment> vendors = vendorAssessmentService.assess(
-                query, allSources, citations, vendorNames.size(), scoring, vendorNames);
+                effectiveQuery, allSources, citations, vendorNames.size(), scoring, vendorNames);
 
         log.info("compareSelected() | vendor assessment complete: vendorCount={}", vendors.size());
         VendorCompareResult result = new VendorCompareResult(vendors, citations);
@@ -298,26 +298,35 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
     }
 
     /**
-     * Builds a query string from vendor topics and an optional focus area.
+     * Builds a query string from vendor topics, an optional focus area, and an optional
+     * user-provided research question.  When the user supplies a query, it becomes the
+     * primary research question with vendor/focus context appended.  When no query is
+     * provided, a synthetic comparison query is constructed from the vendor names.
      */
-    private String buildVendorQuery(List<String> vendorTopics, String focusArea) {
-        log.debug("buildVendorQuery() | vendorTopics={}, focusArea={}", vendorTopics, focusArea);
+    private String buildVendorQuery(List<String> vendorTopics, String focusArea, String userQuery) {
+        log.debug("buildVendorQuery() | vendorTopics={}, focusArea={}, userQuery={}", vendorTopics, focusArea, userQuery);
 
-        StringBuilder sb = new StringBuilder("Compare ");
+        StringBuilder vendorContext = new StringBuilder("Compare ");
         for (int i = 0; i < vendorTopics.size(); i++) {
             if (i > 0 && i == vendorTopics.size() - 1) {
-                sb.append(" and ");
+                vendorContext.append(" and ");
             } else if (i > 0) {
-                sb.append(", ");
+                vendorContext.append(", ");
             }
-            sb.append(extractVendorName(vendorTopics.get(i)));
+            vendorContext.append(extractVendorName(vendorTopics.get(i)));
         }
-        sb.append(" in healthcare AI");
+        vendorContext.append(" in healthcare AI");
         if (focusArea != null && !focusArea.isBlank()) {
-            sb.append(", focusing on ").append(focusArea.trim());
+            vendorContext.append(", focusing on ").append(focusArea.trim());
         }
 
-        String result = sb.toString();
+        String result;
+        if (userQuery != null && !userQuery.isBlank()) {
+            result = userQuery.trim() + "\n\nVendor context: " + vendorContext;
+        } else {
+            result = vendorContext.toString();
+        }
+
         log.debug("buildVendorQuery() | return={}", result);
         return result;
     }

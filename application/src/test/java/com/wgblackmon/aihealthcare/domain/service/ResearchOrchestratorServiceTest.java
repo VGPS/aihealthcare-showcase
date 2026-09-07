@@ -38,9 +38,9 @@ import static org.mockito.Mockito.when;
  * <p>All AI, retrieval, and persistence ports are mocked — no real calls.
  *
  * @author  Bill Blackmon
- * @version 2.1
+ * @version 2.2
  * @since   2026-05-04
- * @updated 2026-07-07
+ * @updated 2026-09-07
  */
 @ExtendWith(MockitoExtension.class)
 class ResearchOrchestratorServiceTest {
@@ -303,7 +303,7 @@ class ResearchOrchestratorServiceTest {
 
         orchestrator.compareSelected(
                 List.of("Anthropic Healthcare", "OpenAI Healthcare"),
-                null, 20, "DOC_FREQUENCY");
+                null, null, 20, "DOC_FREQUENCY");
 
         // Should call legacyAdapter.retrieve() once per vendor topic
         verify(legacyAdapter, org.mockito.Mockito.times(2)).retrieve(any(RetrievalQuery.class));
@@ -318,7 +318,7 @@ class ResearchOrchestratorServiceTest {
 
         orchestrator.compareSelected(
                 List.of("Anthropic Healthcare", "Google Healthcare"),
-                "radiology", 20, "TF_IDF");
+                "radiology", null, 20, "TF_IDF");
 
         org.mockito.ArgumentCaptor<List<String>> vendorCaptor =
                 org.mockito.ArgumentCaptor.forClass(List.class);
@@ -338,7 +338,7 @@ class ResearchOrchestratorServiceTest {
 
         orchestrator.compareSelected(
                 List.of("Anthropic Healthcare"),
-                "radiology", 20, "DOC_FREQUENCY");
+                "radiology", null, 20, "DOC_FREQUENCY");
 
         org.mockito.ArgumentCaptor<String> queryCaptor =
                 org.mockito.ArgumentCaptor.forClass(String.class);
@@ -356,10 +356,30 @@ class ResearchOrchestratorServiceTest {
                 .thenReturn(Collections.emptyList());
 
         orchestrator.compareSelected(
-                List.of("Anthropic Healthcare"), null, 10, "DOC_FREQUENCY");
+                List.of("Anthropic Healthcare"), null, null, 10, "DOC_FREQUENCY");
 
         verify(planningService, never()).plan(anyString(), anyString());
         verify(perplexityAdapter, never()).retrieve(any());
+    }
+
+    @Test
+    void compareSelected_withUserQuery_threadsQueryToAssessment() {
+        when(legacyAdapter.retrieve(any())).thenReturn(List.of(
+                source("a1", "Article", "https://ex.com/a1")));
+        when(vendorAssessmentService.assess(anyString(), anyList(), anyList(), anyInt(), anyString(), anyList()))
+                .thenReturn(Collections.emptyList());
+
+        orchestrator.compareSelected(
+                List.of("Anthropic Healthcare"),
+                "radiology", "will AI replace radiologists?", 20, "DOC_FREQUENCY");
+
+        org.mockito.ArgumentCaptor<String> queryCaptor =
+                org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(vendorAssessmentService).assess(
+                queryCaptor.capture(), anyList(), anyList(), anyInt(), anyString(), anyList());
+
+        assertThat(queryCaptor.getValue()).contains("will AI replace radiologists?");
+        assertThat(queryCaptor.getValue()).contains("radiology");
     }
 
     // -------------------------------------------------------------------------
