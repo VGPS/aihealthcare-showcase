@@ -188,13 +188,8 @@
                 <!-- Signal badges -->
                 <div th:if="${sig != null}" class="flex flex-wrap gap-1 mb-2">
                     <span th:if="${sig.isTrending()}"
-                          th:title="${sig.articleCount90d()} + ' articles in last 90 days'"
                           class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-semibold bg-orange-100 text-orange-800">
-                        🔥 <span th:text="${sig.articleCount90d()}">0</span> articles
-                    </span>
-                    <span th:if="${!sig.isTrending() and sig.articleCount90d() > 0}"
-                          class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                        <span th:text="${sig.articleCount90d()}">0</span> articles
+                        🔥 Trending
                     </span>
                     <span th:if="${sig.hasRecentFunding()}"
                           th:title="${sig.latestDealAmount() != null ? sig.latestDealAmount() : 'Amount undisclosed'}"
