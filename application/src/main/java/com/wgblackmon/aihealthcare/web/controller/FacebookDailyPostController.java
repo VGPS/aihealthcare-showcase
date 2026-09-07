@@ -156,12 +156,12 @@ public class FacebookDailyPostController {
             String emoji   = toneClassifier.toneEmoji(toneClassifier.classifyTone(a));
             String label   = classifyLabel(a);
             String title   = cleanText(a.title());
-            String snippet = extractSnippet(a.bodyText(), SNIPPET_MAX);
+            String snippet = dedupSnippet(title, extractSnippet(a.bodyText(), SNIPPET_MAX));
             String url     = a.url() != null ? a.url().toString() : "";
 
             sb.append("\n");
             sb.append(i + 1).append(". ").append(emoji).append(label).append(title).append("\n");
-            if (!snippet.isBlank()) {
+            if (!snippet.isEmpty()) {
                 sb.append(snippet).append("\n");
             }
             if (!url.isBlank()) {
@@ -316,6 +316,22 @@ public class FacebookDailyPostController {
     // ------------------------------------------------------------------
     // Text helpers
     // ------------------------------------------------------------------
+
+    String dedupSnippet(String title, String snippet) {
+        if (snippet == null || snippet.isEmpty()) {
+            return "";
+        }
+        String normTitle   = title.toLowerCase().replaceAll("[^a-z0-9\\s]", "").replaceAll("\\s+", " ").trim();
+        String normSnippet = snippet.toLowerCase().replaceAll("[^a-z0-9\\s]", "").replaceAll("\\s+", " ").trim();
+        if (normSnippet.equals(normTitle) || normSnippet.startsWith(normTitle)) {
+            String remainder = snippet.substring(Math.min(title.length(), snippet.length())).trim();
+            if (remainder.length() < 30) {
+                return "";
+            }
+            return remainder;
+        }
+        return snippet;
+    }
 
     String extractSnippet(String bodyText, int maxChars) {
         if (bodyText == null || bodyText.isBlank()) {
