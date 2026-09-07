@@ -4,7 +4,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.AffectedCompany;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.FactClassification;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
-import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketImpactRank;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketNewsItem;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc slice tests for {@link MarketDigestController}.
  *
  * <p>Covers the three query endpoints: latest, by-date, and paginated list.
- * {@link MarketDigestService} is provided as a mock bean so no real pipeline
+ * {@link ProduceMarketDigestUseCase} is provided as a mock bean so no real pipeline
  * or database is involved.
  *
  * @author  Bill Blackmon
@@ -49,7 +49,7 @@ class MarketDigestControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private MarketDigestService marketDigestService;
+    private ProduceMarketDigestUseCase marketDigestService;
 
     @MockBean
     private PriceReactionQueryService priceReactionQueryService;

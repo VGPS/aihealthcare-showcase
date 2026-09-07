@@ -96,6 +96,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | — | Sentiment & Risk Scoring — LLM-powered company sentiment classification | 1465 |
 | — | Framework Competitive Analysis + Pipeline Orchestrator | 1509 |
 | DS-1 | LLM-Enhanced Deal Signal Alerts — cross-referenced context, detail page, type filtering, tier gating | 1509+ |
+| MA-1 | Market Analysis (Phases 1–3) — Perplexity news research, Claude impact classifier, Alpaca market data, weekly rollup, price-reaction scoring | 1509+ |
 
 ---
 

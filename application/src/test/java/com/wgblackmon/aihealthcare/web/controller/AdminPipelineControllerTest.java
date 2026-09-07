@@ -1,7 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
-import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.ReactionHorizon;
@@ -69,7 +69,7 @@ class AdminPipelineControllerTest {
     private NewsletterGenerationScheduler newsletterScheduler;
 
     @MockitoBean
-    private MarketDigestService marketDigestService;
+    private ProduceMarketDigestUseCase marketDigestService;
 
     @MockitoBean
     private DeliverNewsletterUseCase deliverUseCase;

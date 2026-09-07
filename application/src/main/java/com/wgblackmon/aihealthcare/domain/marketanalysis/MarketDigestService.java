@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.SecondaryNewsCheckPort;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,10 +42,10 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19  secondary news cross-check (Slice 3.6) + corporate action confirmation (Slice 3.7)
+ * @updated 2026-09-07  implements ProduceMarketDigestUseCase inbound port
  */
 @Slf4j
-public class MarketDigestService {
+public class MarketDigestService implements ProduceMarketDigestUseCase {
 
     static final int DEDUP_LOOKBACK_DAYS = 7;
 
@@ -90,6 +91,7 @@ public class MarketDigestService {
      * @param date the digest date (non-null)
      * @return the persisted (or pre-existing) digest
      */
+    @Override
     public MarketDigest generateDailyDigest(LocalDate date) {
         log.debug("generateDailyDigest() | date={}", date);
 
@@ -177,6 +179,7 @@ public class MarketDigestService {
      *
      * @return the latest digest wrapped in Optional, or empty
      */
+    @Override
     public Optional<MarketDigest> findLatest() {
         log.debug("findLatest()");
         Optional<MarketDigest> result = repository.findLatest();
@@ -190,6 +193,7 @@ public class MarketDigestService {
      * @param date the digest date to query (non-null)
      * @return the digest wrapped in Optional, or empty
      */
+    @Override
     public Optional<MarketDigest> findByDate(LocalDate date) {
         log.debug("findByDate() | date={}", date);
         Optional<MarketDigest> result = repository.findByDate(date);
@@ -202,6 +206,7 @@ public class MarketDigestService {
      *
      * @return list of all digests; empty list if none exist
      */
+    @Override
     public List<MarketDigest> findAll() {
         log.debug("findAll()");
         List<MarketDigest> result = repository.findAll();
@@ -217,6 +222,7 @@ public class MarketDigestService {
      * @param to   end date, inclusive (non-null)
      * @return list of matching digests; empty list if none found
      */
+    @Override
     public List<MarketDigest> findByDateRange(LocalDate from, LocalDate to) {
         log.debug("findByDateRange() | from={}, to={}", from, to);
         List<MarketDigest> result = repository.findByDateRange(from, to);

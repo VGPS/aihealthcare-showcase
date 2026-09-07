@@ -1,7 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
-import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.ReactionHorizon;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 /**
  * Unit tests for {@link MarketAnalysisScheduler}.
  *
- * <p>Verifies delegation to {@link MarketDigestService} and {@link PriceReactionService},
+ * <p>Verifies delegation to {@link ProduceMarketDigestUseCase} and {@link PriceReactionService},
  * and that the scheduler thread survives exceptions thrown by either pipeline.
  *
  * @author  Bill Blackmon
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 class MarketAnalysisSchedulerTest {
 
     @Mock
-    private MarketDigestService marketDigestService;
+    private ProduceMarketDigestUseCase marketDigestService;
 
     @Mock
     private PriceReactionService priceReactionService;
@@ -45,7 +45,7 @@ class MarketAnalysisSchedulerTest {
     private MarketAnalysisScheduler scheduler;
 
     @Test
-    void runDailyDigest_delegatesToMarketDigestService() {
+    void runDailyDigest_delegatesToProduceMarketDigestUseCase() {
         MarketDigest digest = MarketDigest.empty(LocalDate.now());
         when(marketDigestService.generateDailyDigest(any(LocalDate.class))).thenReturn(digest);
 

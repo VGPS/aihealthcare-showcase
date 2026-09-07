@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.model.DealSignal;
 import com.wgblackmon.aihealthcare.domain.model.PipelineErrorType;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
@@ -43,12 +44,13 @@ import java.time.Instant;
  *   <li>Trend detection</li>
  *   <li>Legal trend detection</li>
  *   <li>Research harvest</li>
+ *   <li>Market digest generation</li>
  * </ol>
  *
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-08-03
- * @updated 2026-08-23
+ * @updated 2026-09-07
  */
 @Slf4j
 @Component
@@ -68,6 +70,7 @@ public class StartupPipelineOrchestrator {
     private final WebhookDispatcher webhookDispatcher;
     private final DetectDealSignalsUseCase detectDealSignalsUseCase;
     private final MapCompanyRelationshipsUseCase mapRelationshipsUseCase;
+    private final ProduceMarketDigestUseCase marketDigestService;
 
     public StartupPipelineOrchestrator(
             @Autowired(required = false) WebMonitoringScheduler webMonitoringScheduler,
@@ -83,14 +86,15 @@ public class StartupPipelineOrchestrator {
             @Autowired(required = false) PipelineRunEventPort pipelineRunEventPort,
             @Autowired(required = false) WebhookDispatcher webhookDispatcher,
             @Autowired(required = false) DetectDealSignalsUseCase detectDealSignalsUseCase,
-            @Autowired(required = false) MapCompanyRelationshipsUseCase mapRelationshipsUseCase) {
+            @Autowired(required = false) MapCompanyRelationshipsUseCase mapRelationshipsUseCase,
+            @Autowired(required = false) ProduceMarketDigestUseCase marketDigestService) {
         log.debug("StartupPipelineOrchestrator() | initializing with {} available pipelines",
                 countNonNull(webMonitoringScheduler, regulatoryHarvestScheduler,
                         clinicalTrialHarvestScheduler, embeddingScheduler,
                         analyzeFrameworksUseCase, companyDiscoveryScheduler,
                         sentimentUseCase, detectTrendsUseCase,
                         detectLegalTrendsUseCase, researchHarvestScheduler,
-                        pipelineRunEventPort));
+                        pipelineRunEventPort, marketDigestService));
         this.webMonitoringScheduler = webMonitoringScheduler;
         this.regulatoryHarvestScheduler = regulatoryHarvestScheduler;
         this.clinicalTrialHarvestScheduler = clinicalTrialHarvestScheduler;
@@ -105,6 +109,7 @@ public class StartupPipelineOrchestrator {
         this.webhookDispatcher = webhookDispatcher;
         this.detectDealSignalsUseCase = detectDealSignalsUseCase;
         this.mapRelationshipsUseCase = mapRelationshipsUseCase;
+        this.marketDigestService = marketDigestService;
     }
 
     /**
@@ -201,6 +206,12 @@ public class StartupPipelineOrchestrator {
             }
         });
 
+        runStep("Market digest", () -> {
+            if (marketDigestService != null) {
+                marketDigestService.generateDailyDigest(java.time.LocalDate.now());
+            }
+        });
+
         long elapsed = (System.currentTimeMillis() - start) / 1000;
         log.info("runAllPipelines() | full pipeline cascade complete in {}s", elapsed);
 
@@ -209,7 +220,7 @@ public class StartupPipelineOrchestrator {
                 webhookDispatcher.dispatch(
                         WebhookEventType.PIPELINE_COMPLETE,
                         "Pipeline Run Complete",
-                        "All 11 data pipelines completed in " + elapsed + " seconds.",
+                        "All 14 data pipelines completed in " + elapsed + " seconds.",
                         "/admin/pipeline"
                 );
             } catch (Exception e) {
@@ -379,6 +390,8 @@ public class StartupPipelineOrchestrator {
                 return "legal-trends";
             case "Research harvest":
                 return "research-harvest";
+            case "Market digest":
+                return "market-digest";
             default:
                 return stepName.toLowerCase().replace(' ', '-');
         }
