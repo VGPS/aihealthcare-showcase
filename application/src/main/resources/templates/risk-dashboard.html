@@ -32,15 +32,6 @@
         <p class="text-sm text-gray-500 leading-relaxed">Company-level sentiment derived from recent news coverage. Scores range from −1.0 (very negative) to +1.0 (very positive). Click a company to see article-level detail.</p>
     </div>
 
-    <!-- Trigger analysis button (ADMIN only) -->
-    <div sec:authorize="hasRole('ADMIN')" class="mb-6">
-        <button id="analyzeBtn" onclick="runAnalysis()"
-                class="px-5 py-2 bg-blue-800 text-white border-none rounded-md cursor-pointer text-sm hover:bg-blue-900 transition-colors">
-            Run Sentiment Analysis
-        </button>
-        <span id="analyzeStatus" class="ml-3 text-sm text-gray-500"></span>
-    </div>
-
     <!-- Summary badges -->
     <div class="flex gap-4 mb-6 flex-wrap" th:if="${hasSentiments}">
         <div class="bg-gray-50 rounded-lg px-5 py-3 text-center">
@@ -243,27 +234,6 @@
         a.download = companyName.replace(/[^a-zA-Z0-9]/g, '_') + '_articles.txt';
         a.click();
         URL.revokeObjectURL(a.href);
-    }
-</script>
-<script sec:authorize="hasRole('ADMIN')">
-    function runAnalysis() {
-        var btn = document.getElementById('analyzeBtn');
-        var status = document.getElementById('analyzeStatus');
-        btn.disabled = true;
-        btn.textContent = 'Analyzing...';
-        status.textContent = 'Running sentiment analysis on all companies...';
-
-        fetch('/api/v1/sentiment/analyze', { method: 'POST' })
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
-                status.textContent = 'Analysis complete — ' + data.length + ' companies scored. Refreshing...';
-                setTimeout(function() { location.reload(); }, 1500);
-            })
-            .catch(function(err) {
-                status.textContent = 'Error: ' + err.message;
-                btn.disabled = false;
-                btn.textContent = 'Run Sentiment Analysis';
-            });
     }
 </script>
 </body>

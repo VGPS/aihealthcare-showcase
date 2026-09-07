@@ -32,17 +32,6 @@
         <p class="text-sm text-gray-500 leading-relaxed">Active clinical trials involving AI in healthcare. Browse trials by status, phase, sponsor, and condition. Data sourced from ClinicalTrials.gov and updated daily.</p>
     </div>
 
-    <!-- Run Harvest button (ADMIN only) -->
-    <div sec:authorize="hasRole('ADMIN')" class="mb-6">
-        <form th:action="@{/monitoring/clinical-trials-harvest}" method="post" class="inline">
-            <button type="submit" id="harvestBtn"
-                    class="px-5 py-2 bg-blue-800 text-white border-none rounded-md cursor-pointer text-sm hover:bg-blue-900 transition-colors flex items-center gap-1">
-                <span class="spinner hidden border-2 border-white/30 border-t-white rounded-full w-4 h-4 animate-spin inline-block align-middle mr-1"></span>
-                <span id="harvestLabel">Prompt</span>
-            </button>
-        </form>
-    </div>
-
     <!-- Summary badges -->
     <div class="flex gap-4 mb-6 flex-wrap">
         <div class="bg-gray-50 rounded-lg px-5 py-3 text-center">
@@ -191,18 +180,6 @@
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <script>
-    var harvestForm = document.querySelector('form[action*="clinical-trials-harvest"]');
-    if (harvestForm) {
-        harvestForm.addEventListener('submit', function() {
-            var btn = document.getElementById('harvestBtn');
-            var spinner = btn.querySelector('.spinner');
-            var label = document.getElementById('harvestLabel');
-            if (spinner) spinner.classList.remove('hidden');
-            if (label) label.textContent = 'Prompting…';
-            btn.classList.add('loading');
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-        });
-    }
 function sortTable(arrow, colIndex, direction) {
     var table = arrow.closest('table');
     var tbody = table.querySelector('tbody');

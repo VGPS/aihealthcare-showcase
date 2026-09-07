@@ -31,15 +31,6 @@
         <p class="text-sm text-gray-500 leading-relaxed">FDA and CMS regulatory alerts. Browse recent 510(k) clearances, De Novo classifications, PMA approvals, and CMS rules affecting AI in healthcare. Filter by regulatory body using the tabs above.</p>
     </div>
 
-    <!-- Run Harvest button (ADMIN only) -->
-    <div sec:authorize="hasRole('ADMIN')" class="mb-6">
-        <button id="harvestBtn" onclick="runHarvest()"
-                class="px-5 py-2 bg-blue-800 text-white border-none rounded-md cursor-pointer text-sm hover:bg-blue-900 transition-colors">
-            Run Harvest
-        </button>
-        <span id="harvestStatus" class="ml-3 text-sm text-gray-500"></span>
-    </div>
-
     <!-- Summary badges -->
     <div class="flex gap-4 mb-6 flex-wrap">
         <div class="bg-gray-50 rounded-lg px-5 py-3 text-center">
@@ -167,26 +158,6 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
 <script>
-function runHarvest() {
-    var btn = document.getElementById('harvestBtn');
-    var status = document.getElementById('harvestStatus');
-    btn.disabled = true;
-    btn.textContent = 'Harvesting…';
-    status.textContent = '';
-    fetch('/monitoring/regulatory/harvest', { method: 'POST' })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            status.textContent = data.status || 'Done';
-            status.style.color = '#2e7d32';
-            setTimeout(function() { location.reload(); }, 1500);
-        })
-        .catch(function(err) {
-            status.textContent = 'Error: ' + err.message;
-            status.style.color = '#c62828';
-            btn.disabled = false;
-            btn.textContent = 'Run Harvest';
-        });
-}
 function sortTable(arrow, colIndex, direction) {
     var table = arrow.closest('table');
     var tbody = table.querySelector('tbody');
