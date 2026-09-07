@@ -1323,6 +1323,13 @@ aihealthcare:
         base-weight: 0.85
         max-items: 15
       - topic-id: 1
+        name: Transparency Coalition AI News
+        topic: AI Healthcare Legal
+        url: https://www.transparencycoalition.ai/news/
+        tier: COMPETITOR
+        base-weight: 0.85
+        max-items: 20
+      - topic-id: 1
         name: ONC Health IT Blog
         topic: AI Healthcare Government Policy
         url: https://www.healthit.gov/buzz-blog/feed
