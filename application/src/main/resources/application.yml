@@ -359,7 +359,6 @@ aihealthcare:
         - "Epic Systems Healthcare AI"
         - "Beckers Hospital Review"
         - "HuggingFace Healthcare LLMs"
-        - "New AI Healthcare Companies"
         - "Health Data Utilities"
         - "Ambient Clinical Documentation"
         - "Clinical GenAI and RAG"
@@ -437,7 +436,6 @@ aihealthcare:
       - "Epic Systems Healthcare AI"
       - "Beckers Hospital Review"
       - "HuggingFace Healthcare LLMs"
-      - "New AI Healthcare Companies"
       - "Health Data Utilities"
       - "General AI Healthcare News"
 
@@ -985,7 +983,7 @@ aihealthcare:
       - topic-id: 1
         name: Google News AI Healthcare Policy
         topic: AI Healthcare Legal
-        url: https://news.google.com/rss/search?q=AI+healthcare+law+policy+2026&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=AI+healthcare+law+policy+OR+state+legislation&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.85
         max-items: 20
@@ -1347,121 +1345,11 @@ aihealthcare:
         tier: LEGAL
         base-weight: 0.85
         max-items: 15
-      - topic-id: 1
-        name: Transparency Coalition AI News
-        topic: AI Healthcare Legal
-        url: https://www.transparencycoalition.ai/news/
-        tier: COMPETITOR
-        base-weight: 0.85
-        max-items: 20
-      - topic-id: 1
-        name: ECRI Institute News
-        topic: AI Healthcare Legal
-        url: https://home.ecri.org/blogs/ecri-news/
-        tier: COMPETITOR
-        base-weight: 0.9
-        max-items: 20
-      - topic-id: 1
-        name: Coalition for Health AI Blog
-        topic: AI Healthcare Legal
-        url: https://www.chai.org/blog
-        tier: COMPETITOR
-        base-weight: 0.85
-        max-items: 20
-      - topic-id: 1
-        name: Center for Democracy and Technology AI
-        topic: AI Healthcare Legal
-        url: https://cdt.org/area-of-focus/ai-policy-governance/
-        tier: COMPETITOR
-        base-weight: 0.85
-        max-items: 20
-      - topic-id: 1
-        name: Hastings Center AI Ethics
-        topic: AI Healthcare Legal
-        url: https://www.thehastingscenter.org/ethics-of-ai-in-health-and-biomedical-research/
-        tier: COMPETITOR
-        base-weight: 0.85
-        max-items: 20
-      - topic-id: 1
-        name: EFF AI Policy
-        topic: AI Healthcare Legal
-        url: https://www.eff.org/issues/ai
-        tier: COMPETITOR
-        base-weight: 0.85
-        max-items: 20
-      # -----------------------------------------------------------------
-      # Legislation trackers + policy research (COMPETITOR — web-scrape)
-      # -----------------------------------------------------------------
-      - topic-id: 1
-        name: Epstein Becker Green State AI Law Tracker
-        topic: AI Healthcare Legal
-        url: https://www.ebglaw.com/insights/publications/state-ai-law-tracker
-        tier: COMPETITOR
-        base-weight: 0.9
-        max-items: 20
-      - topic-id: 1
-        name: KFF AI in Healthcare
-        topic: AI Healthcare Legal
-        url: https://www.kff.org/tag/artificial-intelligence/
-        tier: COMPETITOR
-        base-weight: 0.9
-        max-items: 20
-      - topic-id: 1
-        name: AMA Augmented Intelligence in Medicine
-        topic: AI Healthcare Legal
-        url: https://www.ama-assn.org/practice-management/digital-health/augmented-intelligence-medicine
-        tier: COMPETITOR
-        base-weight: 0.9
-        max-items: 20
-      - topic-id: 1
-        name: NAIC AI in Insurance
-        topic: AI Healthcare Legal
-        url: https://content.naic.org/insurance-topics/artificial-intelligence
-        tier: COMPETITOR
-        base-weight: 0.85
-        max-items: 20
-      - topic-id: 1
-        name: NCSL AI Healthcare Primer
-        topic: AI Healthcare Legal
-        url: https://www.ncsl.org/health/artificial-intelligence-health-care-a-primer
-        tier: COMPETITOR
-        base-weight: 0.9
-        max-items: 20
-      - topic-id: 1
-        name: Sheppard Mullin Healthcare Law Blog
-        topic: AI Healthcare Legal
-        url: https://www.sheppard.com/insights/blogs/additional-states-continue-legislative-trend-with-new-laws-limiting-use-of-artificial-intelligence-in-health-insurance-determinations
-        tier: COMPETITOR
-        base-weight: 0.85
-        max-items: 20
-      - topic-id: 1
-        name: Public Citizen AI Policy
-        topic: AI Healthcare Legal
-        url: https://www.citizen.org/topic/consumer-worker-safeguards/artificial-intelligence/
-        tier: COMPETITOR
-        base-weight: 0.85
-        max-items: 20
-      - topic-id: 1
-        name: Stanford HAI Healthcare AI Policy
-        topic: AI Healthcare Legal
-        url: https://hai.stanford.edu/policy/policy-efforts/healthcare-ai-policy
-        tier: COMPETITOR
-        base-weight: 0.9
-        max-items: 20
-      - topic-id: 1
-        name: Future of Privacy Forum AI Laws
-        topic: AI Healthcare Legal
-        url: https://fpf.org/blog/the-state-of-state-ai-legislative-approaches-to-ai-in-2025/
-        tier: COMPETITOR
-        base-weight: 0.85
-        max-items: 20
-      - topic-id: 1
-        name: Health AI Policy Index
-        topic: AI Healthcare Legal
-        url: https://www.healthaipolicy.org/
-        tier: COMPETITOR
-        base-weight: 0.85
-        max-items: 20
+      # REMOVED Sep 2026: 14 COMPETITOR-tier static policy pages
+      # (AMA, KFF, NCSL, EFF, etc.) — these are reference pages, not news
+      # feeds. They produced garbage articles (e.g. single-word titles like
+      # "Abridge") and rarely changed content. Legislation source-freshness
+      # monitoring (Phase 2.5) now tracks these URLs properly instead.
       - topic-id: 1
         name: ONC Health IT Blog
         topic: AI Healthcare Government Policy
