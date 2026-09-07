@@ -20,9 +20,9 @@ import static org.mockito.Mockito.verify;
  * Unit tests for {@link StateLawSeedRunner}.
  *
  * <p>Verifies that the runner loads the seed JSON file from the classpath,
- * parses all 43 records, and calls {@code stateLawPort.upsert()} for each.
- * Also verifies idempotency (safe to re-run) and correct field mapping
- * for a known first record.
+ * parses all 58 records (43 state + 15 federal), and calls
+ * {@code stateLawPort.upsert()} for each. Also verifies idempotency
+ * (safe to re-run) and correct field mapping for a known record.
  *
  * <p>The real seed file at {@code data/state_health_ai_laws_seed.json} is
  * on the test classpath, so these tests exercise the actual JSON parsing.
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.verify;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-06
- * @updated 2026-09-06
+ * @updated 2026-09-07
  */
 class StateLawSeedRunnerTest {
 
@@ -47,7 +47,7 @@ class StateLawSeedRunnerTest {
     void run_loadsAndSeedsLaws() throws Exception {
         runner.run(null);
 
-        verify(stateLawPort, times(43)).upsert(any(StateLaw.class));
+        verify(stateLawPort, times(58)).upsert(any(StateLaw.class));
     }
 
     @Test
@@ -55,7 +55,7 @@ class StateLawSeedRunnerTest {
         runner.run(null);
         runner.run(null);
 
-        verify(stateLawPort, times(86)).upsert(any(StateLaw.class));
+        verify(stateLawPort, times(116)).upsert(any(StateLaw.class));
     }
 
     @Test
@@ -64,7 +64,7 @@ class StateLawSeedRunnerTest {
 
         runner.run(null);
 
-        verify(stateLawPort, times(43)).upsert(captor.capture());
+        verify(stateLawPort, times(58)).upsert(captor.capture());
         List<StateLaw> allLaws = captor.getAllValues();
 
         // Find the AL SB 63 record
@@ -89,7 +89,7 @@ class StateLawSeedRunnerTest {
 
         runner.run(null);
 
-        verify(stateLawPort, times(43)).upsert(captor.capture());
+        verify(stateLawPort, times(58)).upsert(captor.capture());
         List<StateLaw> allLaws = captor.getAllValues();
 
         // Verify multiple states are present in the seed data

@@ -24,7 +24,10 @@ public enum LawStatus {
     NOT_ENACTED("Not Enacted"),
 
     /** Bill is still moving through the legislative process. */
-    PENDING("Pending");
+    PENDING("Pending"),
+
+    /** Executive order or rule that has been formally revoked or rescinded. */
+    RESCINDED("Rescinded");
 
     private final String displayLabel;
 

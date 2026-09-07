@@ -1400,5 +1400,439 @@
     ],
     "notes": "Official bill summary shows 'Chapter 157, 2026 Laws', Governor signed Mar 23, effective 6/11/2026.",
     "datasetVersion": "2026-09-06"
+  },
+
+  {
+    "id": "us-eo-14110",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "E.O. 14110",
+    "title": "Executive Order on the Safe, Secure, and Trustworthy Development and Use of Artificial Intelligence",
+    "yearEnacted": 2023,
+    "dateSigned": "2023-10-30",
+    "dateSignedNote": null,
+    "effectiveDate": "2023-10-30",
+    "effectiveDateNote": null,
+    "status": "RESCINDED",
+    "statusDetail": "Rescinded by Executive Order 14148 on January 20, 2025",
+    "categories": [
+      "COMPREHENSIVE_AI_ACT",
+      "PROVIDER_CLINICAL_USE"
+    ],
+    "regulatedParties": "All federal agencies; indirectly AI developers and healthcare providers receiving federal funds via HHS, FDA, ONC directives",
+    "keyRequirements": "Directed HHS to develop an AI assurance policy for healthcare, establish an AI safety program for clinical error reporting, develop a strategy for regulating AI in drug development, and ensure AI use by federally-funded providers complies with nondiscrimination laws. Tasked NIST with AI risk management framework standards.",
+    "enforcement": "White House AI Council coordinated implementation across federal agencies; HHS Secretary responsible for healthcare-specific directives",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.federalregister.gov/documents/2023/11/01/2023-24283/safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence"
+      }
+    ],
+    "notes": "Most comprehensive U.S. AI governance action to date. Over 100 federal agency actions were completed before rescission. HHS released its Strategic Plan for AI in Health on January 10, 2025, ten days before rescission.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-eo-14148",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "E.O. 14148",
+    "title": "Initial Rescissions of Harmful Executive Orders and Actions",
+    "yearEnacted": 2025,
+    "dateSigned": "2025-01-20",
+    "dateSignedNote": null,
+    "effectiveDate": "2025-01-20",
+    "effectiveDateNote": null,
+    "status": "ENACTED",
+    "statusDetail": "Signed by President Trump on Inauguration Day; rescinded dozens of Biden-era executive orders including E.O. 14110 on AI",
+    "categories": [
+      "COMPREHENSIVE_AI_ACT"
+    ],
+    "regulatedParties": "All federal agencies previously implementing rescinded executive orders",
+    "keyRequirements": "Revoked E.O. 14110 and dozens of other Biden-era executive orders. Directed the Domestic Policy Council and National Economic Council to review all federal actions taken pursuant to the revoked orders and take steps to rescind, replace, or amend them within 45 days.",
+    "enforcement": "White House Domestic Policy Council and National Economic Council",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.federalregister.gov/documents/2025/01/29/2025-01901/initial-rescissions-of-harmful-executive-orders-and-actions"
+      }
+    ],
+    "notes": "Left unclear how rescission impacts the 100+ completed agency actions under E.O. 14110, including OMB AI memoranda and the U.S. AI Safety Institute.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-eo-14179",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "E.O. 14179",
+    "title": "Removing Barriers to American Leadership in Artificial Intelligence",
+    "yearEnacted": 2025,
+    "dateSigned": "2025-01-23",
+    "dateSignedNote": null,
+    "effectiveDate": "2025-01-23",
+    "effectiveDateNote": null,
+    "status": "ENACTED",
+    "statusDetail": "Signed by President Trump; replacement AI policy prioritizing deregulation and innovation",
+    "categories": [
+      "COMPREHENSIVE_AI_ACT"
+    ],
+    "regulatedParties": "All federal agencies; signals deregulatory posture for AI developers",
+    "keyRequirements": "Establishes policy of removing barriers to AI innovation and American leadership. Directs agencies to review and revise existing regulations that may impede AI development. Shifts from risk mitigation toward deregulation and innovation promotion.",
+    "enforcement": "White House Office of Science and Technology Policy",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.federalregister.gov/documents/2025/01/31/2025-02172/removing-barriers-to-american-leadership-in-artificial-intelligence"
+      }
+    ],
+    "notes": "Healthcare-specific implications still developing; signals a more permissive environment for AI deployment in clinical settings.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-pl-114-255-s3060",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "H.R. 34 (Pub. L. 114-255), Section 3060",
+    "title": "21st Century Cures Act — Clarifying Medical Software Regulation",
+    "yearEnacted": 2016,
+    "dateSigned": "2016-12-13",
+    "dateSignedNote": null,
+    "effectiveDate": "2016-12-13",
+    "effectiveDateNote": null,
+    "status": "ENACTED",
+    "statusDetail": "Enacted; amended the FD&C Act definition of 'device' to exclude certain clinical decision support software",
+    "categories": [
+      "PROVIDER_CLINICAL_USE",
+      "OTHER"
+    ],
+    "regulatedParties": "Medical device manufacturers; health IT developers; clinical decision support software developers",
+    "keyRequirements": "Amended the FD&C Act to exclude five categories of software from the medical device definition. For clinical decision support (CDS) software, exclusion applies if the software enables healthcare professionals to independently review the basis for recommendations and is not intended as the primary basis for clinical decisions. High-risk autonomous AI remains regulated as a device.",
+    "enforcement": "FDA (Center for Devices and Radiological Health)",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.congress.gov/bill/114th-congress/house-bill/34"
+      },
+      {
+        "type": "SECONDARY",
+        "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/clinical-decision-support-software"
+      }
+    ],
+    "notes": "Foundational law for AI in healthcare. Codified at Section 520(o)(1)(E) of the FD&C Act. Does NOT exclude high-risk autonomous AI from FDA oversight.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-pl-116-283-dive",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "H.R. 6395 (Pub. L. 116-283), Division E",
+    "title": "National Artificial Intelligence Initiative Act of 2020",
+    "yearEnacted": 2021,
+    "dateSigned": "2021-01-01",
+    "dateSignedNote": "Enacted via Congressional override of presidential veto of the NDAA FY2021",
+    "effectiveDate": "2021-01-01",
+    "effectiveDateNote": null,
+    "status": "ENACTED",
+    "statusDetail": "Enacted as Division E of the National Defense Authorization Act for FY2021",
+    "categories": [
+      "COMPREHENSIVE_AI_ACT"
+    ],
+    "regulatedParties": "Federal agencies including NIST, NSF, DOE; AI researchers; standards bodies",
+    "keyRequirements": "Establishes the National AI Initiative Office within OSTP to coordinate federal AI R&D. Creates an Interagency AI Research and Development Task Force. Directs NIST to develop AI risk management frameworks and technical standards. Mandates trustworthy AI research, workforce training, and international cooperation.",
+    "enforcement": "OSTP National AI Initiative Office; NIST; NSF",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.congress.gov/bill/116th-congress/house-bill/6216"
+      }
+    ],
+    "notes": "Healthcare impact is indirect through mandated trustworthy AI standards and NIST risk management frameworks. Most significant enacted U.S. AI legislation prior to sector-specific bills. Codified at 15 U.S.C. Chapter 119.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-pl-117-328-s3308",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "H.R. 2617 (Pub. L. 117-328), Div. FF, Title III, Section 3308",
+    "title": "FDORA — Predetermined Change Control Plans for AI/ML Medical Devices",
+    "yearEnacted": 2022,
+    "dateSigned": "2022-12-29",
+    "dateSignedNote": null,
+    "effectiveDate": "2022-12-29",
+    "effectiveDateNote": null,
+    "status": "ENACTED",
+    "statusDetail": "Enacted as part of the Consolidated Appropriations Act, 2023; added Section 515C to the FD&C Act",
+    "categories": [
+      "PROVIDER_CLINICAL_USE",
+      "OTHER"
+    ],
+    "regulatedParties": "AI/ML medical device manufacturers seeking 510(k) clearance, De Novo authorization, or PMA approval",
+    "keyRequirements": "Adds Section 515C to the FD&C Act authorizing FDA to approve predetermined change control plans (PCCPs) for medical devices. Manufacturers with an approved PCCP can update AI-enabled device software without submitting a new application for each modification, as long as changes are consistent with the pre-approved plan.",
+    "enforcement": "FDA (Center for Devices and Radiological Health)",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.congress.gov/bill/117th-congress/house-bill/2617"
+      }
+    ],
+    "notes": "Critical statutory authority for adaptive AI/ML medical devices. FDA issued final PCCP guidance on December 3, 2024, specifically for AI-enabled device software functions.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-onc-hti-1",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "89 FR 1192 (ONC HTI-1 Final Rule)",
+    "title": "Health Data, Technology, and Interoperability: Algorithm Transparency (HTI-1)",
+    "yearEnacted": 2024,
+    "dateSigned": "2024-01-09",
+    "dateSignedNote": null,
+    "effectiveDate": "2024-03-11",
+    "effectiveDateNote": "Predictive DSI criterion became part of Base EHR as of January 1, 2025",
+    "status": "ENACTED",
+    "statusDetail": "Final rule published January 9, 2024; effective March 11, 2024",
+    "categories": [
+      "PROVIDER_CLINICAL_USE",
+      "PROVIDER_DISCLOSURE_CONSENT"
+    ],
+    "regulatedParties": "Developers of ONC-certified health IT; EHR vendors; health IT developers whose modules contain decision support interventions",
+    "keyRequirements": "First federal regulation setting specific reporting requirements for AI tool developers in healthcare. Defines 'Predictive DSI' as technology that produces predictions, classifications, or recommendations from training data. Requires health IT developers to conduct risk management, expose inputs and logic to clinicians, and provide structured source attributes and transparency.",
+    "enforcement": "ONC through the Health IT Certification Program; covers 96% of hospitals and 78% of office-based physicians",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.federalregister.gov/documents/2024/01/09/2023-28857/health-data-technology-and-interoperability-certification-program-updates-algorithm-transparency-and"
+      }
+    ],
+    "notes": "First federal rule specifically requiring AI transparency in healthcare. Implements provisions of the 21st Century Cures Act.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-cms-4201-f",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "CMS-4201-F",
+    "title": "2024 Medicare Advantage Final Rule — AI in Coverage Determinations",
+    "yearEnacted": 2023,
+    "dateSigned": "2023-04-05",
+    "dateSignedNote": null,
+    "effectiveDate": "2024-01-01",
+    "effectiveDateNote": null,
+    "status": "ENACTED",
+    "statusDetail": "Final rule published April 5, 2023; provisions applicable January 1, 2024",
+    "categories": [
+      "PAYER_UTILIZATION_REVIEW",
+      "CLAIMS_DOWNCODING"
+    ],
+    "regulatedParties": "Medicare Advantage organizations; Part D plan sponsors; PACE organizations",
+    "keyRequirements": "Establishes that prior authorization may only be used for medical necessity determinations based on diagnoses and clinical criteria. MA organizations may use AI in coverage determinations only if they comply with all regulatory requirements, including individualized determinations based on patient circumstances. Denials of basic benefits must be based solely on publicly available coverage criteria.",
+    "enforcement": "CMS; HHS Office of Inspector General",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.cms.gov/newsroom/fact-sheets/2024-medicare-advantage-and-part-d-final-rule-cms-4201-f"
+      }
+    ],
+    "notes": "Does NOT ban AI in prior authorization but requires individualized patient review. CMS issued AI-specific FAQs on February 6, 2024.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-cms-0057-f",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "CMS-0057-F",
+    "title": "CMS Interoperability and Prior Authorization Final Rule",
+    "yearEnacted": 2024,
+    "dateSigned": "2024-01-17",
+    "dateSignedNote": null,
+    "effectiveDate": "2026-01-01",
+    "effectiveDateNote": "API development requirements by January 1, 2027",
+    "status": "ENACTED",
+    "statusDetail": "Final rule published January 17, 2024; certain provisions effective January 1, 2026",
+    "categories": [
+      "PAYER_UTILIZATION_REVIEW",
+      "OTHER"
+    ],
+    "regulatedParties": "Medicare Advantage plans, Medicaid Managed Care organizations, CHIP plans, certain Qualified Health Plans on ACA exchanges",
+    "keyRequirements": "Requires federally funded health plans to implement FHIR-based APIs for electronic prior authorization. Sets decision turnaround deadlines, requires justification for denied requests, mandates public reporting of PA metrics, and requires payer-to-payer data exchange. Creates the digital infrastructure enabling AI-driven automation of prior authorization.",
+    "enforcement": "CMS",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.cms.gov/newsroom/fact-sheets/cms-interoperability-and-prior-authorization-final-rule-cms-0057-f"
+      }
+    ],
+    "notes": "While not explicitly mandating AI, this rule creates the standardized electronic data exchange infrastructure that makes AI-driven PA automation feasible.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-hhs-1557-2024",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "89 FR 37522 (RIN 0945-AA17)",
+    "title": "ACA Section 1557 — Nondiscrimination in AI-Assisted Patient Care Decisions",
+    "yearEnacted": 2024,
+    "dateSigned": "2024-05-06",
+    "dateSignedNote": null,
+    "effectiveDate": "2024-07-05",
+    "effectiveDateNote": "Compliance with Section 92.210 (patient care decision support tools) required by May 1, 2025",
+    "status": "ENACTED_STAYED",
+    "statusDetail": "Effective July 5, 2024; AI provisions (Section 92.210) partially stayed by court order in Texas and Montana",
+    "categories": [
+      "PROVIDER_CLINICAL_USE",
+      "PROVIDER_DISCLOSURE_CONSENT"
+    ],
+    "regulatedParties": "All recipients of federal financial assistance including Medicare Part B providers; HHS-administered programs; ACA exchanges",
+    "keyRequirements": "Prohibits discrimination through the use of 'patient care decision support tools' including AI and machine learning. Places responsibility on covered entities for ensuring their AI tools do not produce discriminatory outcomes. Private right of action available for individuals.",
+    "enforcement": "HHS Office for Civil Rights (OCR); private right of action available",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.federalregister.gov/documents/2024/05/06/2024-08711/nondiscrimination-in-health-programs-and-activities"
+      }
+    ],
+    "notes": "One of the most significant federal regulatory actions addressing AI bias in healthcare. Enforcement posture uncertain after OCR restructuring.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-fda-aiml-action-plan",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "FDA AI/ML Action Plan (2021)",
+    "title": "FDA Artificial Intelligence/Machine Learning-Based Software as a Medical Device Action Plan",
+    "yearEnacted": 2021,
+    "dateSigned": "2021-01-12",
+    "dateSignedNote": null,
+    "effectiveDate": "2021-01-12",
+    "effectiveDateNote": null,
+    "status": "ENACTED",
+    "statusDetail": "Published January 12, 2021; non-binding strategic plan driving subsequent regulatory actions",
+    "categories": [
+      "PROVIDER_CLINICAL_USE"
+    ],
+    "regulatedParties": "AI/ML medical device manufacturers; Software as a Medical Device (SaMD) developers",
+    "keyRequirements": "Commits FDA to a total product lifecycle (TPLC) approach for AI/ML devices. Five action areas: (1) PCCP guidance, (2) AI device labeling and transparency, (3) regulatory science for ML evaluation and bias identification, (4) real-world performance monitoring, and (5) Good Machine Learning Practices (GMLP) development.",
+    "enforcement": "FDA (Center for Devices and Radiological Health; Digital Health Center of Excellence)",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.fda.gov/medical-devices/software-medical-device-samd/artificial-intelligence-and-machine-learning-aiml-software-medical-device"
+      }
+    ],
+    "notes": "Strategic framework that spawned subsequent binding guidance including GMLP Guiding Principles (Oct 2021), PCCP Draft Guidance (Apr 2023), and PCCP Final Guidance (Dec 2024). By 2025, FDA had authorized over 1,000 AI-enabled devices.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-fda-pccp-final-2024",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "FDA-2023-D-1214 (Final Guidance)",
+    "title": "FDA Final Guidance — Predetermined Change Control Plans for AI-Enabled Device Software",
+    "yearEnacted": 2024,
+    "dateSigned": "2024-12-03",
+    "dateSignedNote": null,
+    "effectiveDate": "2024-12-03",
+    "effectiveDateNote": null,
+    "status": "ENACTED",
+    "statusDetail": "Final guidance published December 3, 2024; non-binding but represents FDA current regulatory expectations",
+    "categories": [
+      "PROVIDER_CLINICAL_USE"
+    ],
+    "regulatedParties": "Manufacturers of AI-enabled medical devices seeking 510(k), De Novo, or PMA clearance",
+    "keyRequirements": "Provides recommendations for PCCPs specific to AI-enabled device software functions. Requires descriptions of planned modifications, validation protocols, and impact assessments. Addresses data categories (training, tuning, and testing), labeling and transparency requirements, and risk management. Manufacturers must disclose when a device has been authorized with a PCCP.",
+    "enforcement": "FDA (Center for Devices and Radiological Health)",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/marketing-submission-recommendations-predetermined-change-control-plan-artificial"
+      }
+    ],
+    "notes": "Implements the FDORA Section 3308 statutory authority. Expands scope from ML-only to all AI-enabled devices.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-hhs-hipaa-ai-nprm",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "HIPAA Security Rule NPRM (RIN 0945-AA22)",
+    "title": "HIPAA Security Rule Update — Proposed Rule with AI Provisions",
+    "yearEnacted": 2025,
+    "dateSigned": null,
+    "dateSignedNote": "Proposed rule only; comment period closed",
+    "effectiveDate": null,
+    "effectiveDateNote": "Final rule timeline uncertain",
+    "status": "PENDING",
+    "statusDetail": "Proposed rule published January 6, 2025; final rule status uncertain under current administration",
+    "categories": [
+      "OTHER"
+    ],
+    "regulatedParties": "HIPAA covered entities and business associates using AI to process electronic protected health information (ePHI)",
+    "keyRequirements": "Establishes that ePHI in AI training data, algorithm data, and prediction models maintained by covered entities is protected under HIPAA. Requires entities using AI tools to include them in risk analysis and risk management activities. Would mandate multi-factor authentication, encryption, regular security testing, and 72-hour recovery capability.",
+    "enforcement": "HHS Office for Civil Rights (OCR)",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.federalregister.gov/documents/2025/01/06/2024-30983/hipaa-security-rule-to-strengthen-the-cybersecurity-of-electronic-protected-health-information"
+      }
+    ],
+    "notes": "First significant HIPAA update in over 10 years since the 2013 Omnibus Rule. Status uncertain under deregulatory posture.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-s-algorithmic-accountability",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "S. 2164 (119th Congress)",
+    "title": "Algorithmic Accountability Act of 2025",
+    "yearEnacted": 2025,
+    "dateSigned": null,
+    "dateSignedNote": null,
+    "effectiveDate": null,
+    "effectiveDateNote": null,
+    "status": "PENDING",
+    "statusDetail": "Third iteration; introduced by Sen. Wyden, Sen. Warren, Sen. Booker; referred to committee",
+    "categories": [
+      "COMPREHENSIVE_AI_ACT",
+      "PAYER_UTILIZATION_REVIEW",
+      "PROVIDER_CLINICAL_USE"
+    ],
+    "regulatedParties": "Companies with over $50 million in revenue or processing data on 1+ million people that use automated decision systems affecting access to healthcare, housing, employment, credit, insurance, or education",
+    "keyRequirements": "Requires companies to conduct algorithmic impact assessments for any automated decision system including AI affecting access to healthcare. Assessments must evaluate systems for bias, discrimination, and privacy risks. Directs the FTC to require impact assessments and establish reporting requirements.",
+    "enforcement": "Federal Trade Commission (FTC)",
+    "sources": [
+      {
+        "type": "OFFICIAL",
+        "url": "https://www.congress.gov/bill/119th-congress/senate-bill/2164"
+      }
+    ],
+    "notes": "Broadly applicable across sectors but explicitly covers healthcare. Has been introduced in three consecutive Congresses without advancing to a vote. Would create the first federal bias audit requirement for AI in healthcare.",
+    "datasetVersion": "2026-09-07"
+  },
+  {
+    "id": "us-ftc-rite-aid-2023",
+    "stateCode": "US",
+    "stateName": "United States (Federal)",
+    "billNumber": "FTC Consent Order (December 2023)",
+    "title": "FTC v. Rite Aid — Enforcement Against Biased AI Facial Recognition in Pharmacy Setting",
+    "yearEnacted": 2023,
+    "dateSigned": "2023-12-19",
+    "dateSignedNote": null,
+    "effectiveDate": "2023-12-19",
+    "effectiveDateNote": null,
+    "status": "ENACTED",
+    "statusDetail": "FTC consent order; five-year ban on facial recognition; established algorithmic disgorgement as standard remedy",
+    "categories": [
+      "OTHER"
+    ],
+    "regulatedParties": "Rite Aid Corporation (retail pharmacy); establishes precedent for all healthcare-adjacent companies using AI surveillance",
+    "keyRequirements": "Prohibited Rite Aid from using facial recognition technologies for five years. Required destruction of all photos, videos, and data, models, or algorithms derived therefrom (algorithmic disgorgement). If resumed after five years, must operate under detailed governance program.",
+    "enforcement": "FTC under Section 5 of the FTC Act (unfair or deceptive practices)",
+    "sources": [
+      {
+        "type": "SECONDARY",
+        "url": "https://www.ftc.gov/news-events/news/press-releases/2023/12/rite-aid-banned-using-ai-facial-recognition-after-ftc-says-retailer-deployed-technology-without"
+      }
+    ],
+    "notes": "Landmark precedent: first FTC enforcement against biased AI. Found AI facial recognition disproportionately affected Black, Asian, Latino, and women consumers. Established algorithmic disgorgement as standard FTC remedy.",
+    "datasetVersion": "2026-09-07"
   }
 ]

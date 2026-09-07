@@ -85,7 +85,7 @@ public class StateLawSeedRunner implements ApplicationRunner {
                 count++;
             }
 
-            log.info("StateLawSeedRunner | seeded {} state laws", count);
+            log.info("StateLawSeedRunner | seeded {} laws (state + federal)", count);
             log.debug("run() | return=void");
         } catch (Exception e) {
             log.error("run() | failed to load seed data: {}", e.getMessage(), e);

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
 /**
- * State Health-AI Legislation Registry — public searchable index of enacted
- * U.S. state laws regulating artificial intelligence in healthcare.
+ * Health-AI Legislation Registry — public searchable index of enacted
+ * U.S. state and federal laws regulating artificial intelligence in healthcare.
  *
  * Features an "About This Registry" description with collapsible usage guide,
  * filter dropdowns for state, category, and status, plus a text search input.
@@ -15,18 +15,18 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-06
- * @updated 2026-09-06
+ * @updated 2026-09-07
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/head :: head('State Health-AI Legislation Registry')}">
+<head th:replace="~{fragments/head :: head('Health-AI Legislation Registry')}">
 </head>
 <body class="bg-surface font-sans text-on-surface">
 
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
-    <h1 class="font-display text-2xl font-bold tracking-tight">State Health-AI Legislation Registry</h1>
-    <p class="text-primary-200 text-sm mt-0.5">Enacted U.S. state laws regulating artificial intelligence in healthcare</p>
+    <h1 class="font-display text-2xl font-bold tracking-tight">Health-AI Legislation Registry</h1>
+    <p class="text-primary-200 text-sm mt-0.5">U.S. state and federal laws, executive orders, and agency rules regulating AI in healthcare</p>
 </header>
 
 <nav th:replace="~{fragments/public-nav :: public-nav('legislation')}"></nav>
@@ -37,10 +37,11 @@
     <div class="mb-6 bg-white rounded-lg border border-gray-200 p-5">
         <h2 class="text-lg font-semibold text-primary-800 mb-2">About This Registry</h2>
         <p class="text-sm text-gray-600 leading-relaxed mb-3">
-            A curated, source-linked registry of enacted U.S. state laws regulating the use of artificial intelligence
-            in healthcare. Covers payer utilization review restrictions, provider disclosure requirements, claims
-            downcoding protections, mental health AI safeguards, consumer chatbot regulations, and comprehensive
-            state AI acts. Each entry links to official legislative text and secondary analysis sources.
+            A curated, source-linked registry of U.S. state and federal laws regulating the use of artificial intelligence
+            in healthcare. Covers state legislation (payer utilization review, provider disclosure, claims downcoding,
+            mental health AI, consumer chatbots, comprehensive AI acts) plus federal executive orders, agency final rules
+            (FDA, CMS, ONC, HHS), and pending congressional bills. Each entry links to official legislative text and
+            secondary analysis sources.
         </p>
         <details class="text-sm text-gray-500">
             <summary class="cursor-pointer font-semibold text-gray-600 hover:text-primary-600">How to use this page</summary>
@@ -68,7 +69,7 @@
         </div>
         <div class="bg-blue-50 rounded-lg px-5 py-3 text-center">
             <div class="text-2xl font-bold text-blue-800" th:text="${stateCount}">0</div>
-            <div class="text-xs text-blue-800">States Covered</div>
+            <div class="text-xs text-blue-800">Jurisdictions</div>
         </div>
     </div>
 
@@ -78,9 +79,9 @@
         <div class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
             <!-- State filter -->
             <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1">State</label>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Jurisdiction</label>
                 <select name="state" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
-                    <option value="">All States</option>
+                    <option value="">All Jurisdictions</option>
                     <option th:each="s : ${states}" th:value="${s.name()}"
                             th:text="${s.displayName()}"
                             th:selected="${stateFilter != null and stateFilter == s.name()}"></option>
@@ -135,7 +136,7 @@
         <table class="w-full border-collapse">
             <thead>
             <tr class="border-b-2 border-gray-300 text-left">
-                <th class="p-2">State
+                <th class="p-2">Jurisdiction
                     <span class="sort-arrow" onclick="sortTable(this, 0, 'asc')" title="Sort A-Z">&#8593;</span>
                     <span class="sort-arrow" onclick="sortTable(this, 0, 'desc')" title="Sort Z-A">&#8595;</span>
                 </th>
@@ -186,6 +187,9 @@
                         <span th:case="'PENDING'"
                               class="inline-block bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-xs font-medium"
                               th:text="${law.status().displayLabel()}">Pending</span>
+                        <span th:case="'RESCINDED'"
+                              class="inline-block bg-orange-100 text-orange-800 px-2 py-0.5 rounded text-xs font-medium"
+                              th:text="${law.status().displayLabel()}">Rescinded</span>
                     </span>
                 </td>
                 <td class="p-2">
@@ -305,7 +309,7 @@ function exportCSV() {
         }
         lines.push(cols.join(','));
     }
-    downloadFile(lines.join('\n'), 'state-legislation.csv', 'text/csv');
+    downloadFile(lines.join('\n'), 'health-ai-legislation.csv', 'text/csv');
 }
 
 function exportText() {
@@ -316,7 +320,7 @@ function exportText() {
     for (var i = 0; i < ths.length; i++) {
         headers.push(ths[i].textContent.replace(/[↑↓\s]+/g, ' ').trim());
     }
-    var lines = ['State Health-AI Legislation Registry', '='.repeat(50), '', headers.join(' | ')];
+    var lines = ['Health-AI Legislation Registry', '='.repeat(50), '', headers.join(' | ')];
     lines.push('-'.repeat(100));
     var rows = table.querySelectorAll('tbody tr');
     for (var r = 0; r < rows.length; r++) {
@@ -327,7 +331,7 @@ function exportText() {
         lines.push(cols.join(' | '));
     }
     lines.push('', 'Exported from Big Sky Labs — https://app.bigskylabs.ai/legislation');
-    downloadFile(lines.join('\n'), 'state-legislation.txt', 'text/plain');
+    downloadFile(lines.join('\n'), 'health-ai-legislation.txt', 'text/plain');
 }
 
 function downloadFile(content, filename, mimeType) {
