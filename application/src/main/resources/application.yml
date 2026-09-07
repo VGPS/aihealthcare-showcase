@@ -268,6 +268,15 @@ aihealthcare:
     poll-timeout-ms: 300000
 
   # ---------------------------------------------------------------------------
+  # Legislation Source Monitor — weekly source-freshness check for all law
+  # source URLs. Re-fetches each URL, computes SHA-256 hash, records change
+  # events when content drifts.
+  # Schedule default: Monday 10:30 UTC (5:30 AM Chicago).
+  # ---------------------------------------------------------------------------
+  legislation:
+    source-check-schedule: "0 30 10 * * MON"
+
+  # ---------------------------------------------------------------------------
   # Regulatory Alert System — FDA 510(k), De Novo, CMS rule monitoring.
   # Schedule default: daily 04:30 UTC (after RSS feeds, before competitors).
   # ---------------------------------------------------------------------------

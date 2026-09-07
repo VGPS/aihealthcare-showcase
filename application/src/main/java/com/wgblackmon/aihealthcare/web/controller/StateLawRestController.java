@@ -1,14 +1,17 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.LawCategory;
+import com.wgblackmon.aihealthcare.domain.model.LawChangeEvent;
 import com.wgblackmon.aihealthcare.domain.model.LawStatus;
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageStateLawsUseCase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,13 +30,13 @@ import java.util.Optional;
  * dates. Returns domain records directly (no DTOs needed for this
  * read-only slice).
  *
- * <p>All endpoints require authentication via the global security
- * filter chain ({@code /api/**} requires authentication).
+ * <p>Read-only endpoints require authentication. Admin endpoints
+ * (change review, refresh trigger) require the ADMIN role.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-06
- * @updated 2026-09-06
+ * @updated 2026-09-07
  */
 @Slf4j
 @RestController
@@ -137,5 +140,55 @@ public class StateLawRestController {
 
         log.debug("getLawsByState() | return={} states", grouped.size());
         return grouped;
+    }
+
+    // ── Admin endpoints ──────────────────────────────────────────────────────
+
+    /**
+     * Returns unreviewed source-change events.
+     *
+     * @param unreviewedOnly if true (default), returns only unreviewed events
+     * @return list of change events
+     */
+    @GetMapping("/changes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<LawChangeEvent> getChanges(
+            @RequestParam(defaultValue = "true") boolean unreviewedOnly) {
+        log.debug("getChanges() | unreviewedOnly={}", unreviewedOnly);
+        List<LawChangeEvent> result = legislationUseCase.getUnreviewedChanges();
+        log.debug("getChanges() | return={} events", result.size());
+        return result;
+    }
+
+    /**
+     * Marks a change event as reviewed.
+     *
+     * @param id the change event id
+     * @return 200 OK
+     */
+    @PostMapping("/changes/{id}/review")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> reviewChange(@PathVariable Long id) {
+        log.debug("reviewChange() | id={}", id);
+        legislationUseCase.reviewChange(id);
+        log.debug("reviewChange() | return=200");
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Triggers an async source-freshness check across all law source URLs.
+     *
+     * @return 202 Accepted with the number of changed sources
+     */
+    @PostMapping("/refresh")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> triggerRefresh() {
+        log.debug("triggerRefresh()");
+        int changed = legislationUseCase.triggerRefresh();
+        Map<String, Object> body = Map.of(
+                "status", "completed",
+                "sourcesChanged", changed);
+        log.debug("triggerRefresh() | return={}", body);
+        return ResponseEntity.ok(body);
     }
 }

@@ -5,10 +5,12 @@ import com.wgblackmon.aihealthcare.domain.model.LawChangeEvent;
 import com.wgblackmon.aihealthcare.domain.model.LawSource;
 import com.wgblackmon.aihealthcare.domain.model.LawStatus;
 import com.wgblackmon.aihealthcare.domain.model.NewBillCandidate;
+import com.wgblackmon.aihealthcare.domain.model.SourceCheckResult;
 import com.wgblackmon.aihealthcare.domain.model.SourceType;
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
 import com.wgblackmon.aihealthcare.domain.port.outbound.LawChangeEventPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.LawSourceMonitorPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewBillCandidatePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.StateLawPort;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +22,12 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,6 +48,7 @@ class StateLawServiceTest {
     private StateLawPort stateLawPort;
     private LawChangeEventPort changeEventPort;
     private NewBillCandidatePort candidatePort;
+    private LawSourceMonitorPort sourceMonitorPort;
     private StateLawService service;
 
     @BeforeEach
@@ -48,7 +56,8 @@ class StateLawServiceTest {
         stateLawPort = mock(StateLawPort.class);
         changeEventPort = mock(LawChangeEventPort.class);
         candidatePort = mock(NewBillCandidatePort.class);
-        service = new StateLawService(stateLawPort, changeEventPort, candidatePort);
+        sourceMonitorPort = mock(LawSourceMonitorPort.class);
+        service = new StateLawService(stateLawPort, changeEventPort, candidatePort, sourceMonitorPort);
     }
 
     @Test
@@ -189,6 +198,71 @@ class StateLawServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).billNumber()).isEqualTo("SB 9999");
         verify(candidatePort).findUnreviewed();
+    }
+
+    @Test
+    void triggerRefresh_noChanges_returnsZero() {
+        StateLaw law = createTestLaw("ca-ab-3030", StateCode.CA, "AI Act");
+        when(stateLawPort.findAll()).thenReturn(List.of(law));
+
+        SourceCheckResult unchanged = new SourceCheckResult(
+                200, "same-hash", false, Instant.now(), null);
+        when(sourceMonitorPort.checkUrl(anyString(), any())).thenReturn(unchanged);
+
+        int result = service.triggerRefresh();
+
+        assertThat(result).isZero();
+        verify(changeEventPort, never()).recordChangeEvent(any());
+        verify(stateLawPort).updateSourceMonitoringFields(
+                eq("ca-ab-3030"), eq("https://example.com"),
+                any(), eq("same-hash"), eq(200), eq(false));
+    }
+
+    @Test
+    void triggerRefresh_contentChanged_recordsEvent() {
+        StateLaw law = createTestLaw("ca-ab-3030", StateCode.CA, "AI Act");
+        when(stateLawPort.findAll()).thenReturn(List.of(law));
+
+        SourceCheckResult changed = new SourceCheckResult(
+                200, "new-hash", true, Instant.now(), null);
+        when(sourceMonitorPort.checkUrl(anyString(), any())).thenReturn(changed);
+
+        int result = service.triggerRefresh();
+
+        assertThat(result).isEqualTo(1);
+        verify(changeEventPort).recordChangeEvent(any(LawChangeEvent.class));
+    }
+
+    @Test
+    void triggerRefresh_urlUnavailable_recordsEventWithType() {
+        StateLaw law = createTestLaw("ca-ab-3030", StateCode.CA, "AI Act");
+        when(stateLawPort.findAll()).thenReturn(List.of(law));
+
+        SourceCheckResult unavailable = new SourceCheckResult(
+                404, null, true, Instant.now(), "HTTP 404 error response");
+        when(sourceMonitorPort.checkUrl(anyString(), any())).thenReturn(unavailable);
+
+        int result = service.triggerRefresh();
+
+        assertThat(result).isEqualTo(1);
+        verify(changeEventPort).recordChangeEvent(any(LawChangeEvent.class));
+    }
+
+    @Test
+    void triggerRefresh_exceptionForOneSource_continuesProcessing() {
+        StateLaw law1 = createTestLaw("law-1", StateCode.CA, "Law 1");
+        StateLaw law2 = createTestLaw("law-2", StateCode.TX, "Law 2");
+        when(stateLawPort.findAll()).thenReturn(List.of(law1, law2));
+
+        when(sourceMonitorPort.checkUrl(anyString(), any()))
+                .thenThrow(new RuntimeException("Network error"))
+                .thenReturn(new SourceCheckResult(200, "hash", false, Instant.now(), null));
+
+        int result = service.triggerRefresh();
+
+        assertThat(result).isZero();
+        verify(stateLawPort).updateSourceMonitoringFields(
+                eq("law-2"), anyString(), any(), anyString(), any(Integer.class), anyBoolean());
     }
 
     // --- Helpers ---

@@ -2,12 +2,15 @@ package com.wgblackmon.aihealthcare.domain.service;
 
 import com.wgblackmon.aihealthcare.domain.model.LawCategory;
 import com.wgblackmon.aihealthcare.domain.model.LawChangeEvent;
+import com.wgblackmon.aihealthcare.domain.model.LawSource;
 import com.wgblackmon.aihealthcare.domain.model.LawStatus;
 import com.wgblackmon.aihealthcare.domain.model.NewBillCandidate;
+import com.wgblackmon.aihealthcare.domain.model.SourceCheckResult;
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageStateLawsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.LawChangeEventPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.LawSourceMonitorPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewBillCandidatePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.StateLawPort;
 
@@ -41,17 +44,21 @@ public class StateLawService implements ManageStateLawsUseCase {
     private final StateLawPort stateLawPort;
     private final LawChangeEventPort changeEventPort;
     private final NewBillCandidatePort candidatePort;
+    private final LawSourceMonitorPort sourceMonitorPort;
 
     public StateLawService(StateLawPort stateLawPort,
                            LawChangeEventPort changeEventPort,
-                           NewBillCandidatePort candidatePort) {
+                           NewBillCandidatePort candidatePort,
+                           LawSourceMonitorPort sourceMonitorPort) {
         log.log(System.Logger.Level.DEBUG,
                 () -> "StateLawService() | stateLawPort=" + stateLawPort
                         + ", changeEventPort=" + changeEventPort
-                        + ", candidatePort=" + candidatePort);
+                        + ", candidatePort=" + candidatePort
+                        + ", sourceMonitorPort=" + sourceMonitorPort);
         this.stateLawPort = stateLawPort;
         this.changeEventPort = changeEventPort;
         this.candidatePort = candidatePort;
+        this.sourceMonitorPort = sourceMonitorPort;
     }
 
     @Override
@@ -154,5 +161,55 @@ public class StateLawService implements ManageStateLawsUseCase {
         log.log(System.Logger.Level.DEBUG,
                 () -> "getUnreviewedCandidates() | return=" + result.size());
         return result;
+    }
+
+    @Override
+    public int triggerRefresh() {
+        log.log(System.Logger.Level.DEBUG, () -> "triggerRefresh()");
+
+        List<StateLaw> allLaws = stateLawPort.findAll();
+        int changedCount = 0;
+        int checkedCount = 0;
+
+        for (StateLaw law : allLaws) {
+            for (LawSource source : law.sources()) {
+                try {
+                    SourceCheckResult result = sourceMonitorPort.checkUrl(
+                            source.url(), source.lastContentHash());
+                    checkedCount++;
+
+                    stateLawPort.updateSourceMonitoringFields(
+                            law.id(), source.url(),
+                            result.fetchedAt(), result.contentHash(),
+                            result.httpStatus(), result.changed());
+
+                    if (result.changed()) {
+                        changedCount++;
+                        String detail = result.errorMessage() != null
+                                ? "URL returned HTTP " + result.httpStatus() + ": " + result.errorMessage()
+                                : "Content hash changed (HTTP " + result.httpStatus() + ")";
+                        LawChangeEvent event = new LawChangeEvent(
+                                null, law.id(),
+                                result.fetchedAt(),
+                                result.httpStatus() >= 400 ? "URL_UNAVAILABLE" : "CONTENT_CHANGED",
+                                detail + " — " + source.url(),
+                                false);
+                        changeEventPort.recordChangeEvent(event);
+                    }
+                } catch (Exception e) {
+                    log.log(System.Logger.Level.WARNING,
+                            () -> "triggerRefresh() | failed checking " + source.url()
+                                    + " for law " + law.id() + ": " + e.getMessage());
+                }
+            }
+        }
+
+        final int finalChecked = checkedCount;
+        final int finalChanged = changedCount;
+        log.log(System.Logger.Level.INFO,
+                () -> "triggerRefresh() | checked=" + finalChecked
+                        + ", changed=" + finalChanged);
+        log.log(System.Logger.Level.DEBUG, () -> "triggerRefresh() | return=" + finalChanged);
+        return changedCount;
     }
 }

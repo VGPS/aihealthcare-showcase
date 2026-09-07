@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.LawCategory;
+import com.wgblackmon.aihealthcare.domain.model.LawChangeEvent;
 import com.wgblackmon.aihealthcare.domain.model.LawStatus;
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
@@ -9,12 +10,14 @@ import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageStateLawsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -225,6 +228,42 @@ public class StateLawController {
 
         log.debug("upcoming() | return=legislation-upcoming, count={}", sorted.size());
         return "legislation-upcoming";
+    }
+
+    // ── Admin change review ────────────────────────────────────────────────
+
+    /**
+     * Renders the admin change-review page showing unreviewed source changes.
+     *
+     * @param model Thymeleaf model
+     * @return the "legislation-changes" view name
+     */
+    @GetMapping("/changes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String changes(Model model) {
+        log.debug("changes()");
+
+        List<LawChangeEvent> unreviewedChanges = legislationUseCase.getUnreviewedChanges();
+        model.addAttribute("changes", unreviewedChanges);
+        model.addAttribute("changeCount", unreviewedChanges.size());
+
+        log.debug("changes() | return=legislation-changes, count={}", unreviewedChanges.size());
+        return "legislation-changes";
+    }
+
+    /**
+     * Marks a change event as reviewed and redirects back to the changes page.
+     *
+     * @param id the change event id
+     * @return redirect to /legislation/changes
+     */
+    @PostMapping("/changes/{id}/review")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String reviewChangeAndRedirect(@PathVariable Long id) {
+        log.debug("reviewChangeAndRedirect() | id={}", id);
+        legislationUseCase.reviewChange(id);
+        log.debug("reviewChangeAndRedirect() | return=redirect:/legislation/changes");
+        return "redirect:/legislation/changes";
     }
 
     // ── Tier resolution helpers ──────────────────────────────────────────────

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Legislation source change review page — admin-only view showing
+ * detected content changes in law source URLs.
+ *
+ * Displays unreviewed change events with law ID, change type, detail,
+ * and detection timestamp. Admins can mark individual events as reviewed
+ * or link to the affected law's detail page.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-09-07
+ * @updated 2026-09-07
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Legislation Changes')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Legislation Source Changes</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Detected content changes in law source URLs</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('legislation')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Summary -->
+    <div class="flex gap-4 mb-6 flex-wrap items-center">
+        <div class="bg-yellow-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-yellow-800" th:text="${changeCount}">0</div>
+            <div class="text-xs text-yellow-800">Unreviewed Changes</div>
+        </div>
+        <a th:href="@{/legislation}" class="text-sm text-primary-600 hover:underline ml-auto">
+            &larr; Back to Registry
+        </a>
+    </div>
+
+    <!-- Description -->
+    <div class="mb-6 bg-white rounded-lg border border-gray-200 p-5">
+        <h2 class="text-lg font-semibold text-primary-800 mb-2">How Source Monitoring Works</h2>
+        <p class="text-sm text-gray-600 leading-relaxed">
+            Every Monday at 10:30 UTC, the Legislation Source Monitor re-fetches each law's source URLs and
+            computes a SHA-256 hash of the page content. When the hash differs from the last known value,
+            a change event is recorded here. Changes indicate the law text may have been amended, the agency
+            may have updated their guidance, or the source URL may have moved or gone offline. Review each
+            change and click the affected law to check for updates.
+        </p>
+    </div>
+
+    <!-- Changes table -->
+    <div th:if="${changeCount > 0}">
+        <table class="w-full border-collapse bg-white rounded-lg shadow-sm">
+            <thead>
+            <tr class="border-b-2 border-gray-300 text-left">
+                <th class="p-3 text-sm font-semibold text-gray-700">Law</th>
+                <th class="p-3 text-sm font-semibold text-gray-700">Type</th>
+                <th class="p-3 text-sm font-semibold text-gray-700">Detail</th>
+                <th class="p-3 text-sm font-semibold text-gray-700">Detected</th>
+                <th class="p-3 text-sm font-semibold text-gray-700">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="change : ${changes}" class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="p-3">
+                    <a th:href="@{/legislation/{id}(id=${change.lawId()})}"
+                       class="text-primary-600 hover:underline font-medium text-sm"
+                       th:text="${change.lawId()}">law-id</a>
+                </td>
+                <td class="p-3">
+                    <span th:if="${change.changeType() == 'CONTENT_CHANGED'}"
+                          class="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-medium">
+                        Content Changed</span>
+                    <span th:if="${change.changeType() == 'URL_UNAVAILABLE'}"
+                          class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-medium">
+                        URL Unavailable</span>
+                    <span th:if="${change.changeType() != 'CONTENT_CHANGED' and change.changeType() != 'URL_UNAVAILABLE'}"
+                          class="inline-block bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-xs font-medium"
+                          th:text="${change.changeType()}">Other</span>
+                </td>
+                <td class="p-3 text-sm text-gray-600 max-w-md truncate" th:text="${change.detail()}">detail</td>
+                <td class="p-3 text-sm text-gray-500 whitespace-nowrap"
+                    th:text="${#strings.substring(change.detectedAt().toString(), 0, 16)}">2026-09-07T10:30</td>
+                <td class="p-3">
+                    <form th:action="@{/legislation/changes/{id}/review(id=${change.id()})}" method="post"
+                          style="display:inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit"
+                                class="px-3 py-1 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 transition-colors">
+                            Mark Reviewed
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${changeCount == 0}" class="py-12 text-center bg-white rounded-lg border border-gray-200">
+        <div style="font-size:2rem;margin-bottom:0.75rem;">&#9989;</div>
+        <p class="text-lg font-medium text-gray-700 mb-2">No unreviewed changes</p>
+        <p class="text-sm text-gray-500">
+            All source URLs are current. The next automated check runs Monday at 10:30 UTC.
+        </p>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

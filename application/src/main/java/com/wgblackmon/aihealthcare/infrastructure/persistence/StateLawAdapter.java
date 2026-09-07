@@ -148,6 +148,23 @@ public class StateLawAdapter implements StateLawPort, LawChangeEventPort {
         return result;
     }
 
+    @Override
+    @Transactional
+    public void updateSourceMonitoringFields(String lawId, String sourceUrl,
+                                              java.time.Instant fetchedAt, String contentHash,
+                                              Integer httpStatus, boolean changed) {
+        log.debug("updateSourceMonitoringFields() | lawId={}, sourceUrl={}, changed={}",
+                  lawId, sourceUrl, changed);
+        sourceRepository.findByLawIdAndUrl(lawId, sourceUrl).ifPresent(entity -> {
+            entity.setLastFetchedAt(fetchedAt);
+            entity.setLastContentHash(contentHash);
+            entity.setLastHttpStatus(httpStatus);
+            entity.setChangedSinceLastReview(changed);
+            sourceRepository.save(entity);
+        });
+        log.debug("updateSourceMonitoringFields() | return=void");
+    }
+
     // ── LawChangeEventPort ────────────────────────────────────────────────────
 
     @Override
