@@ -7,7 +7,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.ImpactDimension;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.ImpactDirection;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
-import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketImpactRank;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketNewsItem;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
@@ -64,7 +64,7 @@ class MarketDashboardControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private MarketDigestService marketDigestService;
+    private ProduceMarketDigestUseCase marketDigestService;
 
     @MockitoBean
     private WeeklyRollupService weeklyRollupService;

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
-import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
@@ -67,14 +67,14 @@ public class AdminPipelineController {
 
     private final PipelineHealthService healthService;
     private final NewsletterGenerationScheduler newsletterScheduler;
-    private final MarketDigestService marketDigestService;
+    private final ProduceMarketDigestUseCase marketDigestService;
     private final DeliverNewsletterUseCase deliverUseCase;
     private final PriceReactionService priceReactionService;
     private final DetectTrendsUseCase detectTrendsUseCase;
 
     public AdminPipelineController(PipelineHealthService healthService,
                                    NewsletterGenerationScheduler newsletterScheduler,
-                                   MarketDigestService marketDigestService,
+                                   ProduceMarketDigestUseCase marketDigestService,
                                    DeliverNewsletterUseCase deliverUseCase,
                                    PriceReactionService priceReactionService,
                                    DetectTrendsUseCase detectTrendsUseCase) {

@@ -1,8 +1,8 @@
 package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
-import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,16 +32,16 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-28  added runReactionCapture() for price-reaction scoring
+ * @updated 2026-09-07
  */
 @Slf4j
 @Component
 public class MarketAnalysisScheduler {
 
-    private final MarketDigestService marketDigestService;
+    private final ProduceMarketDigestUseCase marketDigestService;
     private final PriceReactionService priceReactionService;
 
-    public MarketAnalysisScheduler(MarketDigestService marketDigestService,
+    public MarketAnalysisScheduler(ProduceMarketDigestUseCase marketDigestService,
                                     PriceReactionService priceReactionService) {
         log.debug("MarketAnalysisScheduler() | marketDigestService={}, priceReactionService={}",
                 marketDigestService, priceReactionService);

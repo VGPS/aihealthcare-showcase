@@ -5,7 +5,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.FactClassification;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.ImpactAssessment;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
-import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionQueryService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
@@ -56,7 +56,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-20 — add weekly rollup endpoint (Slice 3.5)
+ * @updated 2026-09-07
  */
 @Slf4j
 @Controller
@@ -67,12 +67,12 @@ public class MarketDashboardController {
 
     private static final int FREE_LIMIT = 3;
 
-    private final MarketDigestService        marketDigestService;
+    private final ProduceMarketDigestUseCase marketDigestService;
     private final WeeklyRollupService        weeklyRollupService;
     private final SubscriberPort             subscriberPort;
     private final PriceReactionQueryService  priceReactionQueryService;
 
-    public MarketDashboardController(MarketDigestService marketDigestService,
+    public MarketDashboardController(ProduceMarketDigestUseCase marketDigestService,
                                      WeeklyRollupService weeklyRollupService,
                                      SubscriberPort subscriberPort,
                                      PriceReactionQueryService priceReactionQueryService) {

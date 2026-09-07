@@ -252,7 +252,24 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Copyright-Safe Content Retention (CR-1) — COMPLETE — 45 selective tests passing**
+**Market Analysis (Phases 1–3) — COMPLETE — 260 selective tests passing**
+- [x] Domain: `domain.marketanalysis` package — 9 enums (`NewsCategory`, `FactClassification`, `ImpactDimension`, `ImpactDirection`, `PeerGroup`, `DisclosedPortion`, `RulemakingStage`, `Jurisdiction`, `ReactionHorizon`), 18 records (`MarketDigest`, `MarketDigestEntry`, `MarketNewsItem`, `Quote`, `AffectedCompany`, `ImpactAssessment`, `MarketImpactRank`, `GuidanceComparison`, `RegulatoryTracker`, `PrivateFundingRound`, `AnalystRatingChange`, `DealTerms`, `CorporateActionConfirmation`, `WeeklyRollup`, `RollupEntry`, `PriceReactionSnapshot`, `TrackedCompanyEntry`, `PriceBar`)
+- [x] Ports: 14 outbound ports in `domain.marketanalysis.port` — `MarketNewsResearchPort`, `MarketDataPort`, `ImpactClassifierPort`, `MarketDigestRepository`, `MarketDigestNotifier`, `EntryEmbeddingPort`, `GuidancePort`, `RegulatoryTrackerRepository`, `PrivateFundingPort`, `AnalystRatingPort`, `DealTermsPort`, `TickerWatchlistRepository`, `SecondaryNewsCheckPort`, `CorporateActionPort`, `PriceReactionPort`
+- [x] Services: `MarketDigestService` (full pipeline: research → secondary merge → classify → peer-tag → qualify → dedup → persist → notify), `PeerGroupTagger`, `GuidanceQueryService`, `WeeklyRollupService` (7-day dedup rollup), `PriceReactionService` (multi-horizon scoring: 1h/4h/1d/3d), `PriceReactionQueryService`
+- [x] Infrastructure: `PerplexityMarketNewsAdapter` (Sonar API), `ClaudeImpactClassifierAdapter` (ChatClient), `AlpacaMarketDataAdapter` (v2 snapshots+bars), `AlpacaNewsAdapter` (secondary cross-check), `AlpacaCorporateActionsAdapter`, `SesMarketDigestNotifier` (HTML+plain email), `EntryEmbeddingService` (Spring AI)
+- [x] Persistence: 8 entity sets — `MarketDigestEntity`/`MarketDigestEntryEntity`/`MarketDigestImpactAssessmentEntity`/`MarketDigestAffectedCompanyEntity` (4-table hierarchy), plus `GuidanceHistoryEntity`, `RegulatoryTrackerEntity`, `PrivateFundingRoundEntity`, `AnalystRatingChangeEntity`, `DealTermsEntity`, `TickerWatchlistEntity`, `CorporateActionConfirmationEntity`, `PriceReactionSnapshotEntity` — all with JPA repos + adapters
+- [x] Config: `MarketAnalysisConfig` (`@Configuration` — wires 5 domain service beans + `marketAnalysisExecutor` thread pool)
+- [x] Scheduler: `MarketAnalysisScheduler` — daily digest at 07:00 CT + hourly price-reaction capture
+- [x] Pipeline: `StartupPipelineOrchestrator` — market digest added as 14th cascade step
+- [x] Web: `MarketDigestController` (REST `/api/market-digest/` — latest, by-date, list, weekly-rollup), `MarketDashboardController` (Thymeleaf `/dashboard/market` — daily/history/weekly, tier-gated, category filter, price-reaction badges)
+- [x] Templates: `market-digest.html`, `market-digest-history.html`, `market-digest-weekly.html`
+- [x] DTOs: `MarketDigestResponse`, `MarketDigestEntryResponse`, `MarketDigestSummary`, `WeeklyRollupResponse`
+- [x] Prompts: `market-news-research.txt`, `market-impact-classify.txt`
+- [x] Nav: "Market Digest" + "Market History" in Content dropdown
+- [x] Admin: Manual trigger cards for digest generation and price-reaction capture in Pipeline page
+- [x] Tests: 260 across 35 test classes (16 domain + 15 infrastructure + 4 web)
+
+**Previously complete: Copyright-Safe Content Retention (CR-1) — COMPLETE — 45 selective tests passing**
 - [x] Infrastructure: `ExcerptTruncator` — static utility, sentence-boundary truncation with configurable char cap
 - [x] Infrastructure: `RobotsTxtGate` — robots.txt fetcher/parser with 24h cache + domain denylist; scoped to `WebPageHarvester` only
 - [x] Harvester: `WebPageHarvester` — `MAX_BODY_LENGTH` 10,000→500 chars (COMPETITOR tier), uses `ExcerptTruncator` for sentence-boundary trim, checks `RobotsTxtGate.isAllowed()` before fetch

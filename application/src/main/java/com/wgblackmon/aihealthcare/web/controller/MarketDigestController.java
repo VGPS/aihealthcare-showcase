@@ -4,7 +4,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.AffectedCompany;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.ImpactAssessment;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
-import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestService;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionQueryService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
@@ -42,17 +42,17 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-07
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/market-digest")
 public class MarketDigestController {
 
-    private final MarketDigestService marketDigestService;
+    private final ProduceMarketDigestUseCase marketDigestService;
     private final PriceReactionQueryService priceReactionQueryService;
 
-    public MarketDigestController(MarketDigestService marketDigestService,
+    public MarketDigestController(ProduceMarketDigestUseCase marketDigestService,
                                    PriceReactionQueryService priceReactionQueryService) {
         log.debug("MarketDigestController() | marketDigestService={}, priceReactionQueryService={}",
                 marketDigestService, priceReactionQueryService);
