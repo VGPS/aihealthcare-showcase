@@ -359,16 +359,14 @@
             lines.push('## Source Documents');
             lines.push('');
             for (var m = 0; m < rows.length; m++) {
-                var numEl = rows[m].querySelector('.ref-num');
                 var linkEl = rows[m].querySelector('.ref-title a');
                 var pubEl = rows[m].querySelector('.ref-pub');
                 var dtEl = rows[m].querySelector('.ref-date');
-                var num = numEl ? numEl.textContent.trim() : (m + 1);
                 var title = linkEl ? linkEl.textContent.trim() : '';
                 var url = linkEl ? linkEl.href : '';
                 var pub = pubEl ? pubEl.textContent.trim() : '';
                 var dt = dtEl ? dtEl.textContent.trim() : '';
-                lines.push('[' + num + '] [' + title + '](' + url + ')' + (pub && pub !== '—' ? ' — ' + pub : '') + (dt && dt !== '—' ? ' — ' + dt : ''));
+                lines.push('- [' + title + '](' + url + ')' + (pub && pub !== '—' ? ' — ' + pub : '') + (dt && dt !== '—' ? ' — ' + dt : ''));
             }
         }
         var content = lines.join('\n');

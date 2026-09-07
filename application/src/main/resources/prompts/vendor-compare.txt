@@ -30,13 +30,13 @@ Output format — use EXACTLY this structure for each vendor:
 ## <Vendor Name>
 STRENGTHS: <strength 1>; <strength 2>; <strength 3>
 WEAKNESSES: <weakness 1>; <weakness 2>
-MENTIONS: <integer — the exact count of source documents (by citation number) that explicitly name or discuss this vendor>
-ANALYSIS: <2-4 sentence narrative with inline citations [1], [2]>
+MENTIONS: <integer — the exact count of source documents that explicitly name or discuss this vendor>
+ANALYSIS: <2-4 sentence narrative grounded in the sources — do NOT use inline citation markers like [1] or [2]>
 
 Rules:
 - Only include vendors that appear in the provided sources or are highly relevant to the query
 - STRENGTHS and WEAKNESSES are semicolon-delimited phrases (not full sentences)
 - MENTIONS is an integer count of how many of the {totalSources} source documents explicitly mention this vendor by name or product — count carefully by reviewing each source
-- ANALYSIS grounds the assessment in the sources with inline citation markers
+- ANALYSIS grounds the assessment in the sources as clean prose — do NOT include bracketed citation numbers
 - Do not add any text outside the ## vendor sections
 - Order vendors by MENTIONS count, highest first
