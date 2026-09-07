@@ -25,7 +25,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Custom Watchlists** | Subscriber-defined keyword, company, and topic watchlists with automated matching against new articles and regulatory events |
 | **Trend Detection** | Weekly keyword frequency analysis across 30/90/180-day windows identifying rising, fading, and new healthcare AI trends |
 | **Trend History Archive** | Multi-line chart visualization of keyword trend momentum over time with clickable snapshot detail pages |
-| **State Health-AI Legislation Registry** | Searchable registry of 43 enacted U.S. state laws regulating AI in healthcare across 26 states, seeded from researched JSON dataset with source provenance links, filterable by state/category/status, collapsible usage guide, CSV/Text export of filtered results, public index page for SEO |
+| **Health-AI Legislation Registry** | Searchable registry of 58 U.S. state and federal laws (43 state + 15 federal) regulating AI in healthcare, covering enacted statutes, executive orders, and agency rules (FDA/CMS/ONC/HHS), seeded from researched JSON dataset with source provenance links, filterable by jurisdiction/category/status, collapsible usage guide, CSV/Text export, public index page for SEO |
 | **Legal Timeline** | Unified timeline view merging legal articles, policy events, and regulatory actions into a single chronological feed |
 | **Clinical Trial Monitoring** | Tracking AI-related clinical trials with status, phase, and company linkage |
 | **PubMed Historical Backfill** | E-utilities API integration retrieves years of academic articles to build longitudinal knowledge depth |
@@ -71,7 +71,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 
 **Regulatory & Compliance**
 - Built automated **FDA 510(k)/De Novo clearance and CMS rule harvesting** from openFDA and Federal Register APIs with deduplication, watchlist matching, and tier-gated display
-- Created a **State Health-AI Legislation Registry** — searchable registry of 43 enacted U.S. state laws regulating AI in healthcare across 26 states, seeded from a researched JSON dataset with source provenance links, filterable by state/category/status with public index for SEO and tier-gated detail pages
+- Created a **Health-AI Legislation Registry** — searchable registry of 58 U.S. state and federal laws (43 state + 15 federal) regulating AI in healthcare, covering enacted statutes, executive orders, and agency rules (FDA/CMS/ONC/HHS), seeded from a researched JSON dataset with source provenance links, filterable by jurisdiction/category/status with public index for SEO and tier-gated detail pages
 - Developed subscriber-defined **custom watchlists** (keyword, company, topic) with automated matching against incoming articles and regulatory events
 
 **Knowledge Management**
