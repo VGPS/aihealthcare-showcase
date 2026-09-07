@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -62,6 +64,17 @@ public class DealTermsAdapter implements DealTermsPort {
         Optional<DealTerms> result = repo.findByEntryHeadline(entryHeadline).map(this::toDomain);
 
         log.debug("findByEntryHeadline() | return=present:{}", result.isPresent());
+        return result;
+    }
+
+    @Override
+    public Map<String, DealTerms> findAllWithHeadlines() {
+        log.debug("findAllWithHeadlines() |");
+        Map<String, DealTerms> result = new LinkedHashMap<>();
+        for (DealTermsEntity entity : repo.findAll()) {
+            result.put(entity.getEntryHeadline(), toDomain(entity));
+        }
+        log.debug("findAllWithHeadlines() | return.size={}", result.size());
         return result;
     }
 
