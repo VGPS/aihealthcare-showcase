@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Upcoming effective dates page for the State Health-AI Legislation Registry.
+ *
+ * Shows laws with effective dates in the next 90 days in a timeline-style
+ * list. Each entry links to the full law detail page. Requires authentication.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-09-06
+ * @updated 2026-09-06
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Upcoming Legislation')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Upcoming Legislation</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Laws with effective dates in the next 90 days</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('legislation')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Back link -->
+    <div class="mb-4">
+        <a th:href="@{/legislation}" class="text-primary-600 hover:underline text-sm font-medium">
+            &larr; Back to Legislation Registry
+        </a>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${upcomingLaws.isEmpty()}" class="py-12 text-center text-gray-500">
+        <p class="text-lg font-medium">No upcoming effective dates</p>
+        <p class="text-sm mt-1">There are no laws with effective dates in the next 90 days.</p>
+    </div>
+
+    <!-- Upcoming laws timeline -->
+    <div th:unless="${upcomingLaws.isEmpty()}" class="space-y-4">
+        <div class="mb-4 text-gray-500 text-sm">
+            <span th:text="${upcomingLaws.size()}">0</span> laws with upcoming effective dates
+        </div>
+
+        <div th:each="law : ${upcomingLaws}"
+             class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow flex items-start gap-4">
+
+            <!-- Date badge -->
+            <div class="flex-shrink-0 bg-primary-50 border border-primary-200 rounded-lg p-3 text-center min-w-[80px]">
+                <div class="text-xs text-primary-600 font-medium">Effective</div>
+                <div class="text-sm font-bold text-primary-800"
+                     th:text="${formattedDates.containsKey(law.id() + '_effectiveDate')} ? ${formattedDates.get(law.id() + '_effectiveDate')} : 'TBD'">
+                    Jan 1, 2025
+                </div>
+            </div>
+
+            <!-- Law info -->
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="inline-block bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-xs font-semibold"
+                          th:text="${law.stateCode().name()}">CA</span>
+                    <span class="text-sm text-gray-500" th:text="${law.billNumber()}">AB 3030</span>
+                    <span th:switch="${law.status().name()}">
+                        <span th:case="'ENACTED'"
+                              class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-medium"
+                              th:text="${law.status().displayLabel()}">Enacted</span>
+                        <span th:case="'ENACTED_STAYED'"
+                              class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-medium"
+                              th:text="${law.status().displayLabel()}">Enacted (Stayed)</span>
+                        <span th:case="*"
+                              class="inline-block bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-xs font-medium"
+                              th:text="${law.status().displayLabel()}">Status</span>
+                    </span>
+                </div>
+                <a th:href="@{/legislation/{id}(id=${law.id()})}"
+                   class="text-primary-600 hover:underline font-medium text-sm"
+                   th:text="${law.title()}">Law Title</a>
+                <p th:if="${law.effectiveDateNote() != null}"
+                   class="text-xs text-gray-400 mt-1"
+                   th:text="${law.effectiveDateNote()}">Note</p>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

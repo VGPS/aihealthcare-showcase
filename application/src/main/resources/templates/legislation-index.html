@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<!--
+/**
+ * State Health-AI Legislation Registry — public searchable index of enacted
+ * U.S. state laws regulating artificial intelligence in healthcare.
+ *
+ * Features filter dropdowns for state, category, and status, plus a text
+ * search input. Summary badges show total laws, enacted count, and states
+ * covered. The laws table is sortable via client-side sortTable() JS.
+ *
+ * This page is PUBLIC — no authentication required.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-09-06
+ * @updated 2026-09-06
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('State Health-AI Legislation Registry')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">State Health-AI Legislation Registry</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Enacted U.S. state laws regulating artificial intelligence in healthcare</p>
+</header>
+
+<nav th:replace="~{fragments/public-nav :: public-nav('legislation')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Summary badges -->
+    <div class="flex gap-4 mb-6 flex-wrap">
+        <div class="bg-gray-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold" th:text="${totalLaws}">0</div>
+            <div class="text-xs text-gray-500">Total Laws</div>
+        </div>
+        <div class="bg-green-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-green-800" th:text="${enactedCount}">0</div>
+            <div class="text-xs text-green-800">Enacted</div>
+        </div>
+        <div class="bg-blue-50 rounded-lg px-5 py-3 text-center">
+            <div class="text-2xl font-bold text-blue-800" th:text="${stateCount}">0</div>
+            <div class="text-xs text-blue-800">States Covered</div>
+        </div>
+    </div>
+
+    <!-- Filter section -->
+    <form th:action="@{/legislation}" method="get"
+          class="mb-6 bg-white rounded-lg border border-gray-200 p-4">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+            <!-- State filter -->
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">State</label>
+                <select name="state" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                    <option value="">All States</option>
+                    <option th:each="s : ${states}" th:value="${s.name()}"
+                            th:text="${s.displayName()}"
+                            th:selected="${stateFilter != null and stateFilter == s.name()}"></option>
+                </select>
+            </div>
+
+            <!-- Category filter -->
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Category</label>
+                <select name="category" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                    <option value="">All Categories</option>
+                    <option th:each="c : ${categories}" th:value="${c.name()}"
+                            th:text="${c.displayLabel()}"
+                            th:selected="${categoryFilter != null and categoryFilter == c.name()}"></option>
+                </select>
+            </div>
+
+            <!-- Status filter -->
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                <select name="status" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                    <option value="">All Statuses</option>
+                    <option th:each="st : ${statuses}" th:value="${st.name()}"
+                            th:text="${st.displayLabel()}"
+                            th:selected="${statusFilter != null and statusFilter == st.name()}"></option>
+                </select>
+            </div>
+
+            <!-- Search -->
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">Search</label>
+                <input type="text" name="q" th:value="${searchQuery}" placeholder="Search laws..."
+                       class="w-full border border-gray-300 rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="px-4 py-2 bg-primary-600 text-white rounded text-sm font-medium hover:bg-primary-700 transition-colors">
+                    Apply
+                </button>
+                <a th:href="@{/legislation}"
+                   class="px-4 py-2 border border-gray-300 text-gray-700 rounded text-sm font-medium hover:bg-gray-50 transition-colors">
+                    Reset
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Laws table -->
+    <div th:if="${totalLaws > 0}">
+        <table class="w-full border-collapse">
+            <thead>
+            <tr class="border-b-2 border-gray-300 text-left">
+                <th class="p-2">State
+                    <span class="sort-arrow" onclick="sortTable(this, 0, 'asc')" title="Sort A-Z">&#8593;</span>
+                    <span class="sort-arrow" onclick="sortTable(this, 0, 'desc')" title="Sort Z-A">&#8595;</span>
+                </th>
+                <th class="p-2">Bill #
+                    <span class="sort-arrow" onclick="sortTable(this, 1, 'asc')" title="Sort A-Z">&#8593;</span>
+                    <span class="sort-arrow" onclick="sortTable(this, 1, 'desc')" title="Sort Z-A">&#8595;</span>
+                </th>
+                <th class="p-2">Title
+                    <span class="sort-arrow" onclick="sortTable(this, 2, 'asc')" title="Sort A-Z">&#8593;</span>
+                    <span class="sort-arrow" onclick="sortTable(this, 2, 'desc')" title="Sort Z-A">&#8595;</span>
+                </th>
+                <th class="p-2">Year
+                    <span class="sort-arrow" onclick="sortTable(this, 3, 'asc')" title="Oldest first">&#8593;</span>
+                    <span class="sort-arrow" onclick="sortTable(this, 3, 'desc')" title="Newest first">&#8595;</span>
+                </th>
+                <th class="p-2">Status</th>
+                <th class="p-2">Categories</th>
+                <th class="p-2">Effective Date
+                    <span class="sort-arrow" onclick="sortTable(this, 6, 'asc')" title="Earliest first">&#8593;</span>
+                    <span class="sort-arrow" onclick="sortTable(this, 6, 'desc')" title="Latest first">&#8595;</span>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="law : ${laws}" class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="p-2 whitespace-nowrap">
+                    <span class="font-semibold" th:text="${law.stateCode().name()}">CA</span>
+                    <span class="text-xs text-gray-500 ml-1" th:text="${law.stateName()}">California</span>
+                </td>
+                <td class="p-2 whitespace-nowrap text-sm" th:text="${law.billNumber()}">AB 3030</td>
+                <td class="p-2">
+                    <a th:href="@{/legislation/{id}(id=${law.id()})}"
+                       class="text-primary-600 hover:underline font-medium text-sm"
+                       th:text="${law.title()}">Law Title</a>
+                </td>
+                <td class="p-2 text-sm text-center" th:text="${law.yearEnacted()}">2024</td>
+                <td class="p-2">
+                    <span th:switch="${law.status().name()}">
+                        <span th:case="'ENACTED'"
+                              class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-medium"
+                              th:text="${law.status().displayLabel()}">Enacted</span>
+                        <span th:case="'ENACTED_STAYED'"
+                              class="inline-block bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-medium"
+                              th:text="${law.status().displayLabel()}">Enacted (Stayed)</span>
+                        <span th:case="'NOT_ENACTED'"
+                              class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-medium"
+                              th:text="${law.status().displayLabel()}">Not Enacted</span>
+                        <span th:case="'PENDING'"
+                              class="inline-block bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-xs font-medium"
+                              th:text="${law.status().displayLabel()}">Pending</span>
+                    </span>
+                </td>
+                <td class="p-2">
+                    <span th:each="cat : ${law.categories()}"
+                          th:switch="${cat.name()}">
+                        <span th:case="'PAYER_UTILIZATION_REVIEW'"
+                              class="inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs mr-1 mb-1"
+                              th:text="${cat.displayLabel()}">Category</span>
+                        <span th:case="'CLAIMS_DOWNCODING'"
+                              class="inline-block bg-orange-100 text-orange-800 px-2 py-0.5 rounded text-xs mr-1 mb-1"
+                              th:text="${cat.displayLabel()}">Category</span>
+                        <span th:case="'PROVIDER_CLINICAL_USE'"
+                              class="inline-block bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-xs mr-1 mb-1"
+                              th:text="${cat.displayLabel()}">Category</span>
+                        <span th:case="'PROVIDER_DISCLOSURE_CONSENT'"
+                              class="inline-block bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs mr-1 mb-1"
+                              th:text="${cat.displayLabel()}">Category</span>
+                        <span th:case="'MENTAL_HEALTH_PSYCHOTHERAPY'"
+                              class="inline-block bg-pink-100 text-pink-800 px-2 py-0.5 rounded text-xs mr-1 mb-1"
+                              th:text="${cat.displayLabel()}">Category</span>
+                        <span th:case="'CONSUMER_CHATBOTS'"
+                              class="inline-block bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded text-xs mr-1 mb-1"
+                              th:text="${cat.displayLabel()}">Category</span>
+                        <span th:case="'COMPREHENSIVE_AI_ACT'"
+                              class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs mr-1 mb-1"
+                              th:text="${cat.displayLabel()}">Category</span>
+                        <span th:case="*"
+                              class="inline-block bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-xs mr-1 mb-1"
+                              th:text="${cat.displayLabel()}">Category</span>
+                    </span>
+                </td>
+                <td class="p-2 text-sm whitespace-nowrap"
+                    th:text="${formattedDates.containsKey(law.id() + '_effectiveDate')} ? ${formattedDates.get(law.id() + '_effectiveDate')} : '-'">
+                    Jan 1, 2025
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${totalLaws == 0}" class="py-12 text-center text-gray-500">
+        <p class="text-lg font-medium mb-2">No laws found</p>
+        <p class="text-sm" th:if="${searchQuery != null}">
+            No results for "<span th:text="${searchQuery}">query</span>".
+            <a th:href="@{/legislation}" class="text-primary-600 hover:underline">Clear search</a>
+        </p>
+        <p class="text-sm" th:if="${stateFilter != null or categoryFilter != null or statusFilter != null}">
+            Try adjusting your filters.
+            <a th:href="@{/legislation}" class="text-primary-600 hover:underline">Reset all filters</a>
+        </p>
+        <p class="text-sm" th:if="${searchQuery == null and stateFilter == null and categoryFilter == null and statusFilter == null}">
+            The legislation registry has not been seeded yet.
+        </p>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+function sortTable(arrow, colIndex, direction) {
+    var table = arrow.closest('table');
+    var tbody = table.querySelector('tbody');
+    var rows = [];
+    var rowEls = tbody.querySelectorAll('tr');
+    for (var i = 0; i < rowEls.length; i++) { rows.push(rowEls[i]); }
+    var headerCells = table.querySelectorAll('thead th');
+    var headerText = headerCells[colIndex] ? headerCells[colIndex].textContent.trim().toLowerCase() : '';
+    var isDateCol = headerText.indexOf('date') >= 0 || headerText.indexOf('effective') >= 0;
+    rows.sort(function(a, b) {
+        var valA = (a.cells[colIndex] ? a.cells[colIndex].textContent : '').trim().toLowerCase();
+        var valB = (b.cells[colIndex] ? b.cells[colIndex].textContent : '').trim().toLowerCase();
+        if (isDateCol) {
+            var dateA = (valA === '-' || valA === '') ? 0 : new Date(valA).getTime() || 0;
+            var dateB = (valB === '-' || valB === '') ? 0 : new Date(valB).getTime() || 0;
+            return direction === 'asc' ? dateA - dateB : dateB - dateA;
+        }
+        if (valA < valB) return direction === 'asc' ? -1 : 1;
+        if (valA > valB) return direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+    for (var j = 0; j < rows.length; j++) { tbody.appendChild(rows[j]); }
+    var arrows = table.querySelectorAll('.sort-arrow');
+    for (var k = 0; k < arrows.length; k++) { arrows[k].classList.remove('active'); }
+    arrow.classList.add('active');
+}
+</script>
+</body>
+</html>

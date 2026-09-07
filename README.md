@@ -25,6 +25,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Custom Watchlists** | Subscriber-defined keyword, company, and topic watchlists with automated matching against new articles and regulatory events |
 | **Trend Detection** | Weekly keyword frequency analysis across 30/90/180-day windows identifying rising, fading, and new healthcare AI trends |
 | **Trend History Archive** | Multi-line chart visualization of keyword trend momentum over time with clickable snapshot detail pages |
+| **State Health-AI Legislation Registry** | Searchable registry of 43 enacted U.S. state laws regulating AI in healthcare across 26 states, seeded from researched JSON dataset with source provenance links, filterable by state/category/status, public index page for SEO |
 | **Legal Timeline** | Unified timeline view merging legal articles, policy events, and regulatory actions into a single chronological feed |
 | **Clinical Trial Monitoring** | Tracking AI-related clinical trials with status, phase, and company linkage |
 | **PubMed Historical Backfill** | E-utilities API integration retrieves years of academic articles to build longitudinal knowledge depth |
@@ -44,14 +45,14 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Evidence Grade Classification** | Automatic source credibility badges (Peer-Reviewed, Regulatory, Industry, Vendor, News) with color-coded provenance |
 | **PII Masking** | LogSanitizer utility masks email addresses in log statements to prevent PII exposure in production logs |
 | **Branded Error Handling** | Custom error pages replacing Spring Boot's Whitelabel Error Page with consistent branded UI |
-| **51-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, watchlist, sentiment, frameworks, deals, company pages, public company directory, and LinkedIn feature post rotation |
-| **2,400+ Automated Tests** | Comprehensive test suite across 309 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **55-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, company pages, public company directory, and LinkedIn feature post rotation |
+| **2,450+ Automated Tests** | Comprehensive test suite across 314 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 17, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 103 domain model records, 92 port interfaces, and 70 controllers — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **2,400+ automated tests** across 309 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **2,450+ automated tests** across 314 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
@@ -70,6 +71,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 
 **Regulatory & Compliance**
 - Built automated **FDA 510(k)/De Novo clearance and CMS rule harvesting** from openFDA and Federal Register APIs with deduplication, watchlist matching, and tier-gated display
+- Created a **State Health-AI Legislation Registry** — searchable registry of 43 enacted U.S. state laws regulating AI in healthcare across 26 states, seeded from a researched JSON dataset with source provenance links, filterable by state/category/status with public index for SEO and tier-gated detail pages
 - Developed subscriber-defined **custom watchlists** (keyword, company, topic) with automated matching against incoming articles and regulatory events
 
 **Knowledge Management**
@@ -83,7 +85,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 **SaaS & Monetization**
 - Implemented **4-tier subscription model** (DEMO/FREE_PENDING/FREE/SUBSCRIBER) with **Stripe Billing** integration (SDK 28.2.0), Checkout sessions, customer portal, webhook signature verification, and per-feature usage metering
 - Built **Spring Security 6** session-based authentication with ADMIN/USER roles, BCrypt password hashing, tier-based feature gating, and API key authentication for REST endpoints
-- Delivered **51-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
+- Delivered **55-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
 
 **Performance Engineering & Load Testing**
 - Eliminated a critical **N+1 query problem** on the wiki index page (1,299 DB queries/request → 1), confirmed by k6 load testing that revealed 2% pass rate for `/wiki` under 50 concurrent VUs
@@ -126,13 +128,13 @@ AIHealthcare runs multiple automated pipelines that collectively build a compreh
 The project follows **hexagonal architecture** (ports and adapters), keeping the domain layer framework-free and all infrastructure concerns pluggable:
 
 ```
-web (70 controllers + 48 Thymeleaf pages)  -->  application (use cases)  -->  domain (103 models + 92 ports)
+web (72 controllers + 52 Thymeleaf pages)  -->  application (use cases)  -->  domain (111 models + 95 ports)
                                                                                     ^
                               infrastructure/* (adapters) --------------------------+
                               - ai/          Spring AI adapters (9 adapters: summarize, evaluate, search x4, wiki, sentiment, deals, frameworks)
                               - config/      AppConfig, SecurityConfig, bean wiring, properties
                               - ingestion/   RSS, web scraping, HuggingFace, Perplexity, PubMed backfill, regulatory
-                              - persistence/ JPA entities (41), repositories, storage adapters
+                              - persistence/ JPA entities (45), repositories, storage adapters
                               - delivery/    Email (JavaMailSender + SES) + NotebookLM export + transactional emails
                               - research/    Perplexity + legacy Google research adapters
                               - scheduler/   Pipeline orchestrator, newsletter generation

@@ -1353,6 +1353,31 @@ public class AppConfig {
     }
 
     /**
+     * Wires the {@link com.wgblackmon.aihealthcare.domain.service.StateLawService}
+     * domain service with its three outbound ports for the legislation registry.
+     *
+     * @param stateLawPort     law persistence port
+     * @param changeEventPort  change event persistence port
+     * @param candidatePort    new bill candidate persistence port
+     * @return the wired service
+     */
+    @Bean
+    public com.wgblackmon.aihealthcare.domain.service.StateLawService stateLawService(
+            com.wgblackmon.aihealthcare.domain.port.outbound.StateLawPort stateLawPort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.LawChangeEventPort changeEventPort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.NewBillCandidatePort candidatePort) {
+        log.debug("stateLawService() | stateLawPort={}, changeEventPort={}, candidatePort={}",
+                  stateLawPort.getClass().getSimpleName(),
+                  changeEventPort.getClass().getSimpleName(),
+                  candidatePort.getClass().getSimpleName());
+        com.wgblackmon.aihealthcare.domain.service.StateLawService result =
+                new com.wgblackmon.aihealthcare.domain.service.StateLawService(
+                        stateLawPort, changeEventPort, candidatePort);
+        log.debug("stateLawService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
      * Registers the {@link ApiRateLimitFilter} as a servlet filter on {@code /api/*}
      * paths. Registered via {@link FilterRegistrationBean} to avoid modifying
      * {@link SecurityConfig}'s constructor signature.

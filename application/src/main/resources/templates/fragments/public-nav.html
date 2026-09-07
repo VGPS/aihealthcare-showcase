@@ -11,12 +11,12 @@
  *
  * Usage: <nav th:replace="~{fragments/public-nav :: public-nav('company-directory')}">
  *
- * activePage values: company-directory | wiki | pricing | about
+ * activePage values: company-directory | wiki | legislation | pricing | about
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-30
- * @updated 2026-08-30
+ * @updated 2026-09-06
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org"
@@ -37,6 +37,10 @@
     <a th:href="@{/wiki}"
        th:classappend="${activePage == 'wiki'} ? ' active'"
        class="nav-link">Knowledge Wiki</a>
+
+    <a th:href="@{/legislation}"
+       th:classappend="${activePage == 'legislation'} ? ' active'"
+       class="nav-link">Legislation</a>
 
     <a th:href="@{/about}"
        th:classappend="${activePage == 'about'} ? ' active'"
