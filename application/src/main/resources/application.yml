@@ -958,20 +958,36 @@ aihealthcare:
         max-items: 25
       # -----------------------------------------------------------------
       # AI Healthcare Legal — liability, malpractice, IP, compliance law
+      # Broadened queries (Sep 2026) — narrow queries returned only stale
+      # results from Google News, causing zero fresh articles for 30+ days.
       # -----------------------------------------------------------------
       - topic-id: 1
-        name: Google News AI Healthcare Legal
+        name: Google News AI Healthcare Regulation
         topic: AI Healthcare Legal
-        url: https://news.google.com/rss/search?q=AI+healthcare+legal+liability+malpractice+lawsuit&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=AI+healthcare+regulation+OR+legislation+OR+compliance&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.9
         max-items: 20
       - topic-id: 1
-        name: Google News AI Medical Device Regulation
+        name: Google News AI Health Law
         topic: AI Healthcare Legal
-        url: https://news.google.com/rss/search?q=AI+medical+device+regulation+compliance+HIPAA&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=%22artificial+intelligence%22+health+law+OR+regulation+OR+FDA&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.9
+        max-items: 20
+      - topic-id: 1
+        name: Google News AI Medical Liability
+        topic: AI Healthcare Legal
+        url: https://news.google.com/rss/search?q=%22artificial+intelligence%22+medical+liability+OR+lawsuit+OR+malpractice&hl=en-US&gl=US&ceid=US:en
+        tier: LEGAL
+        base-weight: 0.85
+        max-items: 20
+      - topic-id: 1
+        name: Google News AI Healthcare Policy
+        topic: AI Healthcare Legal
+        url: https://news.google.com/rss/search?q=AI+healthcare+law+policy+2026&hl=en-US&gl=US&ceid=US:en
+        tier: LEGAL
+        base-weight: 0.85
         max-items: 20
       # -----------------------------------------------------------------
       # Health Data Utilities — health data interoperability, FHIR, HL7,
