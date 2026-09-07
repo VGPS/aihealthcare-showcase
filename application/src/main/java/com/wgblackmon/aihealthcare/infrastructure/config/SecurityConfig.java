@@ -104,8 +104,8 @@ public class SecurityConfig {
                 .accessDeniedPage("/access-denied")
             )
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**", "/monitoring/**", "/stripe/**",
-                                        "/swagger-ui/**", "/v3/api-docs/**")
+                .ignoringRequestMatchers("/api/**", "/monitoring/**", "/admin/pipelines/**",
+                                        "/stripe/**", "/swagger-ui/**", "/v3/api-docs/**")
             );
 
         SecurityFilterChain result = http.build();
