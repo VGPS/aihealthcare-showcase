@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.domain.marketanalysis.port;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.DealTerms;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -33,4 +34,9 @@ public interface DealTermsPort {
      * @param entryHeadline the entry headline to look up (non-null, non-blank)
      */
     Optional<DealTerms> findByEntryHeadline(String entryHeadline);
+
+    /**
+     * Returns all persisted deal terms keyed by their entry headline.
+     */
+    Map<String, DealTerms> findAllWithHeadlines();
 }
