@@ -12,7 +12,7 @@
  * Usage: <nav th:replace="~{fragments/nav :: nav('search')}">
  *
  * activePage values: dashboard | news | newsletter | research | vendors | ai-search |
- *                    wiki | trends | trend-history | regulatory | legal | legal-trends |
+ *                    wiki | trends | trend-history | regulatory | legal | legal-trends | legislation |
  *                    clinical-trials | companies | company-directory | risk | frameworks | watchlist | notes |
  *                    relationships | search | pricing | about | profile | developer | webhooks | admin | admin-pipelines |
  *                    intelligence | deals | market | market-history | admin-documents
@@ -94,7 +94,7 @@
     <!-- Legal group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'legal' || activePage == 'regulatory' || activePage == 'legal-trends'} ? ' active'">
+                th:classappend="${activePage == 'legal' || activePage == 'regulatory' || activePage == 'legal-trends' || activePage == 'legislation'} ? ' active'">
             Legal ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
@@ -104,6 +104,8 @@
                th:classappend="${activePage == 'legal-trends'} ? ' active'">Legal Trends</a>
             <a th:href="@{/dashboard/regulatory}"
                th:classappend="${activePage == 'regulatory'} ? ' active'">Regulatory</a>
+            <a th:href="@{/legislation}"
+               th:classappend="${activePage == 'legislation'} ? ' active'">State Legislation</a>
         </div>
     </div>
 

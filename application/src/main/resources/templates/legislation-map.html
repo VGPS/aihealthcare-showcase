@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<!--
+/**
+ * State Health-AI Legislation map page — state-by-state summary showing
+ * the count of enacted laws per state in a card grid layout.
+ *
+ * Each card links to the legislation index filtered by that state.
+ * Requires authentication.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-09-06
+ * @updated 2026-09-06
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Legislation by State')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Legislation by State</h1>
+    <p class="text-primary-200 text-sm mt-0.5">State-by-state overview of health-AI laws</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('legislation')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Back link -->
+    <div class="mb-4">
+        <a th:href="@{/legislation}" class="text-primary-600 hover:underline text-sm font-medium">
+            &larr; Back to Legislation Registry
+        </a>
+    </div>
+
+    <!-- Summary -->
+    <div class="mb-6 text-gray-500 text-sm">
+        <span th:text="${totalLaws}">0</span> laws across
+        <span th:text="${lawsByState.size()}">0</span> states
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${lawsByState.isEmpty()}" class="py-12 text-center text-gray-500">
+        <p class="text-lg font-medium">No legislation data available</p>
+        <p class="text-sm mt-1">The legislation registry has not been seeded yet.</p>
+    </div>
+
+    <!-- State cards grid -->
+    <div th:unless="${lawsByState.isEmpty()}"
+         class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <!--/*
+            Sort entries alphabetically by state name. Since Thymeleaf cannot sort maps
+            natively, we iterate all StateCode values and check membership.
+        */-->
+        <th:block th:each="sc : ${T(com.wgblackmon.aihealthcare.domain.model.StateCode).values()}">
+            <a th:if="${lawsByState.containsKey(sc.name())}"
+               th:href="@{/legislation(state=${sc.name()})}"
+               class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow text-center block">
+                <div class="text-xl font-bold text-primary-600" th:text="${sc.name()}">CA</div>
+                <div class="text-sm text-gray-600 mt-1"
+                     th:text="${stateNames.get(sc.name())}">California</div>
+                <div class="mt-2">
+                    <span class="inline-block bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm font-bold"
+                          th:text="${lawsByState.get(sc.name())}">5</span>
+                    <span class="text-xs text-gray-400 ml-1"
+                          th:text="${lawsByState.get(sc.name()) == 1} ? 'law' : 'laws'">laws</span>
+                </div>
+            </a>
+        </th:block>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

@@ -83,6 +83,8 @@ public class SecurityConfig {
                 .requestMatchers("/developer").permitAll()
                 .requestMatchers("/wiki").permitAll()
                 .requestMatchers("/wiki/**").authenticated()
+                .requestMatchers("/legislation").permitAll()
+                .requestMatchers("/legislation/**").authenticated()
                 .requestMatchers("/stripe/**").permitAll()
                 .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 .requestMatchers("/newsletter/runs/**").hasRole("ADMIN")
