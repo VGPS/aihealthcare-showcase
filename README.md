@@ -25,7 +25,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Custom Watchlists** | Subscriber-defined keyword, company, and topic watchlists with automated matching against new articles and regulatory events |
 | **Trend Detection** | Weekly keyword frequency analysis across 30/90/180-day windows identifying rising, fading, and new healthcare AI trends |
 | **Trend History Archive** | Multi-line chart visualization of keyword trend momentum over time with clickable snapshot detail pages |
-| **State Health-AI Legislation Registry** | Searchable registry of 43 enacted U.S. state laws regulating AI in healthcare across 26 states, seeded from researched JSON dataset with source provenance links, filterable by state/category/status, public index page for SEO |
+| **State Health-AI Legislation Registry** | Searchable registry of 43 enacted U.S. state laws regulating AI in healthcare across 26 states, seeded from researched JSON dataset with source provenance links, filterable by state/category/status, collapsible usage guide, CSV/Text export of filtered results, public index page for SEO |
 | **Legal Timeline** | Unified timeline view merging legal articles, policy events, and regulatory actions into a single chronological feed |
 | **Clinical Trial Monitoring** | Tracking AI-related clinical trials with status, phase, and company linkage |
 | **PubMed Historical Backfill** | E-utilities API integration retrieves years of academic articles to build longitudinal knowledge depth |

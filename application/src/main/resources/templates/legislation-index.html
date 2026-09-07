@@ -4,9 +4,11 @@
  * State Health-AI Legislation Registry — public searchable index of enacted
  * U.S. state laws regulating artificial intelligence in healthcare.
  *
- * Features filter dropdowns for state, category, and status, plus a text
- * search input. Summary badges show total laws, enacted count, and states
- * covered. The laws table is sortable via client-side sortTable() JS.
+ * Features an "About This Registry" description with collapsible usage guide,
+ * filter dropdowns for state, category, and status, plus a text search input.
+ * Summary badges show total laws, enacted count, and states covered.
+ * The laws table is sortable via client-side sortTable() JS. Export buttons
+ * (CSV, Text) allow downloading the current filtered view.
  *
  * This page is PUBLIC — no authentication required.
  *
@@ -30,6 +32,29 @@
 <nav th:replace="~{fragments/public-nav :: public-nav('legislation')}"></nav>
 
 <main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Feature description + usage guide -->
+    <div class="mb-6 bg-white rounded-lg border border-gray-200 p-5">
+        <h2 class="text-lg font-semibold text-primary-800 mb-2">About This Registry</h2>
+        <p class="text-sm text-gray-600 leading-relaxed mb-3">
+            A curated, source-linked registry of enacted U.S. state laws regulating the use of artificial intelligence
+            in healthcare. Covers payer utilization review restrictions, provider disclosure requirements, claims
+            downcoding protections, mental health AI safeguards, consumer chatbot regulations, and comprehensive
+            state AI acts. Each entry links to official legislative text and secondary analysis sources.
+        </p>
+        <details class="text-sm text-gray-500">
+            <summary class="cursor-pointer font-semibold text-gray-600 hover:text-primary-600">How to use this page</summary>
+            <ol class="mt-2 ml-4 space-y-1 list-decimal leading-relaxed">
+                <li><strong>Browse</strong> &mdash; Scroll the table to see all laws, sorted by year (newest first) then state.</li>
+                <li><strong>Filter</strong> &mdash; Use the dropdowns above to narrow by State, Category, or Status. Combine filters for precision (e.g., California + Payer Utilization Review).</li>
+                <li><strong>Search</strong> &mdash; Type keywords in the Search box to match across titles, bill numbers, and regulated parties.</li>
+                <li><strong>Sort</strong> &mdash; Click the up/down arrows on any column header to re-sort the table.</li>
+                <li><strong>Details</strong> &mdash; Click any law title to see the full detail page with key requirements, enforcement, and source links.</li>
+                <li><strong>Export</strong> &mdash; Use the "Save as CSV" or "Save as Text" buttons at the bottom to download the current filtered view.</li>
+                <li><strong>Map view</strong> &mdash; Logged-in users can access the <a th:href="@{/legislation/map}" class="text-primary-600 hover:underline">State Map</a> for a geographic summary, or <a th:href="@{/legislation/upcoming}" class="text-primary-600 hover:underline">Upcoming</a> for laws with approaching effective dates.</li>
+            </ol>
+        </details>
+    </div>
 
     <!-- Summary badges -->
     <div class="flex gap-4 mb-6 flex-wrap">
@@ -217,6 +242,17 @@
         </p>
     </div>
 
+    <!-- Export buttons -->
+    <div th:if="${totalLaws > 0}" class="mt-4 mb-6 flex gap-3 items-center">
+        <span class="text-sm text-gray-500 mr-1">Save as:</span>
+        <button onclick="exportCSV()" class="px-4 py-2 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 transition-colors">
+            CSV
+        </button>
+        <button onclick="exportText()" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors">
+            Text
+        </button>
+    </div>
+
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
@@ -247,6 +283,61 @@ function sortTable(arrow, colIndex, direction) {
     var arrows = table.querySelectorAll('.sort-arrow');
     for (var k = 0; k < arrows.length; k++) { arrows[k].classList.remove('active'); }
     arrow.classList.add('active');
+}
+
+function exportCSV() {
+    var table = document.querySelector('table');
+    if (!table) return;
+    var headers = [];
+    var ths = table.querySelectorAll('thead th');
+    for (var i = 0; i < ths.length; i++) {
+        headers.push(ths[i].textContent.replace(/[↑↓\s]+/g, ' ').trim());
+    }
+    var lines = [headers.join(',')];
+    var rows = table.querySelectorAll('tbody tr');
+    for (var r = 0; r < rows.length; r++) {
+        var cols = [];
+        for (var c = 0; c < rows[r].cells.length; c++) {
+            var val = rows[r].cells[c].textContent.trim().replace(/\s+/g, ' ');
+            cols.push('"' + val.replace(/"/g, '""') + '"');
+        }
+        lines.push(cols.join(','));
+    }
+    downloadFile(lines.join('\n'), 'state-legislation.csv', 'text/csv');
+}
+
+function exportText() {
+    var table = document.querySelector('table');
+    if (!table) return;
+    var headers = [];
+    var ths = table.querySelectorAll('thead th');
+    for (var i = 0; i < ths.length; i++) {
+        headers.push(ths[i].textContent.replace(/[↑↓\s]+/g, ' ').trim());
+    }
+    var lines = ['State Health-AI Legislation Registry', '='.repeat(50), '', headers.join(' | ')];
+    lines.push('-'.repeat(100));
+    var rows = table.querySelectorAll('tbody tr');
+    for (var r = 0; r < rows.length; r++) {
+        var cols = [];
+        for (var c = 0; c < rows[r].cells.length; c++) {
+            cols.push(rows[r].cells[c].textContent.trim().replace(/\s+/g, ' '));
+        }
+        lines.push(cols.join(' | '));
+    }
+    lines.push('', 'Exported from Big Sky Labs — https://app.bigskylabs.ai/legislation');
+    downloadFile(lines.join('\n'), 'state-legislation.txt', 'text/plain');
+}
+
+function downloadFile(content, filename, mimeType) {
+    var blob = new Blob([content], { type: mimeType + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 </script>
 </body>
