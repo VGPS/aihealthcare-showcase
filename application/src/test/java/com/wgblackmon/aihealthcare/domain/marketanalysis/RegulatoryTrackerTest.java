@@ -31,7 +31,7 @@ class RegulatoryTrackerTest {
                 "FDA-2024-N-2177",
                 "AI/ML-Based Software as a Medical Device Action Plan",
                 LocalDate.of(2025, 3, 15),
-                NOW
+                NOW, null
         );
         assertThat(t.jurisdiction()).isEqualTo(Jurisdiction.US_FDA);
         assertThat(t.stage()).isEqualTo(RulemakingStage.COMMENT_PERIOD);
@@ -47,7 +47,7 @@ class RegulatoryTrackerTest {
                 "EU-2024-AIA-001",
                 "EU AI Act High-Risk Classification",
                 null,
-                NOW
+                NOW, null
         );
         assertThat(t.commentDeadline()).isNull();
     }
@@ -55,7 +55,7 @@ class RegulatoryTrackerTest {
     @Test
     void nullJurisdiction_throws() {
         assertThatThrownBy(() -> new RegulatoryTracker(
-                null, RulemakingStage.COMMENT_PERIOD, "DOC-1", "Title", null, NOW))
+                null, RulemakingStage.COMMENT_PERIOD, "DOC-1", "Title", null, NOW, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("jurisdiction");
     }
@@ -63,7 +63,7 @@ class RegulatoryTrackerTest {
     @Test
     void nullStage_throws() {
         assertThatThrownBy(() -> new RegulatoryTracker(
-                Jurisdiction.US_FDA, null, "DOC-1", "Title", null, NOW))
+                Jurisdiction.US_FDA, null, "DOC-1", "Title", null, NOW, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("stage");
     }
@@ -71,7 +71,7 @@ class RegulatoryTrackerTest {
     @Test
     void blankDocketId_throws() {
         assertThatThrownBy(() -> new RegulatoryTracker(
-                Jurisdiction.US_FDA, RulemakingStage.DRAFT_GUIDANCE, "  ", "Title", null, NOW))
+                Jurisdiction.US_FDA, RulemakingStage.DRAFT_GUIDANCE, "  ", "Title", null, NOW, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("docketId");
     }
@@ -79,7 +79,7 @@ class RegulatoryTrackerTest {
     @Test
     void blankTitle_throws() {
         assertThatThrownBy(() -> new RegulatoryTracker(
-                Jurisdiction.US_FDA, RulemakingStage.ENFORCEMENT, "DOC-1", "", null, NOW))
+                Jurisdiction.US_FDA, RulemakingStage.ENFORCEMENT, "DOC-1", "", null, NOW, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("title");
     }
@@ -87,7 +87,7 @@ class RegulatoryTrackerTest {
     @Test
     void nullLastUpdatedAt_throws() {
         assertThatThrownBy(() -> new RegulatoryTracker(
-                Jurisdiction.US_FDA, RulemakingStage.COMMENT_PERIOD, "DOC-1", "Title", null, null))
+                Jurisdiction.US_FDA, RulemakingStage.COMMENT_PERIOD, "DOC-1", "Title", null, null, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("lastUpdatedAt");
     }
@@ -96,7 +96,7 @@ class RegulatoryTrackerTest {
     void allJurisdictions_roundTrip() {
         for (Jurisdiction j : Jurisdiction.values()) {
             RegulatoryTracker t = new RegulatoryTracker(
-                    j, RulemakingStage.DISCUSSION_PAPER, "DOC-" + j.name(), "Title", null, NOW);
+                    j, RulemakingStage.DISCUSSION_PAPER, "DOC-" + j.name(), "Title", null, NOW, null);
             assertThat(t.jurisdiction()).isEqualTo(j);
         }
     }

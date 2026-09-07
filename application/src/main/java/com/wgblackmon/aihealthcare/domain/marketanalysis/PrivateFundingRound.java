@@ -19,14 +19,15 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-07
  */
 public record PrivateFundingRound(
         String companyName,
         String roundStage,
         Long amountUsd,
         List<String> leadInvestors,
-        Instant announcedAt
+        Instant announcedAt,
+        String sourceUrl
 ) {
     public PrivateFundingRound {
         if (companyName == null || companyName.isBlank()) {

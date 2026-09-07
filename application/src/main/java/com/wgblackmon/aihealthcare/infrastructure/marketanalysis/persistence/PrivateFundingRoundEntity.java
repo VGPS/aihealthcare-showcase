@@ -48,17 +48,22 @@ public class PrivateFundingRoundEntity {
     @Column(nullable = false, length = 64)
     private String peerGroup;
 
+    @Column(name = "source_url", length = 2048)
+    private String sourceUrl;
+
     protected PrivateFundingRoundEntity() {}
 
     public PrivateFundingRoundEntity(String companyName, String roundStage,
                                       Long amountUsd, String leadInvestors,
-                                      Instant announcedAt, String peerGroup) {
+                                      Instant announcedAt, String peerGroup,
+                                      String sourceUrl) {
         this.companyName    = companyName;
         this.roundStage     = roundStage;
         this.amountUsd      = amountUsd;
         this.leadInvestors  = leadInvestors;
         this.announcedAt    = announcedAt;
         this.peerGroup      = peerGroup;
+        this.sourceUrl      = sourceUrl;
     }
 
     public Long getId()               { return id; }
@@ -68,4 +73,5 @@ public class PrivateFundingRoundEntity {
     public String getLeadInvestors()  { return leadInvestors; }
     public Instant getAnnouncedAt()   { return announcedAt; }
     public String getPeerGroup()      { return peerGroup; }
+    public String getSourceUrl()      { return sourceUrl; }
 }

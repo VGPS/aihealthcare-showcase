@@ -54,17 +54,22 @@ public class DealTermsEntity {
     @Column(nullable = false, length = 16)
     private String disclosedPortion;
 
+    @Column(name = "source_url", length = 2048)
+    private String sourceUrl;
+
     protected DealTermsEntity() {}
 
     public DealTermsEntity(String entryHeadline, Long upfrontCashUsd,
                             Long milestonePaymentsUsd, BigDecimal equityStakePct,
-                            BigDecimal royaltyPct, String disclosedPortion) {
+                            BigDecimal royaltyPct, String disclosedPortion,
+                            String sourceUrl) {
         this.entryHeadline       = entryHeadline;
         this.upfrontCashUsd      = upfrontCashUsd;
         this.milestonePaymentsUsd = milestonePaymentsUsd;
         this.equityStakePct      = equityStakePct;
         this.royaltyPct          = royaltyPct;
         this.disclosedPortion    = disclosedPortion;
+        this.sourceUrl           = sourceUrl;
     }
 
     public Long getId()                    { return id; }
@@ -74,4 +79,5 @@ public class DealTermsEntity {
     public BigDecimal getEquityStakePct()  { return equityStakePct; }
     public BigDecimal getRoyaltyPct()      { return royaltyPct; }
     public String getDisclosedPortion()    { return disclosedPortion; }
+    public String getSourceUrl()           { return sourceUrl; }
 }

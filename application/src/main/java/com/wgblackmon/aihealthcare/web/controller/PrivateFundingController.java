@@ -78,7 +78,8 @@ public class PrivateFundingController {
                 r.roundStage(),
                 r.amountUsd(),
                 r.leadInvestors(),
-                r.announcedAt().toString()
+                r.announcedAt().toString(),
+                r.sourceUrl()
         );
     }
 }

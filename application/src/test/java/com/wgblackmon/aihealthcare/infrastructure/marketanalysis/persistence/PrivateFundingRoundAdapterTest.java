@@ -47,7 +47,7 @@ class PrivateFundingRoundAdapterTest {
                 "Acme Health AI", "Series B",
                 100_000_000L,
                 List.of("Andreessen Horowitz", "General Catalyst"),
-                NOW
+                NOW, null
         );
 
         adapter.save(round, PeerGroup.AI_SCRIBE_DOCUMENTATION);
@@ -63,9 +63,9 @@ class PrivateFundingRoundAdapterTest {
 
     @Test
     void findRecentRounds_filterByPeerGroup() {
-        adapter.save(new PrivateFundingRound("Scribe Co", "A", 50_000_000L, List.of(), NOW),
+        adapter.save(new PrivateFundingRound("Scribe Co", "A", 50_000_000L, List.of(), NOW, null),
                 PeerGroup.AI_SCRIBE_DOCUMENTATION);
-        adapter.save(new PrivateFundingRound("Imaging Co", "A", 60_000_000L, List.of(), NOW),
+        adapter.save(new PrivateFundingRound("Imaging Co", "A", 60_000_000L, List.of(), NOW, null),
                 PeerGroup.DIAGNOSTIC_IMAGING_AI);
 
         List<PrivateFundingRound> scribes = adapter.findRecentRounds(MINUS_1H,
@@ -76,9 +76,9 @@ class PrivateFundingRoundAdapterTest {
 
     @Test
     void findRecentRounds_respectsSinceCutoff() {
-        adapter.save(new PrivateFundingRound("Old Co", "A", null, List.of(), MINUS_2H),
+        adapter.save(new PrivateFundingRound("Old Co", "A", null, List.of(), MINUS_2H, null),
                 PeerGroup.OTHER);
-        adapter.save(new PrivateFundingRound("New Co", "B", null, List.of(), NOW),
+        adapter.save(new PrivateFundingRound("New Co", "B", null, List.of(), NOW, null),
                 PeerGroup.OTHER);
 
         List<PrivateFundingRound> result = adapter.findRecentRounds(MINUS_1H, null);
@@ -89,7 +89,7 @@ class PrivateFundingRoundAdapterTest {
     @Test
     void save_nullAmountAndLeadInvestors_doesNotThrow() {
         PrivateFundingRound round = new PrivateFundingRound(
-                "Stealth Co", "Seed", null, List.of(), NOW);
+                "Stealth Co", "Seed", null, List.of(), NOW, null);
 
         adapter.save(round, PeerGroup.DRUG_DISCOVERY_AI);
 

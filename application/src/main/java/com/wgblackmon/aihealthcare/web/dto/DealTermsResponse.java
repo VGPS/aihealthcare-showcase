@@ -19,5 +19,6 @@ public record DealTermsResponse(
         Long milestonePaymentsUsd,
         BigDecimal equityStakePct,
         BigDecimal royaltyPct,
-        String disclosedPortion
+        String disclosedPortion,
+        String sourceUrl
 ) {}

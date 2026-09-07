@@ -22,7 +22,7 @@ import java.time.LocalDate;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-07
  */
 public record RegulatoryTracker(
         Jurisdiction jurisdiction,
@@ -30,7 +30,8 @@ public record RegulatoryTracker(
         String docketId,
         String title,
         LocalDate commentDeadline,
-        Instant lastUpdatedAt
+        Instant lastUpdatedAt,
+        String sourceUrl
 ) {
     public RegulatoryTracker {
         if (jurisdiction == null) {

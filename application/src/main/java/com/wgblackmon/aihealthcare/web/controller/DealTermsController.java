@@ -74,7 +74,8 @@ public class DealTermsController {
                 d.milestonePaymentsUsd(),
                 d.equityStakePct(),
                 d.royaltyPct(),
-                d.disclosedPortion().name()
+                d.disclosedPortion().name(),
+                d.sourceUrl()
         );
     }
 }

@@ -50,7 +50,8 @@ public class DealTermsAdapter implements DealTermsPort {
                 terms.milestonePaymentsUsd(),
                 terms.equityStakePct(),
                 terms.royaltyPct(),
-                terms.disclosedPortion().name()
+                terms.disclosedPortion().name(),
+                terms.sourceUrl()
         );
         repo.save(entity);
 
@@ -86,7 +87,8 @@ public class DealTermsAdapter implements DealTermsPort {
                 entity.getMilestonePaymentsUsd(),
                 entity.getEquityStakePct(),
                 entity.getRoyaltyPct(),
-                DisclosedPortion.valueOf(entity.getDisclosedPortion())
+                DisclosedPortion.valueOf(entity.getDisclosedPortion()),
+                entity.getSourceUrl()
         );
     }
 }

@@ -122,7 +122,8 @@ public class RegulatoryTrackerController {
                 t.docketId(),
                 t.title(),
                 t.commentDeadline() != null ? t.commentDeadline().toString() : null,
-                t.lastUpdatedAt().toString()
+                t.lastUpdatedAt().toString(),
+                t.sourceUrl()
         );
     }
 }

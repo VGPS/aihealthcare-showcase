@@ -485,9 +485,12 @@ public class MarketDigestService implements ProduceMarketDigestUseCase {
                 RulemakingStage stage = inferRulemakingStage(combined);
                 String docketId = extractDocketId(combined, entry.newsItem().headline());
 
+                String sourceUrl = entry.newsItem().sourceUrls() != null
+                        && !entry.newsItem().sourceUrls().isEmpty()
+                        ? entry.newsItem().sourceUrls().get(0) : null;
                 RegulatoryTracker tracker = new RegulatoryTracker(
                         jurisdiction, stage, docketId,
-                        entry.newsItem().headline(), null, Instant.now());
+                        entry.newsItem().headline(), null, Instant.now(), sourceUrl);
                 regulatoryTrackerRepository.upsert(tracker);
                 upserted++;
             } catch (Exception e) {
@@ -517,10 +520,13 @@ public class MarketDigestService implements ProduceMarketDigestUseCase {
                 try {
                     String roundStage = inferFundingStage(
                             entry.newsItem().headline() + " " + entry.newsItem().summary());
+                    String fundingSourceUrl = entry.newsItem().sourceUrls() != null
+                            && !entry.newsItem().sourceUrls().isEmpty()
+                            ? entry.newsItem().sourceUrls().get(0) : null;
                     PrivateFundingRound round = new PrivateFundingRound(
                             company.name(), roundStage,
                             entry.newsItem().dealSizeUsd(),
-                            List.of(), entry.newsItem().publishedAt());
+                            List.of(), entry.newsItem().publishedAt(), fundingSourceUrl);
                     PeerGroup peerGroup = company.peerGroup() != null
                             ? company.peerGroup() : PeerGroup.OTHER;
                     privateFundingPort.save(round, peerGroup);
@@ -550,7 +556,10 @@ public class MarketDigestService implements ProduceMarketDigestUseCase {
                 Long dealSize = entry.newsItem().dealSizeUsd();
                 DisclosedPortion portion = dealSize != null
                         ? DisclosedPortion.PARTIAL : DisclosedPortion.UNDISCLOSED;
-                DealTerms terms = new DealTerms(dealSize, null, null, null, portion);
+                String dealSourceUrl = entry.newsItem().sourceUrls() != null
+                        && !entry.newsItem().sourceUrls().isEmpty()
+                        ? entry.newsItem().sourceUrls().get(0) : null;
+                DealTerms terms = new DealTerms(dealSize, null, null, null, portion, dealSourceUrl);
                 dealTermsPort.save(entry.newsItem().headline(), terms);
                 saved++;
             } catch (Exception e) {

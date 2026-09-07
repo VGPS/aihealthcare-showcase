@@ -47,7 +47,8 @@ public class PrivateFundingRoundAdapter implements PrivateFundingPort {
                 round.amountUsd(),
                 investors,
                 round.announcedAt(),
-                peerGroup.name()
+                peerGroup.name(),
+                round.sourceUrl()
         );
         repo.save(entity);
 
@@ -82,7 +83,8 @@ public class PrivateFundingRoundAdapter implements PrivateFundingPort {
                 entity.getRoundStage(),
                 entity.getAmountUsd(),
                 investors,
-                entity.getAnnouncedAt()
+                entity.getAnnouncedAt(),
+                entity.getSourceUrl()
         );
     }
 }

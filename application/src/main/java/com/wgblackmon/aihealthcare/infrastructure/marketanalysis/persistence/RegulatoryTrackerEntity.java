@@ -55,17 +55,21 @@ public class RegulatoryTrackerEntity {
     @Column(name = "last_updated_at", nullable = false)
     private Instant lastUpdatedAt;
 
+    @Column(name = "source_url", length = 2048)
+    private String sourceUrl;
+
     protected RegulatoryTrackerEntity() {}
 
     public RegulatoryTrackerEntity(String jurisdiction, String stage, String docketId,
                                     String title, LocalDate commentDeadline,
-                                    Instant lastUpdatedAt) {
+                                    Instant lastUpdatedAt, String sourceUrl) {
         this.jurisdiction    = jurisdiction;
         this.stage           = stage;
         this.docketId        = docketId;
         this.title           = title;
         this.commentDeadline = commentDeadline;
         this.lastUpdatedAt   = lastUpdatedAt;
+        this.sourceUrl       = sourceUrl;
     }
 
     public Long getId()                   { return id; }
@@ -75,4 +79,5 @@ public class RegulatoryTrackerEntity {
     public String getTitle()              { return title; }
     public LocalDate getCommentDeadline() { return commentDeadline; }
     public Instant getLastUpdatedAt()     { return lastUpdatedAt; }
+    public String getSourceUrl()          { return sourceUrl; }
 }

@@ -18,14 +18,15 @@ import java.math.BigDecimal;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-07
  */
 public record DealTerms(
         Long upfrontCashUsd,
         Long milestonePaymentsUsd,
         BigDecimal equityStakePct,
         BigDecimal royaltyPct,
-        DisclosedPortion disclosedPortion
+        DisclosedPortion disclosedPortion,
+        String sourceUrl
 ) {
     public DealTerms {
         if (disclosedPortion == null) {

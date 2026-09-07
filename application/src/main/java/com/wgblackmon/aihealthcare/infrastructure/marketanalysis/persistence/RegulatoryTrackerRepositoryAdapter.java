@@ -54,7 +54,8 @@ public class RegulatoryTrackerRepositoryAdapter implements RegulatoryTrackerRepo
                 tracker.docketId(),
                 tracker.title(),
                 tracker.commentDeadline(),
-                tracker.lastUpdatedAt()
+                tracker.lastUpdatedAt(),
+                tracker.sourceUrl()
         );
         repo.save(entity);
 
@@ -112,7 +113,8 @@ public class RegulatoryTrackerRepositoryAdapter implements RegulatoryTrackerRepo
                 entity.getDocketId(),
                 entity.getTitle(),
                 entity.getCommentDeadline(),
-                entity.getLastUpdatedAt()
+                entity.getLastUpdatedAt(),
+                entity.getSourceUrl()
         );
     }
 }
