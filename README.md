@@ -17,6 +17,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Regulatory Alert System** | Automated FDA 510(k)/De Novo clearance and CMS rule harvesting from openFDA and Federal Register APIs |
 | **Sentiment & Risk Scoring** | LLM-powered per-article sentiment classification aggregated into company-level risk scores with confidence metrics |
 | **Framework Competitive Analysis** | Config-driven 6-dimension competitive scoring (clinical validation, regulatory, market adoption, tech depth, data assets, partnerships) |
+| **Market Analysis Digest** | Daily AI-powered market digest pipeline — Perplexity news research, Claude impact classification, Alpaca market data enrichment, fact/speculation separation, qualifying-bar filtering, 7-day embedding dedup, post-save extraction of regulatory trackers (jurisdiction/stage inference + docket regex), private funding rounds (round-stage inference), and deal terms (keyword-based amount extraction), with per-subscriber ticker watchlist notification filtering |
 | **Deal Signal Detection** | LLM-enhanced deal classification extracting deal type, amount, counterparty, and confidence from article text |
 | **Deal Context Enrichment** | Cross-references deals against sentiment, framework, regulatory, and company profile data for 360-degree context |
 | **Public Company Directory** | No-login-required directory ranked by live signal scoring (article velocity + deal bonus − sentiment penalty) with sort tabs (Trending / Recently Funded / Watch List), sector filter pills, signal badges (🔥/💰/⚠) per card, CSV export, JSON-LD Organization schema for SEO, and a minimal public nav (Sign In / Pricing / About only — hides all member-only pages from unauthenticated visitors) |
@@ -500,6 +501,11 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | POST | `/api/v1/deals/detect` | Trigger deal signal detection pipeline |
 | GET/POST | `/api/v1/trends/latest`, `/api/v1/trends/detect` | Retrieve latest trend snapshot / trigger detection |
 | GET | `/api/v1/trends/history` | Retrieve all historical trend snapshots |
+| GET | `/api/market-digest/regulatory-tracker` | All tracked regulatory actions from market digest pipeline |
+| GET | `/api/market-digest/regulatory-tracker/approaching?days=30` | Regulatory trackers with approaching comment deadlines |
+| GET | `/api/market-digest/regulatory-tracker/{docketId}?jurisdiction=` | Single tracker by docket ID and jurisdiction |
+| GET | `/api/market-digest/funding?days=90&peerGroup=` | Recent private funding rounds, optional peer group filter |
+| GET | `/api/market-digest/deal-terms/{headline}` | Deal terms for an M&A/partnership digest entry |
 
 ### Company & Discovery
 | Method | Endpoint | Description |
