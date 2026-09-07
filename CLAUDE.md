@@ -267,7 +267,12 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 - [x] Prompts: `market-news-research.txt`, `market-impact-classify.txt`
 - [x] Nav: "Market Digest" + "Market History" in Content dropdown
 - [x] Admin: Manual trigger cards for digest generation and price-reaction capture in Pipeline page
-- [x] Tests: 260 across 35 test classes (16 domain + 15 infrastructure + 4 web)
+- [x] Pipeline enrichment: `MarketDigestService` post-save extraction — regulatory trackers (jurisdiction/stage inference + docket regex), private funding rounds (round-stage inference), deal terms (keyword-based amount extraction)
+- [x] Embedding cache: `EntryEmbeddingCacheEntity` + `EntryEmbeddingCacheJpaRepository` — SHA-256 keyed cache avoids re-calling embedding API during 7-day dedup window
+- [x] Watchlist notifications: `SesMarketDigestNotifier` per-subscriber ticker filtering — admin gets full digest, subscribers get filtered alerts matching their watchlist
+- [x] REST: `RegulatoryTrackerController` (`/api/market-digest/regulatory-tracker` — all, approaching deadlines, by docket), `PrivateFundingController` (`/api/market-digest/funding`), `DealTermsController` (`/api/market-digest/deal-terms/{headline}`)
+- [x] DTOs: `RegulatoryTrackerResponse`, `PrivateFundingRoundResponse`, `DealTermsResponse`
+- [x] Tests: 260+ across 35 test classes (16 domain + 15 infrastructure + 4 web)
 
 **Previously complete: Copyright-Safe Content Retention (CR-1) — COMPLETE — 45 selective tests passing**
 - [x] Infrastructure: `ExcerptTruncator` — static utility, sentence-boundary truncation with configurable char cap
