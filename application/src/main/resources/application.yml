@@ -1330,6 +1330,41 @@ aihealthcare:
         base-weight: 0.85
         max-items: 20
       - topic-id: 1
+        name: ECRI Institute News
+        topic: AI Healthcare Legal
+        url: https://home.ecri.org/blogs/ecri-news/
+        tier: COMPETITOR
+        base-weight: 0.9
+        max-items: 20
+      - topic-id: 1
+        name: Coalition for Health AI Blog
+        topic: AI Healthcare Legal
+        url: https://www.chai.org/blog
+        tier: COMPETITOR
+        base-weight: 0.85
+        max-items: 20
+      - topic-id: 1
+        name: Center for Democracy and Technology AI
+        topic: AI Healthcare Legal
+        url: https://cdt.org/area-of-focus/ai-policy-governance/
+        tier: COMPETITOR
+        base-weight: 0.85
+        max-items: 20
+      - topic-id: 1
+        name: Hastings Center AI Ethics
+        topic: AI Healthcare Legal
+        url: https://www.thehastingscenter.org/ethics-of-ai-in-health-and-biomedical-research/
+        tier: COMPETITOR
+        base-weight: 0.85
+        max-items: 20
+      - topic-id: 1
+        name: EFF AI Policy
+        topic: AI Healthcare Legal
+        url: https://www.eff.org/issues/ai
+        tier: COMPETITOR
+        base-weight: 0.85
+        max-items: 20
+      - topic-id: 1
         name: ONC Health IT Blog
         topic: AI Healthcare Government Policy
         url: https://www.healthit.gov/buzz-blog/feed
