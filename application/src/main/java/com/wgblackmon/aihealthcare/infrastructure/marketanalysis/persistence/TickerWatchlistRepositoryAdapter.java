@@ -20,7 +20,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-07  added findAllSubscriberIds()
  */
 @Slf4j
 @Component
@@ -85,5 +85,13 @@ public class TickerWatchlistRepositoryAdapter implements TickerWatchlistReposito
         }
 
         log.debug("replaceWatchlist() | return=void");
+    }
+
+    @Override
+    public List<String> findAllSubscriberIds() {
+        log.debug("findAllSubscriberIds()");
+        List<String> result = repo.findDistinctSubscriberIds();
+        log.debug("findAllSubscriberIds() | return.size={}", result.size());
+        return result;
     }
 }

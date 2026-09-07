@@ -57,7 +57,7 @@ class SesMarketDigestNotifierTest {
 
     @BeforeEach
     void setUp() {
-        notifier = new SesMarketDigestNotifier(mailSender, FROM, TO);
+        notifier = new SesMarketDigestNotifier(mailSender, FROM, TO, null);
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionQueryServi
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollupService;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.CorporateActionPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.DealTermsPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.EntryEmbeddingPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.GuidancePort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort;
@@ -13,7 +14,9 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.PrivateFundingPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.PriceReactionPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.RegulatoryTrackerRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.SecondaryNewsCheckPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +42,7 @@ import java.util.concurrent.Executor;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-20  added weeklyRollupService bean (Slice 3.5)
+ * @updated 2026-09-07  added regulatoryTracker, privateFunding, dealTerms port injection
  */
 @Slf4j
 @Configuration
@@ -69,14 +72,20 @@ public class MarketAnalysisConfig {
             @Autowired(required = false) EntryEmbeddingPort embeddingPort,
             @Value("${aihealthcare.market-analysis.dedup.similarity-threshold:0.93}") double dedupThreshold,
             @Autowired(required = false) SecondaryNewsCheckPort secondaryNewsCheck,
-            @Autowired(required = false) CorporateActionPort corporateActionPort) {
+            @Autowired(required = false) CorporateActionPort corporateActionPort,
+            @Autowired(required = false) RegulatoryTrackerRepository regulatoryTrackerRepository,
+            @Autowired(required = false) PrivateFundingPort privateFundingPort,
+            @Autowired(required = false) DealTermsPort dealTermsPort) {
         log.debug("marketDigestService() | notifierPresent={}, embeddingPortPresent={}, dedupThreshold={}, "
-                        + "secondaryNewsCheckPresent={}, corporateActionPortPresent={}",
+                        + "secondaryNewsCheckPresent={}, corporateActionPortPresent={}, "
+                        + "regulatoryTrackerPresent={}, privateFundingPresent={}, dealTermsPresent={}",
                 notifier != null, embeddingPort != null, dedupThreshold,
-                secondaryNewsCheck != null, corporateActionPort != null);
+                secondaryNewsCheck != null, corporateActionPort != null,
+                regulatoryTrackerRepository != null, privateFundingPort != null, dealTermsPort != null);
         MarketDigestService result = new MarketDigestService(
                 newsResearch, marketData, impactClassifier, repository,
-                notifier, embeddingPort, dedupThreshold, secondaryNewsCheck, corporateActionPort);
+                notifier, embeddingPort, dedupThreshold, secondaryNewsCheck, corporateActionPort,
+                regulatoryTrackerRepository, privateFundingPort, dealTermsPort);
         log.debug("marketDigestService() | return={}", result);
         return result;
     }

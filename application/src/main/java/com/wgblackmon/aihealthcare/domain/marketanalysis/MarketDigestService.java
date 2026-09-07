@@ -1,13 +1,16 @@
 package com.wgblackmon.aihealthcare.domain.marketanalysis;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.CorporateActionPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.DealTermsPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.EntryEmbeddingPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ImpactClassifierPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.PrivateFundingPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
+import com.wgblackmon.aihealthcare.domain.marketanalysis.port.RegulatoryTrackerRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.SecondaryNewsCheckPort;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,6 +20,8 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Application-layer service orchestrating the daily AI-healthcare market digest pipeline.
@@ -42,7 +47,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-09-07  implements ProduceMarketDigestUseCase inbound port
+ * @updated 2026-09-07  added regulatory tracker, private funding, and deal terms enrichment
  */
 @Slf4j
 public class MarketDigestService implements ProduceMarketDigestUseCase {
@@ -50,16 +55,21 @@ public class MarketDigestService implements ProduceMarketDigestUseCase {
     static final int DEDUP_LOOKBACK_DAYS = 7;
 
     private static final PeerGroupTagger PEER_GROUP_TAGGER = new PeerGroupTagger();
+    private static final Pattern DOCKET_PATTERN = Pattern.compile(
+            "([A-Z]{2,5}-\\d{4}-[A-Z]-\\d{3,5}|\\d{3,4}/\\d{5,7}|K\\d{6,}|DEN\\d{6,})");
 
-    private final MarketNewsResearchPort newsResearch;
-    private final MarketDataPort         marketData;
-    private final ImpactClassifierPort   impactClassifier;
-    private final MarketDigestRepository repository;
-    private final MarketDigestNotifier   notifier;
-    private final EntryEmbeddingPort     embeddingPort;
-    private final double                 dedupThreshold;
-    private final SecondaryNewsCheckPort secondaryNewsCheck;
-    private final CorporateActionPort    corporateActionPort;
+    private final MarketNewsResearchPort    newsResearch;
+    private final MarketDataPort            marketData;
+    private final ImpactClassifierPort      impactClassifier;
+    private final MarketDigestRepository    repository;
+    private final MarketDigestNotifier      notifier;
+    private final EntryEmbeddingPort        embeddingPort;
+    private final double                    dedupThreshold;
+    private final SecondaryNewsCheckPort    secondaryNewsCheck;
+    private final CorporateActionPort       corporateActionPort;
+    private final RegulatoryTrackerRepository regulatoryTrackerRepository;
+    private final PrivateFundingPort         privateFundingPort;
+    private final DealTermsPort             dealTermsPort;
 
     public MarketDigestService(
             MarketNewsResearchPort newsResearch,
@@ -70,16 +80,22 @@ public class MarketDigestService implements ProduceMarketDigestUseCase {
             EntryEmbeddingPort embeddingPort,
             double dedupThreshold,
             SecondaryNewsCheckPort secondaryNewsCheck,
-            CorporateActionPort corporateActionPort) {
-        this.newsResearch        = newsResearch;
-        this.marketData          = marketData;
-        this.impactClassifier    = impactClassifier;
-        this.repository          = repository;
-        this.notifier            = notifier;
-        this.embeddingPort       = embeddingPort;
-        this.dedupThreshold      = dedupThreshold;
-        this.secondaryNewsCheck  = secondaryNewsCheck;
-        this.corporateActionPort = corporateActionPort;
+            CorporateActionPort corporateActionPort,
+            RegulatoryTrackerRepository regulatoryTrackerRepository,
+            PrivateFundingPort privateFundingPort,
+            DealTermsPort dealTermsPort) {
+        this.newsResearch               = newsResearch;
+        this.marketData                 = marketData;
+        this.impactClassifier           = impactClassifier;
+        this.repository                 = repository;
+        this.notifier                   = notifier;
+        this.embeddingPort              = embeddingPort;
+        this.dedupThreshold             = dedupThreshold;
+        this.secondaryNewsCheck         = secondaryNewsCheck;
+        this.corporateActionPort        = corporateActionPort;
+        this.regulatoryTrackerRepository = regulatoryTrackerRepository;
+        this.privateFundingPort          = privateFundingPort;
+        this.dealTermsPort              = dealTermsPort;
     }
 
     /**
@@ -155,6 +171,11 @@ public class MarketDigestService implements ProduceMarketDigestUseCase {
                 log.warn("generateDailyDigest() | corporate action confirmation failed (non-fatal): {}", e.getMessage());
             }
         }
+
+        // Post-save enrichment: extract and persist regulatory trackers, funding rounds, deal terms
+        extractRegulatoryTrackers(qualified);
+        extractPrivateFundingRounds(qualified);
+        extractDealTerms(qualified);
 
         if (!qualified.isEmpty() && notifier != null) {
             List<MarketDigestEntry> notifiable = deduplicateForNotification(qualified, date);
@@ -443,5 +464,170 @@ public class MarketDigestService implements ProduceMarketDigestUseCase {
         qualifying.sort((a, b) -> Integer.compare(a.rank().value(), b.rank().value()));
         log.debug("filterAndSort() | return.size={}", qualifying.size());
         return qualifying;
+    }
+
+    // ─── post-save enrichment ──────────────────────────────────────────────
+
+    void extractRegulatoryTrackers(List<MarketDigestEntry> entries) {
+        log.debug("extractRegulatoryTrackers() | entries={}", entries.size());
+        if (regulatoryTrackerRepository == null) {
+            log.debug("extractRegulatoryTrackers() | port absent — skipping");
+            return;
+        }
+        int upserted = 0;
+        for (MarketDigestEntry entry : entries) {
+            if (entry.category() != NewsCategory.REGULATORY) {
+                continue;
+            }
+            try {
+                String combined = entry.newsItem().headline() + " " + entry.newsItem().summary();
+                Jurisdiction jurisdiction = inferJurisdiction(combined);
+                RulemakingStage stage = inferRulemakingStage(combined);
+                String docketId = extractDocketId(combined, entry.newsItem().headline());
+
+                RegulatoryTracker tracker = new RegulatoryTracker(
+                        jurisdiction, stage, docketId,
+                        entry.newsItem().headline(), null, Instant.now());
+                regulatoryTrackerRepository.upsert(tracker);
+                upserted++;
+            } catch (Exception e) {
+                log.warn("extractRegulatoryTrackers() | failed for '{}': {}",
+                        entry.newsItem().headline(), e.getMessage());
+            }
+        }
+        log.info("extractRegulatoryTrackers() | upserted {} trackers", upserted);
+        log.debug("extractRegulatoryTrackers() | return=void");
+    }
+
+    void extractPrivateFundingRounds(List<MarketDigestEntry> entries) {
+        log.debug("extractPrivateFundingRounds() | entries={}", entries.size());
+        if (privateFundingPort == null) {
+            log.debug("extractPrivateFundingRounds() | port absent — skipping");
+            return;
+        }
+        int saved = 0;
+        for (MarketDigestEntry entry : entries) {
+            if (entry.category() != NewsCategory.FUNDING) {
+                continue;
+            }
+            for (AffectedCompany company : entry.affectedCompanies()) {
+                if (company.tickerSymbol() != null && !company.tickerSymbol().isBlank()) {
+                    continue;
+                }
+                try {
+                    String roundStage = inferFundingStage(
+                            entry.newsItem().headline() + " " + entry.newsItem().summary());
+                    PrivateFundingRound round = new PrivateFundingRound(
+                            company.name(), roundStage,
+                            entry.newsItem().dealSizeUsd(),
+                            List.of(), entry.newsItem().publishedAt());
+                    PeerGroup peerGroup = company.peerGroup() != null
+                            ? company.peerGroup() : PeerGroup.OTHER;
+                    privateFundingPort.save(round, peerGroup);
+                    saved++;
+                } catch (Exception e) {
+                    log.warn("extractPrivateFundingRounds() | failed for '{}': {}",
+                            company.name(), e.getMessage());
+                }
+            }
+        }
+        log.info("extractPrivateFundingRounds() | saved {} funding rounds", saved);
+        log.debug("extractPrivateFundingRounds() | return=void");
+    }
+
+    void extractDealTerms(List<MarketDigestEntry> entries) {
+        log.debug("extractDealTerms() | entries={}", entries.size());
+        if (dealTermsPort == null) {
+            log.debug("extractDealTerms() | port absent — skipping");
+            return;
+        }
+        int saved = 0;
+        for (MarketDigestEntry entry : entries) {
+            if (entry.category() != NewsCategory.M_AND_A) {
+                continue;
+            }
+            try {
+                Long dealSize = entry.newsItem().dealSizeUsd();
+                DisclosedPortion portion = dealSize != null
+                        ? DisclosedPortion.PARTIAL : DisclosedPortion.UNDISCLOSED;
+                DealTerms terms = new DealTerms(dealSize, null, null, null, portion);
+                dealTermsPort.save(entry.newsItem().headline(), terms);
+                saved++;
+            } catch (Exception e) {
+                log.warn("extractDealTerms() | failed for '{}': {}",
+                        entry.newsItem().headline(), e.getMessage());
+            }
+        }
+        log.info("extractDealTerms() | saved {} deal terms", saved);
+        log.debug("extractDealTerms() | return=void");
+    }
+
+    // ─── keyword inference helpers ─────────────────────────────────────────
+
+    static Jurisdiction inferJurisdiction(String text) {
+        String lower = text.toLowerCase();
+        if (lower.contains("fda") || lower.contains("food and drug")) {
+            return Jurisdiction.US_FDA;
+        }
+        if (lower.contains("eu ai act") || lower.contains("european") || lower.contains("ce mark")) {
+            return Jurisdiction.EU_AI_ACT;
+        }
+        if (lower.contains("mhra") || lower.contains("uk ")) {
+            return Jurisdiction.UK_MHRA;
+        }
+        if (lower.contains("state") && (lower.contains("law") || lower.contains("bill")
+                || lower.contains("legislation"))) {
+            return Jurisdiction.US_STATE;
+        }
+        if (lower.contains("cms") || lower.contains("medicare") || lower.contains("medicaid")) {
+            return Jurisdiction.US_FDA;
+        }
+        return Jurisdiction.OTHER;
+    }
+
+    static RulemakingStage inferRulemakingStage(String text) {
+        String lower = text.toLowerCase();
+        if (lower.contains("enforce") || lower.contains("penalty") || lower.contains("fine")) {
+            return RulemakingStage.ENFORCEMENT;
+        }
+        if (lower.contains("final guidance") || lower.contains("finalize") || lower.contains("approve")
+                || lower.contains("clearance") || lower.contains("cleared")) {
+            return RulemakingStage.FINAL_GUIDANCE;
+        }
+        if (lower.contains("draft guidance") || lower.contains("draft rule")
+                || lower.contains("proposed rule")) {
+            return RulemakingStage.DRAFT_GUIDANCE;
+        }
+        if (lower.contains("comment period") || lower.contains("public comment")
+                || lower.contains("request for comment")) {
+            return RulemakingStage.COMMENT_PERIOD;
+        }
+        if (lower.contains("discussion") || lower.contains("concept release")
+                || lower.contains("white paper")) {
+            return RulemakingStage.DISCUSSION_PAPER;
+        }
+        return RulemakingStage.FINAL_GUIDANCE;
+    }
+
+    static String extractDocketId(String combined, String headline) {
+        Matcher matcher = DOCKET_PATTERN.matcher(combined);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return "REG-" + Integer.toHexString(headline.hashCode());
+    }
+
+    static String inferFundingStage(String text) {
+        String lower = text.toLowerCase();
+        if (lower.contains("series a")) return "Series A";
+        if (lower.contains("series b")) return "Series B";
+        if (lower.contains("series c")) return "Series C";
+        if (lower.contains("series d")) return "Series D";
+        if (lower.contains("series e")) return "Series E";
+        if (lower.contains("seed")) return "Seed";
+        if (lower.contains("pre-seed")) return "Pre-Seed";
+        if (lower.contains("growth")) return "Growth";
+        if (lower.contains("ipo") || lower.contains("initial public offering")) return "Pre-IPO";
+        return "Undisclosed";
     }
 }

@@ -52,7 +52,8 @@ class MarketDigestServicePipelineTest {
     @BeforeEach
     void setUp() {
         service = new MarketDigestService(newsResearch, marketData, impactClassifier,
-                repository, notifier, embeddingPort, 0.93, null, null);
+                repository, notifier, embeddingPort, 0.93, null, null,
+                null, null, null);
         when(repository.findByDate(TODAY)).thenReturn(Optional.empty());
     }
 
@@ -158,7 +159,8 @@ class MarketDigestServicePipelineTest {
     @Test
     void generateDailyDigest_withNullNotifier_doesNotThrow() {
         MarketDigestService serviceNoNotifier = new MarketDigestService(
-                newsResearch, marketData, impactClassifier, repository, null, null, 0.93, null, null);
+                newsResearch, marketData, impactClassifier, repository, null, null, 0.93, null, null,
+                null, null, null);
         when(repository.findByDate(TODAY)).thenReturn(Optional.empty());
 
         MarketNewsItem item = newsItem(NewsCategory.EARNINGS, null);
