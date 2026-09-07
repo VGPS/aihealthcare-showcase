@@ -243,13 +243,15 @@
     </div>
 
     <!-- Export buttons -->
-    <div th:if="${totalLaws > 0}" class="mt-4 mb-6 flex gap-3 items-center">
-        <span class="text-sm text-gray-500 mr-1">Save as:</span>
-        <button onclick="exportCSV()" class="px-4 py-2 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 transition-colors">
-            CSV
+    <div th:if="${totalLaws > 0}" class="mt-4 mb-6 flex justify-center gap-3 items-center">
+        <span class="text-sm text-gray-500">Save as:</span>
+        <button onclick="exportCSV()"
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+            ⬇ CSV
         </button>
-        <button onclick="exportText()" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors">
-            Text
+        <button onclick="exportText()"
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+            ⬇ Text
         </button>
     </div>
 
