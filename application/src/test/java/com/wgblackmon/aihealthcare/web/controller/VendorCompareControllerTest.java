@@ -40,9 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>All pipeline calls are mocked — no real AI or retrieval calls are made.
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 2.1
  * @since   2026-05-14
- * @updated 2026-07-07
+ * @updated 2026-09-07
  */
 @Import(SecurityConfig.class)
 @WithMockUser
@@ -72,7 +72,7 @@ class VendorCompareControllerTest {
                 .andExpect(model().attributeExists("availableVendors"));
 
         verify(compareVendorsUseCase, never()).compare(anyString(), anyInt(), anyInt(), anyString());
-        verify(compareVendorsUseCase, never()).compareSelected(anyList(), anyString(), anyInt(), anyString());
+        verify(compareVendorsUseCase, never()).compareSelected(anyList(), anyString(), nullable(String.class), anyInt(), anyString());
     }
 
     @Test
@@ -120,7 +120,7 @@ class VendorCompareControllerTest {
                         0.6, 6, 10));
 
         VendorCompareResult result = new VendorCompareResult(vendors, Collections.emptyList());
-        when(compareVendorsUseCase.compareSelected(anyList(), nullable(String.class), anyInt(), anyString()))
+        when(compareVendorsUseCase.compareSelected(anyList(), nullable(String.class), nullable(String.class), anyInt(), anyString()))
                 .thenReturn(result);
 
         mockMvc.perform(get("/research/vendors")
@@ -132,7 +132,7 @@ class VendorCompareControllerTest {
 
         verify(compareVendorsUseCase).compareSelected(
                 eq(List.of("Anthropic Healthcare", "OpenAI Healthcare")),
-                nullable(String.class), anyInt(), anyString());
+                nullable(String.class), nullable(String.class), anyInt(), anyString());
     }
 
     @Test
@@ -141,7 +141,7 @@ class VendorCompareControllerTest {
 
         VendorCompareResult result = new VendorCompareResult(
                 Collections.emptyList(), Collections.emptyList());
-        when(compareVendorsUseCase.compareSelected(anyList(), anyString(), anyInt(), anyString()))
+        when(compareVendorsUseCase.compareSelected(anyList(), anyString(), nullable(String.class), anyInt(), anyString()))
                 .thenReturn(result);
 
         mockMvc.perform(get("/research/vendors")
@@ -152,7 +152,7 @@ class VendorCompareControllerTest {
 
         verify(compareVendorsUseCase).compareSelected(
                 eq(List.of("Anthropic Healthcare")),
-                eq("radiology"), anyInt(), anyString());
+                eq("radiology"), nullable(String.class), anyInt(), anyString());
     }
 
     @Test
@@ -215,16 +215,16 @@ class VendorCompareControllerTest {
 
         VendorCompareResult result = new VendorCompareResult(
                 Collections.emptyList(), Collections.emptyList());
-        when(compareVendorsUseCase.compareSelected(anyList(), nullable(String.class), anyInt(), anyString()))
+        when(compareVendorsUseCase.compareSelected(anyList(), nullable(String.class), nullable(String.class), anyInt(), anyString()))
                 .thenReturn(result);
 
-        // Both vendors param and query param present — vendors should take priority
+        // Both vendors param and query param present — vendors take priority, query is threaded through
         mockMvc.perform(get("/research/vendors")
                         .param("vendors", "Anthropic Healthcare")
                         .param("query", "AI diagnostics"))
                 .andExpect(status().isOk());
 
-        verify(compareVendorsUseCase).compareSelected(anyList(), nullable(String.class), anyInt(), anyString());
+        verify(compareVendorsUseCase).compareSelected(anyList(), nullable(String.class), eq("AI diagnostics"), anyInt(), anyString());
         verify(compareVendorsUseCase, never()).compare(anyString(), anyInt(), anyInt(), anyString());
     }
 
