@@ -11,7 +11,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-05
- * @updated 2026-09-05
+ * @updated 2026-09-07
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -23,25 +23,11 @@
 
 <!-- Header -->
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
-    <div class="max-w-6xl mx-auto flex items-center justify-between">
-        <div>
-            <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
-            <p class="text-primary-200 text-sm mt-0.5">AI-Powered Healthcare Intelligence Platform</p>
-        </div>
-        <div class="flex gap-3">
-            <a sec:authorize="!isAuthenticated()" th:href="@{/register}"
-               class="bg-white text-primary-700 font-semibold text-sm px-4 py-2 rounded-md hover:bg-primary-50 transition-colors">
-                Try Free
-            </a>
-            <a sec:authorize="isAuthenticated()" th:href="@{/dashboard}"
-               class="bg-white text-primary-700 font-semibold text-sm px-4 py-2 rounded-md hover:bg-primary-50 transition-colors">
-                Dashboard
-            </a>
-        </div>
-    </div>
+    <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
+    <p class="text-primary-200 text-sm mt-0.5">AI-Powered Healthcare Intelligence Platform</p>
 </header>
 
-<nav th:replace="~{fragments/nav :: nav('privacy')}"></nav>
+<nav th:replace="~{fragments/public-nav :: public-nav('privacy')}"></nav>
 
 <main class="flex-1">
     <section class="px-4 py-12">
