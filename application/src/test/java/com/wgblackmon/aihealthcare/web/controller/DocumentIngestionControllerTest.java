@@ -3,20 +3,27 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wgblackmon.aihealthcare.domain.model.DocumentIngestionResult;
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestDocumentsUseCase;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.web.dto.DocumentIngestRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -35,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-27
- * @updated 2026-04-27
+ * @updated 2026-09-08
  */
 @Import(SecurityConfig.class)
 @WithMockUser
@@ -52,6 +59,23 @@ class DocumentIngestionControllerTest {
 
     @MockitoBean
     private IngestDocumentsUseCase ingestUseCase;
+
+    @MockBean
+    private PipelineAsyncRunner asyncRunner;
+
+    @BeforeEach
+    void setUpAsyncRunner() {
+        when(asyncRunner.runAsync(anyString(), any(Runnable.class)))
+                .thenAnswer(invocation -> {
+                    Runnable work = invocation.getArgument(1);
+                    work.run();
+                    Map<String, Object> accepted = new LinkedHashMap<>();
+                    accepted.put("started", true);
+                    accepted.put("pipelineId", invocation.getArgument(0));
+                    accepted.put("message", "Pipeline started in background.");
+                    return ResponseEntity.accepted().body(accepted);
+                });
+    }
 
     private static final String INGEST_URL = "/api/v1/documents/ingest";
 
@@ -70,10 +94,8 @@ class DocumentIngestionControllerTest {
         mockMvc.perform(post(INGEST_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.filesProcessed").value(3))
-                .andExpect(jsonPath("$.chunksEmbedded").value(12))
-                .andExpect(jsonPath("$.failures").isEmpty());
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
     }
 
     @Test
@@ -87,9 +109,8 @@ class DocumentIngestionControllerTest {
         mockMvc.perform(post(INGEST_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.filesProcessed").value(0))
-                .andExpect(jsonPath("$.chunksEmbedded").value(0));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
     }
 
     // -------------------------------------------------------------------------
@@ -108,10 +129,8 @@ class DocumentIngestionControllerTest {
         mockMvc.perform(post(INGEST_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.filesProcessed").value(2))
-                .andExpect(jsonPath("$.chunksEmbedded").value(8))
-                .andExpect(jsonPath("$.failures[0]").value("corrupt.pdf: PDF parse error"));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
     }
 
     // -------------------------------------------------------------------------
@@ -129,8 +148,8 @@ class DocumentIngestionControllerTest {
         mockMvc.perform(post(INGEST_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.filesProcessed").value(1));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
     }
 
     // -------------------------------------------------------------------------

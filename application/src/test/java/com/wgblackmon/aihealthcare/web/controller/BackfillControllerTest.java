@@ -6,18 +6,23 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.pubmed.BackfillProperties;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.pubmed.PubMedBackfillHarvester;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -39,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-09-08
  */
 @Import(SecurityConfig.class)
 @WithMockUser(roles = "ADMIN")
@@ -60,6 +65,23 @@ class BackfillControllerTest {
 
     @MockBean
     private ApiKeyPort apiKeyPort;
+
+    @MockBean
+    private PipelineAsyncRunner asyncRunner;
+
+    @BeforeEach
+    void setUpAsyncRunner() {
+        when(asyncRunner.runAsync(anyString(), any(Runnable.class)))
+                .thenAnswer(invocation -> {
+                    Runnable work = invocation.getArgument(1);
+                    work.run();
+                    Map<String, Object> accepted = new LinkedHashMap<>();
+                    accepted.put("started", true);
+                    accepted.put("pipelineId", invocation.getArgument(0));
+                    accepted.put("message", "Pipeline started in background.");
+                    return ResponseEntity.accepted().body(accepted);
+                });
+    }
 
     private NewsArticle buildTestArticle(String pmid) {
         return new NewsArticle(
@@ -98,12 +120,8 @@ class BackfillControllerTest {
                 .thenReturn(batch2);
 
         mockMvc.perform(post("/monitoring/backfill"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.queriesExecuted").value(2))
-                .andExpect(jsonPath("$.totalArticles").value(3))
-                .andExpect(jsonPath("$.queryResults[0].query").value("\"AI\" AND \"healthcare\""))
-                .andExpect(jsonPath("$.queryResults[0].articlesFound").value(2))
-                .andExpect(jsonPath("$.queryResults[1].articlesFound").value(1));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(articleStoragePort).save(batch1);
         verify(articleStoragePort).save(batch2);
@@ -126,8 +144,8 @@ class BackfillControllerTest {
                         .param("fromYear", "2023")
                         .param("toYear", "2024")
                         .param("maxPerQuery", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalArticles").value(1));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
     }
 
     @Test
@@ -141,9 +159,8 @@ class BackfillControllerTest {
                 .thenReturn(List.of());
 
         mockMvc.perform(post("/monitoring/backfill"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalArticles").value(0))
-                .andExpect(jsonPath("$.queryResults[0].articlesFound").value(0));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(articleStoragePort, never()).save(any());
     }
@@ -164,10 +181,8 @@ class BackfillControllerTest {
                         .param("fromYear", "2023")
                         .param("toYear", "2024")
                         .param("maxResults", "25"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.queriesExecuted").value(1))
-                .andExpect(jsonPath("$.totalArticles").value(2))
-                .andExpect(jsonPath("$.queryResults[0].query").value("custom query"));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(articleStoragePort).save(articles);
     }
@@ -182,7 +197,7 @@ class BackfillControllerTest {
 
         mockMvc.perform(post("/monitoring/backfill/custom")
                         .param("query", "my query"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalArticles").value(0));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
     }
 }

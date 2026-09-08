@@ -4,7 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.pubmed.BackfillProperties;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.pubmed.PubMedBackfillHarvester;
-import com.wgblackmon.aihealthcare.web.dto.BackfillResultResponse;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller for triggering PubMed historical backfill harvests.
@@ -29,7 +29,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-09-08
  */
 @Slf4j
 @RestController
@@ -39,17 +39,21 @@ public class BackfillController {
     private final PubMedBackfillHarvester pubMedHarvester;
     private final ArticleStoragePort articleStoragePort;
     private final BackfillProperties backfillProperties;
+    private final PipelineAsyncRunner asyncRunner;
 
     public BackfillController(PubMedBackfillHarvester pubMedHarvester,
                               ArticleStoragePort articleStoragePort,
-                              BackfillProperties backfillProperties) {
-        log.debug("BackfillController() | pubMedHarvester={}, articleStoragePort={}, backfillProperties={}",
+                              BackfillProperties backfillProperties,
+                              PipelineAsyncRunner asyncRunner) {
+        log.debug("BackfillController() | pubMedHarvester={}, articleStoragePort={}, backfillProperties={}, asyncRunner={}",
                   pubMedHarvester.getClass().getSimpleName(),
                   articleStoragePort.getClass().getSimpleName(),
-                  backfillProperties.getClass().getSimpleName());
+                  backfillProperties.getClass().getSimpleName(),
+                  asyncRunner.getClass().getSimpleName());
         this.pubMedHarvester = pubMedHarvester;
         this.articleStoragePort = articleStoragePort;
         this.backfillProperties = backfillProperties;
+        this.asyncRunner = asyncRunner;
     }
 
     /**
@@ -65,7 +69,7 @@ public class BackfillController {
      * @return backfill result with per-query article counts
      */
     @PostMapping
-    public ResponseEntity<BackfillResultResponse> triggerBackfill(
+    public ResponseEntity<Map<String, Object>> triggerBackfill(
             @RequestParam(required = false) Integer fromYear,
             @RequestParam(required = false) Integer toYear,
             @RequestParam(required = false) Integer maxPerQuery) {
@@ -75,35 +79,26 @@ public class BackfillController {
         log.debug("triggerBackfill() | fromYear={}, toYear={}, maxPerQuery={}",
                   effectiveFromYear, effectiveToYear, effectiveMaxPerQuery);
 
-        LocalDate from = LocalDate.of(effectiveFromYear, 1, 1);
-        LocalDate to = LocalDate.of(effectiveToYear, 12, 31);
+        return asyncRunner.runAsync("pubmed-backfill", () -> {
+            LocalDate from = LocalDate.of(effectiveFromYear, 1, 1);
+            LocalDate to = LocalDate.of(effectiveToYear, 12, 31);
 
-        List<String> queries = backfillProperties.getQueries();
-        List<BackfillResultResponse.QueryResult> queryResults = new ArrayList<>();
-        int totalArticles = 0;
+            List<String> queries = backfillProperties.getQueries();
+            int totalArticles = 0;
 
-        for (String query : queries) {
-            log.info("triggerBackfill() | running query: {}", query);
-
-            List<NewsArticle> articles = pubMedHarvester.harvest(query, from, to, effectiveMaxPerQuery);
-
-            if (!articles.isEmpty()) {
-                articleStoragePort.save(articles);
+            for (String query : queries) {
+                log.info("triggerBackfill() | running query: {}", query);
+                List<NewsArticle> articles = pubMedHarvester.harvest(query, from, to, effectiveMaxPerQuery);
+                if (!articles.isEmpty()) {
+                    articleStoragePort.save(articles);
+                }
+                totalArticles += articles.size();
+                log.info("triggerBackfill() | query '{}' yielded {} articles", query, articles.size());
             }
 
-            queryResults.add(new BackfillResultResponse.QueryResult(query, articles.size()));
-            totalArticles += articles.size();
-
-            log.info("triggerBackfill() | query '{}' yielded {} articles", query, articles.size());
-        }
-
-        BackfillResultResponse response = new BackfillResultResponse(
-                queries.size(), totalArticles, queryResults);
-
-        log.info("triggerBackfill() | backfill complete: {} queries, {} total articles",
-                 queries.size(), totalArticles);
-        log.debug("triggerBackfill() | return={}", response);
-        return ResponseEntity.ok(response);
+            log.info("triggerBackfill() | backfill complete: {} queries, {} total articles",
+                     queries.size(), totalArticles);
+        });
     }
 
     /**
@@ -116,7 +111,7 @@ public class BackfillController {
      * @return backfill result
      */
     @PostMapping("/custom")
-    public ResponseEntity<BackfillResultResponse> triggerCustomBackfill(
+    public ResponseEntity<Map<String, Object>> triggerCustomBackfill(
             @RequestParam String query,
             @RequestParam(defaultValue = "2022") int fromYear,
             @RequestParam(defaultValue = "2025") int toYear,
@@ -124,22 +119,15 @@ public class BackfillController {
         log.debug("triggerCustomBackfill() | query={}, fromYear={}, toYear={}, maxResults={}",
                   query, fromYear, toYear, maxResults);
 
-        LocalDate from = LocalDate.of(fromYear, 1, 1);
-        LocalDate to = LocalDate.of(toYear, 12, 31);
+        return asyncRunner.runAsync("pubmed-backfill", () -> {
+            LocalDate from = LocalDate.of(fromYear, 1, 1);
+            LocalDate to = LocalDate.of(toYear, 12, 31);
 
-        List<NewsArticle> articles = pubMedHarvester.harvest(query, from, to, maxResults);
-
-        if (!articles.isEmpty()) {
-            articleStoragePort.save(articles);
-        }
-
-        List<BackfillResultResponse.QueryResult> queryResults = new ArrayList<>();
-        queryResults.add(new BackfillResultResponse.QueryResult(query, articles.size()));
-
-        BackfillResultResponse response = new BackfillResultResponse(1, articles.size(), queryResults);
-
-        log.info("triggerCustomBackfill() | query '{}' yielded {} articles", query, articles.size());
-        log.debug("triggerCustomBackfill() | return={}", response);
-        return ResponseEntity.ok(response);
+            List<NewsArticle> articles = pubMedHarvester.harvest(query, from, to, maxResults);
+            if (!articles.isEmpty()) {
+                articleStoragePort.save(articles);
+            }
+            log.info("triggerCustomBackfill() | query '{}' yielded {} articles", query, articles.size());
+        });
     }
 }

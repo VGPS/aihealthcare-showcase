@@ -6,19 +6,25 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -34,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-09-08
  */
 @Import(SecurityConfig.class)
 @WithMockUser(roles = "ADMIN")
@@ -52,6 +58,23 @@ class WikiCompilationControllerTest {
 
     @MockBean
     private NewsArticleRepository articleRepository;
+
+    @MockBean
+    private PipelineAsyncRunner asyncRunner;
+
+    @BeforeEach
+    void setUpAsyncRunner() {
+        when(asyncRunner.runAsync(anyString(), any(Runnable.class)))
+                .thenAnswer(invocation -> {
+                    Runnable work = invocation.getArgument(1);
+                    work.run();
+                    Map<String, Object> accepted = new LinkedHashMap<>();
+                    accepted.put("started", true);
+                    accepted.put("pipelineId", invocation.getArgument(0));
+                    accepted.put("message", "Pipeline started in background.");
+                    return ResponseEntity.accepted().body(accepted);
+                });
+    }
 
     private static final Instant STARTED = Instant.parse("2026-07-04T10:00:00Z");
     private static final Instant COMPLETED = Instant.parse("2026-07-04T10:05:00Z");
@@ -80,10 +103,8 @@ class WikiCompilationControllerTest {
         when(compilationPort.compileNewSources(anyList())).thenReturn(report);
 
         mockMvc.perform(post("/monitoring/wiki/compile"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.articlesProcessed").value(1))
-                .andExpect(jsonPath("$.pagesCreated[0]").value("fda-ai-device"))
-                .andExpect(jsonPath("$.contradictionCount").value(0));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(compilationPort).compileNewSources(anyList());
     }
@@ -101,10 +122,8 @@ class WikiCompilationControllerTest {
         when(compilationPort.compileNewSources(anyList())).thenReturn(report);
 
         mockMvc.perform(post("/monitoring/wiki/compile"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.articlesProcessed").value(0))
-                .andExpect(jsonPath("$.pagesCreated").isEmpty())
-                .andExpect(jsonPath("$.warnings[0]").value("No actionable content in this batch"));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
     }
 
     @Test
@@ -123,9 +142,7 @@ class WikiCompilationControllerTest {
         when(compilationPort.compileNewSources(anyList())).thenReturn(report);
 
         mockMvc.perform(post("/monitoring/wiki/compile"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.contradictionCount").value(1))
-                .andExpect(jsonPath("$.pagesCreated[0]").value("fda-ai-guidance"))
-                .andExpect(jsonPath("$.pagesUpdated[0]").value("epic-ambient"));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
     }
 }

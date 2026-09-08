@@ -1,11 +1,10 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.domain.model.CompilationReport;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
-import com.wgblackmon.aihealthcare.web.dto.CompilationReportResponse;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +15,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller for manually triggering wiki compilation.
@@ -35,7 +35,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-09-08
  */
 @Slf4j
 @RestController
@@ -43,14 +43,18 @@ public class WikiCompilationController {
 
     private final KnowledgeCompilationPort compilationPort;
     private final NewsArticleRepository articleRepository;
+    private final PipelineAsyncRunner asyncRunner;
 
     public WikiCompilationController(KnowledgeCompilationPort compilationPort,
-                                      NewsArticleRepository articleRepository) {
-        log.debug("WikiCompilationController() | compilationPort={}, articleRepository={}",
+                                      NewsArticleRepository articleRepository,
+                                      PipelineAsyncRunner asyncRunner) {
+        log.debug("WikiCompilationController() | compilationPort={}, articleRepository={}, asyncRunner={}",
                 compilationPort.getClass().getSimpleName(),
-                articleRepository.getClass().getSimpleName());
+                articleRepository.getClass().getSimpleName(),
+                asyncRunner.getClass().getSimpleName());
         this.compilationPort = compilationPort;
         this.articleRepository = articleRepository;
+        this.asyncRunner = asyncRunner;
     }
 
     /**
@@ -59,23 +63,19 @@ public class WikiCompilationController {
      * @return compilation report with created/updated pages and contradiction count
      */
     @PostMapping("/monitoring/wiki/compile")
-    public ResponseEntity<CompilationReportResponse> triggerCompilation() {
+    public ResponseEntity<Map<String, Object>> triggerCompilation() {
         log.debug("triggerCompilation() | (no args)");
 
-        Instant since = Instant.now().minus(1, ChronoUnit.DAYS);
-        List<NewsArticleEntity> entities = articleRepository.findByCreatedAtAfterOrderByCreatedAtAsc(since);
-        List<NewsArticle> articles = new ArrayList<>();
-        for (NewsArticleEntity entity : entities) {
-            articles.add(mapToDomain(entity));
-        }
-
-        log.info("triggerCompilation() | found {} articles from last 1 day", articles.size());
-
-        CompilationReport report = compilationPort.compileNewSources(articles);
-        CompilationReportResponse response = CompilationReportResponse.from(report);
-
-        log.debug("triggerCompilation() | return={}", response);
-        return ResponseEntity.ok(response);
+        return asyncRunner.runAsync("wiki-compile", () -> {
+            Instant since = Instant.now().minus(1, ChronoUnit.DAYS);
+            List<NewsArticleEntity> entities = articleRepository.findByCreatedAtAfterOrderByCreatedAtAsc(since);
+            List<NewsArticle> articles = new ArrayList<>();
+            for (NewsArticleEntity entity : entities) {
+                articles.add(mapToDomain(entity));
+            }
+            log.info("triggerCompilation() | found {} articles from last 1 day", articles.size());
+            compilationPort.compileNewSources(articles);
+        });
     }
 
     private NewsArticle mapToDomain(NewsArticleEntity entity) {

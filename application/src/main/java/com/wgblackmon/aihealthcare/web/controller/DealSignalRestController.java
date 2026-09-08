@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.DealContext;
 import com.wgblackmon.aihealthcare.domain.model.DealSignal;
 import com.wgblackmon.aihealthcare.domain.model.DealSignalType;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectDealSignalsUseCase;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +26,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-06
+ * @updated 2026-09-08
  */
 @Slf4j
 @RestController
@@ -33,10 +34,15 @@ import java.util.Map;
 public class DealSignalRestController {
 
     private final DetectDealSignalsUseCase detectDealSignalsUseCase;
+    private final PipelineAsyncRunner asyncRunner;
 
-    public DealSignalRestController(DetectDealSignalsUseCase detectDealSignalsUseCase) {
-        log.debug("DealSignalRestController() | detectDealSignalsUseCase={}", detectDealSignalsUseCase.getClass().getSimpleName());
+    public DealSignalRestController(DetectDealSignalsUseCase detectDealSignalsUseCase,
+                                     PipelineAsyncRunner asyncRunner) {
+        log.debug("DealSignalRestController() | detectDealSignalsUseCase={}, asyncRunner={}",
+                  detectDealSignalsUseCase.getClass().getSimpleName(),
+                  asyncRunner.getClass().getSimpleName());
         this.detectDealSignalsUseCase = detectDealSignalsUseCase;
+        this.asyncRunner = asyncRunner;
     }
 
     @GetMapping
@@ -94,11 +100,9 @@ public class DealSignalRestController {
     }
 
     @PostMapping("/detect")
-    public ResponseEntity<?> triggerDetection() {
+    public ResponseEntity<Map<String, Object>> triggerDetection() {
         log.debug("triggerDetection()");
-        List<DealSignal> signals = detectDealSignalsUseCase.detectSignals();
-        log.debug("triggerDetection() | return={} signals", signals.size());
-        return ResponseEntity.ok(Map.of("detected", signals.size()));
+        return asyncRunner.runAsync("deal-signals", () -> detectDealSignalsUseCase.detectSignals());
     }
 
     private Map<String, Object> toMap(DealSignal signal) {

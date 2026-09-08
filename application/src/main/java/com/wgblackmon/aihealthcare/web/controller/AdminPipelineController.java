@@ -11,15 +11,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
-import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionSnapshot;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
-import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 
 import java.io.File;
@@ -50,7 +48,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 2.8
  * @since   2026-07-30
- * @updated 2026-09-07
+ * @updated 2026-09-08
  */
 @Slf4j
 @Controller
@@ -66,6 +64,7 @@ public class AdminPipelineController {
                     .withZone(ZoneId.of("America/Chicago"));
 
     private final PipelineHealthService healthService;
+    private final PipelineAsyncRunner asyncRunner;
     private final NewsletterGenerationScheduler newsletterScheduler;
     private final ProduceMarketDigestUseCase marketDigestService;
     private final DeliverNewsletterUseCase deliverUseCase;
@@ -73,14 +72,16 @@ public class AdminPipelineController {
     private final DetectTrendsUseCase detectTrendsUseCase;
 
     public AdminPipelineController(PipelineHealthService healthService,
+                                   PipelineAsyncRunner asyncRunner,
                                    NewsletterGenerationScheduler newsletterScheduler,
                                    ProduceMarketDigestUseCase marketDigestService,
                                    DeliverNewsletterUseCase deliverUseCase,
                                    PriceReactionService priceReactionService,
                                    DetectTrendsUseCase detectTrendsUseCase) {
-        log.debug("AdminPipelineController() | healthService={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}",
-                  healthService, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase);
+        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}",
+                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase);
         this.healthService = healthService;
+        this.asyncRunner = asyncRunner;
         this.newsletterScheduler = newsletterScheduler;
         this.marketDigestService = marketDigestService;
         this.deliverUseCase = deliverUseCase;
@@ -248,31 +249,7 @@ public class AdminPipelineController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> generateAndSendNewsletter() {
         log.debug("generateAndSendNewsletter()");
-
-        Instant start = Instant.now();
-        try {
-            newsletterScheduler.runWeeklyDraftGeneration();
-
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "SUCCESS");
-            result.put("message", "Newsletter generated and sent");
-            result.put("durationMs", durationMs);
-
-            log.info("generateAndSendNewsletter() | Newsletter pipeline completed in {}ms", durationMs);
-            log.debug("generateAndSendNewsletter() | return={}", result);
-            return ResponseEntity.ok(result);
-        } catch (Exception ex) {
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "FAILED");
-            result.put("message", ex.getMessage());
-            result.put("durationMs", durationMs);
-
-            log.error("generateAndSendNewsletter() | Pipeline failed: {}", ex.getMessage(), ex);
-            log.debug("generateAndSendNewsletter() | return={}", result);
-            return ResponseEntity.internalServerError().body(result);
-        }
+        return asyncRunner.runAsync("newsletter-send", () -> newsletterScheduler.runWeeklyDraftGeneration());
     }
 
     /**
@@ -286,32 +263,7 @@ public class AdminPipelineController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> sendDigest() {
         log.debug("sendDigest()");
-
-        Instant start = Instant.now();
-        try {
-            int recipientCount = deliverUseCase.deliverDigest();
-
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "SUCCESS");
-            result.put("message", "Digest sent to " + recipientCount + " free subscribers");
-            result.put("recipientCount", recipientCount);
-            result.put("durationMs", durationMs);
-
-            log.info("sendDigest() | Digest pipeline completed in {}ms, recipients={}", durationMs, recipientCount);
-            log.debug("sendDigest() | return={}", result);
-            return ResponseEntity.ok(result);
-        } catch (Exception ex) {
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "FAILED");
-            result.put("message", ex.getMessage());
-            result.put("durationMs", durationMs);
-
-            log.error("sendDigest() | Pipeline failed: {}", ex.getMessage(), ex);
-            log.debug("sendDigest() | return={}", result);
-            return ResponseEntity.internalServerError().body(result);
-        }
+        return asyncRunner.runAsync("digest-send", () -> deliverUseCase.deliverDigest());
     }
 
     /**
@@ -324,35 +276,7 @@ public class AdminPipelineController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> generateMarketDigest() {
         log.debug("generateMarketDigest()");
-
-        Instant start = Instant.now();
-        try {
-            MarketDigest digest = marketDigestService.generateDailyDigest(LocalDate.now());
-
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "SUCCESS");
-            result.put("message", "Market digest generated for " + digest.date()
-                    + " with " + digest.entries().size() + " entries");
-            result.put("entryCount", digest.entries().size());
-            result.put("date", digest.date().toString());
-            result.put("durationMs", durationMs);
-
-            log.info("generateMarketDigest() | digest generated: date={}, entries={}",
-                    digest.date(), digest.entries().size());
-            log.debug("generateMarketDigest() | return={}", result);
-            return ResponseEntity.ok(result);
-        } catch (Exception ex) {
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "FAILED");
-            result.put("message", ex.getMessage());
-            result.put("durationMs", durationMs);
-
-            log.error("generateMarketDigest() | pipeline failed: {}", ex.getMessage(), ex);
-            log.debug("generateMarketDigest() | return={}", result);
-            return ResponseEntity.internalServerError().body(result);
-        }
+        return asyncRunner.runAsync("market-digest", () -> marketDigestService.generateDailyDigest(LocalDate.now()));
     }
 
     /**
@@ -366,32 +290,7 @@ public class AdminPipelineController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> captureMarketPriceReactions() {
         log.debug("captureMarketPriceReactions()");
-
-        Instant start = Instant.now();
-        try {
-            List<PriceReactionSnapshot> captured = priceReactionService.capturePendingReactions(start);
-
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "SUCCESS");
-            result.put("message", "Captured " + captured.size() + " price-reaction snapshot(s)");
-            result.put("snapshotCount", captured.size());
-            result.put("durationMs", durationMs);
-
-            log.info("captureMarketPriceReactions() | captured={}", captured.size());
-            log.debug("captureMarketPriceReactions() | return={}", result);
-            return ResponseEntity.ok(result);
-        } catch (Exception ex) {
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "FAILED");
-            result.put("message", ex.getMessage());
-            result.put("durationMs", durationMs);
-
-            log.error("captureMarketPriceReactions() | failed: {}", ex.getMessage(), ex);
-            log.debug("captureMarketPriceReactions() | return={}", result);
-            return ResponseEntity.internalServerError().body(result);
-        }
+        return asyncRunner.runAsync("price-reaction-capture", () -> priceReactionService.capturePendingReactions(Instant.now()));
     }
 
     /**
@@ -406,39 +305,7 @@ public class AdminPipelineController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> runTrendDetection() {
         log.debug("runTrendDetection()");
-
-        Instant start = Instant.now();
-        try {
-            TrendSnapshot snapshot = detectTrendsUseCase.detectTrends();
-
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "SUCCESS");
-            result.put("message", "Trend detection complete: " + snapshot.risingTopics().size()
-                    + " rising, " + snapshot.fadingTopics().size() + " fading, "
-                    + snapshot.newTopics().size() + " new signals");
-            result.put("risingCount", snapshot.risingTopics().size());
-            result.put("fadingCount", snapshot.fadingTopics().size());
-            result.put("newCount", snapshot.newTopics().size());
-            result.put("totalKeywords", snapshot.totalKeywords());
-            result.put("durationMs", durationMs);
-
-            log.info("runTrendDetection() | rising={}, fading={}, new={}, durationMs={}",
-                     snapshot.risingTopics().size(), snapshot.fadingTopics().size(),
-                     snapshot.newTopics().size(), durationMs);
-            log.debug("runTrendDetection() | return={}", result);
-            return ResponseEntity.ok(result);
-        } catch (Exception ex) {
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "FAILED");
-            result.put("message", ex.getMessage());
-            result.put("durationMs", durationMs);
-
-            log.error("runTrendDetection() | pipeline failed: {}", ex.getMessage(), ex);
-            log.debug("runTrendDetection() | return={}", result);
-            return ResponseEntity.internalServerError().body(result);
-        }
+        return asyncRunner.runAsync("trend-detection", () -> detectTrendsUseCase.detectTrends());
     }
 
     /**
@@ -467,7 +334,6 @@ public class AdminPipelineController {
     public ResponseEntity<Map<String, Object>> syncNotebookLm() {
         log.debug("syncNotebookLm()");
 
-        Instant start = Instant.now();
         Path keyPath = Paths.get("C:/workspaces/SpringAIClaude/N_VaKeyPair.pem");
 
         if (!Files.exists(keyPath)) {
@@ -475,73 +341,51 @@ public class AdminPipelineController {
             result.put("status", "FAILED");
             result.put("message", "EC2 PEM key not found at " + keyPath
                     + " — this pipeline only works on the local dev machine, not EC2.");
-            result.put("durationMs", 0L);
             log.warn("syncNotebookLm() | key not found: {}", keyPath);
             log.debug("syncNotebookLm() | return=503");
             return ResponseEntity.status(503).body(result);
         }
 
-        String key     = keyPath.toString();
-        String ip      = "100.61.13.237";
-        String ssh     = "C:/Windows/System32/OpenSSH/ssh.exe";
-        String scp     = "C:/Windows/System32/OpenSSH/scp.exe";
-        String tmpTar  = System.getProperty("java.io.tmpdir").replace('\\', '/') + "/notebooklm_full.tar.gz";
+        String key      = keyPath.toString();
+        String ip       = "100.61.13.237";
+        String ssh      = "C:/Windows/System32/OpenSSH/ssh.exe";
+        String scp      = "C:/Windows/System32/OpenSSH/scp.exe";
+        String tmpTar   = System.getProperty("java.io.tmpdir").replace('\\', '/') + "/notebooklm_full.tar.gz";
         String localDir = "NotebookLMDirectory";
 
-        try {
-            int articlesBefore  = countFiles(localDir, ".txt");
-            int summariesBefore = countFiles(localDir + "/summaries", null);
+        return asyncRunner.runAsync("notebooklm-sync", () -> {
+            try {
+                int articlesBefore  = countFiles(localDir, ".txt");
+                int summariesBefore = countFiles(localDir + "/summaries", null);
 
-            // Step 1 — create tar on EC2 (articles + summaries)
-            log.info("syncNotebookLm() | step 1: creating EC2 tar");
-            runProcess(ssh, "-i", key, "-o", "StrictHostKeyChecking=no",
-                    "ec2-user@" + ip,
-                    "cd /opt/aihealthcare/NotebookLMDirectory && tar -czf /tmp/notebooklm_full.tar.gz *.txt summaries/");
+                // Step 1 — create tar on EC2 (articles + summaries)
+                log.info("syncNotebookLm() | step 1: creating EC2 tar");
+                runProcess(ssh, "-i", key, "-o", "StrictHostKeyChecking=no",
+                        "ec2-user@" + ip,
+                        "cd /opt/aihealthcare/NotebookLMDirectory && tar -czf /tmp/notebooklm_full.tar.gz *.txt summaries/");
 
-            // Step 2 — download tar
-            log.info("syncNotebookLm() | step 2: downloading tar from EC2");
-            runProcess(scp, "-i", key, "-o", "StrictHostKeyChecking=no",
-                    "ec2-user@" + ip + ":/tmp/notebooklm_full.tar.gz", tmpTar);
+                // Step 2 — download tar
+                log.info("syncNotebookLm() | step 2: downloading tar from EC2");
+                runProcess(scp, "-i", key, "-o", "StrictHostKeyChecking=no",
+                        "ec2-user@" + ip + ":/tmp/notebooklm_full.tar.gz", tmpTar);
 
-            // Step 3 — extract locally, never overwriting existing files
-            log.info("syncNotebookLm() | step 3: extracting to {}", localDir);
-            runProcess("tar", "-xzf", tmpTar, "-C", localDir, "--keep-old-files");
+                // Step 3 — extract locally, never overwriting existing files
+                log.info("syncNotebookLm() | step 3: extracting to {}", localDir);
+                runProcess("tar", "-xzf", tmpTar, "-C", localDir, "--keep-old-files");
 
-            // Step 4 — cleanup
-            Files.deleteIfExists(Paths.get(tmpTar));
-            runProcess(ssh, "-i", key, "-o", "StrictHostKeyChecking=no",
-                    "ec2-user@" + ip, "rm -f /tmp/notebooklm_full.tar.gz");
+                // Step 4 — cleanup
+                Files.deleteIfExists(Paths.get(tmpTar));
+                runProcess(ssh, "-i", key, "-o", "StrictHostKeyChecking=no",
+                        "ec2-user@" + ip, "rm -f /tmp/notebooklm_full.tar.gz");
 
-            int articlesAfter  = countFiles(localDir, ".txt");
-            int summariesAfter = countFiles(localDir + "/summaries", null);
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "SUCCESS");
-            result.put("message", "Synced +" + (articlesAfter - articlesBefore) + " article files, +"
-                    + (summariesAfter - summariesBefore) + " summary files ("
-                    + articlesAfter + " articles and " + summariesAfter + " summaries total locally)");
-            result.put("articlesBefore",  articlesBefore);
-            result.put("articlesAfter",   articlesAfter);
-            result.put("summariesBefore", summariesBefore);
-            result.put("summariesAfter",  summariesAfter);
-            result.put("durationMs", durationMs);
-
-            log.info("syncNotebookLm() | complete: +{} articles, +{} summaries in {}ms",
-                    articlesAfter - articlesBefore, summariesAfter - summariesBefore, durationMs);
-            log.debug("syncNotebookLm() | return={}", result);
-            return ResponseEntity.ok(result);
-
-        } catch (Exception ex) {
-            long durationMs = Instant.now().toEpochMilli() - start.toEpochMilli();
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("status", "FAILED");
-            result.put("message", ex.getMessage());
-            result.put("durationMs", durationMs);
-            log.error("syncNotebookLm() | sync failed: {}", ex.getMessage(), ex);
-            log.debug("syncNotebookLm() | return=error");
-            return ResponseEntity.internalServerError().body(result);
-        }
+                int articlesAfter  = countFiles(localDir, ".txt");
+                int summariesAfter = countFiles(localDir + "/summaries", null);
+                log.info("syncNotebookLm() | complete: +{} articles, +{} summaries",
+                        articlesAfter - articlesBefore, summariesAfter - summariesBefore);
+            } catch (Exception ex) {
+                throw new RuntimeException("NotebookLM sync failed: " + ex.getMessage(), ex);
+            }
+        });
     }
 
     /**
