@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorClinicalTrialsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -39,7 +40,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-23
- * @updated 2026-08-02
+ * @updated 2026-09-08
  */
 @Slf4j
 @Controller
@@ -54,13 +55,16 @@ public class ClinicalTrialController {
 
     private final MonitorClinicalTrialsUseCase clinicalTrialsUseCase;
     private final SubscriberPort subscriberPort;
+    private final PipelineAsyncRunner asyncRunner;
 
     public ClinicalTrialController(MonitorClinicalTrialsUseCase clinicalTrialsUseCase,
-                                    SubscriberPort subscriberPort) {
-        log.debug("ClinicalTrialController() | clinicalTrialsUseCase={}, subscriberPort={}",
-                  clinicalTrialsUseCase, subscriberPort);
+                                    SubscriberPort subscriberPort,
+                                    PipelineAsyncRunner asyncRunner) {
+        log.debug("ClinicalTrialController() | clinicalTrialsUseCase={}, subscriberPort={}, asyncRunner={}",
+                  clinicalTrialsUseCase, subscriberPort, asyncRunner);
         this.clinicalTrialsUseCase = clinicalTrialsUseCase;
         this.subscriberPort = subscriberPort;
+        this.asyncRunner = asyncRunner;
     }
 
     /**
@@ -197,11 +201,7 @@ public class ClinicalTrialController {
     @PostMapping("/monitoring/clinical-trials-harvest")
     public String triggerHarvest() {
         log.debug("triggerHarvest()");
-
-        int newCount = clinicalTrialsUseCase.triggerHarvest();
-        log.info("triggerHarvest() | harvested {} new trials", newCount);
-
-        log.debug("triggerHarvest() | return=redirect");
+        asyncRunner.runAsync("clinical-trials", () -> clinicalTrialsUseCase.triggerHarvest());
         return "redirect:/dashboard/clinical-trials";
     }
 

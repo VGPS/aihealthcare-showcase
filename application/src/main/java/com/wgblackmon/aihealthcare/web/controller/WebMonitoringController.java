@@ -16,6 +16,7 @@ import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryServ
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.StartupPipelineOrchestrator;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
@@ -24,8 +25,6 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashRepository;
-import com.wgblackmon.aihealthcare.web.dto.HarvestResultResponse;
-import com.wgblackmon.aihealthcare.web.dto.HuggingFaceHarvestResponse;
 import com.wgblackmon.aihealthcare.web.dto.PageHashResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +51,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-04-19
- * @updated 2026-08-23
+ * @updated 2026-09-08
  */
 @Slf4j
 @RestController
@@ -75,6 +74,7 @@ public class WebMonitoringController {
     private final AnalyzeCompanySentimentUseCase sentimentUseCase;
     private final ResearchHarvestScheduler researchHarvestScheduler;
     private final StartupPipelineOrchestrator pipelineOrchestrator;
+    private final PipelineAsyncRunner asyncRunner;
 
     public WebMonitoringController(WebPageHarvester webPageHarvester,
                                    HuggingFaceHarvester huggingFaceHarvester,
@@ -92,7 +92,8 @@ public class WebMonitoringController {
                                    AnalyzeCompanySentimentUseCase sentimentUseCase,
                                    ResearchHarvestScheduler researchHarvestScheduler,
                                    @org.springframework.beans.factory.annotation.Autowired(required = false)
-                                   StartupPipelineOrchestrator pipelineOrchestrator) {
+                                   StartupPipelineOrchestrator pipelineOrchestrator,
+                                   PipelineAsyncRunner asyncRunner) {
         log.debug("WebMonitoringController() | webPageHarvester={}, huggingFaceHarvester={}, " +
                   "articleStoragePort={}, hashRepository={}",
                   webPageHarvester.getClass().getSimpleName(),
@@ -115,6 +116,7 @@ public class WebMonitoringController {
         this.sentimentUseCase = sentimentUseCase;
         this.researchHarvestScheduler = researchHarvestScheduler;
         this.pipelineOrchestrator = pipelineOrchestrator;
+        this.asyncRunner = asyncRunner;
     }
 
     /**
@@ -123,22 +125,16 @@ public class WebMonitoringController {
      * @return harvest result with page count and changes detected
      */
     @PostMapping("/harvest")
-    public ResponseEntity<HarvestResultResponse> triggerCompetitorHarvest() {
+    public ResponseEntity<Map<String, Object>> triggerCompetitorHarvest() {
         log.debug("triggerCompetitorHarvest() | (no args)");
-
-        List<NewsArticle> changed = webPageHarvester.harvestChangedPages();
-        if (!changed.isEmpty()) {
-            articleStoragePort.save(changed);
-        }
-
-        int totalPages = (int) hashRepository.count() + changed.size();
-        HarvestResultResponse response = new HarvestResultResponse(
-                Math.max(totalPages, changed.size()), changed.size());
-
-        log.info("triggerCompetitorHarvest() | checked pages, {} changes detected",
-                 changed.size());
-        log.debug("triggerCompetitorHarvest() | return={}", response);
-        return ResponseEntity.ok(response);
+        return asyncRunner.runAsync("competitor", () -> {
+            List<NewsArticle> changed = webPageHarvester.harvestChangedPages();
+            if (!changed.isEmpty()) {
+                articleStoragePort.save(changed);
+            }
+            log.info("triggerCompetitorHarvest() | checked pages, {} changes detected",
+                     changed.size());
+        });
     }
 
     /**
@@ -147,19 +143,15 @@ public class WebMonitoringController {
      * @return harvest result with number of models discovered
      */
     @PostMapping("/huggingface")
-    public ResponseEntity<HuggingFaceHarvestResponse> triggerHuggingFaceHarvest() {
+    public ResponseEntity<Map<String, Object>> triggerHuggingFaceHarvest() {
         log.debug("triggerHuggingFaceHarvest() | (no args)");
-
-        List<NewsArticle> models = huggingFaceHarvester.harvestModels();
-        if (!models.isEmpty()) {
-            articleStoragePort.save(models);
-        }
-
-        HuggingFaceHarvestResponse response = new HuggingFaceHarvestResponse(models.size());
-
-        log.info("triggerHuggingFaceHarvest() | {} models discovered", models.size());
-        log.debug("triggerHuggingFaceHarvest() | return={}", response);
-        return ResponseEntity.ok(response);
+        return asyncRunner.runAsync("huggingface", () -> {
+            List<NewsArticle> models = huggingFaceHarvester.harvestModels();
+            if (!models.isEmpty()) {
+                articleStoragePort.save(models);
+            }
+            log.info("triggerHuggingFaceHarvest() | {} models discovered", models.size());
+        });
     }
 
     /**
@@ -170,12 +162,7 @@ public class WebMonitoringController {
     @PostMapping("/research-harvest")
     public ResponseEntity<Map<String, Object>> triggerResearchHarvest() {
         log.debug("triggerResearchHarvest() | (no args)");
-        researchHarvestScheduler.harvestResearchTopics();
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("status", "complete");
-        result.put("message", "Research harvest completed for all configured topics");
-        log.debug("triggerResearchHarvest() | return={}", result);
-        return ResponseEntity.ok(result);
+        return asyncRunner.runAsync("research-harvest", () -> researchHarvestScheduler.harvestResearchTopics());
     }
 
     /**
@@ -184,18 +171,15 @@ public class WebMonitoringController {
      * @return harvest result with total article count saved
      */
     @PostMapping("/feeds")
-    public ResponseEntity<HarvestResultResponse> triggerFeedHarvest() {
+    public ResponseEntity<Map<String, Object>> triggerFeedHarvest() {
         log.debug("triggerFeedHarvest() | (no args)");
-
-        List<NewsArticle> all = articleHarvestingPort.harvestAll();
-        if (!all.isEmpty()) {
-            articleStoragePort.save(all);
-        }
-
-        HarvestResultResponse response = new HarvestResultResponse(all.size(), all.size());
-        log.info("triggerFeedHarvest() | harvested and saved {} articles", all.size());
-        log.debug("triggerFeedHarvest() | return={}", response);
-        return ResponseEntity.ok(response);
+        return asyncRunner.runAsync("rss-feeds", () -> {
+            List<NewsArticle> all = articleHarvestingPort.harvestAll();
+            if (!all.isEmpty()) {
+                articleStoragePort.save(all);
+            }
+            log.info("triggerFeedHarvest() | harvested and saved {} articles", all.size());
+        });
     }
 
     /**
@@ -204,16 +188,10 @@ public class WebMonitoringController {
      * @return simple text confirmation
      */
     @PostMapping("/summaries")
-    public ResponseEntity<String> triggerTopicSummaries() {
+    public ResponseEntity<Map<String, Object>> triggerTopicSummaries() {
         log.debug("triggerTopicSummaries() | (no args)");
-
         List<String> topics = newsTopicProperties.getTopics();
-        topicSummaryService.generateSummaries(topics);
-
-        String result = "Generated summaries for " + topics.size() + " topics";
-        log.info("triggerTopicSummaries() | {}", result);
-        log.debug("triggerTopicSummaries() | return={}", result);
-        return ResponseEntity.ok(result);
+        return asyncRunner.runAsync("topic-summaries", () -> topicSummaryService.generateSummaries(topics));
     }
 
     /**
@@ -226,15 +204,9 @@ public class WebMonitoringController {
      * @return simple text confirmation with the result
      */
     @PostMapping("/embeddings")
-    public ResponseEntity<String> triggerEmbedding() {
+    public ResponseEntity<Map<String, Object>> triggerEmbedding() {
         log.debug("triggerEmbedding() | (no args)");
-
-        embeddingScheduler.embedArticles();
-
-        String result = "Embedding run completed";
-        log.info("triggerEmbedding() | {}", result);
-        log.debug("triggerEmbedding() | return={}", result);
-        return ResponseEntity.ok(result);
+        return asyncRunner.runAsync("embedding", () -> embeddingScheduler.embedArticles());
     }
 
     /**
@@ -245,14 +217,10 @@ public class WebMonitoringController {
     @PostMapping("/company-discovery")
     public ResponseEntity<Map<String, Object>> triggerCompanyDiscovery() {
         log.debug("triggerCompanyDiscovery() | (no args)");
-
-        int persisted = companyDiscoveryService.runDiscoveryCycle();
-
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("companiesDiscovered", persisted);
-        log.info("triggerCompanyDiscovery() | {} new companies persisted", persisted);
-        log.debug("triggerCompanyDiscovery() | return={}", result);
-        return ResponseEntity.ok(result);
+        return asyncRunner.runAsync("company-discovery", () -> {
+            int persisted = companyDiscoveryService.runDiscoveryCycle();
+            log.info("triggerCompanyDiscovery() | {} new companies persisted", persisted);
+        });
     }
 
     /**
@@ -271,139 +239,130 @@ public class WebMonitoringController {
     @PostMapping("/sentiment-pipeline")
     public ResponseEntity<Map<String, Object>> triggerSentimentPipeline() {
         log.debug("triggerSentimentPipeline() | (no args)");
+        return asyncRunner.runAsync("sentiment-pipeline", () -> {
+            int profilesCreated = 0;
+            int profilesUpdated = 0;
 
-        int profilesCreated = 0;
-        int profilesUpdated = 0;
+            // 1. Anchor companies — major AI healthcare players with dedicated topic feeds
+            String[][] anchors = {
+                    {"Anthropic", "Anthropic Healthcare", "https://www.anthropic.com"},
+                    {"OpenAI", "OpenAI Healthcare", "https://openai.com"},
+                    {"Google", "Google Healthcare", "https://health.google"},
+                    {"Amazon Web Services", "Amazon Connect Health", "https://aws.amazon.com/health/"}
+            };
 
-        // 1. Anchor companies — major AI healthcare players with dedicated topic feeds
-        String[][] anchors = {
-                {"Anthropic", "Anthropic Healthcare", "https://www.anthropic.com"},
-                {"OpenAI", "OpenAI Healthcare", "https://openai.com"},
-                {"Google", "Google Healthcare", "https://health.google"},
-                {"Amazon Web Services", "Amazon Connect Health", "https://aws.amazon.com/health/"}
-        };
+            for (String[] anchor : anchors) {
+                String name = anchor[0];
+                String topic = anchor[1];
+                String url = anchor[2];
+                String slug = companyProfileService.toSlug(name);
 
-        for (String[] anchor : anchors) {
-            String name = anchor[0];
-            String topic = anchor[1];
-            String url = anchor[2];
-            String slug = companyProfileService.toSlug(name);
-
-            Optional<CompanyProfile> existing = companyProfilePort.findBySlug(slug);
-
-            // Collect article IDs from topic feed + title mentions
-            List<String> articleIds = new ArrayList<>();
-            List<NewsArticleEntity> topicArticles =
-                    newsArticleRepository.findByTopicContainingIgnoreCase(topic);
-            for (NewsArticleEntity entity : topicArticles) {
-                if (!articleIds.contains(entity.getArticleId())) {
-                    articleIds.add(entity.getArticleId());
-                }
-            }
-            List<NewsArticleEntity> titleArticles =
-                    newsArticleRepository.findRealArticlesByCompanyName(name);
-            for (NewsArticleEntity entity : titleArticles) {
-                if (!articleIds.contains(entity.getArticleId())) {
-                    articleIds.add(entity.getArticleId());
-                }
-            }
-
-            Instant now = Instant.now();
-            Instant firstSeen = existing.isPresent()
-                    ? existing.get().firstDiscoveredAt()
-                    : now.minus(java.time.Duration.ofDays(30));
-
-            CompanyProfile profile = new CompanyProfile(
-                    slug, name, url,
-                    name + " healthcare AI framework and platform",
-                    List.of("platform", "framework"),
-                    articleIds, firstSeen, now,
-                    articleIds.size(), TrendDirection.RISING);
-            companyProfilePort.save(profile);
-
-            if (existing.isPresent()) {
-                profilesUpdated++;
-            } else {
-                profilesCreated++;
-            }
-            log.info("triggerSentimentPipeline() | anchor {} — {} articles from topic + title match",
-                     name, articleIds.size());
-        }
-
-        // 2. Discover startup companies via scraping pipeline
-        int companiesFound = 0;
-        try {
-            CompanyDiscoveryResult discoveryResult = discoverCompaniesUseCase.discover();
-            companiesFound = discoveryResult.companies().size();
-            log.info("triggerSentimentPipeline() | discovered {} startup companies", companiesFound);
-
-            for (Company company : discoveryResult.companies()) {
-                String slug = companyProfileService.toSlug(company.name());
                 Optional<CompanyProfile> existing = companyProfilePort.findBySlug(slug);
 
-                String articleId = "company-" + slug;
-                NewsArticle syntheticArticle = new NewsArticle(
-                        articleId, company.name(),
-                        URI.create(company.url() != null ? company.url() : "https://example.com"),
-                        company.description(), "New AI Healthcare Companies",
-                        null, null, company.source(), "INDUSTRY", 0.5, Instant.now());
-                List<NewsArticle> relatedArticles = new ArrayList<>();
-                relatedArticles.add(syntheticArticle);
-
-                CompanyProfile profile = companyProfileService.upsertFromDiscovery(
-                        company, relatedArticles, existing.orElse(null));
-
-                // Enrich with real article IDs by title and topic
-                List<String> enrichedIds = new ArrayList<>(profile.articleIds());
-                List<NewsArticleEntity> realArticles =
-                        newsArticleRepository.findRealArticlesByCompanyName(company.name());
-                for (NewsArticleEntity entity : realArticles) {
-                    if (!enrichedIds.contains(entity.getArticleId())) {
-                        enrichedIds.add(entity.getArticleId());
-                    }
-                }
+                // Collect article IDs from topic feed + title mentions
+                List<String> articleIds = new ArrayList<>();
                 List<NewsArticleEntity> topicArticles =
-                        newsArticleRepository.findByTopicContainingIgnoreCase(company.name());
+                        newsArticleRepository.findByTopicContainingIgnoreCase(topic);
                 for (NewsArticleEntity entity : topicArticles) {
-                    if (!enrichedIds.contains(entity.getArticleId())) {
-                        enrichedIds.add(entity.getArticleId());
+                    if (!articleIds.contains(entity.getArticleId())) {
+                        articleIds.add(entity.getArticleId());
+                    }
+                }
+                List<NewsArticleEntity> titleArticles =
+                        newsArticleRepository.findRealArticlesByCompanyName(name);
+                for (NewsArticleEntity entity : titleArticles) {
+                    if (!articleIds.contains(entity.getArticleId())) {
+                        articleIds.add(entity.getArticleId());
                     }
                 }
 
-                CompanyProfile enrichedProfile = new CompanyProfile(
-                        profile.slug(), profile.name(), profile.url(),
-                        profile.description(), profile.categories(), enrichedIds,
-                        profile.firstDiscoveredAt(), profile.lastUpdatedAt(),
-                        enrichedIds.size(), profile.trendDirection());
-                companyProfilePort.save(enrichedProfile);
+                Instant now = Instant.now();
+                Instant firstSeen = existing.isPresent()
+                        ? existing.get().firstDiscoveredAt()
+                        : now.minus(java.time.Duration.ofDays(30));
+
+                CompanyProfile profile = new CompanyProfile(
+                        slug, name, url,
+                        name + " healthcare AI framework and platform",
+                        List.of("platform", "framework"),
+                        articleIds, firstSeen, now,
+                        articleIds.size(), TrendDirection.RISING);
+                companyProfilePort.save(profile);
 
                 if (existing.isPresent()) {
                     profilesUpdated++;
                 } else {
                     profilesCreated++;
                 }
+                log.info("triggerSentimentPipeline() | anchor {} — {} articles from topic + title match",
+                         name, articleIds.size());
             }
-        } catch (Exception e) {
-            log.warn("triggerSentimentPipeline() | startup discovery failed, continuing with anchors", e);
-        }
 
-        log.info("triggerSentimentPipeline() | profiles created={}, updated={}",
-                 profilesCreated, profilesUpdated);
+            // 2. Discover startup companies via scraping pipeline
+            int companiesFound = 0;
+            try {
+                CompanyDiscoveryResult discoveryResult = discoverCompaniesUseCase.discover();
+                companiesFound = discoveryResult.companies().size();
+                log.info("triggerSentimentPipeline() | discovered {} startup companies", companiesFound);
 
-        // 3. Run sentiment analysis on all profiles
-        List<CompanySentiment> sentiments = sentimentUseCase.analyzeAll();
-        log.info("triggerSentimentPipeline() | sentiment analysis complete, {} companies scored",
-                 sentiments.size());
+                for (Company company : discoveryResult.companies()) {
+                    String slug = companyProfileService.toSlug(company.name());
+                    Optional<CompanyProfile> existing = companyProfilePort.findBySlug(slug);
 
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("anchorCompanies", anchors.length);
-        result.put("startupsDiscovered", companiesFound);
-        result.put("profilesCreated", profilesCreated);
-        result.put("profilesUpdated", profilesUpdated);
-        result.put("sentimentsAnalyzed", sentiments.size());
+                    String articleId = "company-" + slug;
+                    NewsArticle syntheticArticle = new NewsArticle(
+                            articleId, company.name(),
+                            URI.create(company.url() != null ? company.url() : "https://example.com"),
+                            company.description(), "New AI Healthcare Companies",
+                            null, null, company.source(), "INDUSTRY", 0.5, Instant.now());
+                    List<NewsArticle> relatedArticles = new ArrayList<>();
+                    relatedArticles.add(syntheticArticle);
 
-        log.debug("triggerSentimentPipeline() | return={}", result);
-        return ResponseEntity.ok(result);
+                    CompanyProfile profile = companyProfileService.upsertFromDiscovery(
+                            company, relatedArticles, existing.orElse(null));
+
+                    // Enrich with real article IDs by title and topic
+                    List<String> enrichedIds = new ArrayList<>(profile.articleIds());
+                    List<NewsArticleEntity> realArticles =
+                            newsArticleRepository.findRealArticlesByCompanyName(company.name());
+                    for (NewsArticleEntity entity : realArticles) {
+                        if (!enrichedIds.contains(entity.getArticleId())) {
+                            enrichedIds.add(entity.getArticleId());
+                        }
+                    }
+                    List<NewsArticleEntity> topicArticles =
+                            newsArticleRepository.findByTopicContainingIgnoreCase(company.name());
+                    for (NewsArticleEntity entity : topicArticles) {
+                        if (!enrichedIds.contains(entity.getArticleId())) {
+                            enrichedIds.add(entity.getArticleId());
+                        }
+                    }
+
+                    CompanyProfile enrichedProfile = new CompanyProfile(
+                            profile.slug(), profile.name(), profile.url(),
+                            profile.description(), profile.categories(), enrichedIds,
+                            profile.firstDiscoveredAt(), profile.lastUpdatedAt(),
+                            enrichedIds.size(), profile.trendDirection());
+                    companyProfilePort.save(enrichedProfile);
+
+                    if (existing.isPresent()) {
+                        profilesUpdated++;
+                    } else {
+                        profilesCreated++;
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("triggerSentimentPipeline() | startup discovery failed, continuing with anchors", e);
+            }
+
+            log.info("triggerSentimentPipeline() | profiles created={}, updated={}",
+                     profilesCreated, profilesUpdated);
+
+            // 3. Run sentiment analysis on all profiles
+            List<CompanySentiment> sentiments = sentimentUseCase.analyzeAll();
+            log.info("triggerSentimentPipeline() | sentiment analysis complete, {} companies scored",
+                     sentiments.size());
+        });
     }
 
     /**

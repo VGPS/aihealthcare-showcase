@@ -666,7 +666,14 @@ function triggerPipeline(btn) {
             var durationMs = Date.now() - startTime;
             cardEl.classList.remove('border-blue-300');
 
-            if (resp.ok) {
+            if (resp.status === 202) {
+                btn.textContent = 'Started';
+                cardEl.classList.add('border-green-300');
+                statusEl.className = 'text-xs text-green-700 font-semibold';
+                statusEl.textContent = 'Running in background — refresh page for results';
+                if (!batchRunning) { setAllButtonsDisabled(false); }
+                return Promise.resolve('ASYNC');
+            } else if (resp.ok) {
                 btn.textContent = 'Done';
                 cardEl.classList.add('border-green-300');
                 statusEl.className = 'text-xs text-green-700 font-semibold';

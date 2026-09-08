@@ -1,14 +1,13 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.legal.LegalBackfillService;
-import com.wgblackmon.aihealthcare.infrastructure.ingestion.legal.LegalBackfillService.BackfillResult;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -26,7 +25,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-30
- * @updated 2026-07-30
+ * @updated 2026-09-08
  */
 @Slf4j
 @RestController
@@ -35,10 +34,14 @@ public class LegalBackfillController {
     private static final int DEFAULT_LOOKBACK_DAYS = 1095;
 
     private final LegalBackfillService legalBackfillService;
+    private final PipelineAsyncRunner asyncRunner;
 
-    public LegalBackfillController(LegalBackfillService legalBackfillService) {
-        log.debug("LegalBackfillController() | legalBackfillService={}", legalBackfillService);
+    public LegalBackfillController(LegalBackfillService legalBackfillService,
+                                    PipelineAsyncRunner asyncRunner) {
+        log.debug("LegalBackfillController() | legalBackfillService={}, asyncRunner={}",
+                  legalBackfillService, asyncRunner);
         this.legalBackfillService = legalBackfillService;
+        this.asyncRunner = asyncRunner;
     }
 
     /**
@@ -52,21 +55,6 @@ public class LegalBackfillController {
             @RequestParam(defaultValue = "1095") int days) {
         log.debug("triggerBackfill() | days={}", days);
 
-        BackfillResult result = legalBackfillService.runBackfill(days);
-
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("status", "Backfill completed");
-        response.put("lookbackDays", days);
-        response.put("courtListenerCount", result.courtListenerCount());
-        response.put("pubmedCount", result.pubmedCount());
-        response.put("regulatoryCount", result.regulatoryCount());
-        response.put("totalCount", result.courtListenerCount() + result.pubmedCount() + result.regulatoryCount());
-        if (!result.errors().isEmpty()) {
-            response.put("errors", result.errors());
-        }
-
-        log.info("triggerBackfill() | backfill completed: {}", response);
-        log.debug("triggerBackfill() | return={}", response);
-        return ResponseEntity.ok(response);
+        return asyncRunner.runAsync("legal-backfill", () -> legalBackfillService.runBackfill(days));
     }
 }

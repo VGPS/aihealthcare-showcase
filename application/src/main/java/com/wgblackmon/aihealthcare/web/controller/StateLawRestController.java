@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.model.LawStatus;
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageStateLawsUseCase;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,7 +37,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-06
- * @updated 2026-09-07
+ * @updated 2026-09-08
  */
 @Slf4j
 @RestController
@@ -44,11 +45,15 @@ import java.util.Optional;
 public class StateLawRestController {
 
     private final ManageStateLawsUseCase legislationUseCase;
+    private final PipelineAsyncRunner asyncRunner;
 
-    public StateLawRestController(ManageStateLawsUseCase legislationUseCase) {
-        log.debug("StateLawRestController() | legislationUseCase={}",
-                  legislationUseCase.getClass().getSimpleName());
+    public StateLawRestController(ManageStateLawsUseCase legislationUseCase,
+                                   PipelineAsyncRunner asyncRunner) {
+        log.debug("StateLawRestController() | legislationUseCase={}, asyncRunner={}",
+                  legislationUseCase.getClass().getSimpleName(),
+                  asyncRunner.getClass().getSimpleName());
         this.legislationUseCase = legislationUseCase;
+        this.asyncRunner = asyncRunner;
     }
 
     /**
@@ -184,11 +189,6 @@ public class StateLawRestController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> triggerRefresh() {
         log.debug("triggerRefresh()");
-        int changed = legislationUseCase.triggerRefresh();
-        Map<String, Object> body = Map.of(
-                "status", "completed",
-                "sourcesChanged", changed);
-        log.debug("triggerRefresh() | return={}", body);
-        return ResponseEntity.ok(body);
+        return asyncRunner.runAsync("legislation-monitor", () -> legislationUseCase.triggerRefresh());
     }
 }

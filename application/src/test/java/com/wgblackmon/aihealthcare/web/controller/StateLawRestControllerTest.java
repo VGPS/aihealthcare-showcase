@@ -9,17 +9,25 @@ import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageStateLawsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -38,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-06
- * @updated 2026-09-06
+ * @updated 2026-09-08
  */
 @WebMvcTest(StateLawRestController.class)
 class StateLawRestControllerTest {
@@ -51,6 +59,23 @@ class StateLawRestControllerTest {
 
     @MockitoBean
     private ApiKeyPort apiKeyPort;
+
+    @MockBean
+    private PipelineAsyncRunner asyncRunner;
+
+    @BeforeEach
+    void setUpAsyncRunner() {
+        when(asyncRunner.runAsync(anyString(), any(Runnable.class)))
+                .thenAnswer(invocation -> {
+                    Runnable work = invocation.getArgument(1);
+                    work.run();
+                    Map<String, Object> accepted = new LinkedHashMap<>();
+                    accepted.put("started", true);
+                    accepted.put("pipelineId", invocation.getArgument(0));
+                    accepted.put("message", "Pipeline started in background.");
+                    return ResponseEntity.accepted().body(accepted);
+                });
+    }
 
     @Test
     @WithMockUser
@@ -180,9 +205,8 @@ class StateLawRestControllerTest {
 
         mockMvc.perform(post("/api/v1/legislation/refresh")
                         .with(csrf()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("completed"))
-                .andExpect(jsonPath("$.sourcesChanged").value(3));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
     }
 
     // --- Helper ---

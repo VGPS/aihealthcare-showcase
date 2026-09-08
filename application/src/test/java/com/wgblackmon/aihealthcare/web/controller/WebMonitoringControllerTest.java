@@ -11,12 +11,14 @@ import com.wgblackmon.aihealthcare.domain.service.PerplexityCompanyDiscoveryServ
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.infrastructure.research.ResearchHarvestScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebPageHarvester;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.PageContentHashRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
@@ -25,11 +27,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -43,7 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-19
- * @updated 2026-08-07
+ * @updated 2026-09-08
  */
 @Import(SecurityConfig.class)
 @WithMockUser(roles = "ADMIN")
@@ -100,6 +105,23 @@ class WebMonitoringControllerTest {
     @MockBean
     private ResearchHarvestScheduler researchHarvestScheduler;
 
+    @MockBean
+    private PipelineAsyncRunner asyncRunner;
+
+    @BeforeEach
+    void setUpAsyncRunner() {
+        when(asyncRunner.runAsync(anyString(), any(Runnable.class)))
+                .thenAnswer(invocation -> {
+                    Runnable work = invocation.getArgument(1);
+                    work.run();
+                    Map<String, Object> accepted = new LinkedHashMap<>();
+                    accepted.put("started", true);
+                    accepted.put("pipelineId", invocation.getArgument(0));
+                    accepted.put("message", "Pipeline started in background.");
+                    return ResponseEntity.accepted().body(accepted);
+                });
+    }
+
     @Test
     void triggerCompetitorHarvest_withChanges_returns200() throws Exception {
         NewsArticle article = new NewsArticle(
@@ -109,8 +131,8 @@ class WebMonitoringControllerTest {
         when(hashRepository.count()).thenReturn(4L);
 
         mockMvc.perform(post("/api/v1/monitoring/harvest"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.changesDetected").value(1));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(articleStoragePort).save(List.of(article));
     }
@@ -121,8 +143,8 @@ class WebMonitoringControllerTest {
         when(hashRepository.count()).thenReturn(4L);
 
         mockMvc.perform(post("/api/v1/monitoring/harvest"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.changesDetected").value(0));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(articleStoragePort, never()).save(anyList());
     }
@@ -135,8 +157,8 @@ class WebMonitoringControllerTest {
         when(huggingFaceHarvester.harvestModels()).thenReturn(List.of(model));
 
         mockMvc.perform(post("/api/v1/monitoring/huggingface"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.modelsDiscovered").value(1));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(articleStoragePort).save(List.of(model));
     }
@@ -146,8 +168,8 @@ class WebMonitoringControllerTest {
         when(huggingFaceHarvester.harvestModels()).thenReturn(List.of());
 
         mockMvc.perform(post("/api/v1/monitoring/huggingface"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.modelsDiscovered").value(0));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(articleStoragePort, never()).save(anyList());
     }
@@ -179,7 +201,8 @@ class WebMonitoringControllerTest {
         when(newsTopicProperties.getTopics()).thenReturn(List.of("AI Healthcare", "OpenAI Healthcare"));
 
         mockMvc.perform(post("/api/v1/monitoring/summaries"))
-                .andExpect(status().isOk());
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(topicSummaryService).generateSummaries(List.of("AI Healthcare", "OpenAI Healthcare"));
     }
@@ -192,9 +215,8 @@ class WebMonitoringControllerTest {
         when(articleHarvestingPort.harvestAll()).thenReturn(List.of(article));
 
         mockMvc.perform(post("/api/v1/monitoring/feeds"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.pagesChecked").value(1))
-                .andExpect(jsonPath("$.changesDetected").value(1));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(articleStoragePort).save(List.of(article));
     }
@@ -204,8 +226,8 @@ class WebMonitoringControllerTest {
         when(articleHarvestingPort.harvestAll()).thenReturn(List.of());
 
         mockMvc.perform(post("/api/v1/monitoring/feeds"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.changesDetected").value(0));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(articleStoragePort, never()).save(anyList());
     }
@@ -213,7 +235,8 @@ class WebMonitoringControllerTest {
     @Test
     void triggerEmbedding_returns200() throws Exception {
         mockMvc.perform(post("/api/v1/monitoring/embeddings"))
-                .andExpect(status().isOk());
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(embeddingScheduler).embedArticles();
     }

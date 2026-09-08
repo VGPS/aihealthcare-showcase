@@ -10,6 +10,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUs
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -44,7 +45,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-30
- * @updated 2026-07-30
+ * @updated 2026-09-08
  */
 @Slf4j
 @Controller
@@ -60,18 +61,21 @@ public class LegalTrendController {
     private final SubscriberPort subscriberPort;
     private final ArticleIngestionPort articleIngestionPort;
     private final MonitorRegulatoryEventsUseCase regulatoryUseCase;
+    private final PipelineAsyncRunner asyncRunner;
 
     public LegalTrendController(DetectLegalTrendsUseCase detectLegalTrendsUseCase,
                                 SubscriberPort subscriberPort,
                                 ArticleIngestionPort articleIngestionPort,
-                                MonitorRegulatoryEventsUseCase regulatoryUseCase) {
+                                MonitorRegulatoryEventsUseCase regulatoryUseCase,
+                                PipelineAsyncRunner asyncRunner) {
         log.debug("LegalTrendController() | detectLegalTrendsUseCase={}, subscriberPort={}, " +
-                  "articleIngestionPort={}, regulatoryUseCase={}",
-                  detectLegalTrendsUseCase, subscriberPort, articleIngestionPort, regulatoryUseCase);
+                  "articleIngestionPort={}, regulatoryUseCase={}, asyncRunner={}",
+                  detectLegalTrendsUseCase, subscriberPort, articleIngestionPort, regulatoryUseCase, asyncRunner);
         this.detectLegalTrendsUseCase = detectLegalTrendsUseCase;
         this.subscriberPort = subscriberPort;
         this.articleIngestionPort = articleIngestionPort;
         this.regulatoryUseCase = regulatoryUseCase;
+        this.asyncRunner = asyncRunner;
     }
 
     /**
@@ -219,14 +223,10 @@ public class LegalTrendController {
 
         if (!isAdmin(principal)) {
             log.warn("triggerDetection() | non-admin attempted detection, redirecting");
-            log.debug("triggerDetection() | return=redirect:/dashboard/legal/trends");
             return "redirect:/dashboard/legal/trends";
         }
 
-        detectLegalTrendsUseCase.detectLegalTrends();
-        log.info("triggerDetection() | legal trend detection completed");
-
-        log.debug("triggerDetection() | return=redirect:/dashboard/legal/trends");
+        asyncRunner.runAsync("legal-trends", () -> detectLegalTrendsUseCase.detectLegalTrends());
         return "redirect:/dashboard/legal/trends";
     }
 

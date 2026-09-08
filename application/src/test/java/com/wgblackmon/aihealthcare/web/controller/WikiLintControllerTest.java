@@ -8,16 +8,21 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.LintReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.WikiLintService;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
@@ -36,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-05
- * @updated 2026-07-05
+ * @updated 2026-09-08
  */
 @Import(SecurityConfig.class)
 @WithMockUser(roles = "ADMIN")
@@ -58,6 +63,23 @@ class WikiLintControllerTest {
     @MockBean
     private LintReportPort lintReportPort;
 
+    @MockBean
+    private PipelineAsyncRunner asyncRunner;
+
+    @BeforeEach
+    void setUpAsyncRunner() {
+        when(asyncRunner.runAsync(anyString(), any(Runnable.class)))
+                .thenAnswer(invocation -> {
+                    Runnable work = invocation.getArgument(1);
+                    work.run();
+                    Map<String, Object> accepted = new LinkedHashMap<>();
+                    accepted.put("started", true);
+                    accepted.put("pipelineId", invocation.getArgument(0));
+                    accepted.put("message", "Pipeline started in background.");
+                    return ResponseEntity.accepted().body(accepted);
+                });
+    }
+
     private static final Instant STARTED = Instant.parse("2026-07-05T10:00:00Z");
     private static final Instant COMPLETED = Instant.parse("2026-07-05T10:01:00Z");
 
@@ -74,11 +96,8 @@ class WikiLintControllerTest {
         when(lintService.lint(anyList(), anyInt())).thenReturn(report);
 
         mockMvc.perform(post("/monitoring/wiki/lint"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalPagesChecked").value(1))
-                .andExpect(jsonPath("$.orphanedSlugs[0]").value("test-page"))
-                .andExpect(jsonPath("$.missingProvenance[0]").value("no-sources"))
-                .andExpect(jsonPath("$.totalIssues").value(2));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
 
         verify(lintReportPort).save(report);
     }
@@ -93,9 +112,8 @@ class WikiLintControllerTest {
         when(lintService.lint(anyList(), anyInt())).thenReturn(report);
 
         mockMvc.perform(post("/monitoring/wiki/lint"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalPagesChecked").value(0))
-                .andExpect(jsonPath("$.totalIssues").value(0));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
     }
 
     @Test
@@ -108,10 +126,8 @@ class WikiLintControllerTest {
         when(lintService.lint(anyList(), anyInt())).thenReturn(report);
 
         mockMvc.perform(post("/monitoring/wiki/lint"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.brokenRefs[0]").value("page-a -> ghost"))
-                .andExpect(jsonPath("$.staleSlugs[0]").value("stale-page"))
-                .andExpect(jsonPath("$.totalIssues").value(2));
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true));
     }
 
     @Test

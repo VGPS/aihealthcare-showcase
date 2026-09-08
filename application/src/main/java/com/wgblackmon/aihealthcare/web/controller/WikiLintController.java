@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.port.outbound.LintReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.WikiLintService;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.web.dto.LintReportResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller for wiki lint operations.
@@ -26,7 +28,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-05
- * @updated 2026-07-05
+ * @updated 2026-09-08
  */
 @Slf4j
 @RestController
@@ -36,20 +38,24 @@ public class WikiLintController {
     private final WikiQueryPort wikiQueryPort;
     private final LintReportPort lintReportPort;
     private final int stalenessThresholdDays;
+    private final PipelineAsyncRunner asyncRunner;
 
     public WikiLintController(WikiLintService lintService,
                                WikiQueryPort wikiQueryPort,
                                LintReportPort lintReportPort,
-                               @Value("${aihealthcare.wiki.staleness-threshold-days:30}") int stalenessThresholdDays) {
-        log.debug("WikiLintController() | lintService={}, wikiQueryPort={}, lintReportPort={}, stalenessThresholdDays={}",
+                               @Value("${aihealthcare.wiki.staleness-threshold-days:30}") int stalenessThresholdDays,
+                               PipelineAsyncRunner asyncRunner) {
+        log.debug("WikiLintController() | lintService={}, wikiQueryPort={}, lintReportPort={}, stalenessThresholdDays={}, asyncRunner={}",
                 lintService.getClass().getSimpleName(),
                 wikiQueryPort.getClass().getSimpleName(),
                 lintReportPort.getClass().getSimpleName(),
-                stalenessThresholdDays);
+                stalenessThresholdDays,
+                asyncRunner.getClass().getSimpleName());
         this.lintService = lintService;
         this.wikiQueryPort = wikiQueryPort;
         this.lintReportPort = lintReportPort;
         this.stalenessThresholdDays = stalenessThresholdDays;
+        this.asyncRunner = asyncRunner;
     }
 
     /**
@@ -58,18 +64,15 @@ public class WikiLintController {
      * @return lint report with all detected issues
      */
     @PostMapping("/monitoring/wiki/lint")
-    public ResponseEntity<LintReportResponse> triggerLint() {
+    public ResponseEntity<Map<String, Object>> triggerLint() {
         log.debug("triggerLint() | (no args)");
 
-        List<WikiPage> allPages = wikiQueryPort.findRelevantPages("", 10000);
-        log.info("triggerLint() | loaded {} wiki pages for linting", allPages.size());
-
-        LintReport report = lintService.lint(allPages, stalenessThresholdDays);
-        lintReportPort.save(report);
-
-        LintReportResponse response = LintReportResponse.from(report);
-        log.debug("triggerLint() | return={}", response);
-        return ResponseEntity.ok(response);
+        return asyncRunner.runAsync("wiki-lint", () -> {
+            List<WikiPage> allPages = wikiQueryPort.findRelevantPages("", 10000);
+            log.info("triggerLint() | loaded {} wiki pages for linting", allPages.size());
+            LintReport report = lintService.lint(allPages, stalenessThresholdDays);
+            lintReportPort.save(report);
+        });
     }
 
     /**

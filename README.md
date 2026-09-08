@@ -38,7 +38,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Webhook Notifications** | Configurable webhook channels (Slack, Teams, custom) for pipeline events, deal signals, and regulatory alerts |
 | **Analyst Notes** | Per-entity note-taking system for analysts to annotate companies, deals, and trends with private observations |
 | **Data Export** | CSV and structured export of articles, companies, trends, and deal signals for external analysis |
-| **Self-Maintaining Pipeline Orchestrator** | Sequences all 11 post-harvest pipelines with try-catch isolation per step — no single failure breaks the chain |
+| **Self-Maintaining Pipeline Orchestrator** | Sequences all 11 post-harvest pipelines with try-catch isolation per step — no single failure breaks the chain; all 25+ admin pipeline triggers are async (202 Accepted) via PipelineAsyncRunner to eliminate gateway timeouts |
 | **Subscription Tier Gating** | 4-tier access model (DEMO/FREE_PENDING/FREE/SUBSCRIBER) with Stripe Billing, usage metering, and feature-level gating |
 | **Role-Based Access Control** | Spring Security with ADMIN/USER roles, session-based auth, and per-page authorization |
 | **Hexagonal Architecture** | Framework-free domain layer with pluggable adapters — swap AI providers or databases with zero domain changes |
