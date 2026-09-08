@@ -1,0 +1,1534 @@
+# =============================================================================
+# AIHealthcare — LinkedIn Feature Post Library
+#
+# One entry per menu item / feature. Rotated by weekday: five posts per week,
+# six weeks per full cycle (30 posts), then the cycle repeats with fresh
+# screenshots and fresh live-data numbers.
+#
+# Voice: reader-payoff first. Each post opens with something a healthcare-AI
+# reader can use, then shows the feature as the proof. The product is never
+# the headline.
+#
+# Links: LinkedIn suppresses reach on posts with outbound links in the body,
+# so every `body` is link-free and every `first_comment` carries the URLs.
+# Post the body, publish, then immediately paste `first_comment` as comment #1.
+#
+# Placeholders in {{DOUBLE_BRACES}} are live values you fill in from the
+# screenshot you just captured. Never post a placeholder unfilled — either
+# fill it or use the evergreen `hook` instead of `live_variant`.
+#
+# @author  Bill Blackmon
+# @since   2026-09-05
+# =============================================================================
+
+meta:
+  site_base_url: "https://app.bigskylabs.ai"
+  trial_url: "https://app.bigskylabs.ai/register"
+  pricing_url: "https://app.bigskylabs.ai/pricing"
+  directory_url: "https://app.bigskylabs.ai/directory"
+  about_url: "https://app.bigskylabs.ai/about"
+  trial_cta: "7-day free trial — no card."
+  max_body_chars: 3000
+  screenshot_dir: "sShots-LinkedIn"
+
+# Weekday themes keep the feed varied so six weeks of posts don't read as one
+# long product tour.
+rotation:
+  MONDAY:    "Signal — what moved in healthcare AI (regulatory, deals, trends)"
+  TUESDAY:   "Ask it — prompt-driven features with a visible answer"
+  WEDNESDAY: "Company intelligence — who's who and how they connect"
+  THURSDAY:  "Knowledge & provenance — the wiki layer and its receipts"
+  FRIDAY:    "Craft — how the thing is built and how you plug into it"
+
+posts:
+
+  # ===========================================================================
+  # WEEK 1
+  # ===========================================================================
+
+  - id: regulatory-alerts
+    feature: "Regulatory Alert System"
+    menu_path: "Intelligence & Analysis > Regulatory"
+    url: "/dashboard/regulatory"
+    slot: { week: 1, weekday: MONDAY }
+    theme: signal
+    hook: >
+      Most teams find out about an FDA clearance in their space weeks late,
+      from a competitor's press release.
+    body: |
+      Most teams find out about an FDA clearance in their space weeks late —
+      from a competitor's press release.
+
+      The primary sources are public and machine-readable. openFDA publishes
+      510(k) and De Novo decisions. The Federal Register publishes CMS rules.
+      Nobody reads them because they arrive as raw feeds with no healthcare-AI
+      filter on top.
+
+      So the platform reads them for you. Every day it pulls new 510(k) and
+      De Novo clearances plus CMS rule activity, filters to AI-relevant
+      devices and policy, and lands them on one page with color-coded type
+      badges and FDA / CMS filter tabs.
+
+      What that changes: "did anything clear in our category this week" stops
+      being a research project and becomes a ten-second look.
+
+      If you build, buy, or invest in clinical AI, the regulatory record is
+      the closest thing to ground truth you get. It's worth reading on a
+      schedule.
+
+      Link in the comments.
+    live_variant: |
+      {{N}} new AI-related FDA clearances landed this week. Here's the one
+      worth your attention: {{CLEARANCE_ONE_LINER}}
+    first_comment: |
+      Regulatory alerts: {{site_base_url}}/dashboard/regulatory
+      Try the whole platform free for 7 days: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#FDA", "#RegulatoryAffairs", "#DigitalHealth"]
+    screenshot:
+      page: "/dashboard/regulatory"
+      prompt: "None — set the filter tab to FDA and sort newest first."
+      capture: >
+        Full alert list from the summary badges down through 5-6 alert rows.
+        Include the FDA/CMS filter tabs so the filtering is visible.
+      redact: "Nothing — this page shows public regulatory data only."
+      alt_text: >
+        AIHealthcare regulatory alerts page listing recent FDA 510(k) and CMS
+        rule alerts with type badges and filter tabs.
+
+  - id: ai-search
+    feature: "Multi-Model AI Search"
+    menu_path: "Research & Search > AI Search"
+    url: "/research/ai-search"
+    slot: { week: 1, weekday: TUESDAY }
+    theme: ask-it
+    hook: >
+      Asking one model a healthcare question gives you one model's blind
+      spots, stated with total confidence.
+    body: |
+      Ask one model a healthcare question and you get one model's blind spots,
+      delivered with total confidence.
+
+      Ask four and something more useful happens. Where Claude, GPT, Gemini,
+      and Perplexity agree, you can move. Where they diverge, you've found the
+      part of the literature that isn't settled — which is usually the part
+      worth your afternoon.
+
+      That's the whole idea behind the AI Search page. You pick which models
+      to fan out to, ask once, and get a synthesized answer with numbered
+      citations back to the underlying sources. Disagreement isn't smoothed
+      over; it's the signal.
+
+      I ran "What is the current evidence for AI-assisted sepsis prediction in
+      the ICU?" through it. The synthesis was useful. The citation trail was
+      more useful.
+
+      Consensus is a feature. So is the lack of it.
+
+      Link in the comments.
+    live_variant: |
+      I asked it: "{{QUESTION}}" — {{N}} models, {{M}} citations, one answer
+      you can actually check.
+    first_comment: |
+      Multi-model AI search: {{site_base_url}}/research/ai-search
+      Try it free for 7 days: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#LLM", "#AIResearch", "#ClinicalAI"]
+    screenshot:
+      page: "/research/ai-search"
+      prompt: "What is the current evidence for AI-assisted sepsis prediction in the ICU?"
+      capture: >
+        Two-part shot: the query box with the model checkboxes visible above,
+        and the top of the synthesized answer showing at least three numbered
+        citation markers. Crop before the page footer.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare multi-model AI search showing a sepsis-prediction query
+        fanned out to four LLMs with a synthesized, citation-numbered answer.
+
+  - id: public-directory
+    feature: "Public Company Directory"
+    menu_path: "Public Directory"
+    url: "/directory"
+    slot: { week: 1, weekday: WEDNESDAY }
+    theme: companies
+    hook: >
+      Most healthcare-AI company lists are alphabetical, which is another way
+      of saying they tell you nothing.
+    body: |
+      Most healthcare-AI company lists are alphabetical. Which is another way
+      of saying they tell you nothing.
+
+      Alphabetical order can't tell you who's actually moving. So the
+      directory ranks instead — on a live signal score built from three
+      inputs: article velocity over the last 90 days, a bonus for recent
+      funding activity, and a penalty for negative sentiment in coverage.
+
+      Sort by Trending, Recently Funded, or Watch List. Filter by sector.
+      Each card carries a signal badge — 🔥 moving, 💰 funded, ⚠ under
+      scrutiny — so the shape of the market reads at a glance. Export the
+      whole thing to CSV if you'd rather work in a spreadsheet.
+
+      No login. It's a public page, deliberately — a ranked map of who is
+      doing what in healthcare AI is more useful to everyone when it isn't
+      behind a wall.
+
+      Link in the comments. Tell me who's missing.
+    live_variant: |
+      Top of the Trending tab this week: {{COMPANY}} — {{WHY}}.
+    first_comment: |
+      Public company directory (no login): {{directory_url}}
+      CSV export: {{site_base_url}}/directory/export.csv
+      Full platform, free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#HealthTech", "#DigitalHealth", "#StartupIntel"]
+    screenshot:
+      page: "/directory"
+      prompt: "None — click the Trending sort tab first."
+      capture: >
+        Sort tabs and sector filter pills across the top, plus the first 6-8
+        company cards with their signal badges clearly legible.
+      redact: "Nothing — this page is public by design."
+      alt_text: >
+        AIHealthcare public company directory ranked by signal score, with
+        Trending / Recently Funded / Watch List tabs and per-company signal
+        badges.
+
+  - id: wiki-contradictions
+    feature: "Contradiction Detection (Reversal Watch)"
+    menu_path: "Wiki > Reversal Watch"
+    url: "/wiki/contradictions"
+    slot: { week: 1, weekday: THURSDAY }
+    theme: knowledge
+    hook: >
+      In healthcare AI, the most valuable thing you can know is which of last
+      year's findings stopped being true.
+    body: |
+      In healthcare AI, the most valuable thing you can know is which of last
+      year's confident findings quietly stopped being true.
+
+      Nobody publishes a retraction notice for a claim that just... faded. A
+      model that beat clinicians on a retrospective dataset underperforms
+      prospectively. A promising biomarker doesn't replicate. The original
+      paper keeps getting cited anyway, because nothing formally overturned
+      it.
+
+      Reversal Watch is the page I built for exactly that. When new evidence
+      contradicts a claim already recorded in the knowledge wiki, the
+      contradiction gets stored as a first-class record — not a footnote —
+      and surfaced in a feed with the two claims side by side and their dates.
+
+      You read it as a timeline: here's what we thought, here's what came
+      after, here's the gap.
+
+      Most tools optimize for what's new. This one is about what's no longer
+      true. In this field that's the rarer and more expensive information.
+
+      Link in the comments.
+    live_variant: |
+      Newest entry on Reversal Watch: {{CLAIM_THEN}} → {{CLAIM_NOW}}.
+    first_comment: |
+      Reversal Watch: {{site_base_url}}/wiki/contradictions
+      Free 7-day trial of the full platform: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#EvidenceBasedMedicine", "#ClinicalAI", "#Research"]
+    screenshot:
+      page: "/wiki/contradictions"
+      prompt: "None — leave the date filter at its widest setting."
+      capture: >
+        One full side-by-side contradiction card with both claims and both
+        dates readable. A single strong card beats a list of truncated ones.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare Reversal Watch showing a side-by-side comparison of an
+        earlier claim and the later evidence that contradicts it.
+
+  - id: newsletter-generation
+    feature: "AI Newsletter Generation"
+    menu_path: "Newsletter & Content > Newsletter Runs"
+    url: "/newsletter/runs"
+    slot: { week: 1, weekday: FRIDAY }
+    theme: craft
+    hook: >
+      The hard part of an AI-written newsletter isn't the writing. It's making
+      every sentence traceable.
+    body: |
+      The hard part of an AI-written newsletter isn't the writing. It's making
+      every sentence traceable back to a real article.
+
+      An LLM will happily produce a fluent paragraph about a study that
+      doesn't exist. In healthcare that isn't a quirk, it's disqualifying. So
+      the generation pipeline is built the other way around: harvest first,
+      group into topic sections, summarize only what's in hand, and carry the
+      source attribution through to the rendered draft.
+
+      Every run lands in a list with a status badge — DRAFT, SENT, ARCHIVED —
+      and opens in a WYSIWYG editor. A human reads it before anyone else
+      does. That's the part I'm not automating.
+
+      Retrieval-augmented summarization pulls relevant archived context into
+      each section, so a story about a company you covered in March reads
+      like it knows about March.
+
+      Generated, then edited. Not generated, then trusted.
+
+      Link in the comments.
+    live_variant: |
+      Today's draft: {{N}} sections, {{M}} attributed sources, {{T}} minutes
+      of editing before it went out.
+    first_comment: |
+      Newsletter runs and the editor: {{site_base_url}}/newsletter/runs
+      Subscribe or start a 7-day trial: {{trial_url}}
+    hashtags: ["#SpringAI", "#LLM", "#HealthcareAI", "#BuildInPublic"]
+    screenshot:
+      page: "/newsletter/runs"
+      prompt: "None — then open one run in the editor for the second frame."
+      capture: >
+        Two frames side by side: the run list with status badges, and the
+        editor open on a section with visible source attribution.
+      redact: "Subscriber email addresses if any appear in the run detail."
+      alt_text: >
+        AIHealthcare newsletter run list with DRAFT/SENT status badges beside
+        the WYSIWYG editor showing an attributed newsletter section.
+
+  # ===========================================================================
+  # WEEK 2
+  # ===========================================================================
+
+  - id: deal-signals
+    feature: "Deal Signal Detection"
+    menu_path: "Intelligence & Analysis > Deals"
+    url: "/dashboard/deals"
+    slot: { week: 2, weekday: MONDAY }
+    theme: signal
+    hook: >
+      Funding news is easy to find and almost impossible to compare, because
+      it arrives as prose.
+    body: |
+      Funding news is easy to find and nearly impossible to compare, because
+      it arrives as prose.
+
+      "Raised a substantial Series B led by an existing investor" and "closed
+      $40M from Acme Ventures" describe the same event at two different
+      resolutions. You can't sort prose. You can't chart it. You certainly
+      can't spot a pattern across ninety days of it.
+
+      So the pipeline runs every harvested article through deal
+      classification and pulls out structured fields: deal type, amount,
+      counterparty, and a confidence score on the extraction itself. What was
+      a paragraph becomes a row.
+
+      Then it's a feed you can filter by type and sort by amount — funding,
+      M&A, partnership — instead of a stack of press releases.
+
+      The confidence score matters as much as the extraction. When the model
+      is guessing at an amount, it says so, and you can weight it accordingly.
+
+      Structured beats fluent when you need to count things.
+
+      Link in the comments.
+    live_variant: |
+      Biggest disclosed deal in the feed this week: {{COMPANY}}, {{AMOUNT}},
+      {{TYPE}}.
+    first_comment: |
+      Deal signal feed: {{site_base_url}}/dashboard/deals
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthTech", "#VentureCapital", "#HealthcareAI", "#MarketIntelligence"]
+    screenshot:
+      page: "/dashboard/deals"
+      prompt: "None — click the funding type filter pill."
+      capture: >
+        The filter pills plus 6-8 rows showing type, amount, and counterparty
+        columns populated. The point is that it's a table, not a news feed.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare deal signal feed with type filter pills and rows showing
+        extracted deal type, amount, and counterparty.
+
+  - id: wiki-ask
+    feature: "Wiki Q&A"
+    menu_path: "Wiki & Knowledge Base > Ask"
+    url: "/wiki/ask"
+    slot: { week: 2, weekday: TUESDAY }
+    theme: ask-it
+    hook: >
+      A general chatbot answers healthcare questions from whatever it
+      absorbed in training. It cannot tell you what changed last month.
+    body: |
+      A general-purpose chatbot answers healthcare questions from whatever it
+      absorbed during training. It can't tell you what changed last month, and
+      it won't tell you it doesn't know.
+
+      The Wiki Q&A page answers from a different corpus: a knowledge base
+      compiled from articles this platform actually harvested — PubMed, FDA,
+      industry press — and kept current. Ask a natural-language question, get
+      an answer grounded in those pages, with the pages available to open and
+      check.
+
+      The distinction that matters isn't answer quality. It's scope. This
+      thing knows what it read, and the reading list is inspectable.
+
+      Ask it something narrow — "what's the current state of ambient clinical
+      documentation adoption?" — and you get an answer built from this year's
+      coverage rather than a confident average of the last decade.
+
+      Retrieval you can audit beats recall you have to trust.
+
+      Link in the comments.
+    live_variant: |
+      Asked: "{{QUESTION}}". Answer came back grounded in {{N}} wiki pages,
+      each one openable.
+    first_comment: |
+      Wiki Q&A: {{site_base_url}}/wiki/ask
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#RAG", "#HealthcareAI", "#LLM", "#KnowledgeManagement"]
+    screenshot:
+      page: "/wiki/ask"
+      prompt: "What is the current state of ambient clinical documentation adoption?"
+      capture: >
+        The question in the input box and the top of the answer, including the
+        linked wiki pages it drew from. Crop once the sources are visible.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare wiki Q&A answering a question about ambient clinical
+        documentation, with links to the source wiki pages.
+
+  - id: sentiment-risk
+    feature: "Sentiment & Risk Scoring"
+    menu_path: "Intelligence & Analysis > Risk"
+    url: "/dashboard/risk"
+    slot: { week: 2, weekday: WEDNESDAY }
+    theme: companies
+    hook: >
+      "Bad press" is a vibe. A sentiment distribution with per-article
+      rationale is something you can argue with.
+    body: |
+      "That company's been getting bad press" is a vibe. It's also how a
+      surprising number of vendor decisions actually get made.
+
+      The risk page turns it into something you can argue with. Every
+      harvested article gets classified for sentiment by an LLM, with a
+      written rationale for the call. Those roll up into a company-level
+      distribution and a risk score carrying a confidence metric.
+
+      The overview is a bar chart across tracked companies. Click through to
+      one and you get the doughnut breakdown plus the article-level table —
+      every classification, with the reasoning next to it.
+
+      That last part is the point. An aggregate score you can't decompose is
+      just a number someone else chose. Being able to open the score and read
+      "this was rated negative because of X" is what makes it usable in a
+      real evaluation.
+
+      Show your work, or don't show a score.
+
+      Link in the comments.
+    live_variant: |
+      {{COMPANY}}'s sentiment mix shifted this month: {{SHIFT}}.
+    first_comment: |
+      Sentiment & risk overview: {{site_base_url}}/dashboard/risk
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#RiskManagement", "#NLP", "#VendorSelection"]
+    screenshot:
+      page: "/dashboard/risk/{slug}"
+      prompt: "None — open a company with a mixed sentiment profile, not an all-positive one."
+      capture: >
+        The doughnut chart plus 3-4 rows of the article-level table with the
+        rationale column readable. The rationale is the whole story.
+      redact: >
+        Consider using a large public company rather than a small one — a
+        negative score on a tiny startup reads as a callout.
+      alt_text: >
+        AIHealthcare company sentiment detail with a doughnut chart and an
+        article-level table showing each classification's rationale.
+
+  - id: wiki-index
+    feature: "LLM-Compiled Knowledge Wiki"
+    menu_path: "Wiki & Knowledge Base > Wiki"
+    url: "/wiki"
+    slot: { week: 2, weekday: THURSDAY }
+    theme: knowledge
+    hook: >
+      A newsletter archive is a pile of articles. A wiki is what you get when
+      something reconciles them.
+    body: |
+      A newsletter archive is a pile of articles in date order. Useful on the
+      day, nearly useless a year later — because nothing in it reconciles
+      anything.
+
+      The wiki layer is the answer to that. Harvested articles get compiled
+      into persistent pages — entities, concepts, comparisons, overviews —
+      each with revision history and cross-references to related pages. New
+      coverage doesn't get appended to the bottom of a feed; it updates the
+      page it belongs to.
+
+      Which means the archive stops decaying. The page on a given company or
+      technique is worth more this month than last, because more evidence has
+      been folded into it.
+
+      Search it, or filter by page type. Every page carries its own history,
+      so you can see how the platform's understanding of a topic moved over
+      time.
+
+      Feeds accumulate. Knowledge compounds. Those are different products.
+
+      Link in the comments.
+    live_variant: |
+      The wiki is at {{N}} compiled pages now. Most-revised this month:
+      {{PAGE}}.
+    first_comment: |
+      Knowledge wiki: {{site_base_url}}/wiki
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#KnowledgeManagement", "#HealthcareAI", "#LLM", "#BuildInPublic"]
+    screenshot:
+      page: "/wiki"
+      prompt: "None — set the type filter to show the mix, then screenshot the grid."
+      capture: >
+        The type filter (Entity / Concept / Comparison / Overview) plus a full
+        row or two of page cards.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare wiki index showing a searchable grid of compiled pages
+        with Entity / Concept / Comparison / Overview type filters.
+
+  - id: pipeline-orchestrator
+    feature: "Self-Maintaining Pipeline Orchestrator"
+    menu_path: "Admin > Pipelines"
+    url: "/admin/pipelines"
+    slot: { week: 2, weekday: FRIDAY }
+    theme: craft
+    hook: >
+      Eleven chained AI pipelines. The design question isn't how to make them
+      work — it's what happens when step six doesn't.
+    body: |
+      Eleven chained pipelines run after every harvest: summarization,
+      sentiment, deal classification, regulatory matching, wiki compilation,
+      and the rest.
+
+      The interesting design question was never how to make them work. It's
+      what happens when step six fails at 4am.
+
+      The naive version fails the whole chain, and you wake up to no
+      newsletter. So each step is wrapped in its own isolation boundary: a
+      failure is logged, that step's output is skipped, and the orchestrator
+      moves on. You get a degraded run instead of no run — and a clear record
+      of which step degraded it.
+
+      For a solo operator that difference is everything. A partial newsletter
+      I can patch beats a silent 4am failure I discover at noon.
+
+      The admin page exposes every step as a manual trigger, so re-running
+      just the one that broke is a click rather than a redeploy.
+
+      Fault isolation isn't a resilience feature. It's a sleep feature.
+
+      Link in the comments.
+    live_variant: |
+      Last night's run: {{N}} of 11 steps clean, {{M}} degraded, zero manual
+      intervention.
+    first_comment: |
+      More on how it's built: {{about_url}}
+      See the platform itself — free 7-day trial: {{trial_url}}
+    hashtags: ["#SpringBoot", "#SoftwareArchitecture", "#BuildInPublic", "#SpringAI"]
+    screenshot:
+      page: "/admin/pipelines"
+      prompt: "None — this is an ADMIN-only page."
+      capture: >
+        The list of 11 pipeline steps with their manual trigger controls.
+      redact: >
+        Any internal hostnames, API keys, or error strings containing
+        credentials. Check the step detail text before posting.
+      alt_text: >
+        AIHealthcare admin pipeline page listing eleven post-harvest pipeline
+        steps with individual manual trigger controls.
+
+  # ===========================================================================
+  # WEEK 3
+  # ===========================================================================
+
+  - id: trend-detection
+    feature: "Trend Detection"
+    menu_path: "Intelligence & Analysis > Trends"
+    url: "/dashboard/trends"
+    slot: { week: 3, weekday: MONDAY }
+    theme: signal
+    hook: >
+      The useful question about a healthcare-AI buzzword isn't whether it's
+      big. It's whether it's still accelerating.
+    body: |
+      The useful question about any healthcare-AI term isn't whether it's big.
+      It's whether it's still accelerating.
+
+      Big and flat means you're late. Small and rising means you're early.
+      The word itself tells you nothing — only the derivative does.
+
+      So trend detection runs keyword frequency analysis across 30, 90, and
+      180-day windows and sorts the vocabulary of the field into three
+      buckets: rising, fading, and genuinely new. Each with a momentum chart
+      behind it.
+
+      Fading is the bucket nobody builds and everybody needs. Terms don't get
+      formally retired — they just stop showing up, months before anyone
+      says so out loud. Watching that happen in a chart is a real edge when
+      you're deciding what to invest a quarter in.
+
+      New is the fun one. A term that didn't exist in the corpus 90 days ago
+      and now appears weekly is worth ten minutes of your attention.
+
+      Link in the comments.
+    live_variant: |
+      Fastest-rising term in healthcare AI this window: {{TERM}}. Fastest
+      fading: {{TERM_2}}.
+    first_comment: |
+      Trend analysis: {{site_base_url}}/dashboard/trends
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#TrendAnalysis", "#DigitalHealth", "#DataScience"]
+    screenshot:
+      page: "/dashboard/trends"
+      prompt: "None — capture with all three buckets visible."
+      capture: >
+        Rising / fading / new columns together with at least one momentum
+        chart. The three-bucket layout is the idea.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare trend analysis showing rising, fading, and new healthcare
+        AI keywords with momentum charts.
+
+  - id: vendor-compare
+    feature: "Vendor Competitive Analysis"
+    menu_path: "Research & Search > Vendors"
+    url: "/research/vendors"
+    slot: { week: 3, weekday: TUESDAY }
+    theme: ask-it
+    hook: >
+      Every healthcare-AI vendor's website says the same six things. None of
+      them are comparable.
+    body: |
+      Every healthcare-AI vendor's site says roughly the same six things.
+      Clinically validated. Enterprise-ready. Seamless integration. None of it
+      is comparable, because none of it comes from a common source.
+
+      The vendor comparison page builds its assessment from coverage instead
+      of marketing copy. Strengths and weaknesses are drawn from what's
+      actually been written about each vendor, scored with document frequency
+      and TF-IDF relevance, and laid out as a card grid with relevance bars
+      you can scan across.
+
+      It won't tell you who to buy. It will tell you what the record says
+      about each of them, in the same shape, so you can compare like with
+      like — and it'll show you where the record is thin, which is its own
+      finding.
+
+      A vendor nobody has written anything substantive about is not
+      necessarily bad. But you should know that's the situation before the
+      procurement meeting, not during it.
+
+      Link in the comments.
+    live_variant: |
+      Ran the comparison across {{N}} vendors in {{CATEGORY}}. The relevance
+      bars told a different story than the pitch decks did.
+    first_comment: |
+      Vendor comparison: {{site_base_url}}/research/vendors
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthTech", "#VendorSelection", "#HealthcareAI", "#Procurement"]
+    screenshot:
+      page: "/research/vendors"
+      prompt: "None — or enter a category to scope the grid before capturing."
+      capture: >
+        3-4 vendor cards side by side with strengths, weaknesses, and
+        relevance bars all legible.
+      redact: >
+        Judgment call — a weak public assessment of a small named vendor can
+        read as a public knock. Prefer large, widely-covered vendors.
+      alt_text: >
+        AIHealthcare vendor comparison grid showing AI-scored strengths and
+        weaknesses with TF-IDF relevance bars for several vendors.
+
+  - id: company-relationships
+    feature: "Company Relationships"
+    menu_path: "Company Intelligence > Relationships"
+    url: "/companies/{slug}/relationships"
+    slot: { week: 3, weekday: WEDNESDAY }
+    theme: companies
+    hook: >
+      In healthcare AI, the org chart that matters is the one between
+      companies, and nobody publishes it.
+    body: |
+      In healthcare AI, the org chart that matters isn't inside any company.
+      It's between them — and nobody publishes it.
+
+      Who integrates with which EHR. Who quietly acquired whose imaging team.
+      Who's partnered on paper and competing in practice. All of it exists in
+      public coverage, scattered across two years of announcements nobody
+      assembled.
+
+      The relationship graph assembles it. Force-directed layout,
+      type-colored edges — blue for partnership, red for acquisition, green
+      for investment, orange for competitor — and a detail panel when you
+      click through an edge.
+
+      What you see immediately is structure the list view hides: the hub
+      companies everything routes through, the clusters that will consolidate,
+      the isolated node that looks strong alone and fragile on the map.
+
+      Strategy questions are usually graph questions wearing a spreadsheet
+      costume.
+
+      Link in the comments.
+    live_variant: |
+      Most-connected company on the graph right now: {{COMPANY}}, with
+      {{N}} mapped relationships.
+    first_comment: |
+      Company relationship graphs: {{site_base_url}}/companies
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthTech", "#GraphVisualization", "#HealthcareAI", "#MarketMap"]
+    screenshot:
+      page: "/companies/{slug}/relationships"
+      prompt: "None — pick a company with 6+ edges so the graph reads as a network."
+      capture: >
+        The full graph with the color legend visible, plus the sidebar detail
+        panel open on one edge.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare company relationship graph with color-coded partnership,
+        acquisition, investment, and competitor edges and a detail sidebar.
+
+  - id: source-provenance
+    feature: "Source Provenance Tracking"
+    menu_path: "Wiki & Knowledge Base > any wiki page"
+    url: "/wiki/{slug}"
+    slot: { week: 3, weekday: THURSDAY }
+    theme: knowledge
+    hook: >
+      An AI-generated summary you can't trace is a rumor with good grammar.
+    body: |
+      An AI-generated summary you can't trace back to a source is a rumor with
+      good grammar.
+
+      That's tolerable when you're catching up on consumer tech. It is not
+      tolerable when the claim is about a diagnostic tool's performance in a
+      clinical population, and someone downstream is going to repeat it in a
+      meeting.
+
+      So every wiki page carries a provenance table. Each claim links to the
+      PubMed paper, FDA record, or industry source it came from. Not a
+      bibliography at the bottom — a per-claim mapping you can open and check
+      one line at a time.
+
+      This also constrains the compiler. A claim that can't be attributed
+      doesn't make the page. Which means the wiki grows more slowly than a
+      pure generative approach would, and I'll take that trade every time.
+
+      The measure of a knowledge base isn't how much it says. It's how much
+      of it you can verify without leaving your chair.
+
+      Link in the comments.
+    live_variant: |
+      This page: {{N}} claims, {{N}} linked sources, zero unattributed
+      sentences.
+    first_comment: |
+      A wiki page with its provenance table: {{site_base_url}}/wiki
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#Provenance", "#EvidenceBasedMedicine", "#RAG"]
+    screenshot:
+      page: "/wiki/{slug}"
+      prompt: "None — scroll to the provenance table."
+      capture: >
+        A section of rendered wiki content immediately above the provenance
+        table, so the claim-to-source mapping is visible in one frame.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare wiki page detail showing rendered content above a
+        provenance table linking each claim to its PubMed, FDA, or industry
+        source.
+
+  - id: developer-api
+    feature: "Developer Portal & REST API"
+    menu_path: "Admin & Account > Developer"
+    url: "/developer"
+    slot: { week: 3, weekday: FRIDAY }
+    theme: craft
+    hook: >
+      If your intelligence platform can't be queried by another program, it's
+      a website, not a platform.
+    body: |
+      If your intelligence platform can't be queried by another program, it's
+      a website with a nice chart on it.
+
+      So everything the UI shows is reachable over a REST API: articles,
+      companies, deal signals, trends, newsletter runs. Documented against an
+      OpenAPI 3.0 spec that's the source of truth rather than an afterthought
+      — the spec is written first and the code follows it.
+
+      The developer portal has the docs, key management, and usage examples in
+      one place. Generate a key, curl an endpoint, done.
+
+      What that unlocks is the thing I can't build for you: your workflow.
+      Piping deal signals into your CRM, alerting your Slack on a regulatory
+      match in your category, backing a dashboard your team already opens
+      every morning. Those are all small scripts once the data is addressable.
+
+      Build the API you'd want to integrate against, then use it yourself.
+
+      Link in the comments.
+    live_variant: |
+      {{N}} endpoints live, all spec-first against OpenAPI 3.0.
+    first_comment: |
+      Developer portal: {{site_base_url}}/developer
+      Free 7-day trial (API access included): {{trial_url}}
+    hashtags: ["#API", "#OpenAPI", "#SpringBoot", "#HealthTech"]
+    screenshot:
+      page: "/developer"
+      prompt: "None — capture the docs section and a usage example together."
+      capture: >
+        An endpoint's documentation next to a curl example. Two frames if one
+        won't hold both.
+      redact: >
+        CRITICAL — blur or regenerate any API key visible on this page. Do not
+        post a screenshot with a live key in it.
+      alt_text: >
+        AIHealthcare developer portal showing REST API documentation, key
+        management, and a curl usage example.
+
+  # ===========================================================================
+  # WEEK 4
+  # ===========================================================================
+
+  - id: legal-timeline
+    feature: "Legal Timeline"
+    menu_path: "Intelligence & Analysis > Legal"
+    url: "/dashboard/legal"
+    slot: { week: 4, weekday: MONDAY }
+    theme: signal
+    hook: >
+      Healthcare AI regulation isn't one story. It's litigation, policy, and
+      agency action moving at three different speeds.
+    body: |
+      Healthcare AI governance isn't one story. It's litigation, policy
+      proposals, and agency action, moving at three different speeds, covered
+      by three different sets of publications.
+
+      Read any one of them alone and you get the wrong picture. A court
+      filing lands, a state bill moves, an agency issues guidance — separately
+      they look like noise. On one timeline they often turn out to be the same
+      pressure showing up in three places.
+
+      So the legal timeline merges them: legal articles, policy events, and
+      regulatory actions in a single chronological feed. One column, in date
+      order, no source-switching.
+
+      The pattern it makes visible is the one that matters for planning —
+      whether the direction of travel in your category is tightening, and how
+      fast.
+
+      Compliance teams already do this manually in a spreadsheet. It should
+      not be manual.
+
+      Link in the comments.
+    live_variant: |
+      Three events on the timeline this month that are clearly the same story:
+      {{SUMMARY}}.
+    first_comment: |
+      Legal timeline: {{site_base_url}}/dashboard/legal
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#HealthLaw", "#Compliance", "#Policy"]
+    screenshot:
+      page: "/dashboard/legal"
+      prompt: "None."
+      capture: >
+        6-8 chronological entries showing the mix of legal, policy, and
+        regulatory event types in one column.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare legal timeline merging legal articles, policy events, and
+        regulatory actions into one chronological feed.
+
+  - id: article-search
+    feature: "Multi-Field Article Search"
+    menu_path: "Dashboard & Analytics > Search"
+    url: "/dashboard/search"
+    slot: { week: 4, weekday: TUESDAY }
+    theme: ask-it
+    hook: >
+      Keyword search finds the word. Semantic search finds the idea. You want
+      both, and for different jobs.
+    body: |
+      Keyword search finds the word. Semantic search finds the idea. Most
+      tools pick one and make you live with it.
+
+      The difference shows up fast in healthcare. Search "sepsis prediction"
+      by keyword and you miss the paper that says "early warning score for
+      infection deterioration." Search only by vector and you lose the ability
+      to demand an exact term when the exact term is the point — a device
+      name, a trial ID, a specific author.
+
+      So the archive supports both. Structured search across topic, author,
+      and date range for when you know what you're looking for; pgvector
+      similarity search across the full archive for when you only know the
+      shape of it.
+
+      In practice you use the second to find the neighborhood and the first to
+      pin down the address.
+
+      Precision and recall are different tools. Keep both on the bench.
+
+      Link in the comments.
+    live_variant: |
+      Searched "{{QUERY}}" — {{N}} results, and the best one didn't contain
+      the phrase I typed.
+    first_comment: |
+      Article search: {{site_base_url}}/dashboard/search
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#SemanticSearch", "#pgvector", "#HealthcareAI", "#RAG"]
+    screenshot:
+      page: "/dashboard/search"
+      prompt: "sepsis prediction"
+      capture: >
+        The criteria panel (topic, author, date range) filled in, with the
+        result list beneath it.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare article search with topic, author, and date-range
+        criteria filled in and matching results listed below.
+
+  - id: company-profiles
+    feature: "Company Intelligence Profiles"
+    menu_path: "Company Intelligence > Companies"
+    url: "/companies/{slug}"
+    slot: { week: 4, weekday: WEDNESDAY }
+    theme: companies
+    hook: >
+      A company page that's just a description is a brochure. A company page
+      with a timeline is a record.
+    body: |
+      A company page that's just a description is a brochure. Somebody wrote
+      it once, and it's been slowly going stale ever since.
+
+      What's actually useful is the timeline. When did this company first show
+      up in coverage? What happened between then and now, in order? Is the
+      article velocity climbing or has it gone quiet since the funding
+      announcement?
+
+      So each company page is built from linked articles rather than a
+      profile blurb: an event timeline, discovery and update dates, trend
+      indicators, and every piece of coverage that mentions them, in sequence.
+
+      The quiet ones are as informative as the loud ones. A company with a big
+      raise eighteen months ago and nothing since is telling you something,
+      and you can only see it if the page is a record instead of a
+      description.
+
+      Ask when, not just what.
+
+      Link in the comments.
+    live_variant: |
+      {{COMPANY}}'s timeline: first seen {{DATE}}, {{N}} linked articles
+      since, velocity {{DIRECTION}}.
+    first_comment: |
+      Company intelligence: {{site_base_url}}/companies
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthTech", "#CompetitiveIntelligence", "#HealthcareAI", "#StartupIntel"]
+    screenshot:
+      page: "/companies/{slug}"
+      prompt: "None — choose a company with a long, varied event timeline."
+      capture: >
+        The event timeline with dates readable, plus the trend indicator and
+        linked-article count.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare company profile showing an event timeline built from
+        linked articles, with discovery date and trend indicators.
+
+  - id: wiki-digest
+    feature: "What Changed Digest"
+    menu_path: "Wiki & Knowledge Base > Digest"
+    url: "/wiki/digest"
+    slot: { week: 4, weekday: THURSDAY }
+    theme: knowledge
+    hook: >
+      After a week away, you don't want the week's news. You want the diff.
+    body: |
+      Come back from a week off and the last thing you need is the week's
+      news. You need the diff.
+
+      Which is a different question. Not "what was published" — that's a
+      hundred articles you'll never read. But "what does the knowledge base
+      believe now that it didn't believe last Tuesday," which is usually a
+      short and interesting list.
+
+      The What Changed digest answers exactly that, over a window you choose:
+      new wiki pages created, existing pages updated, and contradictions
+      surfaced since your cutoff.
+
+      It's the only page I open after time away. Three sections, five minutes,
+      fully caught up on the parts that actually moved — and the
+      contradictions section is the one I read first, because a reversal is
+      worth ten new announcements.
+
+      Feeds tell you what happened. A diff tells you what's different. Only
+      one of those scales with time away.
+
+      Link in the comments.
+    live_variant: |
+      Last 7 days: {{N}} new pages, {{M}} updated, {{K}} contradictions
+      surfaced.
+    first_comment: |
+      What Changed digest: {{site_base_url}}/wiki/digest
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#KnowledgeManagement", "#HealthcareAI", "#ProductDesign", "#LLM"]
+    screenshot:
+      page: "/wiki/digest"
+      prompt: "None — set the window to 7 days."
+      capture: >
+        All three sections in one frame — new pages, updates, contradictions —
+        with the time-window control visible.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare What Changed digest listing new wiki pages, updated
+        pages, and newly surfaced contradictions over a seven-day window.
+
+  - id: webhooks
+    feature: "Webhook Notifications"
+    menu_path: "Admin & Account > Webhooks"
+    url: "/dashboard/webhooks"
+    slot: { week: 4, weekday: FRIDAY }
+    theme: craft
+    hook: >
+      The best intelligence dashboard is the one you never have to remember
+      to open.
+    body: |
+      The best intelligence dashboard is the one you never have to remember to
+      open.
+
+      Every "check this daily" tool is really asking you to build a habit,
+      and habits decay. Two good weeks, then a busy Thursday, then it's a tab
+      you close. The information was fine; the delivery model was wrong.
+
+      So there are webhooks. Configure a channel — Slack, Teams, or a custom
+      endpoint — and choose what fires it: pipeline events, deal signals,
+      regulatory alerts. The intelligence goes to where your team already is
+      instead of waiting behind a login.
+
+      For a small team the highest-value config is narrow: one webhook, one
+      trigger, the specific regulatory category you actually care about. A
+      firehose into Slack gets muted in a week, which puts you right back
+      where you started.
+
+      Push beats pull, but only if you're disciplined about what you push.
+
+      Link in the comments.
+    live_variant: |
+      My own config: {{N}} channels, {{M}} triggers, and one rule — if it
+      fires more than twice a day it's too broad.
+    first_comment: |
+      Webhook configuration: {{site_base_url}}/dashboard/webhooks
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#Webhooks", "#Slack", "#HealthTech", "#Automation"]
+    screenshot:
+      page: "/dashboard/webhooks"
+      prompt: "None — have at least one channel configured before capturing."
+      capture: >
+        The channel list plus the event-type selection, so both halves of the
+        config are visible.
+      redact: >
+        CRITICAL — webhook URLs contain secrets. Blur every endpoint URL
+        completely.
+      alt_text: >
+        AIHealthcare webhook configuration page showing notification channels
+        and the pipeline, deal, and regulatory event triggers.
+
+  # ===========================================================================
+  # WEEK 5
+  # ===========================================================================
+
+  - id: trend-history
+    feature: "Trend History Archive"
+    menu_path: "Intelligence & Analysis > Trends > History"
+    url: "/dashboard/trends/history"
+    slot: { week: 5, weekday: MONDAY }
+    theme: signal
+    hook: >
+      Anyone can tell you what's trending now. Almost nobody kept a record of
+      what was trending then.
+    body: |
+      Anyone can tell you what's trending in healthcare AI this week. Almost
+      nobody kept a record of what was trending eighteen months ago — which is
+      the more interesting artifact.
+
+      Because the honest question about any hot term is: how did the last five
+      look at this stage? Did they keep climbing, plateau, or evaporate? You
+      can only answer that if somebody archived the snapshots instead of
+      overwriting them.
+
+      So every trend snapshot is kept. The history page charts multiple
+      keywords over time on one multi-line chart, with a clickable timeline of
+      individual snapshots underneath — open any one and see the rising and
+      new keywords exactly as they stood on that date, with the articles that
+      drove them.
+
+      It's a receipt on the field's own enthusiasm. Some of it holds up
+      beautifully. Some of it is a spike with nothing underneath.
+
+      Keep your snapshots. Future you is doing the analysis.
+
+      Link in the comments.
+    live_variant: |
+      Pulled up the snapshot from {{DATE}}. Of the top five rising terms then,
+      {{N}} are still rising now.
+    first_comment: |
+      Trend history archive: {{site_base_url}}/dashboard/trends/history
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#DataScience", "#TrendAnalysis", "#DigitalHealth"]
+    screenshot:
+      page: "/dashboard/trends/history"
+      prompt: "None — capture the multi-line chart with the snapshot table below."
+      capture: >
+        The multi-line momentum chart with a legible legend, plus the top rows
+        of the clickable snapshot timeline table.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare trend history archive with a multi-line keyword momentum
+        chart and a clickable table of past trend snapshots.
+
+  - id: research-runs
+    feature: "Staged Research Pipeline"
+    menu_path: "Research & Search > Research Runs"
+    url: "/research/runs"
+    slot: { week: 5, weekday: TUESDAY }
+    theme: ask-it
+    hook: >
+      Hard questions don't have answers. They have sub-questions, and a good
+      research tool shows you them.
+    body: |
+      Hard questions don't have answers. They have sub-questions — and a
+      research tool that hides that from you is hiding the part you most need
+      to check.
+
+      Ask "how is reimbursement policy affecting adoption of AI diagnostics?"
+      and no single retrieval will serve it. So the pipeline plans first: an
+      LLM decomposes the question into component queries, each one runs
+      against multiple sources, citations get assembled, and only then does
+      synthesis happen.
+
+      Every run is saved with its mode badge, citation count, and timestamp,
+      and opens to the full synthesized answer with its sources.
+
+      The plan is the interesting artifact. When an answer feels off, the
+      decomposition usually shows you why — a sub-question that was framed
+      badly, or a source tier that came back empty. That's debuggable in a way
+      that a single opaque answer never is.
+
+      Show the plan, not just the conclusion.
+
+      Link in the comments.
+    live_variant: |
+      Latest run: "{{QUESTION}}" decomposed into {{N}} sub-queries,
+      {{M}} citations assembled.
+    first_comment: |
+      Research run history: {{site_base_url}}/research/runs
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#AIResearch", "#LLM", "#HealthcareAI", "#PromptEngineering"]
+    screenshot:
+      page: "/research/runs/{runId}"
+      prompt: "How is reimbursement policy affecting adoption of AI diagnostics?"
+      capture: >
+        The run detail with the synthesized answer and the source citation
+        list. If the decomposed sub-queries are visible, include them — that's
+        the strongest part of the shot.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare research run detail showing a synthesized answer with its
+        assembled source citations.
+
+  - id: watchlist
+    feature: "Custom Watchlists"
+    menu_path: "Newsletter & Content > Watchlist"
+    url: "/watchlist"
+    slot: { week: 5, weekday: WEDNESDAY }
+    theme: companies
+    hook: >
+      Nobody needs all the healthcare AI news. Everybody needs the twelve
+      things that concern them.
+    body: |
+      Nobody needs all the healthcare AI news. What you need is the twelve
+      things that concern you specifically, which is a completely different
+      product.
+
+      Your twelve are probably some mix of: three competitors, two regulatory
+      categories, a technique you're betting on, and a partner you're
+      watching. That list is stable for months and unique to you.
+
+      So the watchlist takes keywords, companies, and topics, and matches
+      every new article and regulatory event against them automatically. Your
+      matches, in one place, instead of you scanning a firehose for names you
+      already know.
+
+      The regulatory matching is the part that earns its keep. Setting a
+      watch on a device category means the clearance that matters to you
+      surfaces the day it posts, without you reading the other forty.
+
+      Personalization in a news product isn't an algorithm guessing. It's you
+      telling it, once.
+
+      Link in the comments.
+    live_variant: |
+      My watchlist caught {{N}} matches this week. {{M}} of them I'd have
+      missed.
+    first_comment: |
+      Watchlists (subscriber tier): {{site_base_url}}/watchlist
+      Pricing and tiers: {{pricing_url}}
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#CompetitiveIntelligence", "#Personalization", "#HealthTech"]
+    screenshot:
+      page: "/watchlist"
+      prompt: "None — have several watch items configured, with recent matches showing."
+      capture: >
+        The watch item list beside the recent matches panel, so the
+        input-to-output relationship is obvious in one frame.
+      redact: >
+        Your actual watch items reveal what you're tracking. Consider setting
+        up a generic demo watchlist for this screenshot.
+      alt_text: >
+        AIHealthcare watchlist page showing configured keyword, company, and
+        topic watches alongside recent matching articles.
+
+  - id: news-topics
+    feature: "Topic-Grouped News"
+    menu_path: "Dashboard & Analytics > News"
+    url: "/dashboard/news"
+    slot: { week: 5, weekday: THURSDAY }
+    theme: knowledge
+    hook: >
+      Reverse-chronological is the laziest possible way to organize
+      information, and it's the default everywhere.
+    body: |
+      Reverse-chronological is the laziest possible way to organize
+      information. It's also the default in nearly every news product you use.
+
+      It optimizes for one thing — recency — and destroys everything else. A
+      regulatory decision, a funding round, and a preprint all land in the
+      same undifferentiated column, and you do the sorting in your head every
+      single morning.
+
+      The news page groups instead. Thirteen configurable topic sections, each
+      with its own AI-generated summary of what happened in that area, so you
+      read the summary and drop into the articles only where it's warranted.
+
+      Configurable matters more than thirteen. Topics are data, not code — a
+      new one is a config entry with its own feed sources and its own place in
+      the layout, no deploy required. That's what makes the structure
+      survivable as the field changes.
+
+      Recency is a sort order, not an information architecture.
+
+      Link in the comments.
+    live_variant: |
+      This morning across {{N}} topic sections, the one worth your time was
+      {{TOPIC}}: {{SUMMARY}}.
+    first_comment: |
+      Topic-grouped news: {{site_base_url}}/dashboard/news
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthcareAI", "#ProductDesign", "#InformationArchitecture", "#DigitalHealth"]
+    screenshot:
+      page: "/dashboard/news"
+      prompt: "None."
+      capture: >
+        Two topic sections stacked, each showing its AI summary above its
+        article list, so the grouping pattern is clear.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare news page showing articles grouped into topic sections,
+        each with its own AI-generated summary.
+
+  - id: tier-gating
+    feature: "Subscription Tiers & Access Model"
+    menu_path: "Admin & Account > Pricing"
+    url: "/pricing"
+    slot: { week: 5, weekday: FRIDAY }
+    theme: craft
+    hook: >
+      Building the billing layer taught me more about the product than
+      building the AI did.
+    body: |
+      Building the billing layer taught me more about the product than
+      building the AI did.
+
+      Because a pricing page is a forcing function. You cannot ship one
+      without answering, precisely, what each tier is worth — and every fuzzy
+      feature you've been carrying gets exposed the moment you try to put it
+      on one side of a line.
+
+      Four tiers ended up mattering: DEMO for the 7-day trial,
+      FREE_PENDING through opt-in confirmation, FREE for the daily digest,
+      and SUBSCRIBER for the full intelligence layer. Gating runs at the
+      feature level with usage metering behind it, not a single boolean, so
+      "you get 10 of these, subscribers get 100" is expressible without
+      forking the page.
+
+      The uncomfortable question the exercise asked me: which features would
+      someone actually pay for, versus which ones I enjoyed building? Those
+      two lists were not identical.
+
+      Ship the pricing page early. It's a design review disguised as
+      commerce.
+
+      Link in the comments.
+    live_variant: |
+      Four tiers, feature-level gating, usage metering. The trial is 7 days
+      and takes no card.
+    first_comment: |
+      Tiers and pricing: {{pricing_url}}
+      Start the free 7-day trial: {{trial_url}}
+    hashtags: ["#SaaS", "#Stripe", "#BuildInPublic", "#ProductStrategy"]
+    screenshot:
+      page: "/pricing"
+      prompt: "None."
+      capture: >
+        The full tier comparison table with the feature rows readable.
+      redact: "Nothing — this page is public."
+      alt_text: >
+        AIHealthcare pricing page comparing the Demo, Free, and Subscriber
+        tiers feature by feature.
+
+  # ===========================================================================
+  # WEEK 6
+  # ===========================================================================
+
+  - id: deal-context
+    feature: "Deal Context Enrichment"
+    menu_path: "Intelligence & Analysis > Deals > detail"
+    url: "/dashboard/deals/{signalId}"
+    slot: { week: 6, weekday: MONDAY }
+    theme: signal
+    hook: >
+      A funding number tells you almost nothing. The context around it tells
+      you everything.
+    body: |
+      A funding number on its own tells you almost nothing. "$40M Series B"
+      is the same headline whether the company is compounding or cornered.
+
+      What changes the reading is context — and it's context you already have,
+      just filed in four different places.
+
+      So the deal detail page cross-references automatically. Open a signal
+      and you get the sentiment picture for that company, its competitive
+      framework scores, any regulatory activity touching it, and its company
+      profile, all as cards on the same page.
+
+      The interesting cases are the mismatches. A large raise into declining
+      sentiment. A quiet round at a company with unusually strong framework
+      scores. Neither is visible from the deal feed alone, and both are the
+      kind of thing you want to notice before your competitor does.
+
+      One event, four lenses. The mismatches are where the analysis lives.
+
+      Link in the comments.
+    live_variant: |
+      Opened {{COMPANY}}'s round: strong on {{DIMENSION}}, notably weak on
+      {{DIMENSION_2}}. Worth a second look.
+    first_comment: |
+      Deal signals with full context: {{site_base_url}}/dashboard/deals
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#VentureCapital", "#HealthTech", "#DueDiligence", "#HealthcareAI"]
+    screenshot:
+      page: "/dashboard/deals/{signalId}"
+      prompt: "None — pick a deal on a company with sentiment AND framework data."
+      capture: >
+        All four cross-reference cards in one frame — sentiment, framework,
+        regulatory, company profile. The point is that they're together.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare deal detail page showing sentiment, framework,
+        regulatory, and company profile cross-reference cards for one deal
+        signal.
+
+  - id: framework-analysis
+    feature: "Framework Competitive Analysis"
+    menu_path: "Intelligence & Analysis > Frameworks"
+    url: "/dashboard/frameworks"
+    slot: { week: 6, weekday: TUESDAY }
+    theme: ask-it
+    hook: >
+      "Who's the leader in healthcare AI" is an unanswerable question. "Leader
+      on which of six dimensions" is a real one.
+    body: |
+      "Who's the leader in healthcare AI" is an unanswerable question, which
+      is why the answer is always whoever raised most recently.
+
+      Break it into six dimensions and it becomes tractable: clinical
+      validation, regulatory position, market adoption, technical depth, data
+      assets, and partnerships. Now "leader" has to mean something specific,
+      and the interesting companies are the ones with a jagged profile rather
+      than a high average.
+
+      The frameworks page scores companies across all six and renders them as
+      a radar chart. Shape reads faster than numbers — a company strong on
+      data assets and thin on regulatory has an unmistakable silhouette, and
+      it's a completely different investment than the balanced one beside it.
+
+      The dimensions are config-driven, so the scoring model can be revised
+      without touching code. Which is good, because the right dimensions for
+      this field in 2027 probably aren't these six.
+
+      Composite scores hide the interesting part. Plot the shape.
+
+      Link in the comments.
+    live_variant: |
+      Most jagged profile in the set right now: {{COMPANY}} — top decile on
+      {{DIMENSION}}, bottom on {{DIMENSION_2}}.
+    first_comment: |
+      Framework analysis: {{site_base_url}}/dashboard/frameworks
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#CompetitiveIntelligence", "#HealthcareAI", "#DataViz", "#HealthTech"]
+    screenshot:
+      page: "/dashboard/frameworks"
+      prompt: "None — then open one company for the 6-dimension detail as a second frame."
+      capture: >
+        The radar chart with 2-3 companies overlaid so the shape difference is
+        visible, plus a score card. Avoid a single-company radar — the
+        comparison is the point.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare framework analysis radar chart comparing companies across
+        six competitive dimensions.
+
+  - id: company-discovery
+    feature: "Company Discovery Pipeline"
+    menu_path: "Company Intelligence > Companies index"
+    url: "/companies"
+    slot: { week: 6, weekday: WEDNESDAY }
+    theme: companies
+    hook: >
+      The companies worth knowing about are, by definition, the ones not yet
+      on anyone's list.
+    body: |
+      The healthcare AI companies worth knowing about are, almost by
+      definition, the ones not yet on anyone's list. Which makes a
+      hand-maintained company list obsolete the day you finish it.
+
+      So discovery runs as a pipeline instead. It scrapes YC and startup
+      directories, classifies each company into a healthcare-AI subcategory,
+      deduplicates against everything already tracked, and renders what's new
+      as a report.
+
+      Deduplication is the unglamorous part that makes it work. The same
+      company appears as three name variants across two directories, and
+      without careful matching your database fills with near-duplicates until
+      nobody trusts the count.
+
+      What comes out is a tracked-company list that grows on its own —
+      alongside the ones I add by hand when they show up in coverage first.
+
+      The best way to keep a list current is to stop maintaining it and start
+      generating it.
+
+      Link in the comments.
+    live_variant: |
+      Discovery added {{N}} companies this run, {{M}} after dedupe. New
+      subcategory that showed up: {{CATEGORY}}.
+    first_comment: |
+      Tracked companies: {{site_base_url}}/companies
+      Public directory (no login): {{directory_url}}
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#HealthTech", "#StartupIntel", "#DataEngineering", "#HealthcareAI"]
+    screenshot:
+      page: "/companies"
+      prompt: "None."
+      capture: >
+        The company index with article counts and trend indicators across
+        8-10 rows, so the scale of the tracked set is visible.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare company intelligence index listing tracked companies with
+        article counts and trend indicators.
+
+  - id: clinical-trials
+    feature: "Clinical Trial Monitoring"
+    menu_path: "Intelligence & Analysis > Clinical Trials"
+    url: "/dashboard/clinical-trials"
+    slot: { week: 6, weekday: THURSDAY }
+    theme: knowledge
+    hook: >
+      A press release tells you what a company claims. A trial registration
+      tells you what they committed to.
+    body: |
+      A press release tells you what a company claims. A trial registration
+      tells you what they committed to, in advance, in public, with a
+      pre-specified endpoint.
+
+      The gap between those two documents is often the whole story.
+
+      So AI-related clinical trials are tracked directly: status, phase, and
+      the company behind each one, linked back to the company profile so a
+      trial and its sponsor's coverage sit together.
+
+      Phase is the honest signal. A field with a lot of Phase I activity and
+      very little Phase III is a field with more announcements than evidence,
+      whatever the funding totals say. And a trial that goes quiet between
+      phases is information that no press release will ever carry.
+
+      Registries are the least glamorous and most reliable source in
+      healthcare AI. Read them before you read the pitch deck.
+
+      Link in the comments.
+    live_variant: |
+      Current mix of tracked AI trials: {{N}} recruiting, {{M}} completed,
+      {{K}} with results posted.
+    first_comment: |
+      Clinical trial monitoring: {{site_base_url}}/dashboard/clinical-trials
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#ClinicalTrials", "#HealthcareAI", "#EvidenceBasedMedicine", "#DigitalHealth"]
+    screenshot:
+      page: "/dashboard/clinical-trials"
+      prompt: "None."
+      capture: >
+        The trial list showing the status, phase, and company columns
+        together across several rows.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare clinical trial monitoring page listing AI-related trials
+        with status, phase, and sponsoring company.
+
+  - id: prompt-evaluation
+    feature: "Prompt Evaluation Framework"
+    menu_path: "Craft / behind the scenes"
+    url: "/dashboard"
+    slot: { week: 6, weekday: FRIDAY }
+    theme: craft
+    hook: >
+      Everyone tweaks prompts. Almost nobody can tell you whether the tweak
+      helped.
+    body: |
+      Everyone tweaks prompts. Almost nobody can tell you whether the tweak
+      actually helped, because the evidence is "I read three outputs and they
+      felt better."
+
+      That's not nothing. It's also not enough to make a change you'll depend
+      on in production.
+
+      So prompt changes go through an evaluation harness: an LLM-as-judge
+      scores outputs across five quality dimensions, and A/B variant
+      comparison runs the old prompt against the new one on the same inputs.
+      A change ships when it wins on the dimensions I care about, not when it
+      reads nicely on the first sample.
+
+      The judge is not neutral and I don't pretend otherwise. It's a
+      consistent instrument, which is a different and lower claim — it lets me
+      detect a regression, and that's most of the value.
+
+      "It seems better" is a hypothesis. Score it before you ship it.
+
+      Link in the comments.
+    live_variant: |
+      Latest A/B: variant B won on {{N}} of 5 dimensions, lost on
+      {{DIMENSION}}. Shipped anyway, and here's why: {{REASON}}.
+    first_comment: |
+      More on how it's built: {{about_url}}
+      Free 7-day trial: {{trial_url}}
+    hashtags: ["#PromptEngineering", "#LLMOps", "#SpringAI", "#BuildInPublic"]
+    screenshot:
+      page: "/dashboard"
+      prompt: "None — capture the evaluation panel on the analytics dashboard."
+      capture: >
+        The evaluation scores section. If an A/B comparison view exists, use
+        that instead — two variants side by side is the stronger image.
+      redact: "Your account email in the nav bar."
+      alt_text: >
+        AIHealthcare analytics dashboard showing prompt evaluation scores
+        across five quality dimensions.
