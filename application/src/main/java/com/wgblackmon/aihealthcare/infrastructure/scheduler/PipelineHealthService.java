@@ -408,7 +408,7 @@ public class PipelineHealthService {
             return val;
         }
         val = env.getProperty(springPropertyName, "");
-        if (!val.isBlank()) {
+        if (!val.isBlank() && !val.startsWith("placeholder-set-")) {
             log.debug("resolveKey() | return=(resolved from spring property)");
             return val;
         }
