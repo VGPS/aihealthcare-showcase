@@ -6,7 +6,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-09-09
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -209,7 +209,13 @@ curl -H "X-API-Key: aih_your_key" \
 
 # AI-powered search
 curl -H "X-API-Key: aih_your_key" \
-  "https://app.bigskylabs.ai/api/v1/search/ai?q=FDA+clearance+AI+diagnostics&amp;topK=10"</pre>
+  "https://app.bigskylabs.ai/api/v1/search/ai?q=FDA+clearance+AI+diagnostics&amp;topK=10"
+
+# Submit enterprise data export job (Enterprise tier)
+curl -X POST -H "X-API-Key: aih_your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"feedId":"articles","format":"CSV","rowLimit":500}' \
+  "https://app.bigskylabs.ai/api/v1/enterprise/data/jobs"</pre>
         </div>
 
         <div x-show="tab === 'python'" x-cloak class="bg-gray-900 text-green-400 rounded-lg p-4 font-mono text-sm overflow-x-auto">
@@ -296,6 +302,46 @@ System.out.println(response.body());</pre>
                     <td class="py-2 pr-4"><span class="text-green-600 font-mono font-medium">GET</span></td>
                     <td class="py-2 pr-4 font-mono text-xs">/api/v1/runs</td>
                     <td class="py-2 text-gray-600">Newsletter run history</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4"><span class="text-green-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/deals</td>
+                    <td class="py-2 text-gray-600">Deal signals (M&amp;A, funding, partnerships)</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                    <td class="py-2 pr-4"><span class="text-green-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/market-digest/latest</td>
+                    <td class="py-2 text-gray-600">Latest market digest</td>
+                </tr>
+                <tr class="border-b border-gray-100 bg-purple-50">
+                    <td class="py-2 pr-4"><span class="text-purple-600 font-mono font-medium">POST</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/enterprise/data/jobs</td>
+                    <td class="py-2 text-purple-800">Submit async data export job <span class="text-xs text-purple-500">(Enterprise)</span></td>
+                </tr>
+                <tr class="border-b border-gray-100 bg-purple-50">
+                    <td class="py-2 pr-4"><span class="text-purple-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/enterprise/data/jobs</td>
+                    <td class="py-2 text-purple-800">List your data jobs <span class="text-xs text-purple-500">(Enterprise)</span></td>
+                </tr>
+                <tr class="border-b border-gray-100 bg-purple-50">
+                    <td class="py-2 pr-4"><span class="text-purple-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/enterprise/data/jobs/{jobId}/artifact</td>
+                    <td class="py-2 text-purple-800">Download job artifact <span class="text-xs text-purple-500">(Enterprise)</span></td>
+                </tr>
+                <tr class="border-b border-gray-100 bg-purple-50">
+                    <td class="py-2 pr-4"><span class="text-purple-600 font-mono font-medium">POST</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/enterprise/data/schedules</td>
+                    <td class="py-2 text-purple-800">Create push delivery schedule <span class="text-xs text-purple-500">(Enterprise)</span></td>
+                </tr>
+                <tr class="border-b border-gray-100 bg-purple-50">
+                    <td class="py-2 pr-4"><span class="text-purple-600 font-mono font-medium">POST</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/api/v1/enterprise/connections</td>
+                    <td class="py-2 text-purple-800">Register remote data connection <span class="text-xs text-purple-500">(Enterprise)</span></td>
+                </tr>
+                <tr class="border-b border-gray-100 bg-purple-50">
+                    <td class="py-2 pr-4"><span class="text-purple-600 font-mono font-medium">GET</span></td>
+                    <td class="py-2 pr-4 font-mono text-xs">/d/{token}</td>
+                    <td class="py-2 text-purple-800">Signed artifact download — no auth required <span class="text-xs text-purple-500">(Enterprise)</span></td>
                 </tr>
             </tbody>
         </table>
