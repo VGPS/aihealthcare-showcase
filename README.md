@@ -40,25 +40,26 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Data Export** | CSV and structured export of articles, companies, trends, and deal signals for external analysis |
 | **Enterprise Data Access** | Async job-based data export for ENTERPRISE-tier customers — submit jobs via console or REST, LLM query planning, confined file I/O, remote HTTPS connector with IP-pinned security, job reaper + 14-day retention sweeper, full audit trail, systemd-hardened deployment; scheduled push delivery with per-customer cron schedules, DB-sweeper scheduler with atomic claim semantics, email attachment with size-aware signed-link fallback, and auto-deactivation after consecutive failures |
 | **Self-Maintaining Pipeline Orchestrator** | Sequences all 11 post-harvest pipelines with try-catch isolation per step — no single failure breaks the chain; all 25+ admin pipeline triggers are async (202 Accepted) via PipelineAsyncRunner to eliminate gateway timeouts |
-| **Subscription Tier Gating** | 4-tier access model (DEMO/FREE_PENDING/FREE/SUBSCRIBER) with Stripe Billing, usage metering, and feature-level gating |
+| **Subscription Tier Gating** | 5-tier access model (DEMO/FREE_PENDING/FREE/SUBSCRIBER/ENTERPRISE) with Stripe Billing, usage metering, and feature-level gating |
 | **Role-Based Access Control** | Spring Security with ADMIN/USER roles, session-based auth, and per-page authorization |
 | **Hexagonal Architecture** | Framework-free domain layer with pluggable adapters — swap AI providers or databases with zero domain changes |
 | **What Changed Digest** | Weekly activity dashboard showing new pages, updated pages, and detected contradictions with configurable time windows |
 | **Evidence Grade Classification** | Automatic source credibility badges (Peer-Reviewed, Regulatory, Industry, Vendor, News) with color-coded provenance |
 | **PII Masking** | LogSanitizer utility masks email addresses in log statements to prevent PII exposure in production logs |
 | **Branded Error Handling** | Custom error pages replacing Spring Boot's Whitelabel Error Page with consistent branded UI |
-| **56-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, and LinkedIn feature post rotation |
-| **2,450+ Automated Tests** | Comprehensive test suite across 314 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **Document Library** | Admin-managed document upload (PDF/DOCX/TXT/MD, 50MB limit) with vector store embedding for RAG search and public wiki page generation |
+| **88-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, enterprise data console, and LinkedIn feature post rotation |
+| **2,891 Automated Tests** | Comprehensive test suite across 354 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
-- Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 17, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 103 domain model records, 92 port interfaces, and 70 controllers — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **2,450+ automated tests** across 314 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 17, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 107 domain model records, 119 port interfaces, and 104 controllers across 899 Java classes — framework-free domain layer enables swapping AI providers with zero business logic changes
+- Wrote **2,891 automated tests** across 354 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
-- Built **18 externalized prompt templates** powering newsletter summarization, sentiment analysis, framework scoring, deal classification, wiki compilation, trend extraction, and LLM-as-judge evaluation across 5 quality dimensions
+- Built **23 externalized prompt templates** powering newsletter summarization, sentiment analysis, framework scoring, deal classification, wiki compilation, trend extraction, market news research, and LLM-as-judge evaluation across 5 quality dimensions
 
 **Data Pipeline & Ingestion**
 - Engineered an **11-step self-maintaining pipeline orchestrator** that sequences competitor scraping, regulatory harvesting, article embedding, framework analysis, sentiment scoring, trend detection, and wiki compilation — each step isolated with try-catch to prevent cascade failures
@@ -85,9 +86,10 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 - Built a **staged research pipeline** with AI-planned query decomposition, multi-source retrieval (Perplexity API + PostgreSQL), citation assembly, and synthesized research answers persisted for audit trail
 
 **SaaS & Monetization**
-- Implemented **4-tier subscription model** (DEMO/FREE_PENDING/FREE/SUBSCRIBER) with **Stripe Billing** integration (SDK 28.2.0), Checkout sessions, customer portal, webhook signature verification, and per-feature usage metering
-- Built **Spring Security 6** session-based authentication with ADMIN/USER roles, BCrypt password hashing, tier-based feature gating, and API key authentication for REST endpoints
-- Delivered **55-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
+- Implemented **5-tier subscription model** (DEMO/FREE_PENDING/FREE/SUBSCRIBER/ENTERPRISE) with **Stripe Billing** integration (SDK 28.2.0), Checkout sessions, customer portal, webhook signature verification, and per-feature usage metering
+- Built **Enterprise Data Access** platform with async job-based data export, LLM query planning, HMAC-SHA256 signed download links, per-customer cron push schedules with atomic claim-based delivery, IP-pinned SSRF-safe remote HTTPS connector, confined file I/O, full audit trail, and systemd-hardened deployment
+- Built **Spring Security 6** session-based authentication with ADMIN/USER roles, BCrypt password hashing, tier-based feature gating, X-API-Key header authentication, and webhook channel notifications for REST endpoints
+- Delivered **88-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
 
 **Performance Engineering & Load Testing**
 - Eliminated a critical **N+1 query problem** on the wiki index page (1,299 DB queries/request → 1), confirmed by k6 load testing that revealed 2% pass rate for `/wiki` under 50 concurrent VUs
@@ -122,24 +124,26 @@ AIHealthcare runs multiple automated pipelines that collectively build a compreh
 15. **Discover** — Scrapes startup directories (YC, TopStartups), classifies companies by healthcare AI subcategory, builds persistent intelligence profiles with real article linking
 16. **Watch** — Subscriber-defined keyword, company, and topic watchlists with automated matching against incoming articles and regulatory events
 17. **Trend** — Weekly keyword frequency analysis across rolling 30/90/180-day windows identifying rising, fading, and emerging healthcare AI trends with historical archive
-18. **Gate** — Usage metering and feature gating per 4-tier subscription model (DEMO/FREE_PENDING/FREE/SUBSCRIBER): archive depth, AI query limits, with Stripe Billing integration
-19. **Orchestrate** — Self-maintaining pipeline orchestrator sequences all 11 post-harvest steps with per-step try-catch isolation, ensuring no single failure breaks the pipeline chain
+18. **Gate** — Usage metering and feature gating per 5-tier subscription model (DEMO/FREE_PENDING/FREE/SUBSCRIBER/ENTERPRISE): archive depth, AI query limits, data export quotas, with Stripe Billing integration
+19. **Enterprise Data** — Async job-based data export with LLM query planning, confined file I/O, IP-pinned HTTPS connectors, HMAC-signed download links, per-customer cron push schedules with email delivery, full audit trail
+20. **Orchestrate** — Self-maintaining pipeline orchestrator sequences all 11 post-harvest steps with per-step try-catch isolation, ensuring no single failure breaks the pipeline chain
 
 ## Architecture
 
 The project follows **hexagonal architecture** (ports and adapters), keeping the domain layer framework-free and all infrastructure concerns pluggable:
 
 ```
-web (72 controllers + 52 Thymeleaf pages)  -->  application (use cases)  -->  domain (111 models + 95 ports)
+web (104 controllers + 88 Thymeleaf pages)  -->  application (use cases)  -->  domain (107 models + 119 ports)
                                                                                     ^
                               infrastructure/* (adapters) --------------------------+
                               - ai/          Spring AI adapters (9 adapters: summarize, evaluate, search x4, wiki, sentiment, deals, frameworks)
                               - config/      AppConfig, SecurityConfig, bean wiring, properties
+                              - enterprise/  Confined file store, remote endpoint guard, job runner, push delivery
                               - ingestion/   RSS, web scraping, HuggingFace, Perplexity, PubMed backfill, regulatory
-                              - persistence/ JPA entities (45), repositories, storage adapters
+                              - persistence/ JPA entities (70), repositories, storage adapters
                               - delivery/    Email (JavaMailSender + SES) + NotebookLM export + transactional emails
                               - research/    Perplexity + legacy Google research adapters
-                              - scheduler/   Pipeline orchestrator, newsletter generation
+                              - scheduler/   Pipeline orchestrator, newsletter generation, enterprise job reaper
 ```
 
 Swapping the AI provider, database, or delivery mechanism requires no domain changes — only a new adapter.
@@ -246,7 +250,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Perplexity Sonar | RestClient direct integration | — |
 | Google Gemini | RestClient direct integration | — |
 | Vector Store | spring-ai-starter-vector-store-pgvector | 1.0.0 |
-| Prompt Templates | 18 externalized prompt files | — |
+| Prompt Templates | 23 externalized prompt files | — |
 
 ### Data & Persistence
 | Component | Technology | Version |
@@ -255,7 +259,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Vector Store | PGVector (PostgreSQL extension) | — |
 | ORM | Spring Data JPA / Hibernate | — |
 | Test DB | H2 (in-memory, @DataJpaTest) | — |
-| Schema | 41 JPA entities across 20+ tables | — |
+| Schema | 70 JPA entities across 50+ tables | — |
 
 ### Web & UI
 | Component | Technology | Version |
@@ -320,7 +324,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Security Testing | spring-security-test (@WithMockUser) | — |
 | Web Testing | MockMvc (@WebMvcTest slices) | — |
 | Persistence Testing | @DataJpaTest (H2 in-memory) | — |
-| Coverage | 2,400+ tests across 309 test classes | — |
+| Coverage | 2,891 tests across 354 test classes | — |
 
 ### Infrastructure & DevOps
 | Component | Technology | Version |
@@ -328,7 +332,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Cloud Provider | AWS (EC2, SES, Secrets Manager) | — |
 | Code Generation | Lombok (@Slf4j, @Data) | — |
 | Architecture | Hexagonal / Ports-and-Adapters | — |
-| Scheduling | Spring @Scheduled (11 externalized cron jobs) | — |
+| Scheduling | Spring @Scheduled (16 externalized cron jobs) | — |
 
 ## Prerequisites
 
@@ -383,10 +387,12 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | `/dashboard/**`, `/newsletter/**`, `/research/**`, `/wiki/**` (except index) | Requires login |
 | `/admin/**`, `/monitoring/**` | Requires ADMIN role |
 | `/watchlist`, `/api/v1/companies/discover` | Requires SUBSCRIBER tier |
+| `/enterprise/**` | Requires ENTERPRISE tier |
+| `/d/**` | Public (HMAC-SHA256 signed token auth) |
 
 ## Web UI (Thymeleaf)
 
-48 pages organized across 6 navigation sections:
+88 pages organized across 7 navigation sections:
 
 ### Dashboard & Analytics
 | URL | Description |
@@ -460,6 +466,7 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | `/login` | Session-based form login with "Remember Me" |
 | `/register` | Self-registration for new DEMO users (7-day trial) |
 | `/developer` | Developer portal — API documentation, key management, usage examples |
+| `/enterprise/data` | Enterprise data console — submit jobs, monitor progress, tail logs, download artifacts, manage push schedules (ENTERPRISE only) |
 | `/privacy` | Privacy policy — data collection, opt-in process, unsubscribe, and bounce/complaint handling disclosure |
 
 ## REST API Endpoints
@@ -533,6 +540,27 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | POST/GET | `/api/v1/evaluations` | Run/view prompt evaluations |
 | POST | `/api/v1/comparisons` | Compare two prompt variants |
 
+### Enterprise Data Access (ENTERPRISE tier)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/enterprise/data/jobs` | Submit data export job (async, 202) |
+| GET | `/api/v1/enterprise/data/jobs/{jobId}` | Get job status |
+| GET | `/api/v1/enterprise/data/jobs` | List your jobs (paginated) |
+| POST | `/api/v1/enterprise/data/jobs/{jobId}/cancel` | Cancel a non-terminal job |
+| GET | `/api/v1/enterprise/data/feeds` | List available data feeds |
+| GET | `/api/v1/enterprise/data/feeds/{feedId}/prompts` | List canned prompts for a feed |
+| GET | `/api/v1/enterprise/data/jobs/{jobId}/log` | Tail job execution log |
+| GET | `/api/v1/enterprise/data/jobs/{jobId}/artifact` | Download completed artifact |
+| POST | `/api/v1/enterprise/data/schedules` | Create push schedule |
+| GET | `/api/v1/enterprise/data/schedules` | List your push schedules |
+| PUT | `/api/v1/enterprise/data/schedules/{id}` | Update a push schedule |
+| DELETE | `/api/v1/enterprise/data/schedules/{id}` | Delete a push schedule |
+| POST | `/api/v1/enterprise/data/schedules/{id}/run` | Trigger immediate push run |
+| GET | `/api/v1/enterprise/data/schedules/preview` | Preview next run times for a cron expression |
+| POST | `/api/v1/enterprise/connections` | Register remote HTTPS connection |
+| GET | `/api/v1/enterprise/connections` | List your remote connections |
+| GET | `/d/{token}` | Signed artifact download (no login required, HMAC token auth) |
+
 ### Webhook Configuration
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -577,6 +605,11 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 | Embedding | 07:00 daily | `aihealthcare.embedding.schedule` | Vector store refresh (after harvests) |
 | Trend Detection | Sunday 08:00 | `aihealthcare.trends.schedule` | Keyword frequency analysis -> TrendSnapshot |
 | Newsletter Draft | 00:00 daily | `aihealthcare.newsletter.schedule` | Generate DRAFT (review + send manually) |
+| Market Digest | 12:00 daily (noon) | `aihealthcare.market-analysis.schedule` | Perplexity news research + Claude classification + Alpaca data |
+| Price Reaction | Hourly | `aihealthcare.market-analysis.price-reaction-cron` | Multi-horizon price-reaction scoring |
+| Enterprise Job Reaper | Every 5 min | `aihealthcare.enterprise.data.reaper-cron` | Mark stale RUNNING jobs as FAILED |
+| Enterprise Retention | 03:15 daily | `aihealthcare.enterprise.data.retention-cron` | Delete expired artifacts + logs |
+| Enterprise Push Sweep | Every 1 min | `aihealthcare.enterprise.data.push.sweep-cron` | DB sweeper: query due schedules, claim + execute |
 | Demo Expiration | Daily | `aihealthcare.demo.expiration-cron` | Expire DEMO accounts after 7-day trial |
 
 ## Configuration
@@ -601,25 +634,28 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 
 ### Subscription Tiers
 
-| Feature | Demo (7-day trial) | Free | Subscriber ($19/mo) |
-|---------|------|------|---------------------|
-| Newsletter content | Full newsletter | Digest summary | Full newsletter |
-| Article archive | Unlimited | 7 days | Unlimited |
-| AI research queries | 200/month | 15/month | 200/month |
-| Semantic search | Yes | No | Yes |
-| Multi-model AI search | Yes | Limited | Yes |
-| New AI Healthcare Companies | Yes | No | Yes |
-| Custom Watchlists | Yes | No | Yes |
-| Regulatory Alerts | 50 events | 5 events | 50 events |
-| Sentiment & Risk Dashboard | All companies | 5 companies | All companies |
-| Framework Analysis | Yes | Limited | Yes |
-| Deal Signals | 100 signals | 10 signals | 100 signals |
-| Trend History | Full archive | 4 snapshots | Full archive |
-| Wiki Detail Pages | Full content | Teaser + upgrade prompt | Full content |
-| Reversal Watch / Digest / Ask | Yes | Upgrade prompt | Yes |
-| Webhook Notifications | Yes | No | Yes |
-| Trend Analysis | Yes | Yes | Yes |
-| Company Profiles | Yes | Yes | Yes |
+| Feature | Demo (7-day trial) | Free | Subscriber ($49/mo) | Enterprise |
+|---------|------|------|---------------------|------------|
+| Newsletter content | Full newsletter | Digest summary | Full newsletter | Full newsletter |
+| Article archive | Unlimited | 7 days | Unlimited | Unlimited |
+| AI research queries | 200/month | 15/month | 200/month | Unlimited |
+| Semantic search | Yes | No | Yes | Yes |
+| Multi-model AI search | Yes | Limited | Yes | Yes |
+| New AI Healthcare Companies | Yes | No | Yes | Yes |
+| Custom Watchlists | Yes | No | Yes | Yes |
+| Regulatory Alerts | 50 events | 5 events | 50 events | 50 events |
+| Sentiment & Risk Dashboard | All companies | 5 companies | All companies | All companies |
+| Framework Analysis | Yes | Limited | Yes | Yes |
+| Deal Signals | 100 signals | 10 signals | 100 signals | 100 signals |
+| Trend History | Full archive | 4 snapshots | Full archive | Full archive |
+| Wiki Detail Pages | Full content | Teaser + upgrade prompt | Full content | Full content |
+| Webhook Notifications | No | No | Yes | Yes |
+| API Keys | No | No | 3 keys | 10 keys |
+| Data Export Jobs | No | No | No | Yes |
+| Push Schedules | No | No | No | Yes |
+| Remote Connections | No | No | No | Yes |
+| Team Management | No | No | No | Yes |
+| Company Directory CSV Export | No | No | No | Yes |
 
 ### Framework Company Configuration
 
@@ -659,7 +695,7 @@ aihealthcare:
 
 ## Testing
 
-2,400+ tests across 309 test classes — all pass with no live AI or network calls.
+2,891 tests across 354 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
@@ -689,9 +725,9 @@ mvn test -Dspring.profiles.active=ai-integration
 AIHealthcare/
 ├── application/src/main/java/com/wgblackmon/aihealthcare/
 │   ├── domain/
-│   │   ├── model/           # 103 records: NewsArticle, WikiPage, DealSignal, CompanySentiment, FrameworkAnalysis...
+│   │   ├── model/           # 107 records: NewsArticle, WikiPage, DealSignal, CompanySentiment, DataJob, DataPushSchedule...
 │   │   ├── port/inbound/    # Use-case interfaces (inbound ports)
-│   │   ├── port/outbound/   # Port interfaces (outbound ports) — 92 total
+│   │   ├── port/outbound/   # Port interfaces (outbound ports) — 119 total
 │   │   ├── service/         # Domain services: Newsletter, Research, Evaluation, Wiki, Sentiment, Framework, Deal...
 │   │   └── exception/       # Domain exceptions
 │   ├── infrastructure/
@@ -699,16 +735,17 @@ AIHealthcare/
 │   │   ├── config/          # AppConfig, SecurityConfig, bean wiring, properties
 │   │   ├── delivery/        # EmailDeliveryAdapter, TransactionalEmailAdapter, NotebookLMService
 │   │   ├── ingestion/       # RSS, web scraping, HuggingFace, Perplexity, PubMed backfill, regulatory harvesters
-│   │   ├── persistence/     # 41 JPA entities, repositories, storage adapters
+│   │   ├── enterprise/      # Confined file store, remote endpoint guard, push delivery, signed links
+│   │   ├── persistence/     # 70 JPA entities, repositories, storage adapters
 │   │   ├── research/        # Perplexity + legacy Google research adapters
-│   │   └── scheduler/       # Pipeline orchestrator, newsletter generation, demo expiration
+│   │   └── scheduler/       # Pipeline orchestrator, newsletter generation, enterprise job reaper
 │   └── web/
-│       ├── controller/      # 71 REST + Thymeleaf controllers
+│       ├── controller/      # 104 REST + Thymeleaf controllers
 │       └── dto/             # Request/response records
 ├── application/src/main/resources/
-│   ├── prompts/             # 18 AI prompt templates
-│   └── templates/           # 51 Thymeleaf HTML templates + 6 fragments
-├── application/src/test/    # 309 test classes (2,400+ tests)
+│   ├── prompts/             # 23 AI prompt templates
+│   └── templates/           # 88 Thymeleaf HTML templates + fragments
+├── application/src/test/    # 354 test classes (2,891 tests)
 ├── docs/                    # Architecture, conventions, QA plan documentation
 ├── pom.xml
 └── CLAUDE.md                # AI assistant project context
@@ -716,7 +753,7 @@ AIHealthcare/
 
 ## AI Prompt Templates
 
-18 prompt templates drive the AI features:
+23 prompt templates drive the AI features:
 
 | Template | Purpose |
 |----------|---------|
@@ -738,6 +775,11 @@ AIHealthcare/
 | `tech-trend-score.txt` | Article significance scoring (1-10 scale) |
 | `trend-extract.txt` | Keyword extraction from article corpus |
 | `trend-summary.txt` | Trend narrative summary for analyst consumption |
+| `market-news-research.txt` | Perplexity market news discovery prompt |
+| `market-impact-classify.txt` | Claude impact classification for market digest entries |
+| `enterprise-query-plan.txt` | LLM query planning for enterprise data export |
+| `relationship-detect.txt` | Company relationship extraction from article text |
+| `legal-trend-extract.txt` | Legal trend extraction from policy/legal articles |
 
 ## Author
 
