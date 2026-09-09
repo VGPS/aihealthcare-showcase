@@ -6,7 +6,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-20
- * @updated 2026-09-07
+ * @updated 2026-09-09
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -47,6 +47,7 @@
                 <li><span class="text-purple-600 mr-1 font-bold">&#10003;</span> <strong>Sentiment Risk Profiles</strong></li>
                 <li><span class="text-purple-600 mr-1 font-bold">&#10003;</span> <strong>AI Audit &amp; Confidence Trends</strong></li>
                 <li><span class="text-purple-600 mr-1 font-bold">&#10003;</span> <strong>All Intelligence Console tabs</strong></li>
+                <li><span class="text-purple-600 mr-1 font-bold">&#10003;</span> <strong>Enterprise Data Console</strong></li>
             </ul>
             <a th:href="@{/register}"
                class="block text-center bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 rounded-md text-sm transition-colors">
@@ -135,6 +136,10 @@
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> 2,000 AI queries/month</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Historical intelligence archive</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Company Directory CSV export</div>
+            <div class="text-sm font-semibold text-purple-900"><span class="text-purple-600 mr-1">&#10003;</span> Enterprise Data Console — async job-based export</div>
+            <div class="text-sm font-semibold text-purple-900"><span class="text-purple-600 mr-1">&#10003;</span> Push Schedules — cron-based automated delivery</div>
+            <div class="text-sm font-semibold text-purple-900"><span class="text-purple-600 mr-1">&#10003;</span> Remote Connections — HTTPS data connectors</div>
+            <div class="text-sm font-semibold text-purple-900"><span class="text-purple-600 mr-1">&#10003;</span> Signed artifact downloads (HMAC-SHA256)</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Priority email support</div>
         </div>
 
@@ -193,6 +198,10 @@
                 <tr><td><span class="tt-wrap">AI Accountability scorecards <span class="tt" data-tip="Per-health-system enforcement history, AI deployment tier, and conduct trajectory sourced from DOJ, HHS-OIG, and state AG public records — structured into five independent dimension badges.">?</span></span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td></tr>
                 <tr><td><span class="tt-wrap">Company directory — Funded &amp; Watch List <span class="tt" data-tip="Company directory sorted by recent funding signals or analyst watchlist flags — surface companies that need monitoring before a deal, partnership, or board discussion.">?</span></span></td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td></tr>
                 <tr><td><span class="tt-wrap">Company directory — CSV export <span class="tt" data-tip="Download the full company directory as a spreadsheet for use in your own CRM, deal pipeline, or analysis tools.">?</span></span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td></tr>
+                <tr style="background:#faf5ff;"><td style="font-weight:600;color:#6b21a8;"><span class="tt-wrap">Enterprise Data Console <span class="tt" data-tip="Submit async data export jobs (CSV/JSON/PDF), monitor progress in real time, tail logs, and download artifacts — all from a dedicated console.">?</span></span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; Async jobs + log tailing</td></tr>
+                <tr style="background:#faf5ff;"><td style="font-weight:600;color:#6b21a8;"><span class="tt-wrap">Push Schedules <span class="tt" data-tip="Automated cron-based delivery of data exports via email. Artifacts under 8MB arrive as attachments; larger files use HMAC-signed download links. Auto-deactivation after 3 consecutive failures.">?</span></span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; Cron-based email delivery</td></tr>
+                <tr style="background:#faf5ff;"><td style="font-weight:600;color:#6b21a8;"><span class="tt-wrap">Remote Connections <span class="tt" data-tip="HTTPS-only external data connectors with IP pinning, redirect blocking, and secret-reference auth. Connect your own data sources to the export pipeline.">?</span></span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; HTTPS with IP pinning</td></tr>
+                <tr style="background:#faf5ff;"><td style="font-weight:600;color:#6b21a8;"><span class="tt-wrap">Signed Artifact Downloads <span class="tt" data-tip="HMAC-SHA256 signed download tokens for push-delivered artifacts. Time-limited (24h default), no login required — share securely with team members.">?</span></span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; Token-verified downloads</td></tr>
             </tbody>
         </table>
     </div>
