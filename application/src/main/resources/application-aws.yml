@@ -67,6 +67,10 @@ aihealthcare:
     data:
       artifact-directory: /var/lib/aihealthcare/data-exports
       log-directory: /var/lib/aihealthcare/data-exports/logs
+      signing-secret: ${ENTERPRISE_LINK_SECRET}
+      remote:
+        allowed-hosts:
+          - "none.placeholder.invalid"
 
 logging:
   level:
