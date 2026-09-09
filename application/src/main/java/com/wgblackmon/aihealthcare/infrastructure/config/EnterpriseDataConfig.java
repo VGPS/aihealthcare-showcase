@@ -1,10 +1,13 @@
 package com.wgblackmon.aihealthcare.infrastructure.config;
 
+import com.wgblackmon.aihealthcare.domain.port.inbound.ManageDataPushSchedulesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageRemoteConnectionsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.RequestEnterpriseDataUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.*;
+import com.wgblackmon.aihealthcare.domain.service.DataPushScheduleService;
 import com.wgblackmon.aihealthcare.domain.service.EnterpriseDataService;
 import com.wgblackmon.aihealthcare.domain.service.RemoteConnectionService;
+import com.wgblackmon.aihealthcare.infrastructure.enterprise.push.CronScheduleCalculator;
 import com.wgblackmon.aihealthcare.infrastructure.enterprise.ConfinedFileStore;
 import com.wgblackmon.aihealthcare.infrastructure.enterprise.EnterpriseDataJobRunner;
 import com.wgblackmon.aihealthcare.infrastructure.enterprise.FileDataArtifactAdapter;
@@ -35,7 +38,7 @@ import java.util.concurrent.Executor;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08 — Inc 10: added Clock bean for reaper/retention schedulers
+ * @updated 2026-09-08 — ED-2: DataPushScheduleService bean + Clock
  */
 @Slf4j
 @Configuration
@@ -130,6 +133,23 @@ public class EnterpriseDataConfig {
                 props.getMaxRowsPerJob(),
                 props.getRetentionDays());
         log.debug("enterpriseDataService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    @Bean
+    public ManageDataPushSchedulesUseCase dataPushScheduleService(
+            DataPushSchedulePort schedulePort,
+            DataAccessAuditPort auditPort,
+            AppUserPort appUserPort,
+            RequestEnterpriseDataUseCase dataService,
+            CronScheduleCalculator cronCalculator,
+            Clock clock,
+            EnterpriseDataProperties props) {
+        log.debug("dataPushScheduleService()");
+        ManageDataPushSchedulesUseCase result = new DataPushScheduleService(
+                schedulePort, auditPort, appUserPort, dataService, cronCalculator,
+                clock, props.getPush().getMaxSchedulesPerAccount());
+        log.debug("dataPushScheduleService() | return={}", result.getClass().getSimpleName());
         return result;
     }
 

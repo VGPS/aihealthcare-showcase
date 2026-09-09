@@ -138,7 +138,7 @@ public class EnterpriseDataService implements RequestEnterpriseDataUseCase {
                 null, null,
                 now, null, null, null,
                 now.plus(Duration.ofDays(retentionDays)),
-                null);
+                request.scheduleId());
         DataJob saved = dataJobPort.save(job);
 
         audit(request, DataAccessAction.SUBMIT, "ALLOW",
@@ -151,7 +151,7 @@ public class EnterpriseDataService implements RequestEnterpriseDataUseCase {
                 request.jobId(), request.ownerEmail(), request.teamId(),
                 request.mode(), request.feedId(), request.promptId(), request.promptText(),
                 request.parameters(), request.format(), clampedLimit,
-                request.connectionId(), plan, request.requestedAt());
+                request.connectionId(), plan, request.requestedAt(), request.scheduleId());
 
         // Step 8: Dispatch to async executor
         jobDispatcher.accept(resolved);

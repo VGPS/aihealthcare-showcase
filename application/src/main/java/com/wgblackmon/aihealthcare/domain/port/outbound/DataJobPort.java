@@ -18,13 +18,19 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-08 — ED-2 findByJobId, countPushRunsSince
  */
 public interface DataJobPort {
 
     DataJob save(DataJob job);
 
     Optional<DataJob> findByJobIdAndOwnerEmail(String jobId, String ownerEmail);
+
+    /**
+     * Finds a job by id without owner check — used exclusively by the signed
+     * download path where the HMAC token is the authorization, not the session.
+     */
+    Optional<DataJob> findByJobId(String jobId);
 
     List<DataJob> findByOwnerEmail(String ownerEmail, int page, int size);
 
@@ -35,6 +41,8 @@ public interface DataJobPort {
                       String artifactPath, Instant completedAt);
 
     void touchHeartbeat(String jobId, Instant heartbeatAt);
+
+    int countPushRunsSince(String ownerEmail, Instant since);
 
     List<DataJob> findStaleRunning(Instant heartbeatBefore);
 

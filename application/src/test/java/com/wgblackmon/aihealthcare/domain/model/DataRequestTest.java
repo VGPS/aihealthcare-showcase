@@ -26,7 +26,7 @@ class DataRequestTest {
     void validRequest_createsSuccessfully() {
         DataRequest req = new DataRequest(
                 "job-1", "user@example.com", null, DataJobMode.PULL, "articles",
-                null, null, Map.of("topic", "AI"), ExportFormat.CSV, 100, null, null, NOW);
+                null, null, Map.of("topic", "AI"), ExportFormat.CSV, 100, null, null, NOW, null);
 
         assertThat(req.jobId()).isEqualTo("job-1");
         assertThat(req.ownerEmail()).isEqualTo("user@example.com");
@@ -38,7 +38,7 @@ class DataRequestTest {
     void nullJobId_throws() {
         assertThatThrownBy(() -> new DataRequest(
                 null, "user@example.com", null, DataJobMode.PULL, "articles",
-                null, null, null, ExportFormat.CSV, 10, null, null, NOW))
+                null, null, null, ExportFormat.CSV, 10, null, null, NOW, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("jobId");
     }
@@ -47,7 +47,7 @@ class DataRequestTest {
     void blankJobId_throws() {
         assertThatThrownBy(() -> new DataRequest(
                 "  ", "user@example.com", null, DataJobMode.PULL, "articles",
-                null, null, null, ExportFormat.CSV, 10, null, null, NOW))
+                null, null, null, ExportFormat.CSV, 10, null, null, NOW, null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -55,7 +55,7 @@ class DataRequestTest {
     void blankOwnerEmail_throws() {
         assertThatThrownBy(() -> new DataRequest(
                 "job-1", "", null, DataJobMode.PULL, "articles",
-                null, null, null, ExportFormat.CSV, 10, null, null, NOW))
+                null, null, null, ExportFormat.CSV, 10, null, null, NOW, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("ownerEmail");
     }
@@ -64,7 +64,7 @@ class DataRequestTest {
     void blankFeedId_throws() {
         assertThatThrownBy(() -> new DataRequest(
                 "job-1", "user@example.com", null, DataJobMode.PULL, "  ",
-                null, null, null, ExportFormat.CSV, 10, null, null, NOW))
+                null, null, null, ExportFormat.CSV, 10, null, null, NOW, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("feedId");
     }
@@ -73,7 +73,7 @@ class DataRequestTest {
     void nullFormat_throws() {
         assertThatThrownBy(() -> new DataRequest(
                 "job-1", "user@example.com", null, DataJobMode.PULL, "articles",
-                null, null, null, null, 10, null, null, NOW))
+                null, null, null, null, 10, null, null, NOW, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("format");
     }
@@ -82,7 +82,7 @@ class DataRequestTest {
     void zeroRowLimit_throws() {
         assertThatThrownBy(() -> new DataRequest(
                 "job-1", "user@example.com", null, DataJobMode.PULL, "articles",
-                null, null, null, ExportFormat.CSV, 0, null, null, NOW))
+                null, null, null, ExportFormat.CSV, 0, null, null, NOW, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("rowLimit");
     }
@@ -91,7 +91,7 @@ class DataRequestTest {
     void negativeRowLimit_throws() {
         assertThatThrownBy(() -> new DataRequest(
                 "job-1", "user@example.com", null, DataJobMode.PULL, "articles",
-                null, null, null, ExportFormat.CSV, -5, null, null, NOW))
+                null, null, null, ExportFormat.CSV, -5, null, null, NOW, null))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -99,7 +99,7 @@ class DataRequestTest {
     void nullParameters_becomesEmptyMap() {
         DataRequest req = new DataRequest(
                 "job-1", "user@example.com", null, DataJobMode.PULL, "articles",
-                null, null, null, ExportFormat.CSV, 10, null, null, NOW);
+                null, null, null, ExportFormat.CSV, 10, null, null, NOW, null);
 
         assertThat(req.parameters()).isEmpty();
     }
@@ -111,7 +111,7 @@ class DataRequestTest {
 
         DataRequest req = new DataRequest(
                 "job-1", "user@example.com", null, DataJobMode.PULL, "legislation",
-                null, null, mutable, ExportFormat.CSV, 10, null, null, NOW);
+                null, null, mutable, ExportFormat.CSV, 10, null, null, NOW, null);
 
         mutable.put("injected", "value");
 
@@ -123,7 +123,7 @@ class DataRequestTest {
     void parametersMap_isUnmodifiable() {
         DataRequest req = new DataRequest(
                 "job-1", "user@example.com", null, DataJobMode.PULL, "articles",
-                null, null, Map.of("k", "v"), ExportFormat.CSV, 10, null, null, NOW);
+                null, null, Map.of("k", "v"), ExportFormat.CSV, 10, null, null, NOW, null);
 
         assertThatThrownBy(() -> req.parameters().put("new", "val"))
                 .isInstanceOf(UnsupportedOperationException.class);

@@ -98,6 +98,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | DS-1 | LLM-Enhanced Deal Signal Alerts — cross-referenced context, detail page, type filtering, tier gating | 1509+ |
 | MA-1 | Market Analysis (Phases 1–3) — Perplexity news research, Claude impact classifier, Alpaca market data, weekly rollup, price-reaction scoring | 1509+ |
 | ED-1 | Enterprise Data PULL — async job-based data export with LLM query planning, confined file I/O, remote HTTPS connector, job reaper + retention scheduler | 1509+ |
+| ED-2 | Enterprise Data PUSH — per-customer cron schedules, DB-sweeper scheduler with atomic claim, email delivery with size-aware attachment/signed-link fallback, schedule CRUD REST + console Schedules tab | 1509+ |
 
 ---
 
@@ -260,6 +261,8 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | GET/GET/POST | `/api/v1/deals`, `/api/v1/deals/{signalId}`, `/api/v1/deals/detect` | `DealSignalRestController` |
 | POST/GET/GET/POST/GET/GET/GET/GET | `/api/v1/enterprise/data/jobs`, `/api/v1/enterprise/data/jobs/{jobId}`, `/api/v1/enterprise/data/jobs`, `/api/v1/enterprise/data/jobs/{jobId}/cancel`, `/api/v1/enterprise/data/feeds`, `/api/v1/enterprise/data/feeds/{feedId}/prompts`, `/api/v1/enterprise/data/jobs/{jobId}/log`, `/api/v1/enterprise/data/jobs/{jobId}/artifact` | `EnterpriseDataRestController` |
 | POST/GET/GET/PUT/DELETE | `/api/v1/enterprise/connections`, `/api/v1/enterprise/connections/{id}`, `/api/v1/enterprise/connections`, `/api/v1/enterprise/connections/{id}`, `/api/v1/enterprise/connections/{id}` | `EnterpriseConnectionRestController` |
+| POST/GET/PUT/DELETE/POST/GET | `/api/v1/enterprise/data/schedules`, `/api/v1/enterprise/data/schedules`, `/api/v1/enterprise/data/schedules/{scheduleId}`, `/api/v1/enterprise/data/schedules/{scheduleId}`, `/api/v1/enterprise/data/schedules/{scheduleId}/run`, `/api/v1/enterprise/data/schedules/preview` | `EnterpriseScheduleRestController` |
+| GET | `/d/{token}` | `SignedDownloadController` — HMAC-SHA256 signed artifact download (no login required) |
 
 ---
 
@@ -291,6 +294,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `enterprise_data_audit` | `DataAccessAuditEntity` | id BIGSERIAL PK, occurredAt, ownerEmail, jobId, action, outcome, detail |
 | `enterprise_canned_prompts` | `CannedPromptEntity` | promptId UUID PK, feedId, label, description, templateText, sortOrder |
 | `enterprise_remote_connections` | `RemoteConnectionEntity` | connectionId UUID PK, ownerEmail, label, kind, baseUrl, authType, headerName, secretRef, active |
+| `enterprise_push_schedules` | `DataPushScheduleEntity` | scheduleId UUID PK, ownerEmail, label, feedId, promptId, promptText, parameters TEXT, format, cronExpression, zoneId, recipients TEXT (pipe-delimited), active, nextRunAt, lastRunAt, lastStatus, lastJobId, consecutiveFailures, createdAt, updatedAt |
 
 ---
 
@@ -309,6 +313,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | `RegulatoryHarvestScheduler` | 04:30 daily | `aihealthcare.regulatory.schedule` | FDA/CMS harvest → dedup → save → watchlist match |
 | `EnterpriseDataJobReaper` | Every 5 min | `aihealthcare.enterprise.data.reaper-cron` | Mark stale RUNNING jobs as FAILED/ORPHANED |
 | `EnterpriseDataRetentionScheduler` | 03:15 daily | `aihealthcare.enterprise.data.retention-cron` | Delete expired artifacts + logs, mark jobs EXPIRED |
+| `EnterpriseDataPushScheduler` | Every 1 min | `aihealthcare.enterprise.data.push.sweep-cron` | DB sweeper: query due schedules, atomic claim via conditional UPDATE on `next_run_at`, execute job + email delivery |
 
 ---
 

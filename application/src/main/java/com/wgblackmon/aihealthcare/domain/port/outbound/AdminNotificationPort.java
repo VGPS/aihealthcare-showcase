@@ -11,7 +11,7 @@ package com.wgblackmon.aihealthcare.domain.port.outbound;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-10
- * @updated 2026-07-10
+ * @updated 2026-09-08 — ED-2 notifyScheduleDeactivated added
  */
 public interface AdminNotificationPort {
 
@@ -24,4 +24,14 @@ public interface AdminNotificationPort {
      * @param cause        the exception that caused the failure
      */
     void notifyModelFailure(String providerName, String modelId, String query, Exception cause);
+
+    /**
+     * Notifies the admin that a push schedule was auto-deactivated due to
+     * consecutive failures exceeding the configured threshold.
+     *
+     * @param scheduleId the schedule that was deactivated
+     * @param ownerEmail the schedule owner
+     * @param lastError  the error from the most recent failed run
+     */
+    void notifyScheduleDeactivated(String scheduleId, String ownerEmail, String lastError);
 }

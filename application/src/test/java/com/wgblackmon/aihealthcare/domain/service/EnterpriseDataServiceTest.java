@@ -147,7 +147,7 @@ class EnterpriseDataServiceTest {
     void unknownFeedThrows() {
         DataRequest req = new DataRequest(
                 "job-1", OWNER, null, DataJobMode.PULL, "nonexistent",
-                null, null, Map.of(), ExportFormat.CSV, 100, null, null, FIXED_NOW);
+                null, null, Map.of(), ExportFormat.CSV, 100, null, null, FIXED_NOW, null);
 
         assertThatThrownBy(() -> service.submit(req))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -293,7 +293,7 @@ class EnterpriseDataServiceTest {
 
         DataRequest bigReq = new DataRequest(
                 "job-1", OWNER, null, DataJobMode.PULL, "articles",
-                null, null, Map.of(), ExportFormat.CSV, 999999, null, null, FIXED_NOW);
+                null, null, Map.of(), ExportFormat.CSV, 999999, null, null, FIXED_NOW, null);
 
         service.submit(bigReq);
 
@@ -378,18 +378,18 @@ class EnterpriseDataServiceTest {
     private DataRequest makeRequest() {
         return new DataRequest(
                 "job-1", OWNER, null, DataJobMode.PULL, "articles",
-                null, null, Map.of(), ExportFormat.CSV, 100, null, null, FIXED_NOW);
+                null, null, Map.of(), ExportFormat.CSV, 100, null, null, FIXED_NOW, null);
     }
 
     private DataRequest makeRequestWithPromptId(String promptId, Map<String, String> params) {
         return new DataRequest(
                 "job-1", OWNER, null, DataJobMode.PULL, "articles",
-                promptId, null, params, ExportFormat.CSV, 100, null, null, FIXED_NOW);
+                promptId, null, params, ExportFormat.CSV, 100, null, null, FIXED_NOW, null);
     }
 
     private DataRequest makeRequestWithPromptText(String text) {
         return new DataRequest(
                 "job-1", OWNER, null, DataJobMode.PULL, "articles",
-                null, text, Map.of(), ExportFormat.CSV, 100, null, null, FIXED_NOW);
+                null, text, Map.of(), ExportFormat.CSV, 100, null, null, FIXED_NOW, null);
     }
 }

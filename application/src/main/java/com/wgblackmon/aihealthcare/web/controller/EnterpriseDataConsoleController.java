@@ -2,10 +2,14 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.DataJob;
 import com.wgblackmon.aihealthcare.domain.model.DataJobStatus;
+import com.wgblackmon.aihealthcare.domain.model.DataPushSchedule;
+import com.wgblackmon.aihealthcare.domain.port.inbound.ManageDataPushSchedulesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.RequestEnterpriseDataUseCase;
 import com.wgblackmon.aihealthcare.web.dto.DataFeedResponse;
 import com.wgblackmon.aihealthcare.web.dto.DataJobResponse;
+import com.wgblackmon.aihealthcare.web.dto.DataPushScheduleResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,9 +27,9 @@ import java.util.List;
  * live job table polling, log tailing, and artifact previews.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-08 — ED-2: schedules tab model data + schedule-rows fragment
  */
 @Slf4j
 @Controller
@@ -33,11 +37,15 @@ import java.util.List;
 public class EnterpriseDataConsoleController {
 
     private final RequestEnterpriseDataUseCase useCase;
+    private final ManageDataPushSchedulesUseCase scheduleUseCase;
 
-    public EnterpriseDataConsoleController(RequestEnterpriseDataUseCase useCase) {
-        log.debug("EnterpriseDataConsoleController() | useCase={}",
-                useCase.getClass().getSimpleName());
+    public EnterpriseDataConsoleController(RequestEnterpriseDataUseCase useCase,
+                                           @Nullable ManageDataPushSchedulesUseCase scheduleUseCase) {
+        log.debug("EnterpriseDataConsoleController() | useCase={}, scheduleUseCase={}",
+                useCase.getClass().getSimpleName(),
+                scheduleUseCase != null ? scheduleUseCase.getClass().getSimpleName() : "null");
         this.useCase = useCase;
+        this.scheduleUseCase = scheduleUseCase;
     }
 
     @GetMapping
@@ -53,6 +61,17 @@ public class EnterpriseDataConsoleController {
         model.addAttribute("jobs", jobs);
         model.addAttribute("hasInFlightJobs", jobs.stream()
                 .anyMatch(j -> "QUEUED".equals(j.status()) || "RUNNING".equals(j.status())));
+
+        List<DataPushScheduleResponse> schedules = List.of();
+        if (scheduleUseCase != null) {
+            try {
+                schedules = scheduleUseCase.list(principal.getName()).stream()
+                        .map(DataPushScheduleResponse::from).toList();
+            } catch (IllegalStateException e) {
+                log.debug("console() | schedules tier-denied, showing empty");
+            }
+        }
+        model.addAttribute("schedules", schedules);
 
         log.debug("console() | return=enterprise-data-console");
         return "enterprise-data-console";
@@ -102,5 +121,22 @@ public class EnterpriseDataConsoleController {
         }
         log.debug("preview() | return=fragment enterprise-job-preview");
         return "fragments/enterprise-job-preview";
+    }
+
+    @GetMapping("/schedules/rows")
+    public String scheduleRows(Model model, Principal principal) {
+        log.debug("scheduleRows() | principal={}", principal.getName());
+        List<DataPushScheduleResponse> schedules = List.of();
+        if (scheduleUseCase != null) {
+            try {
+                schedules = scheduleUseCase.list(principal.getName()).stream()
+                        .map(DataPushScheduleResponse::from).toList();
+            } catch (IllegalStateException e) {
+                log.debug("scheduleRows() | tier-denied");
+            }
+        }
+        model.addAttribute("schedules", schedules);
+        log.debug("scheduleRows() | return=fragment enterprise-schedule-rows");
+        return "fragments/enterprise-schedule-rows";
     }
 }

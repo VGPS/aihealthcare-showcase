@@ -213,7 +213,7 @@ class HttpJsonRemoteDataSourceAdapterTest {
                 "job-1", "user@test.com", null,
                 DataJobMode.PULL, "customer-remote", null, null,
                 Map.of("connectionId", "conn-1", "path", "/api/extra"),
-                ExportFormat.JSON, 100, "conn-1", null, Instant.now()
+                ExportFormat.JSON, 100, "conn-1", null, Instant.now(), null
         );
 
         adapter.fetch(req, jobLog);
@@ -258,7 +258,7 @@ class HttpJsonRemoteDataSourceAdapterTest {
                 DataJobMode.PULL, feedId, null, null,
                 connectionId != null ? Map.of("connectionId", connectionId) : Map.of(),
                 ExportFormat.JSON, rowLimit,
-                connectionId, null, Instant.now()
+                connectionId, null, Instant.now(), null
         );
     }
 }

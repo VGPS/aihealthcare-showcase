@@ -18,7 +18,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-08 — ED-2 Push + signingSecret added
  */
 @Slf4j
 @Component
@@ -58,8 +58,11 @@ public class EnterpriseDataProperties {
     private String reaperCron = "0 */5 * * * *";
     private String retentionCron = "0 15 3 * * *";
 
+    private String signingSecret = "";
+
     private Executor executor = new Executor();
     private Remote remote = new Remote();
+    private Push push = new Push();
 
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -87,6 +90,10 @@ public class EnterpriseDataProperties {
     public void setExecutor(Executor executor) { this.executor = executor; }
     public Remote getRemote() { return remote; }
     public void setRemote(Remote remote) { this.remote = remote; }
+    public Push getPush() { return push; }
+    public void setPush(Push push) { this.push = push; }
+    public String getSigningSecret() { return signingSecret; }
+    public void setSigningSecret(String signingSecret) { this.signingSecret = signingSecret; }
 
     public static class Executor {
         private int corePoolSize = 2;
@@ -118,5 +125,36 @@ public class EnterpriseDataProperties {
         public void setReadTimeoutMs(int v) { this.readTimeoutMs = v; }
         public long getMaxResponseBytes() { return maxResponseBytes; }
         public void setMaxResponseBytes(long v) { this.maxResponseBytes = v; }
+    }
+
+    public static class Push {
+        private String sweepCron = "0 * * * * *";
+        private long maxAttachmentBytes = 8_388_608L;
+        private String fromAddress = "data@bigskylabs.ai";
+        private int maxRecipients = 10;
+        private int maxSchedulesPerAccount = 25;
+        private int minIntervalMinutes = 15;
+        private int failureThreshold = 5;
+        private int dueBatchSize = 50;
+        private long linkExpirySeconds = 86_400L;
+
+        public String getSweepCron() { return sweepCron; }
+        public void setSweepCron(String v) { this.sweepCron = v; }
+        public long getMaxAttachmentBytes() { return maxAttachmentBytes; }
+        public void setMaxAttachmentBytes(long v) { this.maxAttachmentBytes = v; }
+        public String getFromAddress() { return fromAddress; }
+        public void setFromAddress(String v) { this.fromAddress = v; }
+        public int getMaxRecipients() { return maxRecipients; }
+        public void setMaxRecipients(int v) { this.maxRecipients = v; }
+        public int getMaxSchedulesPerAccount() { return maxSchedulesPerAccount; }
+        public void setMaxSchedulesPerAccount(int v) { this.maxSchedulesPerAccount = v; }
+        public int getMinIntervalMinutes() { return minIntervalMinutes; }
+        public void setMinIntervalMinutes(int v) { this.minIntervalMinutes = v; }
+        public int getFailureThreshold() { return failureThreshold; }
+        public void setFailureThreshold(int v) { this.failureThreshold = v; }
+        public int getDueBatchSize() { return dueBatchSize; }
+        public void setDueBatchSize(int v) { this.dueBatchSize = v; }
+        public long getLinkExpirySeconds() { return linkExpirySeconds; }
+        public void setLinkExpirySeconds(long v) { this.linkExpirySeconds = v; }
     }
 }

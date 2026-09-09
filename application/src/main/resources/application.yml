@@ -1595,6 +1595,17 @@ aihealthcare:
         connect-timeout-ms: 5000
         read-timeout-ms: 30000
         max-response-bytes: 26214400        # 25 MB
+      signing-secret: ${ENTERPRISE_LINK_SECRET:}
+      push:
+        sweep-cron: "0 * * * * *"           # every minute, on the minute
+        max-attachment-bytes: 8388608       # 8 MB — above this, send a signed link
+        from-address: data@bigskylabs.ai
+        max-recipients: 10
+        max-schedules-per-account: 25
+        min-interval-minutes: 15
+        failure-threshold: 5                # consecutive failures before auto-deactivating
+        due-batch-size: 50
+        link-expiry-seconds: 86400          # 24 hours
 
   # ---------------------------------------------------------------------------
   # Ingestion — domain denylist for WebPageHarvester robots.txt gate.

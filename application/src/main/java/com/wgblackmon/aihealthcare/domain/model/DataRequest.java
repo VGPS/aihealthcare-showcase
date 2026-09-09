@@ -24,6 +24,7 @@ import java.util.Map;
  * @param connectionId  remote connection id for CUSTOMER_REMOTE (nullable)
  * @param plan          resolved query plan (null until resolution step)
  * @param requestedAt   submission timestamp
+ * @param scheduleId    owning push schedule id (null for ad-hoc requests)
  *
  * @author  Bill Blackmon
  * @version 1.0
@@ -43,7 +44,8 @@ public record DataRequest(
         int rowLimit,
         String connectionId,
         DataQueryPlan plan,
-        Instant requestedAt
+        Instant requestedAt,
+        String scheduleId
 ) {
     public DataRequest {
         if (jobId == null || jobId.isBlank()) {

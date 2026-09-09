@@ -177,7 +177,7 @@ class LegislationCorpusDataSourceAdapterTest {
                 "job-1", "user@test.com", null,
                 DataJobMode.PULL, feedId, null, null,
                 params, ExportFormat.CSV, rowLimit,
-                null, plan, Instant.now()
+                null, plan, Instant.now(), null
         );
     }
 }

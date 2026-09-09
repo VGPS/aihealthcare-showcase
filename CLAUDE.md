@@ -1075,7 +1075,7 @@ period (default 14 days).
 | `DataSourceKind` | enum | DB_QUERY, LLM_SYNTHESIS, CUSTOMER_REMOTE |
 | `CannedPrompt` | record | 8 fields — promptId, feedId, label, description, templateText, sortOrder, active, createdAt |
 | `DataQueryPlan` | record | 8 fields — CLOSED security boundary |
-| `DataRequest` | record | 13 fields with validation |
+| `DataRequest` | record | 14 fields with validation (includes nullable `scheduleId` for push-originated jobs) |
 | `DataAccessAction` | enum | 12 values (SUBMIT through DOWNLOAD_LOG) |
 | `DataAccessAuditEntry` | record | 9 fields |
 | `DataArtifact` | record | 7 fields |
@@ -1109,6 +1109,61 @@ period (default 14 days).
 | `EnterpriseDataRetentionScheduler` | `infrastructure.scheduler` | Deletes expired artifacts/logs (daily 03:15 UTC) |
 
 ### 289 tests across 18 test classes
+
+---
+
+## Enterprise Data PUSH (Slice ED-2)
+
+### Overview
+
+Scheduled push delivery layered on top of ED-1's job execution core. Per-customer cron
+schedules with DB-sweeper scheduler, email delivery with size-aware attachment/signed-link
+fallback, cron preview, and auto-deactivation after consecutive failures.
+
+**Additional invariants (must survive future edits):**
+7. **Schedule state lives in the database and firing is claim-guarded** — never move it into an in-memory `TaskScheduler`. The per-minute sweeper queries for due schedules, and the `claim()` call is a conditional UPDATE guarded on `next_run_at` still equalling the observed value. This guarantees at-most-once delivery even with multiple app instances.
+8. **`next_run_at` advances before the push job runs.** The schedule's next run time is updated atomically in the claim step, so a slow or failed job can never cause a double-fire on the next sweep.
+
+### Domain types (all in `domain.model`)
+
+| Type | Kind | Fields |
+|------|------|--------|
+| `DataPushSchedule` | record | 19 fields — scheduleId, ownerEmail, label, feedId, promptId, promptText, parameters, format, cronExpression, zoneId, recipients, active, nextRunAt, lastRunAt, lastStatus, lastJobId, consecutiveFailures, createdAt, updatedAt |
+| `PushDeliveryResult` | record | 4 fields — jobId, mode, recipientCount, error |
+| `PushDeliveryMode` | enum | ATTACHMENT, SIGNED_LINK |
+| `CronScheduleCalculator` | class | DST-correct cron-to-Instant computation via `ZonedDateTime.now(ZoneId.of(zoneId))` |
+
+### Ports
+
+| Port | Package | Kind |
+|------|---------|------|
+| `ManageDataPushSchedulesUseCase` | `domain.port.inbound` | inbound — create/update/delete/list/runNow/previewNextRuns |
+| `DataPushSchedulePort` | `domain.port.outbound` | outbound — save/findByOwnerEmail/findById/delete/findDue/claim/findByIdAndOwnerEmail |
+| `DataPushDeliveryPort` | `domain.port.outbound` | outbound — `deliver(DataJob, List<String> recipients)` → `PushDeliveryResult` |
+| `SignedLinkPort` | `domain.port.outbound` | outbound — `generateLink(jobId, ttl)` → URI |
+
+### Infrastructure
+
+| Class | Package | Purpose |
+|-------|---------|---------|
+| `DataPushScheduleService` | `domain.service` | Schedule CRUD + cron preview + runNow (delegates to `RequestEnterpriseDataUseCase`) |
+| `EnterpriseDataPushScheduler` | `infrastructure.scheduler` | Per-minute DB sweeper with atomic claim, awaitAndDeliver poll loop, auto-deactivation after 3 consecutive failures |
+| `EmailDataPushAdapter` | `infrastructure.enterprise.delivery` | `DataPushDeliveryPort` impl: ≤8MB → email attachment, >8MB → signed download link |
+| `HmacSignedLinkAdapter` | `infrastructure.enterprise` | `SignedLinkPort` impl: HMAC-SHA256 token generation + verification, constant-time comparison |
+| `SignedDownloadController` | `web.controller` | `GET /d/{token}` — token-verified artifact download, no login required |
+| `DataPushScheduleEntity` | `infrastructure.persistence` | JPA entity: pipe-delimited recipients, JSON parameters TEXT column |
+| `DataPushScheduleRepository` | `infrastructure.persistence` | JPA repo with `findDue(now)` + `claim(scheduleId, observedNextRunAt, newNextRunAt, now)` |
+| `DataPushScheduleAdapter` | `infrastructure.persistence` | `DataPushSchedulePort` impl with entity↔domain mapping |
+| `EnterpriseScheduleRestController` | `web.controller` | REST at `/api/v1/enterprise/data/schedules/**` — 6 endpoints |
+
+### Web
+
+| URL | Controller | Template/Fragment | Notes |
+|-----|-----------|-------------------|-------|
+| `GET /enterprise/data` | `EnterpriseDataConsoleController` | `enterprise-data-console.html` | Schedules tab added with Alpine.js form + schedule table |
+| `GET /enterprise/data/schedules/rows` | `EnterpriseDataConsoleController` | `fragments/enterprise-schedule-rows.html` | HTMX fragment for schedule table refresh |
+
+### 304 tests across 25 test classes (289 ED-1 + 15 ED-2)
 
 ---
 

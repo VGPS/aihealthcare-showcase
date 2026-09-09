@@ -59,6 +59,14 @@ public class DataJobAdapter implements DataJobPort {
     }
 
     @Override
+    public Optional<DataJob> findByJobId(String jobId) {
+        log.debug("findByJobId() | jobId={}", jobId);
+        Optional<DataJob> result = repository.findById(jobId).map(this::toDomain);
+        log.debug("findByJobId() | return={}", result.isPresent());
+        return result;
+    }
+
+    @Override
     public List<DataJob> findByOwnerEmail(String ownerEmail, int page, int size) {
         log.debug("findByOwnerEmail() | ownerEmail={}, page={}, size={}", ownerEmail, page, size);
         List<DataJob> result = repository
@@ -108,6 +116,15 @@ public class DataJobAdapter implements DataJobPort {
         log.debug("touchHeartbeat() | jobId={}, heartbeatAt={}", jobId, heartbeatAt);
         repository.touchHeartbeat(jobId, heartbeatAt);
         log.debug("touchHeartbeat() | return=void");
+    }
+
+    @Override
+    public int countPushRunsSince(String ownerEmail, Instant since) {
+        log.debug("countPushRunsSince() | ownerEmail=[REDACTED], since={}", since);
+        int result = (int) repository.countByOwnerEmailAndModeAndSubmittedAtAfter(
+                ownerEmail, DataJobMode.PUSH.name(), since);
+        log.debug("countPushRunsSince() | return={}", result);
+        return result;
     }
 
     @Override
