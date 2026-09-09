@@ -27,7 +27,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-09-08 — escape helpers extracted to DataSetRenderer; delegates kept for backwards compat
  */
 public class DataExportService implements ExportDataUseCase {
 
@@ -201,33 +201,14 @@ public class DataExportService implements ExportDataUseCase {
     }
 
     private String escapeCsv(String value) {
-        if (value == null) {
-            return "";
-        }
-        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
-            return "\"" + value.replace("\"", "\"\"") + "\"";
-        }
-        return value;
+        return DataSetRenderer.escapeCsv(value);
     }
 
     private String escapeJson(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
+        return DataSetRenderer.escapeJson(value);
     }
 
     private String escapeHtml(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;");
+        return DataSetRenderer.escapeHtml(value);
     }
 }

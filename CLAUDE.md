@@ -1046,6 +1046,72 @@ Tier gating: Public index page (SEO), detail pages require login. FREE=5 law det
 
 ---
 
+## Enterprise Data Access (Slice ED-1)
+
+### Overview
+
+Async, job-based data export for ENTERPRISE-tier customers. Customers submit a data job
+specifying a feed, optional prompt, format, and row limit. The job runs asynchronously on a
+dedicated `ThreadPoolTaskExecutor`, produces an artifact (CSV/JSON), and makes it available
+for download. Every action is audit-logged. Artifacts expire after a configurable retention
+period (default 14 days).
+
+**Security invariants (must never be violated):**
+1. **No natural-language → SQL.** `DataQueryPlan`'s field set is closed — changing it requires security review.
+2. **No filesystem call outside `ConfinedFileStore`.** No customer-supplied string reaches a `Path`.
+3. **No outbound HTTP outside `RemoteEndpointGuard`.** Validated-IP pinning, no redirects, HTTPS only.
+4. **No tool calling, no MCP client, no agent loop** on any customer-triggered path. One-shot LLM calls only.
+5. **Ownership resolved IN the query** — `findByXAndOwnerEmail`, never `findById` + check. Other owner → 404 not 403.
+6. **Secrets are references, never values.** `secretRef` holds env var name, resolved at request time, never logged/returned/rendered.
+
+### Domain types (all in `domain.model`)
+
+| Type | Kind | Fields |
+|------|------|--------|
+| `DataJob` | record | 21 fields — jobId, ownerEmail, teamId, mode, feedId, promptId, format, status, rowCount, byteSize, contentSha256, artifactPath, logPath, errorType, errorMessage, submittedAt, startedAt, completedAt, heartbeatAt, expiresAt, scheduleId |
+| `DataJobStatus` | enum | QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELLED, EXPIRED + `isTerminal()` |
+| `DataJobMode` | enum | PULL, PUSH |
+| `DataFeed` | record | 10 fields — feedId, label, description, kind, supportedFormats, columns, defaultPromptId, maxRowLimit, active, ownerEmail |
+| `DataSourceKind` | enum | DB_QUERY, LLM_SYNTHESIS, CUSTOMER_REMOTE |
+| `CannedPrompt` | record | 8 fields — promptId, feedId, label, description, templateText, sortOrder, active, createdAt |
+| `DataQueryPlan` | record | 8 fields — CLOSED security boundary |
+| `DataRequest` | record | 13 fields with validation |
+| `DataAccessAction` | enum | 12 values (SUBMIT through DOWNLOAD_LOG) |
+| `DataAccessAuditEntry` | record | 9 fields |
+| `DataArtifact` | record | 7 fields |
+| `DataParameter` | record | 6 fields |
+| `ExportFormat` | enum | CSV, JSON, PDF (reused from existing code) |
+| `RemoteConnection` | record | 9 fields — baseUrl must start with "https://" |
+
+### Ports
+
+| Port | Package | Kind |
+|------|---------|------|
+| `RequestEnterpriseDataUseCase` | `domain.port.inbound` | inbound — 7 methods |
+| `ManageRemoteConnectionsUseCase` | `domain.port.inbound` | inbound — 5 methods |
+| `DataJobPort` | `domain.port.outbound` | outbound — 9 methods incl. `findStaleRunning`, `findExpired` |
+| `DataArtifactPort` | `domain.port.outbound` | outbound — write/read/delete/exists |
+| `DataJobLogPort` | `domain.port.outbound` | outbound — open/read/delete |
+| `DataAccessAuditPort` | `domain.port.outbound` | outbound — append/findByOwnerEmail |
+| `CannedPromptPort` | `domain.port.outbound` | outbound — CRUD for canned prompts |
+| `PromptToQueryPort` | `domain.port.outbound` | outbound — LLM query planning |
+| `EnterpriseDataSourcePort` | `domain.port.outbound` | outbound — per-feed data execution |
+| `RemoteConnectionPort` | `domain.port.outbound` | outbound — CRUD for remote connections |
+
+### Infrastructure
+
+| Class | Package | Purpose |
+|-------|---------|---------|
+| `ConfinedFileStore` | `infrastructure.enterprise` | Jail-breaking-safe file I/O within a single directory |
+| `RemoteEndpointGuard` | `infrastructure.enterprise.source` | HTTPS-only, IP-pinned, redirect-blocked HTTP client |
+| `EnterpriseDataJobRunner` | `infrastructure.enterprise` | Async job executor with heartbeat + timeout |
+| `EnterpriseDataJobReaper` | `infrastructure.scheduler` | Marks stale RUNNING jobs FAILED/ORPHANED (every 5 min) |
+| `EnterpriseDataRetentionScheduler` | `infrastructure.scheduler` | Deletes expired artifacts/logs (daily 03:15 UTC) |
+
+### 289 tests across 18 test classes
+
+---
+
 ## What NOT to Do
 - Do not add auth/security until explicitly requested.
 - Do not modify `openapi.yaml` without confirming the change first.

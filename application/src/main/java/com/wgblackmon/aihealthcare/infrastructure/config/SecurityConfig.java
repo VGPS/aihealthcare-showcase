@@ -34,7 +34,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * @author  Bill Blackmon
  * @version 1.7
  * @since   2026-05-28
- * @updated 2026-09-02
+ * @updated 2026-09-08 — Inc 8: enterprise data paths require ENTERPRISE tier
  */
 @Slf4j
 @Configuration
@@ -88,6 +88,7 @@ public class SecurityConfig {
                 .requestMatchers("/stripe/**").permitAll()
                 .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 .requestMatchers("/newsletter/runs/**").hasRole("ADMIN")
+                .requestMatchers("/enterprise/**").authenticated()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

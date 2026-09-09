@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Enterprise Data Console — submit data jobs, monitor progress, tail logs,
+ * and preview/download artifacts.
+ *
+ * Uses Alpine.js tabs for Run / Jobs / Schedules / Log sections.
+ * HTMX polls job table and log tail for live updates.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-09-08
+ * @updated 2026-09-08
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Enterprise Data Console')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Enterprise Data Console</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Submit data jobs, monitor progress, and download artifacts</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('enterprise-data')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6" x-data="{ tab: 'run', selectedJob: null }">
+
+    <!-- Tab Bar -->
+    <div class="flex border-b border-gray-200 mb-6">
+        <button @click="tab = 'run'"
+                :class="tab === 'run' ? 'border-primary-600 text-primary-700 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2 border-b-2 text-sm transition-colors">
+            Run
+        </button>
+        <button @click="tab = 'jobs'"
+                :class="tab === 'jobs' ? 'border-primary-600 text-primary-700 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2 border-b-2 text-sm transition-colors">
+            Jobs
+        </button>
+        <button @click="tab = 'schedules'"
+                :class="tab === 'schedules' ? 'border-primary-600 text-primary-700 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2 border-b-2 text-sm transition-colors">
+            Schedules
+        </button>
+        <button @click="tab = 'log'"
+                :class="tab === 'log' ? 'border-primary-600 text-primary-700 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2 border-b-2 text-sm transition-colors">
+            Log
+        </button>
+    </div>
+
+    <!-- ═══ Run Tab ═══ -->
+    <div x-show="tab === 'run'" x-cloak>
+        <div class="bg-white rounded-lg shadow-card p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Submit a Data Job</h2>
+
+            <form id="submitJobForm" class="space-y-4"
+                  hx-post="/api/v1/enterprise/data/jobs"
+                  hx-headers='{"Content-Type": "application/json"}'
+                  hx-ext="json-enc"
+                  hx-swap="none"
+                  @htmx:after-request.window="if(event.detail.successful) { tab = 'jobs'; document.getElementById('submitJobForm').reset(); }">
+
+                <!-- Feed Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Data Feed</label>
+                    <select name="feedId" required
+                            class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border">
+                        <option value="">Select a feed...</option>
+                        <option th:each="feed : ${feeds}"
+                                th:value="${feed.feedId()}"
+                                th:text="${feed.label() + ' — ' + feed.description()}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Prompt Text (free-text) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Query (optional)</label>
+                    <textarea name="promptText" rows="3" placeholder="Describe what data you need..."
+                              class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border"></textarea>
+                    <p class="text-xs text-gray-400 mt-1">Leave blank to fetch all available data from the selected feed.</p>
+                </div>
+
+                <!-- Format + Row Limit -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Format</label>
+                        <select name="format"
+                                class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border">
+                            <option value="CSV">CSV</option>
+                            <option value="JSON">JSON</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Row Limit</label>
+                        <input type="number" name="rowLimit" value="100" min="1" max="50000"
+                               class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border"/>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit"
+                            class="bg-primary-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors shadow-sm">
+                        Submit Job
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Available Feeds -->
+        <div class="bg-white rounded-lg shadow-card p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Available Feeds</h2>
+            <div th:if="${#lists.isEmpty(feeds)}" class="text-sm text-gray-500">No feeds configured.</div>
+            <div class="grid gap-3" th:unless="${#lists.isEmpty(feeds)}">
+                <div th:each="feed : ${feeds}"
+                     class="border border-gray-200 rounded-lg p-4 hover:border-primary-300 transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="font-medium text-gray-800" th:text="${feed.feedId()}"></span>
+                            <span class="text-xs px-2 py-0.5 rounded-full ml-2"
+                                  th:classappend="${feed.kind() == 'LLM_SYNTHESIS'} ? 'bg-purple-100 text-purple-700' : (${feed.kind() == 'CUSTOMER_REMOTE'} ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700')"
+                                  th:text="${feed.kind()}"></span>
+                        </div>
+                        <span class="text-xs text-gray-400" th:text="'Max ' + ${feed.maxRowLimit()} + ' rows'"></span>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1" th:text="${feed.description()}"></p>
+                    <div class="flex gap-1 mt-2" th:if="${!#lists.isEmpty(feed.supportedFormats())}">
+                        <span th:each="fmt : ${feed.supportedFormats()}"
+                              class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded" th:text="${fmt}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ Jobs Tab ═══ -->
+    <div x-show="tab === 'jobs'" x-cloak>
+        <div id="job-table-container"
+             th:hx-get="@{/enterprise/data/jobs/rows}"
+             th:if="${hasInFlightJobs}"
+             hx-trigger="every 5s"
+             hx-swap="innerHTML">
+            <div th:replace="~{fragments/enterprise-job-rows :: enterprise-job-rows}"></div>
+        </div>
+        <div th:unless="${hasInFlightJobs}" id="job-table-container">
+            <div th:replace="~{fragments/enterprise-job-rows :: enterprise-job-rows}"></div>
+        </div>
+    </div>
+
+    <!-- ═══ Schedules Tab (placeholder) ═══ -->
+    <div x-show="tab === 'schedules'" x-cloak>
+        <div class="bg-white rounded-lg shadow-card p-8 text-center">
+            <div class="text-4xl mb-3">📅</div>
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Scheduled Jobs</h3>
+            <p class="text-sm text-gray-500">Automated scheduling will be available in a future update.<br/>
+                Configure recurring data pulls with cron expressions and delivery targets.</p>
+        </div>
+    </div>
+
+    <!-- ═══ Log Tab ═══ -->
+    <div x-show="tab === 'log'" x-cloak>
+        <div class="bg-white rounded-lg shadow-card p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Job Log</h2>
+            <div th:if="${#lists.isEmpty(jobs)}" class="text-sm text-gray-500">
+                No jobs yet. Submit a job from the Run tab to see its log output here.
+            </div>
+            <div th:unless="${#lists.isEmpty(jobs)}">
+                <!-- Job selector -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Job</label>
+                    <select x-model="selectedJob"
+                            class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border">
+                        <option value="">Choose a job...</option>
+                        <option th:each="job : ${jobs}"
+                                th:value="${job.jobId()}"
+                                th:text="${job.jobId() + ' — ' + job.feedId() + ' (' + job.status() + ')'}">
+                        </option>
+                    </select>
+                </div>
+                <!-- Log tail container -->
+                <div id="log-tail-container"
+                     x-show="selectedJob"
+                     :hx-get="'/enterprise/data/jobs/' + selectedJob + '/log-tail'"
+                     hx-trigger="every 3s"
+                     hx-swap="innerHTML">
+                    <p class="text-sm text-gray-400">Select a job to view its log.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

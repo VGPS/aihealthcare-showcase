@@ -24,11 +24,15 @@ sudo dnf install -y nginx
 echo "=== [3/7] Installing PostgreSQL 16 client (psql) ==="
 sudo dnf install -y postgresql16
 
-echo "=== [4/7] Creating application directory ==="
+echo "=== [4/8] Creating application directories ==="
 sudo mkdir -p /opt/aihealthcare/NotebookLMDirectory/summaries
+sudo mkdir -p /var/lib/aihealthcare/data-exports/logs
+sudo mkdir -p /var/log/aihealthcare
 sudo chown -R ec2-user:ec2-user /opt/aihealthcare
+sudo chown -R ec2-user:ec2-user /var/lib/aihealthcare
+sudo chown -R ec2-user:ec2-user /var/log/aihealthcare
 
-echo "=== [5/7] Creating 1 GB swap space ==="
+echo "=== [5/8] Creating 1 GB swap space ==="
 if [ ! -f /swapfile ]; then
     sudo fallocate -l 1G /swapfile
     sudo chmod 600 /swapfile
@@ -40,7 +44,7 @@ else
     echo "Swap already exists — skipping"
 fi
 
-echo "=== [6/7] Creating systemd service ==="
+echo "=== [6/8] Creating systemd service ==="
 sudo tee /etc/systemd/system/aihealthcare.service > /dev/null << 'SVCEOF'
 [Unit]
 Description=AIHealthcare Spring Boot Application
@@ -59,6 +63,29 @@ RestartSec=10
 StandardOutput=journal
 StandardError=journal
 
+# --- Filesystem hardening: read-only except two paths ---
+ProtectSystem=strict
+ReadWritePaths=/var/lib/aihealthcare/data-exports /var/log/aihealthcare /opt/aihealthcare
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+
+# --- Network: deny private/link-local space (blocks IMDS, internal subnets) ---
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+IPAddressDeny=169.254.0.0/16 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 ::1/128 fe80::/10 fc00::/7
+# IPAddressAllow=<RDS subnet CIDR>  ← uncomment and set for your VPC
+
+# --- Resource ceilings ---
+MemoryMax=3G
+TasksMax=256
+
 [Install]
 WantedBy=multi-user.target
 SVCEOF
@@ -66,7 +93,7 @@ SVCEOF
 sudo systemctl daemon-reload
 sudo systemctl enable aihealthcare
 
-echo "=== [7/7] Configuring Nginx reverse proxy (port 80 -> 8080) ==="
+echo "=== [7/8] Configuring Nginx reverse proxy (port 80 -> 8080) ==="
 sudo tee /etc/nginx/conf.d/aihealthcare.conf > /dev/null << 'NGXEOF'
 server {
     listen 80;
@@ -88,6 +115,14 @@ sudo systemctl enable nginx
 sudo systemctl start nginx
 
 echo ""
+echo "=== [8/8] IMDSv2 reminder ==="
+echo "Run this command once (or set in your launch template):"
+echo "  aws ec2 modify-instance-metadata-options \\"
+echo "    --instance-id <INSTANCE_ID> \\"
+echo "    --http-tokens required \\"
+echo "    --http-put-response-hop-limit 1"
+echo ""
+
 echo "=========================================="
 echo "  EC2 setup complete!"
 echo "=========================================="
@@ -98,4 +133,6 @@ echo "  2. Upload app.jar:  scp -i key.pem target/ai-healthcare-1.0-SNAPSHOT.jar
 echo "  3. Upload config:   scp -i key.pem application/src/main/resources/application-aws.yml ec2-user@IP:/opt/aihealthcare/"
 echo "  4. Start the app:   sudo systemctl start aihealthcare"
 echo "  5. Check logs:      sudo journalctl -u aihealthcare -f"
+echo "  6. Verify hardening: systemd-analyze security aihealthcare"
+echo "  7. Set IMDSv2 (see step 8/8 above)"
 echo ""

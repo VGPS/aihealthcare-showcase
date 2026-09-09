@@ -63,6 +63,10 @@ aihealthcare:
     from-address: ${NEWSLETTER_FROM_ADDRESS:noreply@health.bigskylabs.ai}
   documents:
     upload-dir: /opt/aihealthcare/documents
+  enterprise:
+    data:
+      artifact-directory: /var/lib/aihealthcare/data-exports
+      log-directory: /var/lib/aihealthcare/data-exports/logs
 
 logging:
   level:
