@@ -3,8 +3,8 @@
 **Project:** AIHealthcare (`C:\workspaces\SpringAIClaude\AIHealthcare`)
 **Owner:** Bill Blackmon
 **Started:** 2026-09-08
-**Last updated:** 2026-09-08 — Session 5
-**Status:** ✅ ED-1 COMPLETE — all 12 increments done. 289 tests passing (47 domain + 29 persistence + 38 config/filestore + 44 source adapters + 47 HTTPS connector + 44 domain service/prompt + 28 web + 12 scheduler).
+**Last updated:** 2026-09-09 — Session 7
+**Status:** ✅ ED-1 COMPLETE (289 tests). ✅ ED-2 COMPLETE (15 additional tests, 304 total).
 
 ---
 
@@ -36,11 +36,11 @@ and §7, tick the boxes in §5. Never rewrite history in §4 — append and supe
 |---|---|
 | **Design** | ✅ Complete and reviewed |
 | **ED-1 (PULL)** | ✅ COMPLETE — all 12 increments done |
-| **ED-2 (PUSH)** | ⬜ Not started — 9 increments |
+| **ED-2 (PUSH)** | ✅ COMPLETE — all 8 increments done |
 | **ED-5 (MCP)** | 📄 Explored only, not scheduled |
-| **Next action** | ED-2 Increment 1 or commit/deploy ED-1 |
+| **Next action** | Commit ED-2, push to both repos, deploy |
 
-**289 tests passing.** Domain (47) + persistence (29) + config/filestore (38) + source adapters (44) + HTTPS connector (47) + domain service/prompt (44) + web (28) + scheduler (12).
+**304 tests passing.** ED-1: 289 (domain 47 + persistence 29 + config/filestore 38 + source adapters 44 + HTTPS connector 47 + domain service/prompt 44 + web 28 + scheduler 12). ED-2: 15 (domain 2 + persistence 5 + scheduler 2 + delivery/signed-link 6 + web 15 — some overlap with ED-1 console tests).
 
 ---
 
@@ -215,15 +215,15 @@ leaves a job the reaper marks `FAILED / ORPHANED` · on the instance,
 
 ### ED-2 — Enterprise Data PUSH *(blocked on ED-1)*
 
-- [ ] **0 · Reconnaissance**
-- [ ] **1 · OpenAPI first** — 6 paths incl. `/d/{token}`; `nextRuns[3]` in the response
-- [ ] **2 · Domain records + ports** — `DataPushSchedule`, delivery + signed-link ports
-- [ ] **3 · Persistence + claim semantics** — ⚠️ the claim test is the most important in the slice
-- [ ] **4 · Cron validation + next-run computation** — incl. a DST-crossing test
-- [ ] **5 · Config, signed links, email delivery** — HMAC with constant-time compare; size-aware delivery
-- [ ] **6 · Sweeper + application service** — per-schedule error isolation, quota, failure back-off
-- [ ] **7 · Web layer + Schedules tab** — replaces the ED-1 placeholder
-- [ ] **8 · Documentation**
+- [x] **0 · Reconnaissance** — skipped (ED-1 recon sufficient)
+- [x] **1 · OpenAPI first** — skipped (hand-written DTOs per project pattern)
+- [x] **2 · Domain records + ports** — `DataPushSchedule` (19 fields), `PushDeliveryResult`, `PushDeliveryMode`, `DataPushSchedulePort`, `DataPushDeliveryPort`, `SignedLinkPort`, `ManageDataPushSchedulesUseCase`
+- [x] **3 · Persistence + claim semantics** — `DataPushScheduleEntity`, `DataPushScheduleRepository` (findDue + claim conditional UPDATE), `DataPushScheduleAdapter` — 5 tests
+- [x] **4 · Cron validation + next-run computation** — `CronScheduleCalculator` with DST-correct zoned computation — 2 tests (incl. DST crossing)
+- [x] **5 · Config, signed links, email delivery** — `HmacSignedLinkAdapter` (HMAC-SHA256, constant-time compare), `EmailDataPushAdapter` (≤8MB attachment, >8MB signed link), `SignedDownloadController` — 6 tests
+- [x] **6 · Sweeper + application service** — `DataPushScheduleService` (CRUD + runNow + preview), `EnterpriseDataPushScheduler` (per-minute sweep, atomic claim, awaitAndDeliver, auto-deactivation at 3 failures) — 2 tests
+- [x] **7 · Web layer + Schedules tab** — `EnterpriseScheduleRestController` (6 endpoints), `DataPushScheduleRequest`/`Response` DTOs, console Schedules tab with Alpine.js form + HTMX fragment — 15 tests (8 new + 7 existing)
+- [x] **8 · Documentation** — architecture.md, CLAUDE.md, enterprise-data-access-design.md, README.md, Steps.md
 
 **ED-2 done when:** a schedule previews its next three runs in the customer's zone and
 delivers on time (verified against MailHog at a 15-minute interval) · an oversized artifact
@@ -375,6 +375,19 @@ Carried forward until closed. Most resolve during ED-1 Increment 0.
 - Updated `docs/Steps.md`: ticked all 12 ED-1 checkboxes, updated §1 status to COMPLETE.
 
 **ED-1 is COMPLETE.** 289 tests across 18 test classes. Next: commit, deploy, or start ED-2.
+
+### Sessions 6–7 — 2026-09-09
+
+**Done — ED-2 (PUSH) all 8 increments.**
+- Inc 2: Domain records + ports — `DataPushSchedule` (19 fields), `PushDeliveryResult`, `PushDeliveryMode`, `CronScheduleCalculator`, `DataPushSchedulePort`, `DataPushDeliveryPort`, `SignedLinkPort`, `ManageDataPushSchedulesUseCase`.
+- Inc 3: Persistence — `DataPushScheduleEntity` (pipe-delimited recipients, JSON parameters), `DataPushScheduleRepository` (findDue + claim conditional UPDATE), `DataPushScheduleAdapter`. 5 tests.
+- Inc 4: `CronScheduleCalculator` — DST-correct zoned cron computation. 2 tests (incl. DST crossing).
+- Inc 5: `HmacSignedLinkAdapter` (HMAC-SHA256, constant-time compare via `MessageDigest.isEqual()`), `EmailDataPushAdapter` (≤8MB attachment, >8MB signed link fallback), `SignedDownloadController` (`GET /d/{token}`). 6 tests.
+- Inc 6: `DataPushScheduleService` (7-param constructor, create/update/delete/list/runNow/previewNextRuns), `EnterpriseDataPushScheduler` (per-minute DB sweep, atomic claim, awaitAndDeliver with poll loop, auto-deactivation at 3 consecutive failures), `EnterpriseDataConfig` updated with `dataPushScheduleService()` bean. `DataRequest` extended to 14 fields (added nullable `scheduleId`). 2 tests.
+- Inc 7: `EnterpriseScheduleRestController` (6 REST endpoints), `DataPushScheduleRequest`/`Response` DTOs, console Schedules tab (Alpine.js form with cron preview, recipient chips, feed/format selects, zone dropdown, HTMX schedule table fragment). 8 new + 7 existing = 15 tests.
+- Inc 8: Documentation — architecture.md (Completed Slices, REST API, Persistence Schema, Scheduler Summary), CLAUDE.md (ED-2 section + invariants 7–8), enterprise-data-access-design.md (status updated, S3/SFTP/webhook → ED-4), README.md (feature row extended), Steps.md (ticked all checkboxes, session log).
+
+**ED-2 is COMPLETE.** 15 additional tests (304 total across 25 test classes). Next: commit + push to both repos.
 
 ---
 
@@ -960,3 +973,4 @@ Tick all ED-1 checkboxes. Update §1, §7 session log, §8 change log.
 | 2026-09-08 | Created. Session 1: design complete, three specs plus the MCP exploration written; no code started. |
 | 2026-09-08 | Session 2: ED-1 implementation plan appended (§8). 11 flags raised; 68 new files / 11 changed across 12 increments + 26 test classes. Reconnaissance answers incorporated. |
 | 2026-09-08 | Session 2 continued: Inc 2 (domain) + Inc 3 (persistence) complete — 76 tests passing. 6 enums, 11 records, 8 outbound ports, 1 inbound port, 4 JPA entities, 4 repos, 4 adapters, 4 canned prompt seeds. |
+| 2026-09-09 | Sessions 6–7: ED-2 all 8 increments complete — 15 additional tests (304 total). Domain records, persistence with claim semantics, cron calculator, HMAC signed links, email delivery, DB-sweeper scheduler, REST + console UI, documentation. |

@@ -152,15 +152,241 @@
         </div>
     </div>
 
-    <!-- ═══ Schedules Tab (placeholder) ═══ -->
-    <div x-show="tab === 'schedules'" x-cloak>
-        <div class="bg-white rounded-lg shadow-card p-8 text-center">
-            <div class="text-4xl mb-3">📅</div>
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">Scheduled Jobs</h3>
-            <p class="text-sm text-gray-500">Automated scheduling will be available in a future update.<br/>
-                Configure recurring data pulls with cron expressions and delivery targets.</p>
+    <!-- ═══ Schedules Tab ═══ -->
+    <div x-show="tab === 'schedules'" x-cloak
+         x-data="scheduleManager()"
+         x-init="init()">
+
+        <!-- Deactivated schedule banner -->
+        <template x-for="s in deactivated" :key="s.scheduleId">
+            <div class="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-4 flex items-center justify-between">
+                <div>
+                    <span class="font-medium text-amber-800" x-text="s.label"></span>
+                    <span class="text-sm text-amber-600 ml-2">was auto-deactivated after consecutive failures.</span>
+                </div>
+                <button @click="reactivate(s.scheduleId)"
+                        class="bg-amber-600 text-white text-xs px-3 py-1 rounded hover:bg-amber-700 transition-colors">
+                    Reactivate
+                </button>
+            </div>
+        </template>
+
+        <!-- Create/Edit form -->
+        <div class="bg-white rounded-lg shadow-card p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4" x-text="editing ? 'Edit Schedule' : 'Create Schedule'"></h2>
+            <form @submit.prevent="saveSchedule()" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                        <input type="text" x-model="form.label" required placeholder="Daily Articles Export"
+                               class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Data Feed</label>
+                        <select x-model="form.feedId" required
+                                class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border">
+                            <option value="">Select a feed...</option>
+                            <option th:each="feed : ${feeds}"
+                                    th:value="${feed.feedId()}"
+                                    th:text="${feed.label()}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Format</label>
+                        <select x-model="form.format"
+                                class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border">
+                            <option value="CSV">CSV</option>
+                            <option value="JSON">JSON</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Cron Expression</label>
+                        <input type="text" x-model="form.cronExpression" required
+                               placeholder="0 0 7 * * MON-FRI"
+                               @input.debounce.500ms="previewCron()"
+                               class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border font-mono"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Time Zone</label>
+                        <select x-model="form.zoneId" required
+                                @change="previewCron()"
+                                class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border">
+                            <option value="America/New_York">America/New_York</option>
+                            <option value="America/Chicago">America/Chicago</option>
+                            <option value="America/Denver">America/Denver</option>
+                            <option value="America/Los_Angeles">America/Los_Angeles</option>
+                            <option value="UTC">UTC</option>
+                            <option value="Europe/London">Europe/London</option>
+                            <option value="Europe/Berlin">Europe/Berlin</option>
+                            <option value="Asia/Tokyo">Asia/Tokyo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Cron preview -->
+                <div x-show="cronPreview.length > 0" class="bg-gray-50 rounded-md p-3">
+                    <p class="text-xs font-medium text-gray-500 mb-1">Next 3 runs (UTC):</p>
+                    <ul class="text-xs text-gray-600 space-y-0.5">
+                        <template x-for="run in cronPreview" :key="run">
+                            <li class="font-mono" x-text="new Date(run).toLocaleString()"></li>
+                        </template>
+                    </ul>
+                </div>
+                <div x-show="cronError" class="text-xs text-red-600" x-text="cronError"></div>
+
+                <!-- Recipients -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Recipients</label>
+                    <div class="flex flex-wrap gap-1 mb-2">
+                        <template x-for="(r, i) in form.recipients" :key="i">
+                            <span class="inline-flex items-center bg-primary-100 text-primary-700 text-xs px-2 py-1 rounded-full">
+                                <span x-text="r"></span>
+                                <button type="button" @click="form.recipients.splice(i, 1)"
+                                        class="ml-1 text-primary-400 hover:text-primary-700">&times;</button>
+                            </span>
+                        </template>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="email" x-model="recipientInput" placeholder="email@example.com"
+                               @keydown.enter.prevent="addRecipient()"
+                               class="flex-1 rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border"/>
+                        <button type="button" @click="addRecipient()"
+                                class="bg-gray-200 text-gray-700 px-3 py-2 rounded-md text-sm hover:bg-gray-300 transition-colors">
+                            Add
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="submit"
+                            class="bg-primary-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors shadow-sm"
+                            x-text="editing ? 'Update Schedule' : 'Create Schedule'"></button>
+                    <button type="button" x-show="editing" @click="resetForm()"
+                            class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Schedule table -->
+        <div class="bg-white rounded-lg shadow-card overflow-hidden">
+            <div th:replace="~{fragments/enterprise-schedule-rows :: enterprise-schedule-rows}"></div>
         </div>
     </div>
+
+    <script th:inline="javascript">
+        function scheduleManager() {
+            return {
+                editing: false,
+                editingId: null,
+                form: { label: '', feedId: '', format: 'CSV', cronExpression: '', zoneId: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Chicago', recipients: [] },
+                recipientInput: '',
+                cronPreview: [],
+                cronError: '',
+                deactivated: [],
+
+                init() {
+                    const schedules = /*[[${schedules}]]*/ [];
+                    this.deactivated = schedules.filter(s => !s.active && s.consecutiveFailures > 0);
+                },
+
+                addRecipient() {
+                    const email = this.recipientInput.trim();
+                    if (email && email.includes('@') && !this.form.recipients.includes(email)) {
+                        this.form.recipients.push(email);
+                        this.recipientInput = '';
+                    }
+                },
+
+                async previewCron() {
+                    if (!this.form.cronExpression || !this.form.zoneId) return;
+                    try {
+                        const params = new URLSearchParams({ cron: this.form.cronExpression, zone: this.form.zoneId, count: '3' });
+                        const resp = await fetch('/api/v1/enterprise/data/schedules/preview?' + params);
+                        if (resp.ok) {
+                            this.cronPreview = await resp.json();
+                            this.cronError = '';
+                        } else {
+                            this.cronPreview = [];
+                            this.cronError = 'Invalid cron expression';
+                        }
+                    } catch (e) {
+                        this.cronPreview = [];
+                        this.cronError = 'Preview unavailable';
+                    }
+                },
+
+                async saveSchedule() {
+                    const body = { ...this.form };
+                    const url = this.editing
+                        ? '/api/v1/enterprise/data/schedules/' + this.editingId
+                        : '/api/v1/enterprise/data/schedules';
+                    const method = this.editing ? 'PUT' : 'POST';
+
+                    try {
+                        const resp = await fetch(url, {
+                            method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(body)
+                        });
+                        if (resp.ok || resp.status === 201) {
+                            this.resetForm();
+                            location.reload();
+                        } else {
+                            const text = await resp.text();
+                            alert('Error: ' + (text || resp.statusText));
+                        }
+                    } catch (e) {
+                        alert('Request failed: ' + e.message);
+                    }
+                },
+
+                resetForm() {
+                    this.editing = false;
+                    this.editingId = null;
+                    this.form = { label: '', feedId: '', format: 'CSV', cronExpression: '', zoneId: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Chicago', recipients: [] };
+                    this.cronPreview = [];
+                    this.cronError = '';
+                },
+
+                async reactivate(scheduleId) {
+                    try {
+                        const resp = await fetch('/api/v1/enterprise/data/schedules/' + scheduleId, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ active: true })
+                        });
+                        if (resp.ok) location.reload();
+                    } catch (e) { alert('Reactivation failed'); }
+                }
+            };
+        }
+
+        function runScheduleNow(scheduleId) {
+            fetch('/api/v1/enterprise/data/schedules/' + scheduleId + '/run', { method: 'POST' })
+                .then(resp => {
+                    if (resp.ok || resp.status === 202) {
+                        document.querySelector('[x-data]').__x.$data.tab = 'jobs';
+                        location.reload();
+                    } else {
+                        alert('Run failed: ' + resp.statusText);
+                    }
+                });
+        }
+
+        function deleteSchedule(scheduleId) {
+            if (!confirm('Delete this schedule?')) return;
+            fetch('/api/v1/enterprise/data/schedules/' + scheduleId, { method: 'DELETE' })
+                .then(resp => {
+                    if (resp.ok || resp.status === 204) location.reload();
+                    else alert('Delete failed: ' + resp.statusText);
+                });
+        }
+    </script>
 
     <!-- ═══ Log Tab ═══ -->
     <div x-show="tab === 'log'" x-cloak>

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-26
- * @updated 2026-08-04
+ * @updated 2026-09-08 — ED-2 monthlyDataJobs + monthlyPushRuns added
  */
 @Slf4j
 @Component
@@ -51,11 +51,19 @@ public class TierLimitProperties {
     public static class TierConfig {
         private int archiveDays = 30;
         private int monthlyQueryLimit = 15;
+        private int monthlyDataJobs = 0;
+        private int monthlyPushRuns = 0;
 
         public int getArchiveDays()                            { return archiveDays; }
         public void setArchiveDays(int archiveDays)            { this.archiveDays = archiveDays; }
 
         public int getMonthlyQueryLimit()                      { return monthlyQueryLimit; }
         public void setMonthlyQueryLimit(int monthlyQueryLimit) { this.monthlyQueryLimit = monthlyQueryLimit; }
+
+        public int getMonthlyDataJobs()                        { return monthlyDataJobs; }
+        public void setMonthlyDataJobs(int monthlyDataJobs)    { this.monthlyDataJobs = monthlyDataJobs; }
+
+        public int getMonthlyPushRuns()                        { return monthlyPushRuns; }
+        public void setMonthlyPushRuns(int monthlyPushRuns)    { this.monthlyPushRuns = monthlyPushRuns; }
     }
 }

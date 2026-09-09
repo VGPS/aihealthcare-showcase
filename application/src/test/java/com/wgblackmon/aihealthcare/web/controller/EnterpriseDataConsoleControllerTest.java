@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.*;
+import com.wgblackmon.aihealthcare.domain.port.inbound.ManageDataPushSchedulesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.RequestEnterpriseDataUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
@@ -27,9 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>Validates correct view names, model attributes, and ENTERPRISE-only access.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-08 — ED-2: scheduleUseCase mock added
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(EnterpriseDataConsoleController.class)
@@ -40,6 +41,9 @@ class EnterpriseDataConsoleControllerTest {
 
     @MockitoBean
     private RequestEnterpriseDataUseCase useCase;
+
+    @MockitoBean
+    private ManageDataPushSchedulesUseCase scheduleUseCase;
 
     @MockitoBean
     private AppUserPort appUserPort;
@@ -62,11 +66,14 @@ class EnterpriseDataConsoleControllerTest {
         when(useCase.listFeeds(OWNER)).thenReturn(List.of(feed));
         when(useCase.listJobs(OWNER, 0, 50)).thenReturn(List.of());
 
+        when(scheduleUseCase.list(OWNER)).thenReturn(List.of());
+
         mockMvc.perform(get("/enterprise/data"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("enterprise-data-console"))
                 .andExpect(model().attributeExists("feeds"))
                 .andExpect(model().attributeExists("jobs"))
+                .andExpect(model().attributeExists("schedules"))
                 .andExpect(model().attribute("hasInFlightJobs", false));
     }
 

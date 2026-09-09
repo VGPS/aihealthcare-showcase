@@ -71,7 +71,8 @@ public class EnterpriseDataRestController {
                 body.rowLimit() != null ? body.rowLimit() : 100,
                 body.connectionId(),
                 null,
-                Instant.now());
+                Instant.now(),
+                null);
 
         DataJob job;
         try {

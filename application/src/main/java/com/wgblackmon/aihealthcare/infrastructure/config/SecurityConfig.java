@@ -34,7 +34,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * @author  Bill Blackmon
  * @version 1.7
  * @since   2026-05-28
- * @updated 2026-09-08 — Inc 8: enterprise data paths require ENTERPRISE tier
+ * @updated 2026-09-08 — ED-2: /d/** unauthenticated signed download path
  */
 @Slf4j
 @Configuration
@@ -72,6 +72,7 @@ public class SecurityConfig {
                                  "/css/**", "/js/**", "/webjars/**",
                                  "/pricing", "/about", "/press", "/press/og.png", "/error", "/privacy",
                                  "/directory", "/directory/**").permitAll()
+                .requestMatchers("/d/**").permitAll()
                 .requestMatchers("/api/v1/stripe/webhook").permitAll()
                 .requestMatchers("/api/v1/feedback/**").permitAll()
                 .requestMatchers("/api/v1/monitoring/**").hasRole("ADMIN")
@@ -106,7 +107,8 @@ public class SecurityConfig {
             )
             .csrf(csrf -> csrf
                 .ignoringRequestMatchers("/api/**", "/monitoring/**", "/admin/pipelines/**",
-                                        "/stripe/**", "/swagger-ui/**", "/v3/api-docs/**")
+                                        "/stripe/**", "/swagger-ui/**", "/v3/api-docs/**",
+                                        "/d/**")
             );
 
         SecurityFilterChain result = http.build();

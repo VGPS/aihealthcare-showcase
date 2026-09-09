@@ -3,7 +3,7 @@
 **Project:** AIHealthcare (`C:\workspaces\SpringAIClaude\AIHealthcare`)
 **Author:** Bill Blackmon
 **Date:** 2026-09-08
-**Status:** Design accepted; implementation split into two slices — **ED-1 (PULL)** and **ED-2 (PUSH)**
+**Status:** **ED-1 (PULL) delivered** (289 tests, commit `a6021ef`); **ED-2 (PUSH) delivered** (15 additional tests)
 **Audience:** developers implementing or reviewing the slices, and Claude Code executing them
 
 ---
@@ -893,8 +893,8 @@ Written down so nobody builds it speculatively, and so the roadmap is honest.
 |---|---|---|
 | JDBC connector to customer databases | Drivers, pools, VPC peering, credential rotation — an infrastructure project wearing a code project's clothes | ED-3 |
 | Cross-account S3 read/write | IAM role assumption is an ops task first | ED-3 |
-| S3 / SFTP push transports | The `DataPushDeliveryPort` seam is deliberately open for these | ED-4 |
-| Webhook push (Slack/Teams) | `WebhookDispatcher` already exists; adding an `ENTERPRISE_DATA_PUSH` event type is ~half a day once ED-2 lands | ED-4 |
+| S3 / SFTP push transports | The `DataPushDeliveryPort` seam is deliberately open for these; add an `S3DataPushAdapter` or `SftpDataPushAdapter` implementing the same port | ED-4 |
+| Webhook push (Slack/Teams) | `WebhookDispatcher` already exists; adding an `ENTERPRISE_DATA_PUSH` event type is ~half a day | ED-4 |
 | Sync fast-path for tiny canned queries | Needs real usage data to size the threshold | later |
 | SSE progress streaming | Polling is sufficient; nginx changes documented in ED-1 | later |
 | SQS / Fargate execution | Contradicts the documented Phase-1 deployment shape | Phase 2 |

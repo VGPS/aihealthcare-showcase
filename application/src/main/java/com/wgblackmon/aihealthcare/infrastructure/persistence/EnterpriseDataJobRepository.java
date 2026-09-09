@@ -16,15 +16,19 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-08 — ED-2 findByScheduleId, countPushRunsSince
  */
 public interface EnterpriseDataJobRepository extends JpaRepository<EnterpriseDataJobEntity, String> {
 
     Optional<EnterpriseDataJobEntity> findByJobIdAndOwnerEmail(String jobId, String ownerEmail);
 
+    List<EnterpriseDataJobEntity> findByScheduleIdOrderBySubmittedAtDesc(String scheduleId, Pageable pageable);
+
     Page<EnterpriseDataJobEntity> findByOwnerEmailOrderBySubmittedAtDesc(String ownerEmail, Pageable pageable);
 
     long countByOwnerEmailAndStatusIn(String ownerEmail, List<String> statuses);
+
+    long countByOwnerEmailAndModeAndSubmittedAtAfter(String ownerEmail, String mode, Instant since);
 
     List<EnterpriseDataJobEntity> findByStatusAndHeartbeatAtBefore(String status, Instant cutoff);
 

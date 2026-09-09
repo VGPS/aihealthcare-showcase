@@ -10,7 +10,7 @@ package com.wgblackmon.aihealthcare.domain.model;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-08 — ED-2 push schedule actions added
  */
 public enum DataAccessAction {
 
@@ -25,5 +25,14 @@ public enum DataAccessAction {
     FAIL,
     CANCEL,
     DOWNLOAD_ARTIFACT,
-    DOWNLOAD_LOG
+    DOWNLOAD_LOG,
+
+    SCHEDULE_CREATE,
+    SCHEDULE_UPDATE,
+    SCHEDULE_DELETE,
+    SCHEDULE_FIRE,
+    PUSH_SEND,
+    PUSH_FAIL,
+    SCHEDULE_DEACTIVATE,
+    LINK_REDEEM
 }

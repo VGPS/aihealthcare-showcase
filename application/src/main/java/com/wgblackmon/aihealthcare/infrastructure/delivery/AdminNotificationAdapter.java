@@ -27,7 +27,7 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-10
- * @updated 2026-07-10
+ * @updated 2026-09-08 — ED-2 notifyScheduleDeactivated
  */
 @Slf4j
 @Component
@@ -88,5 +88,33 @@ public class AdminNotificationAdapter implements AdminNotificationPort {
         }
 
         log.debug("notifyModelFailure() | return=void");
+    }
+
+    @Override
+    public void notifyScheduleDeactivated(String scheduleId, String ownerEmail, String lastError) {
+        log.debug("notifyScheduleDeactivated() | scheduleId={}, ownerEmail=[REDACTED]", scheduleId);
+
+        String subject = "[AIHealthcare] Push schedule deactivated: " + scheduleId;
+        String body = "A push schedule was automatically deactivated due to consecutive failures.\n\n"
+                + "Schedule ID:  " + scheduleId + "\n"
+                + "Owner:        " + ownerEmail + "\n"
+                + "Timestamp:    " + Instant.now() + "\n"
+                + "Last error:   " + (lastError != null ? lastError : "(none)") + "\n\n"
+                + "The schedule will not fire again until manually reactivated.";
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(adminEmail);
+            helper.setSubject(subject);
+            helper.setText(body);
+            mailSender.send(message);
+            log.info("notifyScheduleDeactivated() | admin notification sent for schedule '{}'", scheduleId);
+        } catch (MessagingException | MailException e) {
+            log.error("notifyScheduleDeactivated() | failed to send: {}", e.getMessage());
+        }
+
+        log.debug("notifyScheduleDeactivated() | return=void");
     }
 }
