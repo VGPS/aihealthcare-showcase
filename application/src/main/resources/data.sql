@@ -398,3 +398,59 @@ VALUES
 ('ai-cigna-mktg',       'cigna',               'Cigna',                   '"AI Supports Clinical Judgment, Not Replaces It"',   'AI_MARKETING', 'CLAIM: Cigna''s PXDX system "supports physician review of prior authorization requests" with AI-assisted clinical decision support. CONTRADICTED BY: ProPublica 2023 investigation found Cigna physicians averaged 1.2 seconds per denial review — physically impossible for clinical judgment; internal documents showed physicians were presented with AI decision and asked to confirm, not review; Cigna CEO publicly repeated the "supports physicians" claim to Congress while ProPublica published contrary evidence.', 'https://www.propublica.org/article/cigna-pxdx-deny-claims-calpers-california',                                                                               '2023-01-01'),
 ('ai-aetna-mktg',       'aetna',               'Aetna/CVS Health',        '"Signify Health AI Improves Quality of Care for Seniors"', 'AI_MARKETING', 'CLAIM: Signify Health''s AI-guided in-home health assessments "close care gaps and improve quality outcomes" for Medicare Advantage members. CONTRADICTED BY: Senate Finance Committee and OIG investigations found in-home assessments primarily used to identify additional diagnoses for Medicare Advantage risk-score upcoding (revenue optimization), not care delivery; Signify Health''s own clinical outcome data was not published; CMS announced stricter MA risk-adjustment rules specifically targeting this practice in 2024.', 'https://www.finance.senate.gov/imo/media/doc/medicare_advantage_report_june_2022.pdf',                                                                       '2024-01-01')
 ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================================
+-- Enterprise Data Prompts (canned prompts for the Enterprise Data PULL feature)
+-- ============================================================================
+
+INSERT INTO enterprise_data_prompts (prompt_id, label, description, feed_id, template_text, parameters_json, min_tier, active, created_at, updated_at)
+SELECT 'articles-recent-by-topic',
+       'Recent Articles by Topic',
+       'Retrieve articles published in the last N days, filtered by topic keyword.',
+       'articles',
+       'Find articles about {{keyword}} published in the last {{days}} days, sorted by publication date.',
+       '[{"name":"keyword","label":"Topic keyword","type":"TEXT","required":true,"defaultValue":null,"allowedValues":[]},{"name":"days","label":"Lookback days","type":"NUMBER","required":false,"defaultValue":"30","allowedValues":[]}]',
+       'SUBSCRIBER',
+       true,
+       CURRENT_TIMESTAMP,
+       CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM enterprise_data_prompts WHERE prompt_id = 'articles-recent-by-topic');
+
+INSERT INTO enterprise_data_prompts (prompt_id, label, description, feed_id, template_text, parameters_json, min_tier, active, created_at, updated_at)
+SELECT 'legislation-by-state',
+       'State Laws by State Code',
+       'Retrieve enacted AI-in-healthcare laws for a specific U.S. state.',
+       'legislation',
+       'Find all enacted state health-AI legislation for state {{state}}, including key requirements and enforcement details.',
+       '[{"name":"state","label":"State code","type":"ENUM","required":true,"defaultValue":null,"allowedValues":["AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"]}]',
+       'SUBSCRIBER',
+       true,
+       CURRENT_TIMESTAMP,
+       CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM enterprise_data_prompts WHERE prompt_id = 'legislation-by-state');
+
+INSERT INTO enterprise_data_prompts (prompt_id, label, description, feed_id, template_text, parameters_json, min_tier, active, created_at, updated_at)
+SELECT 'regulatory-recent-events',
+       'Recent Regulatory Events',
+       'Retrieve FDA and CMS regulatory events from the last N days.',
+       'regulatory',
+       'Find regulatory events from the last {{days}} days, optionally filtered by body (FDA or CMS).',
+       '[{"name":"days","label":"Lookback days","type":"NUMBER","required":false,"defaultValue":"90","allowedValues":[]},{"name":"body","label":"Regulatory body","type":"ENUM","required":false,"defaultValue":null,"allowedValues":["FDA","CMS","ONC","OTHER"]}]',
+       'SUBSCRIBER',
+       true,
+       CURRENT_TIMESTAMP,
+       CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM enterprise_data_prompts WHERE prompt_id = 'regulatory-recent-events');
+
+INSERT INTO enterprise_data_prompts (prompt_id, label, description, feed_id, template_text, parameters_json, min_tier, active, created_at, updated_at)
+SELECT 'ai-synthesis-market-brief',
+       'AI Market Brief',
+       'Generate an LLM-synthesised market brief on a healthcare AI topic.',
+       'ai-synthesis',
+       'Produce a concise market brief about {{topic}} in AI healthcare, covering recent developments, key players, and outlook.',
+       '[{"name":"topic","label":"Topic","type":"TEXT","required":true,"defaultValue":null,"allowedValues":[]}]',
+       'ENTERPRISE',
+       true,
+       CURRENT_TIMESTAMP,
+       CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM enterprise_data_prompts WHERE prompt_id = 'ai-synthesis-market-brief');

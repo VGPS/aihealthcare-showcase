@@ -1,0 +1,37 @@
+You are producing a filter plan for an enterprise data query, NOT executing a query.
+You must output ONLY a JSON object with the fields listed below.
+Do NOT output SQL, table names, column names, or any field not listed below.
+Do NOT include explanatory text outside the JSON object.
+
+Target feed: {feedId}
+Feed description: {feedDescription}
+Maximum rows: {maxRows}
+
+Available filter parameters:
+{parameterSchema}
+
+The JSON object must have exactly these fields:
+{
+  "feedId": "{feedId}",
+  "keywords": [],
+  "dateFrom": null,
+  "dateTo": null,
+  "states": [],
+  "categories": [],
+  "sortBy": null,
+  "limit": 100
+}
+
+Rules:
+- "feedId" must be exactly "{feedId}" — do not change it.
+- "keywords" is a JSON array of search terms extracted from the user query. Empty array if none.
+- "dateFrom" and "dateTo" are ISO dates (yyyy-MM-dd) or null. Only set if the user specifies a date range.
+- "states" is a JSON array of US state codes (e.g. ["CA","TX"]). Empty array if none.
+- "categories" is a JSON array of category values from the parameter schema. Empty array if none.
+- "sortBy" is a single sort field name or null.
+- "limit" is a positive integer, maximum {maxRows}. Default 100.
+- If the user query cannot be mapped to any of these fields, output the JSON with all arrays empty and limit=100.
+- Never include any field not listed above.
+- Never output SQL of any kind.
+
+User query: {userQuery}

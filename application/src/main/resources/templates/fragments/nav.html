@@ -15,7 +15,7 @@
  *                    wiki | trends | trend-history | regulatory | legal | legal-trends | legislation |
  *                    clinical-trials | companies | company-directory | risk | frameworks | watchlist | notes |
  *                    relationships | search | pricing | about | profile | developer | webhooks | admin | admin-pipelines |
- *                    intelligence | deals | market | market-history | admin-documents
+ *                    intelligence | deals | market | market-history | admin-documents | enterprise-data
  *
  * Nav groups: Claude AI (admin) | Dashboard | Content | Research | Legal | Reference | Account
  *
@@ -24,7 +24,7 @@
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-28
- * @updated 2026-08-26
+ * @updated 2026-09-08 — Inc 9: added Enterprise Data nav link for ENTERPRISE tier
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org"
@@ -41,6 +41,11 @@
     <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/intelligence}"
        th:classappend="${activePage == 'intelligence'} ? ' active'"
        class="nav-link" style="color: #a78bfa; font-weight: 600;">⚕ Enterprise Intel</a>
+
+    <!-- Enterprise Data (ENTERPRISE tier or ADMIN) -->
+    <a th:if="${footerTier == 'ENTERPRISE'}" th:href="@{/enterprise/data}"
+       th:classappend="${activePage == 'enterprise-data'} ? ' active'"
+       class="nav-link" style="color: #f59e0b; font-weight: 600;">Enterprise Data</a>
 
     <!-- Dashboard (standalone) -->
     <a th:href="@{/dashboard}"

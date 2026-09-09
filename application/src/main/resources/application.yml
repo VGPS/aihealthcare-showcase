@@ -1529,6 +1529,8 @@ aihealthcare:
     enterprise:
       archive-days: 0
       monthly-query-limit: 2000
+      monthly-data-jobs: 500
+      monthly-push-runs: 300
 
   # ---------------------------------------------------------------------------
   # Enterprise API rate limiting.
@@ -1563,6 +1565,36 @@ aihealthcare:
         url: https://aws.amazon.com/health/
         topics:
           - Amazon Connect Health
+
+  # ---------------------------------------------------------------------------
+  # Enterprise remote data access (Slices ED-1 / ED-2).
+  # PULL — customers submit prompts, jobs run async, artifacts + logs persist.
+  # PUSH — customer-owned cron schedules email the same artifacts on a timer.
+  # Paths are relative to the working directory; created on startup if absent.
+  # ---------------------------------------------------------------------------
+  enterprise:
+    data:
+      enabled: true
+      artifact-directory: data-exports
+      log-directory: data-exports/logs
+      retention-days: 14
+      max-rows-per-job: 100000
+      max-artifact-bytes: 52428800          # 50 MB
+      max-concurrent-jobs-per-account: 2
+      job-timeout-ms: 900000                # 15 min
+      stale-job-reap-minutes: 30
+      reaper-cron: "0 */5 * * * *"
+      retention-cron: "0 15 3 * * *"        # 03:15 UTC
+      executor:
+        core-pool-size: 2
+        max-pool-size: 4
+        queue-capacity: 50
+        thread-name-prefix: ent-data-
+      remote:
+        allowed-hosts: []
+        connect-timeout-ms: 5000
+        read-timeout-ms: 30000
+        max-response-bytes: 26214400        # 25 MB
 
   # ---------------------------------------------------------------------------
   # Ingestion — domain denylist for WebPageHarvester robots.txt gate.

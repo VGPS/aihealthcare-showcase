@@ -97,6 +97,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | — | Framework Competitive Analysis + Pipeline Orchestrator | 1509 |
 | DS-1 | LLM-Enhanced Deal Signal Alerts — cross-referenced context, detail page, type filtering, tier gating | 1509+ |
 | MA-1 | Market Analysis (Phases 1–3) — Perplexity news research, Claude impact classifier, Alpaca market data, weekly rollup, price-reaction scoring | 1509+ |
+| ED-1 | Enterprise Data PULL — async job-based data export with LLM query planning, confined file I/O, remote HTTPS connector, job reaper + retention scheduler | 1509+ |
 
 ---
 
@@ -228,6 +229,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /dashboard/deals/{signalId}` | `DealSignalController` | `deals-detail.html` — cross-referenced deal context (sentiment, framework, regulatory, profile) |
 | `GET /directory` | `PublicCompanyController` | `company-directory.html` — public company list with sector filter pills; no login required |
 | `GET /directory/{slug}` | `PublicCompanyController` | `company-directory-detail.html` — public company profile with clickable `[N]` citation anchors; JSON-LD SEO |
+| `GET /enterprise/data` | `EnterpriseDataConsoleController` | `enterprise-data-console.html` — ENTERPRISE tier console: submit jobs, monitor progress, tail logs, download artifacts |
 
 ---
 
@@ -256,6 +258,8 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | POST | `/monitoring/wiki/compile` | `WikiCompilationController` |
 | GET/POST | `/api/v1/trends/latest`, `/api/v1/trends/detect` | `TrendRestController` |
 | GET/GET/POST | `/api/v1/deals`, `/api/v1/deals/{signalId}`, `/api/v1/deals/detect` | `DealSignalRestController` |
+| POST/GET/GET/POST/GET/GET/GET/GET | `/api/v1/enterprise/data/jobs`, `/api/v1/enterprise/data/jobs/{jobId}`, `/api/v1/enterprise/data/jobs`, `/api/v1/enterprise/data/jobs/{jobId}/cancel`, `/api/v1/enterprise/data/feeds`, `/api/v1/enterprise/data/feeds/{feedId}/prompts`, `/api/v1/enterprise/data/jobs/{jobId}/log`, `/api/v1/enterprise/data/jobs/{jobId}/artifact` | `EnterpriseDataRestController` |
+| POST/GET/GET/PUT/DELETE | `/api/v1/enterprise/connections`, `/api/v1/enterprise/connections/{id}`, `/api/v1/enterprise/connections`, `/api/v1/enterprise/connections/{id}`, `/api/v1/enterprise/connections/{id}` | `EnterpriseConnectionRestController` |
 
 ---
 
@@ -283,6 +287,10 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `watchlist_items` | `WatchlistItemEntity` | itemId PK, userEmail, itemType, value, label, createdAt |
 | `watchlist_matches` | `WatchlistMatchEntity` | matchId PK, itemId FK, articleId, matchedOn, snippet TEXT |
 | `regulatory_events` | `RegulatoryEventEntity` | eventId PK, eventType, regulatoryBody, referenceNumber, applicantName, deviceName, aiHealthcareKeywords TEXT (pipe-delimited) |
+| `enterprise_data_jobs` | `DataJobEntity` | jobId UUID PK, ownerEmail, feedId, format, status, rowCount, byteSize, contentSha256, artifactPath, logPath, heartbeatAt, expiresAt |
+| `enterprise_data_audit` | `DataAccessAuditEntity` | id BIGSERIAL PK, occurredAt, ownerEmail, jobId, action, outcome, detail |
+| `enterprise_canned_prompts` | `CannedPromptEntity` | promptId UUID PK, feedId, label, description, templateText, sortOrder |
+| `enterprise_remote_connections` | `RemoteConnectionEntity` | connectionId UUID PK, ownerEmail, label, kind, baseUrl, authType, headerName, secretRef, active |
 
 ---
 
@@ -299,6 +307,8 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | `NewsletterGenerationScheduler` | 00:00 daily (midnight) | `aihealthcare.newsletter.schedule` | Ingest → generate DRAFT (no auto-send) |
 | `TrendDetectionScheduler` | Sunday 08:00 | `aihealthcare.trends.schedule` | Keyword frequency analysis → TrendSnapshot |
 | `RegulatoryHarvestScheduler` | 04:30 daily | `aihealthcare.regulatory.schedule` | FDA/CMS harvest → dedup → save → watchlist match |
+| `EnterpriseDataJobReaper` | Every 5 min | `aihealthcare.enterprise.data.reaper-cron` | Mark stale RUNNING jobs as FAILED/ORPHANED |
+| `EnterpriseDataRetentionScheduler` | 03:15 daily | `aihealthcare.enterprise.data.retention-cron` | Delete expired artifacts + logs, mark jobs EXPIRED |
 
 ---
 
@@ -370,3 +380,8 @@ be deferred safely.
 
 **Note:** Postgres/pgvector (RDS) runs 24/7 in either shape and will dominate early
 hosting cost, not the app.
+
+**Hardening (ED-1):** The systemd unit enforces `ProtectSystem=strict` (read-only root),
+`NoNewPrivileges`, `IPAddressDeny` blocking IMDS and private subnets, and `MemoryMax=3G`.
+IMDSv2 is required on the instance (`--http-tokens required`). Enterprise data artifacts
+live under `/var/lib/aihealthcare/data-exports` with a 14-day retention sweeper.
