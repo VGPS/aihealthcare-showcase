@@ -12,7 +12,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-28
- * @updated 2026-07-28
+ * @updated 2026-09-10 — SEO-1: favicon, meta description, canonical, OG tags, twitter card, noindex
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org">
@@ -20,6 +20,31 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${pageTitle} + ' — AIHealthcare'">AIHealthcare</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" th:href="@{/images/brand-icon.png}"/>
+
+    <!-- SEO meta description — controllers set pageDescription, falls back to defaultDescription -->
+    <meta name="description" th:content="${pageDescription != null ? pageDescription : defaultDescription}"/>
+
+    <!-- Canonical URL -->
+    <link rel="canonical" th:href="${canonicalUrl}"/>
+
+    <!-- Open Graph -->
+    <meta property="og:title" th:content="${pageTitle} + ' — AIHealthcare'"/>
+    <meta property="og:description" th:content="${pageDescription != null ? pageDescription : defaultDescription}"/>
+    <meta property="og:url" th:content="${canonicalUrl}"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:image" th:content="${baseUrl} + '/images/brand-icon.png'"/>
+    <meta property="og:site_name" content="AI Healthcare Intelligence"/>
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" th:content="${pageTitle} + ' — AIHealthcare'"/>
+    <meta name="twitter:description" th:content="${pageDescription != null ? pageDescription : defaultDescription}"/>
+
+    <!-- Robots — noindex for auth-required pages -->
+    <meta th:if="${noIndex}" name="robots" content="noindex, nofollow"/>
 
     <!-- CSRF meta tags — read by htmx-csrf.js to attach the token to HTMX requests -->
     <meta name="_csrf"        th:content="${_csrf.token}"/>

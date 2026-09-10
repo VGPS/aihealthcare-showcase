@@ -192,6 +192,8 @@ public class WikiController {
         model.addAttribute("totalPageCount", totalPageCount);
         model.addAttribute("hasPrev", page > 0);
         model.addAttribute("hasNext", page < totalPageCount - 1);
+        model.addAttribute("pageDescription",
+                "AI Healthcare Knowledge Base — " + totalCount + " wiki pages compiled from healthcare AI news sources with full provenance.");
 
         log.debug("wikiIndex() | return=wiki-index (showing={}, totalCount={}, page={})", pages.size(), totalCount, page);
         return "wiki-index";
@@ -341,6 +343,8 @@ public class WikiController {
         model.addAttribute("analystNoteDates", analystNoteDates);
         model.addAttribute("returnUrl", "/wiki/" + slug);
         model.addAttribute("fullAccess", fullAccess);
+        model.addAttribute("pageDescription",
+                page.title() + " — AI healthcare wiki page with source provenance and evidence grading.");
 
         log.debug("wikiPage() | return=wiki-detail (slug={}, sources={}, contradictions={}, notes={}, fullAccess={})",
                 slug, page.sources().size(), contradictions.size(), analystNotes.size(), fullAccess);
