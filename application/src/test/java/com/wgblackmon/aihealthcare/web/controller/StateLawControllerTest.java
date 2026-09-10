@@ -10,9 +10,11 @@ import com.wgblackmon.aihealthcare.domain.model.StateLaw;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageStateLawsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -42,8 +44,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-06
- * @updated 2026-09-06
+ * @updated 2026-09-10 — SEO-1: /legislation/** now public; updated auth test
  */
+@Import(SecurityConfig.class)
 @WebMvcTest(StateLawController.class)
 class StateLawControllerTest {
 
@@ -131,9 +134,14 @@ class StateLawControllerTest {
     }
 
     @Test
-    void legislation_detail_requiresAuth() throws Exception {
+    void legislation_detail_anonymousAccess_returnsOk() throws Exception {
+        when(legislationUseCase.getById("ca-ab-3030")).thenReturn(Optional.of(createTestLaw()));
+
         mockMvc.perform(get("/legislation/ca-ab-3030"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk())
+                .andExpect(view().name("legislation-detail"))
+                .andExpect(model().attributeExists("law"))
+                .andExpect(model().attribute("fullAccess", false));
     }
 
     @Test

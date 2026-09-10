@@ -158,6 +158,8 @@ public class PublicCompanyController {
         model.addAttribute("canAdvancedSort", canAdvancedSort);
         model.addAttribute("canExport", canExport);
         model.addAttribute("upgradeRequired", upgradeRequired);
+        model.addAttribute("pageDescription",
+                "Browse " + all.size() + " AI healthcare companies with signal scoring, acquisition tracking, and sector classification.");
 
         log.debug("directory() | return=company-directory, shown={}, total={}", companies.size(), all.size());
         return "company-directory";
@@ -224,6 +226,8 @@ public class PublicCompanyController {
         model.addAttribute("slug", slug);
         model.addAttribute("jsonLd", buildJsonLd(c));
         model.addAttribute("descriptionHtml", buildDescriptionHtml(c.description()));
+        model.addAttribute("pageDescription",
+                c.name() + " — AI healthcare company profile: " + (c.category() != null ? c.category() : "healthcare AI") + ".");
 
         log.debug("detail() | return=company-directory-detail, name={}", c.name());
         return "company-directory-detail";

@@ -19,7 +19,7 @@ import java.security.Principal;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-26
- * @updated 2026-07-20
+ * @updated 2026-09-10
  */
 @Slf4j
 @Controller
@@ -58,6 +58,8 @@ public class PricingController {
         model.addAttribute("stripePublishableKey", stripeProperties.getPublishableKey());
         model.addAttribute("subscriberPriceId", stripeProperties.getSubscriberPriceId());
         model.addAttribute("userEmail", principal != null ? principal.getName() : "");
+        model.addAttribute("pageDescription",
+                "AI Healthcare Intelligence pricing — compare Free and Subscriber tiers for market analysis, regulatory alerts, and company intelligence.");
 
         log.debug("pricing() | return=pricing");
         return "pricing";

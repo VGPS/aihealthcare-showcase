@@ -129,6 +129,8 @@ public class StateLawController {
         model.addAttribute("categories", LawCategory.values());
         model.addAttribute("statuses", LawStatus.values());
         model.addAttribute("formattedDates", formattedDates);
+        model.addAttribute("pageDescription",
+                "U.S. state AI healthcare legislation registry — " + totalLaws + " laws across " + stateCount + " states, filterable by state, category, and status.");
 
         log.debug("index() | return=legislation-index, totalLaws={}", totalLaws);
         return "legislation-index";
@@ -167,6 +169,8 @@ public class StateLawController {
         model.addAttribute("law", law);
         model.addAttribute("formattedDates", formattedDates);
         model.addAttribute("fullAccess", fullAccess);
+        model.addAttribute("pageDescription",
+                law.stateName() + " " + law.billNumber() + " — " + law.title() + " (" + law.yearEnacted() + ").");
 
         log.debug("detail() | return=legislation-detail, law={}", law.id());
         return "legislation-detail";

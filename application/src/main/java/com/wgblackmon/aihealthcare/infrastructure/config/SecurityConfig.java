@@ -34,7 +34,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * @author  Bill Blackmon
  * @version 1.7
  * @since   2026-05-28
- * @updated 2026-09-08 — ED-2: /d/** unauthenticated signed download path
+ * @updated 2026-09-10 — SEO-1: /wiki/**, /legislation/**, /robots.txt, /sitemap.xml, /images/** public
  */
 @Slf4j
 @Configuration
@@ -82,10 +82,10 @@ public class SecurityConfig {
                 .requestMatchers("/monitoring/**").hasRole("ADMIN")
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/developer").permitAll()
-                .requestMatchers("/wiki").permitAll()
-                .requestMatchers("/wiki/**").authenticated()
-                .requestMatchers("/legislation").permitAll()
-                .requestMatchers("/legislation/**").authenticated()
+                .requestMatchers("/robots.txt", "/sitemap.xml", "/google4197b7811cdace1b.html").permitAll()
+                .requestMatchers("/images/**").permitAll()
+                .requestMatchers("/wiki", "/wiki/**").permitAll()
+                .requestMatchers("/legislation", "/legislation/**").permitAll()
                 .requestMatchers("/stripe/**").permitAll()
                 .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 .requestMatchers("/newsletter/runs/**").hasRole("ADMIN")

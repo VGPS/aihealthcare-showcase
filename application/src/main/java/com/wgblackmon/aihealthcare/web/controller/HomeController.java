@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
@@ -13,19 +14,21 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * @author  Bill Blackmon
  * @since   2026-08-15
- * @updated 2026-08-15
+ * @updated 2026-09-10
  */
 @Slf4j
 @Controller
 public class HomeController {
 
     @GetMapping("/")
-    public String home(Authentication auth) {
+    public String home(Authentication auth, Model model) {
         log.debug("home() | auth={}", auth != null ? auth.getName() : "anonymous");
         if (auth != null && auth.isAuthenticated()) {
             log.debug("home() | return=redirect:/dashboard");
             return "redirect:/dashboard";
         }
+        model.addAttribute("pageDescription",
+                "AI Healthcare Intelligence — daily market analysis, regulatory tracking, company directory, and state legislation registry for AI in healthcare.");
         log.debug("home() | return=home");
         return "home";
     }
