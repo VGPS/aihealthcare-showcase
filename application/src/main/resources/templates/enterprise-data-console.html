@@ -59,7 +59,7 @@
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Submit a Data Job</h2>
 
             <form @submit.prevent="submitJob()" class="space-y-4"
-                  x-data="{ jobForm: { feedId: '', promptText: '', format: 'CSV', rowLimit: 100 }, submitting: false, jobError: '' }">
+                  x-data="jobFormManager()">
 
                 <!-- Feed Selection -->
                 <div>
@@ -364,30 +364,35 @@
             };
         }
 
-        async function submitJob() {
-            const el = document.querySelector('[x-data*="jobForm"]');
-            const data = Alpine.$data(el);
-            data.submitting = true;
-            data.jobError = '';
-            try {
-                const resp = await fetch('/api/v1/enterprise/data/jobs', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data.jobForm)
-                });
-                if (resp.ok || resp.status === 201 || resp.status === 202) {
-                    data.jobForm = { feedId: '', promptText: '', format: 'CSV', rowLimit: 100 };
-                    document.querySelector('[x-data]').__x.$data.tab = 'jobs';
-                    location.reload();
-                } else {
-                    const text = await resp.text();
-                    data.jobError = 'Error: ' + (text || resp.statusText);
+        function jobFormManager() {
+            return {
+                jobForm: { feedId: '', promptText: '', format: 'CSV', rowLimit: 100 },
+                submitting: false,
+                jobError: '',
+
+                async submitJob() {
+                    this.submitting = true;
+                    this.jobError = '';
+                    try {
+                        const resp = await fetch('/api/v1/enterprise/data/jobs', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.jobForm)
+                        });
+                        if (resp.ok || resp.status === 201 || resp.status === 202) {
+                            this.jobForm = { feedId: '', promptText: '', format: 'CSV', rowLimit: 100 };
+                            location.reload();
+                        } else {
+                            const text = await resp.text();
+                            this.jobError = 'Error: ' + (text || resp.statusText);
+                        }
+                    } catch (e) {
+                        this.jobError = 'Request failed: ' + e.message;
+                    } finally {
+                        this.submitting = false;
+                    }
                 }
-            } catch (e) {
-                data.jobError = 'Request failed: ' + e.message;
-            } finally {
-                data.submitting = false;
-            }
+            };
         }
 
         function runScheduleNow(scheduleId) {
