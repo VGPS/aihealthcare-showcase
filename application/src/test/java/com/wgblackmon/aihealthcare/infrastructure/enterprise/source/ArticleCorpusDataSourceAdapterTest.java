@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-11
  */
 class ArticleCorpusDataSourceAdapterTest {
 
@@ -68,8 +68,9 @@ class ArticleCorpusDataSourceAdapterTest {
         DataSet result = adapter.fetch(makeRequest("articles", Map.of(), null, 100), jobLog);
 
         assertThat(result.rows()).hasSize(2);
-        assertThat(result.columns()).hasSize(8);
-        assertThat(result.rows().get(0).get(0)).isEqualTo("a1");
+        assertThat(result.columns()).hasSize(6);
+        assertThat(result.rows().get(0).get(0)).isEqualTo("Title a1");
+        assertThat(result.rows().get(0).get(1)).isEqualTo("https://example.com/a1");
         assertThat(result.truncatedAtRows()).isZero();
         verify(jobLog).phase(eq("FETCH_START"), anyString());
         verify(jobLog).phase(eq("FETCH_END"), anyString());

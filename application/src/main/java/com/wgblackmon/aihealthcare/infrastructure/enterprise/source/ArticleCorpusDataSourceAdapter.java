@@ -20,7 +20,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-11
  */
 @Slf4j
 @Component
@@ -29,11 +29,9 @@ public class ArticleCorpusDataSourceAdapter implements EnterpriseDataSourcePort 
     static final String FEED_ID = "articles";
 
     private static final List<DataColumn> COLUMNS = List.of(
-            new DataColumn("articleId", "Article ID", "STRING"),
             new DataColumn("title", "Title", "STRING"),
             new DataColumn("url", "URL", "URI"),
             new DataColumn("topic", "Topic", "STRING"),
-            new DataColumn("author", "Author", "STRING"),
             new DataColumn("sourceName", "Source", "STRING"),
             new DataColumn("sourceTier", "Tier", "STRING"),
             new DataColumn("publishedAt", "Published", "DATE")
@@ -128,11 +126,9 @@ public class ArticleCorpusDataSourceAdapter implements EnterpriseDataSourcePort 
 
     private List<String> toRow(NewsArticle a) {
         return List.of(
-                safe(a.articleId()),
                 safe(a.title()),
                 a.url() != null ? a.url().toString() : "",
                 safe(a.topic()),
-                safe(a.author()),
                 safe(a.sourceName()),
                 safe(a.sourceTier()),
                 a.publishedAt() != null ? a.publishedAt().toString() : ""

@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-11
  */
 class DataSetRendererTest {
 
@@ -109,7 +109,7 @@ class DataSetRendererTest {
     }
 
     @Test
-    void csvNarrativeAppearsAsComment() {
+    void csvNarrativeAppearsAfterData() {
         DataSet ds = new DataSet(
                 List.of(new DataColumn("a", "A", "STRING")),
                 List.of(List.of("1")),
@@ -119,7 +119,8 @@ class DataSetRendererTest {
         byte[] csv = DataSetRenderer.render(ds, ExportFormat.CSV);
         String text = new String(csv, StandardCharsets.UTF_8);
 
-        assertThat(text).startsWith("# This is a narrative\n# With two lines\n");
+        assertThat(text).startsWith("A\n1\n");
+        assertThat(text).contains("# Analysis\n# This is a narrative\n# With two lines\n");
     }
 
     @Test

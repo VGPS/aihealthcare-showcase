@@ -12,8 +12,8 @@ import java.util.List;
  * Renders a {@link DataSet} to a byte array in the requested {@link ExportFormat}.
  *
  * <p>Supports CSV and JSON formats for tabular data. LLM_SYNTHESIS feeds may
- * also carry a narrative; when present, it appears as a preamble comment in CSV
- * or a {@code "narrative"} field in JSON.
+ * also carry a narrative; when present, it appears after data rows in CSV
+ * (under {@code # Analysis}) or as a {@code "narrative"} field in JSON.
  *
  * <p>This class is a pure utility — no Spring annotations, no framework imports.
  * It owns the escape helpers previously duplicated in {@code DataExportService}.
@@ -21,7 +21,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-11
  */
 public final class DataSetRenderer {
 
@@ -50,13 +50,6 @@ public final class DataSetRenderer {
         StringBuilder csv = new StringBuilder();
         List<DataColumn> columns = dataSet.columns();
 
-        if (dataSet.narrative() != null && !dataSet.narrative().isBlank()) {
-            for (String line : dataSet.narrative().split("\n")) {
-                csv.append("# ").append(line).append("\n");
-            }
-            csv.append("\n");
-        }
-
         for (int c = 0; c < columns.size(); c++) {
             if (c > 0) csv.append(",");
             csv.append(escapeCsv(columns.get(c).label()));
@@ -76,6 +69,13 @@ public final class DataSetRenderer {
             for (SourceCitation cit : dataSet.citations()) {
                 csv.append("# [").append(cit.citationNumber()).append("] ")
                         .append(cit.title()).append(" — ").append(cit.url()).append("\n");
+            }
+        }
+
+        if (dataSet.narrative() != null && !dataSet.narrative().isBlank()) {
+            csv.append("\n# Analysis\n");
+            for (String line : dataSet.narrative().split("\n")) {
+                csv.append("# ").append(line).append("\n");
             }
         }
 
