@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -20,7 +22,7 @@ import static org.mockito.Mockito.*;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-11
  */
 class LegislationCorpusDataSourceAdapterTest {
 
@@ -65,7 +67,7 @@ class LegislationCorpusDataSourceAdapterTest {
         DataSet result = adapter.fetch(makeRequest("legislation", Map.of(), null, 100), jobLog);
 
         assertThat(result.rows()).hasSize(2);
-        assertThat(result.columns()).hasSize(11);
+        assertThat(result.columns()).hasSize(12);
         assertThat(result.rows().get(0).get(0)).isEqualTo("ca-ab-3030");
         verify(stateLawPort).findAll();
     }
@@ -158,17 +160,76 @@ class LegislationCorpusDataSourceAdapterTest {
 
         DataSet result = adapter.fetch(makeRequest("legislation", Map.of(), null, 100), jobLog);
 
-        assertThat(result.rows().get(0).get(8)).isEqualTo("PAYER_UTILIZATION_REVIEW|CLAIMS_DOWNCODING");
+        assertThat(result.rows().get(0).get(9)).isEqualTo("PAYER_UTILIZATION_REVIEW|CLAIMS_DOWNCODING");
+    }
+
+    @Test
+    void sourceUrlExtractsOfficialUrl() {
+        LawSource official = new LawSource(SourceType.OFFICIAL,
+                "https://leginfo.ca.gov/ab-3030", null, null, null, false);
+        LawSource secondary = new LawSource(SourceType.SECONDARY,
+                "https://news.example.com/ab-3030", null, null, null, false);
+        StateLaw law = new StateLaw(
+                "ca-ab-3030", StateCode.CA, "California", "AB-3030",
+                "Health AI Transparency", 2024, "2024-09-28", null,
+                "2025-01-01", null, LawStatus.ENACTED, null,
+                List.of(LawCategory.PAYER_UTILIZATION_REVIEW),
+                "Insurers", "Disclose AI usage", "Fines",
+                List.of(secondary, official), null, "1.0", Instant.now(), Instant.now()
+        );
+        when(stateLawPort.findAll()).thenReturn(List.of(law));
+
+        DataSet result = adapter.fetch(makeRequest("legislation", Map.of(), null, 100), jobLog);
+
+        assertThat(result.rows().get(0).get(5)).isEqualTo("https://leginfo.ca.gov/ab-3030");
+    }
+
+    @Test
+    void sourceUrlFallsBackToFirstWhenNoOfficial() {
+        LawSource secondary = new LawSource(SourceType.SECONDARY,
+                "https://news.example.com/analysis", null, null, null, false);
+        StateLaw law = new StateLaw(
+                "ca-ab-3030", StateCode.CA, "California", "AB-3030",
+                "Health AI Transparency", 2024, "2024-09-28", null,
+                "2025-01-01", null, LawStatus.ENACTED, null,
+                List.of(LawCategory.PAYER_UTILIZATION_REVIEW),
+                "Insurers", "Disclose AI usage", "Fines",
+                List.of(secondary), null, "1.0", Instant.now(), Instant.now()
+        );
+        when(stateLawPort.findAll()).thenReturn(List.of(law));
+
+        DataSet result = adapter.fetch(makeRequest("legislation", Map.of(), null, 100), jobLog);
+
+        assertThat(result.rows().get(0).get(5)).isEqualTo("https://news.example.com/analysis");
+    }
+
+    @Test
+    void sourceUrlEmptyWhenNoSources() {
+        StateLaw law = new StateLaw(
+                "ca-ab-3030", StateCode.CA, "California", "AB-3030",
+                "Health AI Transparency", 2024, "2024-09-28", null,
+                "2025-01-01", null, LawStatus.ENACTED, null,
+                List.of(LawCategory.PAYER_UTILIZATION_REVIEW),
+                "Insurers", "Disclose AI usage", "Fines",
+                emptyList(), null, "1.0", Instant.now(), Instant.now()
+        );
+        when(stateLawPort.findAll()).thenReturn(List.of(law));
+
+        DataSet result = adapter.fetch(makeRequest("legislation", Map.of(), null, 100), jobLog);
+
+        assertThat(result.rows().get(0).get(5)).isEmpty();
     }
 
     private StateLaw sampleLaw(String id) {
+        LawSource source = new LawSource(SourceType.OFFICIAL,
+                "https://leginfo.ca.gov/" + id, null, null, null, false);
         return new StateLaw(
                 id, StateCode.CA, "California", "AB-3030",
                 "Health AI Transparency", 2024, "2024-09-28", null,
                 "2025-01-01", null, LawStatus.ENACTED, null,
                 List.of(LawCategory.PAYER_UTILIZATION_REVIEW),
                 "Insurers", "Disclose AI usage", "Fines",
-                List.of(), null, "1.0", Instant.now(), Instant.now()
+                List.of(source), null, "1.0", Instant.now(), Instant.now()
         );
     }
 

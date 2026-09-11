@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-11
  */
 @Slf4j
 @Component
@@ -33,6 +34,7 @@ public class LegislationCorpusDataSourceAdapter implements EnterpriseDataSourceP
             new DataColumn("stateName", "State Name", "STRING"),
             new DataColumn("billNumber", "Bill Number", "STRING"),
             new DataColumn("title", "Title", "STRING"),
+            new DataColumn("sourceUrl", "Source URL", "URI"),
             new DataColumn("yearEnacted", "Year Enacted", "INTEGER"),
             new DataColumn("effectiveDate", "Effective Date", "DATE"),
             new DataColumn("status", "Status", "STRING"),
@@ -156,6 +158,7 @@ public class LegislationCorpusDataSourceAdapter implements EnterpriseDataSourceP
                 safe(law.stateName()),
                 safe(law.billNumber()),
                 safe(law.title()),
+                extractSourceUrl(law),
                 String.valueOf(law.yearEnacted()),
                 safe(law.effectiveDate()),
                 law.status() != null ? law.status().name() : "",
@@ -165,6 +168,16 @@ public class LegislationCorpusDataSourceAdapter implements EnterpriseDataSourceP
                 safe(law.keyRequirements()),
                 safe(law.enforcement())
         );
+    }
+
+    private String extractSourceUrl(StateLaw law) {
+        if (law.sources() == null || law.sources().isEmpty()) {
+            return "";
+        }
+        Optional<LawSource> official = law.sources().stream()
+                .filter(s -> s.sourceType() == SourceType.OFFICIAL)
+                .findFirst();
+        return official.map(LawSource::url).orElse(law.sources().get(0).url());
     }
 
     private String safe(String v) {
