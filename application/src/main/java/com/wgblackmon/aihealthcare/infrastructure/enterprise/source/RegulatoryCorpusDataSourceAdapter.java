@@ -19,7 +19,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -28,17 +28,14 @@ public class RegulatoryCorpusDataSourceAdapter implements EnterpriseDataSourcePo
     static final String FEED_ID = "regulatory";
 
     private static final List<DataColumn> COLUMNS = List.of(
-            new DataColumn("eventId", "Event ID", "STRING"),
-            new DataColumn("eventType", "Type", "STRING"),
-            new DataColumn("regulatoryBody", "Body", "STRING"),
             new DataColumn("title", "Title", "STRING"),
+            new DataColumn("eventType", "Type", "STRING"),
             new DataColumn("summary", "Summary", "STRING"),
             new DataColumn("referenceNumber", "Reference #", "STRING"),
             new DataColumn("applicantName", "Applicant", "STRING"),
             new DataColumn("deviceName", "Device", "STRING"),
             new DataColumn("sourceUrl", "Source URL", "URI"),
-            new DataColumn("publishedAt", "Published", "DATE"),
-            new DataColumn("keywords", "Keywords", "STRING")
+            new DataColumn("publishedAt", "Published", "DATE")
     );
 
     private final RegulatoryEventPort regulatoryPort;
@@ -134,18 +131,14 @@ public class RegulatoryCorpusDataSourceAdapter implements EnterpriseDataSourcePo
 
     private List<String> toRow(RegulatoryEvent e) {
         return List.of(
-                safe(e.eventId()),
-                e.eventType() != null ? e.eventType().name() : "",
-                e.regulatoryBody() != null ? e.regulatoryBody().name() : "",
                 safe(e.title()),
+                e.eventType() != null ? e.eventType().name() : "",
                 safe(e.summary()),
                 safe(e.referenceNumber()),
                 safe(e.applicantName()),
                 safe(e.deviceName()),
                 safe(e.sourceUrl()),
-                e.publishedAt() != null ? e.publishedAt().toString() : "",
-                e.aiHealthcareKeywords() != null
-                        ? String.join("|", e.aiHealthcareKeywords()) : ""
+                e.publishedAt() != null ? e.publishedAt().toString() : ""
         );
     }
 

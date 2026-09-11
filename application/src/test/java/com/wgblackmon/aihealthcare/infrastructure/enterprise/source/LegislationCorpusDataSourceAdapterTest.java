@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 class LegislationCorpusDataSourceAdapterTest {
 
@@ -67,8 +67,8 @@ class LegislationCorpusDataSourceAdapterTest {
         DataSet result = adapter.fetch(makeRequest("legislation", Map.of(), null, 100), jobLog);
 
         assertThat(result.rows()).hasSize(2);
-        assertThat(result.columns()).hasSize(12);
-        assertThat(result.rows().get(0).get(0)).isEqualTo("ca-ab-3030");
+        assertThat(result.columns()).hasSize(8);
+        assertThat(result.rows().get(0).get(0)).isEqualTo("Health AI Transparency");
         verify(stateLawPort).findAll();
     }
 
@@ -160,7 +160,7 @@ class LegislationCorpusDataSourceAdapterTest {
 
         DataSet result = adapter.fetch(makeRequest("legislation", Map.of(), null, 100), jobLog);
 
-        assertThat(result.rows().get(0).get(9)).isEqualTo("PAYER_UTILIZATION_REVIEW|CLAIMS_DOWNCODING");
+        assertThat(result.rows().get(0).get(6)).isEqualTo("PAYER_UTILIZATION_REVIEW|CLAIMS_DOWNCODING");
     }
 
     @Test
@@ -181,7 +181,7 @@ class LegislationCorpusDataSourceAdapterTest {
 
         DataSet result = adapter.fetch(makeRequest("legislation", Map.of(), null, 100), jobLog);
 
-        assertThat(result.rows().get(0).get(5)).isEqualTo("https://leginfo.ca.gov/ab-3030");
+        assertThat(result.rows().get(0).get(3)).isEqualTo("https://leginfo.ca.gov/ab-3030");
     }
 
     @Test
@@ -200,7 +200,7 @@ class LegislationCorpusDataSourceAdapterTest {
 
         DataSet result = adapter.fetch(makeRequest("legislation", Map.of(), null, 100), jobLog);
 
-        assertThat(result.rows().get(0).get(5)).isEqualTo("https://news.example.com/analysis");
+        assertThat(result.rows().get(0).get(3)).isEqualTo("https://news.example.com/analysis");
     }
 
     @Test
@@ -217,7 +217,7 @@ class LegislationCorpusDataSourceAdapterTest {
 
         DataSet result = adapter.fetch(makeRequest("legislation", Map.of(), null, 100), jobLog);
 
-        assertThat(result.rows().get(0).get(5)).isEmpty();
+        assertThat(result.rows().get(0).get(3)).isEmpty();
     }
 
     private StateLaw sampleLaw(String id) {

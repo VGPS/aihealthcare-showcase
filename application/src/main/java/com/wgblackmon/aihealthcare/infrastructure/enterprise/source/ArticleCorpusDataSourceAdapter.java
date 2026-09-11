@@ -28,13 +28,14 @@ public class ArticleCorpusDataSourceAdapter implements EnterpriseDataSourcePort 
 
     static final String FEED_ID = "articles";
 
+    private static final int SUMMARY_MAX = 300;
+
     private static final List<DataColumn> COLUMNS = List.of(
             new DataColumn("title", "Title", "STRING"),
             new DataColumn("url", "URL", "URI"),
-            new DataColumn("topic", "Topic", "STRING"),
-            new DataColumn("sourceName", "Source", "STRING"),
-            new DataColumn("sourceTier", "Tier", "STRING"),
-            new DataColumn("publishedAt", "Published", "DATE")
+            new DataColumn("publication", "Publication", "STRING"),
+            new DataColumn("publishedAt", "Published", "DATE"),
+            new DataColumn("summary", "Summary", "STRING")
     );
 
     private final ArticleIngestionPort articlePort;
@@ -128,11 +129,19 @@ public class ArticleCorpusDataSourceAdapter implements EnterpriseDataSourcePort 
         return List.of(
                 safe(a.title()),
                 a.url() != null ? a.url().toString() : "",
-                safe(a.topic()),
                 safe(a.sourceName()),
-                safe(a.sourceTier()),
-                a.publishedAt() != null ? a.publishedAt().toString() : ""
+                a.publishedAt() != null ? a.publishedAt().toString() : "",
+                truncate(a.bodyText())
         );
+    }
+
+    private String truncate(String text) {
+        if (text == null || text.isBlank()) return "";
+        if (text.length() <= SUMMARY_MAX) return text;
+        int lastEnd = Math.max(text.lastIndexOf('.', SUMMARY_MAX),
+                Math.max(text.lastIndexOf('?', SUMMARY_MAX), text.lastIndexOf('!', SUMMARY_MAX)));
+        if (lastEnd > 0) return text.substring(0, lastEnd + 1);
+        return text.substring(0, SUMMARY_MAX);
     }
 
     private String safe(String v) {
