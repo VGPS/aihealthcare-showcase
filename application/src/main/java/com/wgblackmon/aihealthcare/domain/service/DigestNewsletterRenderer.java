@@ -443,11 +443,15 @@ public class DigestNewsletterRenderer {
         String cleaned = cleanBodyText(body);
         if (cleaned.length() <= BODY_PREVIEW_MAX) return cleaned;
 
-        String truncated   = cleaned.substring(0, BODY_PREVIEW_MAX);
-        int    lastPeriod  = truncated.lastIndexOf('.');
-        return lastPeriod > BODY_PREVIEW_MAX / 2
-                ? truncated.substring(0, lastPeriod + 1)
-                : truncated.trim() + "...";
+        return truncateAtSentenceBoundary(cleaned);
+    }
+
+    private String truncateAtSentenceBoundary(String text) {
+        String truncated = text.substring(0, BODY_PREVIEW_MAX);
+        int lastEnd = Math.max(truncated.lastIndexOf('.'),
+                Math.max(truncated.lastIndexOf('?'), truncated.lastIndexOf('!')));
+        if (lastEnd > 0) return truncated.substring(0, lastEnd + 1);
+        return "";
     }
 
     /** Strips HTML tags and decodes common entities from raw body text. */
@@ -473,10 +477,7 @@ public class DigestNewsletterRenderer {
             if (article.bodyText() != null && !article.bodyText().isBlank()) {
                 String cleaned = cleanBodyText(article.bodyText());
                 if (cleaned.length() > BODY_PREVIEW_MAX) {
-                    String truncated  = cleaned.substring(0, BODY_PREVIEW_MAX);
-                    int    lastPeriod = truncated.lastIndexOf('.');
-                    cleaned = lastPeriod > BODY_PREVIEW_MAX / 2
-                            ? truncated.substring(0, lastPeriod + 1) : truncated.trim() + "...";
+                    cleaned = truncateAtSentenceBoundary(cleaned);
                 }
                 if (!isRedundantWithTitle(article.title(), cleaned)) {
                     sb.append("\n   ").append(cleaned);
