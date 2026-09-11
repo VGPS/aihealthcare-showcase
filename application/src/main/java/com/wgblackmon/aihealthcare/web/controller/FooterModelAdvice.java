@@ -56,7 +56,8 @@ public class FooterModelAdvice {
         }
 
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+        if (auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                && tier.ordinal() < SubscriptionTier.SUBSCRIBER.ordinal()) {
             tier = SubscriptionTier.SUBSCRIBER;
         }
 

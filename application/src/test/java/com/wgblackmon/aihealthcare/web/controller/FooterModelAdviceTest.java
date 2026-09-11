@@ -121,6 +121,26 @@ class FooterModelAdviceTest {
     }
 
     @Test
+    void adminUserWithEnterpriseTier_returnsEnterprise() {
+        FooterModelAdvice advice = createAdvice(appUserPort);
+        Principal principal = mock(Principal.class);
+        when(principal.getName()).thenReturn("enterprise-admin@example.com");
+        AppUser user = new AppUser("enterprise-admin@example.com", "hash", "Enterprise Admin",
+                "ADMIN", true, SubscriptionTier.ENTERPRISE, null);
+        when(appUserPort.findByEmail("enterprise-admin@example.com")).thenReturn(Optional.of(user));
+
+        SecurityContextHolder.clearContext();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("enterprise-admin@example.com", null,
+                        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+
+        String result = advice.footerTier(principal);
+
+        assertThat(result).isEqualTo("ENTERPRISE");
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
     void unknownUser_returnsFree() {
         FooterModelAdvice advice = createAdvice(appUserPort);
         Principal principal = mock(Principal.class);
