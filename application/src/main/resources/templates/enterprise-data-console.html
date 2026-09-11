@@ -27,7 +27,8 @@
 
 <nav th:replace="~{fragments/nav :: nav('enterprise-data')}"></nav>
 
-<main class="max-w-7xl mx-auto px-4 py-6" x-data="{ tab: 'run', selectedJob: null }">
+<main class="max-w-7xl mx-auto px-4 py-6"
+      x-data="{ tab: new URLSearchParams(location.search).get('tab') || 'run', selectedJob: null }">
 
     <!-- Tab Bar -->
     <div class="flex border-b border-gray-200 mb-6">
@@ -376,18 +377,22 @@
                     try {
                         const resp = await fetch('/api/v1/enterprise/data/jobs', {
                             method: 'POST',
+                            credentials: 'same-origin',
                             headers: { 'Content-Type': 'application/json' },
+                            redirect: 'error',
                             body: JSON.stringify(this.jobForm)
                         });
                         if (resp.ok || resp.status === 201 || resp.status === 202) {
+                            const job = await resp.json();
                             this.jobForm = { feedId: '', promptText: '', format: 'CSV', rowLimit: 100 };
-                            location.reload();
+                            this.jobError = '';
+                            window.location.href = '/enterprise/data?tab=jobs&created=' + (job.jobId || '');
                         } else {
                             const text = await resp.text();
-                            this.jobError = 'Error: ' + (text || resp.statusText);
+                            this.jobError = 'Error ' + resp.status + ': ' + (text || resp.statusText);
                         }
                     } catch (e) {
-                        this.jobError = 'Request failed: ' + e.message;
+                        this.jobError = 'Submit failed — session may have expired. Try refreshing the page.';
                     } finally {
                         this.submitting = false;
                     }
