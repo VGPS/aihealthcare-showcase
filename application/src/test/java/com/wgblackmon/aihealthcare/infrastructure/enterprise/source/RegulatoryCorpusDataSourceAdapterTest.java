@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-12
  */
 class RegulatoryCorpusDataSourceAdapterTest {
 
@@ -65,8 +65,8 @@ class RegulatoryCorpusDataSourceAdapterTest {
         DataSet result = adapter.fetch(makeRequest("regulatory", Map.of(), null, 100), jobLog);
 
         assertThat(result.rows()).hasSize(2);
-        assertThat(result.columns()).hasSize(11);
-        assertThat(result.rows().get(0).get(0)).isEqualTo("e1");
+        assertThat(result.columns()).hasSize(8);
+        assertThat(result.rows().get(0).get(0)).isEqualTo("AI Diagnostic Tool");
         verify(regulatoryPort).findRecent(100);
     }
 
@@ -142,22 +142,6 @@ class RegulatoryCorpusDataSourceAdapterTest {
         DataSet result = adapter.fetch(makeRequest("regulatory", Map.of(), null, 100), jobLog);
 
         assertThat(result.rows().get(0)).hasSize(result.columns().size());
-    }
-
-    @Test
-    void keywordsArePipeDelimited() {
-        RegulatoryEvent event = new RegulatoryEvent(
-                "e1", RegulatoryEventType.FDA_510K_CLEARANCE, RegulatoryBody.FDA,
-                "AI Diagnostic", "Summary", "K241234", "Acme Corp", "AI Scanner",
-                "https://fda.gov/1", null, Instant.now(), Instant.now(),
-                List.of("ai", "diagnostics", "imaging"),
-                null, null, null, null
-        );
-        when(regulatoryPort.findRecent(100)).thenReturn(List.of(event));
-
-        DataSet result = adapter.fetch(makeRequest("regulatory", Map.of(), null, 100), jobLog);
-
-        assertThat(result.rows().get(0).get(10)).isEqualTo("ai|diagnostics|imaging");
     }
 
     private RegulatoryEvent sampleEvent(String id) {

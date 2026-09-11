@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-12
  */
 class AiSynthesisDataSourceAdapterTest {
 

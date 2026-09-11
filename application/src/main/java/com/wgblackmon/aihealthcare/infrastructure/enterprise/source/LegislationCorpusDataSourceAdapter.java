@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -29,18 +29,14 @@ public class LegislationCorpusDataSourceAdapter implements EnterpriseDataSourceP
     static final String FEED_ID = "legislation";
 
     private static final List<DataColumn> COLUMNS = List.of(
-            new DataColumn("id", "Law ID", "STRING"),
-            new DataColumn("stateCode", "State", "STRING"),
-            new DataColumn("stateName", "State Name", "STRING"),
-            new DataColumn("billNumber", "Bill Number", "STRING"),
             new DataColumn("title", "Title", "STRING"),
+            new DataColumn("stateCode", "State", "STRING"),
+            new DataColumn("billNumber", "Bill Number", "STRING"),
             new DataColumn("sourceUrl", "Source URL", "URI"),
-            new DataColumn("yearEnacted", "Year Enacted", "INTEGER"),
             new DataColumn("effectiveDate", "Effective Date", "DATE"),
             new DataColumn("status", "Status", "STRING"),
             new DataColumn("categories", "Categories", "STRING"),
-            new DataColumn("keyRequirements", "Key Requirements", "STRING"),
-            new DataColumn("enforcement", "Enforcement", "STRING")
+            new DataColumn("keyRequirements", "Key Requirements", "STRING")
     );
 
     private final StateLawPort stateLawPort;
@@ -153,20 +149,16 @@ public class LegislationCorpusDataSourceAdapter implements EnterpriseDataSourceP
 
     private List<String> toRow(StateLaw law) {
         return List.of(
-                safe(law.id()),
-                law.stateCode() != null ? law.stateCode().name() : "",
-                safe(law.stateName()),
-                safe(law.billNumber()),
                 safe(law.title()),
+                law.stateCode() != null ? law.stateCode().name() : "",
+                safe(law.billNumber()),
                 extractSourceUrl(law),
-                String.valueOf(law.yearEnacted()),
                 safe(law.effectiveDate()),
                 law.status() != null ? law.status().name() : "",
                 law.categories() != null
                         ? law.categories().stream().map(Enum::name).collect(Collectors.joining("|"))
                         : "",
-                safe(law.keyRequirements()),
-                safe(law.enforcement())
+                safe(law.keyRequirements())
         );
     }
 
