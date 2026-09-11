@@ -49,7 +49,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Branded Error Handling** | Custom error pages replacing Spring Boot's Whitelabel Error Page with consistent branded UI |
 | **Document Library** | Admin-managed document upload (PDF/DOCX/TXT/MD, 50MB limit) with vector store embedding for RAG search and public wiki page generation |
 | **88-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, enterprise data console, and LinkedIn feature post rotation |
-| **2,891 Automated Tests** | Comprehensive test suite across 354 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **2,896 Automated Tests** | Comprehensive test suite across 354 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 

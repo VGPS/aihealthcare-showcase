@@ -31,9 +31,9 @@ import static org.mockito.Mockito.when;
  * output as the pre-scoring implementation.
  *
  * @author  Bill Blackmon
- * @version 3.0
+ * @version 3.1
  * @since   2026-07-20
- * @updated 2026-08-16
+ * @updated 2026-09-11
  */
 class DigestNewsletterRendererTest {
 
@@ -192,9 +192,9 @@ class DigestNewsletterRendererTest {
         assertThat(result).isPresent();
         String html = result.get().htmlContent();
         assertThat(html).contains(title);
-        // Redundant preview (just restates the headline) must not render as a separate line
+        // Title appears in article card + Sources section = 2; redundant body preview must not add a third
         long titleOccurrences = html.split(java.util.regex.Pattern.quote(title.substring(0, 40)), -1).length - 1;
-        assertThat(titleOccurrences).isEqualTo(1);
+        assertThat(titleOccurrences).isEqualTo(2);
     }
 
     @Test
@@ -337,6 +337,104 @@ class DigestNewsletterRendererTest {
         String plain = result.get().plainTextContent();
         assertThat(plain).contains("TODAY'S INTELLIGENCE");
         assertThat(plain).contains("ALSO DISCOVERED");
+    }
+
+    // -------------------------------------------------------------------------
+    // Citation numbering and Sources section
+    // -------------------------------------------------------------------------
+
+    @Test
+    void buildDigest_articleCardsHaveNumberedCitations() {
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
+                .thenReturn(List.of(
+                        makeArticle("First Article", "https://example.com/first", "Body one"),
+                        makeArticle("Second Article", "https://example.com/second", "Body two")
+                ));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String html = result.get().htmlContent();
+        assertThat(html).contains("[1]");
+        assertThat(html).contains("[2]");
+        assertThat(html).contains("#source-1");
+        assertThat(html).contains("#source-2");
+    }
+
+    @Test
+    void buildDigest_sourceSectionPresent_withNumberedEntries() {
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
+                .thenReturn(List.of(
+                        makeArticle("Alpha Article", "https://example.com/alpha", "Alpha body"),
+                        makeArticle("Beta Article", "https://example.com/beta", "Beta body")
+                ));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String html = result.get().htmlContent();
+        assertThat(html).contains("Sources");
+        assertThat(html).contains("id=\"source-1\"");
+        assertThat(html).contains("id=\"source-2\"");
+        assertThat(html).contains("example.com/alpha");
+        assertThat(html).contains("example.com/beta");
+    }
+
+    @Test
+    void buildDigest_sourceSectionShowsSourceName() {
+        NewsArticle article = new NewsArticle(
+                "a1", "Named Source Article", URI.create("https://example.com/named"),
+                "Body", "AI Healthcare", null, null,
+                "Reuters Health", "INDUSTRY", 0.8, Instant.now()
+        );
+        when(articleIngestionPort.fetchRecentArticles(eq(1))).thenReturn(List.of(article));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        assertThat(result.get().htmlContent()).contains("Reuters Health");
+    }
+
+    @Test
+    void buildDigest_plainTextHasSourcesSection() {
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
+                .thenReturn(List.of(
+                        makeArticle("Plain Source Test", "https://example.com/plain", "Body text")
+                ));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String plain = result.get().plainTextContent();
+        assertThat(plain).contains("=== SOURCES ===");
+        assertThat(plain).contains("[1] Plain Source Test");
+        assertThat(plain).contains("example.com/plain");
+    }
+
+    @Test
+    void buildDigest_continuousNumberingAcrossSections() {
+        NewsArticle todayArticle = new NewsArticle(
+                "t1", "Today First", URI.create("https://example.com/today"),
+                "Today body", "AI Healthcare", null, null,
+                "TestSource", "INDUSTRY", 0.5, Instant.now()
+        );
+        NewsArticle oldArticle = new NewsArticle(
+                "o1", "Old Finding", URI.create("https://example.com/old"),
+                "Old body", "AI Healthcare", null, null,
+                "TestSource", "INDUSTRY", 0.5, Instant.now().minus(5, java.time.temporal.ChronoUnit.DAYS)
+        );
+        when(articleIngestionPort.fetchRecentArticles(eq(1)))
+                .thenReturn(List.of(todayArticle, oldArticle));
+
+        Optional<NewsletterRun> result = renderer.buildDigest();
+
+        assertThat(result).isPresent();
+        String html = result.get().htmlContent();
+        // Today's article is [1], old article is [2]
+        assertThat(html).contains("[1]");
+        assertThat(html).contains("[2]");
+        assertThat(html).contains("id=\"source-1\"");
+        assertThat(html).contains("id=\"source-2\"");
     }
 
     // -------------------------------------------------------------------------
