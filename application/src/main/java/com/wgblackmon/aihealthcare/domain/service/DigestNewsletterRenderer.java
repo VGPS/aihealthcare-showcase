@@ -34,7 +34,7 @@ import java.util.Set;
  * without the featured block if scoring or formatting fails.
  *
  * @author  Bill Blackmon
- * @version 3.4
+ * @version 3.5
  * @since   2026-07-20
  * @updated 2026-09-11
  */
@@ -44,7 +44,7 @@ public class DigestNewsletterRenderer {
     private static final DateTimeFormatter DISPLAY_FMT        = DateTimeFormatter.ofPattern("MMMM d, yyyy");
     private static final int               LOOKBACK_DAYS       = 1;
     private static final int               MAX_DIGEST_ARTICLES = 75;
-    private static final int               BODY_PREVIEW_MAX    = 300;
+    private static final int               BODY_PREVIEW_MAX    = 500;
     /** Number of top articles (by sourceWeight) submitted to the scoring LLM. */
     private static final int               SCORING_CANDIDATES  = 20;
     private static final String            SCORING_THEME       = "AI Healthcare";
@@ -149,15 +149,9 @@ public class DigestNewsletterRenderer {
         }
         log.info("buildDigest() | today={}, discovered={}", todaysItems.size(), discoveredItems.size());
 
-        List<NewsArticle> allArticles = new ArrayList<>();
-        allArticles.addAll(todaysItems);
-        allArticles.addAll(discoveredItems);
-
-        String bodyHtml  = featuredHtml + renderSectionedCards(todaysItems, discoveredItems, 0)
-                + renderSourcesSection(allArticles);
+        String bodyHtml  = featuredHtml + renderSectionedCards(todaysItems, discoveredItems);
         String subject   = "AI Healthcare Intelligence — " + today.format(DISPLAY_FMT);
-        String plainText = featuredPlainText + renderSectionedPlainText(todaysItems, discoveredItems, 0)
-                + renderPlainTextSources(allArticles)
+        String plainText = featuredPlainText + renderSectionedPlainText(todaysItems, discoveredItems)
                 + renderPlainTextFooter();
 
         NewsletterRun result = new NewsletterRun(
@@ -354,8 +348,8 @@ public class DigestNewsletterRenderer {
                 || lower.matches("^[a-f0-9\\-]{20,}$");
     }
 
-    private String renderArticleCards(List<NewsArticle> articles, int startIndex) {
-        log.debug("renderArticleCards() | articleCount={}, startIndex={}", articles.size(), startIndex);
+    private String renderArticleCards(List<NewsArticle> articles) {
+        log.debug("renderArticleCards() | articleCount={}", articles.size());
 
         StringBuilder sb = new StringBuilder();
         sb.append("<div style=\"margin-bottom:36px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.08); overflow:hidden;\">\n");
@@ -363,17 +357,13 @@ public class DigestNewsletterRenderer {
         int index = 0;
         for (NewsArticle article : articles) {
             index++;
-            int sourceNum       = startIndex + index;
             String articleTitle = article.title() != null ? article.title() : "(no title)";
             String url          = article.url() != null ? article.url().toString() : "#";
             String borderTop    = index == 1 ? "" : " border-top:1px solid #e4eaf1;";
 
-            sb.append("  <div id=\"article-").append(sourceNum)
+            sb.append("  <div id=\"article-").append(index)
               .append("\" style=\"background:#fff; padding:18px 22px;").append(borderTop).append("\">\n");
             sb.append("    <div style=\"font-size:1.05em; font-weight:bold; margin-bottom:6px;\">")
-              .append("<a href=\"#source-").append(sourceNum)
-              .append("\" style=\"color:#cc3300; font-size:0.85em; text-decoration:none; font-weight:bold;\">[")
-              .append(sourceNum).append("]</a> ")
               .append("<a href=\"").append(escapeHtml(url))
               .append("\" target=\"_blank\" rel=\"noopener\" style=\"color:#1a3a5c; text-decoration:underline;\">")
               .append(escapeHtml(articleTitle)).append("</a>");
@@ -399,19 +389,19 @@ public class DigestNewsletterRenderer {
         return result;
     }
 
-    private String renderSectionedCards(List<NewsArticle> todaysItems, List<NewsArticle> discoveredItems, int startIndex) {
-        log.debug("renderSectionedCards() | today={}, discovered={}, startIndex={}", todaysItems.size(), discoveredItems.size(), startIndex);
+    private String renderSectionedCards(List<NewsArticle> todaysItems, List<NewsArticle> discoveredItems) {
+        log.debug("renderSectionedCards() | today={}, discovered={}", todaysItems.size(), discoveredItems.size());
 
         StringBuilder sb = new StringBuilder();
         if (!todaysItems.isEmpty()) {
             sb.append("<h2 style=\"color:#1a3a5c; font-size:1.15em; margin:0 0 12px; padding-bottom:8px; border-bottom:2px solid #0066cc;\">")
               .append("Today&rsquo;s Intelligence</h2>\n");
-            sb.append(renderArticleCards(todaysItems, startIndex));
+            sb.append(renderArticleCards(todaysItems));
         }
         if (!discoveredItems.isEmpty()) {
             sb.append("<h2 style=\"color:#666; font-size:1.05em; margin:24px 0 12px; padding-bottom:8px; border-bottom:1px solid #ccc;\">")
               .append("Also Discovered</h2>\n");
-            sb.append(renderArticleCards(discoveredItems, startIndex + todaysItems.size()));
+            sb.append(renderArticleCards(discoveredItems));
         }
 
         String result = sb.toString();
@@ -419,53 +409,24 @@ public class DigestNewsletterRenderer {
         return result;
     }
 
-    private String renderSourcesSection(List<NewsArticle> allArticles) {
-        log.debug("renderSourcesSection() | articleCount={}", allArticles.size());
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("<h3 style=\"color:#555; font-size:0.95em; text-transform:uppercase; letter-spacing:0.5px; ")
-          .append("margin:32px 0 12px; padding-top:16px; border-top:1px solid #e8e8e8;\">Sources</h3>\n");
-        sb.append("<ol style=\"margin:0; padding:0 0 0 24px; line-height:1.9; font-size:0.85em;\">\n");
-
-        for (int i = 0; i < allArticles.size(); i++) {
-            NewsArticle article = allArticles.get(i);
-            int sourceNum = i + 1;
-            String url   = article.url() != null ? escapeHtml(article.url().toString()) : "#";
-            String title = article.title() != null ? escapeHtml(article.title()) : "(no title)";
-
-            sb.append("  <li id=\"source-").append(sourceNum)
-              .append("\" value=\"").append(sourceNum)
-              .append("\" style=\"color:#555; margin-bottom:4px;\">");
-            sb.append("<a href=\"").append(url)
-              .append("\" target=\"_blank\" rel=\"noopener\" style=\"color:#0066cc; text-decoration:none;\">")
-              .append(title).append("</a>");
-            if (article.sourceName() != null && !article.sourceName().isBlank()) {
-                sb.append(" <span style=\"color:#999; font-style:italic;\">&mdash; ")
-                  .append(escapeHtml(article.sourceName())).append("</span>");
-            }
-            sb.append("</li>\n");
-        }
-        sb.append("</ol>\n");
-
-        String result = sb.toString();
-        log.debug("renderSourcesSection() | return={} chars", result.length());
-        return result;
-    }
-
-    private String renderSectionedPlainText(List<NewsArticle> todaysItems, List<NewsArticle> discoveredItems, int startIndex) {
+    private String renderSectionedPlainText(List<NewsArticle> todaysItems, List<NewsArticle> discoveredItems) {
         StringBuilder sb = new StringBuilder();
         if (!todaysItems.isEmpty()) {
-            sb.append("=== TODAY'S INTELLIGENCE ===\n\n").append(renderPlainText(todaysItems, startIndex));
+            sb.append("=== TODAY'S INTELLIGENCE ===\n\n").append(renderPlainText(todaysItems));
         }
         if (!discoveredItems.isEmpty()) {
-            sb.append("=== ALSO DISCOVERED ===\n\n").append(renderPlainText(discoveredItems, startIndex + todaysItems.size()));
+            sb.append("=== ALSO DISCOVERED ===\n\n").append(renderPlainText(discoveredItems));
         }
         return sb.toString();
     }
 
     private String buildArticleMeta(NewsArticle article) {
         StringBuilder meta = new StringBuilder();
+        if (article.sourceName() != null && !article.sourceName().isBlank()) {
+            meta.append(article.sourceName());
+        }
         if (article.author() != null && !article.author().isBlank()) {
+            if (meta.length() > 0) meta.append(" · ");
             meta.append(article.author());
         }
         if (article.publishedAt() != null) {
@@ -502,12 +463,12 @@ public class DigestNewsletterRenderer {
                    .trim();
     }
 
-    private String renderPlainText(List<NewsArticle> articles, int startIndex) {
+    private String renderPlainText(List<NewsArticle> articles) {
         StringBuilder sb = new StringBuilder();
         int index = 0;
         for (NewsArticle article : articles) {
             index++;
-            sb.append("[").append(startIndex + index).append("] ").append(article.title());
+            sb.append(index).append(". ").append(article.title());
             if (article.url() != null) sb.append("\n   ").append(article.url().toString());
             if (article.bodyText() != null && !article.bodyText().isBlank()) {
                 String cleaned = cleanBodyText(article.bodyText());
@@ -523,22 +484,6 @@ public class DigestNewsletterRenderer {
             }
             sb.append("\n\n");
         }
-        return sb.toString();
-    }
-
-    private String renderPlainTextSources(List<NewsArticle> allArticles) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("=== SOURCES ===\n\n");
-        for (int i = 0; i < allArticles.size(); i++) {
-            NewsArticle article = allArticles.get(i);
-            sb.append("[").append(i + 1).append("] ").append(article.title());
-            if (article.sourceName() != null && !article.sourceName().isBlank()) {
-                sb.append(" — ").append(article.sourceName());
-            }
-            if (article.url() != null) sb.append("\n     ").append(article.url().toString());
-            sb.append("\n");
-        }
-        sb.append("\n");
         return sb.toString();
     }
 

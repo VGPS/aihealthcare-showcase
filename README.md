@@ -55,7 +55,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 17, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 107 domain model records, 119 port interfaces, and 104 controllers across 899 Java classes — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **2,891 automated tests** across 354 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **2,888 automated tests** across 354 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
@@ -324,7 +324,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Security Testing | spring-security-test (@WithMockUser) | — |
 | Web Testing | MockMvc (@WebMvcTest slices) | — |
 | Persistence Testing | @DataJpaTest (H2 in-memory) | — |
-| Coverage | 2,891 tests across 354 test classes | — |
+| Coverage | 2,888 tests across 354 test classes | — |
 
 ### Infrastructure & DevOps
 | Component | Technology | Version |
@@ -695,7 +695,7 @@ aihealthcare:
 
 ## Testing
 
-2,891 tests across 354 test classes — all pass with no live AI or network calls.
+2,888 tests across 354 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
