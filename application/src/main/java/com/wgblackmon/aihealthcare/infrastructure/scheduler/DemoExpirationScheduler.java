@@ -10,6 +10,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.util.List;
@@ -24,7 +25,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-08-07
+ * @updated 2026-09-11
  */
 @Slf4j
 @Component
@@ -33,16 +34,19 @@ public class DemoExpirationScheduler {
     private final AppUserPort appUserPort;
     private final SubscriberPort subscriberPort;
     private final TransactionalEmailPort transactionalEmailPort;
+    private final TransactionTemplate transactionTemplate;
 
     public DemoExpirationScheduler(AppUserPort appUserPort,
                                    SubscriberPort subscriberPort,
-                                   TransactionalEmailPort transactionalEmailPort) {
+                                   TransactionalEmailPort transactionalEmailPort,
+                                   TransactionTemplate transactionTemplate) {
         log.debug("DemoExpirationScheduler() | appUserPort={}, subscriberPort={}, transactionalEmailPort={}",
                   appUserPort.getClass().getSimpleName(), subscriberPort.getClass().getSimpleName(),
                   transactionalEmailPort.getClass().getSimpleName());
         this.appUserPort = appUserPort;
         this.subscriberPort = subscriberPort;
         this.transactionalEmailPort = transactionalEmailPort;
+        this.transactionTemplate = transactionTemplate;
     }
 
     /**
@@ -60,18 +64,20 @@ public class DemoExpirationScheduler {
             int transitioned = 0;
             for (AppUser user : expiredUsers) {
                 try {
-                    AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
-                            user.role(), user.enabled(), SubscriptionTier.FREE_PENDING, user.demoExpiresAt());
-                    appUserPort.save(updated);
+                    transactionTemplate.executeWithoutResult(status -> {
+                        AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
+                                user.role(), user.enabled(), SubscriptionTier.FREE_PENDING, user.demoExpiresAt());
+                        appUserPort.save(updated);
 
-                    Optional<Subscriber> subOpt = subscriberPort.findByEmail(user.email());
-                    if (subOpt.isPresent()) {
-                        Subscriber sub = subOpt.get();
-                        Subscriber updatedSub = new Subscriber(sub.email(), sub.name(), sub.active(),
-                                sub.subscribedAt(), SubscriptionTier.FREE_PENDING,
-                                sub.unsubscribeToken(), sub.stripeCustomerId(), sub.stripeSubscriptionId());
-                        subscriberPort.save(updatedSub);
-                    }
+                        Optional<Subscriber> subOpt = subscriberPort.findByEmail(user.email());
+                        if (subOpt.isPresent()) {
+                            Subscriber sub = subOpt.get();
+                            Subscriber updatedSub = new Subscriber(sub.email(), sub.name(), sub.active(),
+                                    sub.subscribedAt(), SubscriptionTier.FREE_PENDING,
+                                    sub.unsubscribeToken(), sub.stripeCustomerId(), sub.stripeSubscriptionId());
+                            subscriberPort.save(updatedSub);
+                        }
+                    });
 
                     transactionalEmailPort.sendDemoExpiration(user.email(), user.displayName());
                     transitioned++;

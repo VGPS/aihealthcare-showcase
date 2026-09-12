@@ -9,7 +9,6 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.IngestDocumentsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentLibraryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FileParserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.URI;
@@ -36,10 +35,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-25
- * @updated 2026-08-25
+ * @updated 2026-09-11
  */
-@Slf4j
 public class DocumentUploadService {
+
+    private static final DomainLogger log = new DomainLogger(DocumentUploadService.class);
 
     private static final String DOCS_BACK_URL = "https://app.bigskylabs.ai/admin/documents";
 

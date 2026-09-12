@@ -9,6 +9,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,7 +37,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-07-31
- * @updated 2026-08-07
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -59,6 +60,7 @@ public class UnsubscribeController {
      * @param model Thymeleaf model.
      * @return the "unsubscribe" view name.
      */
+    @Transactional
     @GetMapping("/unsubscribe")
     public String unsubscribe(@RequestParam(value = "token", required = false) String token,
                               Model model) {

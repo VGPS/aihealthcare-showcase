@@ -3,7 +3,6 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.Company;
 import com.wgblackmon.aihealthcare.domain.model.CompanyDiscoveryResult;
 import com.wgblackmon.aihealthcare.domain.model.CompanyTags;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DiscoverCompaniesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
@@ -17,10 +16,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -53,9 +52,11 @@ class CompanyDiscoveryControllerTest {
     @MockBean
     private SubscriberPort subscriberPort;
 
+    @MockBean
+    private TierResolver tierResolver;
+
     private void stubSubscriberTier(String email) {
-        Subscriber subscriber = new Subscriber(email, "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
-        when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(subscriber));
+        when(tierResolver.resolveTier(email)).thenReturn(SubscriptionTier.SUBSCRIBER);
     }
 
     // -------------------------------------------------------------------------
@@ -64,6 +65,8 @@ class CompanyDiscoveryControllerTest {
 
     @Test
     void discover_noHeader_returns403() throws Exception {
+        when(tierResolver.resolveTier(isNull(String.class))).thenReturn(SubscriptionTier.FREE);
+
         mockMvc.perform(post("/api/v1/companies/discover"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error").value("Company discovery is a Subscriber-only feature"))
@@ -72,8 +75,7 @@ class CompanyDiscoveryControllerTest {
 
     @Test
     void discover_freeSubscriber_returns403() throws Exception {
-        Subscriber free = new Subscriber("free@example.com", "Free User", true, Instant.now(), SubscriptionTier.FREE, null, null, null);
-        when(subscriberPort.findByEmail("free@example.com")).thenReturn(Optional.of(free));
+        when(tierResolver.resolveTier("free@example.com")).thenReturn(SubscriptionTier.FREE);
 
         mockMvc.perform(post("/api/v1/companies/discover")
                         .header("X-Subscriber-Email", "free@example.com"))
@@ -84,7 +86,7 @@ class CompanyDiscoveryControllerTest {
 
     @Test
     void discover_unknownEmail_returns403() throws Exception {
-        when(subscriberPort.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
+        when(tierResolver.resolveTier("unknown@example.com")).thenReturn(SubscriptionTier.FREE);
 
         mockMvc.perform(post("/api/v1/companies/discover")
                         .header("X-Subscriber-Email", "unknown@example.com"))

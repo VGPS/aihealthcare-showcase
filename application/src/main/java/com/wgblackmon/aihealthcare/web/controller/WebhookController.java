@@ -1,12 +1,10 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.WebhookChannel;
 import com.wgblackmon.aihealthcare.domain.model.WebhookChannelType;
 import com.wgblackmon.aihealthcare.domain.model.WebhookEventType;
 import com.wgblackmon.aihealthcare.domain.model.WebhookPayload;
-import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WebhookChannelPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WebhookNotificationPort;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +16,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.InetAddress;
+import java.net.URI;
 import java.security.Principal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-09-06
+ * @updated 2026-09-11
  */
 @Slf4j
 @RestController
@@ -50,18 +49,18 @@ public class WebhookController {
 
     private final WebhookChannelPort webhookChannelPort;
     private final WebhookNotificationPort webhookNotificationPort;
-    private final SubscriberPort subscriberPort;
+    private final TierResolver tierResolver;
 
     public WebhookController(WebhookChannelPort webhookChannelPort,
                               WebhookNotificationPort webhookNotificationPort,
-                              SubscriberPort subscriberPort) {
-        log.debug("WebhookController() | webhookChannelPort={}, webhookNotificationPort={}, subscriberPort={}",
+                              TierResolver tierResolver) {
+        log.debug("WebhookController() | webhookChannelPort={}, webhookNotificationPort={}, tierResolver={}",
                   webhookChannelPort.getClass().getSimpleName(),
                   webhookNotificationPort.getClass().getSimpleName(),
-                  subscriberPort.getClass().getSimpleName());
+                  tierResolver.getClass().getSimpleName());
         this.webhookChannelPort = webhookChannelPort;
         this.webhookNotificationPort = webhookNotificationPort;
-        this.subscriberPort = subscriberPort;
+        this.tierResolver = tierResolver;
     }
 
     @PostMapping
@@ -74,8 +73,8 @@ public class WebhookController {
         }
 
         String email = principal.getName();
-        SubscriptionTier tier = resolveTier(principal);
-        if (tier != SubscriptionTier.SUBSCRIBER && tier != SubscriptionTier.ENTERPRISE && !isAdmin(principal)) {
+        SubscriptionTier tier = tierResolver.resolveTier(principal);
+        if (tier != SubscriptionTier.SUBSCRIBER && tier != SubscriptionTier.ENTERPRISE && !tierResolver.isAdmin(principal)) {
             log.debug("createChannel() | return=403 (tier={})", tier);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "Webhook channels require SUBSCRIBER or ENTERPRISE tier"));
@@ -88,6 +87,12 @@ public class WebhookController {
         if (name == null || name.isBlank() || webhookUrl == null || webhookUrl.isBlank()) {
             log.debug("createChannel() | return=400 (missing fields)");
             return ResponseEntity.badRequest().body(Map.of("error", "name and webhookUrl are required"));
+        }
+
+        String urlRejection = validateWebhookUrl(webhookUrl);
+        if (urlRejection != null) {
+            log.warn("createChannel() | return=400 ({})", urlRejection);
+            return ResponseEntity.badRequest().body(Map.of("error", urlRejection));
         }
 
         WebhookChannelType channelType;
@@ -175,7 +180,7 @@ public class WebhookController {
         }
 
         WebhookChannel channel = found.get();
-        if (!channel.ownerEmail().equals(principal.getName()) && !isAdmin(principal)) {
+        if (!channel.ownerEmail().equals(principal.getName()) && !tierResolver.isAdmin(principal)) {
             log.debug("deleteChannel() | return=403 (ownership mismatch)");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -201,7 +206,7 @@ public class WebhookController {
         }
 
         WebhookChannel channel = found.get();
-        if (!channel.ownerEmail().equals(principal.getName()) && !isAdmin(principal)) {
+        if (!channel.ownerEmail().equals(principal.getName()) && !tierResolver.isAdmin(principal)) {
             log.debug("testChannel() | return=403");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -225,21 +230,31 @@ public class WebhookController {
         }
     }
 
-    private SubscriptionTier resolveTier(Principal principal) {
-        log.debug("resolveTier() | principal={}", principal != null ? principal.getName() : "null");
-        if (principal == null) return SubscriptionTier.FREE;
-        if (isAdmin(principal)) return SubscriptionTier.SUBSCRIBER;
-        SubscriptionTier tier = subscriberPort.findByEmail(principal.getName())
-                .map(Subscriber::tier).orElse(SubscriptionTier.FREE);
-        log.debug("resolveTier() | return={}", tier);
-        return tier;
+    String validateWebhookUrl(String url) {
+        log.debug("validateWebhookUrl() | url={}", url);
+        try {
+            URI uri = URI.create(url);
+            String scheme = uri.getScheme();
+            if (scheme == null || !scheme.equals("https")) {
+                return "Webhook URL must use HTTPS";
+            }
+            String host = uri.getHost();
+            if (host == null || host.isBlank()) {
+                return "Webhook URL has no host";
+            }
+            InetAddress[] addresses = InetAddress.getAllByName(host);
+            for (InetAddress addr : addresses) {
+                if (addr.isLoopbackAddress() || addr.isSiteLocalAddress()
+                        || addr.isLinkLocalAddress() || addr.isAnyLocalAddress()
+                        || addr.isMulticastAddress()) {
+                    return "Webhook URL must not resolve to a private or loopback address";
+                }
+            }
+        } catch (Exception e) {
+            return "Invalid webhook URL: " + e.getMessage();
+        }
+        log.debug("validateWebhookUrl() | return=null (valid)");
+        return null;
     }
 
-    private boolean isAdmin(Principal principal) {
-        if (principal instanceof Authentication auth) {
-            return auth.getAuthorities().stream()
-                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
-        }
-        return false;
-    }
 }

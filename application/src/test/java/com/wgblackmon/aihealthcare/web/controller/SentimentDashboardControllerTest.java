@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -49,6 +50,9 @@ class SentimentDashboardControllerTest {
 
     @MockitoBean
     private AnalystNotePort analystNotePort;
+
+    @MockitoBean
+    private TierResolver tierResolver;
 
     @Test
     @WithMockUser
@@ -88,6 +92,7 @@ class SentimentDashboardControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void riskDashboard_adminSeesAllCompanies() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         List<CompanySentiment> many = buildManySentiments(8);
         when(sentimentUseCase.getAll()).thenReturn(many);
 
@@ -105,6 +110,7 @@ class SentimentDashboardControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void companyDetail_rendersForValidSlug() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         when(sentimentUseCase.getBySlug("tempus-ai")).thenReturn(
                 Optional.of(buildSentiment("tempus-ai", "Tempus AI", SentimentLabel.POSITIVE, 0.5)));
 
@@ -123,6 +129,7 @@ class SentimentDashboardControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void companyDetail_returns404ForMissingSlug() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         when(sentimentUseCase.getBySlug("nonexistent")).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/dashboard/risk/nonexistent"))

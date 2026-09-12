@@ -1,9 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
-import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,8 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +22,6 @@ import org.springframework.web.client.RestClient;
 import java.net.URI;
 import java.security.Principal;
 import java.time.YearMonth;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -46,7 +41,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 3.0
  * @since   2026-08-08
- * @updated 2026-09-06
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -72,20 +67,20 @@ public class IntelligenceConsoleController {
     private final RestClient restClient;
     private final String baseUrl;
     private final String apiKey;
-    private final SubscriberPort subscriberPort;
+    private final TierResolver tierResolver;
     private final TierGatingService tierGatingService;
     private final UsageTrackingPort usageTrackingPort;
 
     public IntelligenceConsoleController(
             @Value("${claude.intelligence.base-url:http://localhost:8081}") String baseUrl,
             @Value("${intelligence.api-key:}") String apiKey,
-            SubscriberPort subscriberPort,
+            TierResolver tierResolver,
             TierGatingService tierGatingService,
             UsageTrackingPort usageTrackingPort) {
         log.debug("IntelligenceConsoleController() | baseUrl={}", baseUrl);
         this.baseUrl = baseUrl;
         this.apiKey = apiKey;
-        this.subscriberPort = subscriberPort;
+        this.tierResolver = tierResolver;
         this.tierGatingService = tierGatingService;
         this.usageTrackingPort = usageTrackingPort;
         RestClient.Builder builder = RestClient.builder().baseUrl(baseUrl);
@@ -104,8 +99,8 @@ public class IntelligenceConsoleController {
     @GetMapping
     public String console(Model model, Principal principal) {
         log.debug("console() | principal={}", principal != null ? principal.getName() : "anonymous");
-        SubscriptionTier tier = resolveTier(principal);
-        boolean isEnterprise = isEnterpriseTier(tier) || isAdmin(principal);
+        SubscriptionTier tier = tierResolver.resolveTier(principal);
+        boolean isEnterprise = isEnterpriseTier(tier) || tierResolver.isAdmin(principal);
         boolean isSubscriber = isSubscriberOrAbove(tier);
         model.addAttribute("baseUrl", baseUrl);
         model.addAttribute("activeTab", "chat");
@@ -130,10 +125,10 @@ public class IntelligenceConsoleController {
         String forwardPath = request.getRequestURI().substring("/admin/intelligence".length());
         log.debug("proxyPost() | path={}", forwardPath);
 
-        boolean admin = isAdmin(principal);
+        boolean admin = tierResolver.isAdmin(principal);
 
         if (!admin && requiresEnterprise(forwardPath)) {
-            SubscriptionTier tier = resolveTier(principal);
+            SubscriptionTier tier = tierResolver.resolveTier(principal);
             if (!isEnterpriseTier(tier)) {
                 log.warn("proxyPost() | enterprise path blocked for tier={}, path={}", tier, forwardPath);
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -179,10 +174,10 @@ public class IntelligenceConsoleController {
         String fullPath = queryString != null ? forwardPath + "?" + queryString : forwardPath;
         log.debug("proxyGet() | path={}", fullPath);
 
-        boolean admin = isAdmin(principal);
+        boolean admin = tierResolver.isAdmin(principal);
 
         if (!admin && requiresEnterprise(forwardPath)) {
-            SubscriptionTier tier = resolveTier(principal);
+            SubscriptionTier tier = tierResolver.resolveTier(principal);
             if (!isEnterpriseTier(tier)) {
                 log.warn("proxyGet() | enterprise path blocked for tier={}, path={}", tier, forwardPath);
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -260,24 +255,6 @@ public class IntelligenceConsoleController {
 
     private boolean isSubscriberOrAbove(SubscriptionTier tier) {
         return isEnterpriseTier(tier) || tier == SubscriptionTier.SUBSCRIBER;
-    }
-
-    private boolean isAdmin(Principal principal) {
-        if (principal instanceof Authentication auth) {
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private SubscriptionTier resolveTier(Principal principal) {
-        if (principal == null) return SubscriptionTier.FREE;
-        if (isAdmin(principal)) return SubscriptionTier.SUBSCRIBER;
-        return subscriberPort.findByEmail(principal.getName())
-                .map(Subscriber::tier).orElse(SubscriptionTier.FREE);
     }
 
     private String escapeJson(String value) {

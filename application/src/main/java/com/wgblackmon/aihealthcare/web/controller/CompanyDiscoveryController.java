@@ -3,10 +3,8 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.Company;
 import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.CompanyDiscoveryResult;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DiscoverCompaniesUseCase;
-import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.web.dto.CompanyDiscoveryResponse;
 import com.wgblackmon.aihealthcare.web.dto.CompanyResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +19,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * REST controller for triggering the AI-healthcare startup company
@@ -38,7 +35,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-07
- * @updated 2026-08-07
+ * @updated 2026-09-11
  */
 @Slf4j
 @RestController
@@ -46,15 +43,15 @@ import java.util.Optional;
 public class CompanyDiscoveryController {
 
     private final DiscoverCompaniesUseCase discoverCompaniesUseCase;
-    private final SubscriberPort subscriberPort;
+    private final TierResolver tierResolver;
 
     public CompanyDiscoveryController(DiscoverCompaniesUseCase discoverCompaniesUseCase,
-                                      SubscriberPort subscriberPort) {
+                                      TierResolver tierResolver) {
         this.discoverCompaniesUseCase = discoverCompaniesUseCase;
-        this.subscriberPort = subscriberPort;
-        log.debug("CompanyDiscoveryController() | discoverCompaniesUseCase={}, subscriberPort={}",
+        this.tierResolver = tierResolver;
+        log.debug("CompanyDiscoveryController() | discoverCompaniesUseCase={}, tierResolver={}",
                 discoverCompaniesUseCase.getClass().getSimpleName(),
-                subscriberPort.getClass().getSimpleName());
+                tierResolver.getClass().getSimpleName());
         log.debug("CompanyDiscoveryController() | return=void");
     }
 
@@ -73,7 +70,7 @@ public class CompanyDiscoveryController {
         log.debug("discover() | subscriberEmail={}", subscriberEmail);
 
         // Tier gating — SUBSCRIBER only
-        SubscriptionTier tier = resolveTier(subscriberEmail);
+        SubscriptionTier tier = tierResolver.resolveTier(subscriberEmail);
         if (tier != SubscriptionTier.SUBSCRIBER) {
             log.warn("discover() | access denied — tier={} for email={}", tier, LogSanitizer.maskEmail(subscriberEmail));
             Map<String, Object> body = new LinkedHashMap<>();
@@ -115,15 +112,4 @@ public class CompanyDiscoveryController {
         return ResponseEntity.ok(response);
     }
 
-    private SubscriptionTier resolveTier(String email) {
-        log.debug("resolveTier() | email={}", email);
-        if (email == null || email.isBlank()) {
-            log.debug("resolveTier() | return={}", SubscriptionTier.FREE);
-            return SubscriptionTier.FREE;
-        }
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(email);
-        SubscriptionTier result = subscriber.map(Subscriber::tier).orElse(SubscriptionTier.FREE);
-        log.debug("resolveTier() | return={}", result);
-        return result;
-    }
 }

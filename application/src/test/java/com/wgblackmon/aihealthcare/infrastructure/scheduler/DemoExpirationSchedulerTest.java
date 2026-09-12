@@ -9,6 +9,9 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -43,7 +46,10 @@ class DemoExpirationSchedulerTest {
         appUserPort = mock(AppUserPort.class);
         subscriberPort = mock(SubscriberPort.class);
         transactionalEmailPort = mock(TransactionalEmailPort.class);
-        scheduler = new DemoExpirationScheduler(appUserPort, subscriberPort, transactionalEmailPort);
+        PlatformTransactionManager txManager = mock(PlatformTransactionManager.class);
+        when(txManager.getTransaction(any())).thenReturn(mock(TransactionStatus.class));
+        TransactionTemplate transactionTemplate = new TransactionTemplate(txManager);
+        scheduler = new DemoExpirationScheduler(appUserPort, subscriberPort, transactionalEmailPort, transactionTemplate);
     }
 
     @Test

@@ -8,12 +8,8 @@ import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
-import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.service.TrendDetectionService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,7 +42,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-22
- * @updated 2026-08-01
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -67,18 +63,18 @@ public class TrendController {
 
     private final DetectTrendsUseCase detectTrendsUseCase;
     private final ArticleIngestionPort articleIngestionPort;
-    private final SubscriberPort subscriberPort;
+    private final TierResolver tierResolver;
     private final TrendDetectionService trendDetectionService;
 
     public TrendController(DetectTrendsUseCase detectTrendsUseCase,
                            ArticleIngestionPort articleIngestionPort,
-                           SubscriberPort subscriberPort,
+                           TierResolver tierResolver,
                            TrendDetectionService trendDetectionService) {
-        log.debug("TrendController() | detectTrendsUseCase={}, articleIngestionPort={}, subscriberPort={}, trendDetectionService={}",
-                  detectTrendsUseCase, articleIngestionPort, subscriberPort, trendDetectionService);
+        log.debug("TrendController() | detectTrendsUseCase={}, articleIngestionPort={}, tierResolver={}, trendDetectionService={}",
+                  detectTrendsUseCase, articleIngestionPort, tierResolver, trendDetectionService);
         this.detectTrendsUseCase = detectTrendsUseCase;
         this.articleIngestionPort = articleIngestionPort;
-        this.subscriberPort = subscriberPort;
+        this.tierResolver = tierResolver;
         this.trendDetectionService = trendDetectionService;
     }
 
@@ -100,12 +96,12 @@ public class TrendController {
 
         if (latest.isPresent() && !latest.get().risingTopics().isEmpty()) {
             TrendSnapshot snapshot = latest.get();
-            SubscriptionTier tier = resolveTier(principal);
+            SubscriptionTier tier = tierResolver.resolveTier(principal);
             boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
                     || tier == SubscriptionTier.ENTERPRISE;
 
             List<TrendSignal> rawRising;
-            if (fullAccess || isAdmin(principal)) {
+            if (fullAccess || tierResolver.isAdmin(principal)) {
                 rawRising = snapshot.risingTopics();
             } else {
                 rawRising = limitList(snapshot.risingTopics(), FREE_RISING_LIMIT);
@@ -127,7 +123,7 @@ public class TrendController {
             model.addAttribute("totalKeywords", snapshot.totalKeywords());
             model.addAttribute("generatedAt", DISPLAY_FMT.format(snapshot.generatedAt()));
             model.addAttribute("hasSnapshot", true);
-            model.addAttribute("fullAccess", fullAccess || isAdmin(principal));
+            model.addAttribute("fullAccess", fullAccess || tierResolver.isAdmin(principal));
             model.addAttribute("chartTitle", "Top Rising Topics — Last 30 Days");
 
             // Chart data: top 10 rising keywords + counts for bar chart
@@ -212,7 +208,7 @@ public class TrendController {
             model.addAttribute("risingTopics", risingTopics);
             model.addAttribute("totalKeywords", fallbackSnapshot.totalKeywords());
             model.addAttribute("generatedAt", DISPLAY_FMT.format(now));
-            model.addAttribute("fullAccess", isAdmin(principal));
+            model.addAttribute("fullAccess", tierResolver.isAdmin(principal));
             model.addAttribute("chartLabels", chartLabels);
             model.addAttribute("chartData", chartData);
             model.addAttribute("scoringRubric", SCORING_RUBRIC);
@@ -231,23 +227,6 @@ public class TrendController {
             return signals;
         }
         return new ArrayList<>(signals.subList(0, limit));
-    }
-
-    private SubscriptionTier resolveTier(Principal principal) {
-        log.debug("resolveTier() | principal={}", principal != null ? principal.getName() : "null");
-
-        if (principal == null) {
-            log.debug("resolveTier() | return={}", SubscriptionTier.FREE);
-            return SubscriptionTier.FREE;
-        }
-        if (isAdmin(principal)) {
-            log.debug("resolveTier() | ADMIN role detected, return={}", SubscriptionTier.SUBSCRIBER);
-            return SubscriptionTier.SUBSCRIBER;
-        }
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        SubscriptionTier result = subscriber.map(Subscriber::tier).orElse(SubscriptionTier.FREE);
-        log.debug("resolveTier() | return={}", result);
-        return result;
     }
 
     /**
@@ -388,14 +367,4 @@ public class TrendController {
         return true;
     }
 
-    private boolean isAdmin(Principal principal) {
-        if (principal instanceof Authentication auth) {
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

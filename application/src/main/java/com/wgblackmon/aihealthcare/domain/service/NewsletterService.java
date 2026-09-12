@@ -16,13 +16,12 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,10 +50,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2025-01-27
- * @updated 2026-07-05
+ * @updated 2026-09-11
  */
-@Slf4j
 public class NewsletterService implements IngestArticlesUseCase, GenerateNewsletterUseCase {
+
+    private static final DomainLogger log = new DomainLogger(NewsletterService.class);
 
     private final ArticleIngestionPort         ingestionPort;
     private final AiSummarizationPort          summarizationPort;
@@ -67,8 +67,8 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
 
     // In-memory stores — articles map supports ingest→generate handoff;
     // draftByDraftId supports getDraft() in the same session.
-    private final Map<String, List<NewsArticle>> articlesByRunId = new HashMap<>();
-    private final Map<String, NewsletterDraft>   draftByDraftId  = new HashMap<>();
+    private final Map<String, List<NewsArticle>> articlesByRunId = new ConcurrentHashMap<>();
+    private final Map<String, NewsletterDraft>   draftByDraftId  = new ConcurrentHashMap<>();
 
     private final AtomicInteger sectionCounter = new AtomicInteger(0);
 

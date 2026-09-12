@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.model.DocumentIngestionResult;
 import com.wgblackmon.aihealthcare.domain.model.ResearchMode;
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestDocumentsUseCase;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.transaction.support.TransactionTemplate;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentVectorPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FileParserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalyticsPort;
@@ -303,11 +304,12 @@ public class AppConfig {
     @Bean
     public FilterRegistrationBean<DemoExpirationFilter> demoExpirationFilter(
             AppUserPort appUserPort,
-            SubscriberPort subscriberPort) {
+            SubscriberPort subscriberPort,
+            TransactionTemplate transactionTemplate) {
         log.debug("demoExpirationFilter() | appUserPort={}, subscriberPort={}",
                   appUserPort.getClass().getSimpleName(), subscriberPort.getClass().getSimpleName());
 
-        DemoExpirationFilter filter = new DemoExpirationFilter(appUserPort, subscriberPort);
+        DemoExpirationFilter filter = new DemoExpirationFilter(appUserPort, subscriberPort, transactionTemplate);
         FilterRegistrationBean<DemoExpirationFilter> registration = new FilterRegistrationBean<>(filter);
         registration.setOrder(org.springframework.boot.autoconfigure.security.SecurityProperties.DEFAULT_FILTER_ORDER + 1);
 

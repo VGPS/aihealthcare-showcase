@@ -8,7 +8,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PasswordHashingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PasswordResetPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -29,10 +28,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-17
- * @updated 2026-08-17
+ * @updated 2026-09-11
  */
-@Slf4j
 public class PasswordResetService implements PasswordResetUseCase {
+
+    private static final DomainLogger log = new DomainLogger(PasswordResetService.class);
 
     private static final int TOKEN_TTL_MINUTES = 60;
 

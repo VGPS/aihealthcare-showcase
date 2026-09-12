@@ -1,7 +1,6 @@
 package com.wgblackmon.aihealthcare.domain.service;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Builds a truncated "teaser" version of a full {@link NewsletterRun} for FREE-tier subscribers.
@@ -21,10 +20,11 @@ import lombok.extern.slf4j.Slf4j;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-05-24
- * @updated 2026-08-17
+ * @updated 2026-09-11
  */
-@Slf4j
 public class NewsletterTeaserBuilder {
+
+    private static final DomainLogger log = new DomainLogger(NewsletterTeaserBuilder.class);
 
     private final String ctaHtml;
     private final String ctaPlainText;

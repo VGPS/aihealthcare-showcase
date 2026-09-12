@@ -2,13 +2,9 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.IntelReport;
 import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GenerateIntelReportUseCase;
-import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 /**
  * Thymeleaf controller for competitive intelligence report generation and browsing.
  *
@@ -33,7 +28,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -44,15 +39,15 @@ public class IntelReportController {
                     .withZone(ZoneId.of("America/New_York"));
 
     private final GenerateIntelReportUseCase intelReportUseCase;
-    private final SubscriberPort subscriberPort;
+    private final TierResolver tierResolver;
 
     public IntelReportController(GenerateIntelReportUseCase intelReportUseCase,
-                                 SubscriberPort subscriberPort) {
-        log.debug("IntelReportController() | intelReportUseCase={}, subscriberPort={}",
+                                 TierResolver tierResolver) {
+        log.debug("IntelReportController() | intelReportUseCase={}, tierResolver={}",
                   intelReportUseCase.getClass().getSimpleName(),
-                  subscriberPort.getClass().getSimpleName());
+                  tierResolver.getClass().getSimpleName());
         this.intelReportUseCase = intelReportUseCase;
-        this.subscriberPort = subscriberPort;
+        this.tierResolver = tierResolver;
         log.debug("IntelReportController() | return=void");
     }
 
@@ -63,11 +58,11 @@ public class IntelReportController {
     public String listReports(Principal principal, Model model) {
         log.debug("listReports() | principal={}", principal != null ? principal.getName() : "anonymous");
 
-        SubscriptionTier tier = resolveTier(principal);
+        SubscriptionTier tier = tierResolver.resolveTier(principal);
         boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
                 || tier == SubscriptionTier.DEMO
                 || tier == SubscriptionTier.ENTERPRISE
-                || isAdmin(principal);
+                || tierResolver.isAdmin(principal);
 
         if (fullAccess) {
             List<IntelReport> reports = intelReportUseCase.findAll();
@@ -97,11 +92,11 @@ public class IntelReportController {
         log.debug("viewReport() | reportId={}, principal={}", reportId,
                   principal != null ? principal.getName() : "anonymous");
 
-        SubscriptionTier tier = resolveTier(principal);
+        SubscriptionTier tier = tierResolver.resolveTier(principal);
         boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
                 || tier == SubscriptionTier.DEMO
                 || tier == SubscriptionTier.ENTERPRISE
-                || isAdmin(principal);
+                || tierResolver.isAdmin(principal);
 
         if (!fullAccess) {
             model.addAttribute("fullAccess", false);
@@ -151,11 +146,11 @@ public class IntelReportController {
         log.debug("generateReport() | query={}, principal={}", query,
                   principal != null ? principal.getName() : "anonymous");
 
-        SubscriptionTier tier = resolveTier(principal);
+        SubscriptionTier tier = tierResolver.resolveTier(principal);
         boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
                 || tier == SubscriptionTier.DEMO
                 || tier == SubscriptionTier.ENTERPRISE
-                || isAdmin(principal);
+                || tierResolver.isAdmin(principal);
 
         if (!fullAccess) {
             model.addAttribute("fullAccess", false);
@@ -190,30 +185,4 @@ public class IntelReportController {
         }
     }
 
-    private SubscriptionTier resolveTier(Principal principal) {
-        log.debug("resolveTier() | principal={}", principal != null ? principal.getName() : "null");
-        if (principal == null) {
-            log.debug("resolveTier() | return={}", SubscriptionTier.FREE);
-            return SubscriptionTier.FREE;
-        }
-        if (isAdmin(principal)) {
-            log.debug("resolveTier() | ADMIN role detected, return={}", SubscriptionTier.SUBSCRIBER);
-            return SubscriptionTier.SUBSCRIBER;
-        }
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        SubscriptionTier result = subscriber.map(Subscriber::tier).orElse(SubscriptionTier.FREE);
-        log.debug("resolveTier() | return={}", result);
-        return result;
-    }
-
-    private boolean isAdmin(Principal principal) {
-        if (principal instanceof Authentication auth) {
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

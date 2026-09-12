@@ -1,15 +1,12 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.ApiKey;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
-import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
 import com.wgblackmon.aihealthcare.web.dto.ApiKeyResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +17,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Thymeleaf controller for the Developer Portal page at {@code GET /developer}.
@@ -32,7 +28,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-09-06
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -42,18 +38,18 @@ public class DeveloperPortalController {
 
     private final ApiKeyPort apiKeyPort;
     private final UsageTrackingPort usageTrackingPort;
-    private final SubscriberPort subscriberPort;
+    private final TierResolver tierResolver;
 
     public DeveloperPortalController(ApiKeyPort apiKeyPort,
                                      UsageTrackingPort usageTrackingPort,
-                                     SubscriberPort subscriberPort) {
-        log.debug("DeveloperPortalController() | apiKeyPort={}, usageTrackingPort={}, subscriberPort={}",
+                                     TierResolver tierResolver) {
+        log.debug("DeveloperPortalController() | apiKeyPort={}, usageTrackingPort={}, tierResolver={}",
                   apiKeyPort.getClass().getSimpleName(),
                   usageTrackingPort.getClass().getSimpleName(),
-                  subscriberPort.getClass().getSimpleName());
+                  tierResolver.getClass().getSimpleName());
         this.apiKeyPort = apiKeyPort;
         this.usageTrackingPort = usageTrackingPort;
-        this.subscriberPort = subscriberPort;
+        this.tierResolver = tierResolver;
     }
 
     /**
@@ -79,8 +75,8 @@ public class DeveloperPortalController {
             String email = principal.getName();
             model.addAttribute("email", email);
 
-            SubscriptionTier tier = resolveTier(principal);
-            boolean isAdmin = isAdmin(principal);
+            SubscriptionTier tier = tierResolver.resolveTier(principal);
+            boolean isAdmin = tierResolver.isAdmin(principal);
             model.addAttribute("tier", tier.name());
             model.addAttribute("isAdmin", isAdmin);
 
@@ -124,18 +120,4 @@ public class DeveloperPortalController {
         return "developer";
     }
 
-    private SubscriptionTier resolveTier(Principal principal) {
-        if (principal == null) return SubscriptionTier.FREE;
-        if (isAdmin(principal)) return SubscriptionTier.SUBSCRIBER;
-        return subscriberPort.findByEmail(principal.getName())
-                .map(Subscriber::tier).orElse(SubscriptionTier.FREE);
-    }
-
-    private boolean isAdmin(Principal principal) {
-        if (principal instanceof Authentication auth) {
-            return auth.getAuthorities().stream()
-                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
-        }
-        return false;
-    }
 }

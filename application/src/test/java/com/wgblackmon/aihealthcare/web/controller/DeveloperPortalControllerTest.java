@@ -10,15 +10,18 @@ import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.security.Principal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -50,7 +53,12 @@ class DeveloperPortalControllerTest {
     @MockitoBean
     private SubscriberPort subscriberPort;
 
+    @MockBean
+    private TierResolver tierResolver;
+
     private void stubUser(String email, SubscriptionTier tier) {
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(tier);
+        when(tierResolver.isAdmin(any())).thenReturn(false);
         Subscriber subscriber = new Subscriber(email, "Test User", true, Instant.now(), tier, null, null, null);
         when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(subscriber));
         when(apiKeyPort.findAllByOwnerEmail(email)).thenReturn(List.of());
@@ -107,6 +115,7 @@ class DeveloperPortalControllerTest {
     @WithMockUser(username = "admin@test.com", roles = {"ADMIN"})
     void developer_admin_canCreateUnlimitedKeys() throws Exception {
         stubUser("admin@test.com", SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.isAdmin(any())).thenReturn(true);
 
         mockMvc.perform(get("/developer"))
                 .andExpect(status().isOk())

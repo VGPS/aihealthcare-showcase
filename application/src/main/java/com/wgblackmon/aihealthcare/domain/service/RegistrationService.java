@@ -9,7 +9,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PasswordHashingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TransactionalEmailPort;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -28,10 +27,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-08-07
+ * @updated 2026-09-11
  */
-@Slf4j
 public class RegistrationService implements RegisterUserUseCase {
+
+    private static final DomainLogger log = new DomainLogger(RegistrationService.class);
 
     private static final int DEMO_DURATION_DAYS = 7;
 

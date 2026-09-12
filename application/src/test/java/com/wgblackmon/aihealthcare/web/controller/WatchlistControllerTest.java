@@ -76,6 +76,9 @@ class WatchlistControllerTest {
     @MockitoBean
     private NewsArticleRepository articleRepository;
 
+    @MockitoBean
+    private TierResolver tierResolver;
+
     private void stubSubscriberUser() {
         Subscriber subscriber = new Subscriber("user", "Test User", true, Instant.now(),
                 SubscriptionTier.SUBSCRIBER, null, null, null);
@@ -135,6 +138,7 @@ class WatchlistControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void getWatchlist_adminUser_rendersPage() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         when(watchlistPort.findByUser("user")).thenReturn(List.of());
         when(watchlistMatchPort.findByUser("user", 50)).thenReturn(List.of());
 

@@ -94,6 +94,9 @@ class WikiControllerTest {
     @MockBean
     private SubscriberPort subscriberPort;
 
+    @MockBean
+    private TierResolver tierResolver;
+
     private static final Instant NOW = Instant.parse("2026-07-04T10:00:00Z");
 
     private WikiPage buildTestPage(String slug, String title, WikiPageType type) {
@@ -367,6 +370,7 @@ class WikiControllerTest {
 
     @Test
     void wikiPage_subscriberUser_rendersFullContent() throws Exception {
+        when(tierResolver.resolveTier(any(java.security.Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         WikiPage page = buildTestPage("fda-ai-guidance", "FDA AI Guidance", WikiPageType.ENTITY);
         when(wikiQueryPort.getPage("fda-ai-guidance")).thenReturn(page);
         when(revisionRepository.findByPageSlugOrderByRevisionDesc("fda-ai-guidance"))
@@ -375,9 +379,6 @@ class WikiControllerTest {
                 .thenReturn(List.of());
         when(articleRepository.findByArticleIdIn(List.of("art-001")))
                 .thenReturn(List.of());
-        when(subscriberPort.findByEmail("user"))
-                .thenReturn(Optional.of(new Subscriber("user", "Test User", true,
-                        NOW, SubscriptionTier.SUBSCRIBER, null, null, null)));
 
         mockMvc.perform(get("/wiki/fda-ai-guidance"))
                 .andExpect(status().isOk())
@@ -388,6 +389,8 @@ class WikiControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void wikiPage_adminUser_getsFullAccess() throws Exception {
+        when(tierResolver.resolveTier(any(java.security.Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         WikiPage page = buildTestPage("fda-ai-guidance", "FDA AI Guidance", WikiPageType.ENTITY);
         when(wikiQueryPort.getPage("fda-ai-guidance")).thenReturn(page);
         when(revisionRepository.findByPageSlugOrderByRevisionDesc("fda-ai-guidance"))

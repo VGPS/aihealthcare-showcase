@@ -8,8 +8,6 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AdminNotificationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,10 +28,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-06-02
- * @updated 2026-08-25
+ * @updated 2026-09-11
  */
-@Slf4j
 public class AiSearchService implements ConductAiSearchUseCase {
+
+    private static final DomainLogger log = new DomainLogger(AiSearchService.class);
 
     private final ArticleSearchPort vectorSearch;
     private final List<AiSearchPort> aiSearchPorts;

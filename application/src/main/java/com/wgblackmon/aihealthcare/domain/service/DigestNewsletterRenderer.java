@@ -7,8 +7,6 @@ import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleBodyFormattingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleScoringPort;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -38,8 +36,9 @@ import java.util.Set;
  * @since   2026-07-20
  * @updated 2026-09-11
  */
-@Slf4j
 public class DigestNewsletterRenderer {
+
+    private static final DomainLogger log = new DomainLogger(DigestNewsletterRenderer.class);
 
     private static final DateTimeFormatter DISPLAY_FMT        = DateTimeFormatter.ofPattern("MMMM d, yyyy");
     private static final int               LOOKBACK_DAYS       = 1;

@@ -4,7 +4,6 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterDraft;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,10 +37,11 @@ import java.util.regex.Pattern;
  * @author  Bill Blackmon
  * @version 1.4
  * @since   2026-04-11
- * @updated 2026-08-24
+ * @updated 2026-09-11
  */
-@Slf4j
 public class NewsletterRenderer {
+
+    private static final DomainLogger log = new DomainLogger(NewsletterRenderer.class);
 
     /**
      * Renders the draft as an inline-styled HTML document.

@@ -16,7 +16,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -41,10 +40,11 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-09-06
+ * @updated 2026-09-11
  */
-@Slf4j
 public class DailyBriefingService {
+
+    private static final DomainLogger log = new DomainLogger(DailyBriefingService.class);
 
     private final SubscriberPort subscriberPort;
     private final WatchlistPort watchlistPort;

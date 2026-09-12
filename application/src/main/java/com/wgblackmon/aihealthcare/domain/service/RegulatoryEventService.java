@@ -6,7 +6,6 @@ import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryEventPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RegulatoryHarvestingPort;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +23,11 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-09-11
  */
-@Slf4j
 public class RegulatoryEventService implements MonitorRegulatoryEventsUseCase {
+
+    private static final DomainLogger log = new DomainLogger(RegulatoryEventService.class);
 
     private final RegulatoryEventPort regulatoryEventPort;
     private final RegulatoryHarvestingPort regulatoryHarvestingPort;

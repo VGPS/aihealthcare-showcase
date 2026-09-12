@@ -7,7 +7,6 @@ import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,10 +27,11 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-30
- * @updated 2026-08-23
+ * @updated 2026-09-11
  */
-@Slf4j
 public class LegalBriefSectionBuilder {
+
+    private static final DomainLogger log = new DomainLogger(LegalBriefSectionBuilder.class);
 
     private static final String TOPIC_LEGAL = "AI Healthcare Legal";
     private static final String TOPIC_POLICY = "AI Healthcare Government Policy";

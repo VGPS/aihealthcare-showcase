@@ -11,8 +11,6 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.ManageSubscribersUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterDeliveryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,10 +34,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-04-13
- * @updated 2026-09-06
+ * @updated 2026-09-11
  */
-@Slf4j
 public class DeliveryService implements ManageSubscribersUseCase, DeliverNewsletterUseCase {
+
+    private static final DomainLogger log = new DomainLogger(DeliveryService.class);
 
     private final SubscriberPort             subscriberPort;
     private final NewsletterRunPort          newsletterRunPort;

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -28,7 +29,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-20
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -68,6 +69,7 @@ public class RegistrationController {
      * @param request         HTTP request for session-based auto-login.
      * @return redirect to dashboard on success, or "register" view on error.
      */
+    @Transactional
     @PostMapping("/register")
     public String register(@RequestParam String email,
                            @RequestParam String displayName,

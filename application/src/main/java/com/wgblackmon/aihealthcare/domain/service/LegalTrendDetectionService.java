@@ -12,8 +12,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.LegalTrendSnapshotPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSummaryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendTopicExtractionPort;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -44,10 +42,11 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-30
- * @updated 2026-07-30
+ * @updated 2026-09-11
  */
-@Slf4j
 public class LegalTrendDetectionService implements DetectLegalTrendsUseCase {
+
+    private static final DomainLogger log = new DomainLogger(LegalTrendDetectionService.class);
 
     private static final String TOPIC_LEGAL = "AI Healthcare Legal";
     private static final String TOPIC_POLICY = "AI Healthcare Government Policy";

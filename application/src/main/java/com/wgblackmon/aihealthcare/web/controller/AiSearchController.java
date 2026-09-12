@@ -5,12 +5,10 @@ import com.wgblackmon.aihealthcare.domain.service.LogSanitizer;
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.ModelInfo;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleSearchPort;
-import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.UsageTrackingPort;
 import com.wgblackmon.aihealthcare.domain.service.TierGatingService;
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +17,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -32,7 +27,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Unified Thymeleaf controller for AI-Enhanced Search (Slice 40 merge).
@@ -53,7 +47,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 2.1
  * @since   2026-06-02
- * @updated 2026-09-06
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -68,26 +62,26 @@ public class AiSearchController {
 
     private final ConductAiSearchUseCase aiSearchUseCase;
     private final ArticleSearchPort      articleSearchPort;
-    private final SubscriberPort         subscriberPort;
     private final TierGatingService      tierGatingService;
     private final UsageTrackingPort      usageTrackingPort;
+    private final TierResolver           tierResolver;
 
     public AiSearchController(ConductAiSearchUseCase aiSearchUseCase,
                                ArticleSearchPort articleSearchPort,
-                               SubscriberPort subscriberPort,
                                TierGatingService tierGatingService,
-                               UsageTrackingPort usageTrackingPort) {
-        log.debug("AiSearchController() | aiSearchUseCase={}, articleSearchPort={}, subscriberPort={}, tierGatingService={}, usageTrackingPort={}",
+                               UsageTrackingPort usageTrackingPort,
+                               TierResolver tierResolver) {
+        log.debug("AiSearchController() | aiSearchUseCase={}, articleSearchPort={}, tierGatingService={}, usageTrackingPort={}, tierResolver={}",
                   aiSearchUseCase.getClass().getSimpleName(),
                   articleSearchPort.getClass().getSimpleName(),
-                  subscriberPort.getClass().getSimpleName(),
                   tierGatingService.getClass().getSimpleName(),
-                  usageTrackingPort.getClass().getSimpleName());
+                  usageTrackingPort.getClass().getSimpleName(),
+                  tierResolver.getClass().getSimpleName());
         this.aiSearchUseCase   = aiSearchUseCase;
         this.articleSearchPort = articleSearchPort;
-        this.subscriberPort    = subscriberPort;
         this.tierGatingService = tierGatingService;
         this.usageTrackingPort = usageTrackingPort;
+        this.tierResolver      = tierResolver;
     }
 
     /**
@@ -113,10 +107,10 @@ public class AiSearchController {
         log.debug("search() | q={}, topK={}, models={}, principal={}", q, topK, models,
                   principal != null ? principal.getName() : "anonymous");
 
-        boolean admin = isAdmin(principal);
+        boolean admin = tierResolver.isAdmin(principal);
 
         if (!admin) {
-            SubscriptionTier tier = resolveTier(principal);
+            SubscriptionTier tier = tierResolver.resolveTier(principal);
 
             // FREE tier — show upgrade banner, no search
             if (tier != SubscriptionTier.SUBSCRIBER) {
@@ -201,54 +195,6 @@ public class AiSearchController {
 
         log.debug("search() | return=ai-search");
         return "ai-search";
-    }
-
-    /**
-     * Returns {@code true} if the authenticated user has the {@code ROLE_ADMIN} authority.
-     *
-     * @param principal the Spring Security principal; may be {@code null}
-     * @return whether the user is an admin
-     */
-    private boolean isAdmin(Principal principal) {
-        log.debug("isAdmin() | principal={}", principal != null ? principal.getName() : "null");
-
-        if (principal instanceof Authentication auth) {
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    log.debug("isAdmin() | return=true");
-                    return true;
-                }
-            }
-        }
-
-        log.debug("isAdmin() | return=false");
-        return false;
-    }
-
-    /**
-     * Resolves the subscription tier for the currently authenticated user.
-     *
-     * @param principal the Spring Security principal; may be {@code null}
-     * @return the subscriber's tier, defaulting to FREE
-     */
-    private SubscriptionTier resolveTier(Principal principal) {
-        log.debug("resolveTier() | principal={}", principal != null ? principal.getName() : "null");
-
-        if (principal == null) {
-            log.debug("resolveTier() | return={}", SubscriptionTier.FREE);
-            return SubscriptionTier.FREE;
-        }
-
-        if (isAdmin(principal)) {
-            log.debug("resolveTier() | return={} (admin bypass)", SubscriptionTier.SUBSCRIBER);
-            return SubscriptionTier.SUBSCRIBER;
-        }
-
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        SubscriptionTier result = subscriber.map(Subscriber::tier).orElse(SubscriptionTier.FREE);
-
-        log.debug("resolveTier() | return={}", result);
-        return result;
     }
 
     /**

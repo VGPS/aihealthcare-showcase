@@ -38,7 +38,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-09-11
  */
 @Slf4j
 @Component
@@ -111,6 +111,9 @@ public class PubMedBackfillHarvester {
             log.debug("searchPmids() | requesting URL={}", url);
 
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             DocumentBuilder builder = factory.newDocumentBuilder();
             try (InputStream is = new URL(url).openStream()) {
                 Document doc = builder.parse(is);
@@ -153,6 +156,9 @@ public class PubMedBackfillHarvester {
                         + "&rettype=abstract";
 
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 try (InputStream is = new URL(url).openStream()) {
                     Document doc = builder.parse(is);

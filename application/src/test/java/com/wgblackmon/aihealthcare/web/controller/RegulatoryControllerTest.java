@@ -3,11 +3,14 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryBody;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import java.security.Principal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -15,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -41,6 +45,9 @@ class RegulatoryControllerTest {
 
     @MockitoBean
     private SubscriberPort subscriberPort;
+
+    @MockBean
+    private TierResolver tierResolver;
 
     @Test
     @WithMockUser
@@ -93,6 +100,8 @@ class RegulatoryControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void regulatoryPage_adminGetsFullAccess() throws Exception {
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         when(regulatoryUseCase.getRecentEvents(50)).thenReturn(List.of());
 
         mockMvc.perform(get("/dashboard/regulatory"))

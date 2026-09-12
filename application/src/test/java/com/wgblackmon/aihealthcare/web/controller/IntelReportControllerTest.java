@@ -1,22 +1,24 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.IntelReport;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GenerateIntelReportUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.security.Principal;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -49,11 +51,14 @@ class IntelReportControllerTest {
     @MockitoBean
     private SubscriberPort subscriberPort;
 
+    @MockBean
+    private TierResolver tierResolver;
+
     @Test
     @WithMockUser(username = "free@test.com")
     void listReports_freeUser_showsUpgradePrompt() throws Exception {
-        when(subscriberPort.findByEmail("free@test.com"))
-                .thenReturn(Optional.of(new Subscriber("free@test.com", "Free User", true, Instant.now(), SubscriptionTier.FREE, null, null, null)));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.FREE);
+        when(tierResolver.isAdmin(any())).thenReturn(false);
 
         mockMvc.perform(get("/research/intel"))
                 .andExpect(status().isOk())
@@ -66,8 +71,8 @@ class IntelReportControllerTest {
     @Test
     @WithMockUser(username = "sub@test.com")
     void listReports_subscriber_showsReports() throws Exception {
-        when(subscriberPort.findByEmail("sub@test.com"))
-                .thenReturn(Optional.of(new Subscriber("sub@test.com", "Sub User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null)));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.isAdmin(any())).thenReturn(false);
         when(intelReportUseCase.findAll()).thenReturn(List.of(
                 report("rpt-1", "Anthropic"),
                 report("rpt-2", "Tempus")));
@@ -82,8 +87,8 @@ class IntelReportControllerTest {
     @Test
     @WithMockUser(username = "sub@test.com")
     void viewReport_existingReport_rendersDetailPage() throws Exception {
-        when(subscriberPort.findByEmail("sub@test.com"))
-                .thenReturn(Optional.of(new Subscriber("sub@test.com", "Sub User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null)));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.isAdmin(any())).thenReturn(false);
         when(intelReportUseCase.findById("rpt-1")).thenReturn(Optional.of(report("rpt-1", "Anthropic")));
 
         mockMvc.perform(get("/research/intel/rpt-1"))
@@ -95,8 +100,8 @@ class IntelReportControllerTest {
     @Test
     @WithMockUser(username = "sub@test.com")
     void viewReport_notFound_returnsListWithError() throws Exception {
-        when(subscriberPort.findByEmail("sub@test.com"))
-                .thenReturn(Optional.of(new Subscriber("sub@test.com", "Sub User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null)));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.isAdmin(any())).thenReturn(false);
         when(intelReportUseCase.findById("missing")).thenReturn(Optional.empty());
         when(intelReportUseCase.findAll()).thenReturn(Collections.emptyList());
 
@@ -109,8 +114,8 @@ class IntelReportControllerTest {
     @Test
     @WithMockUser(username = "sub@test.com")
     void generateReport_subscriber_redirectsToDetail() throws Exception {
-        when(subscriberPort.findByEmail("sub@test.com"))
-                .thenReturn(Optional.of(new Subscriber("sub@test.com", "Sub User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null)));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.isAdmin(any())).thenReturn(false);
         when(intelReportUseCase.generate("Anthropic healthcare", "sub@test.com"))
                 .thenReturn(report("rpt-new", "Anthropic healthcare"));
 
@@ -124,8 +129,8 @@ class IntelReportControllerTest {
     @Test
     @WithMockUser(username = "free@test.com")
     void generateReport_freeUser_deniesAccess() throws Exception {
-        when(subscriberPort.findByEmail("free@test.com"))
-                .thenReturn(Optional.of(new Subscriber("free@test.com", "Free User", true, Instant.now(), SubscriptionTier.FREE, null, null, null)));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.FREE);
+        when(tierResolver.isAdmin(any())).thenReturn(false);
 
         mockMvc.perform(post("/research/intel/generate")
                         .param("query", "Anthropic healthcare")
@@ -140,8 +145,8 @@ class IntelReportControllerTest {
     @Test
     @WithMockUser(username = "sub@test.com")
     void generateReport_aiFailure_showsErrorOnListPage() throws Exception {
-        when(subscriberPort.findByEmail("sub@test.com"))
-                .thenReturn(Optional.of(new Subscriber("sub@test.com", "Sub User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null)));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.isAdmin(any())).thenReturn(false);
         when(intelReportUseCase.generate("bad query", "sub@test.com"))
                 .thenThrow(new RuntimeException("AI service unavailable"));
         when(intelReportUseCase.findAll()).thenReturn(Collections.emptyList());

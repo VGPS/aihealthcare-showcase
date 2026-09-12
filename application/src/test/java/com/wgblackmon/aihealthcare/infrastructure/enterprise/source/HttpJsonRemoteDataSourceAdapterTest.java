@@ -56,7 +56,7 @@ class HttpJsonRemoteDataSourceAdapterTest {
     void describeReturnsValidFeed() {
         DataFeed feed = adapter.describe();
         assertThat(feed.feedId()).isEqualTo("customer-remote");
-        assertThat(feed.active()).isTrue();
+        assertThat(feed.active()).isFalse();
         assertThat(feed.parameters()).hasSize(2);
     }
 

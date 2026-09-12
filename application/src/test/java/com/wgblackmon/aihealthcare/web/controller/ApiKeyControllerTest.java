@@ -1,7 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.ApiKey;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
@@ -10,12 +9,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.security.Principal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -53,11 +54,13 @@ class ApiKeyControllerTest {
     @MockitoBean
     private SubscriberPort subscriberPort;
 
+    @MockBean
+    private TierResolver tierResolver;
+
     private static final Instant NOW = Instant.parse("2026-08-04T12:00:00Z");
 
     private void stubUser(String email, SubscriptionTier tier) {
-        Subscriber subscriber = new Subscriber(email, "Test User", true, NOW, tier, null, null, null);
-        when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(subscriber));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(tier);
     }
 
     @Test
@@ -164,6 +167,7 @@ class ApiKeyControllerTest {
     @DisplayName("DELETE /api/v1/keys/{id} by ADMIN bypasses ownership")
     @WithMockUser(username = "admin@test.com", roles = {"ADMIN"})
     void deleteKey_byAdmin_returns204() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         ApiKey key = new ApiKey("k1", "user@test.com", "Key One", "aih_1234",
                                "hash123", true, NOW);
         when(apiKeyPort.findById("k1")).thenReturn(Optional.of(key));

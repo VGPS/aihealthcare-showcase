@@ -4,7 +4,6 @@ import com.wgblackmon.aihealthcare.domain.model.Contradiction;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
 import com.wgblackmon.aihealthcare.domain.model.SourceRef;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -28,10 +27,11 @@ import java.util.regex.Pattern;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-05
- * @updated 2026-08-24
+ * @updated 2026-09-11
  */
-@Slf4j
 public class ReversalWatchSectionBuilder {
+
+    private static final DomainLogger log = new DomainLogger(ReversalWatchSectionBuilder.class);
 
     /**
      * Matches "Article [N]", "Article N", "Articles N, M and P" — compilation-session

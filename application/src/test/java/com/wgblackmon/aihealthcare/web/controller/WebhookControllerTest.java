@@ -62,6 +62,9 @@ class WebhookControllerTest {
     @MockitoBean
     private ApiKeyPort apiKeyPort;
 
+    @MockitoBean
+    private TierResolver tierResolver;
+
     private static final Instant NOW = Instant.parse("2026-08-04T12:00:00Z");
 
     private void stubUser(String email, SubscriptionTier tier) {
@@ -80,7 +83,7 @@ class WebhookControllerTest {
     @DisplayName("POST /api/v1/webhooks creates channel for SUBSCRIBER")
     @WithMockUser(username = "sub@test.com")
     void createChannel_subscriber_returns201() throws Exception {
-        stubUser("sub@test.com", SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.resolveTier(any(java.security.Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
 
         mockMvc.perform(post("/api/v1/webhooks")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -96,7 +99,7 @@ class WebhookControllerTest {
     @DisplayName("POST /api/v1/webhooks denied for FREE tier")
     @WithMockUser(username = "free@test.com")
     void createChannel_freeTier_returns403() throws Exception {
-        stubUser("free@test.com", SubscriptionTier.FREE);
+        when(tierResolver.resolveTier(any(java.security.Principal.class))).thenReturn(SubscriptionTier.FREE);
 
         mockMvc.perform(post("/api/v1/webhooks")
                         .contentType(MediaType.APPLICATION_JSON)

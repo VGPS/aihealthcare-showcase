@@ -9,8 +9,6 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiGapItemReposit
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiGapRunEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiGapRunRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,10 +25,11 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-11
- * @updated 2026-08-11
+ * @updated 2026-09-11
  */
-@Slf4j
 public class WikiGapAnalysisService {
+
+    private static final DomainLogger log = new DomainLogger(WikiGapAnalysisService.class);
 
     private final WikiGapAnalysisPort gapAnalysisPort;
     private final WikiGapRunRepository runRepository;

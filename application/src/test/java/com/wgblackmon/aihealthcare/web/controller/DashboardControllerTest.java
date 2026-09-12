@@ -31,12 +31,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
+import java.security.Principal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -87,6 +89,7 @@ class DashboardControllerTest {
     @MockitoBean private DetectTrendsUseCase detectTrendsUseCase;
     @MockitoBean private MonitorRegulatoryEventsUseCase regulatoryUseCase;
     @MockitoBean private TrendDetectionService trendDetectionService;
+    @MockBean private TierResolver tierResolver;
 
     // -------------------------------------------------------------------------
     // Fixtures
@@ -101,6 +104,10 @@ class DashboardControllerTest {
 
     @BeforeEach
     void stubDefaults() {
+        // TierResolver defaults — FREE tier, not admin
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.FREE);
+        when(tierResolver.isAdmin(any())).thenReturn(false);
+
         // Dashboard defaults
         when(watchlistPort.findByUser(anyString())).thenReturn(List.of());
         when(watchlistMatchPort.findByUser(anyString(), anyInt())).thenReturn(List.of());
@@ -267,7 +274,6 @@ class DashboardControllerTest {
     // -------------------------------------------------------------------------
 
     private void stubFreeTierGating() {
-        when(subscriberPort.findByEmail(any())).thenReturn(Optional.empty());
         when(tierGatingService.archiveDaysFor(any())).thenReturn(7);
     }
 
@@ -460,8 +466,7 @@ class DashboardControllerTest {
 
     @Test
     void news_subscriberTier_noArchiveBanner() throws Exception {
-        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
-        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(tierGatingService.archiveDaysFor(SubscriptionTier.SUBSCRIBER)).thenReturn(0);
         when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
         when(articleIngestionPort.fetchNewsHeadlines(eq("General AI Healthcare News"), eq(0)))
@@ -477,8 +482,7 @@ class DashboardControllerTest {
 
     @Test
     void news_subscriberTier_usesUnlimitedArchive() throws Exception {
-        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
-        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(tierGatingService.archiveDaysFor(SubscriptionTier.SUBSCRIBER)).thenReturn(0);
         NewsArticle article = sampleArticle("Old Article", Instant.parse("2025-01-01T10:00:00Z"));
         when(newsTopicProperties.getTopics()).thenReturn(List.of("General AI Healthcare News"));
@@ -508,8 +512,7 @@ class DashboardControllerTest {
 
     @Test
     void articles_companiesTopic_subscriberUser_showsArticles() throws Exception {
-        Subscriber subscriber = new Subscriber("user", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
-        when(subscriberPort.findByEmail("user")).thenReturn(Optional.of(subscriber));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(articleIngestionPort.fetchAllByTopic(eq("New AI Healthcare Companies")))
                 .thenReturn(List.of());
 
@@ -523,6 +526,7 @@ class DashboardControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void articles_companiesTopic_adminUser_bypassesGating() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         when(articleIngestionPort.fetchAllByTopic(eq("New AI Healthcare Companies")))
                 .thenReturn(List.of());
 
