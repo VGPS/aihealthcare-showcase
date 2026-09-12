@@ -202,11 +202,30 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Cron Expression</label>
-                        <input type="text" x-model="form.cronExpression" required
-                               placeholder="0 0 7 * * MON-FRI"
-                               @input.debounce.500ms="previewCron()"
-                               class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border font-mono"/>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Schedule</label>
+                        <select x-model="cronPreset"
+                                @change="if (cronPreset !== 'custom') { form.cronExpression = cronPreset; previewCron(); }"
+                                class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border">
+                            <option value="" disabled>Select a schedule…</option>
+                            <option value="0 0 7 * * *">Daily at 7:00 AM</option>
+                            <option value="0 0 8 * * *">Daily at 8:00 AM</option>
+                            <option value="0 0 12 * * *">Daily at 12:00 PM</option>
+                            <option value="0 0 17 * * *">Daily at 5:00 PM</option>
+                            <option value="0 0 7 * * MON-FRI">Weekdays at 7:00 AM</option>
+                            <option value="0 0 8 * * MON-FRI">Weekdays at 8:00 AM</option>
+                            <option value="0 0 7 * * MON">Weekly — Monday 7:00 AM</option>
+                            <option value="0 0 7 * * FRI">Weekly — Friday 7:00 AM</option>
+                            <option value="0 0 7 1 * *">Monthly — 1st at 7:00 AM</option>
+                            <option value="0 0 7 15 * *">Monthly — 15th at 7:00 AM</option>
+                            <option value="custom">Advanced (custom cron)…</option>
+                        </select>
+                        <div x-show="cronPreset === 'custom'" x-cloak class="mt-2">
+                            <input type="text" x-model="form.cronExpression"
+                                   placeholder="0 0 7 * * MON-FRI"
+                                   @input.debounce.500ms="previewCron()"
+                                   class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-primary-500 focus:ring-primary-500 px-3 py-2 border font-mono"/>
+                            <p class="text-xs text-gray-400 mt-1">Spring 6-field cron: sec min hour day month weekday</p>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Time Zone</label>
@@ -282,6 +301,7 @@
             return {
                 editing: false,
                 editingId: null,
+                cronPreset: '',
                 form: { label: '', feedId: '', format: 'CSV', cronExpression: '', zoneId: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Chicago', recipients: [] },
                 recipientInput: '',
                 cronPreview: [],
@@ -347,6 +367,7 @@
                 resetForm() {
                     this.editing = false;
                     this.editingId = null;
+                    this.cronPreset = '';
                     this.form = { label: '', feedId: '', format: 'CSV', cronExpression: '', zoneId: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Chicago', recipients: [] };
                     this.cronPreview = [];
                     this.cronError = '';
