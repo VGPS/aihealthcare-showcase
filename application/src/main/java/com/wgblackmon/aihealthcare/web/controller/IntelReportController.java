@@ -28,14 +28,14 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class IntelReportController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm")
+            DisplayFormats.TIMESTAMP_24H
                     .withZone(ZoneId.of("America/New_York"));
 
     private final GenerateIntelReportUseCase intelReportUseCase;
@@ -58,11 +58,8 @@ public class IntelReportController {
     public String listReports(Principal principal, Model model) {
         log.debug("listReports() | principal={}", principal != null ? principal.getName() : "anonymous");
 
+        boolean fullAccess = tierResolver.hasFullAccess(principal);
         SubscriptionTier tier = tierResolver.resolveTier(principal);
-        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
-                || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE
-                || tierResolver.isAdmin(principal);
 
         if (fullAccess) {
             List<IntelReport> reports = intelReportUseCase.findAll();
@@ -92,11 +89,8 @@ public class IntelReportController {
         log.debug("viewReport() | reportId={}, principal={}", reportId,
                   principal != null ? principal.getName() : "anonymous");
 
+        boolean fullAccess = tierResolver.hasFullAccess(principal);
         SubscriptionTier tier = tierResolver.resolveTier(principal);
-        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
-                || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE
-                || tierResolver.isAdmin(principal);
 
         if (!fullAccess) {
             model.addAttribute("fullAccess", false);
@@ -146,11 +140,8 @@ public class IntelReportController {
         log.debug("generateReport() | query={}, principal={}", query,
                   principal != null ? principal.getName() : "anonymous");
 
+        boolean fullAccess = tierResolver.hasFullAccess(principal);
         SubscriptionTier tier = tierResolver.resolveTier(principal);
-        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
-                || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE
-                || tierResolver.isAdmin(principal);
 
         if (!fullAccess) {
             model.addAttribute("fullAccess", false);

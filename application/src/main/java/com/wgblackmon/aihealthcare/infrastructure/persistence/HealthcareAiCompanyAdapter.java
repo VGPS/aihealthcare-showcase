@@ -3,13 +3,13 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
 import com.wgblackmon.aihealthcare.domain.service.HealthcareAiCompanyClassifier;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import com.wgblackmon.aihealthcare.domain.service.SlugUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +23,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-08-02
- * @updated 2026-08-27
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -232,9 +232,9 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
                 cleanStr(entity.getFundingStage()),
                 cleanStr(entity.getEstimatedFunding()),
                 cleanStr(entity.getFoundersJson()),
-                parsePipe(entity.getSourceUrlsPipe()),
+                PipeDelimitedUtils.split(entity.getSourceUrlsPipe()),
                 entity.isValidated(),
-                parsePipe(entity.getValidationSourcesPipe()),
+                PipeDelimitedUtils.split(entity.getValidationSourcesPipe()),
                 entity.getDiscoveredAt(),
                 entity.getLastValidatedAt()
         );
@@ -248,17 +248,4 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
         return value;
     }
 
-    private List<String> parsePipe(String pipe) {
-        if (pipe == null || pipe.isBlank()) {
-            return List.of();
-        }
-        List<String> result = new ArrayList<>();
-        for (String part : pipe.split("\\|")) {
-            String trimmed = part.trim();
-            if (!trimmed.isEmpty()) {
-                result.add(trimmed);
-            }
-        }
-        return result;
-    }
 }

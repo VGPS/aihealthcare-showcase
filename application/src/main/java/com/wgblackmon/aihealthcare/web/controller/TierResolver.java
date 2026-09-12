@@ -20,7 +20,7 @@ import java.security.Principal;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-11
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -69,6 +69,49 @@ public class TierResolver {
                 .orElse(SubscriptionTier.FREE);
         log.debug("resolveTier() | return={}", tier);
         return tier;
+    }
+
+    /**
+     * Returns {@code true} if the principal has full (paid-tier) access:
+     * SUBSCRIBER, DEMO, ENTERPRISE, or ADMIN.
+     */
+    public boolean hasFullAccess(Principal principal) {
+        log.debug("hasFullAccess() | principal={}", principal != null ? principal.getName() : "null");
+        if (principal == null) {
+            log.debug("hasFullAccess() | return=false");
+            return false;
+        }
+        if (isAdmin(principal)) {
+            log.debug("hasFullAccess() | return=true (admin)");
+            return true;
+        }
+        SubscriptionTier tier = resolveTier(principal);
+        boolean result = tier == SubscriptionTier.SUBSCRIBER
+                || tier == SubscriptionTier.DEMO
+                || tier == SubscriptionTier.ENTERPRISE;
+        log.debug("hasFullAccess() | return={}", result);
+        return result;
+    }
+
+    /**
+     * Returns {@code true} if the principal has enterprise-level access:
+     * ENTERPRISE or DEMO tier.
+     */
+    public boolean hasEnterpriseAccess(Principal principal) {
+        log.debug("hasEnterpriseAccess() | principal={}", principal != null ? principal.getName() : "null");
+        if (principal == null) {
+            log.debug("hasEnterpriseAccess() | return=false");
+            return false;
+        }
+        if (isAdmin(principal)) {
+            log.debug("hasEnterpriseAccess() | return=true (admin)");
+            return true;
+        }
+        SubscriptionTier tier = resolveTier(principal);
+        boolean result = tier == SubscriptionTier.ENTERPRISE
+                || tier == SubscriptionTier.DEMO;
+        log.debug("hasEnterpriseAccess() | return={}", result);
+        return result;
     }
 
     /**

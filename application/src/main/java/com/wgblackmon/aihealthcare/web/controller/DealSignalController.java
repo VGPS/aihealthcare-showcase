@@ -3,11 +3,12 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.DealContext;
 import com.wgblackmon.aihealthcare.domain.model.DealSignal;
 import com.wgblackmon.aihealthcare.domain.model.DealSignalType;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DetectDealSignalsUseCase;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
-import com.wgblackmon.aihealthcare.domain.port.inbound.DetectDealSignalsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
@@ -26,7 +27,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Thymeleaf controller for the deal signals dashboard at
@@ -39,28 +39,30 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.3
  * @since   2026-08-04
- * @updated 2026-08-26
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class DealSignalController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm").withZone(ZoneOffset.UTC);
+            DisplayFormats.TIMESTAMP_24H.withZone(ZoneOffset.UTC);
 
     private static final int FREE_LIMIT = 10;
     private static final int PAGE_SIZE = 25;
 
     private final DetectDealSignalsUseCase detectDealSignalsUseCase;
     private final SubscriberPort subscriberPort;
+    private final TierResolver tierResolver;
 
     public DealSignalController(DetectDealSignalsUseCase detectDealSignalsUseCase,
-                                 SubscriberPort subscriberPort) {
-        log.debug("DealSignalController() | detectDealSignalsUseCase={}, subscriberPort={}",
-                detectDealSignalsUseCase.getClass().getSimpleName(),
-                subscriberPort.getClass().getSimpleName());
+                                 SubscriberPort subscriberPort,
+                                 @Nullable TierResolver tierResolver) {
+        log.debug("DealSignalController() | detectDealSignalsUseCase={}, subscriberPort={}, tierResolver={}",
+                detectDealSignalsUseCase, subscriberPort, tierResolver);
         this.detectDealSignalsUseCase = detectDealSignalsUseCase;
         this.subscriberPort = subscriberPort;
+        this.tierResolver = tierResolver;
     }
 
     @GetMapping({"/dashboard/deals", "/dashboard/deals/"})
@@ -70,7 +72,9 @@ public class DealSignalController {
                              Model model) {
         log.debug("dealsPage() | type={}, page={}", type, page);
 
-        boolean fullAccess = hasFullAccess(principal);
+        boolean fullAccess = tierResolver != null
+                ? tierResolver.hasFullAccess(principal)
+                : hasFullAccessFallback(principal);
         int currentPage = fullAccess ? Math.max(0, page) : 0;
 
         // Peek-ahead: fetch PAGE_SIZE+1 to detect next page without a COUNT query
@@ -143,7 +147,10 @@ public class DealSignalController {
                               Model model) {
         log.debug("dealDetail() | signalId={}, principal={}", signalId, principal != null ? principal.getName() : "anonymous");
 
-        if (!isEnterpriseTier(principal)) {
+        boolean hasEnterprise = tierResolver != null
+                ? tierResolver.hasEnterpriseAccess(principal)
+                : hasFullAccessFallback(principal);
+        if (!hasEnterprise) {
             log.debug("dealDetail() | upgrade required for signalId={}", signalId);
             model.addAttribute("upgradeRequired", true);
             model.addAttribute("activePage", "deals");
@@ -342,40 +349,6 @@ public class DealSignalController {
         return String.format("%.1f:1", (double) numerator / denominator);
     }
 
-    private boolean isEnterpriseTier(Principal principal) {
-        if (principal == null) return false;
-        if (principal instanceof Authentication auth) {
-            for (GrantedAuthority a : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(a.getAuthority())) return true;
-            }
-        }
-        Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
-        if (sub.isEmpty()) return false;
-        SubscriptionTier tier = sub.get().tier();
-        return tier == SubscriptionTier.ENTERPRISE || tier == SubscriptionTier.DEMO;
-    }
-
-    private boolean hasFullAccess(Principal principal) {
-        if (principal == null) {
-            return false;
-        }
-        if (principal instanceof Authentication) {
-            Authentication auth = (Authentication) principal;
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    return true;
-                }
-            }
-        }
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        if (subscriber.isPresent()) {
-            SubscriptionTier tier = subscriber.get().tier();
-            return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
-                    || tier == SubscriptionTier.ENTERPRISE;
-        }
-        return false;
-    }
-
     private List<DealSignal> deduplicateByCompanyTypeAndDay(List<DealSignal> signals) {
         Map<String, DealSignal> bestByKey = new LinkedHashMap<>();
         for (DealSignal signal : signals) {
@@ -404,5 +377,26 @@ public class DealSignalController {
             case "PRODUCT_LAUNCH": return DealSignalType.PRODUCT_LAUNCH;
             default:               return null;
         }
+    }
+
+    /**
+     * Fallback when TierResolver is absent (e.g. in unit tests).
+     * Checks ROLE_ADMIN authority and subscriberPort tier.
+     */
+    private boolean hasFullAccessFallback(Principal principal) {
+        if (principal == null) {
+            return false;
+        }
+        if (principal instanceof Authentication auth) {
+            for (GrantedAuthority ga : auth.getAuthorities()) {
+                if ("ROLE_ADMIN".equals(ga.getAuthority())) {
+                    return true;
+                }
+            }
+        }
+        return subscriberPort.findByEmail(principal.getName())
+                .map(Subscriber::tier)
+                .map(t -> t == SubscriptionTier.SUBSCRIBER || t == SubscriptionTier.DEMO || t == SubscriptionTier.ENTERPRISE)
+                .orElse(false);
     }
 }

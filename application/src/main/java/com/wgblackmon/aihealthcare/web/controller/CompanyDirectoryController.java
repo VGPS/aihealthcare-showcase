@@ -26,14 +26,14 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-02
- * @updated 2026-08-02
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class CompanyDirectoryController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy")
+            DisplayFormats.SHORT_DATE
                     .withZone(ZoneId.of("America/New_York"));
 
     private final HealthcareAiCompanyPort companyPort;

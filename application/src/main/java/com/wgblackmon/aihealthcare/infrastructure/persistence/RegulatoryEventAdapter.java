@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryBody;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryOutcomeStatus;
@@ -9,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +23,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-30
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -164,7 +164,7 @@ public class RegulatoryEventAdapter implements RegulatoryEventPort {
         entity.setLinkedArticleId(truncate(event.eventId(), event.linkedArticleId(), "linkedArticleId", LINKED_ARTICLE_ID_MAX_LENGTH));
         entity.setPublishedAt(event.publishedAt());
         entity.setDiscoveredAt(event.discoveredAt());
-        entity.setAiHealthcareKeywords(joinKeywords(event.aiHealthcareKeywords()));
+        entity.setAiHealthcareKeywords(PipeDelimitedUtils.join(event.aiHealthcareKeywords()));
         entity.setOutcomeStatus(event.outcomeStatus() != null ? event.outcomeStatus().name() : null);
         entity.setOutcomeUpdatedAt(event.outcomeUpdatedAt());
         entity.setClearanceType(truncate(event.eventId(), event.clearanceType(), "clearanceType", CLEARANCE_TYPE_MAX_LENGTH));
@@ -208,7 +208,7 @@ public class RegulatoryEventAdapter implements RegulatoryEventPort {
                 entity.getLinkedArticleId(),
                 entity.getPublishedAt(),
                 entity.getDiscoveredAt(),
-                splitKeywords(entity.getAiHealthcareKeywords()),
+                PipeDelimitedUtils.split(entity.getAiHealthcareKeywords()),
                 outcomeStatus,
                 entity.getOutcomeUpdatedAt(),
                 entity.getClearanceType(),
@@ -216,24 +216,4 @@ public class RegulatoryEventAdapter implements RegulatoryEventPort {
         );
     }
 
-    private String joinKeywords(List<String> keywords) {
-        if (keywords == null || keywords.isEmpty()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < keywords.size(); i++) {
-            if (i > 0) {
-                sb.append("|");
-            }
-            sb.append(keywords.get(i));
-        }
-        return sb.toString();
-    }
-
-    private List<String> splitKeywords(String pipeDelimited) {
-        if (pipeDelimited == null || pipeDelimited.isBlank()) {
-            return List.of();
-        }
-        return Arrays.asList(pipeDelimited.split("\\|"));
-    }
 }

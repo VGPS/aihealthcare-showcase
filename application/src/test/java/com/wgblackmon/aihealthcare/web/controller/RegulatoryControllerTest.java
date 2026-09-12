@@ -102,6 +102,7 @@ class RegulatoryControllerTest {
     void regulatoryPage_adminGetsFullAccess() throws Exception {
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(tierResolver.isAdmin(any())).thenReturn(true);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(regulatoryUseCase.getRecentEvents(50)).thenReturn(List.of());
 
         mockMvc.perform(get("/dashboard/regulatory"))

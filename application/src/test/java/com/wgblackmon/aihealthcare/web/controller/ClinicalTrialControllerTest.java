@@ -145,6 +145,7 @@ class ClinicalTrialControllerTest {
     @WithMockUser(roles = "ADMIN")
     void clinicalTrialsPage_adminGetsFullAccess() throws Exception {
         when(tierResolver.isAdmin(any())).thenReturn(true);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(clinicalTrialsUseCase.getRecentTrials(50)).thenReturn(List.of());
 

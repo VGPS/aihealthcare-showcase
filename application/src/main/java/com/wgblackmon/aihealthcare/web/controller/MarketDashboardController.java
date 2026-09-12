@@ -13,13 +13,10 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.ReactionHorizon;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.RollupEntry;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollup;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.WeeklyRollupService;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
-import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,14 +53,14 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-09-07
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class MarketDashboardController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneOffset.UTC);
+            DisplayFormats.SHORT_DATE.withZone(ZoneOffset.UTC);
 
     private static final int FREE_LIMIT = 3;
 
@@ -71,21 +68,22 @@ public class MarketDashboardController {
     private final WeeklyRollupService        weeklyRollupService;
     private final SubscriberPort             subscriberPort;
     private final PriceReactionQueryService  priceReactionQueryService;
+    private final TierResolver               tierResolver;
 
     public MarketDashboardController(ProduceMarketDigestUseCase marketDigestService,
                                      WeeklyRollupService weeklyRollupService,
                                      SubscriberPort subscriberPort,
-                                     PriceReactionQueryService priceReactionQueryService) {
+                                     PriceReactionQueryService priceReactionQueryService,
+                                     @Nullable TierResolver tierResolver) {
         log.debug("MarketDashboardController() | marketDigestService={}, weeklyRollupService={}, "
-                        + "subscriberPort={}, priceReactionQueryService={}",
-                marketDigestService.getClass().getSimpleName(),
-                weeklyRollupService.getClass().getSimpleName(),
-                subscriberPort.getClass().getSimpleName(),
-                priceReactionQueryService.getClass().getSimpleName());
+                        + "subscriberPort={}, priceReactionQueryService={}, tierResolver={}",
+                marketDigestService, weeklyRollupService, subscriberPort,
+                priceReactionQueryService, tierResolver);
         this.marketDigestService = marketDigestService;
         this.weeklyRollupService = weeklyRollupService;
         this.subscriberPort      = subscriberPort;
         this.priceReactionQueryService = priceReactionQueryService;
+        this.tierResolver = tierResolver;
         log.debug("MarketDashboardController() | return=void");
     }
 
@@ -110,7 +108,7 @@ public class MarketDashboardController {
         log.debug("marketHistory() | days={}", days);
 
         List<MarketDigest> all = marketDigestService.findAll();
-        boolean fullAccess = hasFullAccess(principal);
+        boolean fullAccess = tierResolver != null && tierResolver.hasFullAccess(principal);
 
         // Lookback filter — days=0 means show all
         List<MarketDigest> filtered = new ArrayList<>();
@@ -164,7 +162,7 @@ public class MarketDashboardController {
             Model model) {
         log.debug("weeklyRollup() | weekOf={}", weekOf);
 
-        boolean fullAccess = hasFullAccess(principal);
+        boolean fullAccess = tierResolver != null && tierResolver.hasFullAccess(principal);
 
         if (weekOf == null) {
             // Default to the most recent Monday
@@ -232,7 +230,7 @@ public class MarketDashboardController {
                                  String category,
                                  Principal principal,
                                  Model model) {
-        boolean fullAccess = hasFullAccess(principal);
+        boolean fullAccess = tierResolver != null && tierResolver.hasFullAccess(principal);
 
         if (digestOpt.isEmpty()) {
             model.addAttribute("digest", null);
@@ -390,28 +388,6 @@ public class MarketDashboardController {
             }
         }
         return top;
-    }
-
-    private boolean hasFullAccess(Principal principal) {
-        if (principal == null) {
-            return false;
-        }
-        if (principal instanceof Authentication) {
-            Authentication auth = (Authentication) principal;
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    return true;
-                }
-            }
-        }
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        if (subscriber.isPresent()) {
-            SubscriptionTier tier = subscriber.get().tier();
-            return tier == SubscriptionTier.SUBSCRIBER
-                    || tier == SubscriptionTier.DEMO
-                    || tier == SubscriptionTier.ENTERPRISE;
-        }
-        return false;
     }
 
     private NewsCategory parseCategory(String category) {

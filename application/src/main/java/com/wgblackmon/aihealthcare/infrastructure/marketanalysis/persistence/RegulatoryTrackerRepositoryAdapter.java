@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.RulemakingStage;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.RegulatoryTrackerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ public class RegulatoryTrackerRepositoryAdapter implements RegulatoryTrackerRepo
         this.repo = repo;
     }
 
+    @Transactional
     @Override
     public void upsert(RegulatoryTracker tracker) {
         log.debug("upsert() | docketId={}, jurisdiction={}", tracker.docketId(), tracker.jurisdiction());

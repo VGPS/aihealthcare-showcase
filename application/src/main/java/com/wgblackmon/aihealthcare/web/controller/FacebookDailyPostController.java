@@ -36,7 +36,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-22
- * @updated 2026-09-07
+ * @updated 2026-09-12
  * @see ArticleToneClassifier
  */
 @Slf4j
@@ -48,7 +48,7 @@ public class FacebookDailyPostController {
     private static final int POST_LIMIT      = 63000;
 
     private static final DateTimeFormatter DATE_FMT =
-            DateTimeFormatter.ofPattern("MMMM d, yyyy");
+            DisplayFormats.LONG_DATE;
     private static final String SITE_URL = "https://bigskylabs.ai";
     private static final String APP_URL  = "https://app.bigskylabs.ai";
 

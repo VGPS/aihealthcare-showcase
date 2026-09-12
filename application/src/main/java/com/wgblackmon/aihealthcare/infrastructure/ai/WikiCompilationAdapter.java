@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.ai;
 
 import com.wgblackmon.aihealthcare.domain.model.CompilationReport;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import com.wgblackmon.aihealthcare.domain.model.Contradiction;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.SourceRef;
@@ -44,7 +45,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-09-12
  */
 @Slf4j
 public class WikiCompilationAdapter implements KnowledgeCompilationPort {
@@ -187,9 +188,9 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
 
         entity.setTitle(page.title());
         entity.setPageType(page.pageType().name());
-        entity.setTags(joinPipeDelimited(page.tags()));
+        entity.setTags(PipeDelimitedUtils.join(page.tags()));
         entity.setContentMarkdown(page.contentMarkdown());
-        entity.setRelatedSlugs(joinPipeDelimited(page.relatedSlugs()));
+        entity.setRelatedSlugs(PipeDelimitedUtils.join(page.relatedSlugs()));
         pageRepository.save(entity);
 
         // Save revision for audit trail
@@ -238,20 +239,6 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
             return bodyText.substring(0, 2000) + "...";
         }
         return bodyText;
-    }
-
-    private String joinPipeDelimited(List<String> values) {
-        if (values == null || values.isEmpty()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < values.size(); i++) {
-            if (i > 0) {
-                sb.append("|");
-            }
-            sb.append(values.get(i));
-        }
-        return sb.toString();
     }
 
     private String joinSourceRefIds(List<SourceRef> sources) {

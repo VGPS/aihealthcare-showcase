@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.NewBillCandidate;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewBillCandidatePort;
@@ -10,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,7 +32,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-06
- * @updated 2026-09-06
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -114,7 +114,7 @@ public class NewBillCandidateAdapter implements NewBillCandidatePort {
         entity.setBillNumber(candidate.billNumber());
         entity.setTitle(candidate.title());
         entity.setSummary(candidate.summary());
-        entity.setSourceUrls(joinUrls(candidate.sourceUrls()));
+        entity.setSourceUrls(PipeDelimitedUtils.join(candidate.sourceUrls()));
         entity.setDiscoveredAt(candidate.discoveredAt());
         entity.setConfidence(candidate.confidence());
         entity.setReviewed(candidate.reviewed());
@@ -129,7 +129,7 @@ public class NewBillCandidateAdapter implements NewBillCandidatePort {
                 entity.getBillNumber(),
                 entity.getTitle(),
                 entity.getSummary(),
-                splitUrls(entity.getSourceUrls()),
+                PipeDelimitedUtils.split(entity.getSourceUrls()),
                 entity.getDiscoveredAt(),
                 entity.getConfidence(),
                 entity.isReviewed(),
@@ -137,24 +137,4 @@ public class NewBillCandidateAdapter implements NewBillCandidatePort {
         );
     }
 
-    private String joinUrls(List<String> urls) {
-        if (urls == null || urls.isEmpty()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < urls.size(); i++) {
-            if (i > 0) {
-                sb.append("|");
-            }
-            sb.append(urls.get(i));
-        }
-        return sb.toString();
-    }
-
-    private List<String> splitUrls(String pipeDelimited) {
-        if (pipeDelimited == null || pipeDelimited.isBlank()) {
-            return List.of();
-        }
-        return Arrays.asList(pipeDelimited.split("\\|"));
-    }
 }

@@ -3,7 +3,6 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryBody;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
-import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -32,14 +31,14 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class RegulatoryController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy")
+            DisplayFormats.SHORT_DATE
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final int FREE_EVENT_LIMIT = 5;
@@ -73,11 +72,7 @@ public class RegulatoryController {
         log.debug("regulatory() | filter={}, sort={}, principal={}", filter, sort,
                   principal != null ? principal.getName() : "anonymous");
 
-        SubscriptionTier tier = tierResolver.resolveTier(principal);
-        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
-                || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE
-                || tierResolver.isAdmin(principal);
+        boolean fullAccess = tierResolver.hasFullAccess(principal);
         int limit = fullAccess ? FULL_EVENT_LIMIT : FREE_EVENT_LIMIT;
 
         List<RegulatoryEvent> events;

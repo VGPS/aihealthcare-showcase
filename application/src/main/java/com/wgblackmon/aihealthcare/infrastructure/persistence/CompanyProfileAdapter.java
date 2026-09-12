@@ -3,11 +3,11 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 import com.wgblackmon.aihealthcare.domain.model.CompanyProfile;
 import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyProfilePort;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +21,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-07-22
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -99,8 +99,8 @@ public class CompanyProfileAdapter implements CompanyProfilePort {
     }
 
     private CompanyProfile toDomain(CompanyProfileEntity entity) {
-        List<String> categories = parsePipe(entity.getCategoriesPipe());
-        List<String> articleIds = parsePipe(entity.getArticleIdsPipe());
+        List<String> categories = PipeDelimitedUtils.split(entity.getCategoriesPipe());
+        List<String> articleIds = PipeDelimitedUtils.split(entity.getArticleIdsPipe());
 
         TrendDirection direction;
         try {
@@ -123,17 +123,4 @@ public class CompanyProfileAdapter implements CompanyProfilePort {
         );
     }
 
-    private List<String> parsePipe(String pipe) {
-        if (pipe == null || pipe.isBlank()) {
-            return List.of();
-        }
-        List<String> result = new ArrayList<>();
-        String[] parts = pipe.split("\\|");
-        for (String part : parts) {
-            if (!part.isBlank()) {
-                result.add(part.trim());
-            }
-        }
-        return result;
-    }
 }

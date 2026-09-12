@@ -43,18 +43,18 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class SentimentDashboardController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z")
+            DisplayFormats.TIMESTAMP_Z
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final DateTimeFormatter NOTE_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+            DisplayFormats.NOTE_FMT
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final int FREE_COMPANY_LIMIT = 5;
@@ -87,7 +87,8 @@ public class SentimentDashboardController {
         log.debug("riskDashboard() | principal={}", principal != null ? principal.getName() : "anonymous");
 
         List<CompanySentiment> allSentiments = sentimentUseCase.getAll();
-        boolean fullAccess = hasFullAccess(principal);
+        SubscriptionTier tier = tierResolver.resolveTier(principal);
+        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO || tier == SubscriptionTier.ENTERPRISE || tierResolver.isAdmin(principal);
 
         List<CompanySentiment> sentiments;
         if (fullAccess) {
@@ -182,7 +183,9 @@ public class SentimentDashboardController {
         log.debug("companyRiskDetail() | slug={}, sort={}, principal={}", slug, sort,
                   principal != null ? principal.getName() : "anonymous");
 
-        if (!isEnterpriseTier(principal)) {
+        SubscriptionTier detailTier = tierResolver.resolveTier(principal);
+        boolean detailAccess = detailTier == SubscriptionTier.SUBSCRIBER || detailTier == SubscriptionTier.DEMO || detailTier == SubscriptionTier.ENTERPRISE || tierResolver.isAdmin(principal);
+        if (!detailAccess) {
             log.debug("companyRiskDetail() | upgrade required for slug={}", slug);
             model.addAttribute("upgradeRequired", true);
             model.addAttribute("activePage", "risk");
@@ -281,31 +284,6 @@ public class SentimentDashboardController {
 
         log.debug("companyRiskDetail() | return=risk-detail for {} ({} articles, {} notes)", slug, sortedArticles.size(), analystNotes.size());
         return "risk-detail";
-    }
-
-    private boolean isEnterpriseTier(Principal principal) {
-        if (principal == null) return false;
-        if (tierResolver.isAdmin(principal)) return true;
-        Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
-        if (sub.isEmpty()) return false;
-        SubscriptionTier tier = sub.get().tier();
-        return tier == SubscriptionTier.ENTERPRISE || tier == SubscriptionTier.DEMO;
-    }
-
-    private boolean hasFullAccess(Principal principal) {
-        if (principal == null) {
-            return false;
-        }
-        if (tierResolver.isAdmin(principal)) {
-            return true;
-        }
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        if (subscriber.isPresent()) {
-            SubscriptionTier tier = subscriber.get().tier();
-            return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
-                    || tier == SubscriptionTier.ENTERPRISE;
-        }
-        return false;
     }
 
     private List<CompanySentiment> limitList(List<CompanySentiment> list, int limit) {

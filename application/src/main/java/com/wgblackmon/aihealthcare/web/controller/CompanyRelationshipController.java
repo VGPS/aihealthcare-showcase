@@ -32,14 +32,14 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-30
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class CompanyRelationshipController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneOffset.UTC);
+            DisplayFormats.SHORT_DATE.withZone(ZoneOffset.UTC);
 
     private final MapCompanyRelationshipsUseCase mapRelationshipsUseCase;
 

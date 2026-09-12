@@ -4,19 +4,15 @@ import com.wgblackmon.aihealthcare.domain.model.AnalystNote;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkAnalysis;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkDimension;
 import com.wgblackmon.aihealthcare.domain.model.NoteTargetType;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
-import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeFrameworksUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 
 import java.security.Principal;
 import java.time.Instant;
@@ -40,39 +36,25 @@ import java.util.regex.Pattern;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-09-06
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class FrameworkDashboardController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm")
+            DisplayFormats.TIMESTAMP_24H
                     .withZone(ZoneId.of("America/New_York"));
 
     // Strips LLM-generated [1], [2], [1,2] citation markers that have no reference list on the page
     private static final Pattern CITATION_PATTERN = Pattern.compile("\\[\\d+(?:[,;]\\s*\\d+)*\\]");
 
     private static final DateTimeFormatter NOTE_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+            DisplayFormats.NOTE_FMT
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final List<String> CHART_COLORS = List.of(
             "#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6", "#EC4899");
-
-    private boolean isEnterpriseTier(Principal principal) {
-        if (principal instanceof Authentication auth) {
-            for (GrantedAuthority a : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(a.getAuthority())) return true;
-            }
-        }
-        if (principal == null) return false;
-        Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
-        if (sub.isEmpty()) return false;
-        SubscriptionTier tier = sub.get().tier();
-        return tier == SubscriptionTier.ENTERPRISE || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.SUBSCRIBER;
-    }
 
     private static String stripCitations(String text) {
         if (text == null || text.isBlank()) return text;
@@ -106,15 +88,18 @@ public class FrameworkDashboardController {
     private final AnalyzeFrameworksUseCase frameworksUseCase;
     private final SubscriberPort subscriberPort;
     private final AnalystNotePort analystNotePort;
+    private final TierResolver tierResolver;
 
     public FrameworkDashboardController(AnalyzeFrameworksUseCase frameworksUseCase,
                                         SubscriberPort subscriberPort,
-                                        AnalystNotePort analystNotePort) {
-        log.debug("FrameworkDashboardController() | frameworksUseCase={}, subscriberPort={}, analystNotePort={}",
-                  frameworksUseCase, subscriberPort, analystNotePort);
+                                        AnalystNotePort analystNotePort,
+                                        @Nullable TierResolver tierResolver) {
+        log.debug("FrameworkDashboardController() | frameworksUseCase={}, subscriberPort={}, analystNotePort={}, tierResolver={}",
+                  frameworksUseCase, subscriberPort, analystNotePort, tierResolver);
         this.frameworksUseCase = frameworksUseCase;
         this.subscriberPort = subscriberPort;
         this.analystNotePort = analystNotePort;
+        this.tierResolver = tierResolver;
     }
 
     /**
@@ -127,7 +112,7 @@ public class FrameworkDashboardController {
     @GetMapping("/dashboard/frameworks")
     public String frameworkOverview(Model model, Principal principal) {
         log.debug("frameworkOverview() | principal={}", principal != null ? principal.getName() : "anonymous");
-        model.addAttribute("isEnterprise", isEnterpriseTier(principal));
+        model.addAttribute("isEnterprise", tierResolver != null && tierResolver.hasFullAccess(principal));
 
         List<FrameworkAnalysis> rawAnalyses = frameworksUseCase.getAll();
         List<FrameworkAnalysis> analyses = new ArrayList<>();
@@ -204,7 +189,7 @@ public class FrameworkDashboardController {
     public String frameworkDetail(@PathVariable String slug, Model model, Principal principal) {
         log.debug("frameworkDetail() | slug={}, principal={}", slug, principal != null ? principal.getName() : "anonymous");
 
-        if (!isEnterpriseTier(principal)) {
+        if (tierResolver == null || !tierResolver.hasFullAccess(principal)) {
             log.debug("frameworkDetail() | return=framework-detail (upgrade required) for slug={}", slug);
             model.addAttribute("upgradeRequired", true);
             model.addAttribute("activePage", "frameworks");

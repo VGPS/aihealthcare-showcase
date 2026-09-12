@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleScoringPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DigestSummaryPort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.ArticleContentEnricher;
+import com.wgblackmon.aihealthcare.web.controller.DisplayFormats;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,7 +73,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 8.0
  * @since   2026-04-13
- * @updated 2026-09-05
+ * @updated 2026-09-12
  */
 @Slf4j
 @Service
@@ -82,7 +83,7 @@ public class NotebookLMService {
             DateTimeFormatter.ofPattern("yyyy_MM_dd");
 
     private static final DateTimeFormatter ARTICLE_DATE_FORMAT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneOffset.UTC);
+            DisplayFormats.SHORT_DATE.withZone(ZoneOffset.UTC);
 
     private static final int BODY_PREVIEW_LENGTH = 200;
 
@@ -443,7 +444,7 @@ public class NotebookLMService {
     private String formatForHtml(String title, List<NewsArticle> articles, String digestSummary) {
         log.debug("formatForHtml() | title={}, articleCount={}, hasSummary={}", title, articles.size(), digestSummary != null && !digestSummary.isBlank());
 
-        String date = LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM d, yyyy"));
+        String date = LocalDate.now().format(DisplayFormats.LONG_DATE);
         StringBuilder sb = new StringBuilder();
 
         sb.append("<!DOCTYPE html>\n");

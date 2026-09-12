@@ -46,14 +46,14 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class TrendHistoryController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z")
+            DisplayFormats.TIMESTAMP_Z
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final DateTimeFormatter SHORT_DATE_FMT =
@@ -86,7 +86,7 @@ public class TrendHistoryController {
         log.debug("history() | principal={}", principal != null ? principal.getName() : "anonymous");
 
         List<TrendSnapshot> allSnapshots = detectTrendsUseCase.getAllSnapshots();
-        boolean fullAccess = hasFullAccess(principal);
+        boolean fullAccess = tierResolver.hasFullAccess(principal);
 
         List<TrendSnapshot> gated;
         if (fullAccess || allSnapshots.size() <= FREE_SNAPSHOT_LIMIT) {
@@ -310,22 +310,6 @@ public class TrendHistoryController {
             }
         }
         return result.toString();
-    }
-
-    private boolean hasFullAccess(Principal principal) {
-        if (principal == null) {
-            return false;
-        }
-        if (tierResolver.isAdmin(principal)) {
-            return true;
-        }
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        if (subscriber.isEmpty()) {
-            return false;
-        }
-        SubscriptionTier tier = subscriber.get().tier();
-        return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE;
     }
 
 }

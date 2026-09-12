@@ -8,6 +8,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.ManageTeamsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,6 +51,7 @@ public class TeamController {
         this.appUserPort = appUserPort;
     }
 
+    @Transactional
     @PostMapping
     public ResponseEntity<?> createTeam(@RequestParam String name, Principal principal) {
         log.debug("createTeam() | name={}, user={}", name, principal.getName());
@@ -96,6 +98,7 @@ public class TeamController {
         return ResponseEntity.ok(result);
     }
 
+    @Transactional
     @PostMapping("/{teamId}/members")
     public ResponseEntity<?> addMember(@PathVariable String teamId,
                                         @RequestParam String email,
@@ -115,6 +118,7 @@ public class TeamController {
         }
     }
 
+    @Transactional
     @DeleteMapping("/{teamId}/members/{email}")
     public ResponseEntity<?> removeMember(@PathVariable String teamId,
                                            @PathVariable String email,

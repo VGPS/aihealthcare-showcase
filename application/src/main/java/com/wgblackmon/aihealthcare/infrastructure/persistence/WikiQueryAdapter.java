@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.model.SourceRef;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.model.WikiPageType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +32,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -105,8 +106,8 @@ public class WikiQueryAdapter implements WikiQueryPort {
     private WikiPage toDomain(WikiPageEntity entity) {
         log.debug("toDomain() | slug={}", entity.getSlug());
 
-        List<String> tags = splitPipeDelimited(entity.getTags());
-        List<String> relatedSlugs = splitPipeDelimited(entity.getRelatedSlugs());
+        List<String> tags = PipeDelimitedUtils.split(entity.getTags());
+        List<String> relatedSlugs = PipeDelimitedUtils.split(entity.getRelatedSlugs());
         List<SourceRef> sources = loadSourceRefs(entity.getSlug());
 
         WikiPage result = new WikiPage(
@@ -183,18 +184,4 @@ public class WikiQueryAdapter implements WikiQueryPort {
         return refs;
     }
 
-    private List<String> splitPipeDelimited(String value) {
-        List<String> result = new ArrayList<>();
-        if (value == null || value.isBlank()) {
-            return result;
-        }
-        String[] parts = value.split("\\|");
-        for (String part : parts) {
-            String trimmed = part.trim();
-            if (!trimmed.isEmpty()) {
-                result.add(trimmed);
-            }
-        }
-        return result;
-    }
 }

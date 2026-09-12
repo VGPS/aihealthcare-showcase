@@ -47,7 +47,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 2.1
  * @since   2026-06-02
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
@@ -58,7 +58,7 @@ public class AiSearchController {
     private static final int MAX_TOP_K = 50;
 
     private static final DateTimeFormatter RESULT_DATE_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z").withZone(ZoneId.of("America/New_York"));
+            DisplayFormats.TIMESTAMP_Z.withZone(ZoneId.of("America/New_York"));
 
     private final ConductAiSearchUseCase aiSearchUseCase;
     private final ArticleSearchPort      articleSearchPort;

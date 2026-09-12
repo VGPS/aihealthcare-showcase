@@ -99,6 +99,7 @@ class TrendHistoryControllerTest {
     @WithMockUser(roles = "ADMIN")
     void historyPage_adminGetsFullAccess() throws Exception {
         when(tierResolver.isAdmin(any())).thenReturn(true);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         List<TrendSnapshot> manySnapshots = buildSnapshots(6);
         when(detectTrendsUseCase.getAllSnapshots()).thenReturn(manySnapshots);
 

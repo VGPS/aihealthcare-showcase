@@ -3,7 +3,6 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.ClinicalTrial;
 import com.wgblackmon.aihealthcare.domain.model.ClinicalTrialPhase;
 import com.wgblackmon.aihealthcare.domain.model.ClinicalTrialStatus;
-import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorClinicalTrialsUseCase;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import lombok.extern.slf4j.Slf4j;
@@ -35,14 +34,14 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-23
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class ClinicalTrialController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy")
+            DisplayFormats.SHORT_DATE
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final int FREE_TRIAL_LIMIT = 5;
@@ -80,11 +79,7 @@ public class ClinicalTrialController {
         log.debug("clinicalTrials() | filter={}, sort={}, principal={}", filter, sort,
                   principal != null ? principal.getName() : "anonymous");
 
-        SubscriptionTier tier = tierResolver.resolveTier(principal);
-        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
-                || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE
-                || tierResolver.isAdmin(principal);
+        boolean fullAccess = tierResolver.hasFullAccess(principal);
         int limit = fullAccess ? FULL_TRIAL_LIMIT : FREE_TRIAL_LIMIT;
 
         List<ClinicalTrial> trials;

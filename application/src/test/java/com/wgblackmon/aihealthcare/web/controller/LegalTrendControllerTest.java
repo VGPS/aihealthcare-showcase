@@ -136,6 +136,7 @@ class LegalTrendControllerTest {
     @WithMockUser(roles = "ADMIN")
     void getPage_admin_fullAccess() throws Exception {
         when(tierResolver.isAdmin(any())).thenReturn(true);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(detectLegalTrendsUseCase.getLatestSnapshot())
                 .thenReturn(Optional.of(sampleSnapshot()));
 
@@ -148,6 +149,7 @@ class LegalTrendControllerTest {
     @WithMockUser(roles = "ADMIN")
     void triggerDetection_admin_redirects() throws Exception {
         when(tierResolver.isAdmin(any())).thenReturn(true);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         LegalTrendSnapshot snapshot = new LegalTrendSnapshot(
                 Instant.now(), 30, List.of(), 0);
         when(detectLegalTrendsUseCase.detectLegalTrends()).thenReturn(snapshot);

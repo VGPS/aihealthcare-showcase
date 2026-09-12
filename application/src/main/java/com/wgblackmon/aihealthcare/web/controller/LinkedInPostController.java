@@ -50,7 +50,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.5
  * @since   2026-08-21
- * @updated 2026-09-05
+ * @updated 2026-09-12
  * @see ArticleToneClassifier
  */
 @Slf4j
@@ -64,7 +64,7 @@ public class LinkedInPostController {
     private static final int LINKS_BLOCK_LIMIT = 1050;
 
     private static final DateTimeFormatter DATE_FMT =
-            DateTimeFormatter.ofPattern("MMMM d, yyyy");
+            DisplayFormats.LONG_DATE;
     private static final String SITE_URL = "https://app.bigskylabs.ai";
 
     // Topic priority — higher = appears first in the post

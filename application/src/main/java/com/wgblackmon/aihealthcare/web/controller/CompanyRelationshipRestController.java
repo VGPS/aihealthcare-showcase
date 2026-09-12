@@ -31,7 +31,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-30
+ * @updated 2026-09-12
  */
 @Slf4j
 @RestController
@@ -144,7 +144,7 @@ public class CompanyRelationshipRestController {
     }
 
     private static final DateTimeFormatter DATE_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneOffset.UTC);
+            DisplayFormats.SHORT_DATE.withZone(ZoneOffset.UTC);
 
     private String formatDate(Instant instant) {
         log.debug("formatDate() | instant={}", instant);

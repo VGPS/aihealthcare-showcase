@@ -2,9 +2,9 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
-import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
 import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
@@ -42,14 +42,14 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-22
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class TrendController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z")
+            DisplayFormats.TIMESTAMP_Z
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final int FREE_RISING_LIMIT = 5;
@@ -97,11 +97,10 @@ public class TrendController {
         if (latest.isPresent() && !latest.get().risingTopics().isEmpty()) {
             TrendSnapshot snapshot = latest.get();
             SubscriptionTier tier = tierResolver.resolveTier(principal);
-            boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
-                    || tier == SubscriptionTier.ENTERPRISE;
+            boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO || tier == SubscriptionTier.ENTERPRISE || tierResolver.isAdmin(principal);
 
             List<TrendSignal> rawRising;
-            if (fullAccess || tierResolver.isAdmin(principal)) {
+            if (fullAccess) {
                 rawRising = snapshot.risingTopics();
             } else {
                 rawRising = limitList(snapshot.risingTopics(), FREE_RISING_LIMIT);
@@ -123,7 +122,7 @@ public class TrendController {
             model.addAttribute("totalKeywords", snapshot.totalKeywords());
             model.addAttribute("generatedAt", DISPLAY_FMT.format(snapshot.generatedAt()));
             model.addAttribute("hasSnapshot", true);
-            model.addAttribute("fullAccess", fullAccess || tierResolver.isAdmin(principal));
+            model.addAttribute("fullAccess", fullAccess);
             model.addAttribute("chartTitle", "Top Rising Topics — Last 30 Days");
 
             // Chart data: top 10 rising keywords + counts for bar chart

@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.LawCategory;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import com.wgblackmon.aihealthcare.domain.model.LawChangeEvent;
 import com.wgblackmon.aihealthcare.domain.model.LawSource;
 import com.wgblackmon.aihealthcare.domain.model.LawStatus;
@@ -34,7 +35,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-06
- * @updated 2026-09-06
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -315,29 +316,21 @@ public class StateLawAdapter implements StateLawPort, LawChangeEventPort {
         if (categories == null || categories.isEmpty()) {
             return "";
         }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < categories.size(); i++) {
-            if (i > 0) {
-                sb.append("|");
-            }
-            sb.append(categories.get(i).name());
+        List<String> names = new ArrayList<>();
+        for (LawCategory cat : categories) {
+            names.add(cat.name());
         }
-        return sb.toString();
+        return PipeDelimitedUtils.join(names);
     }
 
     private List<LawCategory> parseCategories(String pipeDelimited) {
-        if (pipeDelimited == null || pipeDelimited.isBlank()) {
-            return List.of();
-        }
+        List<String> tokens = PipeDelimitedUtils.split(pipeDelimited);
         List<LawCategory> result = new ArrayList<>();
-        for (String token : pipeDelimited.split("\\|")) {
-            String trimmed = token.trim();
-            if (!trimmed.isEmpty()) {
-                try {
-                    result.add(LawCategory.valueOf(trimmed));
-                } catch (IllegalArgumentException e) {
-                    log.warn("parseCategories() | unknown LawCategory '{}' — skipping", trimmed);
-                }
+        for (String token : tokens) {
+            try {
+                result.add(LawCategory.valueOf(token));
+            } catch (IllegalArgumentException e) {
+                log.warn("parseCategories() | unknown LawCategory '{}' — skipping", token);
             }
         }
         return result;

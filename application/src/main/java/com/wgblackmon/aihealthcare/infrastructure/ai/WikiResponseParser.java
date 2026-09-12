@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.Contradiction;
 import com.wgblackmon.aihealthcare.domain.model.SourceRef;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.model.WikiPageType;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
@@ -27,7 +28,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-09-12
  */
 @Slf4j
 public class WikiResponseParser {
@@ -190,7 +191,7 @@ public class WikiResponseParser {
 
         List<String> tags = splitCommaDelimited(tagsStr);
         List<SourceRef> sources = expandArticleIds(sourcesStr);
-        List<String> relatedSlugs = splitPipeDelimited(relatedStr);
+        List<String> relatedSlugs = PipeDelimitedUtils.split(relatedStr);
 
         WikiPage result = new WikiPage(
                 slug.trim(),
@@ -285,21 +286,6 @@ public class WikiResponseParser {
             return result;
         }
         String[] parts = value.split(",");
-        for (String part : parts) {
-            String trimmed = part.trim();
-            if (!trimmed.isEmpty()) {
-                result.add(trimmed);
-            }
-        }
-        return result;
-    }
-
-    private List<String> splitPipeDelimited(String value) {
-        List<String> result = new ArrayList<>();
-        if (value == null || value.isBlank()) {
-            return result;
-        }
-        String[] parts = value.split("\\|");
         for (String part : parts) {
             String trimmed = part.trim();
             if (!trimmed.isEmpty()) {

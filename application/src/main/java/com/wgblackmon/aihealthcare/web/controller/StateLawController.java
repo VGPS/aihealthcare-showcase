@@ -5,7 +5,6 @@ import com.wgblackmon.aihealthcare.domain.model.LawChangeEvent;
 import com.wgblackmon.aihealthcare.domain.model.LawStatus;
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
-import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageStateLawsUseCase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,7 +40,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-06
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
@@ -153,11 +152,7 @@ public class StateLawController {
             return "redirect:/legislation";
         }
 
-        SubscriptionTier tier = tierResolver.resolveTier(principal);
-        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
-                || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE
-                || tierResolver.isAdmin(principal);
+        boolean fullAccess = tierResolver.hasFullAccess(principal);
 
         StateLaw law = found.get();
         Map<String, String> formattedDates = buildFormattedDatesForLaw(law);
@@ -305,7 +300,7 @@ public class StateLawController {
     private String formatIsoDate(String isoDate) {
         try {
             java.time.LocalDate parsed = java.time.LocalDate.parse(isoDate);
-            return parsed.format(java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy"));
+            return parsed.format(DisplayFormats.SHORT_DATE);
         } catch (Exception e) {
             log.debug("formatIsoDate() | unparseable date: {}", isoDate);
             return isoDate;
