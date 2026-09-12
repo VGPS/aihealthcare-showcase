@@ -49,13 +49,13 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Branded Error Handling** | Custom error pages replacing Spring Boot's Whitelabel Error Page with consistent branded UI |
 | **Document Library** | Admin-managed document upload (PDF/DOCX/TXT/MD, 50MB limit) with vector store embedding for RAG search and public wiki page generation |
 | **88-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, enterprise data console, and LinkedIn feature post rotation |
-| **2,896 Automated Tests** | Comprehensive test suite across 354 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **2,964 Automated Tests** | Comprehensive test suite across 357 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 17, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 107 domain model records, 119 port interfaces, and 104 controllers across 899 Java classes — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **2,888 automated tests** across 354 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **2,964 automated tests** across 357 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
