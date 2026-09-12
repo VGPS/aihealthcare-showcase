@@ -13,8 +13,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +43,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-12
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -65,17 +63,20 @@ public class SentimentDashboardController {
     private final SubscriberPort subscriberPort;
     private final NewsArticleRepository articleRepository;
     private final AnalystNotePort analystNotePort;
+    private final TierResolver tierResolver;
 
     public SentimentDashboardController(AnalyzeCompanySentimentUseCase sentimentUseCase,
                                         SubscriberPort subscriberPort,
                                         NewsArticleRepository articleRepository,
-                                        AnalystNotePort analystNotePort) {
-        log.debug("SentimentDashboardController() | sentimentUseCase={}, subscriberPort={}, articleRepository={}, analystNotePort={}",
-                  sentimentUseCase, subscriberPort, articleRepository, analystNotePort);
+                                        AnalystNotePort analystNotePort,
+                                        TierResolver tierResolver) {
+        log.debug("SentimentDashboardController() | sentimentUseCase={}, subscriberPort={}, articleRepository={}, analystNotePort={}, tierResolver={}",
+                  sentimentUseCase, subscriberPort, articleRepository, analystNotePort, tierResolver);
         this.sentimentUseCase = sentimentUseCase;
         this.subscriberPort = subscriberPort;
         this.articleRepository = articleRepository;
         this.analystNotePort = analystNotePort;
+        this.tierResolver = tierResolver;
     }
 
     /**
@@ -284,7 +285,7 @@ public class SentimentDashboardController {
 
     private boolean isEnterpriseTier(Principal principal) {
         if (principal == null) return false;
-        if (isAdmin(principal)) return true;
+        if (tierResolver.isAdmin(principal)) return true;
         Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
         if (sub.isEmpty()) return false;
         SubscriptionTier tier = sub.get().tier();
@@ -295,7 +296,7 @@ public class SentimentDashboardController {
         if (principal == null) {
             return false;
         }
-        if (isAdmin(principal)) {
+        if (tierResolver.isAdmin(principal)) {
             return true;
         }
         Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
@@ -303,17 +304,6 @@ public class SentimentDashboardController {
             SubscriptionTier tier = subscriber.get().tier();
             return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
                     || tier == SubscriptionTier.ENTERPRISE;
-        }
-        return false;
-    }
-
-    private boolean isAdmin(Principal principal) {
-        if (principal instanceof Authentication auth) {
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    return true;
-                }
-            }
         }
         return false;
     }

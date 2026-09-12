@@ -12,7 +12,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.port.PrivateFundingPort
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.RegulatoryTrackerRepository;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.SecondaryNewsCheckPort;
-import lombok.extern.slf4j.Slf4j;
+import com.wgblackmon.aihealthcare.domain.service.DomainLogger;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -47,10 +47,11 @@ import java.util.regex.Pattern;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-09-07  added regulatory tracker, private funding, and deal terms enrichment
+ * @updated 2026-09-11
  */
-@Slf4j
 public class MarketDigestService implements ProduceMarketDigestUseCase {
+
+    private static final DomainLogger log = new DomainLogger(MarketDigestService.class);
 
     static final int DEDUP_LOOKBACK_DAYS = 7;
 

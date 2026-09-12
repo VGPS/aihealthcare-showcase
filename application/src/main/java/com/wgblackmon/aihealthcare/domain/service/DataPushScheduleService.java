@@ -7,7 +7,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AppUserPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DataAccessAuditPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DataPushSchedulePort;
 import com.wgblackmon.aihealthcare.infrastructure.enterprise.push.CronScheduleCalculator;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -27,10 +26,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-11
  */
-@Slf4j
 public class DataPushScheduleService implements ManageDataPushSchedulesUseCase {
+
+    private static final DomainLogger log = new DomainLogger(DataPushScheduleService.class);
 
     private final DataPushSchedulePort schedulePort;
     private final DataAccessAuditPort auditPort;

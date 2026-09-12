@@ -4,7 +4,6 @@ import com.wgblackmon.aihealthcare.domain.model.AiSearchResult;
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.ModelInfo;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductAiSearchUseCase;
@@ -18,15 +17,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
+import java.security.Principal;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,6 +78,9 @@ class AiSearchControllerTest {
     @MockitoBean
     private UsageTrackingPort usageTrackingPort;
 
+    @MockBean
+    private TierResolver tierResolver;
+
     private static final List<ModelInfo> DEFAULT_MODELS = List.of(
             new ModelInfo("Claude", "claude-sonnet-4-6"),
             new ModelInfo("GPT", "gpt-4o"),
@@ -100,15 +103,14 @@ class AiSearchControllerTest {
     }
 
     private void stubSubscriberTier(String email) {
-        Subscriber subscriber = new Subscriber(email, "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
-        when(subscriberPort.findByEmail(email)).thenReturn(Optional.of(subscriber));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         UsageRecord usage = new UsageRecord(email, "2026-06", 5, 200);
         when(usageTrackingPort.getOrCreateUsage(eq(email), anyString())).thenReturn(usage);
         when(tierGatingService.canQuery(any(UsageRecord.class))).thenReturn(true);
     }
 
     private void stubFreeTier() {
-        when(subscriberPort.findByEmail(any())).thenReturn(Optional.empty());
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.FREE);
     }
 
     private AiSearchResult buildSampleResult(String query) {
@@ -219,8 +221,7 @@ class AiSearchControllerTest {
     @Test
     @WithMockUser(username = "subscriber@example.com")
     void search_subscriberTier_limitReached_showsWarning() throws Exception {
-        Subscriber subscriber = new Subscriber("subscriber@example.com", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
-        when(subscriberPort.findByEmail("subscriber@example.com")).thenReturn(Optional.of(subscriber));
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         UsageRecord exhausted = new UsageRecord("subscriber@example.com", "2026-06", 200, 200);
         when(usageTrackingPort.getOrCreateUsage(eq("subscriber@example.com"), anyString())).thenReturn(exhausted);
         when(tierGatingService.canQuery(any(UsageRecord.class))).thenReturn(false);

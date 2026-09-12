@@ -11,8 +11,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.web.dto.TrendSnapshotSummary;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,7 +46,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -67,13 +65,16 @@ public class TrendHistoryController {
 
     private final DetectTrendsUseCase detectTrendsUseCase;
     private final SubscriberPort subscriberPort;
+    private final TierResolver tierResolver;
 
     public TrendHistoryController(DetectTrendsUseCase detectTrendsUseCase,
-                                  SubscriberPort subscriberPort) {
-        log.debug("TrendHistoryController() | detectTrendsUseCase={}, subscriberPort={}",
-                  detectTrendsUseCase, subscriberPort);
+                                  SubscriberPort subscriberPort,
+                                  TierResolver tierResolver) {
+        log.debug("TrendHistoryController() | detectTrendsUseCase={}, subscriberPort={}, tierResolver={}",
+                  detectTrendsUseCase, subscriberPort, tierResolver);
         this.detectTrendsUseCase = detectTrendsUseCase;
         this.subscriberPort = subscriberPort;
+        this.tierResolver = tierResolver;
     }
 
     /**
@@ -315,7 +316,7 @@ public class TrendHistoryController {
         if (principal == null) {
             return false;
         }
-        if (isAdmin(principal)) {
+        if (tierResolver.isAdmin(principal)) {
             return true;
         }
         Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
@@ -327,14 +328,4 @@ public class TrendHistoryController {
                 || tier == SubscriptionTier.ENTERPRISE;
     }
 
-    private boolean isAdmin(Principal principal) {
-        if (principal instanceof Authentication auth) {
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

@@ -1,10 +1,12 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
 import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -16,7 +18,10 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -42,6 +47,14 @@ class TrendHistoryControllerTest {
 
     @MockitoBean
     private SubscriberPort subscriberPort;
+
+    @MockitoBean
+    private TierResolver tierResolver;
+
+    @BeforeEach
+    void setUp() {
+        when(subscriberPort.findByEmail(anyString())).thenReturn(Optional.empty());
+    }
 
     @Test
     @WithMockUser
@@ -85,6 +98,7 @@ class TrendHistoryControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void historyPage_adminGetsFullAccess() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         List<TrendSnapshot> manySnapshots = buildSnapshots(6);
         when(detectTrendsUseCase.getAllSnapshots()).thenReturn(manySnapshots);
 

@@ -12,7 +12,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,7 +45,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-09-06
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -62,20 +61,24 @@ public class WatchlistController {
     private final WatchlistMatchPort watchlistMatchPort;
     private final SubscriberPort subscriberPort;
     private final NewsArticleRepository articleRepository;
+    private final TierResolver tierResolver;
 
     public WatchlistController(WatchlistPort watchlistPort,
                                 WatchlistMatchPort watchlistMatchPort,
                                 SubscriberPort subscriberPort,
-                                NewsArticleRepository articleRepository) {
-        log.debug("WatchlistController() | watchlistPort={}, watchlistMatchPort={}, subscriberPort={}, articleRepository={}",
+                                NewsArticleRepository articleRepository,
+                                TierResolver tierResolver) {
+        log.debug("WatchlistController() | watchlistPort={}, watchlistMatchPort={}, subscriberPort={}, articleRepository={}, tierResolver={}",
                 watchlistPort.getClass().getSimpleName(),
                 watchlistMatchPort.getClass().getSimpleName(),
                 subscriberPort.getClass().getSimpleName(),
-                articleRepository.getClass().getSimpleName());
+                articleRepository.getClass().getSimpleName(),
+                tierResolver.getClass().getSimpleName());
         this.watchlistPort = watchlistPort;
         this.watchlistMatchPort = watchlistMatchPort;
         this.subscriberPort = subscriberPort;
         this.articleRepository = articleRepository;
+        this.tierResolver = tierResolver;
     }
 
     /**
@@ -302,7 +305,7 @@ public class WatchlistController {
             log.debug("hasWatchlistAccess() | return=false (no principal)");
             return false;
         }
-        if (isAdmin(principal)) {
+        if (tierResolver.isAdmin(principal)) {
             log.debug("hasWatchlistAccess() | return=true (admin)");
             return true;
         }
@@ -314,11 +317,4 @@ public class WatchlistController {
         return result;
     }
 
-    private boolean isAdmin(Principal principal) {
-        if (principal instanceof Authentication auth) {
-            return auth.getAuthorities().stream()
-                    .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
-        }
-        return false;
-    }
 }

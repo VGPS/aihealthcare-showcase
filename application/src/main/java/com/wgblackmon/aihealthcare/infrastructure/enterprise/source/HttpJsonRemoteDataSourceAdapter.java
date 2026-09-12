@@ -26,7 +26,7 @@ import java.util.*;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-11
  */
 @Slf4j
 @Component
@@ -65,7 +65,7 @@ public class HttpJsonRemoteDataSourceAdapter implements EnterpriseDataSourcePort
                         new DataParameter("connectionId", "Connection ID", "STRING", true, null, List.of()),
                         new DataParameter("path", "URL path suffix", "STRING", false, null, List.of())
                 ),
-                100, 10000, "NONE", true
+                100, 10000, "NONE", false
         );
         log.debug("describe() | return={}", result.feedId());
         return result;

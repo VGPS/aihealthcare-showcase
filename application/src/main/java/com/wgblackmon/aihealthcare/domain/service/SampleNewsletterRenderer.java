@@ -4,7 +4,6 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRun;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterRunStatus;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -31,10 +30,11 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-06
- * @updated 2026-08-06
+ * @updated 2026-09-11
  */
-@Slf4j
 public class SampleNewsletterRenderer {
+
+    private static final DomainLogger log = new DomainLogger(SampleNewsletterRenderer.class);
 
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy");

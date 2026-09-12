@@ -2,7 +2,6 @@ package com.wgblackmon.aihealthcare.domain.service;
 
 import com.wgblackmon.aihealthcare.domain.model.ResearchPlan;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiReportPort;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,10 +34,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-04
- * @updated 2026-05-04
+ * @updated 2026-09-11
  */
-@Slf4j
 public class ResearchPlanningService {
+
+    private static final DomainLogger log = new DomainLogger(ResearchPlanningService.class);
 
     private final AiReportPort aiReportPort;
     private final String       planPromptTemplate;

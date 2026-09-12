@@ -12,8 +12,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleScoringPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSnapshotPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSummaryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendTopicExtractionPort;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -46,10 +44,11 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-07-22
- * @updated 2026-07-29
+ * @updated 2026-09-11
  */
-@Slf4j
 public class TrendOrchestrationService implements DetectTrendsUseCase {
+
+    private static final DomainLogger log = new DomainLogger(TrendOrchestrationService.class);
 
     private static final int RECENT_WINDOW_DAYS = 30;
     private static final int PRIOR_WINDOW_START = 31;

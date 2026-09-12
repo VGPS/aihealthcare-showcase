@@ -5,8 +5,6 @@ import com.wgblackmon.aihealthcare.domain.model.CompanySentiment;
 import com.wgblackmon.aihealthcare.domain.model.DailyBriefingData;
 import com.wgblackmon.aihealthcare.domain.model.SentimentLabel;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
@@ -23,10 +21,11 @@ import java.time.format.DateTimeFormatter;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-09-11
  */
-@Slf4j
 public class DailyBriefingRenderer {
+
+    private static final DomainLogger log = new DomainLogger(DailyBriefingRenderer.class);
 
     private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("MMMM d, yyyy")

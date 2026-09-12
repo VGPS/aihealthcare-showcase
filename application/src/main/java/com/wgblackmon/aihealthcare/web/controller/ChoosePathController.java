@@ -8,6 +8,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.StripeProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,7 +30,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-07-20
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -75,6 +76,7 @@ public class ChoosePathController {
      * @param principal the authenticated user.
      * @return redirect to login (FREE) or pricing (SUBSCRIBER).
      */
+    @Transactional
     @PostMapping("/choose-path")
     public String choosePath(@RequestParam String choice, Principal principal) {
         log.debug("choosePath() | choice={}, principal={}", choice, principal.getName());

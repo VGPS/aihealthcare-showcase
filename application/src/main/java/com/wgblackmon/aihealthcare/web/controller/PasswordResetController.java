@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.exception.InvalidResetTokenException;
 import com.wgblackmon.aihealthcare.domain.port.inbound.PasswordResetUseCase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-17
- * @updated 2026-08-17
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -96,6 +97,7 @@ public class PasswordResetController {
      * @param model           Thymeleaf model for error feedback.
      * @return redirect to login on success, or "reset-password" view on error.
      */
+    @Transactional
     @PostMapping("/reset-password")
     public String resetPassword(@RequestParam String token,
                                 @RequestParam String newPassword,

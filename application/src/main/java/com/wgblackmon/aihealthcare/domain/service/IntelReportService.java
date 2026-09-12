@@ -9,8 +9,6 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.GenerateIntelReportUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.IntelReportPort;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -33,11 +31,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-09-11
  */
-@Slf4j
 public class IntelReportService implements GenerateIntelReportUseCase {
 
+    private static final DomainLogger log = new DomainLogger(IntelReportService.class);
     private static final int MAX_SOURCES = 30;
 
     private final ConductResearchUseCase researchUseCase;

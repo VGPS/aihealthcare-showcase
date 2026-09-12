@@ -1,7 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
@@ -19,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,6 +59,9 @@ class ArticleControllerTest {
     @MockitoBean
     private TierGatingService tierGatingService;
 
+    @MockitoBean
+    private TierResolver tierResolver;
+
     private NewsArticle sampleArticle(String id, String title) {
         return new NewsArticle(
                 id, title, URI.create("https://example.com/" + id),
@@ -70,6 +71,7 @@ class ArticleControllerTest {
 
     @Test
     void listArticles_noHeader_defaultsToFreeTierGating() throws Exception {
+        when(tierResolver.resolveTier((String) null)).thenReturn(SubscriptionTier.FREE);
         when(tierGatingService.archiveDaysFor(SubscriptionTier.FREE)).thenReturn(7);
         when(ingestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare"), eq(7)))
                 .thenReturn(List.of(sampleArticle("a1", "Article 1")));
@@ -84,8 +86,7 @@ class ArticleControllerTest {
 
     @Test
     void listArticles_freeSubscriber_usesArchiveLimit() throws Exception {
-        Subscriber free = new Subscriber("free@test.com", "Free User", true, Instant.now(), SubscriptionTier.FREE, null, null, null);
-        when(subscriberPort.findByEmail("free@test.com")).thenReturn(Optional.of(free));
+        when(tierResolver.resolveTier("free@test.com")).thenReturn(SubscriptionTier.FREE);
         when(tierGatingService.archiveDaysFor(SubscriptionTier.FREE)).thenReturn(7);
         when(ingestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare"), eq(7)))
                 .thenReturn(List.of(sampleArticle("a1", "Recent Article")));
@@ -101,8 +102,7 @@ class ArticleControllerTest {
 
     @Test
     void listArticles_subscriberTier_usesUnlimitedArchive() throws Exception {
-        Subscriber subscriber = new Subscriber("subscriber@test.com", "Subscriber User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null);
-        when(subscriberPort.findByEmail("subscriber@test.com")).thenReturn(Optional.of(subscriber));
+        when(tierResolver.resolveTier("subscriber@test.com")).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(tierGatingService.archiveDaysFor(SubscriptionTier.SUBSCRIBER)).thenReturn(0);
         when(ingestionPort.fetchArticles(eq("AI Healthcare"), eq(20)))
                 .thenReturn(List.of(sampleArticle("a1", "All Articles")));
@@ -118,6 +118,7 @@ class ArticleControllerTest {
 
     @Test
     void listArticles_freeTier_respectsLimitParam() throws Exception {
+        when(tierResolver.resolveTier((String) null)).thenReturn(SubscriptionTier.FREE);
         when(tierGatingService.archiveDaysFor(SubscriptionTier.FREE)).thenReturn(7);
         when(ingestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare"), eq(7)))
                 .thenReturn(List.of(
@@ -134,7 +135,7 @@ class ArticleControllerTest {
 
     @Test
     void listArticles_unknownEmail_defaultsToFree() throws Exception {
-        when(subscriberPort.findByEmail("unknown@test.com")).thenReturn(Optional.empty());
+        when(tierResolver.resolveTier("unknown@test.com")).thenReturn(SubscriptionTier.FREE);
         when(tierGatingService.archiveDaysFor(SubscriptionTier.FREE)).thenReturn(7);
         when(ingestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare"), eq(7)))
                 .thenReturn(List.of());

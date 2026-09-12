@@ -18,8 +18,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchExportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ResearchRunPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SourceRetrievalPort;
-import lombok.extern.slf4j.Slf4j;
-
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -62,10 +60,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 2.2
  * @since   2026-05-04
- * @updated 2026-09-07
+ * @updated 2026-09-11
  */
-@Slf4j
 public class ResearchOrchestratorService implements ConductResearchUseCase, CompareVendorsUseCase {
+
+    private static final DomainLogger log = new DomainLogger(ResearchOrchestratorService.class);
 
     private final ResearchMode              defaultMode;
     private final SourceRetrievalPort       legacyAdapter;

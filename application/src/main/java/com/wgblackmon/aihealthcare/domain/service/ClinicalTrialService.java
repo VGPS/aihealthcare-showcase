@@ -6,7 +6,6 @@ import com.wgblackmon.aihealthcare.domain.model.ClinicalTrialStatus;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorClinicalTrialsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialPort;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +24,11 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-23
- * @updated 2026-07-23
+ * @updated 2026-09-11
  */
-@Slf4j
 public class ClinicalTrialService implements MonitorClinicalTrialsUseCase {
+
+    private static final DomainLogger log = new DomainLogger(ClinicalTrialService.class);
 
     private final ClinicalTrialPort clinicalTrialPort;
     private final ClinicalTrialHarvestingPort clinicalTrialHarvestingPort;

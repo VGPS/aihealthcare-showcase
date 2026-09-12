@@ -2,7 +2,9 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.TrendDirection;
+import java.security.Principal;
 import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
@@ -55,6 +57,9 @@ class TrendControllerTest {
 
     @MockitoBean
     private TrendDetectionService trendDetectionService;
+
+    @MockitoBean
+    private TierResolver tierResolver;
 
     @Test
     @WithMockUser
@@ -110,6 +115,8 @@ class TrendControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void trendsPage_adminGetsFullAccess() throws Exception {
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         TrendSignal rising = new TrendSignal("genomics", 15, 3, 2,
                 5.0, TrendDirection.RISING, Instant.now());
         TrendSnapshot snapshot = new TrendSnapshot(
@@ -160,6 +167,8 @@ class TrendControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void trendsPage_risingSignalWithScoredArticles() throws Exception {
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         ScoredArticle scored = new ScoredArticle("a1", "FDA clears AI tool", 8,
                 "Major regulatory milestone", "radiology ai");
         TrendSignal rising = new TrendSignal("radiology ai", 10, 3, 2,

@@ -51,6 +51,9 @@ class PublicCompanyControllerTest {
     @MockitoBean
     private ApiKeyPort apiKeyPort;
 
+    @MockitoBean
+    private TierResolver tierResolver;
+
     @Test
     void directory_returnsOkWithCompanies() throws Exception {
         HealthcareAiCompany c = sampleCompany();
@@ -143,9 +146,9 @@ class PublicCompanyControllerTest {
     @Test
     @WithMockUser(username = "admin@test.com", roles = {"ADMIN"})
     void exportCsv_adminReturnsCSVContentType() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
         when(browseCompaniesUseCase.listCompanies()).thenReturn(List.of(sampleCompany()));
         when(browseCompaniesUseCase.computeSignals(any())).thenReturn(Map.of());
-        when(subscriberPort.findByEmail(anyString())).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/directory/export.csv"))
                .andExpect(status().isOk())

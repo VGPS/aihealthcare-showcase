@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.ClinicalTrial;
 import com.wgblackmon.aihealthcare.domain.model.ClinicalTrialPhase;
 import com.wgblackmon.aihealthcare.domain.model.ClinicalTrialStatus;
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorClinicalTrialsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
@@ -16,6 +17,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.security.Principal;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -53,8 +55,13 @@ class ClinicalTrialControllerTest {
     @MockBean
     private PipelineAsyncRunner asyncRunner;
 
+    @MockBean
+    private TierResolver tierResolver;
+
     @BeforeEach
     void setUpAsyncRunner() {
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.FREE);
+        when(tierResolver.isAdmin(any())).thenReturn(false);
         when(asyncRunner.runAsync(anyString(), any(Runnable.class)))
                 .thenAnswer(invocation -> {
                     Runnable work = invocation.getArgument(1);
@@ -137,6 +144,8 @@ class ClinicalTrialControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void clinicalTrialsPage_adminGetsFullAccess() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(clinicalTrialsUseCase.getRecentTrials(50)).thenReturn(List.of());
 
         mockMvc.perform(get("/dashboard/clinical-trials"))

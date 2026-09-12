@@ -5,14 +5,10 @@ import com.wgblackmon.aihealthcare.domain.model.LawChangeEvent;
 import com.wgblackmon.aihealthcare.domain.model.LawStatus;
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageStateLawsUseCase;
-import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +41,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-06
- * @updated 2026-09-06
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -55,15 +51,15 @@ public class StateLawController {
     private static final int FREE_DETAIL_LIMIT = 5;
 
     private final ManageStateLawsUseCase legislationUseCase;
-    private final SubscriberPort subscriberPort;
+    private final TierResolver tierResolver;
 
     public StateLawController(ManageStateLawsUseCase legislationUseCase,
-                              SubscriberPort subscriberPort) {
-        log.debug("StateLawController() | legislationUseCase={}, subscriberPort={}",
+                              TierResolver tierResolver) {
+        log.debug("StateLawController() | legislationUseCase={}, tierResolver={}",
                   legislationUseCase.getClass().getSimpleName(),
-                  subscriberPort.getClass().getSimpleName());
+                  tierResolver.getClass().getSimpleName());
         this.legislationUseCase = legislationUseCase;
-        this.subscriberPort = subscriberPort;
+        this.tierResolver = tierResolver;
     }
 
     /**
@@ -157,11 +153,11 @@ public class StateLawController {
             return "redirect:/legislation";
         }
 
-        SubscriptionTier tier = resolveTier(principal);
+        SubscriptionTier tier = tierResolver.resolveTier(principal);
         boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
                 || tier == SubscriptionTier.DEMO
                 || tier == SubscriptionTier.ENTERPRISE
-                || isAdmin(principal);
+                || tierResolver.isAdmin(principal);
 
         StateLaw law = found.get();
         Map<String, String> formattedDates = buildFormattedDatesForLaw(law);
@@ -268,35 +264,6 @@ public class StateLawController {
         legislationUseCase.reviewChange(id);
         log.debug("reviewChangeAndRedirect() | return=redirect:/legislation/changes");
         return "redirect:/legislation/changes";
-    }
-
-    // ── Tier resolution helpers ──────────────────────────────────────────────
-
-    private SubscriptionTier resolveTier(Principal principal) {
-        log.debug("resolveTier() | principal={}", principal != null ? principal.getName() : "null");
-        if (principal == null) {
-            log.debug("resolveTier() | return={}", SubscriptionTier.FREE);
-            return SubscriptionTier.FREE;
-        }
-        if (isAdmin(principal)) {
-            log.debug("resolveTier() | ADMIN role detected, return={}", SubscriptionTier.SUBSCRIBER);
-            return SubscriptionTier.SUBSCRIBER;
-        }
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        SubscriptionTier result = subscriber.map(Subscriber::tier).orElse(SubscriptionTier.FREE);
-        log.debug("resolveTier() | return={}", result);
-        return result;
-    }
-
-    private boolean isAdmin(Principal principal) {
-        if (principal instanceof Authentication auth) {
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     // ── Date formatting helpers ──────────────────────────────────────────────

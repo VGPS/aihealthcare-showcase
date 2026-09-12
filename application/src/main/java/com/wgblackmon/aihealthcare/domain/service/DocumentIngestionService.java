@@ -5,8 +5,6 @@ import com.wgblackmon.aihealthcare.domain.model.DocumentIngestionResult;
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestDocumentsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DocumentVectorPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FileParserPort;
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -37,10 +35,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-04-27
- * @updated 2026-08-25
+ * @updated 2026-09-11
  */
-@Slf4j
 public class DocumentIngestionService implements IngestDocumentsUseCase {
+
+    private static final DomainLogger log = new DomainLogger(DocumentIngestionService.class);
 
     private final List<FileParserPort> parsers;
     private final DocumentVectorPort   vectorPort;

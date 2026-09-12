@@ -3,7 +3,6 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.ArticleSearchCriteria;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.TrendSignal;
 import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
@@ -13,7 +12,6 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.SearchArticlesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
-import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistPort;
@@ -27,9 +25,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 
 import java.security.Principal;
 import java.time.Instant;
@@ -68,7 +63,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.5
  * @since   2026-05-04
- * @updated 2026-08-23
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -84,7 +79,6 @@ public class DashboardController {
     private final ArticleIngestionPort articleIngestionPort;
     private final NewsTopicProperties newsTopicProperties;
     private final TopicSummaryPort topicSummaryPort;
-    private final SubscriberPort subscriberPort;
     private final TierGatingService tierGatingService;
     private final SearchArticlesUseCase searchUseCase;
     private final WatchlistPort watchlistPort;
@@ -92,22 +86,22 @@ public class DashboardController {
     private final DetectTrendsUseCase detectTrendsUseCase;
     private final MonitorRegulatoryEventsUseCase regulatoryUseCase;
     private final TrendDetectionService trendDetectionService;
+    private final TierResolver tierResolver;
 
     public DashboardController(ArticleIngestionPort articleIngestionPort,
                                NewsTopicProperties newsTopicProperties,
                                TopicSummaryPort topicSummaryPort,
-                               SubscriberPort subscriberPort,
                                TierGatingService tierGatingService,
                                SearchArticlesUseCase searchUseCase,
                                WatchlistPort watchlistPort,
                                WatchlistMatchPort watchlistMatchPort,
                                DetectTrendsUseCase detectTrendsUseCase,
                                MonitorRegulatoryEventsUseCase regulatoryUseCase,
-                               TrendDetectionService trendDetectionService) {
+                               TrendDetectionService trendDetectionService,
+                               TierResolver tierResolver) {
         this.articleIngestionPort    = articleIngestionPort;
         this.newsTopicProperties     = newsTopicProperties;
         this.topicSummaryPort        = topicSummaryPort;
-        this.subscriberPort          = subscriberPort;
         this.tierGatingService       = tierGatingService;
         this.searchUseCase           = searchUseCase;
         this.watchlistPort           = watchlistPort;
@@ -115,6 +109,7 @@ public class DashboardController {
         this.detectTrendsUseCase     = detectTrendsUseCase;
         this.regulatoryUseCase       = regulatoryUseCase;
         this.trendDetectionService   = trendDetectionService;
+        this.tierResolver            = tierResolver;
     }
 
     /**
@@ -132,7 +127,7 @@ public class DashboardController {
         log.debug("dashboard() | principal={}, q={}", principal != null ? principal.getName() : "anonymous", q);
 
         String userEmail = principal != null ? principal.getName() : null;
-        SubscriptionTier tier = resolveTier(principal);
+        SubscriptionTier tier = tierResolver.resolveTier(principal);
 
         // --- Inline Search (if query provided) ---
         // Searches title OR bodyText (two queries merged + deduped) so the user
@@ -348,8 +343,8 @@ public class DashboardController {
         log.debug("articles() | topic={}, sort={}", topic, sort);
 
         // Gate "New AI Healthcare Companies" topic to SUBSCRIBER tier
-        if ("New AI Healthcare Companies".equals(topic) && !isAdmin(principal)) {
-            SubscriptionTier tier = resolveTier(principal);
+        if ("New AI Healthcare Companies".equals(topic) && !tierResolver.isAdmin(principal)) {
+            SubscriptionTier tier = tierResolver.resolveTier(principal);
             if (tier != SubscriptionTier.SUBSCRIBER) {
                 log.debug("articles() | access denied for FREE tier user on topic={}", topic);
                 model.addAttribute("topic", topic);
@@ -416,7 +411,7 @@ public class DashboardController {
             Model model) {
         log.debug("newsListing() | sort={}, sortBy={}, principal={}", sort, sortBy, principal != null ? principal.getName() : "anonymous");
 
-        SubscriptionTier tier = resolveTier(principal);
+        SubscriptionTier tier = tierResolver.resolveTier(principal);
         int archiveDays = tierGatingService.archiveDaysFor(tier);
         log.debug("newsListing() | resolved tier={}, archiveDays={}", tier, archiveDays);
 
@@ -575,62 +570,6 @@ public class DashboardController {
         return result;
     }
 
-    /**
-     * Resolves the subscription tier for the currently authenticated user.
-     * Returns {@link SubscriptionTier#FREE} if the user is anonymous or has
-     * no subscriber record.
-     *
-     * @param principal the Spring Security principal; may be {@code null} for anonymous access
-     * @return the subscriber's tier, defaulting to FREE
-     */
-    private boolean isAdmin(Principal principal) {
-        log.debug("isAdmin() | principal={}", principal != null ? principal.getName() : "null");
-
-        if (principal instanceof Authentication auth) {
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    log.debug("isAdmin() | return=true");
-                    return true;
-                }
-            }
-        }
-
-        log.debug("isAdmin() | return=false");
-        return false;
-    }
-
-    private SubscriptionTier resolveTier(Principal principal) {
-        log.debug("resolveTier() | principal={}", principal != null ? principal.getName() : "null");
-
-        if (principal == null) {
-            log.debug("resolveTier() | return={}", SubscriptionTier.FREE);
-            return SubscriptionTier.FREE;
-        }
-
-        // ADMIN users get full access — bypass subscriber lookup
-        if (principal instanceof Authentication auth) {
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    log.debug("resolveTier() | ADMIN role detected, return={}", SubscriptionTier.SUBSCRIBER);
-                    return SubscriptionTier.SUBSCRIBER;
-                }
-            }
-        }
-
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        SubscriptionTier result = subscriber.map(Subscriber::tier).orElse(SubscriptionTier.FREE);
-
-        log.debug("resolveTier() | return={}", result);
-        return result;
-    }
-
-    /**
-     * Sorts the list in-place by {@code publishedAt}.
-     * Null timestamps sort to the end in both ascending and descending directions.
-     *
-     * @param articles  mutable list to sort in-place
-     * @param ascending true for oldest-first, false for newest-first
-     */
     private String stripHtml(String text) {
         if (text == null || text.isEmpty()) {
             return text;

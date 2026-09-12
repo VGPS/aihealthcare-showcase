@@ -15,8 +15,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.EvaluationResultPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PromptVariantPort;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,10 +34,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-17
- * @updated 2026-04-17
+ * @updated 2026-09-11
  */
-@Slf4j
 public class PromptEvaluationService implements EvaluatePromptsUseCase {
+
+    private static final DomainLogger log = new DomainLogger(PromptEvaluationService.class);
 
     private final PromptVariantPort    variantPort;
     private final AiSummarizationPort  summarizationPort;

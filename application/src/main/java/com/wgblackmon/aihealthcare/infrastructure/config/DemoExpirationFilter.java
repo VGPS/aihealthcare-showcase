@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -34,19 +35,22 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-20
- * @updated 2026-08-07
+ * @updated 2026-09-11
  */
 @Slf4j
 public class DemoExpirationFilter extends OncePerRequestFilter {
 
     private final AppUserPort appUserPort;
     private final SubscriberPort subscriberPort;
+    private final TransactionTemplate transactionTemplate;
 
-    public DemoExpirationFilter(AppUserPort appUserPort, SubscriberPort subscriberPort) {
+    public DemoExpirationFilter(AppUserPort appUserPort, SubscriberPort subscriberPort,
+                                TransactionTemplate transactionTemplate) {
         log.debug("DemoExpirationFilter() | appUserPort={}, subscriberPort={}",
                   appUserPort.getClass().getSimpleName(), subscriberPort.getClass().getSimpleName());
         this.appUserPort = appUserPort;
         this.subscriberPort = subscriberPort;
+        this.transactionTemplate = transactionTemplate;
     }
 
     @Override
@@ -109,20 +113,20 @@ public class DemoExpirationFilter extends OncePerRequestFilter {
 
             log.info("doFilterInternal() | DEMO expired for user: {}", LogSanitizer.maskEmail(email));
 
-            // Transition app user to FREE_PENDING
-            AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
-                    user.role(), user.enabled(), SubscriptionTier.FREE_PENDING, user.demoExpiresAt());
-            appUserPort.save(updated);
+            transactionTemplate.executeWithoutResult(status -> {
+                AppUser updated = new AppUser(user.email(), user.passwordHash(), user.displayName(),
+                        user.role(), user.enabled(), SubscriptionTier.FREE_PENDING, user.demoExpiresAt());
+                appUserPort.save(updated);
 
-            // Transition subscriber to FREE_PENDING
-            Optional<Subscriber> subOpt = subscriberPort.findByEmail(email);
-            if (subOpt.isPresent()) {
-                Subscriber sub = subOpt.get();
-                Subscriber updatedSub = new Subscriber(sub.email(), sub.name(), sub.active(),
-                        sub.subscribedAt(), SubscriptionTier.FREE_PENDING,
-                        sub.unsubscribeToken(), sub.stripeCustomerId(), sub.stripeSubscriptionId());
-                subscriberPort.save(updatedSub);
-            }
+                Optional<Subscriber> subOpt = subscriberPort.findByEmail(email);
+                if (subOpt.isPresent()) {
+                    Subscriber sub = subOpt.get();
+                    Subscriber updatedSub = new Subscriber(sub.email(), sub.name(), sub.active(),
+                            sub.subscribedAt(), SubscriptionTier.FREE_PENDING,
+                            sub.unsubscribeToken(), sub.stripeCustomerId(), sub.stripeSubscriptionId());
+                    subscriberPort.save(updatedSub);
+                }
+            });
 
             response.sendRedirect(request.getContextPath() + "/choose-path");
             return;

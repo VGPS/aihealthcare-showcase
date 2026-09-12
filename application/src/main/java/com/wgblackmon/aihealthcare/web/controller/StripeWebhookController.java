@@ -17,6 +17,7 @@ import com.wgblackmon.aihealthcare.infrastructure.config.StripeProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,7 +53,7 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-23
- * @updated 2026-08-08
+ * @updated 2026-09-11
  */
 @Slf4j
 @RestController
@@ -89,6 +90,7 @@ public class StripeWebhookController {
         return result;
     }
 
+    @Transactional
     @PostMapping("/webhook")
     public ResponseEntity<String> handleWebhook(
             @RequestBody String payload,

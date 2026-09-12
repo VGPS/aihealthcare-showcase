@@ -9,6 +9,9 @@ import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,7 +47,10 @@ class DemoExpirationFilterTest {
     void setUp() {
         appUserPort = mock(AppUserPort.class);
         subscriberPort = mock(SubscriberPort.class);
-        filter = new DemoExpirationFilter(appUserPort, subscriberPort);
+        PlatformTransactionManager txManager = mock(PlatformTransactionManager.class);
+        when(txManager.getTransaction(any())).thenReturn(mock(TransactionStatus.class));
+        TransactionTemplate transactionTemplate = new TransactionTemplate(txManager);
+        filter = new DemoExpirationFilter(appUserPort, subscriberPort, transactionTemplate);
         filterChain = mock(FilterChain.class);
         SecurityContextHolder.clearContext();
     }

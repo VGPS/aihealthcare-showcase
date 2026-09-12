@@ -3,7 +3,6 @@ package com.wgblackmon.aihealthcare.domain.service;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.model.TierLimits;
 import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Domain service that evaluates feature access and usage limits per subscription tier.
@@ -19,10 +18,11 @@ import lombok.extern.slf4j.Slf4j;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-05-26
- * @updated 2026-08-04
+ * @updated 2026-09-11
  */
-@Slf4j
 public class TierGatingService {
+
+    private static final DomainLogger log = new DomainLogger(TierGatingService.class);
 
     private final TierLimits freeLimits;
     private final TierLimits subscriberLimits;

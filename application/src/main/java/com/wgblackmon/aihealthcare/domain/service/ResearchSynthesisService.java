@@ -6,8 +6,6 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AiReportPort;
 import com.wgblackmon.aihealthcare.domain.model.ResearchSection;
 import com.wgblackmon.aihealthcare.domain.model.RetrievedSource;
 import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,10 +32,11 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-04
- * @updated 2026-05-04
+ * @updated 2026-09-11
  */
-@Slf4j
 public class ResearchSynthesisService {
+
+    private static final DomainLogger log = new DomainLogger(ResearchSynthesisService.class);
 
     private final AiReportPort aiReportPort;
     private final String       synthesisPromptTemplate;

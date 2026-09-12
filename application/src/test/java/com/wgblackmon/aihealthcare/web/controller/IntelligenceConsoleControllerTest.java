@@ -8,6 +8,7 @@ import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -15,6 +16,12 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
+
+import java.security.Principal;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -54,9 +61,15 @@ class IntelligenceConsoleControllerTest {
     @MockitoBean
     private UsageTrackingPort usageTrackingPort;
 
+    @MockBean
+    private TierResolver tierResolver;
+
     @Test
     @WithMockUser(roles = "ADMIN")
     void console_adminAccess_returnsOk() throws Exception {
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
+        when(tierResolver.isAdmin(any())).thenReturn(true);
+
         mockMvc.perform(get("/admin/intelligence"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("intelligence-console"))
@@ -82,6 +95,8 @@ class IntelligenceConsoleControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void proxyPost_adminAccess_returns502WhenServiceDown() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
+
         mockMvc.perform(post("/admin/intelligence/api/v1/intelligence/chat")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -92,6 +107,8 @@ class IntelligenceConsoleControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void proxyGet_adminAccess_returns502WhenServiceDown() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
+
         mockMvc.perform(get("/admin/intelligence/api/v1/intelligence/synthesis/reports?days=7")
                         .with(csrf()))
                 .andExpect(status().is(502));

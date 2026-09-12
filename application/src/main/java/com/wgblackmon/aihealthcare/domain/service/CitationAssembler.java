@@ -2,8 +2,6 @@ package com.wgblackmon.aihealthcare.domain.service;
 
 import com.wgblackmon.aihealthcare.domain.model.RetrievedSource;
 import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,10 +21,11 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-04
- * @updated 2026-05-04
+ * @updated 2026-09-11
  */
-@Slf4j
 public class CitationAssembler {
+
+    private static final DomainLogger log = new DomainLogger(CitationAssembler.class);
 
     /**
      * Assemble a deduplicated, numbered citation list from the given sources.

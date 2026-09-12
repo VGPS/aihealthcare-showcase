@@ -11,8 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,7 +49,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-08-26
- * @updated 2026-08-27
+ * @updated 2026-09-11
  */
 @Slf4j
 @Controller
@@ -60,14 +58,18 @@ public class PublicCompanyController {
 
     private final BrowseCompaniesUseCase browseCompaniesUseCase;
     private final SubscriberPort subscriberPort;
+    private final TierResolver tierResolver;
 
     public PublicCompanyController(BrowseCompaniesUseCase browseCompaniesUseCase,
-                                    SubscriberPort subscriberPort) {
-        log.debug("PublicCompanyController() | browseCompaniesUseCase={}, subscriberPort={}",
+                                    SubscriberPort subscriberPort,
+                                    TierResolver tierResolver) {
+        log.debug("PublicCompanyController() | browseCompaniesUseCase={}, subscriberPort={}, tierResolver={}",
                   browseCompaniesUseCase.getClass().getSimpleName(),
-                  subscriberPort.getClass().getSimpleName());
+                  subscriberPort.getClass().getSimpleName(),
+                  tierResolver.getClass().getSimpleName());
         this.browseCompaniesUseCase = browseCompaniesUseCase;
         this.subscriberPort = subscriberPort;
+        this.tierResolver = tierResolver;
     }
 
     /**
@@ -243,7 +245,7 @@ public class PublicCompanyController {
     /** SUBSCRIBER / DEMO / ENTERPRISE / ADMIN can use Funded and Watch List tabs. */
     private boolean canUseAdvancedSort(Principal principal) {
         if (principal == null) return false;
-        if (isAdmin(principal)) return true;
+        if (tierResolver.isAdmin(principal)) return true;
         Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
         if (sub.isEmpty()) return false;
         SubscriptionTier tier = sub.get().tier();
@@ -254,20 +256,10 @@ public class PublicCompanyController {
     /** Only ENTERPRISE tier and ADMIN can download the CSV export. */
     private boolean canExport(Principal principal) {
         if (principal == null) return false;
-        if (isAdmin(principal)) return true;
+        if (tierResolver.isAdmin(principal)) return true;
         Optional<Subscriber> sub = subscriberPort.findByEmail(principal.getName());
         if (sub.isEmpty()) return false;
         return sub.get().tier() == SubscriptionTier.ENTERPRISE;
-    }
-
-    private boolean isAdmin(Principal principal) {
-        if (principal instanceof Authentication) {
-            Authentication auth = (Authentication) principal;
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) return true;
-            }
-        }
-        return false;
     }
 
     // ── Sorting ───────────────────────────────────────────────────────────────
@@ -348,7 +340,7 @@ public class PublicCompanyController {
             sb.append(",\"description\":\"").append(escapeJson(c.description())).append("\"");
         }
         if (c.domain() != null && !c.domain().isBlank()) {
-            sb.append(",\"url\":\"https://").append(c.domain()).append("\"");
+            sb.append(",\"url\":\"https://").append(escapeJson(c.domain())).append("\"");
         }
         if (c.foundedYear() != null) {
             sb.append(",\"foundingDate\":\"").append(c.foundedYear()).append("\"");
@@ -359,6 +351,7 @@ public class PublicCompanyController {
 
     private static String escapeJson(String s) {
         if (s == null) return "";
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
+        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "")
+                .replace("/", "\\/");
     }
 }

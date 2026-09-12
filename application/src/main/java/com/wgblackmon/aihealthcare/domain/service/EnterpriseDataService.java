@@ -3,8 +3,6 @@ package com.wgblackmon.aihealthcare.domain.service;
 import com.wgblackmon.aihealthcare.domain.model.*;
 import com.wgblackmon.aihealthcare.domain.port.inbound.RequestEnterpriseDataUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.*;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -31,10 +29,11 @@ import java.util.stream.Collectors;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-11
  */
-@Slf4j
 public class EnterpriseDataService implements RequestEnterpriseDataUseCase {
+
+    private static final DomainLogger log = new DomainLogger(EnterpriseDataService.class);
 
     private final Map<String, EnterpriseDataSourcePort> feedRegistry;
     private final DataJobPort dataJobPort;
@@ -92,6 +91,9 @@ public class EnterpriseDataService implements RequestEnterpriseDataUseCase {
             throw new IllegalArgumentException("Unknown feed: " + request.feedId());
         }
         DataFeed feed = source.describe();
+        if (!feed.active()) {
+            throw new IllegalArgumentException("Feed is not active: " + request.feedId());
+        }
 
         // Step 2: Tier check — ENTERPRISE required
         AppUser user = appUserPort.findByEmail(request.ownerEmail())

@@ -2,7 +2,7 @@ package com.wgblackmon.aihealthcare.domain.marketanalysis;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDataPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.PriceReactionPort;
-import lombok.extern.slf4j.Slf4j;
+import com.wgblackmon.aihealthcare.domain.service.DomainLogger;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -30,10 +30,11 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-28
- * @updated 2026-08-28
+ * @updated 2026-09-11
  */
-@Slf4j
 public class PriceReactionService {
+
+    private static final DomainLogger log = new DomainLogger(PriceReactionService.class);
 
     /** Covers the longest horizon (THREE_DAY) plus a buffer for late-running polls. */
     private static final Duration LOOKBACK = Duration.ofDays(5);

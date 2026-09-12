@@ -1,7 +1,6 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
@@ -9,18 +8,20 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.MetaDescriptionFetcher;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.RegulatoryEventEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.RegulatoryEventRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
+import java.security.Principal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,6 +65,15 @@ class LegalTimelineControllerTest {
 
     @MockitoBean
     private MetaDescriptionFetcher metaDescriptionFetcher;
+
+    @MockBean
+    private TierResolver tierResolver;
+
+    @BeforeEach
+    void setUp() {
+        when(tierResolver.isAdmin(any())).thenReturn(true);
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
+    }
 
     // --- 1. rendersDefaultView ---
 
@@ -184,8 +194,8 @@ class LegalTimelineControllerTest {
     @Test
     @WithMockUser
     void daysParam_365_respected() throws Exception {
-        when(subscriberPort.findByEmail("user"))
-                .thenReturn(Optional.of(new Subscriber("user", "User", true, Instant.now(), SubscriptionTier.SUBSCRIBER, null, null, null)));
+        when(tierResolver.isAdmin(any())).thenReturn(false);
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Legal"), eq(365)))
                 .thenReturn(List.of());
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Government Policy"), eq(365)))
@@ -203,8 +213,8 @@ class LegalTimelineControllerTest {
     @Test
     @WithMockUser
     void freeUser_cappedAt30Days() throws Exception {
-        when(subscriberPort.findByEmail("user"))
-                .thenReturn(Optional.of(new Subscriber("user", "User", true, Instant.now(), SubscriptionTier.FREE, null, null, null)));
+        when(tierResolver.isAdmin(any())).thenReturn(false);
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.FREE);
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Legal"), eq(30)))
                 .thenReturn(List.of());
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Government Policy"), eq(30)))
@@ -234,6 +244,8 @@ class LegalTimelineControllerTest {
     @Test
     @WithMockUser
     void freeUser_limitedAccess() throws Exception {
+        when(tierResolver.isAdmin(any())).thenReturn(false);
+        when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.FREE);
         stubAllSourcesEmpty(30);
 
         mockMvc.perform(get("/dashboard/legal"))
