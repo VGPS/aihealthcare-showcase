@@ -73,6 +73,7 @@ class IntelReportControllerTest {
     void listReports_subscriber_showsReports() throws Exception {
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(tierResolver.isAdmin(any())).thenReturn(false);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(intelReportUseCase.findAll()).thenReturn(List.of(
                 report("rpt-1", "Anthropic"),
                 report("rpt-2", "Tempus")));
@@ -89,6 +90,7 @@ class IntelReportControllerTest {
     void viewReport_existingReport_rendersDetailPage() throws Exception {
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(tierResolver.isAdmin(any())).thenReturn(false);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(intelReportUseCase.findById("rpt-1")).thenReturn(Optional.of(report("rpt-1", "Anthropic")));
 
         mockMvc.perform(get("/research/intel/rpt-1"))
@@ -102,6 +104,7 @@ class IntelReportControllerTest {
     void viewReport_notFound_returnsListWithError() throws Exception {
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(tierResolver.isAdmin(any())).thenReturn(false);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(intelReportUseCase.findById("missing")).thenReturn(Optional.empty());
         when(intelReportUseCase.findAll()).thenReturn(Collections.emptyList());
 
@@ -116,6 +119,7 @@ class IntelReportControllerTest {
     void generateReport_subscriber_redirectsToDetail() throws Exception {
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(tierResolver.isAdmin(any())).thenReturn(false);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(intelReportUseCase.generate("Anthropic healthcare", "sub@test.com"))
                 .thenReturn(report("rpt-new", "Anthropic healthcare"));
 
@@ -147,6 +151,7 @@ class IntelReportControllerTest {
     void generateReport_aiFailure_showsErrorOnListPage() throws Exception {
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(tierResolver.isAdmin(any())).thenReturn(false);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(intelReportUseCase.generate("bad query", "sub@test.com"))
                 .thenThrow(new RuntimeException("AI service unavailable"));
         when(intelReportUseCase.findAll()).thenReturn(Collections.emptyList());

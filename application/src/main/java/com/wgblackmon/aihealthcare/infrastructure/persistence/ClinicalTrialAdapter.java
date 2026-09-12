@@ -4,11 +4,11 @@ import com.wgblackmon.aihealthcare.domain.model.ClinicalTrial;
 import com.wgblackmon.aihealthcare.domain.model.ClinicalTrialPhase;
 import com.wgblackmon.aihealthcare.domain.model.ClinicalTrialStatus;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClinicalTrialPort;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +23,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-23
- * @updated 2026-07-23
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -136,13 +136,13 @@ public class ClinicalTrialAdapter implements ClinicalTrialPort {
         entity.setSponsor(truncate(trial.trialId(), trial.sponsor(), "sponsor", SPONSOR_MAX_LENGTH));
         entity.setStatus(trial.status().name());
         entity.setPhase(trial.phase() != null ? trial.phase().name() : null);
-        entity.setConditions(joinPipeDelimited(trial.conditions()));
+        entity.setConditions(PipeDelimitedUtils.join(trial.conditions()));
         entity.setBriefSummary(trial.briefSummary());
         entity.setSourceUrl(truncate(trial.trialId(), trial.sourceUrl(), "sourceUrl", SOURCE_URL_MAX_LENGTH));
         entity.setStudyType(trial.studyType());
         entity.setStartDate(trial.startDate());
         entity.setDiscoveredAt(trial.discoveredAt());
-        entity.setAiHealthcareKeywords(joinPipeDelimited(trial.aiHealthcareKeywords()));
+        entity.setAiHealthcareKeywords(PipeDelimitedUtils.join(trial.aiHealthcareKeywords()));
         return entity;
     }
 
@@ -174,34 +174,14 @@ public class ClinicalTrialAdapter implements ClinicalTrialPort {
                 entity.getSponsor(),
                 ClinicalTrialStatus.valueOf(entity.getStatus()),
                 entity.getPhase() != null ? ClinicalTrialPhase.valueOf(entity.getPhase()) : null,
-                splitPipeDelimited(entity.getConditions()),
+                PipeDelimitedUtils.split(entity.getConditions()),
                 entity.getBriefSummary(),
                 entity.getSourceUrl(),
                 entity.getStudyType(),
                 entity.getStartDate(),
                 entity.getDiscoveredAt(),
-                splitPipeDelimited(entity.getAiHealthcareKeywords())
+                PipeDelimitedUtils.split(entity.getAiHealthcareKeywords())
         );
     }
 
-    private String joinPipeDelimited(List<String> items) {
-        if (items == null || items.isEmpty()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < items.size(); i++) {
-            if (i > 0) {
-                sb.append("|");
-            }
-            sb.append(items.get(i));
-        }
-        return sb.toString();
-    }
-
-    private List<String> splitPipeDelimited(String pipeDelimited) {
-        if (pipeDelimited == null || pipeDelimited.isBlank()) {
-            return List.of();
-        }
-        return Arrays.asList(pipeDelimited.split("\\|"));
-    }
 }

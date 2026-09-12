@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wgblackmon.aihealthcare.domain.model.DataJobStatus;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import com.wgblackmon.aihealthcare.domain.model.DataPushSchedule;
 import com.wgblackmon.aihealthcare.domain.model.ExportFormat;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DataPushSchedulePort;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,7 +29,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -155,7 +155,7 @@ public class DataPushScheduleAdapter implements DataPushSchedulePort {
                 ExportFormat.valueOf(e.getFormat()),
                 e.getCronExpression(),
                 e.getZoneId(),
-                parseRecipients(e.getRecipients()),
+                PipeDelimitedUtils.split(e.getRecipients()),
                 e.isActive(),
                 e.getNextRunAt(),
                 e.getLastRunAt(),
@@ -165,13 +165,6 @@ public class DataPushScheduleAdapter implements DataPushSchedulePort {
                 e.getCreatedAt(),
                 e.getUpdatedAt()
         );
-    }
-
-    private List<String> parseRecipients(String pipeDelimited) {
-        if (pipeDelimited == null || pipeDelimited.isBlank()) {
-            return List.of();
-        }
-        return Arrays.asList(pipeDelimited.split("\\|"));
     }
 
     private String toJson(Map<String, String> map) {

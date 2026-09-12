@@ -2,7 +2,6 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
-import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.MetaDescriptionFetcher;
@@ -43,14 +42,14 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-29
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class LegalTimelineController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy")
+            DisplayFormats.SHORT_DATE
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final int FREE_MAX_DAYS = 30;
@@ -100,11 +99,7 @@ public class LegalTimelineController {
         log.debug("legalTimeline() | filter={}, days={}, principal={}", filter, days,
                   principal != null ? principal.getName() : "anonymous");
 
-        SubscriptionTier tier = tierResolver.resolveTier(principal);
-        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
-                || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE
-                || tierResolver.isAdmin(principal);
+        boolean fullAccess = tierResolver.hasFullAccess(principal);
 
         // Clamp FREE users to 30 days max
         if (!fullAccess && (days == 0 || days > FREE_MAX_DAYS)) {

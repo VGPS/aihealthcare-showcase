@@ -1,14 +1,15 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import com.wgblackmon.aihealthcare.domain.model.AnalystNote;
 import com.wgblackmon.aihealthcare.domain.model.Contradiction;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NoteTargetType;
 import com.wgblackmon.aihealthcare.domain.model.SourceRef;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
-import com.wgblackmon.aihealthcare.domain.model.WikiPageType;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
+import com.wgblackmon.aihealthcare.domain.model.WikiPageType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
@@ -70,7 +71,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-04
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
@@ -80,10 +81,10 @@ public class WikiController {
     private static final int PAGE_SIZE = 20;
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm").withZone(ZoneOffset.UTC);
+            DisplayFormats.TIMESTAMP_24H.withZone(ZoneOffset.UTC);
 
     private static final DateTimeFormatter NOTE_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+            DisplayFormats.NOTE_FMT
                     .withZone(java.time.ZoneId.of("America/New_York"));
 
     private final WikiQueryPort wikiQueryPort;
@@ -216,10 +217,7 @@ public class WikiController {
         }
 
         SubscriptionTier tier = tierResolver.resolveTier(principal);
-        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
-                || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE
-                || tierResolver.isAdmin(principal);
+        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO || tier == SubscriptionTier.ENTERPRISE || tierResolver.isAdmin(principal);
 
         // Render markdown to HTML and sanitize to prevent XSS
         String rawHtml = htmlRenderer.render(markdownParser.parse(
@@ -366,10 +364,7 @@ public class WikiController {
                   principal != null ? principal.getName() : "anonymous");
 
         SubscriptionTier tier = tierResolver.resolveTier(principal);
-        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
-                || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE
-                || tierResolver.isAdmin(principal);
+        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO || tier == SubscriptionTier.ENTERPRISE || tierResolver.isAdmin(principal);
         model.addAttribute("fullAccess", fullAccess);
 
         Instant since = Instant.now().minus(days, ChronoUnit.DAYS);
@@ -454,10 +449,7 @@ public class WikiController {
                   principal != null ? principal.getName() : "anonymous");
 
         SubscriptionTier tier = tierResolver.resolveTier(principal);
-        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
-                || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE
-                || tierResolver.isAdmin(principal);
+        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO || tier == SubscriptionTier.ENTERPRISE || tierResolver.isAdmin(principal);
         model.addAttribute("fullAccess", fullAccess);
 
         Instant since = Instant.now().minus(days, ChronoUnit.DAYS);
@@ -550,10 +542,7 @@ public class WikiController {
                   principal != null ? principal.getName() : "anonymous");
 
         SubscriptionTier tier = tierResolver.resolveTier(principal);
-        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER
-                || tier == SubscriptionTier.DEMO
-                || tier == SubscriptionTier.ENTERPRISE
-                || tierResolver.isAdmin(principal);
+        boolean fullAccess = tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO || tier == SubscriptionTier.ENTERPRISE || tierResolver.isAdmin(principal);
         model.addAttribute("fullAccess", fullAccess);
 
         if (q != null && !q.isBlank()) {
@@ -728,30 +717,15 @@ public class WikiController {
                 view.getSlug(),
                 view.getTitle(),
                 WikiPageType.valueOf(view.getPageType()),
-                splitPipeDelimited(view.getTags()),
+                PipeDelimitedUtils.split(view.getTags()),
                 null,
                 List.of(),
-                splitPipeDelimited(view.getRelatedSlugs()),
+                PipeDelimitedUtils.split(view.getRelatedSlugs()),
                 view.getCreatedAt(),
                 view.getUpdatedAt(),
                 view.getRevision()
         );
         log.debug("indexViewToPage() | return={}", result.slug());
-        return result;
-    }
-
-    private List<String> splitPipeDelimited(String value) {
-        List<String> result = new ArrayList<>();
-        if (value == null || value.isBlank()) {
-            return result;
-        }
-        String[] parts = value.split("\\|");
-        for (String part : parts) {
-            String trimmed = part.trim();
-            if (!trimmed.isEmpty()) {
-                result.add(trimmed);
-            }
-        }
         return result;
     }
 

@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.GenerateNewsletterUseCase
 import com.wgblackmon.aihealthcare.domain.port.inbound.IngestArticlesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewsletterAutoSendPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
+import com.wgblackmon.aihealthcare.web.controller.DisplayFormats;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,13 +60,13 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 3.0
  * @since   2026-04-16
- * @updated 2026-08-24
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
 public class NewsletterGenerationScheduler {
 
-    private static final DateTimeFormatter WEEK_OF_FMT = DateTimeFormatter.ofPattern("MMMM d, yyyy");
+    private static final DateTimeFormatter WEEK_OF_FMT = DisplayFormats.LONG_DATE;
 
     private final IngestArticlesUseCase     ingestUseCase;
     private final GenerateNewsletterUseCase generateUseCase;

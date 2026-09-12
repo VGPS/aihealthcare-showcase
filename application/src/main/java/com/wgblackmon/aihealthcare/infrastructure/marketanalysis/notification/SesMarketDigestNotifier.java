@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketDigestNotifier;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.TickerWatchlistRepository;
+import com.wgblackmon.aihealthcare.web.controller.DisplayFormats;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -42,14 +42,13 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-09-07  added per-subscriber watchlist filtering
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
 public class SesMarketDigestNotifier implements MarketDigestNotifier {
 
-    private static final DateTimeFormatter DATE_FMT =
-            DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH);
+    private static final DateTimeFormatter DATE_FMT = DisplayFormats.LONG_DATE;
 
     private final JavaMailSender mailSender;
     private final String fromAddress;

@@ -63,7 +63,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.5
  * @since   2026-05-04
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
@@ -71,10 +71,10 @@ import java.util.Set;
 public class DashboardController {
 
     private static final DateTimeFormatter NEWS_DATE_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z").withZone(ZoneId.of("America/New_York"));
+            DisplayFormats.TIMESTAMP_Z.withZone(ZoneId.of("America/New_York"));
 
     private static final DateTimeFormatter SHORT_DATE_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneId.of("America/New_York"));
+            DisplayFormats.SHORT_DATE.withZone(ZoneId.of("America/New_York"));
 
     private final ArticleIngestionPort articleIngestionPort;
     private final NewsTopicProperties newsTopicProperties;

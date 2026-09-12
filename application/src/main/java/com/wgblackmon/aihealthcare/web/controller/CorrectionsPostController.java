@@ -40,7 +40,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-08-22
- * @updated 2026-08-25
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
@@ -63,7 +63,7 @@ public class CorrectionsPostController {
     private static final String SITE_URL = "https://bigskylabs.ai";
 
     private static final DateTimeFormatter DATE_FMT =
-            DateTimeFormatter.ofPattern("MMMM d, yyyy");
+            DisplayFormats.LONG_DATE;
 
     private static final String[] PRIORITY_KEYWORDS = {
         "fda", "cms", "ftc", "doj", "hhs", "onc",

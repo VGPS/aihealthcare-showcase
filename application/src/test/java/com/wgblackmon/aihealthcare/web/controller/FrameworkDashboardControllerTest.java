@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -45,6 +46,9 @@ class FrameworkDashboardControllerTest {
 
     @MockitoBean
     private AnalystNotePort analystNotePort;
+
+    @MockitoBean
+    private TierResolver tierResolver;
 
     @Test
     @WithMockUser
@@ -76,6 +80,7 @@ class FrameworkDashboardControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void detail_rendersForValidSlug() throws Exception {
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(frameworksUseCase.getBySlug("anthropic"))
                 .thenReturn(Optional.of(buildAnalysis("anthropic", "Anthropic")));
 
@@ -92,6 +97,7 @@ class FrameworkDashboardControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void detail_redirectsForUnknownSlug() throws Exception {
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(frameworksUseCase.getBySlug("unknown")).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/dashboard/frameworks/unknown"))

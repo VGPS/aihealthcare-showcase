@@ -4,12 +4,10 @@ import com.wgblackmon.aihealthcare.domain.model.LegalTrendSignal;
 import com.wgblackmon.aihealthcare.domain.model.LegalTrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
-import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectLegalTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MonitorRegulatoryEventsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -43,14 +41,14 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-30
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class LegalTrendController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z")
+            DisplayFormats.TIMESTAMP_Z
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final int FREE_TREND_LIMIT = 3;
@@ -100,7 +98,7 @@ public class LegalTrendController {
 
         if (latest.isPresent()) {
             LegalTrendSnapshot snapshot = latest.get();
-            boolean fullAccess = hasFullAccess(principal);
+            boolean fullAccess = tierResolver.hasFullAccess(principal);
 
             List<LegalTrendSignal> trends;
             if (fullAccess) {
@@ -236,22 +234,6 @@ public class LegalTrendController {
             return signals;
         }
         return new ArrayList<>(signals.subList(0, limit));
-    }
-
-    private boolean hasFullAccess(Principal principal) {
-        if (principal == null) {
-            return false;
-        }
-        if (tierResolver.isAdmin(principal)) {
-            return true;
-        }
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        if (subscriber.isPresent()) {
-            SubscriptionTier tier = subscriber.get().tier();
-            return tier == SubscriptionTier.SUBSCRIBER || tier == SubscriptionTier.DEMO
-                    || tier == SubscriptionTier.ENTERPRISE;
-        }
-        return false;
     }
 
     private String toTitleCase(String keyword) {

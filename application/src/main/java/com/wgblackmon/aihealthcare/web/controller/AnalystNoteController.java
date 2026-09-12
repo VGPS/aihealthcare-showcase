@@ -40,14 +40,14 @@ import java.util.UUID;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-07
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class AnalystNoteController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+            DisplayFormats.NOTE_FMT
                     .withZone(ZoneId.of("America/New_York"));
 
     private final AnalystNotePort analystNotePort;

@@ -45,18 +45,18 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-22
- * @updated 2026-08-04
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
 public class CompanyProfileController {
 
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy")
+            DisplayFormats.SHORT_DATE
                     .withZone(ZoneId.of("America/New_York"));
 
     private static final DateTimeFormatter NOTE_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+            DisplayFormats.NOTE_FMT
                     .withZone(ZoneId.of("America/New_York"));
 
     private final CompanyProfilePort companyProfilePort;

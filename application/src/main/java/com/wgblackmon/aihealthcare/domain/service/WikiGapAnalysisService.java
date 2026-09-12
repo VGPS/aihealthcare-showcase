@@ -10,7 +10,6 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiGapRunEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiGapRunRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +24,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-11
- * @updated 2026-09-11
+ * @updated 2026-09-12
  */
 public class WikiGapAnalysisService {
 
@@ -79,7 +78,7 @@ public class WikiGapAnalysisService {
                 WikiGapItemEntity item = new WikiGapItemEntity();
                 item.setRunId(run.getId());
                 item.setTopic(gap.topic());
-                item.setArticleIds(joinPipeDelimited(gap.articleIds()));
+                item.setArticleIds(PipeDelimitedUtils.join(gap.articleIds()));
                 item.setRecommendation(gap.recommendation());
                 item.setStatus("PENDING");
                 itemRepository.save(item);
@@ -195,33 +194,9 @@ public class WikiGapAnalysisService {
      */
     public List<String> splitArticleIds(String pipeDelimited) {
         log.debug("splitArticleIds() | input={}", pipeDelimited);
-        List<String> result = new ArrayList<>();
-        if (pipeDelimited == null || pipeDelimited.isBlank()) {
-            log.debug("splitArticleIds() | return=0 ids");
-            return result;
-        }
-        String[] parts = pipeDelimited.split("\\|");
-        for (String part : parts) {
-            String id = part.trim();
-            if (!id.isEmpty()) {
-                result.add(id);
-            }
-        }
+        List<String> result = PipeDelimitedUtils.split(pipeDelimited);
         log.debug("splitArticleIds() | return={} ids", result.size());
         return result;
     }
 
-    private String joinPipeDelimited(List<String> values) {
-        if (values == null || values.isEmpty()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < values.size(); i++) {
-            if (i > 0) {
-                sb.append("|");
-            }
-            sb.append(values.get(i));
-        }
-        return sb.toString();
-    }
 }

@@ -6,13 +6,9 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.RegulatoryTracker;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.DealTermsPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.PrivateFundingPort;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.RegulatoryTrackerRepository;
-import com.wgblackmon.aihealthcare.domain.model.Subscriber;
-import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,9 +20,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Thymeleaf controller for the Market Enrichment page.
@@ -41,7 +35,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-07
- * @updated 2026-09-07
+ * @updated 2026-09-12
  */
 @Slf4j
 @Controller
@@ -49,32 +43,37 @@ public class MarketEnrichmentController {
 
     private static final int FREE_LIMIT = 3;
     private static final DateTimeFormatter DISPLAY_FMT =
-            DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH);
+            DisplayFormats.SHORT_DATE;
 
     private final RegulatoryTrackerRepository regulatoryTrackerRepository;
     private final PrivateFundingPort privateFundingPort;
     private final DealTermsPort dealTermsPort;
     private final SubscriberPort subscriberPort;
+    private final TierResolver tierResolver;
 
     public MarketEnrichmentController(
             @Autowired(required = false) RegulatoryTrackerRepository regulatoryTrackerRepository,
             @Autowired(required = false) PrivateFundingPort privateFundingPort,
             @Autowired(required = false) DealTermsPort dealTermsPort,
-            SubscriberPort subscriberPort) {
+            SubscriberPort subscriberPort,
+            TierResolver tierResolver) {
         log.debug("MarketEnrichmentController() | regulatoryPresent={}, fundingPresent={}, dealTermsPresent={}",
                 regulatoryTrackerRepository != null, privateFundingPort != null, dealTermsPort != null);
         this.regulatoryTrackerRepository = regulatoryTrackerRepository;
         this.privateFundingPort = privateFundingPort;
         this.dealTermsPort = dealTermsPort;
         this.subscriberPort = subscriberPort;
+        this.tierResolver = tierResolver;
         log.debug("MarketEnrichmentController() | return=void");
     }
+
+
 
     @GetMapping("/dashboard/market/enrichment")
     public String enrichment(Model model, Principal principal) {
         log.debug("enrichment() | principal={}", principal != null ? principal.getName() : "null");
 
-        boolean fullAccess = hasFullAccess(principal);
+        boolean fullAccess = tierResolver != null && tierResolver.hasFullAccess(principal);
 
         List<RegulatoryTracker> trackers = regulatoryTrackerRepository != null
                 ? regulatoryTrackerRepository.findAll() : List.of();
@@ -149,28 +148,6 @@ public class MarketEnrichmentController {
         log.debug("enrichment() | return=market-enrichment, trackers={}, funding={}, dealTerms={}",
                 trackers.size(), fundingRounds.size(), dealTermsMap.size());
         return "market-enrichment";
-    }
-
-    private boolean hasFullAccess(Principal principal) {
-        if (principal == null) {
-            return false;
-        }
-        if (principal instanceof Authentication) {
-            Authentication auth = (Authentication) principal;
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                if ("ROLE_ADMIN".equals(authority.getAuthority())) {
-                    return true;
-                }
-            }
-        }
-        Optional<Subscriber> subscriber = subscriberPort.findByEmail(principal.getName());
-        if (subscriber.isPresent()) {
-            SubscriptionTier tier = subscriber.get().tier();
-            return tier == SubscriptionTier.SUBSCRIBER
-                    || tier == SubscriptionTier.DEMO
-                    || tier == SubscriptionTier.ENTERPRISE;
-        }
-        return false;
     }
 
     String formatInstant(Instant instant) {

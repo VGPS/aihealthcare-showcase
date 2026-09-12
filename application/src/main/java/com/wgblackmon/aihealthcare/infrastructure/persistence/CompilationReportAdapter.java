@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.CompilationReport;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompilationReportPort;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -68,10 +69,10 @@ public class CompilationReportAdapter implements CompilationReportPort {
         entity.setRunStartedAt(report.runStartedAt());
         entity.setRunCompletedAt(report.runCompletedAt());
         entity.setArticlesProcessed(report.articlesProcessed());
-        entity.setPagesCreated(joinPipeDelimited(report.pagesCreated()));
-        entity.setPagesUpdated(joinPipeDelimited(report.pagesUpdated()));
+        entity.setPagesCreated(PipeDelimitedUtils.join(report.pagesCreated()));
+        entity.setPagesUpdated(PipeDelimitedUtils.join(report.pagesUpdated()));
         entity.setContradictionCount(report.contradictionsFlagged().size());
-        entity.setWarnings(joinPipeDelimited(report.warnings()));
+        entity.setWarnings(PipeDelimitedUtils.join(report.warnings()));
 
         log.debug("toEntity() | return=entity");
         return entity;
@@ -84,42 +85,14 @@ public class CompilationReportAdapter implements CompilationReportPort {
                 entity.getRunStartedAt(),
                 entity.getRunCompletedAt(),
                 entity.getArticlesProcessed(),
-                splitPipeDelimited(entity.getPagesCreated()),
-                splitPipeDelimited(entity.getPagesUpdated()),
+                PipeDelimitedUtils.split(entity.getPagesCreated()),
+                PipeDelimitedUtils.split(entity.getPagesUpdated()),
                 List.of(),  // contradictions stored separately; not re-joined here
-                splitPipeDelimited(entity.getWarnings())
+                PipeDelimitedUtils.split(entity.getWarnings())
         );
 
         log.debug("toDomain() | return=report");
         return result;
     }
 
-    private String joinPipeDelimited(List<String> values) {
-        if (values == null || values.isEmpty()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < values.size(); i++) {
-            if (i > 0) {
-                sb.append("|");
-            }
-            sb.append(values.get(i));
-        }
-        return sb.toString();
-    }
-
-    private List<String> splitPipeDelimited(String value) {
-        List<String> result = new ArrayList<>();
-        if (value == null || value.isBlank()) {
-            return result;
-        }
-        String[] parts = value.split("\\|");
-        for (String part : parts) {
-            String trimmed = part.trim();
-            if (!trimmed.isEmpty()) {
-                result.add(trimmed);
-            }
-        }
-        return result;
-    }
 }

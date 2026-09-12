@@ -65,6 +65,8 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
     private final ReversalWatchSectionBuilder  reversalWatchBuilder;
     private final LegalBriefSectionBuilder    legalBriefBuilder;
 
+    private static final int MAX_CACHED_DRAFTS = 50;
+
     // In-memory stores — articles map supports ingest→generate handoff;
     // draftByDraftId supports getDraft() in the same session.
     private final Map<String, List<NewsArticle>> articlesByRunId = new ConcurrentHashMap<>();
@@ -238,7 +240,11 @@ public class NewsletterService implements IngestArticlesUseCase, GenerateNewslet
         );
         newsletterRunPort.save(run);
 
-        // Retain in-memory for same-session getDraft() calls
+        articlesByRunId.remove(runId);
+
+        if (draftByDraftId.size() >= MAX_CACHED_DRAFTS) {
+            draftByDraftId.clear();
+        }
         draftByDraftId.put(draftId, result);
 
         log.info("generate() | Draft generated and persisted: draftId={}, sectionCount={}",

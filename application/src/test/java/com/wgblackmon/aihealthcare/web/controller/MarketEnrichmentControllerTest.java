@@ -73,6 +73,9 @@ class MarketEnrichmentControllerTest {
     @MockitoBean
     private ApiKeyPort apiKeyPort;
 
+    @MockitoBean
+    private TierResolver tierResolver;
+
     @Test
     @DisplayName("Unauthenticated request redirects to login")
     void unauthenticatedRedirectsToLogin() throws Exception {
@@ -84,6 +87,7 @@ class MarketEnrichmentControllerTest {
     @WithMockUser(username = "admin", roles = "ADMIN")
     @DisplayName("Admin sees enrichment page with all data")
     void adminSeesFullEnrichmentPage() throws Exception {
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         RegulatoryTracker tracker = new RegulatoryTracker(
                 Jurisdiction.US_FDA, RulemakingStage.COMMENT_PERIOD,
                 "FDA-2026-N-0001", "FDA AI Device Rule", LocalDate.now().plusDays(15), Instant.now(), null);
@@ -145,6 +149,7 @@ class MarketEnrichmentControllerTest {
     @WithMockUser(username = "sub@test.com")
     @DisplayName("SUBSCRIBER user gets full access")
     void subscriberGetsFullAccess() throws Exception {
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(subscriberPort.findByEmail("sub@test.com"))
                 .thenReturn(Optional.of(new Subscriber("sub@test.com", "Subscriber",
                         true, null, SubscriptionTier.SUBSCRIBER, null, null, null)));
@@ -162,7 +167,7 @@ class MarketEnrichmentControllerTest {
     @DisplayName("formatUsd formats amounts correctly")
     void formatUsdFormatsAmountsCorrectly() {
         MarketEnrichmentController controller = new MarketEnrichmentController(null, null, null,
-                new NoOpSubscriberPort());
+                new NoOpSubscriberPort(), null);
 
         org.assertj.core.api.Assertions.assertThat(controller.formatUsd(null)).isEqualTo("—");
         org.assertj.core.api.Assertions.assertThat(controller.formatUsd(2_500_000_000L)).isEqualTo("$2.5B");

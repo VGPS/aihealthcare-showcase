@@ -121,7 +121,7 @@ public class SubscriberAdapter implements SubscriberPort {
         entity.setName(subscriber.name());
         entity.setActive(subscriber.active());
         entity.setSubscribedAt(subscriber.subscribedAt());
-        entity.setTier(subscriber.tier().name());
+        entity.setTier(subscriber.tier() != null ? subscriber.tier().name() : SubscriptionTier.FREE.name());
         String token = subscriber.unsubscribeToken();
         if (token == null || token.isBlank()) {
             token = UUID.randomUUID().toString();

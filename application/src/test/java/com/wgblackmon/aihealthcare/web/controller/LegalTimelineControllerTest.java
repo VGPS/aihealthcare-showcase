@@ -72,6 +72,7 @@ class LegalTimelineControllerTest {
     @BeforeEach
     void setUp() {
         when(tierResolver.isAdmin(any())).thenReturn(true);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
     }
 
@@ -195,6 +196,7 @@ class LegalTimelineControllerTest {
     @WithMockUser
     void daysParam_365_respected() throws Exception {
         when(tierResolver.isAdmin(any())).thenReturn(false);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Legal"), eq(365)))
                 .thenReturn(List.of());
@@ -214,6 +216,7 @@ class LegalTimelineControllerTest {
     @WithMockUser
     void freeUser_cappedAt30Days() throws Exception {
         when(tierResolver.isAdmin(any())).thenReturn(false);
+        when(tierResolver.hasFullAccess(any())).thenReturn(false);
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.FREE);
         when(articleIngestionPort.fetchByTopicWithArchiveLimit(eq("AI Healthcare Legal"), eq(30)))
                 .thenReturn(List.of());
@@ -245,6 +248,7 @@ class LegalTimelineControllerTest {
     @WithMockUser
     void freeUser_limitedAccess() throws Exception {
         when(tierResolver.isAdmin(any())).thenReturn(false);
+        when(tierResolver.hasFullAccess(any())).thenReturn(false);
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.FREE);
         stubAllSourcesEmpty(30);
 

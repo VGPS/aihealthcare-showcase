@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.LintReport;
 import com.wgblackmon.aihealthcare.domain.port.outbound.LintReportPort;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-05
- * @updated 2026-07-05
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
@@ -80,11 +81,11 @@ public class LintReportAdapter implements LintReportPort {
         entity.setRunStartedAt(report.runStartedAt());
         entity.setRunCompletedAt(report.runCompletedAt());
         entity.setTotalPagesChecked(report.totalPagesChecked());
-        entity.setOrphanedSlugs(joinPipeDelimited(report.orphanedSlugs()));
-        entity.setBrokenRefs(joinPipeDelimited(report.brokenRefs()));
-        entity.setStaleSlugs(joinPipeDelimited(report.staleSlugs()));
-        entity.setMissingProvenance(joinPipeDelimited(report.missingProvenance()));
-        entity.setWarnings(joinPipeDelimited(report.warnings()));
+        entity.setOrphanedSlugs(PipeDelimitedUtils.join(report.orphanedSlugs()));
+        entity.setBrokenRefs(PipeDelimitedUtils.join(report.brokenRefs()));
+        entity.setStaleSlugs(PipeDelimitedUtils.join(report.staleSlugs()));
+        entity.setMissingProvenance(PipeDelimitedUtils.join(report.missingProvenance()));
+        entity.setWarnings(PipeDelimitedUtils.join(report.warnings()));
 
         log.debug("toEntity() | return=entity");
         return entity;
@@ -97,43 +98,15 @@ public class LintReportAdapter implements LintReportPort {
                 entity.getRunStartedAt(),
                 entity.getRunCompletedAt(),
                 entity.getTotalPagesChecked(),
-                splitPipeDelimited(entity.getOrphanedSlugs()),
-                splitPipeDelimited(entity.getBrokenRefs()),
-                splitPipeDelimited(entity.getStaleSlugs()),
-                splitPipeDelimited(entity.getMissingProvenance()),
-                splitPipeDelimited(entity.getWarnings())
+                PipeDelimitedUtils.split(entity.getOrphanedSlugs()),
+                PipeDelimitedUtils.split(entity.getBrokenRefs()),
+                PipeDelimitedUtils.split(entity.getStaleSlugs()),
+                PipeDelimitedUtils.split(entity.getMissingProvenance()),
+                PipeDelimitedUtils.split(entity.getWarnings())
         );
 
         log.debug("toDomain() | return=report");
         return result;
     }
 
-    private String joinPipeDelimited(List<String> values) {
-        if (values == null || values.isEmpty()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < values.size(); i++) {
-            if (i > 0) {
-                sb.append("|");
-            }
-            sb.append(values.get(i));
-        }
-        return sb.toString();
-    }
-
-    private List<String> splitPipeDelimited(String value) {
-        List<String> result = new ArrayList<>();
-        if (value == null || value.isBlank()) {
-            return result;
-        }
-        String[] parts = value.split("\\|");
-        for (String part : parts) {
-            String trimmed = part.trim();
-            if (!trimmed.isEmpty()) {
-                result.add(trimmed);
-            }
-        }
-        return result;
-    }
 }

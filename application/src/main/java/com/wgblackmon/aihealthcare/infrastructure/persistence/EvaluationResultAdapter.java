@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.exception.EvaluationNotFoundException;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import com.wgblackmon.aihealthcare.domain.model.ComparisonResult;
 import com.wgblackmon.aihealthcare.domain.model.EvaluationResult;
 import com.wgblackmon.aihealthcare.domain.model.EvaluationScore;
@@ -12,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -29,13 +29,11 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-17
- * @updated 2026-04-17
+ * @updated 2026-09-12
  */
 @Slf4j
 @Component
 public class EvaluationResultAdapter implements EvaluationResultPort {
-
-    private static final String ID_DELIMITER = "|";
 
     private final EvaluationResultRepository  evalRepository;
     private final ComparisonResultRepository  compRepository;
@@ -105,7 +103,7 @@ public class EvaluationResultAdapter implements EvaluationResultPort {
         // Save the comparison header
         ComparisonResultEntity compEntity = new ComparisonResultEntity();
         compEntity.setComparisonId(comparison.comparisonId());
-        compEntity.setArticleIdsJoined(joinIds(comparison.articleIds()));
+        compEntity.setArticleIdsJoined(PipeDelimitedUtils.join(comparison.articleIds()));
         compEntity.setTopic(comparison.topic());
         compEntity.setTone(comparison.tone().name());
         compEntity.setComparedAt(comparison.comparedAt());
@@ -133,7 +131,7 @@ public class EvaluationResultAdapter implements EvaluationResultPort {
 
         ComparisonResult result = new ComparisonResult(
                 compEntity.getComparisonId(),
-                splitIds(compEntity.getArticleIdsJoined()),
+                PipeDelimitedUtils.split(compEntity.getArticleIdsJoined()),
                 compEntity.getTopic(),
                 NewsletterTone.valueOf(compEntity.getTone()),
                 results,
@@ -163,7 +161,7 @@ public class EvaluationResultAdapter implements EvaluationResultPort {
             }
             result.add(new ComparisonResult(
                     compEntity.getComparisonId(),
-                    splitIds(compEntity.getArticleIdsJoined()),
+                    PipeDelimitedUtils.split(compEntity.getArticleIdsJoined()),
                     compEntity.getTopic(),
                     NewsletterTone.valueOf(compEntity.getTone()),
                     evalResults,
@@ -185,7 +183,7 @@ public class EvaluationResultAdapter implements EvaluationResultPort {
         entity.setEvaluationId(result.evaluationId());
         entity.setVariantId(result.variantId());
         entity.setVariantName(result.variantName());
-        entity.setArticleIdsJoined(joinIds(result.articleIds()));
+        entity.setArticleIdsJoined(PipeDelimitedUtils.join(result.articleIds()));
         entity.setTopic(result.topic());
         entity.setTone(result.tone().name());
 
@@ -195,7 +193,7 @@ public class EvaluationResultAdapter implements EvaluationResultPort {
         entity.setSectionType(section.sectionType().name());
         entity.setHeadline(section.headline());
         entity.setSummary(section.summary());
-        entity.setSectionArticleIdsJoined(joinIds(section.articleIds()));
+        entity.setSectionArticleIdsJoined(PipeDelimitedUtils.join(section.articleIds()));
 
         // Score fields
         EvaluationScore score = result.score();
@@ -224,7 +222,7 @@ public class EvaluationResultAdapter implements EvaluationResultPort {
                 entity.getTopic(),
                 entity.getHeadline(),
                 entity.getSummary(),
-                splitIds(entity.getSectionArticleIdsJoined())
+                PipeDelimitedUtils.split(entity.getSectionArticleIdsJoined())
         );
 
         EvaluationScore score = new EvaluationScore(
@@ -241,7 +239,7 @@ public class EvaluationResultAdapter implements EvaluationResultPort {
                 entity.getEvaluationId(),
                 entity.getVariantId(),
                 entity.getVariantName(),
-                splitIds(entity.getArticleIdsJoined()),
+                PipeDelimitedUtils.split(entity.getArticleIdsJoined()),
                 entity.getTopic(),
                 NewsletterTone.valueOf(entity.getTone()),
                 section,
@@ -253,32 +251,4 @@ public class EvaluationResultAdapter implements EvaluationResultPort {
         return result;
     }
 
-    // -------------------------------------------------------------------------
-    // ID list serialization
-    // -------------------------------------------------------------------------
-
-    private String joinIds(List<String> ids) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < ids.size(); i++) {
-            if (i > 0) {
-                sb.append(ID_DELIMITER);
-            }
-            sb.append(ids.get(i));
-        }
-        return sb.toString();
-    }
-
-    private List<String> splitIds(String joined) {
-        if (joined == null || joined.isBlank()) {
-            return List.of();
-        }
-        String[] parts = joined.split("\\|");
-        List<String> result = new ArrayList<>();
-        for (String part : parts) {
-            if (!part.isBlank()) {
-                result.add(part.trim());
-            }
-        }
-        return result;
-    }
 }
