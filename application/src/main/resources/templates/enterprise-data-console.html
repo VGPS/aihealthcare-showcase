@@ -349,6 +349,8 @@
                     try {
                         const resp = await fetch(url, {
                             method,
+                            credentials: 'same-origin',
+                            redirect: 'error',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(body)
                         });
@@ -360,7 +362,7 @@
                             alert('Error: ' + (text || resp.statusText));
                         }
                     } catch (e) {
-                        alert('Request failed: ' + e.message);
+                        alert('Request failed — session may have expired. Try refreshing the page.');
                     }
                 },
 
@@ -422,23 +424,36 @@
         }
 
         function runScheduleNow(scheduleId) {
-            fetch('/api/v1/enterprise/data/schedules/' + scheduleId + '/run', { method: 'POST' })
+            fetch('/api/v1/enterprise/data/schedules/' + scheduleId + '/run', {
+                method: 'POST',
+                credentials: 'same-origin',
+                redirect: 'error'
+            })
                 .then(resp => {
                     if (resp.ok || resp.status === 202) {
-                        document.querySelector('[x-data]').__x.$data.tab = 'jobs';
-                        location.reload();
+                        window.location.href = '/enterprise/data?tab=jobs';
                     } else {
-                        alert('Run failed: ' + resp.statusText);
+                        resp.text().then(t => alert('Run failed: ' + (t || resp.statusText)));
                     }
+                })
+                .catch(() => {
+                    alert('Run failed — session may have expired. Try refreshing the page.');
                 });
         }
 
         function deleteSchedule(scheduleId) {
             if (!confirm('Delete this schedule?')) return;
-            fetch('/api/v1/enterprise/data/schedules/' + scheduleId, { method: 'DELETE' })
+            fetch('/api/v1/enterprise/data/schedules/' + scheduleId, {
+                method: 'DELETE',
+                credentials: 'same-origin',
+                redirect: 'error'
+            })
                 .then(resp => {
                     if (resp.ok || resp.status === 204) location.reload();
-                    else alert('Delete failed: ' + resp.statusText);
+                    else resp.text().then(t => alert('Delete failed: ' + (t || resp.statusText)));
+                })
+                .catch(() => {
+                    alert('Delete failed — session may have expired. Try refreshing the page.');
                 });
         }
     </script>
