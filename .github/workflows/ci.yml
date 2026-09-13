@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    name: Compile + Unit Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: aihealthcaredb_test
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: "1454"
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U admin -d aihealthcaredb_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Enable pgvector extension
+        env:
+          PGPASSWORD: "1454"
+        run: |
+          psql -h localhost -U admin -d aihealthcaredb_test \
+               -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
+      - name: Compile and run tests
+        run: mvn -B -ntp -Pci verify
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: application/target/surefire-reports/
+          if-no-files-found: warn
