@@ -20,6 +20,7 @@
     <properties>
         <java.version>21</java.version>
         <spring-ai.version>1.0.0</spring-ai.version>
+        <tailwind.skip>false</tailwind.skip>
     </properties>
 
     <dependencyManagement>
@@ -230,6 +231,7 @@
                         <phase>generate-resources</phase>
                         <goals><goal>exec</goal></goals>
                         <configuration>
+                            <skip>${tailwind.skip}</skip>
                             <executable>${project.basedir}/tools/tailwindcss.exe</executable>
                             <arguments>
                                 <argument>--input</argument>
@@ -290,5 +292,14 @@
             </releases>
         </repository>
     </repositories>
+
+    <profiles>
+        <profile>
+            <id>ci</id>
+            <properties>
+                <tailwind.skip>true</tailwind.skip>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>
