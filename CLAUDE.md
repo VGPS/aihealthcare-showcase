@@ -141,6 +141,9 @@ publishedAt  Instant  optional — null if not determinable
 # Build and verify
 mvn verify
 
+# Build the way CI does (skips Windows Tailwind binary)
+mvn -B -ntp -Pci verify
+
 # Run the app locally
 mvn spring-boot:run
 
@@ -150,6 +153,20 @@ mvn test
 # Run AI integration smoke tests
 mvn test -Dspring.profiles.active=ai-integration
 ```
+
+---
+
+## Git and CI Discipline
+
+- **NEVER commit directly to `master`.** Always create a feature branch first.
+- **Branch naming:** `feat/<short-name>`, `fix/<short-name>`, `slice/<slice-id>`, `chore/<short-name>`, `docs/<short-name>`
+- **One feature per commit.** If a change does two things, make two commits. If your commit message needs the word "and," it's two commits.
+- **Commit message format:** imperative subject under 72 chars. Body only when the "why" isn't obvious.
+- **Git remote is `AIHealthcare_Origin`, NOT `origin`.** Push with: `git push AIHealthcare_Origin <branch>`. The `showcase` remote is a different repository — always push to both.
+- **`master` is protected.** Work reaches it only through a pull request whose "Compile + Unit Tests" check is green.
+- **Before pushing, run:** `mvn -Pci verify`
+- **Never commit** `.env`, `*.key`, `*.pem`, dump files, or logs.
+- **CI workflow:** `.github/workflows/ci.yml` — triggers on PRs to `master` and pushes to `master`. Runs with `-Pci` profile (skips Tailwind), pgvector Postgres service container, Java 21 Temurin.
 
 ---
 
