@@ -122,7 +122,7 @@ publishedAt  Instant  optional — null if not determinable
 ---
 
 ## Development Conventions
-- **Language**: Java 17 (LTS, minimum required by Spring AI 1.0.0), records for all immutable data types (domain models, DTOs, result types).
+- **Language**: Java 21 (LTS), records for all immutable data types (domain models, DTOs, result types). EC2 runs Amazon Corretto 21.
 - **Build**: Maven single-module; run `mvn verify` from root to build.
 - **Testing**: JUnit 5 + AssertJ + Mockito. AI smoke tests are `@Profile("ai-integration")` only — never run in CI.
 - **Spec-Driven**: Always update `openapi.yaml` before implementing an endpoint. Use OpenAPI Generator Maven plugin to regenerate DTOs after spec changes.
