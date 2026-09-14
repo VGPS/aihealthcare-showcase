@@ -433,43 +433,52 @@
                 <div>View: <span class="font-mono text-primary-600">/dashboard/market</span></div>
                 <div>Tier: <span class="font-semibold">FREE (top 3) / SUBSCRIBER (full access)</span></div>
             </div>
-            <div class="flex items-center gap-2 mt-auto">
+            <div class="flex items-center gap-3 mt-auto">
+                <button type="button" class="btn-search text-sm px-3 py-1.5"
+                        data-id="market-digest"
+                        data-name="Market Digest Generator"
+                        onclick="triggerPipeline(this)">
+                    Run Now
+                </button>
                 <a href="/dashboard/market" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open Market Digest</a>
                 <a href="/dashboard/market/history" class="text-xs text-primary-600 hover:underline">History</a>
             </div>
         </div>
 
-        <!-- Facebook Daily Post Generator -->
+        <!-- Social Post Generator (LinkedIn + Facebook) -->
         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
             <div class="flex justify-between items-start mb-2">
-                <h3 class="text-lg font-semibold text-primary-600">Facebook Daily Post</h3>
+                <h3 class="text-lg font-semibold text-primary-600">Social Post Generator</h3>
                 <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Manual</span>
             </div>
             <p class="text-sm text-gray-500 mb-3 leading-relaxed">
-                Generates a ready-to-copy Facebook post from today's top-weighted articles (last 24 hours, capped at 5).
-                Same article pipeline as LinkedIn. Post body ≤ 390 chars — lead story above the "See more" fold,
-                additional headlines as bullets. Links are OK in Facebook posts (no reach penalty).
+                Combined LinkedIn + Facebook post generator sourced from the daily market digest.
+                Pulls the top 5 ranked entries and formats them with platform-specific rules:
+                LinkedIn (no links in body, source links in first comment, 2,900 char limit) and
+                Facebook (links OK in body, lead headline above 390-char fold, bullet-point follow-ups).
+                One-click copy buttons for each section.
             </p>
 
             <!-- Posting workflow -->
             <div class="bg-blue-50 border border-blue-100 rounded px-3 py-2 mb-3 text-xs text-blue-900">
-                <p class="font-semibold mb-1">Posting workflow</p>
+                <p class="font-semibold mb-1">Workflow</p>
                 <ol class="list-decimal ml-3 space-y-0.5">
-                    <li>Click <strong>Open Generator</strong> to get today's ready-to-copy text.</li>
-                    <li>Copy the <strong>Post Body</strong> and paste into a new Facebook Page post. Publish it.</li>
-                    <li>Open the published post → <em>Write a comment</em> → paste the <strong>Comment</strong> block for full sources.</li>
-                    <li>Submit the comment.</li>
+                    <li>Run <strong>Market Digest</strong> pipeline first (generates the source data).</li>
+                    <li>Open <strong>Social Posts</strong> page — both platforms generated side-by-side.</li>
+                    <li><strong>LinkedIn:</strong> Copy Post Body → publish → copy First Comment → paste as comment.</li>
+                    <li><strong>Facebook:</strong> Copy Post Body (includes link) → publish → optionally paste Comment.</li>
                 </ol>
-                <p class="mt-1.5 text-blue-700"><strong>Facebook vs LinkedIn:</strong> Links in the post body do NOT hurt Facebook reach. The site URL is included directly in the post.</p>
+                <p class="mt-1.5 text-blue-700"><strong>Key difference:</strong> LinkedIn penalizes links in the body (40-60% reach drop). Facebook does not.</p>
             </div>
 
             <div class="text-xs text-gray-500 mb-3 space-y-1">
-                <div>Page: <span class="font-mono text-primary-600">/dashboard/facebook</span></div>
-                <div>Est. duration: <span>Instant (reads from database)</span></div>
-                <div>Best time to post: <span class="font-semibold">Weekdays, 9–11 AM local time</span></div>
+                <div>Page: <span class="font-mono text-primary-600">/dashboard/social</span></div>
+                <div>Data source: <span class="font-semibold">Latest Market Digest</span></div>
+                <div>Duration: <span>Instant (reads from database, no LLM calls)</span></div>
+                <div>Tier: <span class="font-semibold">SUBSCRIBER / DEMO / ADMIN</span></div>
             </div>
             <div class="flex items-center gap-2 mt-auto">
-                <a href="/dashboard/facebook" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open Generator</a>
+                <a href="/dashboard/social" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open Social Posts</a>
             </div>
         </div>
 
