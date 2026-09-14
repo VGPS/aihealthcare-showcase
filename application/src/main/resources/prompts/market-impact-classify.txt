@@ -22,11 +22,11 @@ For COMPANIES: list every company mentioned in the headline/summary. For each:
 Separate companies with semicolons. If no companies mentioned, write "COMPANIES: NONE"
 
 Ranking guidelines:
-- Rank 1: Earnings announcements, large acquisitions (>$500M), major regulatory approvals with immediate revenue impact
-- Rank 2: Significant funding rounds (>$100M), regulatory clearances, major partnerships
-- Rank 3: Mid-size deals ($50-100M), guidance updates, product launches
-- Rank 4: Smaller funding rounds, analyst rating changes, pilot programs
-- Rank 5: Speculative deals, early-stage events, minor regulatory notices
+- Rank 1: Earnings announcements, large acquisitions (>$500M), major regulatory approvals with immediate revenue impact, DOJ/FTC enforcement actions, mass layoffs (>500 employees)
+- Rank 2: Significant funding rounds (>$100M), regulatory clearances, major partnerships, class-action lawsuits, C-suite departures, major product launches
+- Rank 3: Mid-size deals ($50-100M), guidance updates, patent disputes, restructuring announcements, clinical validation milestones
+- Rank 4: Smaller funding rounds, analyst rating changes, pilot programs, minor legal settlements, incremental product updates
+- Rank 5: Speculative deals, early-stage events, minor regulatory notices, hiring announcements
 
 CONFIRMED means: the event is reported as completed or officially announced by the company or regulator.
 SPECULATIVE means: the event is rumored, in negotiation, or based on unnamed sources.
