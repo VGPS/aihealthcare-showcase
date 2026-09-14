@@ -395,12 +395,15 @@ public class MarketDashboardController {
             return null;
         }
         switch (category.toUpperCase()) {
-            case "EARNINGS":         return NewsCategory.EARNINGS;
-            case "REGULATORY":       return NewsCategory.REGULATORY;
-            case "FUNDING":          return NewsCategory.FUNDING;
-            case "M_AND_A":          return NewsCategory.M_AND_A;
-            case "MAJOR_PARTNERSHIP": return NewsCategory.MAJOR_PARTNERSHIP;
-            default:                 return null;
+            case "EARNINGS":          return NewsCategory.EARNINGS;
+            case "REGULATORY":        return NewsCategory.REGULATORY;
+            case "FUNDING":           return NewsCategory.FUNDING;
+            case "M_AND_A":           return NewsCategory.M_AND_A;
+            case "MAJOR_PARTNERSHIP":  return NewsCategory.MAJOR_PARTNERSHIP;
+            case "LEGAL_ACTION":       return NewsCategory.LEGAL_ACTION;
+            case "WORKFORCE":          return NewsCategory.WORKFORCE;
+            case "PRODUCT_LAUNCH":     return NewsCategory.PRODUCT_LAUNCH;
+            default:                   return null;
         }
     }
 }

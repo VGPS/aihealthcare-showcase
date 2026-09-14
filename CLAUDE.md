@@ -783,7 +783,7 @@ The Market Analysis module tracks daily market-moving news in AI-powered healthc
 | Type | Fields | Notes |
 |------|--------|-------|
 | `MarketNewsItem` | headline, summary, sourceUrls, publishedAt, category | 5 fields |
-| `NewsCategory` | EARNINGS, REGULATORY, FUNDING, M_AND_A, MAJOR_PARTNERSHIP, OTHER | enum (6 values) |
+| `NewsCategory` | EARNINGS, REGULATORY, FUNDING, M_AND_A, MAJOR_PARTNERSHIP, LEGAL_ACTION, WORKFORCE, PRODUCT_LAUNCH, OTHER | enum (9 values) |
 | `FactClassification` | CONFIRMED, SPECULATIVE | enum |
 | `ImpactDimension` | REVENUE, EARNINGS, VALUATION, INVESTOR_SENTIMENT, FUTURE_GROWTH | enum |
 | `ImpactAssessment` | dimension, direction (POSITIVE/NEGATIVE/NEUTRAL), rationale | 3 fields |

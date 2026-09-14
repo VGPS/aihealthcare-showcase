@@ -12,7 +12,7 @@ package com.wgblackmon.aihealthcare.domain.marketanalysis;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-14
  */
 public enum NewsCategory {
 
@@ -30,6 +30,15 @@ public enum NewsCategory {
 
     /** Major partnership, licensing deal, or large pharma AI collaboration. */
     MAJOR_PARTNERSHIP,
+
+    /** Lawsuit, investigation, enforcement action, class-action, or regulatory penalty. */
+    LEGAL_ACTION,
+
+    /** Layoffs, outsourcing, executive departure, major hiring wave, or restructuring. */
+    WORKFORCE,
+
+    /** Product launch, platform release, clinical validation milestone, or market expansion. */
+    PRODUCT_LAUNCH,
 
     /** News that does not fit any qualifying category. Never triggers a notification. */
     OTHER
