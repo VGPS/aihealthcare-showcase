@@ -161,8 +161,17 @@
                     <span class="ml-auto text-xs text-gray-400" th:text="${entry.publishedAt}"></span>
                 </div>
 
-                <!-- Headline -->
-                <h3 class="text-sm font-semibold text-gray-900 mb-1" th:text="${entry.headline}">Headline</h3>
+                <!-- Headline (linked to first source if available) -->
+                <h3 class="text-sm font-semibold mb-1">
+                    <a th:if="${not #lists.isEmpty(entry.sourceUrls)}"
+                       th:href="${entry.sourceUrls[0]}"
+                       target="_blank" rel="noopener noreferrer"
+                       class="text-gray-900 hover:text-primary-600 hover:underline"
+                       th:text="${entry.headline}">Headline</a>
+                    <span th:if="${#lists.isEmpty(entry.sourceUrls)}"
+                          class="text-gray-900"
+                          th:text="${entry.headline}">Headline</span>
+                </h3>
 
                 <!-- Summary -->
                 <p class="text-sm text-gray-600 mb-2" th:text="${entry.summary}">Summary</p>
@@ -201,16 +210,16 @@
                     </span>
                 </div>
 
-                <!-- Source links -->
-                <div th:if="${not #lists.isEmpty(entry.sourceUrls)}" class="flex flex-wrap gap-2">
+                <!-- Source links (domain names) -->
+                <div th:if="${not #lists.isEmpty(entry.sources)}" class="flex flex-wrap gap-2 items-center">
                     <span class="text-xs text-gray-400">Sources:</span>
-                    <a th:each="url, stat : ${entry.sourceUrls}"
-                       th:href="${url}"
+                    <a th:each="src : ${entry.sources}"
+                       th:href="${src.url}"
                        target="_blank"
                        rel="noopener noreferrer"
                        class="text-xs text-primary-600 hover:underline"
-                       th:text="'[' + ${stat.index + 1} + ']'">
-                        [1]
+                       th:text="${src.domain}">
+                        source.com
                     </a>
                 </div>
             </div>

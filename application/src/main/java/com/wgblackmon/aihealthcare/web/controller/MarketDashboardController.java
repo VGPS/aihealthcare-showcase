@@ -302,12 +302,45 @@ public class MarketDashboardController {
             map.put("publishedAt", DISPLAY_FMT.format(entry.newsItem().publishedAt()));
             map.put("dealSizeUsd", entry.newsItem().dealSizeUsd());
             map.put("sourceUrls", entry.newsItem().sourceUrls());
+            map.put("sources", buildSourceList(entry.newsItem().sourceUrls()));
             map.put("companies", companyLabels(entry.affectedCompanies()));
             map.put("impactSummary", firstImpactRationale(entry.impactAssessments()));
             map.put("reactions", reactionBadges(entry));
             result.add(map);
         }
         return result;
+    }
+
+    private List<Map<String, String>> buildSourceList(List<String> sourceUrls) {
+        List<Map<String, String>> sources = new ArrayList<>();
+        if (sourceUrls == null) {
+            return sources;
+        }
+        for (String url : sourceUrls) {
+            Map<String, String> src = new LinkedHashMap<>();
+            src.put("url", url);
+            src.put("domain", extractDomain(url));
+            sources.add(src);
+        }
+        return sources;
+    }
+
+    private String extractDomain(String url) {
+        if (url == null || url.isBlank()) {
+            return "link";
+        }
+        try {
+            String host = java.net.URI.create(url).getHost();
+            if (host == null) {
+                return "link";
+            }
+            if (host.startsWith("www.")) {
+                host = host.substring(4);
+            }
+            return host;
+        } catch (Exception e) {
+            return "link";
+        }
     }
 
     private List<Map<String, Object>> reactionBadges(MarketDigestEntry entry) {
