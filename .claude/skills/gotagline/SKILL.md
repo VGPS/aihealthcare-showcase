@@ -1,7 +1,7 @@
-# Brand Tagline: "Who did what to whom. When, where, and why."
+# Brand Tagline: "AI did what to whom. When, where, and why."
 
 Apply or update the BigSkyLabs brand tagline across the app and emails. The tagline
-is: **"Who did what to whom. When, where, and why."**
+is: **"AI did what to whom. When, where, and why."**
 
 ## Where the tagline lives
 
@@ -11,7 +11,7 @@ The tagline appears in exactly four places. When updating, change all four:
 In the `<header>` block, as an italic `<em>` line replacing the old subtitle:
 ```html
 <p class="text-primary-200 text-sm mt-0.5">
-    <em>Who did what to whom. When, where, and why.</em>
+    <em>AI did what to whom. When, where, and why.</em>
     <span th:if="${digestDate}" th:text="' · ' + ${digestDate}"></span>
 </p>
 ```
@@ -19,7 +19,7 @@ In the `<header>` block, as an italic `<em>` line replacing the old subtitle:
 ### 2. Footer fragment (`fragments/footer.html`)
 Below the "AIHealthcare" brand name, above the description paragraph:
 ```html
-<p class="text-gray-500 italic text-xs mb-1">Who did what to whom. When, where, and why.</p>
+<p class="text-gray-500 italic text-xs mb-1">AI did what to whom. When, where, and why.</p>
 ```
 This makes it visible on every page.
 
@@ -27,13 +27,13 @@ This makes it visible on every page.
 In `wrapInEmailLayout()`, as a styled `<p>` between the subject `<h1>` and the
 description paragraph:
 ```java
-sb.append("  <p style=\"margin:8px 0 0; font-size:0.8em; color:#94a3b8; font-style:italic;\">Who did what to whom. When, where, and why.</p>\n");
+sb.append("  <p style=\"margin:8px 0 0; font-size:0.8em; color:#94a3b8; font-style:italic;\">AI did what to whom. When, where, and why.</p>\n");
 ```
 
 ### 4. Market alert email (`SesMarketDigestNotifier.java`)
 In `buildHtml()`, between the "AI Healthcare Market Alert" `<h2>` and the date `<p>`:
 ```java
-sb.append("<p style=\"color:#94a3b8; font-style:italic; font-size:0.9em; margin:0 0 8px;\">Who did what to whom. When, where, and why.</p>");
+sb.append("<p style=\"color:#94a3b8; font-style:italic; font-size:0.9em; margin:0 0 8px;\">AI did what to whom. When, where, and why.</p>");
 ```
 
 ## Design principles (do NOT violate)

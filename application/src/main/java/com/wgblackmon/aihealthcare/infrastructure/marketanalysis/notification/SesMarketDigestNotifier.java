@@ -42,7 +42,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-09-12
+ * @updated 2026-09-14
  */
 @Slf4j
 @Component
@@ -159,7 +159,7 @@ public class SesMarketDigestNotifier implements MarketDigestNotifier {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html><html><body style=\"font-family:Arial,sans-serif;max-width:700px;margin:0 auto;\">");
         sb.append("<h2 style=\"color:#1a3a5c;\">AI Healthcare Market Alert</h2>");
-        sb.append("<p style=\"color:#94a3b8; font-style:italic; font-size:0.9em; margin:0 0 8px;\">Who did what to whom. When, where, and why.</p>");
+        sb.append("<p style=\"color:#94a3b8; font-style:italic; font-size:0.9em; margin:0 0 8px;\">AI did what to whom. When, where, and why.</p>");
         sb.append("<p style=\"color:#555;\">").append(DATE_FMT.format(digest.date())).append("</p>");
         sb.append("<p>").append(digest.entries().size())
           .append(" market-moving development(s) detected today:</p>");
@@ -219,23 +219,29 @@ public class SesMarketDigestNotifier implements MarketDigestNotifier {
 
     private String categoryColor(String category) {
         switch (category) {
-            case "EARNINGS":         return "#2980b9";
-            case "REGULATORY":       return "#8e44ad";
-            case "FUNDING":          return "#27ae60";
-            case "M_AND_A":          return "#e74c3c";
-            case "MAJOR_PARTNERSHIP": return "#e67e22";
-            default:                 return "#7f8c8d";
+            case "EARNINGS":          return "#2980b9";
+            case "REGULATORY":        return "#8e44ad";
+            case "FUNDING":           return "#27ae60";
+            case "M_AND_A":           return "#e74c3c";
+            case "MAJOR_PARTNERSHIP":  return "#e67e22";
+            case "LEGAL_ACTION":       return "#be123c";
+            case "WORKFORCE":          return "#d97706";
+            case "PRODUCT_LAUNCH":     return "#0891b2";
+            default:                   return "#7f8c8d";
         }
     }
 
     private String formatCategory(String category) {
         switch (category) {
-            case "EARNINGS":         return "Earnings";
-            case "REGULATORY":       return "Regulatory";
-            case "FUNDING":          return "Funding";
-            case "M_AND_A":          return "M&A";
-            case "MAJOR_PARTNERSHIP": return "Partnership";
-            default:                 return "Other";
+            case "EARNINGS":          return "Earnings";
+            case "REGULATORY":        return "Regulatory";
+            case "FUNDING":           return "Funding";
+            case "M_AND_A":           return "M&A";
+            case "MAJOR_PARTNERSHIP":  return "Partnership";
+            case "LEGAL_ACTION":       return "Legal";
+            case "WORKFORCE":          return "Workforce";
+            case "PRODUCT_LAUNCH":     return "Product Launch";
+            default:                   return "Other";
         }
     }
 
