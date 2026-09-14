@@ -234,24 +234,22 @@ class PublicCompanyControllerTest {
     }
 
     @Test
-    void buildDescriptionHtml_convertsCitationMarkersToAnchorLinks() {
+    void buildDescriptionHtml_stripsCitationMarkers() {
         String html = PublicCompanyController.buildDescriptionHtml(
                 "AI-powered platform [1] built on research [2].");
         org.assertj.core.api.Assertions.assertThat(html)
-                .contains("<a href=\"#source-1\"")
-                .contains("<a href=\"#source-2\"")
-                .contains("[1]")
-                .contains("[2]")
-                .doesNotContain("<p");
+                .isEqualTo("AI-powered platform  built on research .")
+                .doesNotContain("[1]")
+                .doesNotContain("[2]");
     }
 
     @Test
-    void buildDescriptionHtml_escapesHtmlBeforeConvertingLinks() {
+    void buildDescriptionHtml_escapesHtmlAndStripsCitations() {
         String html = PublicCompanyController.buildDescriptionHtml("A & B <test> [1]");
         org.assertj.core.api.Assertions.assertThat(html)
                 .contains("&amp;")
                 .contains("&lt;test&gt;")
-                .contains("<a href=\"#source-1\"");
+                .doesNotContain("[1]");
     }
 
     @Test

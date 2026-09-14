@@ -59,7 +59,7 @@
                   th:text="${company.fundingStage()}">Stage</span>
         </div>
 
-        <!-- Description — [N] citation markers are converted to anchor links by the controller -->
+        <!-- Description — [N] citation markers are stripped by the controller -->
         <p th:if="${descriptionHtml != null}"
            class="text-sm text-on-surface leading-relaxed"
            th:utext="${descriptionHtml}">Description</p>
@@ -139,22 +139,6 @@
                 </a>
             </div>
         </div>
-    </div>
-
-    <!-- Source citations -->
-    <div th:if="${company.sourceUrls() != null and !company.sourceUrls().isEmpty()}"
-         class="bg-white rounded-lg border border-outline-variant shadow-sm p-5 mb-6">
-        <h3 class="font-display font-semibold text-base text-on-surface mb-3">Discovery Sources</h3>
-        <ul class="space-y-1">
-            <li th:each="url, iter : ${company.sourceUrls()}"
-                th:id="'source-' + ${iter.index + 1}"
-                class="text-sm">
-                <a th:href="${url}"
-                   th:text="'[' + ${iter.index + 1} + '] ' + ${url}"
-                   target="_blank" rel="noopener noreferrer"
-                   class="text-primary-600 hover:text-primary-800 hover:underline break-all">url</a>
-            </li>
-        </ul>
     </div>
 
     <!-- Back link -->
