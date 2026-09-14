@@ -71,6 +71,21 @@ class MarketDigestServiceTest {
     }
 
     @Test
+    void legalAction_qualifies() {
+        assertThat(service.isMarketMoving(makeEntry(NewsCategory.LEGAL_ACTION, null, 1))).isTrue();
+    }
+
+    @Test
+    void workforce_qualifies() {
+        assertThat(service.isMarketMoving(makeEntry(NewsCategory.WORKFORCE, null, 1))).isTrue();
+    }
+
+    @Test
+    void productLaunch_qualifies() {
+        assertThat(service.isMarketMoving(makeEntry(NewsCategory.PRODUCT_LAUNCH, null, 1))).isTrue();
+    }
+
+    @Test
     void other_doesNotQualify() {
         assertThat(service.isMarketMoving(makeEntry(NewsCategory.OTHER, null, 1))).isFalse();
     }

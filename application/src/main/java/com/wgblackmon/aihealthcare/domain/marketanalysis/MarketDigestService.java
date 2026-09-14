@@ -323,10 +323,10 @@ public class MarketDigestService implements ProduceMarketDigestUseCase {
     /**
      * Returns {@code true} when the entry clears the market-moving qualifying bar.
      *
-     * <p>Qualifying categories: EARNINGS, REGULATORY, M_AND_A, MAJOR_PARTNERSHIP always qualify.
+     * <p>Qualifying categories: EARNINGS, REGULATORY, M_AND_A, MAJOR_PARTNERSHIP,
+     * LEGAL_ACTION, WORKFORCE, and PRODUCT_LAUNCH always qualify.
      * FUNDING qualifies only when {@code entry.dealSizeUsd()} is strictly greater than
-     * $50,000,000 (exact $50M does NOT qualify). All other categories (OTHER, and FUNDING
-     * at or below the threshold) return {@code false}.
+     * $50,000,000 (exact $50M does NOT qualify). OTHER never qualifies.
      *
      * @param entry the classified digest entry to evaluate (non-null)
      * @return true if this entry should be included in the daily digest and notification
@@ -344,6 +344,12 @@ public class MarketDigestService implements ProduceMarketDigestUseCase {
         } else if (category == NewsCategory.M_AND_A) {
             result = true;
         } else if (category == NewsCategory.MAJOR_PARTNERSHIP) {
+            result = true;
+        } else if (category == NewsCategory.LEGAL_ACTION) {
+            result = true;
+        } else if (category == NewsCategory.WORKFORCE) {
+            result = true;
+        } else if (category == NewsCategory.PRODUCT_LAUNCH) {
             result = true;
         } else {
             result = false;
