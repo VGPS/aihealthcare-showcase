@@ -1,0 +1,27 @@
+$336M deployed into healthcare AI this week.
+
+3 of the 5 deals moved capital directly into sectors regulators are actively restricting.
+
+AI did what to whom, when, where, and why:
+
+-- R1 acquired Humata Health for AI prior authorization — while 27 states passed laws regulating exactly that function
+-- Cityblock raised $116M and acquired Homeward Health — urban AI meets rural in a value-based care consolidation play
+-- Bayesian Health secured the first CMS reimbursement pathway for an FDA-cleared AI sepsis monitor
+-- Forus raised $150M at a $3B valuation from Bain Capital — the largest healthcare AI round this month
+-- Inspiren raised $70M for AI-powered senior living fall prediction
+
+The conventional read: regulation = risk.
+The market read: compliant AI is a moat.
+
+Every new state law creates a compliance burden that manual workflows can't scale to meet. The companies building AI that satisfies these requirements — not ignores them — are the ones getting acquired.
+
+Which side of the trade are you on?
+
+---
+
+FIRST COMMENT:
+
+Data synthesized from BigSkyLabs Market Digest (5 data sources) cross-referenced with our State Health AI Legislation Registry (51 enacted laws, 25 states).
+
+Explore the market digest: app.bigskylabs.ai/dashboard/market
+Browse the legislation registry: app.bigskylabs.ai/legislation
