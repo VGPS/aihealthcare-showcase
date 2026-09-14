@@ -311,15 +311,14 @@ public class PublicCompanyController {
         return SlugUtils.toSlug(name);
     }
 
-    /** Converts [N] citation markers in description text to anchor links targeting #source-N. */
+    /** Strips Perplexity [N] citation markers from description text. */
     static String buildDescriptionHtml(String description) {
         if (description == null || description.isBlank()) return null;
         String escaped = description
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
-        return escaped.replaceAll("\\[(\\d+)\\]",
-                "<a href=\"#source-$1\" class=\"text-primary-600 hover:underline font-medium\">[$1]</a>");
+        return escaped.replaceAll("\\[\\d+\\]", "");
     }
 
     private static String escapeCsv(String s) {
@@ -337,7 +336,7 @@ public class PublicCompanyController {
         sb.append("\"@type\":\"Organization\",");
         sb.append("\"name\":\"").append(escapeJson(c.name())).append("\"");
         if (c.description() != null && !c.description().isBlank()) {
-            sb.append(",\"description\":\"").append(escapeJson(c.description())).append("\"");
+            sb.append(",\"description\":\"").append(escapeJson(c.description().replaceAll("\\[\\d+\\]", ""))).append("\"");
         }
         if (c.domain() != null && !c.domain().isBlank()) {
             sb.append(",\"url\":\"https://").append(escapeJson(c.domain())).append("\"");
