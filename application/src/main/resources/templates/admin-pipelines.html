@@ -406,6 +406,39 @@
             </div>
         </div>
 
+        <!-- Market Digest Quick Access -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Market Digest</h3>
+                <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-semibold">High (LLM)</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Daily AI-healthcare market intelligence digest. Researches news via Perplexity across 8 event types
+                (earnings, regulatory, funding, M&amp;A, partnerships, legal actions, workforce changes, product launches),
+                classifies impact via Claude, enriches with Alpaca market data, and persists ranked entries.
+            </p>
+            <div class="bg-amber-50 border border-amber-100 rounded px-3 py-2 mb-3 text-xs text-amber-900">
+                <p class="font-semibold mb-1">Pipeline steps</p>
+                <ol class="list-decimal ml-3 space-y-0.5">
+                    <li>Perplexity searches for 10+ market-moving events since last digest.</li>
+                    <li>Claude classifies each: fact vs speculation, impact rank 1-5, affected companies.</li>
+                    <li>Qualifying bar filters entries (all categories except OTHER and sub-$50M funding).</li>
+                    <li>Alpaca enriches public companies with live quote data.</li>
+                    <li>Persists to database and sends email alert to subscribers.</li>
+                </ol>
+            </div>
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Schedule: <span class="font-semibold">Daily 7:00 AM CT</span></div>
+                <div>Trigger: <span class="font-mono text-primary-600">Market Digest Generator</span> card above</div>
+                <div>View: <span class="font-mono text-primary-600">/dashboard/market</span></div>
+                <div>Tier: <span class="font-semibold">FREE (top 3) / SUBSCRIBER (full access)</span></div>
+            </div>
+            <div class="flex items-center gap-2 mt-auto">
+                <a href="/dashboard/market" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open Market Digest</a>
+                <a href="/dashboard/market/history" class="text-xs text-primary-600 hover:underline">History</a>
+            </div>
+        </div>
+
         <!-- Facebook Daily Post Generator -->
         <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
             <div class="flex justify-between items-start mb-2">
