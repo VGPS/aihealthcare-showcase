@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Combined LinkedIn + Facebook social post generator.
+ *
+ * Side-by-side layout showing pre-formatted posts from the latest market digest.
+ * Each column has a copy-to-clipboard button and platform-specific posting instructions.
+ * No LLM calls — content is templated directly from market digest entries.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-09-14
+ * @updated 2026-09-14
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Social Posts')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Social Post Generator</h1>
+    <p class="text-primary-200 text-sm mt-0.5">
+        <em>AI did what to whom. When, where, and why.</em>
+        <span th:if="${dateLabel}" th:text="' &middot; ' + ${dateLabel}"></span>
+    </p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('social')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Summary badges -->
+    <div class="flex flex-wrap gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-card px-4 py-3 text-center">
+            <div class="text-xl font-bold text-primary-600" th:text="${entryCount}">0</div>
+            <div class="text-xs text-gray-500 uppercase">Top Entries</div>
+        </div>
+        <div th:if="${totalEntries != null}" class="bg-white rounded-lg shadow-card px-4 py-3 text-center">
+            <div class="text-xl font-bold text-gray-600" th:text="${totalEntries}">0</div>
+            <div class="text-xs text-gray-500 uppercase">Total in Digest</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-card px-4 py-3 text-center">
+            <div class="text-xl font-bold text-blue-600" th:text="${linkedinBodyLength}">0</div>
+            <div class="text-xs text-gray-500 uppercase">LI Body Chars</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-card px-4 py-3 text-center">
+            <div class="text-xl font-bold text-indigo-600" th:text="${facebookBodyLength}">0</div>
+            <div class="text-xs text-gray-500 uppercase">FB Body Chars</div>
+        </div>
+    </div>
+
+    <!-- Tier gate -->
+    <div th:if="${fullAccess != null and !fullAccess}" class="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6 text-center">
+        <h2 class="text-lg font-bold text-amber-800 mb-2">Subscriber Feature</h2>
+        <p class="text-sm text-amber-700 mb-3">
+            The Social Post Generator creates ready-to-copy LinkedIn and Facebook posts from
+            your daily market digest — with platform-specific formatting, character limits,
+            and posting instructions built in.
+        </p>
+        <a th:href="@{/pricing}" class="inline-block px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors">
+            Upgrade to Subscriber
+        </a>
+    </div>
+
+    <!-- Feature description card -->
+    <div th:if="${fullAccess}" class="bg-white rounded-lg shadow-card p-4 mb-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-2">How It Works</h2>
+        <p class="text-xs text-gray-500 leading-relaxed">
+            Pulls the top 5 ranked entries from the latest market digest and formats them for each platform.
+            <strong>LinkedIn:</strong> no links in post body (40-60% reach suppression), source links go in the first comment, 2,900 char limit.
+            <strong>Facebook:</strong> links OK in body (no penalty), lead headline above the 390-char "See more" fold, bullets for additional stories.
+            Copy each section with one click and follow the platform-specific posting steps below.
+        </p>
+    </div>
+
+    <!-- No digest state -->
+    <div th:if="${fullAccess and entryCount == 0}" class="bg-white rounded-lg shadow-card p-8 text-center mb-6">
+        <p class="text-gray-500 text-sm">No market digest available to generate posts from.</p>
+        <p class="text-gray-400 text-xs mt-2">Run the Market Digest pipeline first from the
+            <a th:href="@{/admin/pipelines}" class="text-primary-600 underline">Pipelines page</a>.
+        </p>
+    </div>
+
+    <!-- Side-by-side grid -->
+    <div th:if="${entryCount > 0}" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- ═══ LinkedIn Column ═══ -->
+        <div class="space-y-4">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">&#x1F4E2;</span>
+                <h2 class="text-lg font-bold text-blue-700">LinkedIn</h2>
+                <span class="text-xs text-gray-400 ml-auto">2,900 char limit &middot; no links in body</span>
+            </div>
+
+            <!-- Post body -->
+            <div class="bg-white rounded-lg shadow-card p-4 border-l-4 border-blue-500">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-gray-700">Post Body</h3>
+                    <button onclick="copyToClipboard('li-body', this)"
+                            class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors">
+                        Copy
+                    </button>
+                </div>
+                <pre id="li-body" class="text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed bg-gray-50 rounded p-3 max-h-96 overflow-y-auto" th:text="${linkedinBody}"></pre>
+                <div class="text-right mt-1">
+                    <span class="text-xs text-gray-400" th:text="${linkedinBodyLength} + ' / 2,900 chars'"></span>
+                </div>
+            </div>
+
+            <!-- First comment -->
+            <div class="bg-white rounded-lg shadow-card p-4 border-l-4 border-blue-300">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-gray-700">First Comment (paste after posting)</h3>
+                    <button onclick="copyToClipboard('li-comment', this)"
+                            class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors">
+                        Copy
+                    </button>
+                </div>
+                <pre id="li-comment" class="text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed bg-gray-50 rounded p-3 max-h-64 overflow-y-auto" th:text="${linkedinComment}"></pre>
+                <div class="text-right mt-1">
+                    <span class="text-xs text-gray-400" th:text="${linkedinCommentLength} + ' chars'"></span>
+                </div>
+            </div>
+
+            <!-- LinkedIn instructions -->
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h3 class="text-sm font-bold text-blue-800 mb-2">Posting Steps</h3>
+                <ol class="text-xs text-blue-700 space-y-1.5 list-decimal list-inside">
+                    <li>Copy the <strong>Post Body</strong> above</li>
+                    <li>Go to <strong>linkedin.com</strong> &rarr; Start a post</li>
+                    <li>Paste the body text</li>
+                    <li>Publish the post (do NOT add links in the body &mdash; 40-60% reach suppression)</li>
+                    <li>Immediately copy the <strong>First Comment</strong> above</li>
+                    <li>Add a comment on your new post and paste the links there</li>
+                    <li>Optionally add a screenshot/infographic as the post image</li>
+                </ol>
+                <p class="text-xs text-blue-600 mt-2 italic">
+                    Links in LinkedIn post bodies reduce organic reach by 40-60%.
+                    Always put source links in the first comment instead.
+                </p>
+            </div>
+        </div>
+
+        <!-- ═══ Facebook Column ═══ -->
+        <div class="space-y-4">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">&#x1F30D;</span>
+                <h2 class="text-lg font-bold text-indigo-700">Facebook</h2>
+                <span class="text-xs text-gray-400 ml-auto">390 chars above fold &middot; links OK in body</span>
+            </div>
+
+            <!-- Post body -->
+            <div class="bg-white rounded-lg shadow-card p-4 border-l-4 border-indigo-500">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-gray-700">Post Body</h3>
+                    <button onclick="copyToClipboard('fb-body', this)"
+                            class="px-3 py-1 bg-indigo-600 text-white text-xs rounded hover:bg-indigo-700 transition-colors">
+                        Copy
+                    </button>
+                </div>
+                <pre id="fb-body" class="text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed bg-gray-50 rounded p-3 max-h-96 overflow-y-auto" th:text="${facebookBody}"></pre>
+                <div class="text-right mt-1">
+                    <span class="text-xs text-gray-400" th:text="${facebookBodyLength} + ' chars'"></span>
+                </div>
+            </div>
+
+            <!-- Optional comment -->
+            <div class="bg-white rounded-lg shadow-card p-4 border-l-4 border-indigo-300">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-gray-700">Optional Comment (expanded detail)</h3>
+                    <button onclick="copyToClipboard('fb-comment', this)"
+                            class="px-3 py-1 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-600 transition-colors">
+                        Copy
+                    </button>
+                </div>
+                <pre id="fb-comment" class="text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed bg-gray-50 rounded p-3 max-h-64 overflow-y-auto" th:text="${facebookComment}"></pre>
+                <div class="text-right mt-1">
+                    <span class="text-xs text-gray-400" th:text="${facebookCommentLength} + ' chars'"></span>
+                </div>
+            </div>
+
+            <!-- Facebook instructions -->
+            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                <h3 class="text-sm font-bold text-indigo-800 mb-2">Posting Steps</h3>
+                <ol class="text-xs text-indigo-700 space-y-1.5 list-decimal list-inside">
+                    <li>Copy the <strong>Post Body</strong> above</li>
+                    <li>Go to your Facebook page or group</li>
+                    <li>Create a new post and paste the body</li>
+                    <li>Links are OK in the body (no Facebook algorithm penalty)</li>
+                    <li>Publish the post</li>
+                    <li>Optionally paste the <strong>Comment</strong> as a reply with expanded summaries</li>
+                    <li>Add a screenshot/infographic if desired</li>
+                </ol>
+                <p class="text-xs text-indigo-600 mt-2 italic">
+                    Facebook does not penalize external links in post bodies.
+                    The first 390 characters appear above the "See more" fold.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Quick links -->
+    <div class="mt-6 text-center text-sm text-gray-500">
+        <a th:href="@{/dashboard/market}" class="text-primary-600 hover:underline">View full digest</a>
+        <span class="mx-2">&middot;</span>
+        <a th:href="@{/admin/pipelines}" class="text-primary-600 hover:underline">Run pipeline</a>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+function copyToClipboard(elementId, btn) {
+    var el = document.getElementById(elementId);
+    if (!el) return;
+    navigator.clipboard.writeText(el.textContent).then(function() {
+        var orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.remove('bg-blue-600', 'bg-blue-500', 'bg-indigo-600', 'bg-indigo-500');
+        btn.classList.add('bg-green-600');
+        setTimeout(function() {
+            btn.textContent = orig;
+            btn.classList.remove('bg-green-600');
+            // Restore original color
+            if (elementId.startsWith('li')) {
+                btn.classList.add(elementId.includes('comment') ? 'bg-blue-500' : 'bg-blue-600');
+            } else {
+                btn.classList.add(elementId.includes('comment') ? 'bg-indigo-500' : 'bg-indigo-600');
+            }
+        }, 1500);
+    });
+}
+</script>
+
+</body>
+</html>
