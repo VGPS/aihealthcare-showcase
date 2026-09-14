@@ -537,6 +537,7 @@ public class DigestNewsletterRenderer {
         // Header
         sb.append("<tr><td style=\"background:#1a1a2e; color:white; padding:20px 24px; border-radius:8px 8px 0 0;\">\n");
         sb.append("  <h1 style=\"margin:0; font-size:1.3em; color:white;\">").append(subject).append("</h1>\n");
+        sb.append("  <p style=\"margin:8px 0 0; font-size:0.8em; color:#94a3b8; font-style:italic;\">Who did what to whom. When, where, and why.</p>\n");
         sb.append("  <p style=\"margin:8px 0 0; font-size:0.85em; color:#b0b8c8; line-height:1.4;\">");
         sb.append("Your free daily digest of AI in healthcare &mdash; sourced from 69 feeds across regulatory, clinical, ");
         sb.append("and commercial developments. Subscribers get a deeper weekly briefing with full AI-powered analysis.");

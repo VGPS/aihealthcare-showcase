@@ -159,6 +159,7 @@ public class SesMarketDigestNotifier implements MarketDigestNotifier {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html><html><body style=\"font-family:Arial,sans-serif;max-width:700px;margin:0 auto;\">");
         sb.append("<h2 style=\"color:#1a3a5c;\">AI Healthcare Market Alert</h2>");
+        sb.append("<p style=\"color:#94a3b8; font-style:italic; font-size:0.9em; margin:0 0 8px;\">Who did what to whom. When, where, and why.</p>");
         sb.append("<p style=\"color:#555;\">").append(DATE_FMT.format(digest.date())).append("</p>");
         sb.append("<p>").append(digest.entries().size())
           .append(" market-moving development(s) detected today:</p>");
