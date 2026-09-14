@@ -2,7 +2,8 @@
 <!--
 /**
  * Market Digest Dashboard — ranked AI-healthcare market news covering earnings,
- * regulatory actions, funding rounds, M&A, and major partnerships.
+ * regulatory actions, funding rounds, M&A, partnerships, legal actions,
+ * workforce changes, and product launches.
  * Supports category filtering and tier gating (FREE sees top 3 entries).
  *
  * @author  Bill Blackmon
@@ -21,7 +22,7 @@
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
     <h1 class="font-display text-2xl font-bold tracking-tight">Market Digest</h1>
     <p class="text-primary-200 text-sm mt-0.5">
-        <em>Who did what to whom. When, where, and why.</em>
+        <em>AI did what to whom. When, where, and why.</em>
         <span th:if="${digestDate}" th:text="' · ' + ${digestDate}"></span>
     </p>
 </header>
@@ -64,6 +65,21 @@
            class="px-3 py-1 rounded-full text-xs font-medium"
            th:classappend="${filterCategory == 'MAJOR_PARTNERSHIP'} ? 'bg-yellow-600 text-white' : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'">
             Partnership
+        </a>
+        <a th:href="@{/dashboard/market(category='LEGAL_ACTION')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterCategory == 'LEGAL_ACTION'} ? 'bg-rose-600 text-white' : 'bg-rose-100 text-rose-800 hover:bg-rose-200'">
+            Legal
+        </a>
+        <a th:href="@{/dashboard/market(category='WORKFORCE')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterCategory == 'WORKFORCE'} ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'">
+            Workforce
+        </a>
+        <a th:href="@{/dashboard/market(category='PRODUCT_LAUNCH')}"
+           class="px-3 py-1 rounded-full text-xs font-medium"
+           th:classappend="${filterCategory == 'PRODUCT_LAUNCH'} ? 'bg-cyan-600 text-white' : 'bg-cyan-100 text-cyan-800 hover:bg-cyan-200'">
+            Product Launch
         </a>
     </div>
 
@@ -127,7 +143,10 @@
                                           (${entry.category == 'REGULATORY'} ? 'bg-purple-100 text-purple-800' :
                                           (${entry.category == 'FUNDING'} ? 'bg-green-100 text-green-800' :
                                           (${entry.category == 'M_AND_A'} ? 'bg-red-100 text-red-800' :
-                                          (${entry.category == 'MAJOR_PARTNERSHIP'} ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600'))))"
+                                          (${entry.category == 'MAJOR_PARTNERSHIP'} ? 'bg-yellow-100 text-yellow-800' :
+                                          (${entry.category == 'LEGAL_ACTION'} ? 'bg-rose-100 text-rose-800' :
+                                          (${entry.category == 'WORKFORCE'} ? 'bg-amber-100 text-amber-800' :
+                                          (${entry.category == 'PRODUCT_LAUNCH'} ? 'bg-cyan-100 text-cyan-800' : 'bg-gray-100 text-gray-600')))))))"
                           th:text="${entry.category.replace('_', ' ')}">
                         EARNINGS
                     </span>
