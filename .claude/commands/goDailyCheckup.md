@@ -170,10 +170,12 @@ All outputs use the same `YYYY-MM-DD-{topic-slug}` convention — date is the di
      - Media queries for `@media (max-width: 900px)` and `@media (max-width: 500px)` to stack cards/columns
    - **MUST include CTA section** between the bottom-row and footer — card grid with
      descriptions explaining what each link offers. Use absolute URLs (`https://app.bigskylabs.ai/...`).
+     - **GATED pages (dashboards) MUST link to `/pricing`, NEVER to the dashboard URL.**
+       Unauthenticated LinkedIn visitors would hit a login wall. All 3 CTA cards point to pricing.
      Always include these links:
-     - 3 CTA cards (grid): the dashboard pages for the data sources used (e.g., Market Digest,
-       Trend Detection, Deal Signals) — each with an icon, title, and 1-line description
-     - Bottom row: `/directory` (free, no signup) + `/pricing` (signup CTA)
+     - 3 CTA cards (grid): feature descriptions (e.g., Market Digest, Trend Detection, Deal Signals)
+       — each with an icon, title, and 1-line description. ALL link to `https://app.bigskylabs.ai/pricing`
+     - Bottom row: `/directory` (free, no signup — this is the ONLY non-pricing link) + `/pricing` (signup CTA)
    - Use the CTA section CSS/HTML pattern from the reference infographic:
      `application/src/main/resources/static/insights/2026-09-15-ehr-ai-race.html`
 
