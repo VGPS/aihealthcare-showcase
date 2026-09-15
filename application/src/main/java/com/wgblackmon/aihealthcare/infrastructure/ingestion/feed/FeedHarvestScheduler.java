@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.model.WatchlistItem;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
 import com.wgblackmon.aihealthcare.domain.model.WebhookEventType;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DetectDealSignalsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
@@ -76,6 +77,7 @@ public class FeedHarvestScheduler {
     private final WebhookDispatcher webhookDispatcher;
     private final WikiGapAnalysisService wikiGapAnalysisService;
     private final WikiPageRepository wikiPageRepository;
+    private final DetectDealSignalsUseCase detectDealSignalsUseCase;
 
     @Value("${aihealthcare.startup.harvest-enabled:false}")
     private boolean startupHarvestEnabled;
@@ -94,7 +96,8 @@ public class FeedHarvestScheduler {
                                 @Autowired(required = false) StartupPipelineOrchestrator pipelineOrchestrator,
                                 @Autowired(required = false) WebhookDispatcher webhookDispatcher,
                                 @Autowired(required = false) WikiGapAnalysisService wikiGapAnalysisService,
-                                @Autowired(required = false) WikiPageRepository wikiPageRepository) {
+                                @Autowired(required = false) WikiPageRepository wikiPageRepository,
+                                @Autowired(required = false) DetectDealSignalsUseCase detectDealSignalsUseCase) {
         log.debug("FeedHarvestScheduler() | harvestingPort={}, articleStoragePort={}, topicSummaryService={}, newsTopicProperties={}, knowledgeCompilationPort={}",
                   harvestingPort.getClass().getSimpleName(),
                   articleStoragePort.getClass().getSimpleName(),
@@ -116,6 +119,7 @@ public class FeedHarvestScheduler {
         this.webhookDispatcher = webhookDispatcher;
         this.wikiGapAnalysisService = wikiGapAnalysisService;
         this.wikiPageRepository = wikiPageRepository;
+        this.detectDealSignalsUseCase = detectDealSignalsUseCase;
     }
 
     /**
@@ -203,6 +207,7 @@ public class FeedHarvestScheduler {
             lintWikiPages();
             analyzeWikiGaps(industryArticles);
             matchWatchlistItems(industryArticles);
+            runDealDetection();
         } catch (Exception e) {
             log.error("harvestIndustryFeeds() | scheduler exception", e);
         }
@@ -368,6 +373,27 @@ public class FeedHarvestScheduler {
             log.warn("notifyWatchlistMatches() | webhook dispatch failed: {}", e.getMessage());
         }
         log.debug("notifyWatchlistMatches() | return=void");
+    }
+
+    /**
+     * Runs deal signal detection against recently harvested articles.
+     * No-ops gracefully if the deal detection use case is not configured.
+     * Failures are caught so the harvest pipeline is never interrupted.
+     */
+    private void runDealDetection() {
+        log.debug("runDealDetection() | starting deal signal detection");
+        if (detectDealSignalsUseCase == null) {
+            log.debug("runDealDetection() | detectDealSignalsUseCase not configured — skipping");
+            log.debug("runDealDetection() | return=void");
+            return;
+        }
+        try {
+            var signals = detectDealSignalsUseCase.detectSignals();
+            log.info("runDealDetection() | {} new deal signals detected", signals.size());
+        } catch (Exception e) {
+            log.warn("runDealDetection() | deal detection failed — harvest continues", e);
+        }
+        log.debug("runDealDetection() | return=void");
     }
 
     /**
