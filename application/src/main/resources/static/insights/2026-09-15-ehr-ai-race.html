@@ -2,15 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=1400"/>
-<title>The EHR AI Race</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>The EHR AI Race — AI in Healthcare Intelligence</title>
+<meta name="description" content="Four Big Tech companies launched healthcare AI products in one week. Trend data, deal signals, and market analysis from BigSkyLabs."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    width: 1400px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
     background: #ffffff;
     font-family: 'Inter', system-ui, sans-serif;
     color: #0f172a;
@@ -139,22 +142,6 @@
     margin-top: 6px;
     line-height: 1.5;
   }
-  .progress-track {
-    width: 100%;
-    height: 10px;
-    background: #e2e8f0;
-    border-radius: 5px;
-    margin-top: 16px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    border-radius: 5px;
-  }
-  .card.blue .progress-fill { background: linear-gradient(90deg, #3b82f6, #2563eb); }
-  .card.purple .progress-fill { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
-  .card.cyan .progress-fill { background: linear-gradient(90deg, #06b6d4, #0891b2); }
-  .card.amber .progress-fill { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
 
   /* ── Row 3: Callout + Quote ── */
   .bottom-row {
@@ -219,56 +206,97 @@
     line-height: 1.6;
   }
 
-  /* ── CTA Bar ── */
-  .cta-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 36px;
-    padding: 28px 32px;
+  /* ── CTA Section ── */
+  .cta-section {
+    margin-top: 40px;
+    padding: 36px 40px;
     background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 50%, #f5f3ff 100%);
     border: 1px solid #dbeafe;
+    border-radius: 16px;
+  }
+  .cta-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .cta-header h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 6px;
+  }
+  .cta-header p {
+    font-size: 16px;
+    color: #64748b;
+  }
+  .cta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .cta-card {
+    display: block;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
+    padding: 24px 20px;
+    text-decoration: none;
+    text-align: center;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
   }
-  .cta-bar .cta-text {
-    font-size: 17px;
-    font-weight: 600;
-    color: #334155;
-    margin-right: 8px;
+  .cta-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    border-color: #93c5fd;
   }
-  .cta-btn {
+  .cta-card .cta-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+  .cta-card .cta-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 6px;
+  }
+  .cta-card .cta-desc {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+  }
+  .cta-bottom {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+  }
+  .cta-bottom-link {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
+    gap: 8px;
+    padding: 12px 28px;
     border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     text-decoration: none;
     transition: transform 0.15s, box-shadow 0.15s;
   }
-  .cta-btn:hover {
+  .cta-bottom-link:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
   }
-  .cta-btn.primary {
-    background: #2563eb;
-    color: #ffffff;
-  }
-  .cta-btn.primary:hover { background: #1d4ed8; }
-  .cta-btn.secondary {
+  .cta-bottom-link.directory {
     background: #ffffff;
     color: #2563eb;
-    border: 1px solid #bfdbfe;
+    border: 2px solid #2563eb;
   }
-  .cta-btn.secondary:hover { background: #eff6ff; }
-  .cta-btn.accent {
+  .cta-bottom-link.directory:hover { background: #eff6ff; }
+  .cta-bottom-link.signup {
     background: #7c3aed;
     color: #ffffff;
+    border: 2px solid #7c3aed;
   }
-  .cta-btn.accent:hover { background: #6d28d9; }
-  .cta-btn .arrow { font-size: 16px; }
+  .cta-bottom-link.signup:hover { background: #6d28d9; }
 
   /* ── Footer ── */
   .footer {
@@ -291,6 +319,31 @@
   }
   .footer-source .src-name { color: #64748b; }
   .footer-source .src-url { color: #94a3b8; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .container { padding: 24px 20px; }
+    .header { flex-direction: column; gap: 24px; }
+    .header-left { max-width: 100%; }
+    .header-left h1 { font-size: 32px; }
+    .subtitle { font-size: 15px; }
+    .hero-stats { gap: 24px; }
+    .hero-stat .num { font-size: 36px; }
+    .cards { grid-template-columns: 1fr 1fr; }
+    .card .big-num { font-size: 32px; }
+    .bottom-row { grid-template-columns: 1fr; }
+    .cta-grid { grid-template-columns: 1fr; }
+    .cta-bottom { flex-direction: column; }
+    .footer { flex-direction: column; gap: 12px; text-align: center; }
+    .footer-source { text-align: center; }
+    .brand img { width: 56px; height: 56px; }
+    .brand-name { font-size: 20px; }
+  }
+  @media (max-width: 500px) {
+    .cards { grid-template-columns: 1fr; }
+    .hero-stats { flex-direction: column; gap: 16px; }
+    .cta-section { padding: 24px 16px; }
+  }
 </style>
 </head>
 <body>
@@ -371,14 +424,33 @@
     </div>
   </div>
 
-  <!-- CTA Bar -->
-  <div class="cta-bar">
-    <span class="cta-text">Explore the live data behind this analysis:</span>
-    <a href="/dashboard/market" class="cta-btn primary">Market Digest <span class="arrow">&rarr;</span></a>
-    <a href="/dashboard/trends" class="cta-btn secondary">Trend Detection <span class="arrow">&rarr;</span></a>
-    <a href="/dashboard/deals" class="cta-btn secondary">Deal Signals <span class="arrow">&rarr;</span></a>
-    <a href="/directory" class="cta-btn secondary">318 Companies <span class="arrow">&rarr;</span></a>
-    <a href="/pricing" class="cta-btn accent">Sign Up Free <span class="arrow">&rarr;</span></a>
+  <!-- CTA Section -->
+  <div class="cta-section">
+    <div class="cta-header">
+      <h2>Explore the Live Data Behind This Analysis</h2>
+      <p>Updated daily from 57+ sources across regulatory filings, deal trackers, and trend monitors</p>
+    </div>
+    <div class="cta-grid">
+      <a href="https://app.bigskylabs.ai/dashboard/market" class="cta-card">
+        <div class="cta-icon">&#128200;</div>
+        <div class="cta-title">Market Digest</div>
+        <div class="cta-desc">Today's ranked, fact-checked AI healthcare headlines with impact scores and affected companies</div>
+      </a>
+      <a href="https://app.bigskylabs.ai/dashboard/trends" class="cta-card">
+        <div class="cta-icon">&#128202;</div>
+        <div class="cta-title">Trend Detection</div>
+        <div class="cta-desc">Rising and fading keywords tracked across 30/90/180-day windows with momentum scores</div>
+      </a>
+      <a href="https://app.bigskylabs.ai/dashboard/deals" class="cta-card">
+        <div class="cta-icon">&#129309;</div>
+        <div class="cta-title">Deal Signals</div>
+        <div class="cta-desc">M&amp;A, funding rounds, and partnerships detected and classified by LLM analysis</div>
+      </a>
+    </div>
+    <div class="cta-bottom">
+      <a href="https://app.bigskylabs.ai/directory" class="cta-bottom-link directory">Browse 318 Companies &mdash; Free, No Signup &#8594;</a>
+      <a href="https://app.bigskylabs.ai/pricing" class="cta-bottom-link signup">Sign Up Free &#8594;</a>
+    </div>
   </div>
 
   <!-- Footer -->
@@ -386,7 +458,7 @@
     <div class="footer-brand"><span class="big">BigSky</span><span class="labs">Labs</span></div>
     <div class="footer-source">
       <span class="src-name">Market Digest &times; Trend Detection &times; Deal Signal Tracker</span><br/>
-      <span class="src-url">app.bigskylabs.ai/dashboard/market &nbsp;|&nbsp; September 15, 2026</span>
+      <span class="src-url">app.bigskylabs.ai &nbsp;|&nbsp; September 15, 2026</span>
     </div>
   </div>
 

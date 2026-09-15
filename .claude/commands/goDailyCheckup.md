@@ -109,13 +109,20 @@ Write the LinkedIn post following the content calendar format:
 - One closing question or observation
 - Save to `linkedin-posts/text/YYYY-MM-DD-{topic-slug}-post.txt`
 
-**ONE link goes in the post body — the live infographic page.** Place it as the very last line
-of the post text, after all insight content:
+**ONE link goes in the post body — the live infographic page.** This is the clickable link
+that connects the image the reader is looking at to the actual live page. Place it as the
+very last line of the post text, after all insight content.
+
+The link MUST have explanatory text telling the reader what they get when they click.
+Format — two lines, pointing-hand emoji + description on line 1, bare URL on line 2:
 ```
-See the full data breakdown: https://app.bigskylabs.ai/insights/YYYY-MM-DD-{topic-slug}.html
+👉 Explore the live data behind this analysis — trend charts, deal signals, market-moving headlines, and 318 tracked AI healthcare companies updated daily:
+https://app.bigskylabs.ai/insights/YYYY-MM-DD-{topic-slug}.html
 ```
-This is the primary CTA. Users should not need to find the first comment to reach the page.
-A single link at the bottom of compelling content has minimal reach penalty.
+Adapt the description to match the specific data sources used in that day's infographic.
+The hosted page at `/insights/` mirrors the screenshot image exactly, plus has CTA buttons
+at the bottom linking into Market Digest, Trends, Deals, Directory, and Pricing.
+Users should not need to find the first comment to reach the page.
 
 **All other links go in the first comment:**
 1. **Relevant dashboard pages** — the app pages for the data sources used (e.g., `/dashboard/market`, `/dashboard/trends`, `/dashboard/deals`)
@@ -157,13 +164,17 @@ All outputs use the same `YYYY-MM-DD-{topic-slug}` convention — date is the di
    - Uses `src="/images/brand-icon.png"` (absolute path, works when served by Spring Boot)
    - Live URL: `https://app.bigskylabs.ai/insights/YYYY-MM-DD-{topic-slug}.html`
    - `/insights/**` is public (no login required)
-   - **MUST include CTA bar** between the bottom-row and footer — a row of clickable
-     buttons linking into the live app. Always include these links:
-     - Primary: the dashboard page for the data source used (e.g., `/dashboard/market`)
-     - Secondary: 2-3 other relevant dashboards (e.g., `/dashboard/trends`, `/dashboard/deals`)
-     - Secondary: `/directory` (free, no login)
-     - Accent: `/pricing` (signup CTA — always last)
-   - Use the CTA bar CSS/HTML pattern from the reference infographic:
+   - **MUST be responsive** — LinkedIn traffic is heavily mobile. Key differences from screenshot copy:
+     - `<meta name="viewport" content="width=device-width, initial-scale=1"/>`
+     - `body { max-width: 1400px; width: 100%; margin: 0 auto; }` (NOT `width: 1400px`)
+     - Media queries for `@media (max-width: 900px)` and `@media (max-width: 500px)` to stack cards/columns
+   - **MUST include CTA section** between the bottom-row and footer — card grid with
+     descriptions explaining what each link offers. Use absolute URLs (`https://app.bigskylabs.ai/...`).
+     Always include these links:
+     - 3 CTA cards (grid): the dashboard pages for the data sources used (e.g., Market Digest,
+       Trend Detection, Deal Signals) — each with an icon, title, and 1-line description
+     - Bottom row: `/directory` (free, no signup) + `/pricing` (signup CTA)
+   - Use the CTA section CSS/HTML pattern from the reference infographic:
      `application/src/main/resources/static/insights/2026-09-15-ehr-ai-race.html`
 
 2. **Local screenshot copy** (used only for Playwright screenshot — NO CTA bar):
