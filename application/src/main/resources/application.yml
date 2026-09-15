@@ -220,6 +220,14 @@ aihealthcare:
     upload-dir: ${DOCUMENTS_UPLOAD_DIR:/tmp/aihealthcare-documents}
 
   # ---------------------------------------------------------------------------
+  # Deal Signal Detection — standalone cron for detecting deal signals in
+  # recently harvested articles.  Runs every 6 hours to catch industry-tier
+  # articles that are harvested every 4 hours.
+  # ---------------------------------------------------------------------------
+  deals:
+    schedule: "0 0 */6 * * *"
+
+  # ---------------------------------------------------------------------------
   # Market Analysis — daily AI-healthcare market digest pipeline.
   # Fires at 07:00 America/Chicago (zone is set in @Scheduled annotation).
   # ---------------------------------------------------------------------------
@@ -1606,6 +1614,16 @@ aihealthcare:
         failure-threshold: 5                # consecutive failures before auto-deactivating
         due-batch-size: 50
         link-expiry-seconds: 86400          # 24 hours
+
+  # ---------------------------------------------------------------------------
+  # SSO / SAML2 Service Provider configuration.
+  # IdP configurations are managed via the /admin/sso UI and stored in the database.
+  # The SP entity ID and signing credentials are global — shared across all tenants.
+  # ---------------------------------------------------------------------------
+  sso:
+    enabled: true
+    sp:
+      entity-id: ${SSO_SP_ENTITY_ID:https://app.bigskylabs.ai}
 
   # ---------------------------------------------------------------------------
   # Ingestion — domain denylist for WebPageHarvester robots.txt gate.

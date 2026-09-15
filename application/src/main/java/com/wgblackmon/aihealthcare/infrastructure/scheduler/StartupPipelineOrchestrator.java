@@ -19,6 +19,7 @@ import com.wgblackmon.aihealthcare.infrastructure.ingestion.web.WebMonitoringSch
 import com.wgblackmon.aihealthcare.infrastructure.research.ResearchHarvestScheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -48,9 +49,9 @@ import java.time.Instant;
  * </ol>
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-03
- * @updated 2026-09-07
+ * @updated 2026-09-15
  */
 @Slf4j
 @Component
@@ -110,6 +111,35 @@ public class StartupPipelineOrchestrator {
         this.detectDealSignalsUseCase = detectDealSignalsUseCase;
         this.mapRelationshipsUseCase = mapRelationshipsUseCase;
         this.marketDigestService = marketDigestService;
+    }
+
+    /**
+     * Standalone deal signal detection cron — runs every 6 hours independently
+     * of the full pipeline cascade. Ensures industry-tier articles harvested
+     * every 4 hours are checked for deal signals without waiting for the
+     * daily 04:00 UTC full pipeline run.
+     */
+    @Scheduled(cron = "${aihealthcare.deals.schedule}", zone = "UTC")
+    public void runDealDetectionCron() {
+        log.info("runDealDetectionCron() | starting standalone deal signal detection");
+        if (detectDealSignalsUseCase == null) {
+            log.debug("runDealDetectionCron() | detectDealSignalsUseCase not available — skipping");
+            log.debug("runDealDetectionCron() | return=void");
+            return;
+        }
+        runStep("Deal signal detection (standalone)", () -> {
+            java.util.List<DealSignal> signals = detectDealSignalsUseCase.detectSignals();
+            log.info("runDealDetectionCron() | {} new signals detected", signals.size());
+            if (webhookDispatcher != null && !signals.isEmpty()) {
+                webhookDispatcher.dispatch(
+                        WebhookEventType.WATCHLIST_MATCH,
+                        signals.size() + " Deal Signal" + (signals.size() == 1 ? "" : "s") + " Detected",
+                        "Detected " + signals.size() + " new deal signal" + (signals.size() == 1 ? "" : "s") + " in recent articles.",
+                        "/dashboard/deals"
+                );
+            }
+        });
+        log.debug("runDealDetectionCron() | return=void");
     }
 
     /**

@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-09-15
  */
 @ExtendWith(MockitoExtension.class)
 class DealSignalDetectionServiceTest {
@@ -59,7 +59,7 @@ class DealSignalDetectionServiceTest {
         NewsArticle fundingArticle = article("a1",
                 "Tempus AI raises $200 million in Series D funding round",
                 "Tempus AI has raised $200 million in a Series D funding round led by venture capital firm...");
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of(fundingArticle));
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(fundingArticle));
         when(dealSignalPort.existsByArticleId("a1")).thenReturn(false);
 
         List<DealSignal> result = service.detectSignals();
@@ -74,7 +74,7 @@ class DealSignalDetectionServiceTest {
         NewsArticle acqArticle = article("a2",
                 "Oracle acquires health AI startup in major takeover deal",
                 "Oracle has acquired the health AI company in a takeover valued at...");
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of(acqArticle));
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(acqArticle));
         when(dealSignalPort.existsByArticleId("a2")).thenReturn(false);
 
         List<DealSignal> result = service.detectSignals();
@@ -88,7 +88,7 @@ class DealSignalDetectionServiceTest {
         NewsArticle partnerArticle = article("a3",
                 "Google Health partners with Mayo Clinic in collaboration agreement",
                 "Google Health and Mayo Clinic have entered a strategic alliance to jointly develop...");
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of(partnerArticle));
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(partnerArticle));
         when(dealSignalPort.existsByArticleId("a3")).thenReturn(false);
 
         List<DealSignal> result = service.detectSignals();
@@ -102,7 +102,7 @@ class DealSignalDetectionServiceTest {
         NewsArticle boringArticle = article("a4",
                 "Weekly healthcare news roundup",
                 "This week in healthcare we review several developments...");
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of(boringArticle));
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(boringArticle));
         when(dealSignalPort.existsByArticleId("a4")).thenReturn(false);
 
         List<DealSignal> result = service.detectSignals();
@@ -116,7 +116,7 @@ class DealSignalDetectionServiceTest {
         NewsArticle fundingArticle = article("a5",
                 "Startup raises $50 million in funding round",
                 "The startup raised capital from venture investors...");
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of(fundingArticle));
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(fundingArticle));
         when(dealSignalPort.existsByArticleId("a5")).thenReturn(true);
 
         List<DealSignal> result = service.detectSignals();
@@ -130,7 +130,7 @@ class DealSignalDetectionServiceTest {
         NewsArticle fundingArticle = article("a6",
                 "HealthTech raises $100 million Series B funding led by Sequoia",
                 "HealthTech has raised $100 million in Series B investment...");
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of(fundingArticle));
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(fundingArticle));
         when(dealSignalPort.existsByArticleId("a6")).thenReturn(false);
 
         service.detectSignals();
