@@ -62,8 +62,9 @@ Use the **approved BigSkyLabs infographic template**. The reference implementati
 **Layout:** Horizontal flow — left-to-right, then new row. NOT top-down stacking.
 
 **Brand block (top-left, REQUIRED on every infographic):**
-- Brand icon: `application/src/main/resources/static/images/brand-icon.png` — 84×84px, 10px border-radius
-- MUST be embedded as base64 data URI (run: `base64 -w 0 <path>` then use `src="data:image/png;base64,..."`)
+- Brand icon: use `src="/images/brand-icon.png"` (absolute path — works when served by the app)
+- For the local screenshot copy, use `src="brand-icon.png"` (relative — copy `brand-icon.png` to `linkedin-posts/` if not already there)
+- Size: 84×84px, 10px border-radius
 - Brand name: "AI in Healthcare" — Inter 27px weight 700, color `#64748b`
 - Icon + name in a flex row with 14px gap
 
@@ -108,8 +109,13 @@ Write the LinkedIn post following the content calendar format:
 - One closing question or observation
 - Save to `linkedin-posts/text/YYYY-MM-DD-{topic-slug}-post.txt`
 
-Include the first-comment text with the link to the relevant app page.
-Link goes in first comment, NOT in the post body (LinkedIn algorithm penalizes external links in body).
+Include the first-comment text with these links (all in the first comment, NOT in the post body):
+1. **Live infographic link** — `https://app.bigskylabs.ai/insights/YYYY-MM-DD-{topic-slug}.html` (always first — this is the page the screenshot came from)
+2. **Relevant dashboard page** — the app page for the data source used (e.g., `/dashboard/market`, `/dashboard/trends`, `/dashboard/deals`)
+3. **Free directory link** — `https://app.bigskylabs.ai/directory` (always — free, no signup)
+4. **Signup CTA** — `https://app.bigskylabs.ai/pricing` (always last)
+
+LinkedIn algorithm penalizes external links in the post body. Keep all links in the first comment.
 Exception: `/directory` links can go in the body (it's a free public resource, not a product page).
 
 ## Step 6 — Screenshot with Playwright
@@ -140,9 +146,24 @@ After the screenshot:
 
 All outputs use the same `YYYY-MM-DD-{topic-slug}` convention — date is the differentiator.
 
-- Infographic HTML: `linkedin-posts/YYYY-MM-DD-{topic-slug}.html`
+**Two copies of the infographic HTML are generated:**
+
+1. **Live hosted copy** (served by the app — this is the version LinkedIn viewers see):
+   `application/src/main/resources/static/insights/YYYY-MM-DD-{topic-slug}.html`
+   - Uses `src="/images/brand-icon.png"` (absolute path, works when served by Spring Boot)
+   - Live URL: `https://app.bigskylabs.ai/insights/YYYY-MM-DD-{topic-slug}.html`
+   - `/insights/**` is public (no login required)
+
+2. **Local screenshot copy** (used only for Playwright screenshot):
+   `linkedin-posts/YYYY-MM-DD-{topic-slug}.html`
+   - Uses `src="brand-icon.png"` (relative path, works with local `file://` URLs)
+   - Ensure `linkedin-posts/brand-icon.png` exists (copy from `application/src/main/resources/static/images/brand-icon.png` if missing)
+
 - Screenshot PNG: `linkedin-posts/shots/YYYY-MM-DD-{topic-slug}.png`
 - Post text: `linkedin-posts/text/YYYY-MM-DD-{topic-slug}-post.txt`
+
+**IMPORTANT:** The live hosted copy must be committed and deployed via `/goremote` before the
+LinkedIn post goes live. The live URL won't work until the next deploy.
 
 ## Content calendar reference
 
