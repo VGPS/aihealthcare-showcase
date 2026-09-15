@@ -94,7 +94,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/developer").permitAll()
                 .requestMatchers("/robots.txt", "/sitemap.xml", "/google4197b7811cdace1b.html").permitAll()
-                .requestMatchers("/images/**").permitAll()
+                .requestMatchers("/images/**", "/insights/**").permitAll()
                 .requestMatchers("/wiki", "/wiki/**").permitAll()
                 .requestMatchers("/legislation", "/legislation/**").permitAll()
                 .requestMatchers("/stripe/**").permitAll()

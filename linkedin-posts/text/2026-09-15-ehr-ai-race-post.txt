@@ -1,0 +1,25 @@
+Four Big Tech companies launched healthcare AI products in the same week.
+
+OpenAI + Epic integrated ChatGPT directly into EHR workflows. AWS unveiled Amazon Connect Health. Oracle released a clinical AI agent for nurses. GE HealthCare launched an AI-driven operations system.
+
+Meanwhile, our trend detection shows "Epic AI Agent Platform" appeared in 80 articles over 30 days — more than double the next-highest keyword in healthcare AI.
+
+This isn't incremental product iteration. This is a platform land grab for who owns the clinical workflow layer.
+
+The question isn't whether AI enters the EHR. It's whether the EHR becomes AI.
+
+---
+
+FIRST COMMENT:
+
+Data from BigSkyLabs AI in Healthcare — tracking 318 companies, 57+ data sources, and 15 rising keywords across healthcare AI daily.
+
+See the full interactive infographic: https://app.bigskylabs.ai/insights/2026-09-15-ehr-ai-race.html
+
+Market Digest: https://app.bigskylabs.ai/dashboard/market
+Trend Detection: https://app.bigskylabs.ai/dashboard/trends
+Deal Signals: https://app.bigskylabs.ai/dashboard/deals
+
+Free company directory (no signup): https://app.bigskylabs.ai/directory
+
+Sign up free: https://app.bigskylabs.ai/pricing
