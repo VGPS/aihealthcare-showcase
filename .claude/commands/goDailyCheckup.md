@@ -109,14 +109,18 @@ Write the LinkedIn post following the content calendar format:
 - One closing question or observation
 - Save to `linkedin-posts/text/YYYY-MM-DD-{topic-slug}-post.txt`
 
-Include the first-comment text with these links (all in the first comment, NOT in the post body):
-1. **Live infographic link** — `https://app.bigskylabs.ai/insights/YYYY-MM-DD-{topic-slug}.html` (always first — this is the page the screenshot came from)
-2. **Relevant dashboard page** — the app page for the data source used (e.g., `/dashboard/market`, `/dashboard/trends`, `/dashboard/deals`)
-3. **Free directory link** — `https://app.bigskylabs.ai/directory` (always — free, no signup)
-4. **Signup CTA** — `https://app.bigskylabs.ai/pricing` (always last)
+**ONE link goes in the post body — the live infographic page.** Place it as the very last line
+of the post text, after all insight content:
+```
+See the full data breakdown: https://app.bigskylabs.ai/insights/YYYY-MM-DD-{topic-slug}.html
+```
+This is the primary CTA. Users should not need to find the first comment to reach the page.
+A single link at the bottom of compelling content has minimal reach penalty.
 
-LinkedIn algorithm penalizes external links in the post body. Keep all links in the first comment.
-Exception: `/directory` links can go in the body (it's a free public resource, not a product page).
+**All other links go in the first comment:**
+1. **Relevant dashboard pages** — the app pages for the data sources used (e.g., `/dashboard/market`, `/dashboard/trends`, `/dashboard/deals`)
+2. **Free directory link** — `https://app.bigskylabs.ai/directory` (always — free, no signup)
+3. **Signup CTA** — `https://app.bigskylabs.ai/pricing` (always last)
 
 ## Step 6 — Screenshot with Playwright
 
@@ -153,10 +157,19 @@ All outputs use the same `YYYY-MM-DD-{topic-slug}` convention — date is the di
    - Uses `src="/images/brand-icon.png"` (absolute path, works when served by Spring Boot)
    - Live URL: `https://app.bigskylabs.ai/insights/YYYY-MM-DD-{topic-slug}.html`
    - `/insights/**` is public (no login required)
+   - **MUST include CTA bar** between the bottom-row and footer — a row of clickable
+     buttons linking into the live app. Always include these links:
+     - Primary: the dashboard page for the data source used (e.g., `/dashboard/market`)
+     - Secondary: 2-3 other relevant dashboards (e.g., `/dashboard/trends`, `/dashboard/deals`)
+     - Secondary: `/directory` (free, no login)
+     - Accent: `/pricing` (signup CTA — always last)
+   - Use the CTA bar CSS/HTML pattern from the reference infographic:
+     `application/src/main/resources/static/insights/2026-09-15-ehr-ai-race.html`
 
-2. **Local screenshot copy** (used only for Playwright screenshot):
+2. **Local screenshot copy** (used only for Playwright screenshot — NO CTA bar):
    `linkedin-posts/YYYY-MM-DD-{topic-slug}.html`
    - Uses `src="brand-icon.png"` (relative path, works with local `file://` URLs)
+   - Does NOT include the CTA bar (keeps the screenshot clean for LinkedIn image)
    - Ensure `linkedin-posts/brand-icon.png` exists (copy from `application/src/main/resources/static/images/brand-icon.png` if missing)
 
 - Screenshot PNG: `linkedin-posts/shots/YYYY-MM-DD-{topic-slug}.png`
