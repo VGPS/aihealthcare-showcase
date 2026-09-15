@@ -1401,4 +1401,93 @@ public class AppConfig {
         log.debug("apiRateLimitFilterRegistration() | return=FilterRegistrationBean");
         return registration;
     }
+
+    /**
+     * Creates the {@link com.wgblackmon.aihealthcare.domain.service.SsoProviderService}
+     * bean — SSO Identity Provider CRUD operations.
+     *
+     * @param providerPort Adapter implementing IdP persistence (auto-detected).
+     * @return The wired {@link com.wgblackmon.aihealthcare.domain.service.SsoProviderService} instance.
+     */
+    @Bean
+    public com.wgblackmon.aihealthcare.domain.service.SsoProviderService ssoProviderService(
+            com.wgblackmon.aihealthcare.domain.port.outbound.SsoIdentityProviderPort providerPort) {
+        log.debug("ssoProviderService() | providerPort={}", providerPort.getClass().getSimpleName());
+        com.wgblackmon.aihealthcare.domain.service.SsoProviderService result =
+                new com.wgblackmon.aihealthcare.domain.service.SsoProviderService(providerPort);
+        log.debug("ssoProviderService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link com.wgblackmon.aihealthcare.domain.service.SsoProvisioningService}
+     * bean — JIT user provisioning for SSO-authenticated users.
+     *
+     * @param appUserPort    Adapter implementing app user persistence (auto-detected).
+     * @param subscriberPort Adapter implementing subscriber persistence (auto-detected).
+     * @param providerPort   Adapter implementing IdP persistence (auto-detected).
+     * @param eventPort      Adapter implementing provisioning event persistence (auto-detected).
+     * @param emailPort      Adapter implementing transactional email (auto-detected).
+     * @return The wired {@link com.wgblackmon.aihealthcare.domain.service.SsoProvisioningService} instance.
+     */
+    @Bean
+    public com.wgblackmon.aihealthcare.domain.service.SsoProvisioningService ssoProvisioningService(
+            AppUserPort appUserPort,
+            SubscriberPort subscriberPort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.SsoIdentityProviderPort providerPort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.SsoProvisioningEventPort eventPort,
+            TransactionalEmailPort emailPort) {
+        log.debug("ssoProvisioningService() | appUserPort={}, subscriberPort={}, providerPort={}, eventPort={}, emailPort={}",
+                  appUserPort.getClass().getSimpleName(),
+                  subscriberPort.getClass().getSimpleName(),
+                  providerPort.getClass().getSimpleName(),
+                  eventPort.getClass().getSimpleName(),
+                  emailPort.getClass().getSimpleName());
+        com.wgblackmon.aihealthcare.domain.service.SsoProvisioningService result =
+                new com.wgblackmon.aihealthcare.domain.service.SsoProvisioningService(
+                        appUserPort, subscriberPort, providerPort, eventPort, emailPort);
+        log.debug("ssoProvisioningService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link DatabaseRelyingPartyRegistrationRepository} — a dynamic
+     * SAML2 relying party registration repository backed by the database.
+     *
+     * @param providerPort Adapter implementing IdP persistence (auto-detected).
+     * @param spEntityId   The SP entity ID from configuration.
+     * @return The wired repository instance.
+     */
+    @Bean
+    public org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
+            relyingPartyRegistrationRepository(
+                    com.wgblackmon.aihealthcare.domain.port.outbound.SsoIdentityProviderPort providerPort,
+                    @Value("${aihealthcare.sso.sp.entity-id:https://app.bigskylabs.ai}") String spEntityId) {
+        log.debug("relyingPartyRegistrationRepository() | spEntityId={}", spEntityId);
+        DatabaseRelyingPartyRegistrationRepository result =
+                new DatabaseRelyingPartyRegistrationRepository(providerPort, spEntityId);
+        log.debug("relyingPartyRegistrationRepository() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Creates the {@link SsoAuthenticationSuccessHandler} — handles post-SAML
+     * authentication by extracting user attributes and delegating to JIT provisioning.
+     *
+     * @param provisioningService JIT provisioning service.
+     * @param providerPort        IdP persistence for attribute name lookups.
+     * @return The wired handler instance.
+     */
+    @Bean
+    public SsoAuthenticationSuccessHandler ssoAuthenticationSuccessHandler(
+            com.wgblackmon.aihealthcare.domain.service.SsoProvisioningService provisioningService,
+            com.wgblackmon.aihealthcare.domain.port.outbound.SsoIdentityProviderPort providerPort) {
+        log.debug("ssoAuthenticationSuccessHandler() | provisioningService={}, providerPort={}",
+                  provisioningService.getClass().getSimpleName(),
+                  providerPort.getClass().getSimpleName());
+        SsoAuthenticationSuccessHandler result =
+                new SsoAuthenticationSuccessHandler(provisioningService, providerPort);
+        log.debug("ssoAuthenticationSuccessHandler() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
 }
