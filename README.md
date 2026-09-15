@@ -41,6 +41,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Enterprise Data Access** | Async job-based data export for ENTERPRISE-tier customers — submit jobs via console or REST, LLM query planning, confined file I/O, remote HTTPS connector with IP-pinned security, job reaper + 14-day retention sweeper, full audit trail, systemd-hardened deployment; scheduled push delivery with per-customer cron schedules, DB-sweeper scheduler with atomic claim semantics, email attachment with size-aware signed-link fallback, and auto-deactivation after consecutive failures |
 | **Self-Maintaining Pipeline Orchestrator** | Sequences all 11 post-harvest pipelines with try-catch isolation per step — no single failure breaks the chain; all 25+ admin pipeline triggers are async (202 Accepted) via PipelineAsyncRunner to eliminate gateway timeouts |
 | **Subscription Tier Gating** | 5-tier access model (DEMO/FREE_PENDING/FREE/SUBSCRIBER/ENTERPRISE) with Stripe Billing, usage metering, and feature-level gating |
+| **SAML2 Enterprise SSO** | Multi-tenant SAML2 Service Provider with per-customer IdP registry, JIT user provisioning, admin CRUD UI, and dual auth (form login + SAML coexist) |
 | **Role-Based Access Control** | Spring Security with ADMIN/USER roles, session-based auth, and per-page authorization |
 | **Hexagonal Architecture** | Framework-free domain layer with pluggable adapters — swap AI providers or databases with zero domain changes |
 | **What Changed Digest** | Weekly activity dashboard showing new pages, updated pages, and detected contradictions with configurable time windows |
@@ -48,7 +49,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **PII Masking** | LogSanitizer utility masks email addresses in log statements to prevent PII exposure in production logs |
 | **Branded Error Handling** | Custom error pages replacing Spring Boot's Whitelabel Error Page with consistent branded UI |
 | **Document Library** | Admin-managed document upload (PDF/DOCX/TXT/MD, 50MB limit) with vector store embedding for RAG search and public wiki page generation |
-| **89-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, enterprise data console, LinkedIn feature post rotation, and combined social post generator |
+| **91-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, enterprise data console, LinkedIn feature post rotation, combined social post generator, and SSO provider management |
 | **2,964 Automated Tests** | Comprehensive test suite across 357 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
@@ -88,8 +89,8 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 **SaaS & Monetization**
 - Implemented **5-tier subscription model** (DEMO/FREE_PENDING/FREE/SUBSCRIBER/ENTERPRISE) with **Stripe Billing** integration (SDK 28.2.0), Checkout sessions, customer portal, webhook signature verification, and per-feature usage metering
 - Built **Enterprise Data Access** platform with async job-based data export, LLM query planning, HMAC-SHA256 signed download links, per-customer cron push schedules with atomic claim-based delivery, IP-pinned SSRF-safe remote HTTPS connector, confined file I/O, full audit trail, and systemd-hardened deployment
-- Built **Spring Security 6** session-based authentication with ADMIN/USER roles, BCrypt password hashing, tier-based feature gating, X-API-Key header authentication, and webhook channel notifications for REST endpoints
-- Delivered **88-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
+- Built **Spring Security 6** session-based authentication with ADMIN/USER roles, BCrypt password hashing, **SAML2 SSO** (multi-tenant IdP registry with JIT provisioning), tier-based feature gating, X-API-Key header authentication, and webhook channel notifications for REST endpoints
+- Delivered **91-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
 
 **Performance Engineering & Load Testing**
 - Eliminated a critical **N+1 query problem** on the wiki index page (1,299 DB queries/request → 1), confirmed by k6 load testing that revealed 2% pass rate for `/wiki` under 50 concurrent VUs
@@ -275,9 +276,10 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 ### Security & Auth
 | Component | Technology | Version |
 |-----------|------------|---------|
-| Authentication | Spring Security 6 (session-based form login) | — |
+| Authentication | Spring Security 6 (session-based form login + SAML2 SSO) | — |
+| SAML2 SSO | spring-security-saml2-service-provider + OpenSAML | — |
 | Password Hashing | BCrypt | — |
-| Authorization | Role-based (ADMIN/USER) + tier-based (4-tier) | — |
+| Authorization | Role-based (ADMIN/USER) + tier-based (5-tier) | — |
 | API Auth | X-API-Key header authentication | — |
 | CSRF Protection | Spring Security CSRF tokens | — |
 
