@@ -21,21 +21,22 @@ import java.util.UUID;
  * Domain service that detects business deal signals in recently harvested
  * articles using keyword matching with optional LLM refinement.
  *
- * <p>Scans articles from the last 7 days for funding, acquisition,
+ * <p>Scans articles from the last 30 days for funding, acquisition,
  * partnership, IPO, and product launch signals. When a
  * {@link DealClassificationPort} is available, keyword-matched candidates
  * are sent to the LLM for confirmation, enriched with deal amount,
- * counterparty, and analysis. Without the LLM port, falls back to
- * keyword-only detection.
+ * counterparty, and analysis. If the LLM call fails or returns empty,
+ * falls back to keyword-only classification. Without the LLM port,
+ * uses keyword-only detection directly.
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-08-04
- * @updated 2026-08-26
+ * @updated 2026-09-15
  */
 public class DealSignalDetectionService implements DetectDealSignalsUseCase {
 
-    private static final int SCAN_DAYS = 7;
+    private static final int SCAN_DAYS = 30;
 
     private static final String[] FUNDING_KEYWORDS = {
             "raises", "raised", "funding", "series a", "series b", "series c", "series d",
@@ -99,6 +100,9 @@ public class DealSignalDetectionService implements DetectDealSignalsUseCase {
         List<DealSignal> newSignals;
         if (classificationPort != null && !candidates.isEmpty()) {
             newSignals = classificationPort.classifyDeals(candidates);
+            if (newSignals.isEmpty() && !candidates.isEmpty()) {
+                newSignals = keywordClassify(candidates, now);
+            }
         } else {
             newSignals = keywordClassify(candidates, now);
         }
