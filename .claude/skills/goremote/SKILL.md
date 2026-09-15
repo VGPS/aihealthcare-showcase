@@ -20,13 +20,7 @@ REMOTE_DIR="/opt/aihealthcare"
 
 ## Steps — execute in order, stop on any failure
 
-### 1. Kill local Java
-
-```bash
-taskkill //F //FI "IMAGENAME eq java.exe" 2>/dev/null; echo "done"
-```
-
-### 2. Compile check
+### 1. Compile check
 
 ```bash
 mvn compile -q 2>&1
@@ -34,7 +28,7 @@ mvn compile -q 2>&1
 
 If compilation errors appear, **STOP** and report them. Do not proceed.
 
-### 3. Run selective tests
+### 2. Run selective tests
 
 Only run tests for changed files — NOT the full suite.
 
@@ -49,7 +43,7 @@ If no test counterparts exist, skip testing.
 
 If `BUILD FAILURE`, **STOP** and report failing tests. Do not proceed.
 
-### 4. Commit changes
+### 3. Commit changes
 
 Generate a commit message from the diff summary. Include only the delta — what changed, not what exists.
 
@@ -64,7 +58,7 @@ git status
 
 Review staged files before committing.
 
-### 4a. Update README before committing
+### 3a. Update README before committing
 
 Before running `git commit`, update `README.md` to reflect this deploy's changes:
 
@@ -93,7 +87,7 @@ End the message with:
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 ```
 
-### 5. Push to private repo
+### 4. Push to private repo
 
 ```bash
 git push AIHealthcare_Origin master
@@ -101,7 +95,7 @@ git push AIHealthcare_Origin master
 
 If the push fails (e.g. rejected), **STOP** and report. Do not force-push.
 
-### 5a. Push to showcase (public) repo — ALWAYS
+### 4a. Push to showcase (public) repo — ALWAYS
 
 The showcase at `C:/workspaces/SpringAIClaude/aihealthcare-showcase` is kept in sync after
 every private push. Do this step before building the JAR.
@@ -124,13 +118,13 @@ cd C:/workspaces/SpringAIClaude/AIHealthcare
 (`git diff --cached --quiet || git commit` skips the commit if nothing changed, so you
 never get an empty commit even when the resume hasn't changed.)
 
-### 6. Build JAR
+### 5. Build JAR
 
 ```bash
 set -a && source .env && set +a && mvn package -DskipTests -q 2>&1 | tail -5
 ```
 
-### 7. Upload JAR + config to EC2
+### 6. Upload JAR + config to EC2
 
 Use `timeout 600000` — JAR is ~100MB.
 
@@ -140,13 +134,13 @@ scp -i "$KEY" "$AWS_YML" "ec2-user@${IP}:${REMOTE_DIR}/"
 scp -i "$KEY" deploy/static/index.html "ec2-user@${IP}:/opt/bigskylabs/static/"
 ```
 
-### 8. Restart service on EC2
+### 7. Restart service on EC2
 
 ```bash
 ssh -i "$KEY" "ec2-user@${IP}" "nohup sudo systemctl restart aihealthcare &>/dev/null &"
 ```
 
-### 9. Verify — wait for startup, then health check
+### 8. Verify — wait for startup, then health check
 
 EC2 startup is fast now (startup harvest is disabled on AWS profile).
 
@@ -168,7 +162,7 @@ ssh -i "$KEY" "ec2-user@${IP}" 'sudo journalctl -u aihealthcare --no-pager -n 30
 
 Report the last 30 log lines to the user.
 
-### 10. Report results
+### 9. Report results
 
 Report a summary to the user:
 

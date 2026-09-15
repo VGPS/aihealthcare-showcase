@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-08-07 | Reflects Day 7 QA — v1 final
+> Last updated: 2026-09-15 | Reflects SSO-1, Market Analysis, Enterprise Data, Social Posts
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -99,6 +99,15 @@ api  ──▶  web   (generated DTOs imported here only)
 | MA-1 | Market Analysis (Phases 1–3) — Perplexity news research, Claude impact classifier, Alpaca market data, weekly rollup, price-reaction scoring | 1509+ |
 | ED-1 | Enterprise Data PULL — async job-based data export with LLM query planning, confined file I/O, remote HTTPS connector, job reaper + retention scheduler | 1509+ |
 | ED-2 | Enterprise Data PUSH — per-customer cron schedules, DB-sweeper scheduler with atomic claim, email delivery with size-aware attachment/signed-link fallback, schedule CRUD REST + console Schedules tab | 1509+ |
+| CR-1 | Copyright-Safe Content Retention — excerpt truncation, robots.txt compliance | 1509+ |
+| — | Company Directory Signal Scoring — article velocity + deal bonus + sentiment penalty sort | 1509+ |
+| CI-30 | Newsletter Digest Quality — 1-day lookback, 75-article cap, tier priority sort | 1509+ |
+| CI-37 | Newsletter/Digest Split — SUBSCRIBER=full newsletter, FREE=digest summary | 1509+ |
+| L-1 | Legal Timeline — unified chronological view merging legal articles + regulatory events | 1509+ |
+| DI-1 | Document Library — admin upload (PDF/DOCX/TXT/MD, 50MB) with vector store + public wiki | 1509+ |
+| SSO-1 | SAML2 Enterprise SSO — multi-tenant IdP registry, JIT provisioning, admin CRUD, dual auth | 1509+ |
+| — | Combined LinkedIn + Facebook Social Post Generator — tier-gated, market-digest-sourced | 1509+ |
+| — | Deal Signal Staleness Fix — 30-day scan window, keyword fallback, standalone 6-hour cron | 1509+ |
 
 ---
 
@@ -231,6 +240,27 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /directory` | `PublicCompanyController` | `company-directory.html` — public company list with sector filter pills; no login required |
 | `GET /directory/{slug}` | `PublicCompanyController` | `company-directory-detail.html` — public company profile with clickable `[N]` citation anchors; JSON-LD SEO |
 | `GET /enterprise/data` | `EnterpriseDataConsoleController` | `enterprise-data-console.html` — ENTERPRISE tier console: submit jobs, monitor progress, tail logs, download artifacts |
+| `GET /dashboard/market` | `MarketDashboardController` | `market-digest.html` — daily market digest with ranked entries |
+| `GET /dashboard/market/history` | `MarketDashboardController` | `market-digest-history.html` — date-range browser |
+| `GET /dashboard/market/weekly` | `MarketDashboardController` | `market-digest-weekly.html` — weekly rollup |
+| `GET /dashboard/legal` | `LegalTimelineController` | `legal-timeline.html` — unified legal/regulatory timeline |
+| `GET /dashboard/clinical-trials` | `ClinicalTrialController` | `clinical-trials.html` — AI clinical trial tracking |
+| `GET /dashboard/risk` | `SentimentDashboardController` | `risk-dashboard.html` — company sentiment overview |
+| `GET /dashboard/risk/{slug}` | `SentimentDashboardController` | `risk-detail.html` — company sentiment detail |
+| `GET /dashboard/frameworks` | `FrameworkDashboardController` | `framework-analysis.html` — radar chart + company cards |
+| `GET /dashboard/frameworks/{slug}` | `FrameworkDashboardController` | `framework-detail.html` — 6-dimension breakdown |
+| `GET /dashboard/trends/history` | `TrendHistoryController` | `trend-history.html` — multi-line chart + timeline |
+| `GET /dashboard/trends/history/{epochMillis}` | `TrendHistoryController` | `trend-history-detail.html` — snapshot detail |
+| `GET /legislation` | `StateLawController` | `legislation-index.html` — searchable state law registry |
+| `GET /legislation/{id}` | `StateLawController` | `legislation-detail.html` — law detail with sources |
+| `GET /admin/sso` | `SsoAdminController` | `sso-providers.html` — SSO IdP list with status badges |
+| `GET /admin/sso/new` | `SsoAdminController` | `sso-provider-form.html` — create new IdP configuration |
+| `GET /admin/sso/{id}/edit` | `SsoAdminController` | `sso-provider-form.html` — edit IdP configuration |
+| `GET /admin/pipelines` | `PipelineManagementController` | `admin-pipelines.html` — manual pipeline triggers |
+| `GET /dashboard/social` | `MarketSocialPostController` | `social-post.html` — combined LinkedIn + Facebook post generator |
+| `GET /profile` | `ProfileController` | `profile.html` — subscriber self-service |
+| `GET /register` | `RegistrationController` | `register.html` — self-registration for DEMO users |
+| `GET /privacy` | `PrivacyController` | `privacy.html` — privacy policy |
 
 ---
 
@@ -263,6 +293,12 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | POST/GET/GET/PUT/DELETE | `/api/v1/enterprise/connections`, `/api/v1/enterprise/connections/{id}`, `/api/v1/enterprise/connections`, `/api/v1/enterprise/connections/{id}`, `/api/v1/enterprise/connections/{id}` | `EnterpriseConnectionRestController` |
 | POST/GET/PUT/DELETE/POST/GET | `/api/v1/enterprise/data/schedules`, `/api/v1/enterprise/data/schedules`, `/api/v1/enterprise/data/schedules/{scheduleId}`, `/api/v1/enterprise/data/schedules/{scheduleId}`, `/api/v1/enterprise/data/schedules/{scheduleId}/run`, `/api/v1/enterprise/data/schedules/preview` | `EnterpriseScheduleRestController` |
 | GET | `/d/{token}` | `SignedDownloadController` — HMAC-SHA256 signed artifact download (no login required) |
+| GET/GET/PUT/DELETE | `/api/v1/sso/providers`, `/api/v1/sso/providers/{id}` | `SsoRestController` |
+| GET/GET/GET/GET | `/api/market-digest/latest`, `/api/market-digest/{date}`, `/api/market-digest`, `/api/market-digest/weekly-rollup` | `MarketDigestController` |
+| GET/GET/GET | `/api/market-digest/regulatory-tracker`, `/api/market-digest/funding`, `/api/market-digest/deal-terms/{headline}` | `RegulatoryTrackerController`, `PrivateFundingController`, `DealTermsController` |
+| GET/GET/GET/POST | `/api/v1/legislation/state-laws`, `/api/v1/legislation/state-laws/{id}`, `/api/v1/legislation/state-laws/upcoming`, `/api/v1/legislation/refresh` | `StateLawRestController` |
+| GET/GET/POST | `/api/v1/sentiment`, `/api/v1/sentiment/{slug}`, `/api/v1/sentiment/analyze` | `SentimentRestController` |
+| GET/GET/POST | `/api/v1/frameworks`, `/api/v1/frameworks/{slug}`, `/api/v1/frameworks/analyze` | `FrameworkRestController` |
 
 ---
 
@@ -295,6 +331,27 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `enterprise_canned_prompts` | `CannedPromptEntity` | promptId UUID PK, feedId, label, description, templateText, sortOrder |
 | `enterprise_remote_connections` | `RemoteConnectionEntity` | connectionId UUID PK, ownerEmail, label, kind, baseUrl, authType, headerName, secretRef, active |
 | `enterprise_push_schedules` | `DataPushScheduleEntity` | scheduleId UUID PK, ownerEmail, label, feedId, promptId, promptText, parameters TEXT, format, cronExpression, zoneId, recipients TEXT (pipe-delimited), active, nextRunAt, lastRunAt, lastStatus, lastJobId, consecutiveFailures, createdAt, updatedAt |
+| `sso_identity_providers` | `SsoIdentityProviderEntity` | registrationId VARCHAR PK, entityId, ssoUrl, certificate TEXT, emailAttribute, active |
+| `sso_provisioning_events` | `SsoProvisioningEventEntity` | eventId UUID PK, registrationId FK, email, action, occurredAt |
+| `market_digest` | `MarketDigestEntity` | digestId BIGSERIAL PK, digestDate DATE UNIQUE, generatedAt |
+| `market_digest_entry` | `MarketDigestEntryEntity` | id BIGSERIAL PK, digest FK, headline, category, factClassification, marketImpactRank |
+| `market_digest_impact_assessment` | `MarketDigestImpactAssessmentEntity` | id BIGSERIAL PK, entry FK, dimension, direction, rationale |
+| `market_digest_affected_company` | `MarketDigestAffectedCompanyEntity` | id BIGSERIAL PK, entry FK, companyName, tickerSymbol, peerGroup |
+| `guidance_history` | `GuidanceHistoryEntity` | ticker + metric composite, prior/new guidance ranges |
+| `regulatory_trackers` | `RegulatoryTrackerEntity` | jurisdiction, stage, docketId, commentDeadline |
+| `private_funding_rounds` | `PrivateFundingRoundEntity` | companyName, roundStage, amountUsd, leadInvestors |
+| `analyst_rating_changes` | `AnalystRatingChangeEntity` | firm, ticker, previous/new rating and price target |
+| `deal_terms` | `DealTermsEntity` | headline FK, upfrontCashUsd, milestonePayments, equityStake |
+| `ticker_watchlist` | `TickerWatchlistEntity` | subscriberEmail + ticker composite |
+| `corporate_action_confirmations` | `CorporateActionConfirmationEntity` | ticker, actionType, exDate, amount |
+| `price_reaction_snapshots` | `PriceReactionSnapshotEntity` | entryId FK, horizon, priceAtEvent, priceAtHorizon |
+| `state_laws` | `StateLawEntity` | id VARCHAR PK (slug), stateCode, billNumber, status, categories |
+| `state_law_sources` | `StateLawSourceEntity` | lawId FK, sourceType, url, lastFetchedAt, contentHash |
+| `law_change_events` | `LawChangeEventEntity` | lawId FK, changeType, detail, reviewed |
+| `new_bill_candidates` | `NewBillCandidateEntity` | stateCode, billNumber, confidence, reviewed, promotedLawId |
+| `company_sentiments` | `CompanySentimentEntity` | companySlug PK, overallScore, JSON-serialized article sentiments |
+| `framework_analyses` | `FrameworkAnalysisEntity` | companySlug PK, JSON-serialized dimensions/strengths/weaknesses |
+| `deal_signals` | `DealSignalEntity` | signalId PK, signalType, companyName, dealAmount, counterpartyName, llmAnalysis |
 
 ---
 
@@ -314,6 +371,10 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | `EnterpriseDataJobReaper` | Every 5 min | `aihealthcare.enterprise.data.reaper-cron` | Mark stale RUNNING jobs as FAILED/ORPHANED |
 | `EnterpriseDataRetentionScheduler` | 03:15 daily | `aihealthcare.enterprise.data.retention-cron` | Delete expired artifacts + logs, mark jobs EXPIRED |
 | `EnterpriseDataPushScheduler` | Every 1 min | `aihealthcare.enterprise.data.push.sweep-cron` | DB sweeper: query due schedules, atomic claim via conditional UPDATE on `next_run_at`, execute job + email delivery |
+| `MarketAnalysisScheduler` | 12:00 daily (noon) | `aihealthcare.market-analysis.schedule` | Perplexity news research → Claude classification → Alpaca data → digest |
+| `MarketAnalysisScheduler` (price) | Hourly | `aihealthcare.market-analysis.price-reaction-cron` | Multi-horizon price-reaction scoring |
+| `LegislationMonitorScheduler` | Monday 10:30 + 11:00 | `aihealthcare.legislation.source-check-schedule`, `discovery-schedule` | Source freshness check + Perplexity bill discovery |
+| `DealSignalScheduler` | Every 6 hours | `aihealthcare.deals.detection-cron` | Standalone deal signal detection scan |
 
 ---
 
@@ -336,7 +397,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | infrastructure/persistence | `@DataJpaTest` | No | none |
 | infrastructure/ai | Smoke test | Yes | `ai-integration` |
 
-**1,837 tests** across 249 test classes — all pass with `mvn test` (no live AI or network calls).
+**2,964 tests** across 357 test classes — all pass with `mvn test` (no live AI or network calls).
 
 ---
 

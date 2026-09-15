@@ -55,7 +55,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
-- Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 17, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 107 domain model records, 119 port interfaces, and 104 controllers across 899 Java classes — framework-free domain layer enables swapping AI providers with zero business logic changes
+- Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 21, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 107 domain model records, 119 port interfaces, and 104 controllers across 899 Java classes — framework-free domain layer enables swapping AI providers with zero business logic changes
 - Wrote **2,964 automated tests** across 357 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
@@ -237,7 +237,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Component | Technology | Version |
 |-----------|------------|---------|
 | Application Framework | Spring Boot | 3.4.5 |
-| Language | Java (LTS) | 17 |
+| Language | Java (LTS) | 21 |
 | Build Tool | Apache Maven | 3.8+ |
 | Dependency Management | Spring AI BOM | 1.0.0 |
 
@@ -326,7 +326,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Security Testing | spring-security-test (@WithMockUser) | — |
 | Web Testing | MockMvc (@WebMvcTest slices) | — |
 | Persistence Testing | @DataJpaTest (H2 in-memory) | — |
-| Coverage | 2,888 tests across 354 test classes | — |
+| Coverage | 2,964 tests across 357 test classes | — |
 
 ### Infrastructure & DevOps
 | Component | Technology | Version |
@@ -338,7 +338,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 
 ## Prerequisites
 
-- **Java 17+**
+- **Java 21+**
 - **Maven 3.8+**
 - **PostgreSQL 16** with PGVector extension
 - **API Key** — at least one of `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`
@@ -390,11 +390,12 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | `/admin/**`, `/monitoring/**` | Requires ADMIN role |
 | `/watchlist`, `/api/v1/companies/discover` | Requires SUBSCRIBER tier |
 | `/enterprise/**` | Requires ENTERPRISE tier |
+| `/saml2/**`, `/login/saml2/**` | Public (SAML2 SSO authentication flow) |
 | `/d/**` | Public (HMAC-SHA256 signed token auth) |
 
 ## Web UI (Thymeleaf)
 
-88 pages organized across 7 navigation sections:
+91 pages organized across 7 navigation sections:
 
 ### Dashboard & Analytics
 | URL | Description |
@@ -456,6 +457,7 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | `/newsletter/runs` | Newsletter run list with status badges (DRAFT/SENT/ARCHIVED) and edit links |
 | `/newsletter/runs/{runId}/edit` | TinyMCE WYSIWYG editor — edit and send newsletter drafts |
 | `/watchlist` | Subscriber watchlist — add keyword/company/topic items, view recent matches (SUBSCRIBER only) |
+| `/dashboard/social` | Combined LinkedIn + Facebook social post generator — market-digest-sourced, tier-gated (SUBSCRIBER only) |
 | `/notes` | Analyst notes dashboard — personal annotations on companies, deals, and trends |
 
 ### Admin & Account
@@ -463,6 +465,9 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 |-----|-------------|
 | `/admin` | User management table + system status dashboard (ADMIN only) |
 | `/admin/pipelines` | Pipeline management — manual trigger controls for 23 individually-triggerable pipelines, including Deal Signal Detection (ADMIN only) |
+| `/admin/sso` | SSO provider management — list all IdPs with status badges, add/edit/delete (ADMIN only) |
+| `/admin/sso/new` | Create new SSO IdP configuration — registrationId, entityId, SSO URL, certificate |
+| `/admin/sso/{id}/edit` | Edit existing SSO IdP configuration |
 | `/pricing` | Tier comparison (Demo/Free/Subscriber) with Stripe Checkout integration |
 | `/profile` | Subscriber self-service — tier badge, usage meter, Stripe customer portal link |
 | `/login` | Session-based form login with "Remember Me" |
@@ -570,6 +575,14 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | GET | `/api/v1/webhooks` | List user's webhook channels |
 | DELETE | `/api/v1/webhooks/{id}` | Delete webhook channel |
 | POST | `/api/v1/webhooks/{id}/test` | Send test notification to webhook |
+
+### SSO Management (ADMIN)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/sso/providers` | List active SSO identity providers |
+| POST | `/api/v1/sso/providers` | Create SSO identity provider |
+| PUT | `/api/v1/sso/providers/{id}` | Update SSO identity provider |
+| DELETE | `/api/v1/sso/providers/{id}` | Delete SSO identity provider |
 
 ### Monitoring & Pipeline Triggers (ADMIN)
 | Method | Endpoint | Description |
@@ -697,7 +710,7 @@ aihealthcare:
 
 ## Testing
 
-2,888 tests across 354 test classes — all pass with no live AI or network calls.
+2,964 tests across 357 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
@@ -747,7 +760,7 @@ AIHealthcare/
 ├── application/src/main/resources/
 │   ├── prompts/             # 23 AI prompt templates
 │   └── templates/           # 88 Thymeleaf HTML templates + fragments
-├── application/src/test/    # 354 test classes (2,891 tests)
+├── application/src/test/    # 357 test classes (2,964 tests)
 ├── docs/                    # Architecture, conventions, QA plan documentation
 ├── pom.xml
 └── CLAUDE.md                # AI assistant project context
