@@ -147,7 +147,7 @@
     <!-- Account group (right side) -->
     <div class="nav-group nav-group-right" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'social' || activePage == 'admin-pipelines' || activePage == 'watchlist' || activePage == 'notes' || activePage == 'pricing' || activePage == 'about' || activePage == 'profile' || activePage == 'developer' || activePage == 'admin' || activePage == 'admin-wiki-gaps' || activePage == 'newsletter'} ? ' active'">
+                th:classappend="${activePage == 'social' || activePage == 'admin-pipelines' || activePage == 'watchlist' || activePage == 'notes' || activePage == 'pricing' || activePage == 'about' || activePage == 'profile' || activePage == 'developer' || activePage == 'admin' || activePage == 'admin-wiki-gaps' || activePage == 'admin-sso' || activePage == 'newsletter'} ? ' active'">
             Account ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown nav-dropdown-right">
@@ -177,6 +177,8 @@
                th:classappend="${activePage == 'admin-documents'} ? ' active'">Document Library</a>
             <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/wiki-gaps}"
                th:classappend="${activePage == 'admin-wiki-gaps'} ? ' active'">Wiki Gaps</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/sso}"
+               th:classappend="${activePage == 'admin-sso'} ? ' active'">SSO Providers</a>
         </div>
     </div>
 

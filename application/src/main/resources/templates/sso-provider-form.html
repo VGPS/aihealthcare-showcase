@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<!--
+/**
+ * SSO Identity Provider create/edit form.
+ *
+ * Shared template for both creating and editing SAML2 IdP configurations.
+ * The {@code editMode} model attribute controls which form action and heading
+ * are rendered. Restricted to ADMIN role.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-09-15
+ * @updated 2026-09-15
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('SSO Provider')}">
+</head>
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight"
+        th:text="${editMode} ? 'Edit SSO Provider' : 'Add SSO Provider'">SSO Provider</h1>
+    <p class="text-primary-200 text-sm mt-0.5">Configure a SAML2 Identity Provider connection</p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('admin-sso')}"></nav>
+
+<main class="max-w-3xl mx-auto px-4 py-6">
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <form th:action="${editMode} ? @{'/admin/sso/' + ${provider.registrationId()}} : @{/admin/sso}"
+              method="post" class="space-y-5">
+
+            <!-- Registration ID (read-only on edit) -->
+            <div class="flex flex-col gap-1">
+                <label for="registrationId" class="text-sm font-medium text-gray-700">Registration ID</label>
+                <input type="text" id="registrationId" name="registrationId"
+                       th:value="${editMode} ? ${provider.registrationId()} : ''"
+                       th:readonly="${editMode}"
+                       th:classappend="${editMode} ? 'bg-gray-100 cursor-not-allowed' : ''"
+                       placeholder="e.g., acme-health-okta"
+                       pattern="[a-z0-9-]+" title="Lowercase letters, numbers, and hyphens only"
+                       required
+                       class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"/>
+                <p class="text-xs text-gray-400">Lowercase slug — becomes the SAML endpoint URL. Cannot be changed after creation.</p>
+            </div>
+
+            <!-- Label -->
+            <div class="flex flex-col gap-1">
+                <label for="label" class="text-sm font-medium text-gray-700">Display Label</label>
+                <input type="text" id="label" name="label"
+                       th:value="${editMode} ? ${provider.label()} : ''"
+                       placeholder="e.g., Acme Health SSO"
+                       required
+                       class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"/>
+                <p class="text-xs text-gray-400">Shown on the login page as "Sign in with {label}"</p>
+            </div>
+
+            <!-- Entity ID -->
+            <div class="flex flex-col gap-1">
+                <label for="entityId" class="text-sm font-medium text-gray-700">IdP Entity ID</label>
+                <input type="text" id="entityId" name="entityId"
+                       th:value="${editMode} ? ${provider.entityId()} : ''"
+                       placeholder="e.g., https://idp.acmehealth.com/saml/metadata"
+                       required
+                       class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"/>
+            </div>
+
+            <!-- SSO URL -->
+            <div class="flex flex-col gap-1">
+                <label for="ssoUrl" class="text-sm font-medium text-gray-700">SSO Login URL</label>
+                <input type="url" id="ssoUrl" name="ssoUrl"
+                       th:value="${editMode} ? ${provider.ssoUrl()} : ''"
+                       placeholder="e.g., https://idp.acmehealth.com/saml/sso"
+                       required
+                       class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"/>
+            </div>
+
+            <!-- Certificate -->
+            <div class="flex flex-col gap-1">
+                <label for="certificate" class="text-sm font-medium text-gray-700">IdP Signing Certificate (PEM)</label>
+                <textarea id="certificate" name="certificate" rows="6"
+                          th:text="${editMode} ? ${provider.certificate()} : ''"
+                          placeholder="Paste the Base64-encoded X.509 certificate (with or without -----BEGIN CERTIFICATE----- headers)"
+                          required
+                          class="px-3 py-2 border border-outline-variant rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary-600"></textarea>
+            </div>
+
+            <!-- Metadata URL (optional) -->
+            <div class="flex flex-col gap-1">
+                <label for="metadataUrl" class="text-sm font-medium text-gray-700">Metadata URL <span class="text-gray-400 font-normal">(optional)</span></label>
+                <input type="url" id="metadataUrl" name="metadataUrl"
+                       th:value="${editMode and provider.metadataUrl() != null} ? ${provider.metadataUrl()} : ''"
+                       placeholder="e.g., https://idp.acmehealth.com/saml/metadata.xml"
+                       class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"/>
+            </div>
+
+            <!-- Attribute mappings -->
+            <div class="border-t border-gray-200 pt-4">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">SAML Attribute Mapping</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1">
+                        <label for="emailAttribute" class="text-sm font-medium text-gray-700">Email Attribute</label>
+                        <input type="text" id="emailAttribute" name="emailAttribute"
+                               th:value="${editMode} ? ${provider.emailAttribute()} : 'email'"
+                               class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"/>
+                        <p class="text-xs text-gray-400">SAML attribute name containing the user's email</p>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label for="displayNameAttribute" class="text-sm font-medium text-gray-700">Display Name Attribute</label>
+                        <input type="text" id="displayNameAttribute" name="displayNameAttribute"
+                               th:value="${editMode} ? ${provider.displayNameAttribute()} : 'displayName'"
+                               class="px-3 py-2 border border-outline-variant rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"/>
+                        <p class="text-xs text-gray-400">SAML attribute name containing the user's display name</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active toggle -->
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="active" name="active" value="true"
+                       th:checked="${editMode} ? ${provider.active()} : true"
+                       class="rounded border-gray-300 text-primary-600 focus:ring-primary-600"/>
+                <label for="active" class="text-sm text-gray-700">Active</label>
+                <p class="text-xs text-gray-400 ml-2">Only active providers appear on the login page</p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex items-center gap-3 pt-2">
+                <button type="submit"
+                        class="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-5 py-2 rounded-md text-sm transition-colors"
+                        th:text="${editMode} ? 'Update Provider' : 'Create Provider'">Save</button>
+                <a th:href="@{/admin/sso}"
+                   class="text-sm text-gray-500 hover:text-gray-700">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>
