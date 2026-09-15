@@ -219,6 +219,57 @@
     line-height: 1.6;
   }
 
+  /* ── CTA Bar ── */
+  .cta-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 36px;
+    padding: 28px 32px;
+    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 50%, #f5f3ff 100%);
+    border: 1px solid #dbeafe;
+    border-radius: 12px;
+  }
+  .cta-bar .cta-text {
+    font-size: 17px;
+    font-weight: 600;
+    color: #334155;
+    margin-right: 8px;
+  }
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .cta-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .cta-btn.primary {
+    background: #2563eb;
+    color: #ffffff;
+  }
+  .cta-btn.primary:hover { background: #1d4ed8; }
+  .cta-btn.secondary {
+    background: #ffffff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+  }
+  .cta-btn.secondary:hover { background: #eff6ff; }
+  .cta-btn.accent {
+    background: #7c3aed;
+    color: #ffffff;
+  }
+  .cta-btn.accent:hover { background: #6d28d9; }
+  .cta-btn .arrow { font-size: 16px; }
+
   /* ── Footer ── */
   .footer {
     display: flex;
@@ -318,6 +369,16 @@
       <div class="quote-mark">&ldquo;</div>
       <div class="quote-text">Four Big Tech companies launched healthcare AI products in a single week. This isn&rsquo;t incremental &mdash; it&rsquo;s a platform land grab for who owns the clinical workflow layer.</div>
     </div>
+  </div>
+
+  <!-- CTA Bar -->
+  <div class="cta-bar">
+    <span class="cta-text">Explore the live data behind this analysis:</span>
+    <a href="/dashboard/market" class="cta-btn primary">Market Digest <span class="arrow">&rarr;</span></a>
+    <a href="/dashboard/trends" class="cta-btn secondary">Trend Detection <span class="arrow">&rarr;</span></a>
+    <a href="/dashboard/deals" class="cta-btn secondary">Deal Signals <span class="arrow">&rarr;</span></a>
+    <a href="/directory" class="cta-btn secondary">318 Companies <span class="arrow">&rarr;</span></a>
+    <a href="/pricing" class="cta-btn accent">Sign Up Free <span class="arrow">&rarr;</span></a>
   </div>
 
   <!-- Footer -->
