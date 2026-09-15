@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SsoIdentityProviderPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-28
- * @updated 2026-07-20
+ * @updated 2026-09-15
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(LoginController.class)
@@ -34,6 +35,9 @@ class LoginControllerTest {
     private MockMvc mockMvc;
     @MockitoBean
     private ApiKeyPort apiKeyPort;
+
+    @MockitoBean
+    private SsoIdentityProviderPort ssoIdentityProviderPort;
 
     @Test
     void login_returns200() throws Exception {

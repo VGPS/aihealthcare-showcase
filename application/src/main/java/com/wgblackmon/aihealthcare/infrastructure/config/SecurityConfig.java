@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.config;
 
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -9,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -32,9 +34,9 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * session exists ({@code /api/**}, {@code /monitoring/**}, {@code /stripe/**}).
  *
  * @author  Bill Blackmon
- * @version 1.7
+ * @version 1.8
  * @since   2026-05-28
- * @updated 2026-09-10 — SEO-1: /wiki/**, /legislation/**, /robots.txt, /sitemap.xml, /images/** public
+ * @updated 2026-09-15 — SSO-1: SAML2 login + dynamic IdP registry
  */
 @Slf4j
 @Configuration
@@ -42,10 +44,17 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class SecurityConfig {
 
     private final ApiKeyPort apiKeyPort;
+    private final RelyingPartyRegistrationRepository ssoRegistrationRepo;
+    private final SsoAuthenticationSuccessHandler ssoSuccessHandler;
 
-    public SecurityConfig(ApiKeyPort apiKeyPort) {
+    public SecurityConfig(ApiKeyPort apiKeyPort,
+                          ObjectProvider<RelyingPartyRegistrationRepository> ssoRepoProvider,
+                          ObjectProvider<SsoAuthenticationSuccessHandler> ssoHandlerProvider) {
         log.debug("SecurityConfig() | apiKeyPort={}", apiKeyPort.getClass().getSimpleName());
         this.apiKeyPort = apiKeyPort;
+        this.ssoRegistrationRepo = ssoRepoProvider.getIfAvailable();
+        this.ssoSuccessHandler = ssoHandlerProvider.getIfAvailable();
+        log.debug("SecurityConfig() | ssoEnabled={}", ssoRegistrationRepo != null && ssoSuccessHandler != null);
     }
 
     /**
@@ -73,9 +82,11 @@ public class SecurityConfig {
                                  "/pricing", "/about", "/press", "/press/og.png", "/error", "/privacy",
                                  "/directory", "/directory/**").permitAll()
                 .requestMatchers("/d/**").permitAll()
+                .requestMatchers("/saml2/**", "/login/saml2/**").permitAll()
                 .requestMatchers("/api/v1/stripe/webhook").permitAll()
                 .requestMatchers("/api/v1/feedback/**").permitAll()
                 .requestMatchers("/api/v1/monitoring/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/sso/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/v1/subscribers").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/subscribers/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()
@@ -96,7 +107,17 @@ public class SecurityConfig {
                 .loginPage("/login")
                 .defaultSuccessUrl("/dashboard", true)
                 .permitAll()
-            )
+            );
+
+        if (ssoRegistrationRepo != null && ssoSuccessHandler != null) {
+            http.saml2Login(saml2 -> saml2
+                .relyingPartyRegistrationRepository(ssoRegistrationRepo)
+                .successHandler(ssoSuccessHandler)
+                .loginPage("/login")
+            );
+        }
+
+        http
             .logout(logout -> logout
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
                 .logoutSuccessUrl("/login?logout")
@@ -108,7 +129,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf
                 .ignoringRequestMatchers("/api/**", "/monitoring/**", "/admin/pipelines/**",
                                         "/stripe/**", "/swagger-ui/**", "/v3/api-docs/**",
-                                        "/d/**")
+                                        "/d/**", "/login/saml2/**")
             );
 
         SecurityFilterChain result = http.build();
