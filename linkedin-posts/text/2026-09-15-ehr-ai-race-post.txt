@@ -8,18 +8,15 @@ This isn't incremental product iteration. This is a platform land grab for who o
 
 The question isn't whether AI enters the EHR. It's whether the EHR becomes AI.
 
+👉 Explore the live data behind this analysis — trend charts, deal signals, market-moving headlines, and 318 tracked AI healthcare companies updated daily:
+https://app.bigskylabs.ai/insights/2026-09-15-ehr-ai-race.html
+
 ---
 
 FIRST COMMENT:
 
-Data from BigSkyLabs AI in Healthcare — tracking 318 companies, 57+ data sources, and 15 rising keywords across healthcare AI daily.
+This data is pulled daily from BigSkyLabs AI in Healthcare — an intelligence platform tracking 318 companies across 57+ data sources.
 
-See the full interactive infographic: https://app.bigskylabs.ai/insights/2026-09-15-ehr-ai-race.html
+Browse all 318 AI healthcare companies free (no signup): https://app.bigskylabs.ai/directory
 
-Market Digest: https://app.bigskylabs.ai/dashboard/market
-Trend Detection: https://app.bigskylabs.ai/dashboard/trends
-Deal Signals: https://app.bigskylabs.ai/dashboard/deals
-
-Free company directory (no signup): https://app.bigskylabs.ai/directory
-
-Sign up free: https://app.bigskylabs.ai/pricing
+Sign up free to access Market Digest, Trend Detection, Deal Signals, and more: https://app.bigskylabs.ai/pricing
