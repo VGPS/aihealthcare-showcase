@@ -101,33 +101,78 @@ The layout is fixed. What changes per post:
 - **Quote** — the pull-quote for the LinkedIn post text
 - **Footer source** — the relevant app page URL
 
-## Step 5 — Generate the post text
+## Step 5 — Generate the post text file
 
-Write the LinkedIn post following the content calendar format:
+Save all post content to `linkedin-posts/text/YYYY-MM-DD-{topic-slug}-post.txt`.
+The file contains FOUR sections separated by `---` lines. The user copy-pastes from each
+section into the appropriate platform.
+
+### Section 1: LINKEDIN POST BODY
+
+Write the LinkedIn post:
 - 1-3 punchy lines above the fold (the hook)
 - 2-4 lines of data/context
 - One closing question or observation
-- Save to `linkedin-posts/text/YYYY-MM-DD-{topic-slug}-post.txt`
-
-**ONE link goes in the post body — the live infographic page.** This is the clickable link
-that connects the image the reader is looking at to the actual live page. Place it as the
-very last line of the post text, after all insight content.
+- **ONE link at the very end** — the live infographic page with explanatory text
 
 The link MUST have explanatory text telling the reader what they get when they click.
 Format — two lines, pointing-hand emoji + description on line 1, bare URL on line 2:
 ```
-👉 Explore the live data behind this analysis — trend charts, deal signals, market-moving headlines, and 318 tracked AI healthcare companies updated daily:
+👉 See the full analysis with trend charts, deal signals, and company tracking — updated daily from 57+ sources:
 https://app.bigskylabs.ai/insights/YYYY-MM-DD-{topic-slug}.html
 ```
 Adapt the description to match the specific data sources used in that day's infographic.
-The hosted page at `/insights/` mirrors the screenshot image exactly, plus has CTA buttons
-at the bottom linking into Market Digest, Trends, Deals, Directory, and Pricing.
-Users should not need to find the first comment to reach the page.
+Do NOT put any other links in the post body — LinkedIn deprioritizes posts with multiple links.
 
-**All other links go in the first comment:**
-1. **Relevant dashboard pages** — the app pages for the data sources used (e.g., `/dashboard/market`, `/dashboard/trends`, `/dashboard/deals`)
+### Section 2: LINKEDIN FIRST COMMENT
+
+Post immediately after publishing. Contains:
+1. One-line intro: "This data is pulled daily from BigSkyLabs AI in Healthcare — an intelligence platform tracking 318 companies across 57+ data sources."
 2. **Free directory link** — `https://app.bigskylabs.ai/directory` (always — free, no signup)
-3. **Signup CTA** — `https://app.bigskylabs.ai/pricing` (always last)
+3. **Signup CTA** — `https://app.bigskylabs.ai/pricing` (always last — names the gated features)
+
+**NEVER link to dashboard pages** (`/dashboard/market`, `/dashboard/trends`, `/dashboard/deals`, etc.)
+in the first comment. Those pages require login — a new visitor hits a login wall. Always
+link to `/pricing` instead and name the features in the link text.
+
+### Section 3: FACEBOOK POST
+
+Same image attachment. Facebook allows multiple links in the body, so include:
+- Slightly adapted post text (can be shorter/punchier than LinkedIn)
+- The insights page link with explanatory text
+- The free directory link directly in the body
+
+### Section 4: POSTING INSTRUCTIONS
+
+Always include these instructions at the bottom of the file:
+
+```
+POSTING INSTRUCTIONS:
+
+1. IMAGE: Attach linkedin-posts/shots/YYYY-MM-DD-{topic-slug}.png
+
+2. LINKEDIN POST BODY: Copy everything above the first "---" line.
+   - The insights page link is the ONLY link in the post body.
+   - Do NOT put any other links in the post body.
+
+3. LINKEDIN FIRST COMMENT: Post the "FIRST COMMENT" section immediately after publishing.
+   - Two links only: /directory (free) and /pricing (signup).
+   - No dashboard links — those pages require login.
+
+4. FACEBOOK: Use the "FACEBOOK POST" section. Same image attachment.
+
+5. REPLACE existing posts: Delete any earlier versions of this post on both
+   platforms and repost with this updated text. The image is unchanged.
+```
+
+### Link rules summary (NEVER violate)
+
+| Destination | Where it appears | Why |
+|-------------|-----------------|-----|
+| `/insights/YYYY-MM-DD-{slug}.html` | LinkedIn post body (only link) | Public page, no login |
+| `/directory` | First comment + Facebook body | Public, free, no signup |
+| `/pricing` | First comment + Facebook body + all CTA cards on hosted page | Signup funnel |
+| `/dashboard/*` | **NOWHERE** | Requires login — dead end for new visitors |
 
 ## Step 6 — Screenshot with Playwright
 
@@ -150,8 +195,20 @@ npx playwright screenshot \
 After the screenshot:
 1. Read the PNG to visually verify it rendered correctly (icon present, no broken layout)
 2. Open the PNG for the user: `start "" "<path>.png"`
-3. Display the post text for copy-paste
-4. Report the file paths for both PNG and post text
+
+## Step 7 — Present all copy-paste content to user
+
+Display each section of the post text file as separate, clearly labeled code blocks
+the user can copy-paste directly into LinkedIn and Facebook. Format:
+
+1. **IMAGE** — state the file path
+2. **LINKEDIN POST BODY** — in a code block (everything above the first `---`)
+3. **LINKEDIN FIRST COMMENT** — in a code block
+4. **FACEBOOK POST** — in a code block
+5. **POSTING INSTRUCTIONS** — the numbered checklist
+
+The user should be able to copy each block without editing. No placeholder text — every
+link and number must be final.
 
 ## File naming
 
