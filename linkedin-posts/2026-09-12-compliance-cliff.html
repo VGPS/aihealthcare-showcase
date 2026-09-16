@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=1400"/>
+<title>111 Days Until the Compliance Cliff</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1400px;
+    background: #ffffff;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { padding: 48px 56px; }
+
+  /* ── Row 1: Header ── */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 36px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .header-left { max-width: 780px; }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .brand img {
+    width: 84px;
+    height: 84px;
+    border-radius: 10px;
+  }
+  .brand-name {
+    font-size: 27px;
+    font-weight: 700;
+    color: #64748b;
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: #94a3b8;
+    margin-bottom: 10px;
+  }
+  .header-left h1 {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #0f172a;
+    margin-bottom: 10px;
+  }
+  .header-left h1 .red { color: #dc2626; }
+  .subtitle {
+    font-size: 18px;
+    color: #64748b;
+    line-height: 1.5;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    padding-top: 24px;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .num {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .hero-stat .num.red { color: #dc2626; }
+  .hero-stat .num.blue { color: #2563eb; }
+  .hero-stat .num.purple { color: #7c3aed; }
+  .hero-stat .label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: #94a3b8;
+    margin-top: 6px;
+  }
+
+  /* ── Row 2: Data Cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 36px;
+  }
+  .card {
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+  .card.blue::before { background: #2563eb; }
+  .card.purple::before { background: #7c3aed; }
+  .card.cyan::before { background: #0891b2; }
+  .card .big-num {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .card.blue .big-num { color: #2563eb; }
+  .card.purple .big-num { color: #7c3aed; }
+  .card.cyan .big-num { color: #0891b2; }
+  .card .pct {
+    font-size: 28px;
+    font-weight: 700;
+    margin-left: 4px;
+  }
+  .card .count {
+    font-size: 15px;
+    font-weight: 500;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
+  .card .card-label {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-top: 14px;
+  }
+  .card .card-desc {
+    font-size: 14px;
+    color: #64748b;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .progress-track {
+    width: 100%;
+    height: 10px;
+    background: #e2e8f0;
+    border-radius: 5px;
+    margin-top: 16px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 5px;
+  }
+  .card.blue .progress-fill { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+  .card.purple .progress-fill { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+  .card.cyan .progress-fill { background: linear-gradient(90deg, #06b6d4, #0891b2); }
+
+  /* ── Row 3: Callout + Quote ── */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 36px;
+  }
+  .callout {
+    background: #fef2f2;
+    border-left: 4px solid #dc2626;
+    border-radius: 0 12px 12px 0;
+    padding: 24px 28px;
+  }
+  .callout-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #991b1b;
+    margin-bottom: 14px;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .callout-note {
+    font-size: 13px;
+    color: #991b1b;
+    margin-top: 14px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .quote-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 28px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .quote-mark {
+    font-size: 40px;
+    color: #cbd5e1;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .quote-text {
+    font-size: 18px;
+    font-weight: 600;
+    font-style: italic;
+    color: #334155;
+    line-height: 1.6;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 36px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .footer-brand {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .footer-brand .big { color: #2563eb; }
+  .footer-brand .labs { color: #94a3b8; }
+  .footer-source {
+    font-size: 13px;
+    text-align: right;
+  }
+  .footer-source .src-name { color: #64748b; }
+  .footer-source .src-url { color: #94a3b8; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Row 1: Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="brand">
+        <img src="brand-icon.png" alt="AI in Healthcare"/>
+        <span class="brand-name">AI in Healthcare</span>
+      </div>
+      <div class="eyebrow">State Legislation Tracker</div>
+      <h1><span class="red">111 Days</span> Until the<br/>Compliance Cliff</h1>
+      <div class="subtitle">8 state health AI laws take effect on a single date &mdash; January 1, 2027. Most companies aren't ready.</div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="num red">111</div>
+        <div class="label">Days Left</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num blue">8</div>
+        <div class="label">Laws</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num purple">7</div>
+        <div class="label">States</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Data Cards -->
+  <div class="cards">
+    <div class="card blue">
+      <div class="big-num">5</div>
+      <div class="count">of 8 laws taking effect</div>
+      <div class="card-label">Consumer Chatbot Regulation</div>
+      <div class="card-desc">Disclosure requirements, identity verification, and content guardrails for AI health chatbots</div>
+      <div class="progress-track"><div class="progress-fill" style="width: 63%"></div></div>
+    </div>
+    <div class="card purple">
+      <div class="big-num">5</div>
+      <div class="count">of 8 laws taking effect</div>
+      <div class="card-label">Mental Health Protections</div>
+      <div class="card-desc">Psychotherapy AI safeguards, companion app restrictions, and therapist oversight mandates</div>
+      <div class="progress-track"><div class="progress-fill" style="width: 63%"></div></div>
+    </div>
+    <div class="card cyan">
+      <div class="big-num">3</div>
+      <div class="count">of 8 laws taking effect</div>
+      <div class="card-label">Payer Utilization Review</div>
+      <div class="card-desc">Prior authorization transparency, AI-driven denial restrictions, and insurer accountability rules</div>
+      <div class="progress-track"><div class="progress-fill" style="width: 38%"></div></div>
+    </div>
+  </div>
+
+  <!-- Row 3: Callout + Quote -->
+  <div class="bottom-row">
+    <div class="callout">
+      <div class="callout-title">States Hitting January 1, 2027</div>
+      <div class="chips">
+        <span class="chip">Colorado (2 laws)</span>
+        <span class="chip">Georgia</span>
+        <span class="chip">New York</span>
+        <span class="chip">Oregon</span>
+        <span class="chip">Rhode Island</span>
+        <span class="chip">Utah</span>
+        <span class="chip">Washington</span>
+      </div>
+      <div class="callout-note">Colorado leads with 2 laws on this date alone &mdash; one regulating chatbot operators, the other restricting AI in payer utilization review and mental health.</div>
+    </div>
+    <div class="quote-card">
+      <div class="quote-mark">&ldquo;</div>
+      <div class="quote-text">No single federal framework exists. Instead, 7 states independently chose the same effective date &mdash; creating a simultaneous compliance event that most health AI companies haven't planned for.</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-brand"><span class="big">BigSky</span><span class="labs">Labs</span></div>
+    <div class="footer-source">
+      <span class="src-name">State Health AI Legislation Registry</span><br/>
+      <span class="src-url">app.bigskylabs.ai/legislation &nbsp;|&nbsp; September 12, 2026</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
