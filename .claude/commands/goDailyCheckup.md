@@ -129,7 +129,8 @@ Do NOT put any other links in the post body — LinkedIn deprioritizes posts wit
 Post immediately after publishing. Contains:
 1. One-line intro: "This data is pulled daily from BigSkyLabs AI in Healthcare — an intelligence platform tracking 318 companies across 57+ data sources."
 2. **Free directory link** — `https://app.bigskylabs.ai/directory` (always — free, no signup)
-3. **Signup CTA** — `https://app.bigskylabs.ai/pricing` (always last — names the gated features)
+3. **Free wiki link** — `https://app.bigskylabs.ai/wiki` (always — free, no signup, LLM-compiled knowledge base)
+4. **Signup CTA** — `https://app.bigskylabs.ai/pricing` (always last — names the gated features)
 
 **NEVER link to dashboard pages** (`/dashboard/market`, `/dashboard/trends`, `/dashboard/deals`, etc.)
 in the first comment. Those pages require login — a new visitor hits a login wall. Always
@@ -140,7 +141,7 @@ link to `/pricing` instead and name the features in the link text.
 Same image attachment. Facebook allows multiple links in the body, so include:
 - Slightly adapted post text (can be shorter/punchier than LinkedIn)
 - The insights page link with explanatory text
-- The free directory link directly in the body
+- The free directory link and wiki link directly in the body
 
 ### Section 4: POSTING INSTRUCTIONS
 
@@ -170,8 +171,9 @@ POSTING INSTRUCTIONS:
 | Destination | Where it appears | Why |
 |-------------|-----------------|-----|
 | `/insights/YYYY-MM-DD-{slug}.html` | LinkedIn post body (only link) | Public page, no login |
-| `/directory` | First comment + Facebook body | Public, free, no signup |
-| `/pricing` | First comment + Facebook body + all CTA cards on hosted page | Signup funnel |
+| `/directory` | First comment + Facebook body + CTA bottom row | Public, free, no signup |
+| `/wiki` | First comment + Facebook body + CTA card + CTA bottom row | Public, free, no signup |
+| `/pricing` | First comment + Facebook body + 3 gated CTA cards + CTA bottom row | Signup funnel |
 | `/dashboard/*` | **NOWHERE** | Requires login — dead end for new visitors |
 
 ## Step 6 — Screenshot with Playwright
@@ -228,11 +230,14 @@ All outputs use the same `YYYY-MM-DD-{topic-slug}` convention — date is the di
    - **MUST include CTA section** between the bottom-row and footer — card grid with
      descriptions explaining what each link offers. Use absolute URLs (`https://app.bigskylabs.ai/...`).
      - **GATED pages (dashboards) MUST link to `/pricing`, NEVER to the dashboard URL.**
-       Unauthenticated LinkedIn visitors would hit a login wall. All 3 CTA cards point to pricing.
+       Unauthenticated LinkedIn visitors would hit a login wall.
      Always include these links:
-     - 3 CTA cards (grid): feature descriptions (e.g., Market Digest, Trend Detection, Deal Signals)
-       — each with an icon, title, and 1-line description. ALL link to `https://app.bigskylabs.ai/pricing`
-     - Bottom row: `/directory` (free, no signup — this is the ONLY non-pricing link) + `/pricing` (signup CTA)
+     - 4 CTA cards (2x2 grid): feature descriptions with icon + title + 1-line description.
+       - Market Digest → `/pricing` (gated)
+       - Trend Detection → `/pricing` (gated)
+       - Deal Signals → `/pricing` (gated)
+       - AI Healthcare Wiki → `/wiki` (PUBLIC — free, no login)
+     - Bottom row: `/directory` (free) + `/wiki` (free) + `/pricing` (signup CTA)
    - Use the CTA section CSS/HTML pattern from the reference infographic:
      `application/src/main/resources/static/insights/2026-09-15-ehr-ai-race.html`
 
@@ -258,3 +263,11 @@ Full calendar at: `C:\workspaces\SpringAIClaude\market-analysis-v2\LinkedInTempl
 - **HuggingFace model observation** — new healthcare LLMs by category
 - **Sentiment/risk observation** — distribution across company corpus
 - **Company directory spotlight** — free resource framing, link in body OK
+- **Wiki reversal/contradiction** — when `/wiki/contradictions` has a genuinely surprising reversal
+  (new evidence contradicts prior consensus). Frame as "What the data said then vs. now."
+  Link to `/wiki/contradictions` in the post body (it's public). Strongest engagement driver
+  when the reversal is counterintuitive. Also works as a platform showcase: "We built an
+  AI knowledge base that tracks when its own sources contradict each other."
+- **Wiki knowledge base showcase** — total page count, topic breadth, revision depth, provenance
+  tracking. Frame as "How we built a self-updating AI knowledge base from 57+ sources."
+  Good for positioning the platform as a research tool, not just a newsletter.
