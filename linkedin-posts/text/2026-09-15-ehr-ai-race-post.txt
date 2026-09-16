@@ -8,15 +8,52 @@ This isn't incremental product iteration. This is a platform land grab for who o
 
 The question isn't whether AI enters the EHR. It's whether the EHR becomes AI.
 
-👉 Explore the live data behind this analysis — trend charts, deal signals, market-moving headlines, and 318 tracked AI healthcare companies updated daily:
+👉 See the full analysis with trend charts, deal signals, and company tracking — updated daily from 57+ sources:
 https://app.bigskylabs.ai/insights/2026-09-15-ehr-ai-race.html
 
 ---
 
-FIRST COMMENT:
+FIRST COMMENT (LinkedIn):
 
 This data is pulled daily from BigSkyLabs AI in Healthcare — an intelligence platform tracking 318 companies across 57+ data sources.
 
 Browse all 318 AI healthcare companies free (no signup): https://app.bigskylabs.ai/directory
 
 Sign up free to access Market Digest, Trend Detection, Deal Signals, and more: https://app.bigskylabs.ai/pricing
+
+---
+
+FACEBOOK POST (same image):
+
+Four Big Tech companies launched healthcare AI products in the same week.
+
+OpenAI + Epic put ChatGPT directly inside EHR workflows. AWS launched Amazon Connect Health. Oracle released a clinical AI agent for nurses. GE HealthCare launched an AI operations platform.
+
+"Epic AI Agent Platform" appeared in 80 articles in 30 days — more than double the next-highest keyword. The market is paying attention.
+
+This isn't incremental. It's a platform land grab for who owns the clinical workflow layer.
+
+👉 See the full analysis with trend charts, deal signals, and company tracking:
+https://app.bigskylabs.ai/insights/2026-09-15-ehr-ai-race.html
+
+Browse 318 AI healthcare companies free (no signup): https://app.bigskylabs.ai/directory
+
+---
+
+POSTING INSTRUCTIONS:
+
+1. IMAGE: Attach linkedin-posts/shots/2026-09-15-ehr-ai-race.png
+
+2. LINKEDIN POST BODY: Copy everything above the first "---" line. The body ends with the insights link.
+   - Do NOT put any other links in the post body — LinkedIn deprioritizes posts with multiple links.
+   - The insights page link is the ONLY link in the post body.
+
+3. LINKEDIN FIRST COMMENT: Post the "FIRST COMMENT" section immediately after publishing.
+   - Two links: /directory (free) and /pricing (signup).
+   - No dashboard links — those pages require login and would dead-end a new visitor.
+
+4. FACEBOOK: Use the "FACEBOOK POST" section. Facebook allows multiple links in the body,
+   so the directory link is included directly. Same image attachment.
+
+5. REPLACE existing posts: Delete the earlier versions of this post on both platforms
+   and repost with this updated text. The image is unchanged.
