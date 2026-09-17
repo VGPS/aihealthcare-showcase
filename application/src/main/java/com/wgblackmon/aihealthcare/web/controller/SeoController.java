@@ -14,8 +14,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,7 +34,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-10
- * @updated 2026-09-10
+ * @updated 2026-09-17
  */
 @Slf4j
 @Controller
@@ -71,6 +76,8 @@ public class SeoController {
                 Allow: /about
                 Allow: /pricing
                 Allow: /developer
+                Allow: /insights/
+                Allow: /privacy
                 Disallow: /dashboard
                 Disallow: /admin
                 Disallow: /api/
@@ -110,6 +117,12 @@ public class SeoController {
         addUrl(sb, "/directory", "0.9", "daily", today);
         addUrl(sb, "/legislation", "0.9", "daily", today);
         addUrl(sb, "/wiki", "0.8", "daily", today);
+        addUrl(sb, "/privacy", "0.3", "yearly", today);
+
+        List<String> insightPages = discoverInsightPages();
+        for (String page : insightPages) {
+            addUrl(sb, "/insights/" + page, "0.7", "monthly", today);
+        }
 
         List<HealthcareAiCompanyEntity> companies = companyRepository.findAll();
         for (HealthcareAiCompanyEntity company : companies) {
@@ -130,8 +143,25 @@ public class SeoController {
 
         String result = sb.toString();
         log.debug("sitemapXml() | return=sitemap with {} URLs",
-                  7 + companies.size() + laws.size() + wikiPages.size());
+                  8 + insightPages.size() + companies.size() + laws.size() + wikiPages.size());
         return result;
+    }
+
+    private List<String> discoverInsightPages() {
+        List<String> pages = new ArrayList<>();
+        try {
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            Resource[] resources = resolver.getResources("classpath:static/insights/*.html");
+            for (Resource resource : resources) {
+                String filename = resource.getFilename();
+                if (filename != null) {
+                    pages.add(filename);
+                }
+            }
+        } catch (IOException e) {
+            log.warn("discoverInsightPages() | failed to scan insights directory: {}", e.getMessage());
+        }
+        return pages;
     }
 
     private void addUrl(StringBuilder sb, String path, String priority,
