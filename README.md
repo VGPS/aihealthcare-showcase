@@ -49,6 +49,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **PII Masking** | LogSanitizer utility masks email addresses in log statements to prevent PII exposure in production logs |
 | **Branded Error Handling** | Custom error pages replacing Spring Boot's Whitelabel Error Page with consistent branded UI |
 | **Document Library** | Admin-managed document upload (PDF/DOCX/TXT/MD, 50MB limit) with vector store embedding for RAG search and public wiki page generation |
+| **SEO & Social** | Dynamic XML sitemap, robots.txt, Open Graph meta tags on hosted insights pages for rich social media previews |
 | **91-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, enterprise data console, LinkedIn feature post rotation, combined social post generator, and SSO provider management |
 | **2,964 Automated Tests** | Comprehensive test suite across 357 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
@@ -383,6 +384,7 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | Path Pattern | Access |
 |-------------|--------|
 | `/login`, `/register`, `/pricing`, `/privacy`, `/unsubscribe/**` | Public |
+| `/insights/**`, `/robots.txt`, `/sitemap.xml` | Public (static insights pages, SEO) |
 | `/directory`, `/directory/**` | Public (no login required) |
 | `/wiki` | Public (index page, no login required) |
 | `/api/**`, `/monitoring/**`, `/stripe/**` | Public (secured separately via API keys / Stripe signatures) |
