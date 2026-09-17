@@ -12,11 +12,20 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-28
- * @updated 2026-09-10 — SEO-1: favicon, meta description, canonical, OG tags, twitter card, noindex
+ * @updated 2026-09-17 — GA4 analytics tag (G-ZDBXNCKJ54)
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:fragment="head(pageTitle)">
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDBXNCKJ54"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-ZDBXNCKJ54');
+    </script>
+
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title th:text="${pageTitle} + ' — AIHealthcare'">AIHealthcare</title>
