@@ -3,7 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ai;
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
-import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityApiResponse;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityAgentResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,13 +18,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Perplexity Sonar adapter for AI-enhanced search synthesis.
+ * Perplexity Agent API adapter for AI-enhanced search synthesis.
  *
- * <p>Implements {@link AiSearchPort} using the Perplexity Sonar API
- * ({@code POST https://api.perplexity.ai/chat/completions}) via {@link RestClient}.
+ * <p>Implements {@link AiSearchPort} using the Perplexity Agent API
+ * ({@code POST https://api.perplexity.ai/v1/agent}) via {@link RestClient}.
  * Unlike the Claude and GPT adapters which use Spring AI's {@code ChatClient},
  * Perplexity does not have a Spring AI starter — so this adapter calls the
- * OpenAI-compatible REST API directly.
+ * REST API directly.
  *
  * <p>Delegates prompt building and response parsing to the shared
  * {@link AiSearchResponseParser} utility, which centralizes the
@@ -36,7 +36,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-02
- * @updated 2026-09-11
+ * @updated 2026-09-18
  */
 @Slf4j
 @Component
@@ -64,7 +64,7 @@ public class PerplexityAiSearchAdapter implements AiSearchPort {
     public PerplexityAiSearchAdapter(
             AiSearchResponseParser responseParser,
             @Value("${aihealthcare.perplexity.api-key:}") String apiKey,
-            @Value("${aihealthcare.perplexity.model:sonar}") String modelId) {
+            @Value("${aihealthcare.perplexity.model:perplexity/sonar}") String modelId) {
         this(responseParser, apiKey, modelId, RestClient.builder().baseUrl(BASE_URL).build());
     }
 
@@ -150,25 +150,25 @@ public class PerplexityAiSearchAdapter implements AiSearchPort {
 
         Map<String, Object> requestBody = new LinkedHashMap<>();
         requestBody.put("model", modelId);
-        requestBody.put("messages", messages);
+        requestBody.put("input", messages);
+        requestBody.put("tools", List.of(Map.of("type", "web_search")));
 
-        PerplexityApiResponse response = restClient.post()
-                .uri("/chat/completions")
+        PerplexityAgentResponse response = restClient.post()
+                .uri("/v1/agent")
                 .header("Authorization", "Bearer " + apiKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody)
                 .retrieve()
-                .body(PerplexityApiResponse.class);
+                .body(PerplexityAgentResponse.class);
 
-        if (response == null || response.choices() == null || response.choices().isEmpty()) {
-            log.warn("callPerplexityApi() | empty response from Perplexity");
+        if (response == null || !response.isCompleted()) {
+            log.warn("callPerplexityApi() | empty or non-completed response from Perplexity (status={})",
+                     response == null ? "null" : response.status());
             log.debug("callPerplexityApi() | return=null");
             return null;
         }
 
-        String content = response.choices().get(0).message() != null
-                ? response.choices().get(0).message().content()
-                : null;
+        String content = response.extractText();
 
         log.debug("callPerplexityApi() | return=content[{} chars]", content == null ? 0 : content.length());
         return content;

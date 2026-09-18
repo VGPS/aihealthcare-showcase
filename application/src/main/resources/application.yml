@@ -200,8 +200,8 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   company-discovery:
     schedule: "0 0 6 * * SUN"
-    discovery-model: sonar-pro
-    extraction-model: sonar-pro
+    discovery-model: perplexity/sonar
+    extraction-model: perplexity/sonar
     max-companies-per-run: 30
 
   # ---------------------------------------------------------------------------
@@ -265,10 +265,11 @@ aihealthcare:
     max-articles-per-keyword: 5
 
   # ---------------------------------------------------------------------------
-  # Perplexity Deep Research — async Sonar Deep Research API for analyst-grade
-  # trend summaries. Uses the same PERPLEXITY_API_KEY as the search adapter.
+  # Perplexity Deep Research — Agent API background mode with preset "medium"
+  # (deep-research). Uses the same PERPLEXITY_API_KEY as the search adapter.
   # Cost control: max-summaries-per-run caps how many keywords get deep-researched
   # per trend detection run (~$3-5 per summary, so 5 = ~$15-25/month on weekly runs).
+  # Migrated from async Sonar Deep Research API to Agent API background mode 2026-09-18.
   # ---------------------------------------------------------------------------
   deep-research:
     max-summaries-per-run: 5
@@ -891,9 +892,9 @@ aihealthcare:
           - medical
           - clinical
       - topic-id: 1
-        name: Perplexity Sonar API
+        name: Perplexity Agent API
         topic: Perplexity Healthcare
-        url: https://api.perplexity.ai/chat/completions
+        url: https://docs.perplexity.ai/docs/agent-api
         tier: PERPLEXITY
         base-weight: 0.85
         max-items: 20
@@ -1374,15 +1375,16 @@ aihealthcare:
         max-items: 20
 
   # ---------------------------------------------------------------------------
-  # Perplexity Sonar API — used by PerplexityHarvester.
+  # Perplexity Agent API — used by PerplexityHarvester and all Perplexity adapters.
   # Set PERPLEXITY_API_KEY as an environment variable to enable harvesting.
   # When the key is absent the harvester logs a warning and returns no articles.
+  # Migrated from Sonar chat completions to Agent API (/v1/agent) 2026-09-18.
   # ---------------------------------------------------------------------------
   perplexity:
     api-key: ${PERPLEXITY_API_KEY:}
-    model: ${PERPLEXITY_MODEL_ID:sonar}
+    model: ${PERPLEXITY_MODEL_ID:perplexity/sonar}
     market-news:
-      model: ${PERPLEXITY_MARKET_NEWS_MODEL:sonar}
+      model: ${PERPLEXITY_MARKET_NEWS_MODEL:perplexity/sonar}
 
   # ---------------------------------------------------------------------------
   # Alpaca Markets Data API — used by AlpacaMarketDataAdapter for real-time

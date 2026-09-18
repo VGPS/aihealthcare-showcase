@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ai;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TrendSummaryPort;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityAgentResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,14 +18,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Adapter that implements {@link TrendSummaryPort} using the Perplexity Sonar
- * Deep Research async API ({@code POST /v1/async/sonar}, {@code GET /v1/async/sonar/{id}}).
+ * Adapter that implements {@link TrendSummaryPort} using the Perplexity Agent API
+ * in background mode ({@code POST /v1/agent} with {@code background: true},
+ * polled via {@code GET /v1/responses/{id}}).
  *
- * <p>Deep Research performs multi-step web research with citations, producing
- * comprehensive analyst-grade reports. The API is asynchronous: a job is
- * submitted and then polled until completion or timeout.
+ * <p>The {@code preset: "medium"} configuration is the closest equivalent of the
+ * former {@code sonar-deep-research} model, performing multi-step web research
+ * with citations and producing comprehensive analyst-grade reports. The API is
+ * asynchronous: a job is submitted with {@code background: true} and then polled
+ * until completion or timeout.
  *
- * <p>The {@code message.content} field in the response often contains a leading
+ * <p>The output text in the response often contains a leading
  * {@code <think>...</think>} reasoning block that must be stripped before the
  * content is ready for display.
  *
@@ -34,14 +38,13 @@ import java.util.regex.Pattern;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-28
- * @updated 2026-08-28
+ * @updated 2026-09-18
  */
 @Slf4j
 @Component
 public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
 
     private static final String BASE_URL = "https://api.perplexity.ai";
-    private static final String MODEL_ID = "sonar-deep-research";
     private static final Pattern THINK_BLOCK = Pattern.compile(
             "<think>.*?</think>\\s*", Pattern.DOTALL);
 
@@ -87,7 +90,7 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
         if (apiKey == null || apiKey.isBlank()) {
             log.info("PerplexityDeepResearchAdapter() | PERPLEXITY_API_KEY not set — deep research disabled");
         } else {
-            log.info("PerplexityDeepResearchAdapter() | Deep Research adapter active (model={})", MODEL_ID);
+            log.info("PerplexityDeepResearchAdapter() | Deep Research adapter active (preset=medium, background=true)");
         }
         log.debug("PerplexityDeepResearchAdapter() | return=void");
     }
@@ -104,8 +107,8 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
 
         String prompt = buildPrompt(keyword, articles);
 
-        // Step 1: Submit async job
-        DeepResearchResponse submitResponse = submitJob(prompt);
+        // Step 1: Submit background job via Agent API
+        PerplexityAgentResponse submitResponse = submitJob(prompt);
         if (submitResponse == null || submitResponse.id() == null) {
             log.warn("generateSummary() | submit failed for keyword={}", keyword);
             log.debug("generateSummary() | return=null (submit failed)");
@@ -116,7 +119,7 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
         log.info("generateSummary() | job submitted: id={}, keyword={}", jobId, keyword);
 
         // Step 2: Poll until terminal state or timeout
-        DeepResearchResponse finalResponse = pollUntilDone(jobId);
+        PerplexityAgentResponse finalResponse = pollUntilDone(jobId);
         if (finalResponse == null || !finalResponse.isCompleted()) {
             String status = finalResponse != null ? finalResponse.status() : "null";
             log.warn("generateSummary() | poll ended without completion: keyword={}, status={}",
@@ -126,7 +129,7 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
         }
 
         // Step 3: Extract and clean content
-        String rawContent = finalResponse.extractContent();
+        String rawContent = finalResponse.extractText();
         if (rawContent == null || rawContent.isBlank()) {
             log.warn("generateSummary() | completed but empty content for keyword={}", keyword);
             log.debug("generateSummary() | return=null (empty content)");
@@ -136,12 +139,9 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
         String cleaned = stripThinkBlocks(rawContent);
 
         if (finalResponse.usage() != null && finalResponse.usage().cost() != null) {
-            DeepResearchResponse.UsageCost cost = finalResponse.usage().cost();
-            double totalCost = cost.inputTokensCost() + cost.outputTokensCost()
-                    + cost.citationTokensCost() + cost.reasoningTokensCost()
-                    + cost.searchQueriesCost();
+            PerplexityAgentResponse.UsageCost cost = finalResponse.usage().cost();
             log.info("generateSummary() | keyword={}, cost=${}, tokens={}",
-                     keyword, String.format("%.4f", totalCost), finalResponse.usage().totalTokens());
+                     keyword, String.format("%.4f", cost.totalCost()), finalResponse.usage().totalTokens());
         }
 
         log.debug("generateSummary() | return={} chars", cleaned.length());
@@ -197,9 +197,10 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
     }
 
     /**
-     * Submits the deep research job to {@code POST /v1/async/sonar}.
+     * Submits the deep research job to {@code POST /v1/agent} with
+     * {@code background: true} and {@code preset: "medium"}.
      */
-    DeepResearchResponse submitJob(String prompt) {
+    PerplexityAgentResponse submitJob(String prompt) {
         log.debug("submitJob() | promptLength={}", prompt.length());
 
         Map<String, String> userMessage = new LinkedHashMap<>();
@@ -209,21 +210,19 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(userMessage);
 
-        Map<String, Object> innerRequest = new LinkedHashMap<>();
-        innerRequest.put("model", MODEL_ID);
-        innerRequest.put("messages", messages);
-
         Map<String, Object> requestBody = new LinkedHashMap<>();
-        requestBody.put("request", innerRequest);
+        requestBody.put("preset", "medium");
+        requestBody.put("input", messages);
+        requestBody.put("background", true);
 
         try {
-            DeepResearchResponse response = restClient.post()
-                    .uri("/v1/async/sonar")
+            PerplexityAgentResponse response = restClient.post()
+                    .uri("/v1/agent")
                     .header("Authorization", "Bearer " + apiKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(requestBody)
                     .retrieve()
-                    .body(DeepResearchResponse.class);
+                    .body(PerplexityAgentResponse.class);
 
             log.debug("submitJob() | return=id={}, status={}",
                       response != null ? response.id() : "null",
@@ -237,28 +236,32 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
     }
 
     /**
-     * Polls {@code GET /v1/async/sonar/{id}} until the job reaches a terminal
+     * Polls {@code GET /v1/responses/{id}} until the job reaches a terminal
      * state or the configured timeout is exceeded.
      */
-    DeepResearchResponse pollUntilDone(String jobId) {
+    PerplexityAgentResponse pollUntilDone(String jobId) {
         log.debug("pollUntilDone() | jobId={}, timeoutMs={}", jobId, pollTimeoutMs);
 
         long deadline = System.currentTimeMillis() + pollTimeoutMs;
-        DeepResearchResponse response = null;
+        PerplexityAgentResponse response = null;
 
         while (System.currentTimeMillis() < deadline) {
             try {
                 response = restClient.get()
-                        .uri("/v1/async/sonar/{id}", jobId)
+                        .uri("/v1/responses/{id}", jobId)
                         .header("Authorization", "Bearer " + apiKey)
                         .retrieve()
-                        .body(DeepResearchResponse.class);
+                        .body(PerplexityAgentResponse.class);
 
-                if (response != null && response.isTerminal()) {
-                    log.info("pollUntilDone() | job {} reached terminal status: {}",
-                             jobId, response.status());
-                    log.debug("pollUntilDone() | return={}", response.status());
-                    return response;
+                if (response != null) {
+                    boolean isTerminal = response.isCompleted() || response.isFailed()
+                            || "incomplete".equals(response.status()) || "cancelled".equals(response.status());
+                    if (isTerminal) {
+                        log.info("pollUntilDone() | job {} reached terminal status: {}",
+                                 jobId, response.status());
+                        log.debug("pollUntilDone() | return={}", response.status());
+                        return response;
+                    }
                 }
 
                 String currentStatus = response != null ? response.status() : "null";

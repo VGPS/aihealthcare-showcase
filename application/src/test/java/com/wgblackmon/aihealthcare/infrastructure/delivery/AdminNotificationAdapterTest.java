@@ -66,7 +66,7 @@ class AdminNotificationAdapterTest {
     void notifyModelFailure_includesStackTraceInBody() {
         RuntimeException cause = new RuntimeException("Rate limit exceeded");
 
-        adapter.notifyModelFailure("Perplexity", "sonar", "AI drug discovery", cause);
+        adapter.notifyModelFailure("Perplexity", "perplexity/sonar", "AI drug discovery", cause);
 
         verify(mailSender).send(any(MimeMessage.class));
     }

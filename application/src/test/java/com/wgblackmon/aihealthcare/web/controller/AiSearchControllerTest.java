@@ -84,7 +84,7 @@ class AiSearchControllerTest {
     private static final List<ModelInfo> DEFAULT_MODELS = List.of(
             new ModelInfo("Claude", "claude-sonnet-4-6"),
             new ModelInfo("GPT", "gpt-4o"),
-            new ModelInfo("Perplexity", "sonar"));
+            new ModelInfo("Perplexity", "perplexity/sonar"));
 
     @BeforeEach
     void setUp() {

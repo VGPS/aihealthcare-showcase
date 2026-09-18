@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-02
- * @updated 2026-08-02
+ * @updated 2026-09-18
  */
 class PerplexityCompanyResearchAdapterTest {
 
@@ -162,6 +162,26 @@ class PerplexityCompanyResearchAdapterTest {
     @Test
     void stripThinkBlocks_handlesNull() {
         assertThat(PerplexityCompanyResearchAdapter.stripThinkBlocks(null)).isNull();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void buildChatRequest_usesAgentApiInputAndTools() {
+        PerplexityCompanyResearchAdapter adapter = adapterWithKey("key");
+        Map<String, Object> request = adapter.buildChatRequest("sonar-pro", "test prompt", null);
+
+        assertThat(request).containsEntry("model", "sonar-pro");
+        assertThat(request).containsKey("input");
+        assertThat(request).doesNotContainKey("messages");
+
+        List<Map<String, String>> input = (List<Map<String, String>>) request.get("input");
+        assertThat(input).hasSize(1);
+        assertThat(input.get(0)).containsEntry("role", "user");
+        assertThat(input.get(0)).containsEntry("content", "test prompt");
+
+        List<Map<String, Object>> tools = (List<Map<String, Object>>) request.get("tools");
+        assertThat(tools).hasSize(1);
+        assertThat(tools.get(0)).containsEntry("type", "web_search");
     }
 
     @Test

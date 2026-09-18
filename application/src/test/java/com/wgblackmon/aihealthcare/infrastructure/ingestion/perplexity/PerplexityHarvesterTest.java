@@ -25,12 +25,12 @@ import static org.mockito.Mockito.when;
  *
  * <p>Guard-clause tests use an empty API key or missing prompt — no HTTP call is made.
  * The live-call path is tested via an explicit mock chain over {@link RestClient}'s
- * fluent API, returning a canned {@link PerplexityApiResponse} without touching the network.
+ * fluent API, returning a canned {@link PerplexityAgentResponse} without touching the network.
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 3.0
  * @since   2026-04-28
- * @updated 2026-05-06
+ * @updated 2026-09-18
  */
 @ExtendWith(MockitoExtension.class)
 class PerplexityHarvesterTest {
@@ -107,30 +107,43 @@ class PerplexityHarvesterTest {
     // Live-call path — RestClient stubbed via explicit mock chain
     // -------------------------------------------------------------------------
 
-    private void stubRestClientChain(PerplexityApiResponse response) {
+    private void stubRestClientChain(PerplexityAgentResponse response) {
         when(restClient.post()).thenReturn(bodyUriSpec);
         when(bodyUriSpec.uri(anyString())).thenReturn(bodySpec);
         when(bodySpec.header(anyString(), any(String[].class))).thenReturn(bodySpec);
         when(bodySpec.contentType(any())).thenReturn(bodySpec);
         when(bodySpec.body(any(Object.class))).thenReturn(bodySpec);
         when(bodySpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(PerplexityApiResponse.class)).thenReturn(response);
+        when(responseSpec.body(PerplexityAgentResponse.class)).thenReturn(response);
     }
 
     @Test
     void harvestArticles_successfulApiResponse_returnsArticles() {
         when(searchPromptPort.findByEngine("PERPLEXITY")).thenReturn(Optional.of(ACTIVE_PROMPT));
 
-        PerplexityApiResponse fakeResponse = new PerplexityApiResponse(
+        PerplexityAgentResponse fakeResponse = new PerplexityAgentResponse(
                 "id-1",
-                List.of(new PerplexityApiResponse.PerplexityChoice(
-                        new PerplexityApiResponse.PerplexityMessage(
-                                "assistant",
-                                "AI is transforming healthcare [1] through diagnostics. "
-                                + "FDA cleared a new device [2] last month."))),
+                "completed",
+                "sonar",
                 List.of(
-                        "https://pubmed.ncbi.nlm.nih.gov/article1",
-                        "https://www.fda.gov/medical-devices/news"));
+                        new PerplexityAgentResponse.OutputItem(
+                                "search_results",
+                                null,
+                                List.of(
+                                        new PerplexityAgentResponse.SearchResult(
+                                                "sr-1", "https://pubmed.ncbi.nlm.nih.gov/article1",
+                                                "AI Healthcare Study", "AI transforming diagnostics", null, null, null),
+                                        new PerplexityAgentResponse.SearchResult(
+                                                "sr-2", "https://www.fda.gov/medical-devices/news",
+                                                "FDA Device Clearance", "FDA cleared a new device", null, null, null))),
+                        new PerplexityAgentResponse.OutputItem(
+                                "message",
+                                List.of(new PerplexityAgentResponse.ContentPart(
+                                        "output_text",
+                                        "AI is transforming healthcare [1] through diagnostics. "
+                                        + "FDA cleared a new device [2] last month.")),
+                                null)),
+                null, null, null);
         stubRestClientChain(fakeResponse);
 
         PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", "sonar", restClient);
@@ -151,11 +164,21 @@ class PerplexityHarvesterTest {
     void harvestArticles_apiResponseNoCitations_returnsEmpty() {
         when(searchPromptPort.findByEngine("PERPLEXITY")).thenReturn(Optional.of(ACTIVE_PROMPT));
 
-        PerplexityApiResponse emptyResponse = new PerplexityApiResponse(
+        PerplexityAgentResponse emptyResponse = new PerplexityAgentResponse(
                 "id-2",
-                List.of(new PerplexityApiResponse.PerplexityChoice(
-                        new PerplexityApiResponse.PerplexityMessage("assistant", "No specific sources."))),
-                List.of());
+                "completed",
+                "sonar",
+                List.of(
+                        new PerplexityAgentResponse.OutputItem(
+                                "search_results",
+                                null,
+                                List.of()),
+                        new PerplexityAgentResponse.OutputItem(
+                                "message",
+                                List.of(new PerplexityAgentResponse.ContentPart(
+                                        "output_text", "No specific sources.")),
+                                null)),
+                null, null, null);
         stubRestClientChain(emptyResponse);
 
         PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", "sonar", restClient);
@@ -174,7 +197,7 @@ class PerplexityHarvesterTest {
         when(bodySpec.contentType(any())).thenReturn(bodySpec);
         when(bodySpec.body(any(Object.class))).thenReturn(bodySpec);
         when(bodySpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(PerplexityApiResponse.class))
+        when(responseSpec.body(PerplexityAgentResponse.class))
                 .thenThrow(new RuntimeException("connection refused"));
 
         PerplexityHarvester harvester = new PerplexityHarvester(searchPromptPort, "real-key", "sonar", restClient);

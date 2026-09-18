@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.infrastructure.ai;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityAgentResponse;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -13,13 +14,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Unit tests for {@link PerplexityDeepResearchAdapter}.
  *
  * <p>Tests the adapter's availability check, prompt building, and the critical
- * {@code <think>} block stripping logic. HTTP interaction tests are separate
- * (would use WireMock for full integration).
+ * {@code <think>} block stripping logic. The adapter now uses the Perplexity
+ * Agent API ({@code POST /v1/agent} with {@code background: true}, polled via
+ * {@code GET /v1/responses/{id}}) with {@link PerplexityAgentResponse} instead
+ * of the former Sonar async API. HTTP interaction tests are separate (would use
+ * WireMock for full integration).
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-28
- * @updated 2026-07-28
+ * @updated 2026-09-18
  */
 class PerplexityDeepResearchAdapterTest {
 
