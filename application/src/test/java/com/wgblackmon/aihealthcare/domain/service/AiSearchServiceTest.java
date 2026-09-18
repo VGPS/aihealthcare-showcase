@@ -60,7 +60,7 @@ class AiSearchServiceTest {
         when(gptPort.modelId()).thenReturn("gpt-4o");
         when(gptPort.isAvailable()).thenReturn(true);
         when(perplexityPort.modelName()).thenReturn("Perplexity");
-        when(perplexityPort.modelId()).thenReturn("sonar");
+        when(perplexityPort.modelId()).thenReturn("perplexity/sonar");
         when(perplexityPort.isAvailable()).thenReturn(true);
 
         service = new AiSearchService(vectorSearch, List.of(claudePort, gptPort, perplexityPort), adminNotifier);
@@ -245,7 +245,7 @@ class AiSearchServiceTest {
         assertThat(models.get(1).providerName()).isEqualTo("GPT");
         assertThat(models.get(1).modelId()).isEqualTo("gpt-4o");
         assertThat(models.get(2).providerName()).isEqualTo("Perplexity");
-        assertThat(models.get(2).modelId()).isEqualTo("sonar");
+        assertThat(models.get(2).modelId()).isEqualTo("perplexity/sonar");
     }
 
     @Test

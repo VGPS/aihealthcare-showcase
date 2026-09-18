@@ -3,7 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.marketanalysis.perplexity;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketNewsItem;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
-import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityApiResponse;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityAgentResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-18
  */
 class PerplexityMarketNewsAdapterTest {
 
@@ -49,12 +49,12 @@ class PerplexityMarketNewsAdapterTest {
     }
 
     private void stubApiResponse(String content) {
-        PerplexityApiResponse.PerplexityMessage msg =
-                new PerplexityApiResponse.PerplexityMessage("assistant", content);
-        PerplexityApiResponse.PerplexityChoice choice =
-                new PerplexityApiResponse.PerplexityChoice(msg);
-        PerplexityApiResponse apiResponse =
-                new PerplexityApiResponse("resp-1", List.of(choice), List.of());
+        PerplexityAgentResponse.ContentPart textPart =
+                new PerplexityAgentResponse.ContentPart("output_text", content);
+        PerplexityAgentResponse.OutputItem messageItem =
+                new PerplexityAgentResponse.OutputItem("message", List.of(textPart), null);
+        PerplexityAgentResponse apiResponse =
+                new PerplexityAgentResponse("resp_1", "completed", "sonar", List.of(messageItem), null, null, null);
 
         when(restClient.post()).thenReturn(uriSpec);
         when(uriSpec.uri(anyString())).thenReturn(bodySpec);
@@ -62,7 +62,7 @@ class PerplexityMarketNewsAdapterTest {
         when(bodySpec.contentType(any())).thenReturn(bodySpec);
         when(bodySpec.body(any(Object.class))).thenReturn(bodySpec);
         when(bodySpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(PerplexityApiResponse.class)).thenReturn(apiResponse);
+        when(responseSpec.body(PerplexityAgentResponse.class)).thenReturn(apiResponse);
     }
 
     // ─── no API key ───────────────────────────────────────────────────────────
@@ -208,8 +208,8 @@ class PerplexityMarketNewsAdapterTest {
 
     @Test
     void findRecentAiHealthcareNews_whenApiReturnsEmpty_returnsEmptyList() {
-        PerplexityApiResponse apiResponse =
-                new PerplexityApiResponse("resp-x", List.of(), null);
+        PerplexityAgentResponse apiResponse =
+                new PerplexityAgentResponse("resp_x", "failed", "sonar", List.of(), null, null, null);
 
         when(restClient.post()).thenReturn(uriSpec);
         when(uriSpec.uri(anyString())).thenReturn(bodySpec);
@@ -217,7 +217,7 @@ class PerplexityMarketNewsAdapterTest {
         when(bodySpec.contentType(any())).thenReturn(bodySpec);
         when(bodySpec.body(any(Object.class))).thenReturn(bodySpec);
         when(bodySpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(PerplexityApiResponse.class)).thenReturn(apiResponse);
+        when(responseSpec.body(PerplexityAgentResponse.class)).thenReturn(apiResponse);
 
         PerplexityMarketNewsAdapter adapter =
                 new PerplexityMarketNewsAdapter(promptLoader, "test-key", "sonar", restClient);

@@ -21,14 +21,17 @@ import java.util.Optional;
 
 /**
  * Infrastructure adapter that harvests AI-in-Healthcare articles via the
- * Perplexity Sonar API ({@code POST https://api.perplexity.ai/chat/completions}).
+ * Perplexity Agent API ({@code POST https://api.perplexity.ai/v1/agent}).
  *
  * <p>When {@code PERPLEXITY_API_KEY} is set as an environment variable (resolved
  * via {@code aihealthcare.perplexity.api-key} in {@code application.yml}), this
- * adapter makes a live HTTP call to the Sonar {@code sonar} model with the active
- * PERPLEXITY search prompt.  The response {@code citations[]} array (URLs cited by
- * the model) is mapped to {@link NewsArticle} records with
- * {@code sourceTier="PERPLEXITY"} and {@code sourceWeight=0.85}.
+ * adapter makes a live HTTP call to the Agent API with the {@code sonar} model
+ * and the active PERPLEXITY search prompt.  The {@code web_search} tool is
+ * forced via {@code tool_choice} so citations are always present.  Citation
+ * URLs are extracted from the {@code search_results} output item (replacing the
+ * old top-level {@code citations[]} array from the Sonar chat-completions API)
+ * and mapped to {@link NewsArticle} records with {@code sourceTier="PERPLEXITY"}
+ * and {@code sourceWeight=0.85}.
  *
  * <p>When the API key is absent or blank the adapter returns an empty list and
  * logs an info message — no exception is thrown.  The calling pipeline (e.g.
@@ -44,16 +47,17 @@ import java.util.Optional;
  *
  * <p>API endpoint:
  * <pre>
- * POST https://api.perplexity.ai/chat/completions
+ * POST https://api.perplexity.ai/v1/agent
  * Authorization: Bearer {PERPLEXITY_API_KEY}
  * Content-Type: application/json
- * { "model": "sonar", "messages": [{"role": "user", "content": "{prompt}"}] }
+ * { "model": "perplexity/sonar", "input": [{"role": "user", "content": "{prompt}"}],
+ *   "tools": [{"type": "web_search"}], "tool_choice": {"type": "web_search"} }
  * </pre>
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 3.0
  * @since   2026-04-28
- * @updated 2026-08-24
+ * @updated 2026-09-18
  */
 @Slf4j
 @Component
@@ -79,7 +83,7 @@ public class PerplexityHarvester {
     public PerplexityHarvester(
             SearchPromptPort searchPromptPort,
             @Value("${aihealthcare.perplexity.api-key:}") String apiKey,
-            @Value("${aihealthcare.perplexity.model:sonar}") String modelId) {
+            @Value("${aihealthcare.perplexity.model:perplexity/sonar}") String modelId) {
         this(searchPromptPort, apiKey, modelId, RestClient.builder().baseUrl(BASE_URL).build());
     }
 
@@ -163,33 +167,38 @@ public class PerplexityHarvester {
 
         Map<String, Object> requestBody = new LinkedHashMap<>();
         requestBody.put("model", modelId);
-        requestBody.put("messages", messages);
+        requestBody.put("input", messages);
+        requestBody.put("tools", List.of(Map.of("type", "web_search")));
+        requestBody.put("tool_choice", Map.of("type", "web_search"));
 
-        PerplexityApiResponse response = restClient.post()
-                .uri("/chat/completions")
+        PerplexityAgentResponse response = restClient.post()
+                .uri("/v1/agent")
                 .header("Authorization", "Bearer " + apiKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody)
                 .retrieve()
-                .body(PerplexityApiResponse.class);
+                .body(PerplexityAgentResponse.class);
 
-        if (response == null || response.citations() == null || response.citations().isEmpty()) {
+        if (response == null || !response.isCompleted()) {
+            log.info("callPerplexityApi() | empty or failed response from Perplexity");
+            log.debug("callPerplexityApi() | return=[]");
+            return Collections.emptyList();
+        }
+
+        List<String> citationUrls = response.extractCitationUrls();
+        if (citationUrls.isEmpty()) {
             log.info("callPerplexityApi() | no citations in Perplexity response");
             log.debug("callPerplexityApi() | return=[]");
             return Collections.emptyList();
         }
 
-        String content = "";
-        if (response.choices() != null && !response.choices().isEmpty()
-                && response.choices().get(0) != null
-                && response.choices().get(0).message() != null) {
-            content = response.choices().get(0).message().content();
-        }
+        String content = response.extractText();
+        if (content == null) content = "";
 
         log.info("callPerplexityApi() | received {} citations, content length={}",
-                 response.citations().size(), content.length());
+                 citationUrls.size(), content.length());
 
-        List<NewsArticle> result = mapCitationsToArticles(response.citations(), content, topic);
+        List<NewsArticle> result = mapCitationsToArticles(citationUrls, content, topic);
         log.debug("callPerplexityApi() | return={} articles", result.size());
         return result;
     }

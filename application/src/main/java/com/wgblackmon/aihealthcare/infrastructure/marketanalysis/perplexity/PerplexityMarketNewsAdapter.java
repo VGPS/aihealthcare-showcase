@@ -4,7 +4,7 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketNewsItem;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.NewsCategory;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.MarketNewsResearchPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
-import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityApiResponse;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityAgentResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Perplexity Sonar adapter implementing {@link MarketNewsResearchPort}.
+ * Perplexity Agent API adapter implementing {@link MarketNewsResearchPort}.
  *
- * <p>Issues a structured prompt to the Perplexity Sonar web-search API and
+ * <p>Issues a structured prompt to the Perplexity Agent API and
  * parses ITEM/END_ITEM blocks from the response into {@link MarketNewsItem}
  * records. The prompt includes the {@code since} timestamp so Perplexity
  * focuses on events published after that date.
@@ -36,7 +36,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-19
- * @updated 2026-08-19
+ * @updated 2026-09-18
  */
 @Slf4j
 @Component
@@ -54,7 +54,7 @@ public class PerplexityMarketNewsAdapter implements MarketNewsResearchPort {
     public PerplexityMarketNewsAdapter(
             PromptLoaderService promptLoader,
             @Value("${aihealthcare.perplexity.api-key:}") String apiKey,
-            @Value("${aihealthcare.perplexity.market-news.model:sonar}") String modelId) {
+            @Value("${aihealthcare.perplexity.market-news.model:perplexity/sonar}") String modelId) {
         this(promptLoader, apiKey, modelId, RestClient.builder().baseUrl(BASE_URL).build());
     }
 
@@ -113,25 +113,25 @@ public class PerplexityMarketNewsAdapter implements MarketNewsResearchPort {
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("model", modelId);
-        body.put("messages", messages);
+        body.put("input", messages);
+        body.put("tools", List.of(Map.of("type", "web_search")));
 
-        PerplexityApiResponse response = restClient.post()
-                .uri("/chat/completions")
+        PerplexityAgentResponse response = restClient.post()
+                .uri("/v1/agent")
                 .header("Authorization", "Bearer " + apiKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(body)
                 .retrieve()
-                .body(PerplexityApiResponse.class);
+                .body(PerplexityAgentResponse.class);
 
-        if (response == null || response.choices() == null || response.choices().isEmpty()) {
-            log.warn("callApi() | empty response from Perplexity");
+        if (response == null || !response.isCompleted()) {
+            log.warn("callApi() | empty or failed response from Perplexity (status={})",
+                    response != null ? response.status() : "null");
             log.debug("callApi() | return=null");
             return null;
         }
 
-        String content = response.choices().get(0).message() != null
-                ? response.choices().get(0).message().content()
-                : null;
+        String content = response.extractText();
 
         log.debug("callApi() | return=content[{} chars]", content == null ? 0 : content.length());
         return content;

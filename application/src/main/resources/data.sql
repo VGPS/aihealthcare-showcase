@@ -128,7 +128,7 @@ Group results into: Clinical AI | Regulatory/Policy | Market/News | Technical/Pr
 
 Prefer results whose page content can be opened and extracted. If a result is only a link,
 treat it as lower priority unless it is highly authoritative.',
-       'Deep-research query — demands extracted page content with per-source bullet points, citations, synthesis, and confidence rating. Designed for the Perplexity Sonar API.',
+       'Deep-research query — demands extracted page content with per-source bullet points, citations, synthesis, and confidence rating. Designed for the Perplexity Agent API.',
        true
 WHERE NOT EXISTS (SELECT 1 FROM search_prompts WHERE engine = 'PERPLEXITY');
 

@@ -3,7 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ai;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyResearchPort;
-import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityApiResponse;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityAgentResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,12 +21,12 @@ import java.util.regex.Pattern;
 
 /**
  * Infrastructure adapter implementing {@link CompanyResearchPort} via the
- * Perplexity Sonar API for AI healthcare company discovery.
+ * Perplexity Agent API ({@code POST /v1/agent}) for AI healthcare company discovery.
  *
  * <p>Three API call types:
  * <ol>
- *   <li><strong>Discovery</strong> — {@code sonar-pro} broad research call to find companies</li>
- *   <li><strong>Extraction</strong> — {@code sonar-pro} with {@code response_format} JSON schema</li>
+ *   <li><strong>Discovery</strong> — {@code perplexity/sonar} broad research call to find companies</li>
+ *   <li><strong>Extraction</strong> — {@code perplexity/sonar} with {@code response_format} JSON schema</li>
  *   <li><strong>Validation</strong> — {@code sonar} cross-check against curated lists</li>
  * </ol>
  *
@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-02
- * @updated 2026-08-02
+ * @updated 2026-09-18
  */
 @Slf4j
 @Component
@@ -66,8 +66,8 @@ public class PerplexityCompanyResearchAdapter implements CompanyResearchPort {
     @Autowired
     public PerplexityCompanyResearchAdapter(
             @Value("${aihealthcare.perplexity.api-key:}") String apiKey,
-            @Value("${aihealthcare.company-discovery.discovery-model:sonar-pro}") String discoveryModel,
-            @Value("${aihealthcare.company-discovery.extraction-model:sonar-pro}") String extractionModel) {
+            @Value("${aihealthcare.company-discovery.discovery-model:perplexity/sonar}") String discoveryModel,
+            @Value("${aihealthcare.company-discovery.extraction-model:perplexity/sonar}") String extractionModel) {
         this(apiKey, discoveryModel, extractionModel, RestClient.builder().baseUrl(BASE_URL).build());
     }
 
@@ -103,16 +103,16 @@ public class PerplexityCompanyResearchAdapter implements CompanyResearchPort {
         }
 
         Map<String, Object> requestBody = buildChatRequest(discoveryModel, prompt, null);
-        PerplexityApiResponse response = callWithRetry(requestBody);
+        PerplexityAgentResponse response = callWithRetry(requestBody);
 
-        if (response == null) {
+        if (response == null || !response.isCompleted()) {
             DiscoveryResult result = new DiscoveryResult(List.of(), List.of(), "");
-            log.debug("discoverCompanies() | return=empty (null response)");
+            log.debug("discoverCompanies() | return=empty (failed response)");
             return result;
         }
 
         String content = extractContent(response);
-        List<String> citations = response.citations() != null ? response.citations() : List.of();
+        List<String> citations = response.extractCitationUrls();
         List<String> companyNames = parseCompanyNames(content);
 
         DiscoveryResult result = new DiscoveryResult(companyNames, citations, content);
@@ -140,17 +140,17 @@ public class PerplexityCompanyResearchAdapter implements CompanyResearchPort {
 
         Map<String, Object> responseFormat = buildExtractionSchema();
         Map<String, Object> requestBody = buildChatRequest(extractionModel, prompt, responseFormat);
-        PerplexityApiResponse response = callWithRetry(requestBody);
+        PerplexityAgentResponse response = callWithRetry(requestBody);
 
-        if (response == null) {
+        if (response == null || !response.isCompleted()) {
             ExtractionResult result = new ExtractionResult(Map.of(), List.of());
-            log.debug("extractCompanyFields() | return=empty (null response)");
+            log.debug("extractCompanyFields() | return=empty (failed response)");
             return result;
         }
 
         String content = extractContent(response);
         content = stripThinkBlocks(content);
-        List<String> citations = response.citations() != null ? response.citations() : List.of();
+        List<String> citations = response.extractCitationUrls();
 
         Map<String, Object> fields = parseJsonFields(content);
         ExtractionResult result = new ExtractionResult(fields, citations);
@@ -179,17 +179,17 @@ public class PerplexityCompanyResearchAdapter implements CompanyResearchPort {
                 "Answer with YES or NO followed by which lists include this company and relevant details. " +
                 "Cite your sources.";
 
-        Map<String, Object> requestBody = buildChatRequest("sonar", prompt, null);
-        PerplexityApiResponse response = callWithRetry(requestBody);
+        Map<String, Object> requestBody = buildChatRequest("perplexity/sonar", prompt, null);
+        PerplexityAgentResponse response = callWithRetry(requestBody);
 
-        if (response == null) {
+        if (response == null || !response.isCompleted()) {
             ValidationResult result = new ValidationResult(false, List.of(), "API call failed");
-            log.debug("crossValidate() | return=not validated (null response)");
+            log.debug("crossValidate() | return=not validated (failed response)");
             return result;
         }
 
         String content = extractContent(response);
-        List<String> citations = response.citations() != null ? response.citations() : List.of();
+        List<String> citations = response.extractCitationUrls();
 
         boolean validated = content != null &&
                 (content.toUpperCase().startsWith("YES") || content.toUpperCase().contains("\nYES"));
@@ -211,7 +211,7 @@ public class PerplexityCompanyResearchAdapter implements CompanyResearchPort {
     // -------------------------------------------------------------------------
 
     /**
-     * Builds a standard Perplexity chat completions request body.
+     * Builds a Perplexity Agent API request body.
      */
     Map<String, Object> buildChatRequest(String model, String prompt,
                                           Map<String, Object> responseFormat) {
@@ -227,7 +227,8 @@ public class PerplexityCompanyResearchAdapter implements CompanyResearchPort {
 
         Map<String, Object> requestBody = new LinkedHashMap<>();
         requestBody.put("model", model);
-        requestBody.put("messages", messages);
+        requestBody.put("input", messages);
+        requestBody.put("tools", List.of(Map.of("type", "web_search")));
 
         if (responseFormat != null) {
             requestBody.put("response_format", responseFormat);
@@ -294,20 +295,20 @@ public class PerplexityCompanyResearchAdapter implements CompanyResearchPort {
     }
 
     /**
-     * Calls the Perplexity API with exponential backoff retry.
+     * Calls the Perplexity Agent API with exponential backoff retry.
      */
-    PerplexityApiResponse callWithRetry(Map<String, Object> requestBody) {
+    PerplexityAgentResponse callWithRetry(Map<String, Object> requestBody) {
         log.debug("callWithRetry() | model={}", requestBody.get("model"));
 
         for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
             try {
-                PerplexityApiResponse response = restClient.post()
-                        .uri("/chat/completions")
+                PerplexityAgentResponse response = restClient.post()
+                        .uri("/v1/agent")
                         .header("Authorization", "Bearer " + apiKey)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(requestBody)
                         .retrieve()
-                        .body(PerplexityApiResponse.class);
+                        .body(PerplexityAgentResponse.class);
 
                 log.debug("callWithRetry() | return=response (attempt {})", attempt + 1);
                 return response;
@@ -334,17 +335,13 @@ public class PerplexityCompanyResearchAdapter implements CompanyResearchPort {
     }
 
     /**
-     * Extracts content from the first choice in the response.
+     * Extracts text content from the Agent API response output items.
      */
-    String extractContent(PerplexityApiResponse response) {
-        if (response == null || response.choices() == null || response.choices().isEmpty()) {
+    String extractContent(PerplexityAgentResponse response) {
+        if (response == null) {
             return null;
         }
-        PerplexityApiResponse.PerplexityChoice choice = response.choices().get(0);
-        if (choice.message() == null) {
-            return null;
-        }
-        return choice.message().content();
+        return response.extractText();
     }
 
     /**
