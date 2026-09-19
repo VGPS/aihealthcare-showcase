@@ -2,7 +2,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
-import com.wgblackmon.aihealthcare.web.util.ArticleToneClassifier;
+import com.wgblackmon.aihealthcare.web.util.WeeklyRoundupSynthesizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,24 +19,22 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Saturday weekly roundup post generator for LinkedIn and Substack.
+ * Saturday weekly roundup post generator for LinkedIn, Facebook, and Substack.
  *
  * <p>Fetches the top 10 articles from the past 7 days filtered to COMPETITOR
- * and LEGAL source tiers, generates topic summaries, and produces
- * platform-specific copy-ready text blocks:
+ * and LEGAL source tiers, then uses LLM synthesis to produce an original
+ * analytical narrative — not a link roundup. Output format:
  * <ul>
- *   <li><strong>LinkedIn post body</strong> — categorized headlines with tone
- *       emojis, topic summaries, no links (reach penalty avoidance)</li>
- *   <li><strong>LinkedIn first comment</strong> — numbered source URLs</li>
- *   <li><strong>Substack article</strong> — long-form markdown-style article
- *       with inline links, suitable for direct paste into the Substack editor</li>
+ *   <li><strong>LinkedIn post body</strong> — cohesive 3-4 paragraph analysis
+ *       with hosted insights page URL for clickable OG preview card</li>
+ *   <li><strong>LinkedIn first comment</strong> — source publication names
+ *       (not URLs) + insights page link</li>
+ *   <li><strong>Substack article</strong> — longer-form analysis with section
+ *       headers, suitable for direct paste into the Substack editor</li>
  * </ul>
  *
- * <p>No LLM calls; classification uses keyword matching via
- * {@link ArticleToneClassifier} and sourceTier field filtering.
- *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 2.0
  * @since   2026-09-19
  * @updated 2026-09-19
  */
@@ -46,9 +44,7 @@ public class WeeklyRoundupController {
 
     private static final int MAX_ARTICLES = 10;
     private static final int LOOKBACK_DAYS = 7;
-    private static final int SNIPPET_MAX_CHARS = 180;
     private static final int POST_BODY_LIMIT = 2900;
-    private static final int LINKS_BLOCK_LIMIT = 1050;
 
     private static final DateTimeFormatter DATE_FMT = DisplayFormats.LONG_DATE;
     private static final String SITE_URL = "https://app.bigskylabs.ai";
@@ -67,15 +63,15 @@ public class WeeklyRoundupController {
         "proposed rule", "final rule", "rulemaking", "state law", "regulation"
     };
 
-    private final ArticleIngestionPort  articleIngestionPort;
-    private final ArticleToneClassifier toneClassifier;
+    private final ArticleIngestionPort      articleIngestionPort;
+    private final WeeklyRoundupSynthesizer  synthesizer;
 
     public WeeklyRoundupController(ArticleIngestionPort articleIngestionPort,
-                                   ArticleToneClassifier toneClassifier) {
-        log.debug("WeeklyRoundupController() | articleIngestionPort={}, toneClassifier={}",
-                articleIngestionPort, toneClassifier);
+                                   WeeklyRoundupSynthesizer synthesizer) {
+        log.debug("WeeklyRoundupController() | articleIngestionPort={}, synthesizer={}",
+                articleIngestionPort, synthesizer);
         this.articleIngestionPort = articleIngestionPort;
-        this.toneClassifier      = toneClassifier;
+        this.synthesizer         = synthesizer;
     }
 
     /**
@@ -102,12 +98,11 @@ public class WeeklyRoundupController {
         LocalDate weekStart = today.with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
         String dateLabel = DATE_FMT.format(weekStart) + " – " + DATE_FMT.format(today);
 
-        String legalSummary = buildLegalSummary(top);
-        String competitorSummary = buildCompetitorSummary(top);
+        String narrative = synthesizer.synthesizeNarrative(top, dateLabel, legalCount, competitorCount);
 
-        String linkedinBody = buildLinkedInBody(top, dateLabel, legalSummary, competitorSummary);
+        String linkedinBody = buildLinkedInBody(narrative, dateLabel);
         String linkedinComment = buildLinkedInComment(top);
-        String substackArticle = buildSubstackArticle(top, dateLabel, legalSummary, competitorSummary);
+        String substackArticle = buildSubstackArticle(narrative, top, dateLabel);
 
         model.addAttribute("dateLabel", dateLabel);
         model.addAttribute("articleCount", top.size());
@@ -256,128 +251,14 @@ public class WeeklyRoundupController {
         return count;
     }
 
-    private String buildLegalSummary(List<NewsArticle> articles) {
-        log.debug("buildLegalSummary() | articles={}", articles.size());
-        List<NewsArticle> legal = new ArrayList<>();
-        for (NewsArticle a : articles) {
-            if ("LEGAL".equalsIgnoreCase(a.sourceTier()) || hasLegalKeywords(a)) {
-                legal.add(a);
-            }
-        }
-        if (legal.isEmpty()) {
-            String result = "No significant legal or regulatory developments this week.";
-            log.debug("buildLegalSummary() | return={}", result);
-            return result;
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("This week saw ").append(legal.size()).append(" notable legal/regulatory ");
-        sb.append(legal.size() == 1 ? "development" : "developments");
-        sb.append(" in AI healthcare");
-
-        boolean hasLawsuit = false;
-        boolean hasRegulation = false;
-        boolean hasCompliance = false;
-        for (NewsArticle a : legal) {
-            String text = buildSearchText(a);
-            if (text.contains("lawsuit") || text.contains("litigation") || text.contains("court")) {
-                hasLawsuit = true;
-            }
-            if (text.contains("fda") || text.contains("cms") || text.contains("regulation")) {
-                hasRegulation = true;
-            }
-            if (text.contains("compliance") || text.contains("hipaa") || text.contains("privacy")) {
-                hasCompliance = true;
-            }
-        }
-
-        List<String> themes = new ArrayList<>();
-        if (hasLawsuit)    { themes.add("active litigation"); }
-        if (hasRegulation) { themes.add("regulatory action"); }
-        if (hasCompliance) { themes.add("compliance requirements"); }
-
-        if (!themes.isEmpty()) {
-            sb.append(", spanning ");
-            for (int i = 0; i < themes.size(); i++) {
-                if (i > 0 && i == themes.size() - 1) { sb.append(" and "); }
-                else if (i > 0)                       { sb.append(", "); }
-                sb.append(themes.get(i));
-            }
-        }
-        sb.append(".");
-
-        String result = sb.toString();
-        log.debug("buildLegalSummary() | return={}", result);
-        return result;
-    }
-
-    private String buildCompetitorSummary(List<NewsArticle> articles) {
-        log.debug("buildCompetitorSummary() | articles={}", articles.size());
-        List<NewsArticle> competitor = new ArrayList<>();
-        for (NewsArticle a : articles) {
-            if ("COMPETITOR".equalsIgnoreCase(a.sourceTier()) && !hasLegalKeywords(a)) {
-                competitor.add(a);
-            }
-        }
-        if (competitor.isEmpty()) {
-            String result = "No major competitor moves tracked this week.";
-            log.debug("buildCompetitorSummary() | return={}", result);
-            return result;
-        }
-
-        Set<String> topics = new HashSet<>();
-        for (NewsArticle a : competitor) {
-            if (a.topic() != null) {
-                topics.add(a.topic());
-            }
-        }
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(competitor.size()).append(" competitor ");
-        sb.append(competitor.size() == 1 ? "update" : "updates");
-        sb.append(" tracked across ");
-        sb.append(topics.size()).append(topics.size() == 1 ? " company" : " companies");
-        sb.append(".");
-
-        String result = sb.toString();
-        log.debug("buildCompetitorSummary() | return={}", result);
-        return result;
-    }
-
-    private String buildLinkedInBody(List<NewsArticle> articles, String dateLabel,
-                                     String legalSummary, String competitorSummary) {
-        log.debug("buildLinkedInBody() | articles={}, dateLabel={}", articles.size(), dateLabel);
+    private String buildLinkedInBody(String narrative, String dateLabel) {
+        log.debug("buildLinkedInBody() | narrative=length:{}, dateLabel={}", narrative.length(), dateLabel);
 
         StringBuilder sb = new StringBuilder();
         sb.append("AI in Healthcare — Weekly Intel Roundup\n");
         sb.append(dateLabel).append("\n\n");
-
-        sb.append("LEGAL & REGULATORY\n");
-        sb.append(legalSummary).append("\n\n");
-        sb.append("COMPETITOR WATCH\n");
-        sb.append(competitorSummary).append("\n\n");
-
-        if (articles.isEmpty()) {
-            sb.append("No significant articles this week.\n");
-        } else {
-            for (int i = 0; i < articles.size(); i++) {
-                NewsArticle a = articles.get(i);
-                String toneEmoji = toneClassifier.toneEmoji(a);
-                String tierLabel = "LEGAL".equalsIgnoreCase(a.sourceTier()) ? "[LEGAL] " : "[COMPETITOR] ";
-                sb.append(i + 1).append(". ").append(toneEmoji);
-                sb.append("**").append(tierLabel).append(cleanText(a.title())).append("**\n");
-                String snippet = extractSnippet(a.bodyText());
-                if (!snippet.isBlank()) {
-                    sb.append(snippet).append("\n");
-                }
-                sb.append("\n");
-            }
-        }
-
-        sb.append("Source links in the first comment below.\n\n");
-        sb.append("Follow for weekly AI healthcare intelligence.\n");
-        sb.append("Full platform: ").append(SITE_URL).append("\n\n");
-        sb.append(toneClassifier.linkedInHashtags(articles));
-        sb.append(" #WeeklyRoundup #HealthcareLaw");
+        sb.append(narrative).append("\n\n");
+        sb.append("#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #WeeklyRoundup");
 
         String result = sb.toString();
         if (result.length() > POST_BODY_LIMIT) {
@@ -395,112 +276,65 @@ public class WeeklyRoundupController {
     private String buildLinkedInComment(List<NewsArticle> articles) {
         log.debug("buildLinkedInComment() | articles={}", articles.size());
 
-        String hashtags = "\n" + toneClassifier.linkedInHashtags(articles) + " #WeeklyRoundup";
-        int reservedForHashtags = hashtags.length();
-
         StringBuilder sb = new StringBuilder();
-        sb.append("Sources:\n\n");
-        for (int i = 0; i < articles.size(); i++) {
-            NewsArticle a = articles.get(i);
-            String url = a.url() != null ? a.url().toString() : "";
-            if (url.isBlank()) {
-                continue;
+        sb.append("Sources analyzed this week:\n\n");
+
+        Set<String> sourceNames = new java.util.LinkedHashSet<>();
+        for (NewsArticle a : articles) {
+            String name = a.sourceName();
+            if (name != null && !name.isBlank()) {
+                sourceNames.add(name);
             }
-            String entry = (i + 1) + ". " + url + "\n";
-            if (sb.length() + entry.length() + reservedForHashtags > LINKS_BLOCK_LIMIT) {
-                sb.append("Full source list: ").append(SITE_URL).append("\n");
-                break;
-            }
-            sb.append(entry);
         }
 
-        sb.append(hashtags);
+        int num = 0;
+        for (String name : sourceNames) {
+            num++;
+            sb.append(num).append(". ").append(name).append("\n");
+        }
+
+        sb.append("\nFull analysis + infographic:\n");
+        sb.append(SITE_URL).append("/insights/\n\n");
+        sb.append("#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #WeeklyRoundup");
 
         String result = sb.toString().trim();
         log.debug("buildLinkedInComment() | return=length:{}", result.length());
         return result;
     }
 
-    private String buildSubstackArticle(List<NewsArticle> articles, String dateLabel,
-                                        String legalSummary, String competitorSummary) {
+    private String buildSubstackArticle(String narrative, List<NewsArticle> articles,
+                                        String dateLabel) {
         log.debug("buildSubstackArticle() | articles={}", articles.size());
 
         StringBuilder sb = new StringBuilder();
         sb.append("# AI in Healthcare — Weekly Intel Roundup\n");
         sb.append("### ").append(dateLabel).append("\n\n");
 
-        sb.append("*AI did what to whom. When, where, and why.*\n\n");
-
+        sb.append("---\n\n");
+        sb.append(narrative).append("\n\n");
         sb.append("---\n\n");
 
-        sb.append("## This Week at a Glance\n\n");
-        sb.append("**Legal & Regulatory:** ").append(legalSummary).append("\n\n");
-        sb.append("**Competitor Watch:** ").append(competitorSummary).append("\n\n");
-
-        sb.append("---\n\n");
-
-        // Legal articles section
-        sb.append("## Legal & Regulatory\n\n");
-        int legalNum = 0;
+        sb.append("## Sources Analyzed\n\n");
+        Set<String> sourceNames = new java.util.LinkedHashSet<>();
         for (NewsArticle a : articles) {
-            if ("LEGAL".equalsIgnoreCase(a.sourceTier()) || hasLegalKeywords(a)) {
-                legalNum++;
-                appendSubstackEntry(sb, a, legalNum);
+            String name = a.sourceName();
+            if (name != null && !name.isBlank()) {
+                sourceNames.add(name);
             }
         }
-        if (legalNum == 0) {
-            sb.append("No significant legal developments this week.\n\n");
-        }
-
-        sb.append("---\n\n");
-
-        // Competitor articles section
-        sb.append("## Competitor Watch\n\n");
-        int compNum = 0;
-        for (NewsArticle a : articles) {
-            if ("COMPETITOR".equalsIgnoreCase(a.sourceTier()) && !hasLegalKeywords(a)) {
-                compNum++;
-                appendSubstackEntry(sb, a, compNum);
-            }
-        }
-        if (compNum == 0) {
-            sb.append("No major competitor moves this week.\n\n");
-        }
-
-        sb.append("---\n\n");
-
-        sb.append("## Sources\n\n");
-        for (int i = 0; i < articles.size(); i++) {
-            NewsArticle a = articles.get(i);
-            String url = a.url() != null ? a.url().toString() : "";
-            sb.append(i + 1).append(". [").append(cleanText(a.title())).append("](").append(url).append(")\n");
+        int num = 0;
+        for (String name : sourceNames) {
+            num++;
+            sb.append(num).append(". ").append(name).append("\n");
         }
 
         sb.append("\n---\n\n");
-        sb.append("*This roundup is published every Saturday by [Big Sky Labs](").append(SITE_URL).append("). ");
-        sb.append("Subscribe to get the full daily intelligence feed delivered to your inbox.*\n");
+        sb.append("*This analysis is published every Saturday by [Big Sky Labs](").append(SITE_URL).append("). ");
+        sb.append("Subscribe to get daily AI healthcare intelligence delivered to your inbox.*\n");
 
         String result = sb.toString();
         log.debug("buildSubstackArticle() | return=length:{}", result.length());
         return result;
-    }
-
-    private void appendSubstackEntry(StringBuilder sb, NewsArticle a, int num) {
-        String toneEmoji = toneClassifier.toneEmoji(a);
-        sb.append("### ").append(num).append(". ").append(toneEmoji).append(cleanText(a.title())).append("\n\n");
-
-        String snippet = extractSnippet(a.bodyText());
-        if (!snippet.isBlank()) {
-            sb.append(snippet).append("\n\n");
-        }
-
-        if (a.sourceName() != null && !a.sourceName().isBlank()) {
-            sb.append("*Source: ").append(a.sourceName()).append("*");
-        }
-        if (a.topic() != null && !a.topic().isBlank()) {
-            sb.append(" | *Topic: ").append(a.topic()).append("*");
-        }
-        sb.append("\n\n");
     }
 
     private String normalizeTitle(String title) {
@@ -517,44 +351,4 @@ public class WeeklyRoundupController {
         return sb.toString().toLowerCase();
     }
 
-    private String extractSnippet(String bodyText) {
-        if (bodyText == null || bodyText.isBlank()) {
-            return "";
-        }
-        String cleaned = cleanText(bodyText);
-        if (cleaned.length() <= SNIPPET_MAX_CHARS) {
-            return cleaned;
-        }
-        String truncated = cleaned.substring(0, SNIPPET_MAX_CHARS);
-        int lastSpace = truncated.lastIndexOf(' ');
-        if (lastSpace > 0) {
-            truncated = truncated.substring(0, lastSpace);
-        }
-        return truncated + "...";
-    }
-
-    private String cleanText(String text) {
-        if (text == null) {
-            return "";
-        }
-        return text
-                .replaceAll("<[^>]+>", " ")
-                .replace("&nbsp;",  " ")
-                .replace("&amp;",   "&")
-                .replace("&lt;",    "<")
-                .replace("&gt;",    ">")
-                .replace("&quot;",  "\"")
-                .replace("&apos;",  "'")
-                .replace("&mdash;", "—")
-                .replace("&ndash;", "–")
-                .replace("&hellip;", "…")
-                .replace("&ldquo;", "“")
-                .replace("&rdquo;", "”")
-                .replace("&lsquo;", "‘")
-                .replace("&rsquo;", "’")
-                .replaceAll("&#\\d+;", " ")
-                .replaceAll("&[a-zA-Z]{2,8};", " ")
-                .replaceAll("\\s+", " ")
-                .trim();
-    }
 }

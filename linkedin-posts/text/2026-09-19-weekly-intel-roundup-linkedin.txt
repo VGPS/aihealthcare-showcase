@@ -44,7 +44,8 @@ Next-generation model with healthcare-specific capabilities.
 Source links in the first comment below.
 
 Follow for weekly AI healthcare intelligence.
-Full platform: https://app.bigskylabs.ai
+
+https://app.bigskylabs.ai/insights/2026-09-19-weekly-intel-roundup.html
 
 #HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #MedicalInnovation #WeeklyRoundup #HealthcareLaw
 
@@ -71,17 +72,43 @@ Sources:
 POSTING INSTRUCTIONS
 ═══════════════════════════════════════════
 
-Step 1: Create a new LinkedIn post.
-Step 2: Paste the POST BODY text above into the post editor.
-Step 3: Attach the infographic image (shots/2026-09-19-weekly-intel-roundup.png)
-        using the image button in the post editor. The image appears ABOVE your
-        post text in the feed — it's the first thing people see.
-Step 4: Publish the post.
-Step 5: Immediately comment on your own post with the FIRST COMMENT text above.
-        LinkedIn shows numbered URLs as clickable links. The image is NOT in the
-        comment — it's attached to the post itself in Step 3.
+LINKEDIN:
+  Step 1: Create a new LinkedIn post.
+  Step 2: Paste the POST BODY text above into the post editor.
+  Step 3: DO NOT attach the image manually. Instead, paste this URL at the
+          very bottom of your post text (on its own line):
+          https://app.bigskylabs.ai/insights/2026-09-19-weekly-intel-roundup.html
+          LinkedIn will auto-generate a CLICKABLE preview card with the
+          infographic image, title, and description. Readers click it and
+          land directly on the hosted page.
+  Step 4: Publish the post.
+  Step 5: Immediately comment on your own post with the FIRST COMMENT text above.
 
-NOTE: The infographic image is NOT a live link on LinkedIn. LinkedIn image
-attachments are static — they don't link anywhere. If you want readers to
-reach the platform, the "Full platform: https://app.bigskylabs.ai" line
-in the post body is how they get there.
+FACEBOOK:
+  Same as LinkedIn. Paste the URL into your post — Facebook auto-generates
+  a clickable Open Graph preview card from the page's OG tags. Do NOT
+  attach the image manually.
+
+SUBSTACK:
+  Paste the Substack markdown text (separate file). In the Substack editor,
+  insert the infographic image and hyperlink it to:
+  https://app.bigskylabs.ai/insights/2026-09-19-weekly-intel-roundup.html
+  Substack is the ONE platform where images themselves can be clickable links.
+
+═══════════════════════════════════════════
+PLATFORM IMAGE CAPABILITIES
+═══════════════════════════════════════════
+
+LinkedIn:  Images attached to posts are NOT clickable. To get a clickable
+           preview, share a URL — LinkedIn reads the page's Open Graph tags
+           and generates a clickable card (image + title + description).
+           The card links to the URL.
+
+Facebook:  Same as LinkedIn. Attached images are static. Shared URLs
+           generate clickable Open Graph preview cards.
+
+Substack:  Images CAN be hyperlinked. In the editor, select an image and
+           add a link — readers click the image to visit the URL.
+
+HOSTED PAGE URL:
+  https://app.bigskylabs.ai/insights/2026-09-19-weekly-intel-roundup.html
