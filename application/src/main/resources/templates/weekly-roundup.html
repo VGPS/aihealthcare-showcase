@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Saturday weekly roundup post generator for LinkedIn and Substack.
+ *
+ * Three-section layout: LinkedIn post (body + first comment), Substack article,
+ * and platform-specific posting guides. Pulls top 10 LEGAL + COMPETITOR articles
+ * from the past 7 days with topic summaries.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-09-19
+ * @updated 2026-09-19
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Weekly Roundup')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Weekly Intel Roundup</h1>
+    <p class="text-primary-200 text-sm mt-0.5">
+        <em>AI did what to whom. When, where, and why.</em>
+        <span th:if="${dateLabel}" th:text="' &middot; ' + ${dateLabel}"></span>
+    </p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('weekly-roundup')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- Summary badges -->
+    <div class="flex flex-wrap gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-card px-4 py-3 text-center">
+            <div class="text-xl font-bold text-primary-600" th:text="${articleCount}">0</div>
+            <div class="text-xs text-gray-500 uppercase">Articles</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-card px-4 py-3 text-center">
+            <div class="text-xl font-bold text-red-600" th:text="${legalCount}">0</div>
+            <div class="text-xs text-gray-500 uppercase">Legal</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-card px-4 py-3 text-center">
+            <div class="text-xl font-bold text-blue-600" th:text="${competitorCount}">0</div>
+            <div class="text-xs text-gray-500 uppercase">Competitor</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-card px-4 py-3 text-center">
+            <div class="text-xl font-bold text-gray-600" th:text="${linkedinBodyLength}">0</div>
+            <div class="text-xs text-gray-500 uppercase">LI Body Chars</div>
+        </div>
+        <div class="bg-white rounded-lg shadow-card px-4 py-3 text-center">
+            <div class="text-xl font-bold text-orange-600" th:text="${substackArticleLength}">0</div>
+            <div class="text-xs text-gray-500 uppercase">Substack Chars</div>
+        </div>
+    </div>
+
+    <!-- No articles state -->
+    <div th:if="${articleCount == 0}" class="bg-white rounded-lg shadow-card p-8 text-center mb-6">
+        <p class="text-gray-500 text-sm">No LEGAL or COMPETITOR articles found in the past 7 days.</p>
+        <p class="text-gray-400 text-xs mt-2">Articles are harvested daily from RSS feeds and web scraping.
+            Check back after the next harvest cycle.</p>
+    </div>
+
+    <!-- Three-column grid -->
+    <div th:if="${articleCount > 0}" class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        <!-- LinkedIn Column -->
+        <div class="space-y-4">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">&#x1F4E2;</span>
+                <h2 class="text-lg font-bold text-blue-700">LinkedIn</h2>
+                <span class="text-xs text-gray-400 ml-auto">2,900 char limit</span>
+            </div>
+
+            <!-- Post body -->
+            <div class="bg-white rounded-lg shadow-card p-4 border-l-4 border-blue-500">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-gray-700">Post Body</h3>
+                    <button onclick="copyToClipboard('li-body', this)"
+                            class="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors">
+                        Copy
+                    </button>
+                </div>
+                <pre id="li-body" class="text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed bg-gray-50 rounded p-3 max-h-96 overflow-y-auto" th:text="${linkedinBody}"></pre>
+                <div class="text-right mt-1">
+                    <span class="text-xs text-gray-400" th:text="${linkedinBodyLength} + ' / 2,900 chars'"></span>
+                </div>
+            </div>
+
+            <!-- First comment -->
+            <div class="bg-white rounded-lg shadow-card p-4 border-l-4 border-blue-300">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-gray-700">First Comment (paste after posting)</h3>
+                    <button onclick="copyToClipboard('li-comment', this)"
+                            class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors">
+                        Copy
+                    </button>
+                </div>
+                <pre id="li-comment" class="text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed bg-gray-50 rounded p-3 max-h-64 overflow-y-auto" th:text="${linkedinComment}"></pre>
+                <div class="text-right mt-1">
+                    <span class="text-xs text-gray-400" th:text="${linkedinCommentLength} + ' chars'"></span>
+                </div>
+            </div>
+
+            <!-- LinkedIn instructions -->
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h3 class="text-sm font-bold text-blue-800 mb-2">LinkedIn Posting Steps</h3>
+                <ol class="text-xs text-blue-700 space-y-1.5 list-decimal list-inside">
+                    <li>Copy the <strong>Post Body</strong> above</li>
+                    <li>Go to <strong>linkedin.com</strong> &rarr; Start a post</li>
+                    <li>Paste the body text</li>
+                    <li>Add a screenshot of this page as the post image (see below)</li>
+                    <li>Publish the post (do NOT add links in the body)</li>
+                    <li>Immediately copy the <strong>First Comment</strong></li>
+                    <li>Add a comment on your new post and paste the source links</li>
+                </ol>
+                <p class="text-xs text-blue-600 mt-2 italic">
+                    Links in LinkedIn post bodies reduce organic reach by 40-60%.
+                    Always put source links in the first comment instead.
+                </p>
+            </div>
+        </div>
+
+        <!-- Substack Column -->
+        <div class="space-y-4">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">&#x1F4DD;</span>
+                <h2 class="text-lg font-bold text-orange-700">Substack</h2>
+                <span class="text-xs text-gray-400 ml-auto">Markdown format</span>
+            </div>
+
+            <!-- Substack article -->
+            <div class="bg-white rounded-lg shadow-card p-4 border-l-4 border-orange-500">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-gray-700">Article Body (Markdown)</h3>
+                    <button onclick="copyToClipboard('ss-body', this)"
+                            class="px-3 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700 transition-colors">
+                        Copy
+                    </button>
+                </div>
+                <pre id="ss-body" class="text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed bg-gray-50 rounded p-3 max-h-[600px] overflow-y-auto" th:text="${substackArticle}"></pre>
+                <div class="text-right mt-1">
+                    <span class="text-xs text-gray-400" th:text="${substackArticleLength} + ' chars'"></span>
+                </div>
+            </div>
+
+            <!-- Substack instructions -->
+            <div class="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                <h3 class="text-sm font-bold text-orange-800 mb-2">Substack Posting Steps</h3>
+                <ol class="text-xs text-orange-700 space-y-1.5 list-decimal list-inside">
+                    <li>Go to <strong>substack.com</strong> &rarr; your publication &rarr; <strong>New post</strong></li>
+                    <li>Set the <strong>title</strong>: "AI in Healthcare — Weekly Intel Roundup"</li>
+                    <li>Set the <strong>subtitle</strong>: the date range shown above</li>
+                    <li>Copy the <strong>Article Body</strong> above</li>
+                    <li>Paste into the Substack editor (it renders Markdown automatically)</li>
+                    <li>Add a cover image (screenshot of this page or a graphic)</li>
+                    <li>Under <strong>Settings</strong>:
+                        <ul class="list-disc ml-4 mt-1 space-y-0.5">
+                            <li>Section: choose or create "Weekly Roundup"</li>
+                            <li>Check "Send to email subscribers"</li>
+                            <li>Tags: AI Healthcare, Legal, Competitors, Weekly Roundup</li>
+                        </ul>
+                    </li>
+                    <li>Click <strong>Publish</strong> (or <strong>Schedule</strong> for Saturday morning)</li>
+                </ol>
+            </div>
+
+            <!-- Substack tips -->
+            <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                <h3 class="text-sm font-bold text-amber-800 mb-2">Substack Quick-Start Tips</h3>
+                <ul class="text-xs text-amber-700 space-y-1.5 list-disc list-inside">
+                    <li><strong>Free vs. paid:</strong> start with all posts free to build audience; gate premium content later</li>
+                    <li><strong>Sections:</strong> create a "Weekly Roundup" section so subscribers can filter</li>
+                    <li><strong>Schedule:</strong> Saturday 9:00 AM CT is ideal for weekend reading</li>
+                    <li><strong>Cross-post:</strong> after publishing, share the Substack link on LinkedIn as a separate post during the week</li>
+                    <li><strong>Notes:</strong> use Substack Notes (their short-form feed) to tease individual stories from the roundup during the week</li>
+                    <li><strong>Subtitle:</strong> acts as the email preview text — make it count</li>
+                    <li><strong>Tags:</strong> help Substack's discovery algorithm surface your content</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Article Preview Column -->
+        <div class="space-y-4">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-2xl">&#x1F4F0;</span>
+                <h2 class="text-lg font-bold text-gray-700">Article Preview</h2>
+                <span class="text-xs text-gray-400 ml-auto" th:text="${articleCount} + ' selected'"></span>
+            </div>
+
+            <div th:each="article, iter : ${articles}"
+                 class="bg-white rounded-lg shadow-card p-4 border-l-4"
+                 th:classappend="${article.sourceTier() == 'LEGAL'} ? 'border-red-400' : 'border-blue-400'">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-xs font-bold px-2 py-0.5 rounded"
+                          th:classappend="${article.sourceTier() == 'LEGAL'} ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'"
+                          th:text="${article.sourceTier()}">TIER</span>
+                    <span class="text-xs text-gray-400" th:text="${article.topic()}">Topic</span>
+                    <span class="text-xs text-gray-400 ml-auto"
+                          th:text="${article.sourceWeight()}">0.0</span>
+                </div>
+                <p class="text-sm font-semibold text-gray-800 mb-1" th:text="${article.title()}">Title</p>
+                <p th:if="${article.sourceName() != null}"
+                   class="text-xs text-gray-500" th:text="${article.sourceName()}">Source</p>
+                <a th:if="${article.url() != null}"
+                   th:href="${article.url()}"
+                   target="_blank" rel="noopener"
+                   class="text-xs text-primary-600 hover:underline mt-1 block truncate"
+                   th:text="${article.url()}">URL</a>
+            </div>
+
+            <!-- Screenshot instructions -->
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <h3 class="text-sm font-bold text-gray-700 mb-2">Screenshot for Post Image</h3>
+                <ol class="text-xs text-gray-600 space-y-1.5 list-decimal list-inside">
+                    <li>Scroll this article preview column to show all 10 articles</li>
+                    <li>Use your screenshot tool (Win+Shift+S or Snipping Tool)</li>
+                    <li>Capture the article cards with their tier badges</li>
+                    <li>Use as the LinkedIn post image and Substack cover image</li>
+                </ol>
+                <p class="text-xs text-gray-500 mt-2 italic">
+                    Visual posts get 2-3x engagement on LinkedIn vs. text-only.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Quick links -->
+    <div class="mt-6 text-center text-sm text-gray-500">
+        <a th:href="@{/dashboard/news}" class="text-primary-600 hover:underline">News Listing</a>
+        <span class="mx-2">&middot;</span>
+        <a th:href="@{/dashboard/legal}" class="text-primary-600 hover:underline">Legal Timeline</a>
+        <span class="mx-2">&middot;</span>
+        <a th:href="@{/dashboard/social}" class="text-primary-600 hover:underline">Daily Social Posts</a>
+        <span class="mx-2">&middot;</span>
+        <a th:href="@{/admin/pipelines}" class="text-primary-600 hover:underline">Run Pipeline</a>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script>
+function copyToClipboard(elementId, btn) {
+    var el = document.getElementById(elementId);
+    if (!el) return;
+    navigator.clipboard.writeText(el.textContent).then(function() {
+        var orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.remove('bg-blue-600', 'bg-blue-500', 'bg-orange-600', 'bg-orange-500');
+        btn.classList.add('bg-green-600');
+        setTimeout(function() {
+            btn.textContent = orig;
+            btn.classList.remove('bg-green-600');
+            if (elementId.startsWith('li')) {
+                btn.classList.add(elementId.includes('comment') ? 'bg-blue-500' : 'bg-blue-600');
+            } else {
+                btn.classList.add('bg-orange-600');
+            }
+        }, 1500);
+    });
+}
+</script>
+
+</body>
+</html>
