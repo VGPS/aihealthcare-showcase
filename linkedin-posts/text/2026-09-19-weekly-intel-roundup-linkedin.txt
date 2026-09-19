@@ -55,34 +55,33 @@ LINKEDIN FIRST COMMENT (paste as comment #1)
 
 Sources:
 
-1. ⚠️ ChatGPT's Medical Advice Nearly Killed a Florida Man
-https://www.cbsnews.com/news/chatgpt-medical-advice-florida-man-lawsuit-openai/
+1. https://www.cbsnews.com/news/chatgpt-medical-advice-florida-man-lawsuit-openai/
+2. https://www.mcguirewoods.com/client-resources/alerts/2026/9/fda-clears-first-software-medical-device-patient-facing-llm
+3. https://www.techtarget.com/healthtechanalytics/news/366618912/Less-than-1-of-FDA-cleared-AI-devices-tested-for-clinical-benefits
+4. https://insights.economistenterprise.com/healthcare-ai-liability
+5. https://ctmirror.org/2026/09/18/ct-ai-regulations-state-employee-health-plans/
+6. https://www.fiercehealthcare.com/technology/openai-launches-chatgpt-health-connect-data-health-apps-medical-records
+7. https://aws.amazon.com/blogs/industries/how-amazon-connect-health-brings-agentic-ai-to-the-point-of-care/
+8. https://www.fiercehealthcare.com/health-tech/epic-previews-new-interoperability-features-patients-providers-developers
+9. https://www.fiercehealthcare.com/technology/arpa-h-launches-63m-effort-build-fda-authorized-ai-agents-heart-failure-care
+10. https://www.healthcareitnews.com/news/openai-launches-gpt-6-astra-model
 
-2. ⚠️ FDA Clears First Software as Medical Device With Patient-Facing LLM
-https://www.mcguirewoods.com/client-resources/alerts/2026/9/fda-clears-first-software-medical-device-patient-facing-llm
 
-3. ⚠️ Less Than 1% of FDA-Cleared AI Devices Tested for Clinical Benefits
-https://www.techtarget.com/healthtechanalytics/news/366618912/Less-than-1-of-FDA-cleared-AI-devices-tested-for-clinical-benefits
+═══════════════════════════════════════════
+POSTING INSTRUCTIONS
+═══════════════════════════════════════════
 
-4. ⚠️ Healthcare Providers Lack Guidance on Legal Liability When AI Goes Wrong
-https://insights.economistenterprise.com/healthcare-ai-liability
+Step 1: Create a new LinkedIn post.
+Step 2: Paste the POST BODY text above into the post editor.
+Step 3: Attach the infographic image (shots/2026-09-19-weekly-intel-roundup.png)
+        using the image button in the post editor. The image appears ABOVE your
+        post text in the feed — it's the first thing people see.
+Step 4: Publish the post.
+Step 5: Immediately comment on your own post with the FIRST COMMENT text above.
+        LinkedIn shows numbered URLs as clickable links. The image is NOT in the
+        comment — it's attached to the post itself in Step 3.
 
-5. ⚠️ CT Announces AI Regulations for State Employee Health Plans
-https://ctmirror.org/2026/09/18/ct-ai-regulations-state-employee-health-plans/
-
-6. ✅ OpenAI Launches ChatGPT Health
-https://www.fiercehealthcare.com/technology/openai-launches-chatgpt-health-connect-data-health-apps-medical-records
-
-7. ✅ Amazon Connect Health Brings Agentic AI to Point of Care
-https://aws.amazon.com/blogs/industries/how-amazon-connect-health-brings-agentic-ai-to-the-point-of-care/
-
-8. ✅ Epic Previews New Interoperability Features
-https://www.fiercehealthcare.com/health-tech/epic-previews-new-interoperability-features-patients-providers-developers
-
-9. ✅ ARPA-H Launches $63M AI Agents for Heart Failure
-https://www.fiercehealthcare.com/technology/arpa-h-launches-63m-effort-build-fda-authorized-ai-agents-heart-failure-care
-
-10. ✅ OpenAI Launches GPT-6 Astra Model
-https://www.healthcareitnews.com/news/openai-launches-gpt-6-astra-model
-
-#HealthcareAI #AIinHealthcare #DigitalHealth #WeeklyRoundup
+NOTE: The infographic image is NOT a live link on LinkedIn. LinkedIn image
+attachments are static — they don't link anywhere. If you want readers to
+reach the platform, the "Full platform: https://app.bigskylabs.ai" line
+in the post body is how they get there.

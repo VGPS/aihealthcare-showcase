@@ -395,24 +395,26 @@ public class WeeklyRoundupController {
     private String buildLinkedInComment(List<NewsArticle> articles) {
         log.debug("buildLinkedInComment() | articles={}", articles.size());
 
+        String hashtags = "\n" + toneClassifier.linkedInHashtags(articles) + " #WeeklyRoundup";
+        int reservedForHashtags = hashtags.length();
+
         StringBuilder sb = new StringBuilder();
         sb.append("Sources:\n\n");
         for (int i = 0; i < articles.size(); i++) {
             NewsArticle a = articles.get(i);
             String url = a.url() != null ? a.url().toString() : "";
-            String toneEmoji = toneClassifier.toneEmoji(a);
-            String entry = (i + 1) + ". " + toneEmoji + cleanText(a.title()) + "\n"
-                    + (url.isBlank() ? "" : url + "\n")
-                    + "\n";
-            if (sb.length() + entry.length() > LINKS_BLOCK_LIMIT) {
+            if (url.isBlank()) {
+                continue;
+            }
+            String entry = (i + 1) + ". " + url + "\n";
+            if (sb.length() + entry.length() + reservedForHashtags > LINKS_BLOCK_LIMIT) {
                 sb.append("Full source list: ").append(SITE_URL).append("\n");
                 break;
             }
             sb.append(entry);
         }
 
-        sb.append("\n").append(toneClassifier.linkedInHashtags(articles));
-        sb.append(" #WeeklyRoundup");
+        sb.append(hashtags);
 
         String result = sb.toString().trim();
         log.debug("buildLinkedInComment() | return=length:{}", result.length());
