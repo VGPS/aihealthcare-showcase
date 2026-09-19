@@ -358,6 +358,7 @@ aihealthcare:
         - "General AI Healthcare News"
         - "AI Healthcare Software Development"
         - "Healthcare Outsourcing and Jobs Layoffs"
+        - "Healthcare IT Offshoring India Patient Data"
         - "AI Healthcare Government Policy"
         - "AI Healthcare Legal"
         - "OpenAI Healthcare"
@@ -435,6 +436,7 @@ aihealthcare:
       - "AI Agents for Administrative Workflows"
       - "AI Healthcare Software Development"
       - "Healthcare Outsourcing and Jobs Layoffs"
+      - "Healthcare IT Offshoring India Patient Data"
       - "AI Healthcare Government Policy"
       - "AI Healthcare Legal"
       - "OpenAI Healthcare"
@@ -559,6 +561,20 @@ aihealthcare:
         url: https://news.google.com/rss/search?q=healthcare+AI+outsourcing+jobs+layoffs&hl=en-US&gl=US&ceid=US:en
         tier: INDUSTRY
         base-weight: 0.6
+        max-items: 20
+      - topic-id: 1
+        name: Google News Healthcare IT Offshoring India
+        topic: Healthcare IT Offshoring India Patient Data
+        url: https://news.google.com/rss/search?q=healthcare+IT+offshoring+India+patient+data+outsourcing+HIPAA&hl=en-US&gl=US&ceid=US:en
+        tier: LEGAL
+        base-weight: 0.85
+        max-items: 20
+      - topic-id: 1
+        name: Google News Hospital WARN Act Layoffs
+        topic: Healthcare Outsourcing and Jobs Layoffs
+        url: https://news.google.com/rss/search?q=hospital+WARN+Act+layoffs+IT+outsourcing+Tech+Mahindra&hl=en-US&gl=US&ceid=US:en
+        tier: LEGAL
+        base-weight: 0.85
         max-items: 20
       # -----------------------------------------------------------------
       # AI Healthcare Government Policy
