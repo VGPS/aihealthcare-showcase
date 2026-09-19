@@ -1,0 +1,88 @@
+═══════════════════════════════════════════
+LINKEDIN POST BODY (paste into LinkedIn post)
+═══════════════════════════════════════════
+
+AI in Healthcare — Weekly Intel Roundup
+September 14 – September 19, 2026
+
+LEGAL & REGULATORY
+5 notable legal/regulatory developments this week, spanning active litigation, regulatory action and compliance requirements.
+
+COMPETITOR WATCH
+5 competitor updates tracked across OpenAI, Amazon, and Epic Systems.
+
+1. ⚠️ **[LEGAL] ChatGPT's Medical Advice Nearly Killed a Florida Man — Lawsuit Against OpenAI Could Rewrite AI Liability Law**
+First major test case for holding AI companies liable when patients follow chatbot medical advice.
+
+2. ⚠️ **[LEGAL] FDA Clears First Software as Medical Device With Patient-Facing LLM**
+Landmark clearance opens a regulatory pathway for generative AI that directly interacts with patients.
+
+3. ⚠️ **[LEGAL] Less Than 1% of FDA-Cleared AI Devices Tested for Clinical Benefits**
+Of 1,357+ cleared devices, fewer than 1% have evidence of improving patient outcomes.
+
+4. ⚠️ **[LEGAL] Healthcare Providers Lack Guidance on Legal Liability When AI Goes Wrong**
+No clear framework exists for who is liable — the developer, the hospital, or the physician.
+
+5. ⚠️ **[LEGAL] CT Announces AI Regulations for State Employee Health Plans**
+Connecticut becomes latest state to regulate AI in healthcare insurance decisions.
+
+6. ✅ **[COMPETITOR] OpenAI Launches ChatGPT Health With Epic Integration and Medical Records Access**
+ChatGPT now connects to EHRs, health apps, and public health data sources.
+
+7. ✅ **[COMPETITOR] Amazon Connect Health Brings Agentic AI to Point of Care**
+AWS launches autonomous AI framework for clinical decision support at the bedside.
+
+8. ✅ **[COMPETITOR] Epic Previews New Interoperability Features for Providers and Developers**
+Epic expanding its developer ecosystem for AI integration.
+
+9. ✅ **[COMPETITOR] ARPA-H Launches $63M Effort to Build FDA-Authorized AI Agents for Heart Failure Care**
+Federal investment in autonomous clinical AI agents — a new category.
+
+10. ✅ **[COMPETITOR] OpenAI Launches GPT-6 Astra Model**
+Next-generation model with healthcare-specific capabilities.
+
+Source links in the first comment below.
+
+Follow for weekly AI healthcare intelligence.
+Full platform: https://app.bigskylabs.ai
+
+#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #MedicalInnovation #WeeklyRoundup #HealthcareLaw
+
+
+═══════════════════════════════════════════
+LINKEDIN FIRST COMMENT (paste as comment #1)
+═══════════════════════════════════════════
+
+Sources:
+
+1. ⚠️ ChatGPT's Medical Advice Nearly Killed a Florida Man
+https://www.cbsnews.com/news/chatgpt-medical-advice-florida-man-lawsuit-openai/
+
+2. ⚠️ FDA Clears First Software as Medical Device With Patient-Facing LLM
+https://www.mcguirewoods.com/client-resources/alerts/2026/9/fda-clears-first-software-medical-device-patient-facing-llm
+
+3. ⚠️ Less Than 1% of FDA-Cleared AI Devices Tested for Clinical Benefits
+https://www.techtarget.com/healthtechanalytics/news/366618912/Less-than-1-of-FDA-cleared-AI-devices-tested-for-clinical-benefits
+
+4. ⚠️ Healthcare Providers Lack Guidance on Legal Liability When AI Goes Wrong
+https://insights.economistenterprise.com/healthcare-ai-liability
+
+5. ⚠️ CT Announces AI Regulations for State Employee Health Plans
+https://ctmirror.org/2026/09/18/ct-ai-regulations-state-employee-health-plans/
+
+6. ✅ OpenAI Launches ChatGPT Health
+https://www.fiercehealthcare.com/technology/openai-launches-chatgpt-health-connect-data-health-apps-medical-records
+
+7. ✅ Amazon Connect Health Brings Agentic AI to Point of Care
+https://aws.amazon.com/blogs/industries/how-amazon-connect-health-brings-agentic-ai-to-the-point-of-care/
+
+8. ✅ Epic Previews New Interoperability Features
+https://www.fiercehealthcare.com/health-tech/epic-previews-new-interoperability-features-patients-providers-developers
+
+9. ✅ ARPA-H Launches $63M AI Agents for Heart Failure
+https://www.fiercehealthcare.com/technology/arpa-h-launches-63m-effort-build-fda-authorized-ai-agents-heart-failure-care
+
+10. ✅ OpenAI Launches GPT-6 Astra Model
+https://www.healthcareitnews.com/news/openai-launches-gpt-6-astra-model
+
+#HealthcareAI #AIinHealthcare #DigitalHealth #WeeklyRoundup

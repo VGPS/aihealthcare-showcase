@@ -147,7 +147,7 @@
     <!-- Account group (right side) -->
     <div class="nav-group nav-group-right" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'social' || activePage == 'admin-pipelines' || activePage == 'watchlist' || activePage == 'notes' || activePage == 'pricing' || activePage == 'about' || activePage == 'profile' || activePage == 'developer' || activePage == 'admin' || activePage == 'admin-wiki-gaps' || activePage == 'admin-sso' || activePage == 'newsletter'} ? ' active'">
+                th:classappend="${activePage == 'social' || activePage == 'weekly-roundup' || activePage == 'admin-pipelines' || activePage == 'watchlist' || activePage == 'notes' || activePage == 'pricing' || activePage == 'about' || activePage == 'profile' || activePage == 'developer' || activePage == 'admin' || activePage == 'admin-wiki-gaps' || activePage == 'admin-sso' || activePage == 'newsletter'} ? ' active'">
             Account ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown nav-dropdown-right">
@@ -155,6 +155,8 @@
                th:classappend="${activePage == 'admin-pipelines'} ? ' active'">Pipelines</a>
             <a sec:authorize="isAuthenticated()" th:href="@{/dashboard/social}"
                th:classappend="${activePage == 'social'} ? ' active'">Social Posts</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/dashboard/weekly-roundup}"
+               th:classappend="${activePage == 'weekly-roundup'} ? ' active'">Weekly Roundup</a>
             <a th:href="@{/about}"
                th:classappend="${activePage == 'about'} ? ' active'">About</a>
             <a th:href="@{/notes}"
