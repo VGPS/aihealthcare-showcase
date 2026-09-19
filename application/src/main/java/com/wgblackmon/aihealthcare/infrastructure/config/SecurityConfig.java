@@ -95,6 +95,7 @@ public class SecurityConfig {
                 .requestMatchers("/developer").permitAll()
                 .requestMatchers("/robots.txt", "/sitemap.xml", "/google4197b7811cdace1b.html").permitAll()
                 .requestMatchers("/images/**", "/insights/**").permitAll()
+                .requestMatchers("/dashboard/weekly-roundup").permitAll()
                 .requestMatchers("/wiki", "/wiki/**").permitAll()
                 .requestMatchers("/legislation", "/legislation/**").permitAll()
                 .requestMatchers("/stripe/**").permitAll()

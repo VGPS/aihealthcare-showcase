@@ -235,8 +235,8 @@
         <a th:href="@{/dashboard/legal}" class="text-primary-600 hover:underline">Legal Timeline</a>
         <span class="mx-2">&middot;</span>
         <a th:href="@{/dashboard/social}" class="text-primary-600 hover:underline">Daily Social Posts</a>
-        <span class="mx-2">&middot;</span>
-        <a th:href="@{/admin/pipelines}" class="text-primary-600 hover:underline">Run Pipeline</a>
+        <span sec:authorize="hasRole('ADMIN')" class="mx-2">&middot;</span>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/pipelines}" class="text-primary-600 hover:underline">Run Pipeline</a>
     </div>
 
 </main>

@@ -98,11 +98,17 @@ public class WeeklyRoundupController {
         LocalDate weekStart = today.with(TemporalAdjusters.previous(DayOfWeek.SUNDAY));
         String dateLabel = DATE_FMT.format(weekStart) + " – " + DATE_FMT.format(today);
 
-        String narrative = synthesizer.synthesizeNarrative(top, dateLabel, legalCount, competitorCount);
+        String narrative;
+        try {
+            narrative = synthesizer.synthesizeNarrative(top, dateLabel, legalCount, competitorCount);
+        } catch (Exception e) {
+            log.warn("weeklyRoundup() | LLM synthesis failed, using fallback | error={}", e.getMessage());
+            narrative = buildFallbackNarrative(top, legalCount, competitorCount);
+        }
 
         String linkedinBody = buildLinkedInBody(narrative, dateLabel);
-        String linkedinComment = buildLinkedInComment(top);
-        String substackArticle = buildSubstackArticle(narrative, top, dateLabel);
+        String linkedinComment = buildLinkedInComment();
+        String substackArticle = buildSubstackArticle(narrative, dateLabel);
 
         model.addAttribute("dateLabel", dateLabel);
         model.addAttribute("articleCount", top.size());
@@ -273,28 +279,14 @@ public class WeeklyRoundupController {
         return result;
     }
 
-    private String buildLinkedInComment(List<NewsArticle> articles) {
-        log.debug("buildLinkedInComment() | articles={}", articles.size());
+    private String buildLinkedInComment() {
+        log.debug("buildLinkedInComment() | entry");
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Sources analyzed this week:\n\n");
-
-        Set<String> sourceNames = new java.util.LinkedHashSet<>();
-        for (NewsArticle a : articles) {
-            String name = a.sourceName();
-            if (name != null && !name.isBlank()) {
-                sourceNames.add(name);
-            }
-        }
-
-        int num = 0;
-        for (String name : sourceNames) {
-            num++;
-            sb.append(num).append(". ").append(name).append("\n");
-        }
-
-        sb.append("\nFull analysis + infographic:\n");
+        sb.append("Full analysis + interactive infographic:\n");
         sb.append(SITE_URL).append("/insights/\n\n");
+        sb.append("We track 57+ sources and 318 companies daily.\n");
+        sb.append("Subscribe for the full intelligence feed: ").append(SITE_URL).append("\n\n");
         sb.append("#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #WeeklyRoundup");
 
         String result = sb.toString().trim();
@@ -302,9 +294,8 @@ public class WeeklyRoundupController {
         return result;
     }
 
-    private String buildSubstackArticle(String narrative, List<NewsArticle> articles,
-                                        String dateLabel) {
-        log.debug("buildSubstackArticle() | articles={}", articles.size());
+    private String buildSubstackArticle(String narrative, String dateLabel) {
+        log.debug("buildSubstackArticle() | dateLabel={}", dateLabel);
 
         StringBuilder sb = new StringBuilder();
         sb.append("# AI in Healthcare — Weekly Intel Roundup\n");
@@ -313,27 +304,35 @@ public class WeeklyRoundupController {
         sb.append("---\n\n");
         sb.append(narrative).append("\n\n");
         sb.append("---\n\n");
-
-        sb.append("## Sources Analyzed\n\n");
-        Set<String> sourceNames = new java.util.LinkedHashSet<>();
-        for (NewsArticle a : articles) {
-            String name = a.sourceName();
-            if (name != null && !name.isBlank()) {
-                sourceNames.add(name);
-            }
-        }
-        int num = 0;
-        for (String name : sourceNames) {
-            num++;
-            sb.append(num).append(". ").append(name).append("\n");
-        }
-
-        sb.append("\n---\n\n");
         sb.append("*This analysis is published every Saturday by [Big Sky Labs](").append(SITE_URL).append("). ");
-        sb.append("Subscribe to get daily AI healthcare intelligence delivered to your inbox.*\n");
+        sb.append("We track 57+ sources and 318 companies daily. ");
+        sb.append("Subscribe to get the full intelligence feed delivered to your inbox.*\n");
 
         String result = sb.toString();
         log.debug("buildSubstackArticle() | return=length:{}", result.length());
+        return result;
+    }
+
+    private String buildFallbackNarrative(List<NewsArticle> articles,
+                                         int legalCount, int competitorCount) {
+        log.debug("buildFallbackNarrative() | articles={}", articles.size());
+        StringBuilder sb = new StringBuilder();
+        sb.append("This week brought ").append(articles.size()).append(" significant developments ");
+        sb.append("across AI healthcare");
+        if (legalCount > 0 && competitorCount > 0) {
+            sb.append(" — ").append(legalCount).append(" legal/regulatory actions and ");
+            sb.append(competitorCount).append(" competitor moves");
+        }
+        sb.append(". ");
+        for (int i = 0; i < Math.min(3, articles.size()); i++) {
+            NewsArticle a = articles.get(i);
+            if (a.title() != null) {
+                sb.append(a.title()).append(". ");
+            }
+        }
+        sb.append("Full analysis available at app.bigskylabs.ai.");
+        String result = sb.toString();
+        log.debug("buildFallbackNarrative() | return=length:{}", result.length());
         return result;
     }
 
