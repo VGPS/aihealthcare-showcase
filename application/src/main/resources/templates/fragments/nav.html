@@ -155,7 +155,7 @@
                th:classappend="${activePage == 'admin-pipelines'} ? ' active'">Pipelines</a>
             <a sec:authorize="isAuthenticated()" th:href="@{/dashboard/social}"
                th:classappend="${activePage == 'social'} ? ' active'">Social Posts</a>
-            <a sec:authorize="isAuthenticated()" th:href="@{/dashboard/weekly-roundup}"
+            <a th:href="@{/dashboard/weekly-roundup}"
                th:classappend="${activePage == 'weekly-roundup'} ? ' active'">Weekly Roundup</a>
             <a th:href="@{/about}"
                th:classappend="${activePage == 'about'} ? ' active'">About</a>

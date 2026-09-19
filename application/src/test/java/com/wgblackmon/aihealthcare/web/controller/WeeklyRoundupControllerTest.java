@@ -123,31 +123,20 @@ class WeeklyRoundupControllerTest {
 
     @Test
     @WithMockUser
-    void weeklyRoundup_linkedinComment_containsSourceNames() throws Exception {
+    void weeklyRoundup_linkedinComment_containsInsightsLinkAndCta() throws Exception {
         when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(singleLegalArticle());
 
         mockMvc.perform(get("/dashboard/weekly-roundup"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("linkedinComment",
-                        containsString("Sources analyzed this week")))
+                        containsString("app.bigskylabs.ai/insights/")))
                 .andExpect(model().attribute("linkedinComment",
-                        containsString("Test Source")));
+                        containsString("Subscribe")));
     }
 
     @Test
     @WithMockUser
-    void weeklyRoundup_linkedinComment_containsInsightsLink() throws Exception {
-        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(singleLegalArticle());
-
-        mockMvc.perform(get("/dashboard/weekly-roundup"))
-                .andExpect(status().isOk())
-                .andExpect(model().attribute("linkedinComment",
-                        containsString("app.bigskylabs.ai/insights/")));
-    }
-
-    @Test
-    @WithMockUser
-    void weeklyRoundup_substackArticle_containsNarrativeAndSources() throws Exception {
+    void weeklyRoundup_substackArticle_containsNarrativeAndCta() throws Exception {
         when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(singleLegalArticle());
 
         mockMvc.perform(get("/dashboard/weekly-roundup"))
@@ -155,9 +144,9 @@ class WeeklyRoundupControllerTest {
                 .andExpect(model().attribute("substackArticle",
                         containsString("# AI in Healthcare")))
                 .andExpect(model().attribute("substackArticle",
-                        containsString("## Sources Analyzed")))
+                        containsString("Big Sky Labs")))
                 .andExpect(model().attribute("substackArticle",
-                        containsString("Big Sky Labs")));
+                        containsString("57+ sources")));
     }
 
     @Test
@@ -192,9 +181,13 @@ class WeeklyRoundupControllerTest {
     }
 
     @Test
-    void weeklyRoundup_unauthenticated_returnsUnauthorized() throws Exception {
+    @WithMockUser
+    void weeklyRoundup_noLoginRequired_rendersForAnyUser() throws Exception {
+        when(articleIngestionPort.fetchRecentArticles(7)).thenReturn(List.of());
+
         mockMvc.perform(get("/dashboard/weekly-roundup"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk())
+                .andExpect(view().name("weekly-roundup"));
     }
 
     // ── Test data factories ──
