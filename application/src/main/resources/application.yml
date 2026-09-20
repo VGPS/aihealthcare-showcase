@@ -359,6 +359,10 @@ aihealthcare:
         - "AI Healthcare Software Development"
         - "Healthcare Outsourcing and Jobs Layoffs"
         - "Healthcare IT Offshoring India Patient Data"
+        - "healthcare IT workers replaced by offshore outsourcing India 2026"
+        - "H1B visa healthcare technology workers hospital layoffs"
+        - "American patient health records stored India data privacy HIPAA"
+        - "Tech Mahindra Cognizant Infosys healthcare contracts US hospitals"
         - "AI Healthcare Government Policy"
         - "AI Healthcare Legal"
         - "OpenAI Healthcare"
@@ -553,6 +557,80 @@ aihealthcare:
         base-weight: 0.65
         max-items: 20
       # -----------------------------------------------------------------
+      # WARN Act State Filings (COMPETITOR — web-scrape, SHA-256 change)
+      # Monitored daily for new healthcare IT layoff filings.
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Washington WARN Act Filings
+        topic: Healthcare Outsourcing and Jobs Layoffs
+        url: https://esd.wa.gov/about-employees/WARN
+        tier: COMPETITOR
+        base-weight: 0.9
+        max-items: 5
+        keywords:
+          - health
+          - hospital
+          - medical
+          - clinic
+          - IT
+          - outsourc
+      - topic-id: 1
+        name: California WARN Act Filings
+        topic: Healthcare Outsourcing and Jobs Layoffs
+        url: https://edd.ca.gov/en/jobs_and_training/Layoff_Services_WARN
+        tier: COMPETITOR
+        base-weight: 0.9
+        max-items: 5
+        keywords:
+          - health
+          - hospital
+          - medical
+          - clinic
+          - IT
+          - outsourc
+      - topic-id: 1
+        name: Texas WARN Act Filings
+        topic: Healthcare Outsourcing and Jobs Layoffs
+        url: https://www.twc.texas.gov/businesses/worker-adjustment-and-retraining-notification-warn-notices
+        tier: COMPETITOR
+        base-weight: 0.9
+        max-items: 5
+        keywords:
+          - health
+          - hospital
+          - medical
+          - clinic
+          - IT
+          - outsourc
+      - topic-id: 1
+        name: New York WARN Act Filings
+        topic: Healthcare Outsourcing and Jobs Layoffs
+        url: https://dol.ny.gov/warn-notices
+        tier: COMPETITOR
+        base-weight: 0.9
+        max-items: 5
+        keywords:
+          - health
+          - hospital
+          - medical
+          - clinic
+          - IT
+          - outsourc
+      - topic-id: 1
+        name: Florida WARN Act Filings
+        topic: Healthcare Outsourcing and Jobs Layoffs
+        url: https://floridajobs.org/office-directory/division-of-workforce-services/workforce-programs/reemployment-and-emergency-assistance-coordination-team-react/warn-notices
+        tier: COMPETITOR
+        base-weight: 0.9
+        max-items: 5
+        keywords:
+          - health
+          - hospital
+          - medical
+          - clinic
+          - IT
+          - outsourc
+      # -----------------------------------------------------------------
       # Healthcare Outsourcing and Jobs Layoffs
       # -----------------------------------------------------------------
       - topic-id: 1
@@ -576,6 +654,79 @@ aihealthcare:
         tier: LEGAL
         base-weight: 0.85
         max-items: 20
+      - topic-id: 1
+        name: ProPublica Healthcare
+        topic: Healthcare IT Offshoring India Patient Data
+        url: https://feeds.propublica.org/propublica/main
+        tier: LEGAL
+        base-weight: 0.9
+        max-items: 20
+        keywords:
+          - healthcare outsourcing
+          - health records India
+          - offshoring medical
+          - patient data offshore
+          - HIPAA offshore
+          - hospital layoffs
+          - health IT workers
+      - topic-id: 1
+        name: KFF Health News
+        topic: Healthcare IT Offshoring India Patient Data
+        url: https://kffhealthnews.org/feed/
+        tier: LEGAL
+        base-weight: 0.9
+        max-items: 20
+        keywords:
+          - outsourcing
+          - offshore
+          - India
+          - layoffs
+          - data privacy
+          - health records
+          - workers replaced
+      - topic-id: 1
+        name: STAT News
+        topic: Healthcare Outsourcing and Jobs Layoffs
+        url: https://www.statnews.com/feed/
+        tier: LEGAL
+        base-weight: 0.85
+        max-items: 20
+        keywords:
+          - outsourcing
+          - offshore
+          - layoffs
+          - workforce
+          - jobs cut
+          - IT workers
+          - data overseas
+      - topic-id: 1
+        name: SEC EDGAR Tech Mahindra
+        topic: Healthcare IT Offshoring India Patient Data
+        url: https://efts.sec.gov/LATEST/search-index?q=%22Tech+Mahindra%22+%22healthcare%22&dateRange=custom&startdt=2026-01-01&forms=10-K,10-Q,8-K&rss=true
+        tier: REGULATORY
+        base-weight: 0.9
+        max-items: 10
+      - topic-id: 1
+        name: SEC EDGAR Cognizant Healthcare
+        topic: Healthcare IT Offshoring India Patient Data
+        url: https://efts.sec.gov/LATEST/search-index?q=%22Cognizant%22+%22healthcare%22+%22outsourcing%22&dateRange=custom&startdt=2026-01-01&forms=10-K,10-Q,8-K&rss=true
+        tier: REGULATORY
+        base-weight: 0.9
+        max-items: 10
+      - topic-id: 1
+        name: SEC EDGAR Infosys Healthcare
+        topic: Healthcare IT Offshoring India Patient Data
+        url: https://efts.sec.gov/LATEST/search-index?q=%22Infosys%22+%22healthcare%22&dateRange=custom&startdt=2026-01-01&forms=10-K,10-Q,8-K&rss=true
+        tier: REGULATORY
+        base-weight: 0.9
+        max-items: 10
+      - topic-id: 1
+        name: SEC EDGAR Wipro Healthcare
+        topic: Healthcare IT Offshoring India Patient Data
+        url: https://efts.sec.gov/LATEST/search-index?q=%22Wipro%22+%22healthcare%22&dateRange=custom&startdt=2026-01-01&forms=10-K,10-Q,8-K&rss=true
+        tier: REGULATORY
+        base-weight: 0.9
+        max-items: 10
       # -----------------------------------------------------------------
       # AI Healthcare Government Policy
       # -----------------------------------------------------------------
