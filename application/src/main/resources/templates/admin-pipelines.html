@@ -482,6 +482,42 @@
             </div>
         </div>
 
+        <!-- Healthcare IT Offshoring Beat -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 border-l-4 border-l-amber-500 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Healthcare IT Offshoring Beat</h3>
+                <span class="inline-block bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-xs font-semibold">Multi-Source</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Tracks healthcare IT outsourcing to India, H-1B worker replacements, WARN Act layoffs,
+                and American patient data stored overseas. Aggregates articles from 3 pipeline tiers &mdash;
+                no separate trigger needed.
+            </p>
+
+            <div class="bg-amber-50 border border-amber-100 rounded px-3 py-2 mb-3 text-xs text-amber-900">
+                <p class="font-semibold mb-1">Sources (16 feeds across 3 tiers)</p>
+                <ul class="list-disc ml-3 space-y-0.5">
+                    <li><strong>RSS Feeds:</strong> ProPublica, KFF Health News, STAT News, SEC EDGAR (4 companies), Google News (2 queries)</li>
+                    <li><strong>WARN Act Scrapes:</strong> WA, CA, TX, NY, FL state WARN pages (keyword-filtered)</li>
+                    <li><strong>Perplexity Research:</strong> 5 targeted queries (offshoring, outsourcing, H-1B, patient data, vendor contracts)</li>
+                </ul>
+            </div>
+
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Topic: <span class="font-mono font-semibold">Healthcare IT Offshoring India Patient Data</span></div>
+                <div>Triggers: <span class="font-semibold">RSS Feed Harvest</span> + <span class="font-semibold">Competitor Web Pages</span> + <span class="font-semibold">Research Harvest</span></div>
+                <div>View: <span class="font-mono text-primary-600">/dashboard/news</span> (filtered by topic)</div>
+            </div>
+            <div class="flex items-center gap-3 mt-auto flex-wrap">
+                <a href="/dashboard/news#Healthcare IT Offshoring India Patient Data" target="_blank"
+                   class="btn-search text-sm px-3 py-1.5 no-underline">View Articles</a>
+                <a href="/research/runs" target="_blank"
+                   class="text-xs text-primary-600 hover:underline">Research Runs</a>
+                <a href="/watchlist" target="_blank"
+                   class="text-xs text-primary-600 hover:underline">Watchlist Matches</a>
+            </div>
+        </div>
+
     </div>
 
     <!-- Pipeline Run History -->
