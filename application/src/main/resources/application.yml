@@ -630,6 +630,22 @@ aihealthcare:
           - clinic
           - IT
           - outsourc
+      - topic-id: 1
+        name: LayoffTracker US Healthcare
+        topic: Healthcare Outsourcing and Jobs Layoffs
+        url: https://www.layofftracker.us/layoff-tracker/
+        tier: COMPETITOR
+        base-weight: 0.9
+        max-items: 10
+        keywords:
+          - health
+          - hospital
+          - medical
+          - clinic
+          - pharma
+          - biotech
+          - IT
+          - outsourc
       # -----------------------------------------------------------------
       # Healthcare Outsourcing and Jobs Layoffs
       # -----------------------------------------------------------------
