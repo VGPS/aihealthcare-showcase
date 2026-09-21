@@ -1,0 +1,233 @@
+CTO OUTREACH — AI in Healthcare Platform
+Generated: 2026-09-21
+Targets: 14 high-confidence CTOs at healthcare AI companies
+Source: hac_ctos_high_confidence.csv
+
+FORMAT NOTES:
+- LinkedIn connection request notes: 300 char hard limit (counts spaces)
+- Cold email: ~150 words, plain text, no HTML
+- Sender: Bill Blackmon, founder of bigskylabs.ai (AI in Healthcare platform)
+- CTA: low-friction — visit the platform, not "schedule a demo"
+- Tone: CTO-to-CTO, peer framing, no fluff
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 1: LINKEDIN CONNECTION REQUEST NOTES
+(Send first — email only if they connect and don't respond within a week)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+── CLINICAL DOCUMENTATION AI (Abridge, Nabla, Aidoc, Hippocratic AI, Anterior)
+   [These compete directly — lean on the competitive intelligence angle]
+
+TEMPLATE-CLINICAL-LI (271 chars):
+"Hi [Name] — I built an AI healthcare intelligence platform that tracks deal
+signals, regulatory actions, and competitive scoring across the clinical AI
+space. Thought it might be useful given the Abridge/Nabla/Aidoc/Hippocratic
+cluster. Happy to share access. — Bill"
+
+PERSONALIZED VERSIONS:
+
+San Oo (Abridge) — 268 chars:
+"Hi San — I built a healthcare AI market intelligence platform that tracks
+regulatory actions, deal signals, and competitive scoring. Abridge is in the
+dataset — curious if that kind of ambient AI competitive layer would be
+useful to you. Happy to share access. — Bill"
+
+Martin Raison (Nabla) — 284 chars:
+"Hi Martin — I track the ambient clinical AI space via a market intelligence
+platform — regulatory, deals, competitive scoring across Nabla, Abridge,
+Nuance DAX, and peers. Thought it might be useful context at your stage.
+Happy to give you access. — Bill"
+
+Michael Braginsky (Aidoc) — 278 chars:
+"Hi Michael — I built a healthcare AI intelligence platform that scores
+competitive positioning across the clinical AI imaging space — Aidoc is
+in the dataset. Regulatory tracking + deal signals too. Happy to give you
+free access if useful. — Bill"
+
+Saad Godil (Hippocratic AI) — 292 chars:
+"Hi Saad — I built a healthcare AI market intelligence platform covering the
+patient-facing AI space — deal signals, FDA/CMS regulatory tracking,
+competitive scoring across Hippocratic and peers. Thought it might be
+relevant. Happy to give you access. — Bill"
+
+Zahid Mahmood (Anterior) — 275 chars:
+"Hi Zahid — I track the prior auth / payer AI space via a market intelligence
+platform — regulatory, deal signals, competitive scoring. Anterior is in the
+dataset. Might be useful context as the space consolidates. Happy to share
+access. — Bill"
+
+── PAYER / ADMIN / REVENUE CYCLE AI (Assort Health, Tennr, XpertDox, K Health)
+   [Lean on regulatory + deal signal angle — CMS rules are their world]
+
+Jeffery Liu (Assort Health) — 289 chars:
+"Hi Jeffery — I built a healthcare AI market intel platform focused on the
+patient access / payer workflow space — regulatory changes, deal signals,
+competitive scoring. Assort is in the dataset. Thought it might be useful
+context. Happy to give you free access. — Bill"
+
+Tyler Johnson (Tennr) — 276 chars:
+"Hi Tyler — I track the healthcare automation space — CMS rule changes, deal
+signals, competitive scoring across referral/auth AI. Tennr is in the
+dataset. Might be useful as the space consolidates. Happy to give you access.
+— Bill"
+
+Mateo Montoya (XpertDox) — 270 chars:
+"Hi Mateo — I built a healthcare AI market intelligence platform that covers
+the autonomous coding / revenue cycle space — regulatory, deal signals,
+competitive positioning. XpertDox is in the dataset. Happy to give you free
+access if useful. — Bill"
+
+Zachary Siegel (K Health) — 274 chars:
+"Hi Zachary — I built a healthcare AI intelligence platform covering virtual
+primary care — regulatory, deal signals, competitive scoring. K Health is
+in the dataset. Might be useful context at your stage. Happy to give you
+access. — Bill"
+
+── HEALTH DATA / INTEROPERABILITY (Datavant, Komodo Health, Medplum)
+   [Lean on data ecosystem / regulatory angle — ONC, CMS interop rules]
+
+Josh Builder (Datavant) — 285 chars:
+"Hi Josh — I built a healthcare AI market intelligence platform that tracks
+ONC/CMS interoperability rules, deal signals, and data ecosystem moves.
+Datavant is in the dataset. Thought it might be useful context. Happy to
+give you free access. — Bill"
+
+Amit Sangani (Komodo Health) — 280 chars:
+"Hi Amit — I track the healthcare data intelligence space — regulatory moves,
+deal signals, competitive scoring. Komodo is in the dataset alongside real-
+world data peers. Thought it might be useful context. Happy to give you free
+access. — Bill"
+
+Cody Ebberson (Medplum) — 272 chars:
+"Hi Cody — I built a healthcare AI market intelligence platform that covers
+the FHIR/clinical platform space — regulatory tracking, deal signals,
+competitive scoring. Medplum is in the dataset. Happy to give you free
+access if useful. — Bill"
+
+── BEHAVIORAL / MENTAL HEALTH AI (Wysa)
+   [Lean on the chatbot regulation angle — 16-state law wave]
+
+Shubhankar Sarda (Wysa) — 279 chars:
+"Hi Shubhankar — I track the digital mental health AI space — the chatbot
+regulation wave (16 states, 2025-2026), deal signals, competitive scoring.
+Wysa is in the dataset. Thought it might be useful compliance context.
+Happy to give you free access. — Bill"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 2: COLD EMAIL TEMPLATE
+(Use after getting email from Hunter.io — or as LinkedIn InMail body)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SUBJECT: Healthcare AI market intel — [Company] is in the dataset
+
+Hi [Name],
+
+I'm Bill Blackmon — I built bigskylabs.ai, a market intelligence platform for
+the AI-in-healthcare space. It runs daily: Perplexity for market news, Claude
+for impact classification, Alpaca for market data, and scrapers for FDA/CMS
+regulatory filings.
+
+[Company] is in the dataset alongside [2-3 direct competitors by name]. The
+platform tracks competitive positioning across six dimensions, flags relevant
+deal signals, and monitors regulatory filings that affect your category.
+
+It's free to browse — no sales call, no demo request:
+https://app.bigskylabs.ai/directory
+https://app.bigskylabs.ai/dashboard/market
+https://app.bigskylabs.ai/dashboard/regulatory
+
+If you find it useful I'd appreciate knowing what's missing or wrong. If not,
+no worries at all.
+
+Bill Blackmon
+bigskylabs.ai
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 3: PERSONALIZED EMAIL BODIES
+(Swap the [bracketed] section for each target — rest of email stays the same)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Abridge (San Oo):
+"Abridge is in the dataset alongside Nabla, Nuance DAX, Ambience, and
+Aidoc. The platform tracks ambient clinical AI competitive positioning,
+FDA/CMS regulatory filings, and deal signals in the documentation space."
+
+Hippocratic AI (Saad Godil):
+"Hippocratic AI is in the dataset alongside Wysa, Nabla, and other
+patient-facing AI companies. The platform specifically tracks the 16-state
+chatbot regulation wave and FDA/CMS filings that affect patient-facing
+generative AI."
+
+Tennr (Tyler Johnson):
+"Tennr is in the dataset alongside Assort Health, Olive AI, and other
+referral/authorization automation companies. The platform flags CMS rule
+changes and deal signals in the prior auth and RCM space."
+
+Wysa (Shubhankar Sarda):
+"Wysa is in the dataset alongside Babylon Health, Infermedica, and other
+digital mental health platforms. The platform tracks the 16-state chatbot
+regulation wave (crisis detection, impersonation, minor protection mandates)
+that directly affects your product roadmap."
+
+Medplum (Cody Ebberson):
+"Medplum is in the dataset alongside Health Gorilla, Redox, and other
+FHIR/interoperability platform companies. The platform tracks ONC and CMS
+interop rulemaking and deal signals in the health data infrastructure space."
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 4: SENDING SEQUENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Week 1:
+  Mon–Wed: Send LinkedIn connection requests to all 14 (use personalized notes above)
+  Thu–Fri: Run Hunter.io lookups for any who haven't accepted (14 searches, free tier)
+
+Week 2:
+  - For LinkedIn connects who didn't message back: send email using Section 2 template
+  - For non-connects: send cold email directly
+
+Do NOT follow up more than once. One LinkedIn note + one email is the ceiling
+for cold outreach at this level. These are CTOs, not sales leads.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SECTION 5: PRIORITY ORDER (send in this sequence)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tier 1 — Best fit + fastest-moving companies:
+  1. Tyler Johnson  — Tennr      (tennr.com)          — referral AI, hot space
+  2. Saad Godil     — Hippocratic AI (hippocraticai.com) — patient AI, chatbot regs
+  3. San Oo         — Abridge    (abridge.com)         — ambient AI, hot space
+  4. Zahid Mahmood  — Anterior   (anterior.com)        — prior auth AI, growing fast
+  5. Shubhankar Sarda — Wysa     (wysa.com)            — mental health AI, 16-state regs
+
+Tier 2 — Strong fit, larger/more established:
+  6. Cody Ebberson  — Medplum    (medplum.com)
+  7. Jeffery Liu    — Assort Health (assorthealth.com)
+  8. Mateo Montoya  — XpertDox   (xpertdox.com)
+  9. Martin Raison  — Nabla      (nabla.com)
+ 10. Michael Braginsky — Aidoc   (aidoc.com)
+
+Tier 3 — Good fit, large companies where CTO contact is harder:
+ 11. Zachary Siegel — K Health   (khealth.com)
+ 12. Amit Sangani   — Komodo Health (komodohealth.com)
+ 13. Josh Builder   — Datavant   (datavant.com)
+ 14. Shane Colley   — Tempus     (tempus.com)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LINKEDIN URLS (for connection requests):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tyler Johnson  (Tennr)         https://www.linkedin.com/in/tyler-johnson-482a42158
+Saad Godil     (Hippocratic)   https://www.linkedin.com/in/saad-godil-9728353
+San Oo         (Abridge)       https://www.linkedin.com/in/san-oo
+Zahid Mahmood  (Anterior)      [not found — use email only]
+Shubhankar Sarda (Wysa)        https://www.linkedin.com/in/shubhankar-sarda-0115b628
+Cody Ebberson  (Medplum)       https://www.linkedin.com/in/codyebberson
+Jeffery Liu    (Assort)        https://www.linkedin.com/in/jefferyliu300
+Mateo Montoya  (XpertDox)      https://www.linkedin.com/in/mateo-montoya-z
+Martin Raison  (Nabla)         https://www.linkedin.com/in/martinraison
+Michael Braginsky (Aidoc)      https://www.linkedin.com/in/michael-b-braginsky-72885616
+Zachary Siegel (K Health)      https://www.linkedin.com/in/zacsiegel
+Amit Sangani   (Komodo)        https://www.linkedin.com/in/amitsangani
+Josh Builder   (Datavant)      [not found — use email only]
+Shane Colley   (Tempus)        https://www.linkedin.com/in/shane-colley-2a47533

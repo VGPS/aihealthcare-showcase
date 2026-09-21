@@ -1,0 +1,7 @@
+*.jsonl
+*.csv
+*.log
+*.zip
+*_run.log
+cto_data_input/
+cto_prospect_loader/
