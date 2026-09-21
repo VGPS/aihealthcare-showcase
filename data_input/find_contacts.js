@@ -50,6 +50,17 @@ const ROLES = {
         promptExtra: 'Focus on the most senior revenue or BD person. ' +
                      'For early-stage startups a co-founder may lead BD — include them if no dedicated BD leader exists.',
     },
+    market_research: {
+        label:    'Market Research',
+        category: 'MARKET_RESEARCH',
+        output:   'C:/workspaces/SpringAIClaude/AIHealthcare/data_input/market_research_results.jsonl',
+        roleDesc: 'VP Market Research, Director of Market Intelligence, Head of Competitive Intelligence, ' +
+                  'Market Research Manager, Director of Market Strategy, Head of Market Insights, ' +
+                  'VP Strategy, or equivalent senior market research/intelligence leader',
+        promptExtra: 'Focus on the most senior person owning market research, competitive intelligence, ' +
+                     'or market strategy. At smaller companies a strategy, product, or growth leader may fill this role — ' +
+                     'include them if no dedicated market research title exists.',
+    },
 };
 
 // ── Parse CSV ──────────────────────────────────────────────────────────────────
