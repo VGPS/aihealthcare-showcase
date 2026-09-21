@@ -1,0 +1,100 @@
+While Congress debates AI safety frameworks, 26 states have already passed 58 laws regulating AI in healthcare.
+
+Not proposed. Enacted. With enforcement teeth.
+
+Here's what the data shows:
+
+17 laws restrict AI in insurance prior authorization — your health plan can no longer use an algorithm alone to deny coverage in Alabama, California, Colorado, Florida, Georgia, Indiana, Iowa, Maryland, Minnesota, Nebraska, Texas, Utah, Washington, and more.
+
+19 laws restrict AI in mental health and psychotherapy — California, Colorado, Hawaii, Idaho, Illinois, Iowa, Maine, Nebraska, Nevada, New York, Oregon, Rhode Island, Utah, Vermont, and Washington have drawn a hard line at AI therapists.
+
+16 laws regulate AI companion chatbots — from California's SB 243 to New York's Safe by Design Act.
+
+9 comprehensive AI governance acts are now on the books — Colorado, Connecticut, Texas, plus three federal executive orders.
+
+27 of these 58 laws were enacted in 2026. Eight more take effect January 1, 2027.
+
+This is not a future problem. If you build, sell, or deploy AI in healthcare, the regulatory map already has sharp edges — and most compliance teams haven't mapped them yet.
+
+#HealthcareAI #AIRegulation #HealthTech #DigitalHealth #Compliance #LegalTech
+
+---
+
+FIRST COMMENT (LinkedIn):
+
+We built a free, searchable registry of every enacted U.S. state and federal AI healthcare law — filterable by state, category, status, and effective date.
+
+Browse the Health-AI Legislation Registry:
+https://app.bigskylabs.ai/legislation
+
+Free AI healthcare company directory (365 companies):
+https://app.bigskylabs.ai/directory
+
+Free AI healthcare wiki (772 knowledge pages):
+https://app.bigskylabs.ai/wiki
+
+Full platform — market digest, deal signals, trend detection:
+https://app.bigskylabs.ai/pricing
+
+#HealthcareAI #AIRegulation #DigitalHealth #HealthTech #Compliance
+
+---
+
+FACEBOOK POST (same image):
+
+While Congress debates AI safety, 26 states have already passed 58 laws regulating AI in healthcare. Not proposed. Enacted.
+
+The breakdown:
+- 17 laws restrict AI in insurance prior authorization
+- 19 laws restrict AI in mental health and psychotherapy
+- 16 laws regulate AI companion chatbots
+- 9 comprehensive AI governance acts on the books
+- 27 of the 58 were enacted in 2026 alone
+
+If you build, sell, or deploy AI in healthcare, the regulatory map already has sharp edges — and most compliance teams haven't mapped them yet.
+
+Browse the full registry (free, no signup):
+https://app.bigskylabs.ai/legislation
+
+Free AI healthcare company directory (365 companies):
+https://app.bigskylabs.ai/directory
+
+Free AI healthcare wiki (772 pages):
+https://app.bigskylabs.ai/wiki
+
+#HealthcareAI #AIRegulation #HealthTech #DigitalHealth #Compliance
+
+---
+
+POSTING INSTRUCTIONS:
+
+1. IMAGE: No pre-built image for this post. Options:
+   a. Screenshot the legislation registry at https://app.bigskylabs.ai/legislation
+      (unfiltered — show the full 58-law table)
+   b. A map/infographic showing 26 states highlighted
+   c. Use the brand icon as fallback
+
+2. LINKEDIN POST BODY: Copy everything above the first "---" line (1,435 chars).
+   - LinkedIn limit is 3,000 chars — well within limit.
+   - NO links in the post body — all links go in the first comment.
+   - The post body has zero links by design.
+
+3. LINKEDIN FIRST COMMENT: Post the "FIRST COMMENT" section immediately after publishing.
+   - Four links: /legislation (free), /directory (free), /wiki (free), /pricing (signup).
+   - First comment is 498 chars — well within LinkedIn's 1,250-char comment limit.
+   - No dashboard links — those pages require login.
+
+4. FACEBOOK: Use the "FACEBOOK POST" section. Same image attachment.
+   - Facebook limit is 63,206 chars — this is 847 chars, well within limit.
+   - Links are OK in Facebook post bodies (no reach penalty like LinkedIn).
+
+5. CHARACTER COUNTS:
+   - LinkedIn post body: ~1,435 chars (limit: 3,000)
+   - LinkedIn first comment: ~498 chars (limit: 1,250)
+   - Facebook post: ~847 chars (limit: 63,206)
+
+6. This is a NEW post — does not replace any existing post.
+
+7. POSTING ORDER: Post the "regulatory avalanche" post (this one) first.
+   Post the "Alabama SB 63" post 4-6 hours later or the next day.
+   They complement each other — the macro view and the specific countdown.

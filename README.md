@@ -51,6 +51,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Document Library** | Admin-managed document upload (PDF/DOCX/TXT/MD, 50MB limit) with vector store embedding for RAG search and public wiki page generation |
 | **SEO & Social** | Dynamic XML sitemap, robots.txt, Open Graph meta tags on hosted insights pages for rich social media previews |
 | **Weekly Intel Roundup** | Saturday weekly roundup generator — fetches 7-day LEGAL + COMPETITOR articles, deduplicates, caps at 10, generates LinkedIn post (body + first comment), Substack markdown article, and standalone infographic HTML with Playwright screenshot |
+| **LinkedIn/Facebook/Substack Post Library** | Structured post archive with per-topic txt files (LinkedIn body + first comment + Facebook + Substack + posting instructions), Playwright-generated screenshots, and character-count validation — covers regulatory, legislation, market, and AI paradox angles |
 | **91-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, enterprise data console, LinkedIn feature post rotation, combined social post generator, weekly intel roundup, and SSO provider management |
 | **2,975 Automated Tests** | Comprehensive test suite across 358 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 

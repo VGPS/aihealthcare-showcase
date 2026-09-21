@@ -1,0 +1,195 @@
+=== LINKEDIN POST BODY ===
+
+16 states just passed laws regulating your AI best friend.
+
+All 16 enacted between 2025 and 2026. All targeting the same three behaviors:
+
+Impersonation — AI chatbots cannot present themselves as human. Cannot use titles or terms implying a licensed therapist is behind the response. Illegal now in California, Nevada, Utah, and 11 more states.
+
+Crisis detection — Operators must maintain real-time protocols to detect expressions of suicidal ideation or self-harm and route users to crisis services. Not a best practice. A legal requirement.
+
+Minor protections — Most laws require reminders every hour that a minor is talking to AI, not a person. Several require age verification. Oregon bans engagement-maximizing design for users under 18.
+
+Two states went furthest:
+
+Nevada outright prohibits AI from providing any service that constitutes the practice of professional mental or behavioral health care.
+
+California makes it illegal for an AI to use any term, title, or letter implying a licensed clinician is involved.
+
+This wave exists because people were using AI companions as therapists — millions of them. And until 2025, nobody was legally required to stop it.
+
+14 states. 16 laws. The compliance window is already open.
+
+#HealthcareAI #AIRegulation #DigitalMentalHealth #HealthTech #Compliance #ClinicalAI
+
+---
+
+=== LINKEDIN FIRST COMMENT (paste immediately after publishing) ===
+
+We track every enacted U.S. state and federal AI healthcare law in a free searchable registry — including all 16 chatbot laws, filterable by category.
+
+Browse the Health-AI Legislation Registry (free, no login):
+https://app.bigskylabs.ai/legislation
+
+Free AI healthcare company directory — 365 companies with daily signal scoring:
+https://app.bigskylabs.ai/directory
+
+Free AI healthcare knowledge wiki — 772 pages compiled from primary sources:
+https://app.bigskylabs.ai/wiki
+
+Full platform access — market digest, deal signals, trend detection:
+https://app.bigskylabs.ai/pricing
+
+#HealthcareAI #AIRegulation #DigitalMentalHealth #HealthTech #Compliance
+
+---
+
+=== FACEBOOK POST ===
+
+16 states just passed laws regulating AI companion chatbots. All enacted between 2025 and 2026. All targeting the same three behaviors:
+
+1. Impersonation — AI cannot present itself as human or imply a licensed therapist is involved. Illegal in California, Nevada, Utah, and 11 more states.
+
+2. Crisis detection — Operators must detect expressions of suicidal ideation or self-harm in real time and route users to crisis services. This is now a legal requirement, not a best practice.
+
+3. Minor protections — Most laws require hourly reminders to minors that they are talking to AI. Oregon bans engagement-maximizing design for users under 18.
+
+Nevada goes furthest: it outright prohibits AI from providing any service that constitutes professional mental or behavioral health practice.
+
+California: illegal for AI to use any title implying a licensed clinician is behind the response.
+
+This wave exists because millions of people were using AI companions as therapists — and until 2025, no law required anyone to stop it.
+
+The states: CA, CO, CT, GA, HI, ID, IA, NE, NV, NY, OR, RI, UT, WA.
+
+Browse all 16 laws in the free registry (no login required):
+https://app.bigskylabs.ai/legislation
+
+Free AI healthcare company directory (365 companies):
+https://app.bigskylabs.ai/directory
+
+Free AI healthcare wiki (772 knowledge pages):
+https://app.bigskylabs.ai/wiki
+
+#HealthcareAI #AIRegulation #DigitalMentalHealth #HealthTech #Compliance #ClinicalAI
+
+---
+
+=== SUBSTACK POST ===
+
+Title: The AI Therapy Crackdown: 16 States Drew a Hard Line on Chatbot Companions
+Subtitle: What the emerging chatbot regulation wave means for digital health builders, health plans, and anyone deploying conversational AI
+
+---
+
+Millions of people have been using AI companion chatbots as therapists.
+
+Not because they were told to. Not because the apps were marketed as clinical tools. But because the experience was good enough — available at 2 a.m., judgment-free, cheaper than a copay, and always listening. The line between "emotional support app" and "de facto therapy" blurred quietly, and then completely.
+
+Sixteen state legislatures noticed. Between 2025 and 2026, they passed 16 laws specifically targeting AI companion chatbots — with requirements that are now in force or taking effect soon.
+
+Here is what the data shows.
+
+**The Three Universal Requirements**
+
+Every one of the 16 laws converges on the same three mandates:
+
+*Disclosure of AI identity.* Chatbots must clearly inform users they are interacting with software, not a human — at the start of every session, and repeatedly for minor users. California (AB 489) makes it explicitly illegal to use any title, term, or letter implying that a licensed health care professional is on the other end. Violations are a professional conduct matter.
+
+*Crisis detection and referral.* Operators must maintain real-time protocols capable of detecting expressions of suicidal ideation, self-harm, or threatened harm to others — and responding with immediate crisis referrals. This is not advisory guidance. In California, Colorado, Connecticut, Georgia, Hawaii, Idaho, Iowa, Nebraska, New York, Oregon, Rhode Island, Utah, and Washington, it is now a legal obligation.
+
+*Heightened minor protections.* Most laws require more frequent AI disclosures for users under 18 — hourly in many states, every session in others. Several require age verification. Oregon goes further: it prohibits engagement-maximizing design patterns for minor users altogether.
+
+**The Two Outliers**
+
+Two states passed laws stricter than the rest.
+
+Nevada (AB 406, effective July 2025) does not regulate how AI chatbots must behave — it prohibits AI from providing services that would constitute the practice of professional mental or behavioral health care at all. The distinction matters: Nevada drew a categorical line. AI can be supportive; it cannot be a provider.
+
+California (AB 489, effective January 2026) targets impersonation directly. It is unlawful for AI to use professional terms, titles, or letters — anything that implies a licensed clinician is involved. A chatbot named "Dr. Ava" or one that signs off with "Licensed Therapist" is now in violation.
+
+**Why This Wave Happened Now**
+
+The regulatory response tracks the adoption curve. AI companion apps — Character.AI, Replika, and dozens of healthcare-adjacent products — saw explosive user growth between 2023 and 2025. Several high-profile incidents involving minors using AI companions during mental health crises brought the issue to legislative attention simultaneously across multiple states.
+
+The result was a remarkably consistent set of bills, most modeled on shared template language developed by Manatt Health and similar policy groups. When 14 states pass nearly identical laws in the same legislative cycle, it reflects coordinated policy diffusion, not coincidence.
+
+**What's Still Coming**
+
+Eight of the 16 laws take effect January 1, 2027 or later. Colorado (HB 26-1263), Georgia (SB 540), Idaho (S 1297), Nebraska (LB 525), New York (Safe by Design Act), Oregon (SB 1546), Rhode Island (S 2195), and Washington (HB 2225) are all still in the implementation window.
+
+More states are likely to follow. The Manatt Health AI policy tracker — one of the sources we harvest weekly — has flagged at least four additional states with companion chatbot bills in committee for the 2027 legislative session.
+
+**What It Means If You Build or Deploy Conversational AI in Healthcare**
+
+The compliance question is no longer theoretical. If your product:
+
+- provides emotional support, mental health content, or behavioral health guidance
+- serves any users who may be minors
+- uses conversational or companion-style UX patterns
+
+...then at least some of these 16 laws apply to you, depending on which states your users are in.
+
+The minimum viable compliance posture today: AI disclosure at session start, crisis detection with documented referral protocols, and minor-user safeguards. The full compliance picture varies by state and will require legal review of each jurisdiction's specific language.
+
+We track all 58 enacted U.S. state and federal AI healthcare laws in the Health-AI Legislation Registry — filterable by state, category, status, and effective date. It's free, public, and updated as new laws are enacted.
+
+→ Browse the registry: https://app.bigskylabs.ai/legislation
+
+---
+
+=== POSTING INSTRUCTIONS ===
+
+IMAGE:
+- File: linkedin-posts/shots/2026-09-22-chatbot-crackdown.png
+- Shows the legislation registry filtered to Consumer Chatbots — 16 laws, 16 enacted, 14 jurisdictions
+
+LINKEDIN:
+1. Copy the LINKEDIN POST BODY section above (1,274 chars — limit 3,000)
+   - NO links in the post body — kills reach 40–60%
+   - The hook line IS the heading as requested
+2. Go to linkedin.com → Start a post
+3. Paste the body text
+4. Attach the screenshot as the post image
+5. Publish
+6. Immediately paste the FIRST COMMENT on your new post (536 chars — limit 1,250)
+
+FACEBOOK:
+1. Copy the FACEBOOK POST section
+2. Post to your Facebook page/group (977 chars — no limit concern)
+3. Attach the screenshot as the post image
+4. Links are fine in the Facebook body — no reach penalty
+
+SUBSTACK:
+1. Go to substack.com → your publication → New post
+2. Title: "The AI Therapy Crackdown: 16 States Drew a Hard Line on Chatbot Companions"
+3. Subtitle: "What the emerging chatbot regulation wave means for digital health builders, health plans, and anyone deploying conversational AI"
+4. Paste the SUBSTACK POST section into the editor (renders Markdown automatically)
+5. Add cover image: the legislation registry screenshot
+6. Under Settings:
+   - Section: "Regulatory Intelligence" or "Weekly Roundup"
+   - Check "Send to email subscribers"
+   - Tags: AI Healthcare, Mental Health AI, Chatbot Regulation, Compliance
+7. Schedule for Monday morning 8:00 AM CT or publish immediately
+
+PLATFORM CAPABILITIES:
+┌──────────┬──────────────┬───────────────┬──────────────────────────┐
+│ Platform │ Image click? │ OG card?      │ Best for                 │
+├──────────┼──────────────┼───────────────┼──────────────────────────┤
+│ LinkedIn │ NO           │ YES (comment) │ Body text + first comment│
+│ Facebook │ NO           │ YES (post)    │ Body + image + links     │
+│ Substack │ YES          │ N/A           │ Full narrative article   │
+└──────────┴──────────────┴───────────────┴──────────────────────────┘
+
+CHARACTER COUNTS:
+- LinkedIn post body:    1,274 chars  (limit: 3,000)
+- LinkedIn first comment:  536 chars  (limit: 1,250)
+- Facebook post:           977 chars  (no limit)
+- Substack:              ~3,100 words (no limit)
+
+KEY RULES:
+- NO links in LinkedIn post body — always use first comment
+- Post image is NOT clickable on LinkedIn or Facebook — OG card in comment drives clicks
+- Monday posting: schedule LinkedIn for 8:00–9:00 AM CT for best B2B reach
+- This is a NEW post — does not replace any existing post
+- Pairs well with the legislation registry posts from Sunday (9/21) — tag as a series

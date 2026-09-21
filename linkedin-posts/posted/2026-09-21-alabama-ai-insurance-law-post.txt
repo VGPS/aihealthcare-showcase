@@ -1,0 +1,95 @@
+In 11 days, Alabama becomes the latest state to ban insurers from using AI as the sole basis to deny your health care claim.
+
+SB 63 takes effect October 1, 2026. Here's what it does:
+
+- Insurers cannot use AI alone to deny, reduce, or defer health care services
+- Any adverse coverage determination based on medical necessity must be made by a licensed physician
+- Insurers must disclose their use of AI in utilization review
+
+Alabama is not alone. 17 states now have laws restricting AI in insurance prior authorization and utilization review:
+
+AL, AZ, CA, CO, FL, GA, IA, IN, MD, MN, NE, TX, UT, WA — plus federal CMS rules.
+
+27 new AI healthcare laws were enacted in 2026 alone. Eight more take effect January 1, 2027.
+
+The pattern is clear: states are not waiting for Congress. They are building the regulatory framework themselves — one bill at a time, across 26 states and counting.
+
+The question for health plans and health tech companies: are your AI systems compliant with the laws that just took effect in your states?
+
+#HealthcareAI #AIRegulation #HealthInsurance #PriorAuthorization #DigitalHealth #HealthTech
+
+---
+
+FIRST COMMENT (LinkedIn):
+
+We track every enacted U.S. state and federal AI healthcare law in a free, searchable registry — 58 laws across 26 states.
+
+Browse the full Health-AI Legislation Registry:
+https://app.bigskylabs.ai/legislation
+
+Free AI healthcare company directory (365 companies with daily signal scoring):
+https://app.bigskylabs.ai/directory
+
+Free AI healthcare wiki (772 knowledge pages):
+https://app.bigskylabs.ai/wiki
+
+Full platform access — market digest, deal signals, trend detection:
+https://app.bigskylabs.ai/pricing
+
+#HealthcareAI #AIRegulation #DigitalHealth #HealthTech
+
+---
+
+FACEBOOK POST (same image):
+
+In 11 days, Alabama becomes the latest state to ban insurers from using AI as the sole basis to deny your health care claim.
+
+SB 63 takes effect October 1, 2026:
+- Insurers cannot use AI alone to deny, reduce, or defer health care services
+- Any adverse determination must be made by a licensed physician
+- Insurers must disclose AI use in utilization review
+
+Alabama is not alone. 17 states now restrict AI in insurance prior authorization. 27 new AI healthcare laws were enacted in 2026 alone. Eight more take effect January 1, 2027.
+
+States are not waiting for Congress. They are building the regulatory framework themselves — one bill at a time, across 26 states and counting.
+
+Browse the full Health-AI Legislation Registry (58 laws, free):
+https://app.bigskylabs.ai/legislation
+
+Free AI healthcare company directory (365 companies):
+https://app.bigskylabs.ai/directory
+
+Free AI healthcare wiki (772 pages):
+https://app.bigskylabs.ai/wiki
+
+#HealthcareAI #AIRegulation #HealthInsurance #PriorAuthorization #DigitalHealth
+
+---
+
+POSTING INSTRUCTIONS:
+
+1. IMAGE: No pre-built image for this post. Options:
+   a. Screenshot the legislation registry at https://app.bigskylabs.ai/legislation
+      (filter to Payer Utilization Review, crop the table)
+   b. Use the brand icon or a map graphic showing states with laws
+
+2. LINKEDIN POST BODY: Copy everything above the first "---" line (1,197 chars).
+   - LinkedIn limit is 3,000 chars — this is well within limit.
+   - NO links in the post body — all links go in the first comment.
+   - The post body has zero links by design.
+
+3. LINKEDIN FIRST COMMENT: Post the "FIRST COMMENT" section immediately after publishing.
+   - Four links: /legislation (free), /directory (free), /wiki (free), /pricing (signup).
+   - First comment is 519 chars — well within LinkedIn's 1,250-char comment limit.
+   - No dashboard links — those pages require login.
+
+4. FACEBOOK: Use the "FACEBOOK POST" section. Same image attachment.
+   - Facebook limit is 63,206 chars — this is 869 chars, well within limit.
+   - Links are OK in Facebook post bodies (no reach penalty like LinkedIn).
+
+5. CHARACTER COUNTS:
+   - LinkedIn post body: ~1,197 chars (limit: 3,000)
+   - LinkedIn first comment: ~519 chars (limit: 1,250)
+   - Facebook post: ~869 chars (limit: 63,206)
+
+6. This is a NEW post — does not replace any existing post.
