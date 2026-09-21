@@ -29,6 +29,7 @@ const TMP = path.join(os.tmpdir(), '_prospect_query.sql');
 const FILES = [
     'C:/workspaces/SpringAIClaude/AIHealthcare/data_input/marketing_results.jsonl',
     'C:/workspaces/SpringAIClaude/AIHealthcare/data_input/bd_results.jsonl',
+    'C:/workspaces/SpringAIClaude/AIHealthcare/data_input/market_research_results.jsonl',
 ];
 
 function psql(query) {
@@ -107,7 +108,7 @@ console.log(`\n${companiesNew} new companies inserted.\n`);
 // ── Step 2: Insert contacts ───────────────────────────────────────────────────
 const VALID_EMAIL_STATUS = ['current_company','likely_stale','personal','no_email'];
 const VALID_CONFIDENCE   = ['high','medium','low'];
-const VALID_ROLE         = ['CTO','MARKETING','BUSINESS_DEV','SALES','CLINICAL','OTHER'];
+const VALID_ROLE         = ['CTO','MARKETING','BUSINESS_DEV','SALES','CLINICAL','MARKET_RESEARCH','OTHER'];
 
 console.log(`Inserting ${allContacts.length} contacts...`);
 let inserted = 0, skipped = 0;
