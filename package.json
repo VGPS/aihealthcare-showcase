@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "tailwindcss": "^4.3.3"
+  },
+  "dependencies": {
+    "playwright": "^1.63.0"
   }
 }
