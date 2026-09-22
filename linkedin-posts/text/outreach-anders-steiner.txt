@@ -1,0 +1,143 @@
+OUTREACH — Anders Steiner
+VP Strategy, Market & Competitive Intelligence
+Siemens Healthineers
+LinkedIn: https://www.linkedin.com/in/anderssteiner
+Email: unknown — see Hunter.io step below
+Confidence: HIGH
+===========================================================================
+
+WHY HE'S THE #1 TARGET
+-----------------------
+His title — VP Strategy, Market & Competitive Intelligence — is the exact job
+description of what BigSkyLabs.ai does. He owns the function at a $21B global
+medtech company (Siemens Healthineers) that competes with, acquires, and partners
+with the AI healthcare companies tracked in the platform. This is not a cold lead.
+This is a direct buyer of the intelligence the platform produces.
+
+===========================================================================
+STEP 1 — LINKEDIN CONNECTION REQUEST (send today)
+===========================================================================
+
+Go to: https://www.linkedin.com/in/anderssteiner
+Click "Connect" → "Add a note" → paste the note below (295 chars):
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Hi Anders — I built a healthcare AI market intelligence platform tracking
+459 companies, regulatory actions, deal signals, and state legislation.
+Given your competitive intelligence role at Siemens Healthineers, thought
+it might be worth a look. Happy to share free access. — Bill
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Click Send.
+
+AFTER SENDING:
+• Note the date sent
+• Wait 7 days
+• If he connects and replies → respond (see "Reply" section below)
+• If he connects but doesn't reply → send InMail follow-up (see Step 2a)
+• If he doesn't connect → go to Step 2b (Hunter.io email)
+
+===========================================================================
+STEP 2a — INMAIL FOLLOW-UP (only if he connects but doesn't reply — Day 8)
+===========================================================================
+
+Subject: Re: BigSkyLabs.ai platform access
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Hi Anders — thanks for connecting. Wanted to follow up on my note.
+
+BigSkyLabs.ai tracks the AI-in-healthcare space end-to-end: 459 companies
+ranked daily by news velocity, funding signals, and sentiment; an 840-page
+auto-compiled knowledge wiki; and a state legislation tracker covering 41
+enacted health AI laws across 24 states.
+
+It's the kind of ambient competitive intelligence layer that's hard to build
+internally at the breadth the space now requires.
+
+Happy to give you subscriber access at no cost — no pitch, no call required.
+You can evaluate it on your own time.
+
+— Bill Blackmon, founder
+  app.bigskylabs.ai
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+===========================================================================
+STEP 2b — EMAIL OUTREACH (if no LinkedIn connection after 7 days)
+===========================================================================
+
+FIND HIS EMAIL FIRST:
+1. Go to https://hunter.io (free tier: 25 lookups/month)
+2. Enter domain: siemens-healthineers.com
+3. Search for "Anders Steiner"
+4. Hunter.io will return the verified email format (e.g. a.steiner@siemens-healthineers.com)
+5. If Hunter.io returns nothing, try: https://rocketreach.co (3 free lookups)
+
+COLD EMAIL (once you have the address):
+
+Subject: AI healthcare competitive intelligence — free access for your team
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Hi Anders,
+
+I'm Bill Blackmon, founder of BigSkyLabs.ai — an AI-powered healthcare
+market intelligence platform.
+
+It tracks 459 AI healthcare companies (ranked daily by funding activity,
+news velocity, and sentiment), an 840-page auto-compiled knowledge wiki,
+and a state legislation registry covering 41 enacted health AI laws across
+24 states.
+
+Given your competitive intelligence mandate at Siemens Healthineers, I
+thought it might be directly useful — the platform was built specifically
+for the kind of ambient market tracking that's difficult to maintain
+manually at the breadth the AI-in-healthcare space now requires.
+
+I'd like to give you subscriber access at no cost, no strings attached.
+Visit app.bigskylabs.ai/register and use the free trial — or reply here
+and I'll set up access directly.
+
+No pitch. No call required. Just the platform.
+
+— Bill Blackmon
+  Founder, BigSkyLabs.ai
+  newsletter@bigskylabs.ai
+  https://app.bigskylabs.ai
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+===========================================================================
+IF HE REPLIES — RESPONSE GUIDE
+===========================================================================
+
+"Interesting, tell me more":
+→ Send him a direct link to the company directory filtered to medtech/imaging:
+  https://app.bigskylabs.ai/directory
+→ Mention the legislation tracker specifically — 41 enacted laws is a number
+  that lands with compliance/strategy teams at large medtech companies.
+→ Offer a subscriber account: "I'll upgrade your account — no charge."
+
+"We have internal tools for this":
+→ "Understood — the platform is probably most useful as a cross-check layer
+  rather than a replacement. Happy to leave the door open."
+→ No further follow-up. One reply max.
+
+"Not interested":
+→ "Appreciate the response. Good luck with the space — it's moving fast."
+→ No further follow-up.
+
+===========================================================================
+TRACKING — update outreach_cli.js after each step
+===========================================================================
+
+After sending LinkedIn note:
+  node data_input/outreach_cli.js sent --name "Anders Steiner" \
+    --channel linkedin_note --template market-research-competitive-intel
+
+After he connects:
+  node data_input/outreach_cli.js reply --name "Anders Steiner" --outcome connected
+
+After he replies:
+  node data_input/outreach_cli.js reply --name "Anders Steiner" --outcome replied
+
+===========================================================================
+RULE: One LinkedIn note + one follow-up max. Do not contact again after that.
+===========================================================================
