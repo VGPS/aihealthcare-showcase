@@ -34,7 +34,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-03
- * @updated 2026-07-20
+ * @updated 2026-09-23
  */
 @Slf4j
 @Controller
@@ -93,7 +93,7 @@ public class ProfileController {
         boolean isAdmin = SecurityContextHolder.getContext().getAuthentication()
                 .getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
         if (isAdmin) {
-            tier = SubscriptionTier.SUBSCRIBER;
+            tier = SubscriptionTier.ENTERPRISE;
         }
 
         model.addAttribute("tier", tier.name());

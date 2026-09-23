@@ -47,7 +47,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 2.1
  * @since   2026-06-02
- * @updated 2026-09-12
+ * @updated 2026-09-23
  */
 @Slf4j
 @Controller
@@ -112,8 +112,8 @@ public class AiSearchController {
         if (!admin) {
             SubscriptionTier tier = tierResolver.resolveTier(principal);
 
-            // FREE tier — show upgrade banner, no search
-            if (tier != SubscriptionTier.SUBSCRIBER) {
+            // FREE/FREE_PENDING tier — show upgrade banner, no search
+            if (tier == SubscriptionTier.FREE || tier == SubscriptionTier.FREE_PENDING) {
                 model.addAttribute("accessDenied", true);
                 log.debug("search() | return=ai-search (accessDenied)");
                 return "ai-search";

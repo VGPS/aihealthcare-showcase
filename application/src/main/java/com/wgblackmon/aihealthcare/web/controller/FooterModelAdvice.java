@@ -27,7 +27,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-05
- * @updated 2026-08-05
+ * @updated 2026-09-23
  */
 @Slf4j
 @ControllerAdvice
@@ -57,8 +57,8 @@ public class FooterModelAdvice {
 
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))
-                && tier.ordinal() < SubscriptionTier.SUBSCRIBER.ordinal()) {
-            tier = SubscriptionTier.SUBSCRIBER;
+                && tier.ordinal() < SubscriptionTier.ENTERPRISE.ordinal()) {
+            tier = SubscriptionTier.ENTERPRISE;
         }
 
         String result = tier.name();
