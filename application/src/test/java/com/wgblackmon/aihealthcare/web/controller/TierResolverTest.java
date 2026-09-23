@@ -48,13 +48,13 @@ class TierResolverTest {
     }
 
     @Test
-    void resolveTier_adminPrincipal_returnsSubscriber() {
+    void resolveTier_adminPrincipal_returnsEnterprise() {
         Authentication admin = new UsernamePasswordAuthenticationToken(
                 "admin@test.com", "pass",
                 List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
 
         SubscriptionTier result = tierResolver.resolveTier(admin);
-        assertThat(result).isEqualTo(SubscriptionTier.SUBSCRIBER);
+        assertThat(result).isEqualTo(SubscriptionTier.ENTERPRISE);
     }
 
     @Test

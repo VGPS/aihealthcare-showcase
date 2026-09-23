@@ -159,7 +159,7 @@ WHERE NOT EXISTS (SELECT 1 FROM prompt_variants WHERE variant_id = 'summarize-v3
 -- Seed newsletter subscribers for local development and testing.
 -- ---------------------------------------------------------------------------
 INSERT INTO subscribers (email, name, active, subscribed_at, tier, unsubscribe_token)
-SELECT 'wgblackmonall@gmail.com', 'Bill Blackmon', true, CURRENT_TIMESTAMP, 'SUBSCRIBER',
+SELECT 'wgblackmonall@gmail.com', 'Bill Blackmon', true, CURRENT_TIMESTAMP, 'ENTERPRISE',
        'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
 WHERE NOT EXISTS (SELECT 1 FROM subscribers WHERE email = 'wgblackmonall@gmail.com');
 
@@ -191,7 +191,7 @@ WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'demo@gmail.com');
 INSERT INTO app_users (email, password_hash, display_name, role, enabled, tier)
 SELECT 'wgblackmonall@gmail.com',
        '$2b$10$nTtFY0TV/cB8/K0W5mEj2.YMg.EQhOrX.vBHAv0FkxYJtXx5g/fNa',
-       'Bill Blackmon', 'ADMIN', true, 'SUBSCRIBER'
+       'Bill Blackmon', 'ADMIN', true, 'ENTERPRISE'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'wgblackmonall@gmail.com');
 
 -- Tester account — QA testing, USER role only (wgblackmonall@gmail.com is the sole ADMIN)
@@ -215,15 +215,15 @@ SELECT 'enterprise@test.com',
        'Enterprise Tester', 'USER', true, 'ENTERPRISE'
 WHERE NOT EXISTS (SELECT 1 FROM app_users WHERE email = 'enterprise@test.com');
 
--- Ensure all ADMIN-role users have ENTERPRISE tier in the subscribers table.
--- Uses ON CONFLICT so this is safe to re-run on any deployment.
--- unsubscribe_token is NOT NULL + UNIQUE on subscribers, so newly-inserted
--- rows need a generated value; existing rows keep their token untouched.
+-- Ensure all ADMIN-role users have ENTERPRISE tier in both tables.
+-- Safe to re-run on any deployment.
 INSERT INTO subscribers (email, active, name, subscribed_at, tier, unsubscribe_token)
 SELECT u.email, true, u.display_name, NOW(), 'ENTERPRISE', gen_random_uuid()::text
 FROM app_users u
 WHERE u.role = 'ADMIN'
 ON CONFLICT (email) DO UPDATE SET tier = 'ENTERPRISE';
+
+UPDATE app_users SET tier = 'ENTERPRISE' WHERE role = 'ADMIN';
 
 -- ---------------------------------------------------------------------------
 -- Fix company_relationships: replace UUID evidence_article_ids with actual

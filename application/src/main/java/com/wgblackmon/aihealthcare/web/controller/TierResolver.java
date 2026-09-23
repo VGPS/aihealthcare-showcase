@@ -44,8 +44,8 @@ public class TierResolver {
             return SubscriptionTier.FREE;
         }
         if (isAdmin(principal)) {
-            log.debug("resolveTier() | return={}", SubscriptionTier.SUBSCRIBER);
-            return SubscriptionTier.SUBSCRIBER;
+            log.debug("resolveTier() | return={}", SubscriptionTier.ENTERPRISE);
+            return SubscriptionTier.ENTERPRISE;
         }
         SubscriptionTier tier = subscriberPort.findByEmail(principal.getName())
                 .map(Subscriber::tier)
@@ -95,7 +95,7 @@ public class TierResolver {
 
     /**
      * Returns {@code true} if the principal has enterprise-level access:
-     * ENTERPRISE or DEMO tier.
+     * SUBSCRIBER, ENTERPRISE, DEMO, or ADMIN.
      */
     public boolean hasEnterpriseAccess(Principal principal) {
         log.debug("hasEnterpriseAccess() | principal={}", principal != null ? principal.getName() : "null");
@@ -109,6 +109,7 @@ public class TierResolver {
         }
         SubscriptionTier tier = resolveTier(principal);
         boolean result = tier == SubscriptionTier.ENTERPRISE
+                || tier == SubscriptionTier.SUBSCRIBER
                 || tier == SubscriptionTier.DEMO;
         log.debug("hasEnterpriseAccess() | return={}", result);
         return result;
