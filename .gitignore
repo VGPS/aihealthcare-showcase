@@ -57,3 +57,9 @@ SESSION_LOG.md
 docs/SESSION_LOG.md
 docs/ROADMAP.md
 docs/code-flow-diagrams.md
+
+### Playwright ###
+e2e/.auth/
+e2e/report/
+e2e/test-results/
+playwright-report/
