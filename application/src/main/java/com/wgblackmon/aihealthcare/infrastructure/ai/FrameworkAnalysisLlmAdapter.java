@@ -6,7 +6,9 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FrameworkLlmPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -25,7 +27,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-09-23
  */
 @Slf4j
 @Component
@@ -37,10 +39,13 @@ public class FrameworkAnalysisLlmAdapter implements FrameworkLlmPort {
     private final PromptLoaderService promptLoaderService;
 
     public FrameworkAnalysisLlmAdapter(ChatClient.Builder chatClientBuilder,
-                                       PromptLoaderService promptLoaderService) {
-        log.debug("FrameworkAnalysisLlmAdapter() | chatClientBuilder={}, promptLoaderService={}",
-                  chatClientBuilder, promptLoaderService.getClass().getSimpleName());
-        this.chatClient = chatClientBuilder.build();
+                                       PromptLoaderService promptLoaderService,
+                                       @Value("${aihealthcare.ai.classification-model:claude-haiku-4-5}") String classificationModel) {
+        log.debug("FrameworkAnalysisLlmAdapter() | chatClientBuilder={}, promptLoaderService={}, classificationModel={}",
+                  chatClientBuilder, promptLoaderService.getClass().getSimpleName(), classificationModel);
+        this.chatClient = chatClientBuilder
+                .defaultOptions(AnthropicChatOptions.builder().model(classificationModel).build())
+                .build();
         this.promptLoaderService = promptLoaderService;
         log.debug("FrameworkAnalysisLlmAdapter() | return=void");
     }

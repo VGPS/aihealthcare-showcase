@@ -45,7 +45,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-09-12
+ * @updated 2026-09-23
  */
 @Slf4j
 public class WikiCompilationAdapter implements KnowledgeCompilationPort {
@@ -57,6 +57,7 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
     private final WikiPageRevisionRepository revisionRepository;
     private final WikiResponseParser responseParser;
     private final String wikiCompilePrompt;
+    private final String classificationModel;
 
     public WikiCompilationAdapter(ChatClient.Builder chatClientBuilder,
                                    WikiPageRepository pageRepository,
@@ -64,9 +65,10 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
                                    WikiContradictionRepository contradictionRepository,
                                    WikiPageRevisionRepository revisionRepository,
                                    WikiResponseParser responseParser,
-                                   String wikiCompilePrompt) {
-        log.debug("WikiCompilationAdapter() | constructing with prompt length={}",
-                wikiCompilePrompt != null ? wikiCompilePrompt.length() : 0);
+                                   String wikiCompilePrompt,
+                                   String classificationModel) {
+        log.debug("WikiCompilationAdapter() | constructing with prompt length={}, classificationModel={}",
+                wikiCompilePrompt != null ? wikiCompilePrompt.length() : 0, classificationModel);
         this.chatClient = chatClientBuilder.build();
         this.pageRepository = pageRepository;
         this.sourceRefRepository = sourceRefRepository;
@@ -74,6 +76,7 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
         this.revisionRepository = revisionRepository;
         this.responseParser = responseParser;
         this.wikiCompilePrompt = wikiCompilePrompt;
+        this.classificationModel = classificationModel;
         log.debug("WikiCompilationAdapter() | return=void");
     }
 
@@ -95,7 +98,7 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
         // 2c. Call Claude with high token limit for multi-page output
         String response = chatClient.prompt()
                 .user(prompt)
-                .options(AnthropicChatOptions.builder().maxTokens(16000).build())
+                .options(AnthropicChatOptions.builder().maxTokens(16000).model(classificationModel).build())
                 .call().content();
         log.debug("compileNewSources() | responseLength={}", response != null ? response.length() : 0);
 

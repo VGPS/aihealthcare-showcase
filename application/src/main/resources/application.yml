@@ -159,6 +159,16 @@ aihealthcare:
   # Override in application-aws.yml for production.
   # ---------------------------------------------------------------------------
   base-url: http://localhost:8080
+
+  # ---------------------------------------------------------------------------
+  # AI cost tiering — cheaper model for batch classification/extraction tasks
+  # (sentiment labels, deal classification, framework scoring, wiki compilation)
+  # that don't need frontier-model reasoning. Narrative/synthesis tasks (research
+  # synthesis, newsletter prose, LLM-as-judge evaluation) stay on the default
+  # spring.ai.anthropic.chat.options.model above.
+  # ---------------------------------------------------------------------------
+  ai:
+    classification-model: claude-haiku-4-5
   # ---------------------------------------------------------------------------
   # Article query — how far back (in days) to look when fetching articles.
   # Set to 0 for no date restriction.  Change freely for experimentation.
@@ -359,12 +369,7 @@ aihealthcare:
       topics:
         - "General AI Healthcare News"
         - "AI Healthcare Software Development"
-        - "Healthcare Outsourcing and Jobs Layoffs"
-        - "Healthcare IT Offshoring India Patient Data"
-        - "healthcare IT workers replaced by offshore outsourcing India 2026"
-        - "H1B visa healthcare technology workers hospital layoffs"
-        - "American patient health records stored India data privacy HIPAA"
-        - "Tech Mahindra Cognizant Infosys healthcare contracts US hospitals"
+        - "Healthcare IT Offshoring and Outsourcing"
         - "AI Healthcare Government Policy"
         - "AI Healthcare Legal"
         - "OpenAI Healthcare"
@@ -375,60 +380,13 @@ aihealthcare:
         - "Epic Systems Healthcare AI"
         - "Beckers Hospital Review"
         - "HuggingFace Healthcare LLMs"
-        - "Health Data Utilities"
-        - "Ambient Clinical Documentation"
-        - "Clinical GenAI and RAG"
+        - "Ambient Clinical Documentation and Clinical GenAI"
         - "AI Governance and Safety"
-        - "AI Agents for Administrative Workflows"
-        - "Healthcare Technology"
-        - "Healthcare Innovation"
-        - "Healthcare Policy"
-        - "Healthcare Economics"
-        - "Healthcare Investment"
-        - "Healthcare Markets"
-        - "Digital Health"
-        - "Healthcare Compliance"
-        - "AI in Healthcare"
-        - "Regulatory Compliance"
-        - "Healthcare Startups"
-        - "Venture Capital"
-        - "Healthcare Infrastructure"
-        - "Healthcare Technology Investment"
-        - "AI Strategy"
-        - "Healthcare Regulation"
-        - "Market Analysis"
-        - "Clinical Decision Support"
-        - "Healthcare Strategy"
-        - "Health Tech Investment"
-        - "Healthcare Interoperability"
-        - "Healthcare Market Analysis"
-        - "Healthcare Market Trends"
-        - "Healthcare Operations"
-        - "Healthcare Business Models"
-        - "Clinical Operations"
-        - "Health Tech Entrepreneurship"
-        - "Healthcare Entrepreneurship"
-        - "Digital Transformation"
-        - "AI Implementation"
-        - "Healthcare Automation"
-        - "Value-Based Care"
-        - "Operational Efficiency"
-        - "Digital Health Innovation"
-        - "Claims Processing"
-        - "Healthcare Reform"
-        - "Healthcare Disruption"
-        - "Investment Strategy"
-        - "Revenue Cycle Management"
-        - "Healthcare Analytics"
-        - "Market Disruption"
-        - "Venture Capital Healthcare"
-        - "Interoperability"
-        - "Medicare Advantage"
-        - "CMS Regulations"
-        - "Competitive Advantage"
-        - "AI Agents"
-        - "Digital Health Transformation"
-        - "Health Tech Innovation"
+        - "AI Agents in Healthcare Administration"
+        - "Healthcare AI Investment and Venture Capital"
+        - "Healthcare AI Market Trends and Strategy"
+        - "Healthcare Operations and Value-Based Care"
+        - "Healthcare AI Startups and Entrepreneurship"
 
   # ---------------------------------------------------------------------------
   # News listing — ordered topic headers shown on GET /dashboard/news.

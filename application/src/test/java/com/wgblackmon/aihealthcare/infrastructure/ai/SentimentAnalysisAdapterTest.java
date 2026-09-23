@@ -12,6 +12,7 @@ import java.net.URI;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,11 +32,12 @@ class SentimentAnalysisAdapterTest {
     void setUp() {
         ChatClient.Builder builder = mock(ChatClient.Builder.class);
         ChatClient chatClient = mock(ChatClient.class);
+        when(builder.defaultOptions(any())).thenReturn(builder);
         when(builder.build()).thenReturn(chatClient);
         PromptLoaderService promptLoader = mock(PromptLoaderService.class);
         when(promptLoader.load("sentiment-analysis.txt")).thenReturn(
                 "Company: {companyName}\nARTICLES:\n{numberedArticleList}");
-        adapter = new SentimentAnalysisAdapter(builder, promptLoader);
+        adapter = new SentimentAnalysisAdapter(builder, promptLoader, "claude-haiku-4-5");
     }
 
     @Test

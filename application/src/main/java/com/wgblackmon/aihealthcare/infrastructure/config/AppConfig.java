@@ -986,14 +986,15 @@ public class AppConfig {
             WikiPageRepository pageRepository,
             WikiSourceRefRepository sourceRefRepository,
             WikiContradictionRepository contradictionRepository,
-            WikiPageRevisionRepository revisionRepository) {
+            WikiPageRevisionRepository revisionRepository,
+            @Value("${aihealthcare.ai.classification-model:claude-haiku-4-5}") String classificationModel) {
         log.debug("wikiCompilationAdapter() | wiring wiki compilation pipeline");
         String wikiCompilePrompt = promptLoaderService.load("wiki-compile.txt");
         WikiResponseParser responseParser = new WikiResponseParser();
         WikiCompilationAdapter result = new WikiCompilationAdapter(
                 chatClientBuilder, pageRepository, sourceRefRepository,
                 contradictionRepository, revisionRepository,
-                responseParser, wikiCompilePrompt);
+                responseParser, wikiCompilePrompt, classificationModel);
         log.debug("wikiCompilationAdapter() | return={}", result.getClass().getSimpleName());
         return result;
     }
