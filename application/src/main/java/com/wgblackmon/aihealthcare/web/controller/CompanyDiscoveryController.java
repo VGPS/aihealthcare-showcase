@@ -35,7 +35,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-06-07
- * @updated 2026-09-11
+ * @updated 2026-09-23
  */
 @Slf4j
 @RestController
@@ -69,9 +69,10 @@ public class CompanyDiscoveryController {
             @RequestHeader(value = "X-Subscriber-Email", required = false) String subscriberEmail) {
         log.debug("discover() | subscriberEmail={}", subscriberEmail);
 
-        // Tier gating — SUBSCRIBER only
+        // Tier gating — SUBSCRIBER and ENTERPRISE
         SubscriptionTier tier = tierResolver.resolveTier(subscriberEmail);
-        if (tier != SubscriptionTier.SUBSCRIBER) {
+        if (tier == SubscriptionTier.FREE || tier == SubscriptionTier.FREE_PENDING
+                || tier == SubscriptionTier.DEMO) {
             log.warn("discover() | access denied — tier={} for email={}", tier, LogSanitizer.maskEmail(subscriberEmail));
             Map<String, Object> body = new LinkedHashMap<>();
             body.put("error", "Company discovery is a Subscriber-only feature");

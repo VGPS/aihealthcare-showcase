@@ -128,7 +128,7 @@ class ProfileControllerTest {
 
     @Test
     @WithMockUser(username = "admin@example.com", roles = "ADMIN")
-    void profile_adminUser_showsSubscriberTier() throws Exception {
+    void profile_adminUser_showsEnterpriseTier() throws Exception {
         when(appUserPort.findByEmail("admin@example.com")).thenReturn(Optional.empty());
         when(subscriberPort.findByEmail("admin@example.com")).thenReturn(Optional.empty());
         UsageRecord usage = new UsageRecord("admin@example.com", "2026-07", 0, 200);
@@ -141,7 +141,7 @@ class ProfileControllerTest {
 
         mockMvc.perform(get("/profile"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("tier", "SUBSCRIBER"))
+                .andExpect(model().attribute("tier", "ENTERPRISE"))
                 .andExpect(model().attribute("isAdmin", true));
     }
 

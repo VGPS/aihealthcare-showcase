@@ -63,7 +63,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.5
  * @since   2026-05-04
- * @updated 2026-09-12
+ * @updated 2026-09-23
  */
 @Slf4j
 @Controller
@@ -342,10 +342,10 @@ public class DashboardController {
             Model model) {
         log.debug("articles() | topic={}, sort={}", topic, sort);
 
-        // Gate "New AI Healthcare Companies" topic to SUBSCRIBER tier
+        // Gate "New AI Healthcare Companies" topic to SUBSCRIBER/ENTERPRISE/DEMO tiers
         if ("New AI Healthcare Companies".equals(topic) && !tierResolver.isAdmin(principal)) {
             SubscriptionTier tier = tierResolver.resolveTier(principal);
-            if (tier != SubscriptionTier.SUBSCRIBER) {
+            if (tier == SubscriptionTier.FREE || tier == SubscriptionTier.FREE_PENDING) {
                 log.debug("articles() | access denied for FREE tier user on topic={}", topic);
                 model.addAttribute("topic", topic);
                 model.addAttribute("accessDenied", true);

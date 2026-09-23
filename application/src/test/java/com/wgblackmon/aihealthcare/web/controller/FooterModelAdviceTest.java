@@ -101,7 +101,7 @@ class FooterModelAdviceTest {
     }
 
     @Test
-    void adminUser_alwaysReturnsSubscriber() {
+    void adminUser_alwaysReturnsEnterprise() {
         FooterModelAdvice advice = createAdvice(appUserPort);
         Principal principal = mock(Principal.class);
         when(principal.getName()).thenReturn("admin@example.com");
@@ -116,7 +116,7 @@ class FooterModelAdviceTest {
 
         String result = advice.footerTier(principal);
 
-        assertThat(result).isEqualTo("SUBSCRIBER");
+        assertThat(result).isEqualTo("ENTERPRISE");
         SecurityContextHolder.clearContext();
     }
 
