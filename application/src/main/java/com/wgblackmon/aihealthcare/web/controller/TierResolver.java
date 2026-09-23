@@ -100,7 +100,7 @@ public class TierResolver {
     public boolean hasEnterpriseAccess(Principal principal) {
         log.debug("hasEnterpriseAccess() | principal={}", principal != null ? principal.getName() : "null");
         if (principal == null) {
-            log.debug("hasEnterpriseAccess() | return=false");
+            log.debug("hasEnterpriseAccess() | return=false (null principal)");
             return false;
         }
         if (isAdmin(principal)) {
@@ -111,7 +111,7 @@ public class TierResolver {
         boolean result = tier == SubscriptionTier.ENTERPRISE
                 || tier == SubscriptionTier.SUBSCRIBER
                 || tier == SubscriptionTier.DEMO;
-        log.debug("hasEnterpriseAccess() | return={}", result);
+        log.debug("hasEnterpriseAccess() | tier={}, return={}", tier, result);
         return result;
     }
 
@@ -126,7 +126,7 @@ public class TierResolver {
             log.debug("isAdmin() | return={}", result);
             return result;
         }
-        log.debug("isAdmin() | return=false");
+        log.debug("isAdmin() | principal is not Authentication, return=false");
         return false;
     }
 }
