@@ -155,7 +155,7 @@ class DealClassificationAdapterTest {
                 public org.springframework.ai.chat.model.ChatResponse call(org.springframework.ai.chat.prompt.Prompt prompt) {
                     return null;
                 }
-            }), promptLoaderService);
+            }), promptLoaderService, "claude-haiku-4-5");
         }
     }
 }

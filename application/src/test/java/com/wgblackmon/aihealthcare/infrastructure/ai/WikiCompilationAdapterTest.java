@@ -116,7 +116,8 @@ class WikiCompilationAdapterTest {
                 contradictionRepository,
                 revisionRepository,
                 new WikiResponseParser(),
-                PROMPT_TEMPLATE
+                PROMPT_TEMPLATE,
+                "claude-haiku-4-5"
         );
     }
 
