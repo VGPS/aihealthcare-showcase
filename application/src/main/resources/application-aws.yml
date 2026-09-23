@@ -11,6 +11,8 @@
 # NOT activated — the aws profile relies on cron-based schedulers instead.
 # ---------------------------------------------------------------------------
 spring:
+  thymeleaf:
+    cache: true
   datasource:
     url: jdbc:postgresql://${DB_HOST}:5432/aihealthcaredb
     username: ${DB_USERNAME:admin}

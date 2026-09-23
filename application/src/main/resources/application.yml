@@ -1,6 +1,8 @@
 spring:
   application:
     name: ai-healthcare
+  thymeleaf:
+    cache: false
 
   # Load .env file (KEY=VALUE format) so API keys are available as Spring
   # properties without requiring shell env vars.  'optional:' means the app
