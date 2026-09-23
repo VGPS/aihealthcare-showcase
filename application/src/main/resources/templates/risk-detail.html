@@ -28,7 +28,9 @@
 <main class="max-w-5xl mx-auto px-4 py-6">
 
     <!-- Enterprise upgrade gate -->
-    <div th:if="${upgradeRequired}" th:replace="~{fragments/tier-utils :: enterprisePageGate}"></div>
+    <th:block th:if="${upgradeRequired}">
+        <div th:replace="~{fragments/tier-utils :: enterprisePageGate}"></div>
+    </th:block>
 
     <div th:unless="${upgradeRequired}">
 
