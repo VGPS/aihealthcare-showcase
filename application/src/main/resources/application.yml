@@ -1723,13 +1723,12 @@ aihealthcare:
   # Enterprise remote data access (Slices ED-1 / ED-2).
   # PULL — customers submit prompts, jobs run async, artifacts + logs persist.
   # PUSH — customer-owned cron schedules email the same artifacts on a timer.
-  # Paths are relative to the working directory; created on startup if absent.
   # ---------------------------------------------------------------------------
   enterprise:
     data:
       enabled: true
-      artifact-directory: data-exports
-      log-directory: data-exports/logs
+      artifact-directory: ${user.home}/aihealthcare/data-exports
+      log-directory: ${user.home}/aihealthcare/data-exports/logs
       retention-days: 14
       max-rows-per-job: 100000
       max-artifact-bytes: 52428800          # 50 MB
