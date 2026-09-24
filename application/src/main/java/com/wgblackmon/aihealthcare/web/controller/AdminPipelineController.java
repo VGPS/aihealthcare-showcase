@@ -512,6 +512,14 @@ public class AdminPipelineController {
                 "Manual only (also runs inside Run Full Cascade)", "StartupPipelineOrchestrator (cascade step)",
                 "/api/v1/deals/detect", "POST", false, "~1-3 min", "Medium (LLM)"));
 
+        list.add(new PipelineInfo("framework-analysis", "Framework Competitive Analysis",
+                "Scores all configured AI healthcare companies (AWS, Anthropic, OpenAI, Google) across 6 dimensions " +
+                "(Technical Maturity, Clinical Validation, Regulatory Positioning, Platform Strategy, Market Momentum, Developer Experience) " +
+                "using Claude. Stores exact article IDs used in each analysis — run this to refresh the 'Articles Analyzed' count " +
+                "on the /dashboard/frameworks pages after new articles have been harvested.",
+                "Manual only (also runs inside Run Full Cascade)", "StartupPipelineOrchestrator (cascade step)",
+                "/api/v1/frameworks/analyze", "POST", false, "~2-4 min", "Medium (LLM)"));
+
         // ── Medium (no LLM) ──────────────────────────────────────────────────
         list.add(new PipelineInfo("legal-backfill", "Legal & Regulatory Backfill",
                 "Backfills legal articles from CourtListener and PubMed, plus regulatory events. Configurable lookback window.",
