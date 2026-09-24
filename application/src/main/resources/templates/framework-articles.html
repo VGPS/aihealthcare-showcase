@@ -83,11 +83,9 @@
                         <div th:if="${article.author() != null}"
                              class="text-xs text-gray-400 mt-0.5"
                              th:text="${article.author()}"></div>
-                        <div th:if="${article.bodyText() != null and !#strings.isEmpty(article.bodyText())}"
+                        <div th:if="${excerpts.containsKey(article.articleId())}"
                              class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2"
-                             th:text="${#strings.length(article.bodyText()) > 200
-                                        ? #strings.substring(article.bodyText(), 0, 200) + '…'
-                                        : article.bodyText()}"></div>
+                             th:text="${excerpts.get(article.articleId())}"></div>
                     </td>
                     <td class="px-4 py-3 align-top text-sm text-gray-600 whitespace-nowrap"
                         th:text="${article.sourceName() != null ? article.sourceName() : '—'}">Source</td>
