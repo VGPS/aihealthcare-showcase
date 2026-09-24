@@ -9,6 +9,8 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeFrameworksUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -318,9 +320,21 @@ public class FrameworkDashboardController {
             }
         }
 
+        // Strip HTML tags from bodyText for safe display as a plain-text excerpt
+        Map<String, String> excerpts = new HashMap<>();
+        for (NewsArticle article : sorted) {
+            String body = article.bodyText();
+            if (body != null && !body.isBlank()) {
+                String clean = Jsoup.clean(body, Safelist.none()).trim();
+                excerpts.put(article.articleId(),
+                        clean.length() > 200 ? clean.substring(0, 200) + "…" : clean);
+            }
+        }
+
         model.addAttribute("analysis", analysis);
         model.addAttribute("articles", sorted);
         model.addAttribute("pubDates", pubDates);
+        model.addAttribute("excerpts", excerpts);
         model.addAttribute("sort", sort);
         model.addAttribute("activePage", "frameworks");
 
