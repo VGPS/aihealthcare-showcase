@@ -73,8 +73,12 @@ class FrameworkAnalysisServiceTest {
         List<FrameworkAnalysis> results = service.analyzeAll();
 
         assertThat(results).hasSize(2);
-        verify(frameworkAnalysisPort).save(anthropicAnalysis);
-        verify(frameworkAnalysisPort).save(openaiAnalysis);
+        assertThat(results).extracting(FrameworkAnalysis::companySlug)
+                .containsExactlyInAnyOrder("anthropic", "openai");
+        // articleIds are populated from actual articles, not the mock return value
+        assertThat(results.get(0).articleIds()).hasSize(5);
+        assertThat(results.get(1).articleIds()).hasSize(5);
+        verify(frameworkAnalysisPort, org.mockito.Mockito.times(2)).save(any(FrameworkAnalysis.class));
     }
 
     @Test
@@ -163,7 +167,7 @@ class FrameworkAnalysisServiceTest {
                 slug, name, "Overall assessment text",
                 List.of(new FrameworkDimension("Technical Maturity", 7, "Good APIs")),
                 List.of("Strong docs"), List.of("Limited coverage"),
-                List.of("New release"), 7, 5, Instant.now());
+                List.of("New release"), 7, 5, List.of("art-1"), Instant.now());
     }
 
     private List<NewsArticle> buildArticles(int count, String topic) {

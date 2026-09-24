@@ -118,7 +118,7 @@ class FrameworkAnalysisPersistenceAdapterTest {
                 slug, name, "Overall assessment",
                 List.of(new FrameworkDimension("Technical Maturity", 7, "Strong APIs")),
                 List.of("Good docs"), List.of("Limited scope"),
-                List.of("New feature"), 7, 10, Instant.now());
+                List.of("New feature"), 7, 10, List.of("art-1", "art-2"), Instant.now());
     }
 
     private FrameworkAnalysisEntity buildEntity(String slug, String name) throws Exception {

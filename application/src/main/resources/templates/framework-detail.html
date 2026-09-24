@@ -109,7 +109,9 @@
                     </div>
                     <div class="border-t border-gray-100 pt-2 flex justify-between items-center">
                         <span class="text-sm text-gray-500">Articles Analyzed</span>
-                        <span class="text-lg font-semibold text-gray-800" th:text="${analysis.articleCount()}">12</span>
+                        <a th:href="@{/dashboard/frameworks/{slug}/articles(slug=${analysis.companySlug()})}"
+                           class="text-lg font-semibold text-blue-600 hover:underline"
+                           th:text="${analysis.articleCount()}">12</a>
                     </div>
                     <div class="border-t border-gray-100 pt-2 flex justify-between items-center">
                         <span class="text-sm text-gray-500">Analyzed</span>

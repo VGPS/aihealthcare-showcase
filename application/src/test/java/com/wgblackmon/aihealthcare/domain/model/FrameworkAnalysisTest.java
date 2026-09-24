@@ -61,7 +61,7 @@ class FrameworkAnalysisTest {
         FrameworkAnalysis analysis = new FrameworkAnalysis(
                 "anthropic", "Anthropic", "Great platform",
                 dims, List.of("Strength 1"), List.of("Weakness 1"),
-                List.of("Dev 1"), 8, 25, Instant.now());
+                List.of("Dev 1"), 8, 25, List.of("art-1"), Instant.now());
 
         assertThat(analysis.companySlug()).isEqualTo("anthropic");
         assertThat(analysis.companyName()).isEqualTo("Anthropic");
@@ -75,7 +75,7 @@ class FrameworkAnalysisTest {
     void analysis_rejectsBlankSlug() {
         assertThatThrownBy(() -> new FrameworkAnalysis(
                 "", "Name", "Assessment",
-                List.of(), List.of(), List.of(), List.of(), 5, 10, Instant.now()))
+                List.of(), List.of(), List.of(), List.of(), 5, 10, List.of(), Instant.now()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("companySlug must not be blank");
     }
@@ -84,7 +84,7 @@ class FrameworkAnalysisTest {
     void analysis_rejectsNullAssessment() {
         assertThatThrownBy(() -> new FrameworkAnalysis(
                 "slug", "Name", null,
-                List.of(), List.of(), List.of(), List.of(), 5, 10, Instant.now()))
+                List.of(), List.of(), List.of(), List.of(), 5, 10, List.of(), Instant.now()))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("overallAssessment must not be blank");
     }
@@ -97,7 +97,7 @@ class FrameworkAnalysisTest {
         FrameworkAnalysis analysis = new FrameworkAnalysis(
                 "slug", "Name", "Assessment",
                 List.of(new FrameworkDimension("Dim", 5, "OK")),
-                strengths, List.of(), List.of(), 5, 10, Instant.now());
+                strengths, List.of(), List.of(), 5, 10, List.of(), Instant.now());
 
         strengths.add("Strength 2");
         assertThat(analysis.strengths()).hasSize(1);
@@ -108,7 +108,7 @@ class FrameworkAnalysisTest {
         FrameworkAnalysis analysis = new FrameworkAnalysis(
                 "slug", "Name", "Assessment",
                 List.of(new FrameworkDimension("Dim", 5, "OK")),
-                null, null, null, 5, 10, Instant.now());
+                null, null, null, 5, 10, null, Instant.now());
 
         assertThat(analysis.strengths()).isEmpty();
         assertThat(analysis.weaknesses()).isEmpty();

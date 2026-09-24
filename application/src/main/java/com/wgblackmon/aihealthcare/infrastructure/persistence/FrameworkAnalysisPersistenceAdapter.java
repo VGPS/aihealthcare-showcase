@@ -22,9 +22,9 @@ import java.util.Optional;
  * {@link ObjectMapper}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-09-24
  */
 @Slf4j
 @Component
@@ -87,6 +87,8 @@ public class FrameworkAnalysisPersistenceAdapter implements FrameworkAnalysisPor
         entity.setRecentDevelopmentsJson(toJson(analysis.recentDevelopments()));
         entity.setOverallScore(analysis.overallScore());
         entity.setArticleCount(analysis.articleCount());
+        entity.setArticleIdsText(analysis.articleIds().isEmpty() ? null
+                : String.join("|", analysis.articleIds()));
         entity.setAnalyzedAt(analysis.analyzedAt());
         return entity;
     }
@@ -102,6 +104,7 @@ public class FrameworkAnalysisPersistenceAdapter implements FrameworkAnalysisPor
                 stringsFromJson(entity.getRecentDevelopmentsJson()),
                 entity.getOverallScore(),
                 entity.getArticleCount(),
+                articleIdsFromText(entity.getArticleIdsText()),
                 entity.getAnalyzedAt()
         );
     }
@@ -125,6 +128,20 @@ public class FrameworkAnalysisPersistenceAdapter implements FrameworkAnalysisPor
             log.warn("dimensionsFromJson() | failed to deserialize dimensions: {}", e.getMessage());
             return List.of();
         }
+    }
+
+    private List<String> articleIdsFromText(String text) {
+        if (text == null || text.isBlank()) {
+            return List.of();
+        }
+        List<String> ids = new ArrayList<>();
+        for (String id : text.split("\\|")) {
+            String trimmed = id.trim();
+            if (!trimmed.isEmpty()) {
+                ids.add(trimmed);
+            }
+        }
+        return ids;
     }
 
     private List<String> stringsFromJson(String json) {

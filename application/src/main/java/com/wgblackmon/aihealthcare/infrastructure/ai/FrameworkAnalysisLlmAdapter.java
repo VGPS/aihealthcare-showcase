@@ -145,7 +145,7 @@ public class FrameworkAnalysisLlmAdapter implements FrameworkLlmPort {
         FrameworkAnalysis result = new FrameworkAnalysis(
                 companySlug, companyName, overallAssessment,
                 dimensions, strengths, weaknesses, recentDevelopments,
-                overallScore, articleCount, Instant.now());
+                overallScore, articleCount, List.of(), Instant.now());
 
         log.debug("parseResponse() | return={} (overallScore={}, dimensions={})",
                   companySlug, overallScore, dimensions.size());

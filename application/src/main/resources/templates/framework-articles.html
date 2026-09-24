@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Source articles for a single company's framework competitive analysis.
+ *
+ * Shows the exact set of articles that were fed to the LLM when the
+ * analysis last ran. Columns: Title (linked), Source, Topic, Published
+ * Date — all sortable. Short bodyText excerpt shown under each title.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-09-24
+ * @updated 2026-09-24
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Source Articles — ' + ${analysis.companyName()})}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <div class="flex items-center gap-3 flex-wrap">
+        <a th:href="@{/dashboard/frameworks/{slug}(slug=${analysis.companySlug()})}"
+           class="text-primary-200 hover:text-white text-sm">&larr; Back to Analysis</a>
+        <h1 class="font-display text-2xl font-bold tracking-tight"
+            th:text="${analysis.companyName()} + ' — Source Articles'">Company — Source Articles</h1>
+        <span class="bg-primary-400/30 text-white text-xs font-semibold px-2 py-0.5 rounded-pill"
+              th:text="${#lists.size(articles)} + ' articles'">0 articles</span>
+    </div>
+    <p class="text-primary-200 text-sm mt-0.5">
+        Exact articles used for the framework analysis — analyzed
+        <span th:text="${#strings.replace(#strings.substring(analysis.analyzedAt().toString(), 0, 10), 'T', ' ')}">date</span>
+    </p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('frameworks')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+    <div th:if="${articles == null or #lists.isEmpty(articles)}"
+         class="bg-white rounded-lg shadow-sm p-8 text-center text-gray-500">
+        No source articles are stored for this analysis.
+        Re-run the framework analysis to capture the article set.
+    </div>
+
+    <div th:unless="${articles == null or #lists.isEmpty(articles)}" class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <table class="result-table w-full">
+            <thead>
+                <tr>
+                    <th class="text-left px-4 py-3 text-sm font-semibold text-gray-700 border-b border-gray-200">
+                        <a th:href="@{/dashboard/frameworks/{slug}/articles(slug=${analysis.companySlug()},sort='title')}"
+                           th:classappend="${sort == 'title'} ? 'text-primary-700 font-bold' : 'text-gray-600 hover:text-primary-600'">
+                            Title &#x2195;
+                        </a>
+                    </th>
+                    <th class="text-left px-4 py-3 text-sm font-semibold text-gray-700 border-b border-gray-200 whitespace-nowrap">
+                        <a th:href="@{/dashboard/frameworks/{slug}/articles(slug=${analysis.companySlug()},sort='source')}"
+                           th:classappend="${sort == 'source'} ? 'text-primary-700 font-bold' : 'text-gray-600 hover:text-primary-600'">
+                            Source &#x2195;
+                        </a>
+                    </th>
+                    <th class="text-left px-4 py-3 text-sm font-semibold text-gray-700 border-b border-gray-200 whitespace-nowrap">
+                        <a th:href="@{/dashboard/frameworks/{slug}/articles(slug=${analysis.companySlug()},sort='topic')}"
+                           th:classappend="${sort == 'topic'} ? 'text-primary-700 font-bold' : 'text-gray-600 hover:text-primary-600'">
+                            Topic &#x2195;
+                        </a>
+                    </th>
+                    <th class="text-left px-4 py-3 text-sm font-semibold text-gray-700 border-b border-gray-200 whitespace-nowrap">
+                        <a th:href="@{/dashboard/frameworks/{slug}/articles(slug=${analysis.companySlug()},sort='date')}"
+                           th:classappend="${sort == 'date'} ? 'text-primary-700 font-bold' : 'text-gray-600 hover:text-primary-600'">
+                            Published &#x2195;
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="article : ${articles}" class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="px-4 py-3 align-top">
+                        <a th:href="${article.url()}" th:text="${article.title()}"
+                           target="_blank" rel="noopener noreferrer"
+                           class="text-sm font-medium text-blue-600 hover:underline leading-snug">Title</a>
+                        <div th:if="${article.author() != null}"
+                             class="text-xs text-gray-400 mt-0.5"
+                             th:text="${article.author()}"></div>
+                        <div th:if="${article.bodyText() != null and !#strings.isEmpty(article.bodyText())}"
+                             class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2"
+                             th:text="${#strings.length(article.bodyText()) > 200
+                                        ? #strings.substring(article.bodyText(), 0, 200) + '…'
+                                        : article.bodyText()}"></div>
+                    </td>
+                    <td class="px-4 py-3 align-top text-sm text-gray-600 whitespace-nowrap"
+                        th:text="${article.sourceName() != null ? article.sourceName() : '—'}">Source</td>
+                    <td class="px-4 py-3 align-top">
+                        <span class="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded"
+                              th:text="${article.topic()}">topic</span>
+                    </td>
+                    <td class="px-4 py-3 align-top text-xs text-gray-500 whitespace-nowrap"
+                        th:text="${pubDates.containsKey(article.articleId()) ? pubDates.get(article.articleId()) : 'unknown'}">date</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+</html>

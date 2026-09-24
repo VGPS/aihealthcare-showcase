@@ -1,6 +1,7 @@
 package com.wgblackmon.aihealthcare.domain.port.inbound;
 
 import com.wgblackmon.aihealthcare.domain.model.FrameworkAnalysis;
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,9 +14,9 @@ import java.util.Optional;
  * analyst-grade assessments.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-09-24
  */
 public interface AnalyzeFrameworksUseCase {
 
@@ -40,4 +41,13 @@ public interface AnalyzeFrameworksUseCase {
      * @return all analyses; may be empty
      */
     List<FrameworkAnalysis> getAll();
+
+    /**
+     * Returns the exact set of articles that were fed to the LLM when
+     * the most recent analysis for this company was run.
+     *
+     * @param companySlug the company's slug identifier
+     * @return articles used for analysis; empty if none stored or slug unknown
+     */
+    List<NewsArticle> getArticlesForSlug(String companySlug);
 }

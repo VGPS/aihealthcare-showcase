@@ -90,7 +90,7 @@ class DealEnrichmentServiceTest {
     void enrich_withFramework_returnsFramework() {
         FrameworkAnalysis framework = new FrameworkAnalysis(
                 "tempus-ai", "Tempus AI", "Strong AI diagnostics platform",
-                List.of(), List.of(), List.of(), List.of(), 8, 10, Instant.now());
+                List.of(), List.of(), List.of(), List.of(), 8, 10, List.of(), Instant.now());
         when(frameworkPort.findBySlug("tempus-ai")).thenReturn(Optional.of(framework));
         when(regulatoryPort.findByApplicant(anyString(), anyInt())).thenReturn(List.of());
         when(profilePort.findAll()).thenReturn(List.of());
