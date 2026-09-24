@@ -59,7 +59,7 @@
                     <div class="text-3xl font-bold text-primary-800">
                         <span th:text="${analysis.overallScore()}">7</span><span class="text-lg text-gray-400">/10</span>
                     </div>
-                    <div class="text-xs text-gray-400" th:text="${analyzedDates[analysis.companySlug()]}">Aug 3, 2026</div>
+                    <div class="text-xs text-gray-400">Last analyzed: <span th:text="${analyzedDates[analysis.companySlug()]}">Aug 3, 2026</span></div>
                 </div>
             </div>
 
@@ -108,7 +108,7 @@
                     <span th:unless="${isEnterprise}" class="text-xs bg-purple-100 text-purple-700 font-semibold px-1.5 py-0.5 rounded">Enterprise</span>
                 </div>
                 <span class="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full"
-                      th:text="${analysis.articleCount()} + ' articles'">12 articles</span>
+                      th:text="'Based on ' + ${analysis.articleCount()} + ' articles'">Based on 12 articles</span>
             </div>
         </div>
     </div>

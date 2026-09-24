@@ -115,7 +115,7 @@ class SignedDownloadControllerTest {
 
         mockMvc.perform(get("/d/valid-token"))
                 .andExpect(status().isOk())
-                .andExpect(header().string("Content-Disposition", "attachment; filename=\"job-42.csv\""))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"data-articles-2026-09-08.csv\""))
                 .andExpect(content().contentType("text/csv"));
 
         verify(auditPort).append(any(DataAccessAuditEntry.class));

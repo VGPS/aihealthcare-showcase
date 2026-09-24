@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 /**
@@ -31,9 +33,9 @@ import java.util.Optional;
  * token or deleted artifact, and {@code 200} with the file on success.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-09-24 — ED-UX-1: compute human-readable filename with extension from feedId+date+format
  */
 @Slf4j
 @RestController
@@ -93,7 +95,11 @@ public class SignedDownloadController {
             ));
 
             String contentType = resolveContentType(job);
-            String fileName = job.artifactPath();
+            String dateStr = job.submittedAt() != null
+                    ? DateTimeFormatter.ISO_LOCAL_DATE.withZone(ZoneOffset.UTC).format(job.submittedAt())
+                    : "export";
+            String ext = (job.format() != null) ? job.format().name().toLowerCase() : "csv";
+            String fileName = "data-" + job.feedId() + "-" + dateStr + "." + ext;
 
             log.debug("download() | return=200, bytes={}", data.length);
             return ResponseEntity.ok()
