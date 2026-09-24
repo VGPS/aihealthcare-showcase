@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.FrameworkAnalysis;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkDimension;
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeFrameworksUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
@@ -15,6 +16,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+
+import java.net.URI;
+import java.time.Instant;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -123,6 +127,53 @@ class FrameworkDashboardControllerTest {
                 .andExpect(model().attribute("hasAnalyses", true));
     }
 
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void articles_rendersForValidSlug() throws Exception {
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
+        when(frameworksUseCase.getBySlug("anthropic"))
+                .thenReturn(Optional.of(buildAnalysis("anthropic", "Anthropic")));
+        when(frameworksUseCase.getArticlesForSlug("anthropic"))
+                .thenReturn(List.of(buildArticle()));
+
+        mockMvc.perform(get("/dashboard/frameworks/anthropic/articles"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("framework-articles"))
+                .andExpect(model().attributeExists("articles"))
+                .andExpect(model().attributeExists("analysis"))
+                .andExpect(model().attributeExists("pubDates"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void articles_redirectsForUnknownSlug() throws Exception {
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
+        when(frameworksUseCase.getBySlug("unknown")).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/dashboard/frameworks/unknown/articles"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard/frameworks"));
+    }
+
+    @Test
+    @WithMockUser
+    void articles_redirectsWithoutFullAccess() throws Exception {
+        when(tierResolver.hasFullAccess(any())).thenReturn(false);
+
+        mockMvc.perform(get("/dashboard/frameworks/anthropic/articles"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard/frameworks"));
+    }
+
+    private NewsArticle buildArticle() {
+        return new NewsArticle(
+                "art-1", "Test Article Title",
+                URI.create("https://example.com/article"),
+                "Article body text excerpt",
+                "Anthropic Healthcare", "Author Name", null,
+                "Test Source", "INDUSTRY", 0.8, Instant.parse("2026-09-01T10:00:00Z"));
+    }
+
     private FrameworkAnalysis buildAnalysis(String slug, String name) {
         return new FrameworkAnalysis(
                 slug, name, "Overall assessment\n\nSecond paragraph",
@@ -136,6 +187,6 @@ class FrameworkDashboardControllerTest {
                 List.of("Strong documentation"),
                 List.of("Limited clinical data"),
                 List.of("New partnership announced"),
-                7, 25, Instant.now());
+                7, 25, List.of("art-1", "art-2"), Instant.now());
     }
 }

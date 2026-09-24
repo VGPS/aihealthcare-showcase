@@ -95,6 +95,6 @@ class FrameworkRestControllerTest {
                 slug, name, "Overall assessment text",
                 List.of(new FrameworkDimension("Technical Maturity", 7, "Strong APIs")),
                 List.of("Good docs"), List.of("Limited scope"),
-                List.of("New feature"), 7, 10, Instant.now());
+                List.of("New feature"), 7, 10, List.of("art-1"), Instant.now());
     }
 }

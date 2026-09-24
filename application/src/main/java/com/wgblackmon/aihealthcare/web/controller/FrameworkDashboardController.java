@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.web.controller;
 import com.wgblackmon.aihealthcare.domain.model.AnalystNote;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkAnalysis;
 import com.wgblackmon.aihealthcare.domain.model.FrameworkDimension;
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NoteTargetType;
 import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeFrameworksUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AnalystNotePort;
@@ -34,9 +35,9 @@ import java.util.regex.Pattern;
  * {@code GET /dashboard/frameworks/{slug}} for single-company drill-down.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.2
  * @since   2026-08-03
- * @updated 2026-09-12
+ * @updated 2026-09-24
  */
 @Slf4j
 @Controller
@@ -82,7 +83,7 @@ public class FrameworkDashboardController {
                 stripCitationsList(a.strengths()),
                 stripCitationsList(a.weaknesses()),
                 stripCitationsList(a.recentDevelopments()),
-                a.overallScore(), a.articleCount(), a.analyzedAt());
+                a.overallScore(), a.articleCount(), a.articleIds(), a.analyzedAt());
     }
 
     private final AnalyzeFrameworksUseCase frameworksUseCase;
@@ -249,5 +250,81 @@ public class FrameworkDashboardController {
 
         log.debug("frameworkDetail() | return=framework-detail for {}, noteCount={}", slug, analystNotes.size());
         return "framework-detail";
+    }
+
+    /**
+     * Renders the source-articles page for a single company's framework analysis.
+     * Shows the exact set of articles that were fed to the LLM when the analysis ran.
+     *
+     * @param slug  the company's slug identifier
+     * @param sort  optional sort column: "title", "source", "topic", "date" (default "date")
+     * @param model Thymeleaf model
+     * @return the "framework-articles" view name, or redirect if slug unknown
+     */
+    @GetMapping("/dashboard/frameworks/{slug}/articles")
+    public String frameworkArticles(@PathVariable String slug,
+                                    @org.springframework.web.bind.annotation.RequestParam(defaultValue = "date") String sort,
+                                    Model model, Principal principal) {
+        log.debug("frameworkArticles() | slug={}, sort={}, principal={}", slug, sort,
+                  principal != null ? principal.getName() : "anonymous");
+
+        if (tierResolver == null || !tierResolver.hasFullAccess(principal)) {
+            log.debug("frameworkArticles() | return=redirect (no access) for slug={}", slug);
+            return "redirect:/dashboard/frameworks";
+        }
+
+        Optional<FrameworkAnalysis> opt = frameworksUseCase.getBySlug(slug);
+        if (opt.isEmpty()) {
+            log.debug("frameworkArticles() | return=redirect (not found: {})", slug);
+            return "redirect:/dashboard/frameworks";
+        }
+
+        FrameworkAnalysis analysis = opt.get();
+        List<NewsArticle> articles = frameworksUseCase.getArticlesForSlug(slug);
+
+        // Sort
+        List<NewsArticle> sorted = new ArrayList<>(articles);
+        switch (sort) {
+            case "title" -> sorted.sort((a, b) -> {
+                String ta = a.title() != null ? a.title() : "";
+                String tb = b.title() != null ? b.title() : "";
+                return ta.compareToIgnoreCase(tb);
+            });
+            case "source" -> sorted.sort((a, b) -> {
+                String sa = a.sourceName() != null ? a.sourceName() : "";
+                String sb = b.sourceName() != null ? b.sourceName() : "";
+                return sa.compareToIgnoreCase(sb);
+            });
+            case "topic" -> sorted.sort((a, b) -> {
+                String ta = a.topic() != null ? a.topic() : "";
+                String tb = b.topic() != null ? b.topic() : "";
+                return ta.compareToIgnoreCase(tb);
+            });
+            default -> sorted.sort((a, b) -> {
+                if (a.publishedAt() == null && b.publishedAt() == null) return 0;
+                if (a.publishedAt() == null) return 1;
+                if (b.publishedAt() == null) return -1;
+                return b.publishedAt().compareTo(a.publishedAt());
+            });
+        }
+
+        // Format publication dates for display
+        Map<String, String> pubDates = new HashMap<>();
+        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                .withZone(ZoneId.of("UTC"));
+        for (NewsArticle article : sorted) {
+            if (article.publishedAt() != null) {
+                pubDates.put(article.articleId(), dateFmt.format(article.publishedAt()) + " UTC");
+            }
+        }
+
+        model.addAttribute("analysis", analysis);
+        model.addAttribute("articles", sorted);
+        model.addAttribute("pubDates", pubDates);
+        model.addAttribute("sort", sort);
+        model.addAttribute("activePage", "frameworks");
+
+        log.debug("frameworkArticles() | return=framework-articles for {}, articleCount={}", slug, sorted.size());
+        return "framework-articles";
     }
 }

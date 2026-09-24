@@ -16,9 +16,9 @@ import java.time.Instant;
  * as JSON TEXT columns and deserialized by {@link FrameworkAnalysisPersistenceAdapter}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-09-24
  */
 @Entity
 @Table(name = "framework_analyses")
@@ -52,6 +52,9 @@ public class FrameworkAnalysisEntity {
     @Column(name = "article_count")
     private int articleCount;
 
+    @Column(name = "article_ids_text", columnDefinition = "TEXT")
+    private String articleIdsText;
+
     @Column(name = "analyzed_at", nullable = false)
     private Instant analyzedAt;
 
@@ -84,6 +87,9 @@ public class FrameworkAnalysisEntity {
 
     public int getArticleCount() { return articleCount; }
     public void setArticleCount(int articleCount) { this.articleCount = articleCount; }
+
+    public String getArticleIdsText() { return articleIdsText; }
+    public void setArticleIdsText(String articleIdsText) { this.articleIdsText = articleIdsText; }
 
     public Instant getAnalyzedAt() { return analyzedAt; }
     public void setAnalyzedAt(Instant analyzedAt) { this.analyzedAt = analyzedAt; }

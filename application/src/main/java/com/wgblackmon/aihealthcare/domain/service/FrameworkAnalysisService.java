@@ -23,9 +23,9 @@ import java.util.Optional;
  * <p>Has no Spring dependencies — wired via {@code AppConfig}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-03
- * @updated 2026-08-03
+ * @updated 2026-09-24
  */
 public class FrameworkAnalysisService implements AnalyzeFrameworksUseCase {
 
@@ -56,12 +56,26 @@ public class FrameworkAnalysisService implements AnalyzeFrameworksUseCase {
                 continue;
             }
 
-            FrameworkAnalysis analysis = frameworkLlmPort.analyze(
+            FrameworkAnalysis llmResult = frameworkLlmPort.analyze(
                     company.slug(), company.name(), articles);
-            if (analysis != null) {
-                frameworkAnalysisPort.save(analysis);
-                results.add(analysis);
+            if (llmResult == null) {
+                continue;
             }
+
+            // Overlay the exact article IDs used so the analysis is inspectable
+            List<String> ids = new ArrayList<>();
+            for (NewsArticle article : articles) {
+                ids.add(article.articleId());
+            }
+            FrameworkAnalysis analysis = new FrameworkAnalysis(
+                    llmResult.companySlug(), llmResult.companyName(),
+                    llmResult.overallAssessment(), llmResult.dimensions(),
+                    llmResult.strengths(), llmResult.weaknesses(),
+                    llmResult.recentDevelopments(), llmResult.overallScore(),
+                    llmResult.articleCount(), ids, llmResult.analyzedAt());
+
+            frameworkAnalysisPort.save(analysis);
+            results.add(analysis);
         }
 
         return results;
@@ -75,6 +89,13 @@ public class FrameworkAnalysisService implements AnalyzeFrameworksUseCase {
     @Override
     public List<FrameworkAnalysis> getAll() {
         return frameworkAnalysisPort.findAll();
+    }
+
+    @Override
+    public List<NewsArticle> getArticlesForSlug(String companySlug) {
+        return frameworkAnalysisPort.findBySlug(companySlug)
+                .map(analysis -> articleIngestionPort.fetchArticlesByIds(analysis.articleIds()))
+                .orElse(List.of());
     }
 
     /**
