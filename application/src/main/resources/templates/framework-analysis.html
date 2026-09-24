@@ -109,7 +109,7 @@
                 </div>
                 <a th:href="@{/dashboard/frameworks/{slug}/articles(slug=${analysis.companySlug()})}"
                    class="text-xs bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-700 px-2 py-1 rounded-full transition-colors"
-                   th:text="'Based on ' + ${analysis.articleCount()} + ' articles'">Based on 12 articles</a>
+                   th:text="'Based on ' + (not #lists.isEmpty(analysis.articleIds()) ? #lists.size(analysis.articleIds()) : analysis.articleCount()) + ' articles'">Based on 12 articles</a>
             </div>
         </div>
     </div>
