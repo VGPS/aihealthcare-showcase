@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-25
- * @updated 2026-09-25
+ * @updated 2026-09-25 — add ogImage + sharper pageDescription for LinkedIn OG card
  */
 @Slf4j
 @Controller
@@ -26,7 +26,8 @@ public class TourController {
     public String tour(Model model) {
         log.debug("tour() | rendering product tour page");
         model.addAttribute("pageDescription",
-                "A guided video tour of AI Healthcare Intelligence — market digests, deal signals, regulatory tracking, sentiment analysis, and more.");
+                "See AI Healthcare Intelligence in action — market digests, deal signals, regulatory tracking, sentiment analysis, and more. Free trial available.");
+        model.addAttribute("ogImage", "/images/tour-og.png");
         log.debug("tour() | return=tour");
         return "tour";
     }
