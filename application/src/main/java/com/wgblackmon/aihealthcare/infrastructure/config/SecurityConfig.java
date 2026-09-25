@@ -78,8 +78,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/login", "/register", "/choose-path", "/unsubscribe", "/unsubscribe/downgrade",
                                  "/forgot-password", "/reset-password",
-                                 "/css/**", "/js/**", "/webjars/**",
-                                 "/pricing", "/about", "/press", "/press/og.png", "/error", "/privacy",
+                                 "/css/**", "/js/**", "/webjars/**", "/videos/**",
+                                 "/pricing", "/about", "/tour", "/press", "/press/og.png", "/error", "/privacy",
                                  "/directory", "/directory/**").permitAll()
                 .requestMatchers("/d/**").permitAll()
                 .requestMatchers("/saml2/**", "/login/saml2/**").permitAll()
