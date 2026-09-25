@@ -62,4 +62,6 @@ docs/code-flow-diagrams.md
 e2e/.auth/
 e2e/report/
 e2e/test-results/
+linkedin-posts/slideshow/.auth/
+linkedin-posts/slideshow/frames/concat-list.txt
 playwright-report/

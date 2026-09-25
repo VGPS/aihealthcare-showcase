@@ -3,7 +3,9 @@
     "e2e": "playwright test",
     "e2e:local": "BASE_URL=http://localhost:8080 playwright test",
     "e2e:prod": "BASE_URL=https://app.bigskylabs.ai playwright test",
-    "e2e:report": "playwright show-report e2e/report"
+    "e2e:report": "playwright show-report e2e/report",
+    "slideshow": "node linkedin-posts/slideshow/slideshow.js",
+    "slideshow:prod": "BASE_URL=https://app.bigskylabs.ai node linkedin-posts/slideshow/slideshow.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
