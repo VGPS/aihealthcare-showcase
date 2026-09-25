@@ -481,6 +481,7 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | `/register` | Self-registration for new DEMO users (7-day trial) |
 | `/developer` | Developer portal — API documentation, key management, usage examples |
 | `/enterprise/data` | Enterprise data console — submit jobs, monitor progress, tail logs, download artifacts, manage push schedules (ENTERPRISE only) |
+| `/tour` | Public product tour — embedded subscriber-view walkthrough video with playback speed controls (0.5×–2×); no login required |
 | `/privacy` | Privacy policy — data collection, opt-in process, unsubscribe, and bounce/complaint handling disclosure |
 
 ## REST API Endpoints

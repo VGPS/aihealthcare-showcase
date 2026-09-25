@@ -128,6 +128,7 @@ Report a summary to the user:
 | `nav.html` (fragment) | *(all pages — navigation changed)* |
 | `head.html` (fragment) | *(all pages — head changed)* |
 | `footer.html` (fragment) | *(all pages — footer changed)* |
+| `tour.html` | `/tour` |
 | `tailwind.css` or other CSS | *(all pages — styles changed)* |
 
 Prefix each URL with `http://localhost:8080` so the user can click directly.
