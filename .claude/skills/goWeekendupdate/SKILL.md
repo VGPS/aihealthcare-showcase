@@ -191,7 +191,7 @@ Commit with a descriptive message:
 ```bash
 git commit -m "Add $DATE weekly intel roundup: LinkedIn/Facebook/Substack posts
 
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
 
 Push to both remotes:

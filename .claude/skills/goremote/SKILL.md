@@ -13,7 +13,7 @@ their own data. DB sync is a separate manual step if schema changes require it.
 ```
 IP="100.61.13.237"
 KEY="C:/workspaces/SpringAIClaude/N_VaKeyPair.pem"
-JAR="target/ai-healthcare-1.0-SNAPSHOT.jar"
+JAR="target/ai-healthcare-1.1.0-SNAPSHOT.jar"
 AWS_YML="application/src/main/resources/application-aws.yml"
 REMOTE_DIR="/opt/aihealthcare"
 ```

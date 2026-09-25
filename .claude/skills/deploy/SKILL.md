@@ -12,7 +12,7 @@ Build, upload, restart, and verify the app on EC2. Stop on any failure.
 ```
 IP="100.61.13.237"
 KEY="C:/workspaces/SpringAIClaude/N_VaKeyPair.pem"
-JAR="target/ai-healthcare-1.0-SNAPSHOT.jar"
+JAR="target/ai-healthcare-1.1.0-SNAPSHOT.jar"
 AWS_YML="application/src/main/resources/application-aws.yml"
 REMOTE_DIR="/opt/aihealthcare"
 ```
@@ -56,7 +56,7 @@ ssh -i "$KEY" "ec2-user@${IP}" "nohup sudo systemctl restart aihealthcare &>/dev
 ### 5. Verify — wait ~2 minutes for startup harvest, then check
 
 ```bash
-sleep 120 && curl -s -o /dev/null -w "%{http_code}" https://app.bigskylabs.ai/login
+sleep 30 && curl -s -o /dev/null -w "%{http_code}" https://app.bigskylabs.ai/login
 ```
 
 Should return `200`. If `502`, wait 60 more seconds and retry — the startup harvest calls LLMs for topic summaries.

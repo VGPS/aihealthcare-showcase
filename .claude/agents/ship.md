@@ -39,7 +39,7 @@ Review changes with `git status` and `git diff --stat`. Stage relevant files (ne
 Write a commit message following project conventions:
 - First line: short summary + test count
 - Body: bullet points of changes
-- End with `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`
+- End with `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
 
 **STOP if nothing to commit.** Report "nothing to ship".
 
@@ -63,7 +63,7 @@ mvn package -DskipTests -q 2>&1 | tail -5
 Use `timeout 600000` for SCP (large JAR).
 
 ```bash
-scp -i "$KEY" target/ai-healthcare-1.0-SNAPSHOT.jar "ec2-user@${IP}:/opt/aihealthcare/app.jar"
+scp -i "$KEY" target/ai-healthcare-1.1.0-SNAPSHOT.jar "ec2-user@${IP}:/opt/aihealthcare/app.jar"
 scp -i "$KEY" application/src/main/resources/application-aws.yml "ec2-user@${IP}:/opt/aihealthcare/"
 scp -i "$KEY" deploy/static/index.html "ec2-user@${IP}:/opt/bigskylabs/static/"
 ```
@@ -81,7 +81,7 @@ ssh -i "$KEY" "ec2-user@${IP}" "nohup sudo systemctl restart aihealthcare &>/dev
 Wait 2 minutes for startup, then health check:
 
 ```bash
-sleep 120 && curl -s -o /dev/null -w "%{http_code}" https://app.bigskylabs.ai/login
+sleep 30 && curl -s -o /dev/null -w "%{http_code}" https://app.bigskylabs.ai/login
 ```
 
 If `502`, wait 60 more seconds and retry once. If still failing, check logs:
