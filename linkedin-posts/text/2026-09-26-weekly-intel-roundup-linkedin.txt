@@ -1,0 +1,53 @@
+=== LINKEDIN POST BODY ===
+AI in Healthcare — Weekly Intel Roundup
+September 20, 2026 – September 26, 2026
+
+This week brought 10 significant developments across AI healthcare:
+1 legal/regulatory action and 9 competitor moves.
+
+PeaceHealth cut 250 IT jobs and outsourced the work to Tech Mahindra and HCI Group, while four separate state WARN Act filings (WA, CA, TX, NY) point to a broader wave of healthcare IT labor shifting away from in-house teams. 
+
+The same week, Amazon, Anthropic, and Google all pushed new healthcare AI announcements — the vendor land grab for clinical workflows isn't slowing down while the labor underneath it quietly moves.
+
+Full analysis available at app.bigskylabs.ai.
+
+#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #WeeklyRoundup
+
+=== LINKEDIN FIRST COMMENT (paste after posting) ===
+Full analysis + interactive infographic:
+https://app.bigskylabs.ai/insights/2026-09-26-weekly-intel-roundup.html
+
+We track 57+ sources and 318 companies daily.
+Subscribe for the full intelligence feed: https://app.bigskylabs.ai
+
+#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #WeeklyRoundup
+
+=== FACEBOOK POST ===
+AI in Healthcare — Weekly Intel Roundup
+September 20, 2026 – September 26, 2026
+
+This week brought 10 significant developments across AI healthcare — 1 legal/regulatory action and 9 competitor moves. PeaceHealth cut 250 IT jobs and outsourced the work to Tech Mahindra and HCI Group, while four separate state WARN Act filings (WA, CA, TX, NY) point to a broader wave of healthcare IT labor shifting away from in-house teams. The same week, Amazon, Anthropic, and Google all pushed new healthcare AI announcements — the vendor land grab for clinical workflows isn't slowing down while the labor underneath it quietly moves.
+
+Full analysis: https://app.bigskylabs.ai/insights/2026-09-26-weekly-intel-roundup.html
+
+#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #WeeklyRoundup
+
+=== IMAGE ===
+File: linkedin-posts/shots/2026-09-26-weekly-intel-roundup.jpg
+Use as the LinkedIn post image and the Facebook post image.
+
+=== POSTING INSTRUCTIONS ===
+
+LINKEDIN:
+1. Copy the Post Body above
+2. Go to linkedin.com → Start a post
+3. Paste the body text
+4. Add 2026-09-26-weekly-intel-roundup.jpg as the post image
+5. Publish (do NOT add links in the body — kills reach 40-60%)
+6. Immediately paste the First Comment on your new post
+
+FACEBOOK:
+1. Copy the Facebook Post above
+2. Post to your Facebook page/group
+3. Add 2026-09-26-weekly-intel-roundup.jpg as the post image
+4. The insights URL generates an OG preview card automatically

@@ -1,0 +1,69 @@
+=== MEDIUM POST ===
+Title: A Health System Cut 250 IT Jobs the Same Week Amazon, Anthropic, and Google All Made Healthcare AI Moves
+Subtitle: State WARN Act filings are a quiet, real-time signal of where healthcare IT labor is actually going — and almost nobody is watching them.
+
+Tags: Artificial Intelligence · Healthcare · Health Tech · Future Of Work · Data Science
+
+Submit to: DataDrivenInvestor (first choice), Towards AI (if declined)
+
+---
+
+On September 22nd, PeaceHealth — a nonprofit health system operating hospitals across Washington, Oregon, and Alaska — filed a notice that it was cutting 250 IT jobs and moving the work to Tech Mahindra and HCI Group. It's a single line in a WARN Act database. Nobody covered it as a healthcare AI story.
+
+But look at what happened in the same seven-day window: Amazon formally unveiled Connect Health, its agentic AI platform for point-of-care workflows. Anthropic published another update on Claude's positioning in healthcare and life sciences. Google pushed a new release of its Check Up Health AI initiative. And four separate states — Washington, California, Texas, New York — logged fresh WARN Act filings tied to healthcare IT layoffs and offshoring.
+
+That's not a coincidence of timing. It's the same story told from two different data sources.
+
+---
+
+Two signals, one story
+
+Every major cloud and AI vendor is racing to own the clinical workflow. That part of the story gets covered — extensively. What doesn't get covered is the other half: the in-house healthcare IT labor being displaced as health systems adopt AI-enabled outsourcing and offshore delivery models.
+
+State WARN Act filings are public record. Every state with an at-scale layoff reporting requirement publishes them — usually as a dry, unindexed government database nobody outside of labor-law compliance teams reads regularly. They're not glamorous. They don't show up in a Google News search for "healthcare AI." But they are one of the only real-time, ground-truth signals of where healthcare IT labor is actually moving, and they consistently lead trade-press coverage of the same layoffs by days or weeks.
+
+---
+
+Why this matters if you cover, invest in, or work in healthcare AI
+
+If you're an analyst or investor, the vendor announcements tell you where the market is going. The WARN filings tell you what it's already costing, and who's paying it. Both halves matter, and most healthcare AI coverage only tracks one of them.
+
+If you're inside a health system's IT organization, this is the leading edge of a trend, not an isolated event. PeaceHealth isn't the first health system to outsource IT to AI-enabled delivery partners, and the state filing data suggests it won't be the last.
+
+---
+
+How I'm tracking this
+
+The platform I've been building — AI Healthcare Intelligence (https://app.bigskylabs.ai) — pulls state WARN Act feeds alongside vendor announcements, FDA/CMS regulatory events, funding rounds, and 50+ other sources into a single daily pipeline, classifies each item, and produces a weekly roundup that puts the labor-market signal next to the product-announcement signal instead of treating them as separate beats.
+
+This week's roundup is here: https://app.bigskylabs.ai/insights/2026-09-26-weekly-intel-roundup.html
+
+If you track this space and have seen similar labor-shift filings in your region, I'd like to hear about it — that's exactly the kind of signal this pipeline is built to catch earlier.
+
+=== IMAGE ===
+Cover image file: 2026-09-26-weekly-intel-roundup.jpg
+Location: linkedin-posts/shots/2026-09-26-weekly-intel-roundup.jpg
+Dimensions: 1201x577 (article-preview screenshot from the weekly roundup page)
+
+=== MEDIUM POSTING INSTRUCTIONS ===
+
+1. Go to medium.com → Write a story
+2. Paste the title: "A Health System Cut 250 IT Jobs the Same Week Amazon, Anthropic, and Google All Made Healthcare AI Moves"
+3. Paste the subtitle: "State WARN Act filings are a quiet, real-time signal of where healthcare IT labor is actually going — and almost nobody is watching them."
+4. Paste the full post body above (the "---" lines render as section dividers — keep them)
+5. Add the cover image: 2026-09-26-weekly-intel-roundup.jpg
+6. Add tags (use all 5):
+      Artificial Intelligence
+      Healthcare
+      Health Tech
+      Future Of Work
+      Data Science
+7. Before publishing: click "Publish" → toggle "Metered paywall" to OFF (free/public).
+   Paywalled posts aren't indexed by Google and get no external search traffic.
+8. Before clicking Publish: click "Add to publication" → search "DataDrivenInvestor"
+   → click "Submit to publication". If declined after 5 days, submit to "Towards AI" instead.
+
+AFTER PUBLISHING:
+9. Post the link on LinkedIn as a short follow-up once it's live — early comment/engagement
+   velocity in the first 24 hours is a strong distribution signal on Medium.
+10. Reply to every comment within 24 hours.
