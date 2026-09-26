@@ -240,16 +240,19 @@ aihealthcare:
     schedule: "0 0 */6 * * *"
 
   # ---------------------------------------------------------------------------
-  # Market Analysis — daily AI-healthcare market digest pipeline.
-  # Fires at 07:00 America/Chicago (zone is set in @Scheduled annotation).
+  # Market Analysis — weekly AI-healthcare market digest pipeline.
+  # Changed from daily to weekly (Saturday 07:00 America/Chicago) to reduce
+  # Perplexity + Claude API spend while no paying subscribers are active.
+  # Restore to "0 0 7 * * *" when subscriber volume warrants daily runs.
+  # Price-reaction capture changed from hourly to daily (04:00 UTC) to match.
   # ---------------------------------------------------------------------------
   market-analysis:
-    schedule: "0 0 7 * * *"
+    schedule: "0 0 7 * * SAT"
     notify-address: "${MARKET_DIGEST_NOTIFY_ADDRESS:newsletter@bigskylabs.ai}"
     dedup:
       similarity-threshold: 0.93
     reaction:
-      schedule: "0 0 * * * *"
+      schedule: "0 0 4 * * *"
 
   # Trend Detection — weekly keyword frequency analysis across rolling windows.
   # Schedule default: Sunday 08:00 UTC (after wiki lint completes).
@@ -355,11 +358,13 @@ aihealthcare:
     mode: COMBINED
     harvest:
       # -----------------------------------------------------------------------
-      # Cron schedule for proactive topic research (default: 04:00 UTC daily).
-      # Runs in parallel with RSS daily harvest — different sources, no conflict.
+      # Cron schedule for proactive topic research.
+      # Changed from daily to weekly (Sunday 04:00 UTC) to reduce Perplexity
+      # API spend. DB already has deep article history; weekly pre-warm is
+      # sufficient for query latency. Restore to "0 0 4 * * *" when warranted.
       # Standard Spring cron format: second minute hour day month weekday
       # -----------------------------------------------------------------------
-      cron: "0 0 4 * * *"
+      cron: "0 0 4 * * SUN"
       # Maximum Perplexity + DB sources retrieved per topic per run.
       max-sources-per-topic: 20
       # -----------------------------------------------------------------------
