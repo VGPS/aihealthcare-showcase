@@ -1,0 +1,12 @@
+# AI in Healthcare — Weekly Intel Roundup
+### September 20, 2026 – September 26, 2026
+
+---
+
+This week brought 10 significant developments across AI healthcare — 1 legal/regulatory action and 9 competitor moves. PeaceHealth cut 250 IT jobs and outsourced the work to Tech Mahindra and HCI Group, part of a broader wave of state WARN Act layoff filings (Washington, California, Texas, New York) hitting healthcare IT departments this quarter. The same week, Amazon formally unveiled Connect Health, Anthropic continued building out its healthcare and life-sciences positioning for Claude, and Google published an update on its Check Up Health AI initiative.
+
+Two things are happening in parallel: every major cloud and AI vendor is racing to stake a claim in clinical AI, while regional health systems are quietly shifting IT labor to third-party outsourcers. The state WARN filings are one of the few real-time public signals of where that labor is actually going.
+
+---
+
+*This analysis is published every Saturday by [Big Sky Labs](https://app.bigskylabs.ai). We track 57+ sources and 318 companies daily. Subscribe to get the full intelligence feed delivered to your inbox.*
