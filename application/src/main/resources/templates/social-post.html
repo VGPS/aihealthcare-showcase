@@ -210,6 +210,93 @@
         <a th:href="@{/admin/pipelines}" class="text-primary-600 hover:underline">Run pipeline</a>
     </div>
 
+    <!-- ── Agent Draft Section ─────────────────────────────────────── -->
+    <div class="mt-10" th:if="${fullAccess}">
+
+        <!-- Generate button / error -->
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-800">Agent-Drafted Posts</h2>
+            <form th:action="@{/dashboard/social/agent-draft}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit"
+                        class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors">
+                    Generate Agent Draft
+                </button>
+            </form>
+        </div>
+
+        <!-- Error state -->
+        <div th:if="${agentError}" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
+             th:text="${agentError}"></div>
+
+        <!-- Rationale + entries card -->
+        <div th:if="${agentDraft}" class="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+            <p class="text-sm font-medium text-purple-800 mb-1">Why Claude chose these entries:</p>
+            <p class="text-sm text-purple-700 mb-2" th:text="${agentDraft.rationale}"></p>
+            <p class="text-xs text-purple-600">
+                Entries covered:
+                <span th:each="e, iter : ${agentDraft.entriesSelected}">
+                    <span th:text="${e}"></span><span th:if="${!iter.last}">, </span>
+                </span>
+            </p>
+        </div>
+
+        <!-- Agent post columns -->
+        <div th:if="${agentDraft}" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- LinkedIn -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-blue-600 font-semibold">LinkedIn</span>
+                    <span class="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">Agent</span>
+                </div>
+                <p class="text-xs text-gray-500 mb-1">Post Body</p>
+                <pre id="agent-li-body" class="whitespace-pre-wrap text-sm text-gray-800 bg-gray-50 rounded p-3 mb-3 max-h-64 overflow-y-auto"
+                     th:text="${agentDraft.linkedinBody}"></pre>
+                <button onclick="copyToClipboard('agent-li-body', this)"
+                        class="px-3 py-1.5 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">Copy Body</button>
+
+                <p class="text-xs text-gray-500 mt-4 mb-1">First Comment</p>
+                <pre id="agent-li-comment" class="whitespace-pre-wrap text-sm text-gray-800 bg-gray-50 rounded p-3 mb-3"
+                     th:text="${agentDraft.linkedinComment}"></pre>
+                <button onclick="copyToClipboard('agent-li-comment', this)"
+                        class="px-3 py-1.5 bg-blue-500 text-white text-xs rounded hover:bg-blue-600">Copy Comment</button>
+            </div>
+
+            <!-- Facebook -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-indigo-600 font-semibold">Facebook</span>
+                    <span class="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">Agent</span>
+                </div>
+                <p class="text-xs text-gray-500 mb-1">Post Body</p>
+                <pre id="agent-fb-body" class="whitespace-pre-wrap text-sm text-gray-800 bg-gray-50 rounded p-3 mb-3 max-h-64 overflow-y-auto"
+                     th:text="${agentDraft.facebookBody}"></pre>
+                <button onclick="copyToClipboard('agent-fb-body', this)"
+                        class="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded hover:bg-indigo-700">Copy Body</button>
+
+                <p th:if="${agentDraft.facebookComment != null and !#strings.isEmpty(agentDraft.facebookComment)}"
+                   class="text-xs text-gray-500 mt-4 mb-1">Comment</p>
+                <pre th:if="${agentDraft.facebookComment != null and !#strings.isEmpty(agentDraft.facebookComment)}"
+                     id="agent-fb-comment" class="whitespace-pre-wrap text-sm text-gray-800 bg-gray-50 rounded p-3 mb-3"
+                     th:text="${agentDraft.facebookComment}"></pre>
+                <button th:if="${agentDraft.facebookComment != null and !#strings.isEmpty(agentDraft.facebookComment)}"
+                        onclick="copyToClipboard('agent-fb-comment', this)"
+                        class="px-3 py-1.5 bg-indigo-500 text-white text-xs rounded hover:bg-indigo-600">Copy Comment</button>
+            </div>
+
+        </div><!-- /agent post columns -->
+
+        <!-- Placeholder when no draft yet -->
+        <div th:if="${agentDraft == null and agentError == null}"
+             class="rounded-xl border-2 border-dashed border-purple-200 bg-purple-50 p-8 text-center">
+            <p class="text-purple-600 font-medium mb-1">Agent draft not yet generated</p>
+            <p class="text-sm text-purple-500">Click "Generate Agent Draft" above to let Claude select
+                the best entries and write the posts. Watch the server DEBUG logs to see the tool calls.</p>
+        </div>
+
+    </div><!-- /agent draft section -->
+
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>

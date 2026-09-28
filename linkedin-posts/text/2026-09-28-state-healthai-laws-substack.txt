@@ -1,0 +1,84 @@
+# 41 Laws and Counting: The State Health AI Compliance Map Most Vendors Are Ignoring
+### September 28, 2026
+
+---
+
+Last Saturday's roundup closed with an observation: the vendor land grab for clinical AI workflows isn't slowing down while the labor underneath it quietly moves.
+
+Here's what was left unsaid: the legal surface beneath that vendor race has been building faster than most people are tracking.
+
+As of this week, **41 U.S. states have enacted health AI legislation** — across 24 states, with more in progress. These aren't pending bills or regulatory guidance documents. They're signed, enacted laws, and the pace has accelerated sharply since 2024.
+
+---
+
+## What states are actually regulating
+
+State legislators didn't write abstract AI policy. They wrote specific responses to deployments they'd already seen.
+
+**Payer utilization review** — Laws governing AI-assisted coverage denial decisions. These typically require human review thresholds, audit trail requirements, and disclosure of AI's role when a coverage denial is issued. The target is obvious: automated prior-authorization systems that approve or deny without meaningful human judgment.
+
+**Claims downcoding** — Several states specifically prohibit or regulate AI systems that reduce claim reimbursement amounts during automated processing. This was visible enough in practice to attract dedicated statutory language.
+
+**Provider clinical use and disclosure** — Disclosure requirements when AI is involved in clinical decision support. Patients have a right to know when a recommendation was AI-assisted in a growing number of states.
+
+**Patient consent** — Informed consent requirements before AI systems are used in patient-facing contexts, particularly in diagnostic or treatment recommendation workflows.
+
+**Mental health and psychotherapy AI** — This is the category worth sitting with. Multiple states independently wrote psychotherapy AI into specific statute. That kind of legislative convergence means regulators weren't doing theoretical policy work — they saw specific products deployed in their states and responded. The concern appears to center on AI systems conducting or facilitating therapy sessions with insufficient human oversight.
+
+**Consumer chatbots** — Regulations governing AI chatbots marketed directly to healthcare consumers, typically focused on scope-of-practice limits, accuracy disclosures, and handoff requirements to licensed professionals.
+
+**Comprehensive AI acts** — Broader framework laws (partly modeled on EU AI Act thinking) that designate healthcare as a high-risk domain with heightened transparency and audit requirements.
+
+---
+
+## The compliance asymmetry
+
+Large vendors have the legal teams to track this. When Amazon unveiled Connect Health last week, state-law compliance review was part of the product timeline. Same with Google and Anthropic — that's not a compliment, it's just what scale enables.
+
+Mid-size and smaller healthcare AI vendors are in a different position. Most have mapped HIPAA thoroughly. Those with regulated devices have navigated FDA 510(k) clearance. But state-by-state health AI legislation represents a third compliance layer that many haven't fully audited — and because there's no single federal preemption, you have to track 50 different legislative calendars.
+
+The gap is real and measurable. A company that built a payer-side utilization review tool two years ago and hasn't done a state-law audit since may be out of compliance in four or five states without knowing it.
+
+---
+
+## What health systems should be asking
+
+For health systems evaluating vendors, this creates a direct due diligence question that most RFPs don't yet include:
+
+*"Show me your state-law compliance matrix."*
+
+Specifically:
+- Which state health AI laws apply to this product's use case in our operating states?
+- Has your legal team reviewed those laws against current product functionality?
+- What's the update cadence for compliance review as new legislation passes?
+
+Most vendors don't have a ready answer. That gap won't last — but it exists right now.
+
+---
+
+## The full registry
+
+[Big Sky Labs](https://app.bigskylabs.ai) maintains a registry of all 41 enacted laws with official source links, effective dates, enforcement mechanisms, and regulatory categories. It's updated weekly as new legislation is signed.
+
+The full registry is public: **[app.bigskylabs.ai/legislation](https://app.bigskylabs.ai/legislation)**
+
+---
+
+*This analysis is published by [Big Sky Labs](https://app.bigskylabs.ai). We track 57+ sources and 318 AI healthcare companies daily. [Subscribe](https://app.bigskylabs.ai) to get the full intelligence feed delivered to your inbox.*
+
+---
+
+=== SUBSTACK POSTING INSTRUCTIONS ===
+
+1. Log in to Substack → New Post
+2. Title: "41 Laws and Counting: The State Health AI Compliance Map Most Vendors Are Ignoring"
+3. Subtitle (optional): "While vendors race into clinical workflows, the legal surface beneath them is expanding fast"
+4. Paste the body above (from the # heading down through the footer)
+5. Set the post section: "Intelligence" or your main content section
+6. Audience: All subscribers (free + paid)
+7. Send as email: YES — this is newsletter-worthy content
+8. Best send time: Monday 7:00 AM local time (arrives before the workday)
+9. Social share preview: The opening paragraph works as the preview text — check that Substack uses it
+
+=== ENGAGEMENT FOLLOW-UP ===
+If a subscriber replies asking which states, point them to the /legislation page and mention that the mental health AI laws from Washington and Colorado are the most specific/interesting examples of the category.
