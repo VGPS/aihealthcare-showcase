@@ -5,10 +5,14 @@ import com.wgblackmon.aihealthcare.domain.marketanalysis.FactClassification;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigest;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.MarketDigestEntry;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
+import com.wgblackmon.aihealthcare.domain.model.SocialPostDraft;
+import com.wgblackmon.aihealthcare.domain.port.inbound.DraftSocialPostUseCase;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URI;
 import java.security.Principal;
@@ -51,12 +55,16 @@ public class MarketSocialPostController {
 
     private final ProduceMarketDigestUseCase digestUseCase;
     private final TierResolver tierResolver;
+    private final DraftSocialPostUseCase agentUseCase;
 
     public MarketSocialPostController(ProduceMarketDigestUseCase digestUseCase,
-                                      TierResolver tierResolver) {
-        log.debug("MarketSocialPostController() | digestUseCase={}, tierResolver={}", digestUseCase, tierResolver);
+                                      TierResolver tierResolver,
+                                      DraftSocialPostUseCase agentUseCase) {
+        log.debug("MarketSocialPostController() | digestUseCase={}, tierResolver={}, agentUseCase={}",
+                digestUseCase, tierResolver, agentUseCase);
         this.digestUseCase = digestUseCase;
         this.tierResolver = tierResolver;
+        this.agentUseCase = agentUseCase;
     }
 
     @GetMapping("/dashboard/social")
@@ -311,5 +319,20 @@ public class MarketSocialPostController {
         } catch (Exception e) {
             return "link";
         }
+    }
+
+    @PostMapping("/dashboard/social/agent-draft")
+    public String generateAgentDraft(RedirectAttributes redirectAttrs, Principal principal) {
+        log.debug("generateAgentDraft() | principal={}", principal != null ? principal.getName() : "null");
+        try {
+            SocialPostDraft draft = agentUseCase.draft(LocalDate.now(ZoneId.of("America/Chicago")));
+            redirectAttrs.addFlashAttribute("agentDraft", draft);
+            log.debug("generateAgentDraft() | return=redirect:/dashboard/social (draft ok)");
+        } catch (Exception e) {
+            log.error("generateAgentDraft() | agent drafting failed", e);
+            redirectAttrs.addFlashAttribute("agentError", "Agent drafting failed: " + e.getMessage());
+            log.debug("generateAgentDraft() | return=redirect:/dashboard/social (error)");
+        }
+        return "redirect:/dashboard/social";
     }
 }
