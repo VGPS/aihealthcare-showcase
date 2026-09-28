@@ -1299,6 +1299,22 @@ public class AppConfig {
     }
 
     /**
+     * Wires the {@link com.wgblackmon.aihealthcare.domain.service.SocialPostAgentService}
+     * inbound port — agent-powered social post drafting from market digest entries.
+     * {@link com.wgblackmon.aihealthcare.infrastructure.ai.SocialPostAgentAdapter} is
+     * auto-wired by Spring as a {@code @Component}.
+     */
+    @Bean
+    public com.wgblackmon.aihealthcare.domain.port.inbound.DraftSocialPostUseCase draftSocialPostUseCase(
+            com.wgblackmon.aihealthcare.domain.port.outbound.SocialPostDraftPort draftPort) {
+        log.debug("draftSocialPostUseCase() | draftPort={}", draftPort.getClass().getSimpleName());
+        com.wgblackmon.aihealthcare.domain.port.inbound.DraftSocialPostUseCase result =
+                new com.wgblackmon.aihealthcare.domain.service.SocialPostAgentService(draftPort);
+        log.debug("draftSocialPostUseCase() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
      * Wires the {@link TeamManagementService} — multi-tenant team account management.
      *
      * @param teamPort Adapter for persisting teams and members.

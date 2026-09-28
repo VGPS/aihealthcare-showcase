@@ -1,0 +1,43 @@
+=== FACEBOOK POST BODY ===
+Something's been building quietly while everyone watches the big vendors fight for clinical AI market share.
+
+41 states have now enacted health AI laws. 24 states. Real legislation, signed and on the books.
+
+The categories cover:
+• Payer utilization review — AI-driven coverage denials now have legally required human review thresholds in multiple states
+• Claims downcoding by AI — some states specifically prohibit AI from reducing reimbursement amounts during automated processing
+• Provider clinical use and disclosure — rules for when providers must disclose that AI contributed to a recommendation
+• Patient consent — required before AI is used in patient-facing diagnosis or treatment recommendations
+• Mental health and psychotherapy AI — several states wrote this into law specifically
+• Consumer chatbots — scope-of-practice limits for AI chatbots marketed to healthcare consumers
+• Comprehensive AI acts — broader framework laws that treat healthcare as a high-risk domain
+
+The mental health AI carve-out tells you something real. Multiple state legislatures independently wrote psychotherapy AI into specific statute. That kind of convergence doesn't come from theoretical policy work — it comes from legislators seeing specific products deployed in their states and reacting.
+
+For anyone in healthcare IT, compliance, vendor selection, or administration: this is the compliance layer your RFPs probably aren't asking about yet.
+
+Full registry with source links for all 41 laws:
+https://app.bigskylabs.ai/legislation
+
+#HealthcareAI #DigitalHealth #HealthTech #HealthcareCompliance
+
+=== FACEBOOK IMAGE ===
+Option 1: Create a simple graphic — dark background, white text: "41 State Health AI Laws. Is your vendor compliant?" with the bigskylabs.ai URL.
+Option 2: Screenshot the /legislation page from the app showing the law registry table.
+Option 3: Post text-only — Facebook's algorithm treats link-preview posts well if the OG card loads cleanly.
+
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body above
+2. Go to your Facebook page or group
+3. Paste the body text
+4. Facebook link preview will auto-generate from the URL in the body — check that it loads before publishing
+5. If the OG card preview looks clean, you don't need a separate image
+6. If the OG card fails to load, add a static image manually (see options above)
+7. Best posting window: Monday 8:00–10:00 AM or 12:00–2:00 PM local time
+8. After 1 hour, reply to the first comment/engagement with a specific example: pick one state law from the registry and name it
+
+=== ENGAGEMENT FOLLOW-UP COMMENT ===
+Use this as your reply to early comments to boost algorithmic reach:
+
+"One specific example: Illinois enacted a comprehensive AI transparency law that requires healthcare providers to disclose when AI contributed to a clinical recommendation. Colorado's goes further — it includes payer-side AI denial decisions. Most vendors selling into those states don't have a ready answer when asked about compliance."

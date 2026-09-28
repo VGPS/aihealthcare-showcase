@@ -1,0 +1,46 @@
+=== LINKEDIN POST BODY ===
+41 state health AI laws are now on the books.
+
+Most healthcare AI vendors haven't mapped them.
+
+While last week's headlines covered Amazon, Anthropic, and Google racing into clinical workflows, the compliance layer beneath that race has been quietly expanding — 41 enacted laws across 24 states, accelerating since 2024.
+
+The regulated categories are specific:
+→ Payer utilization review (AI-assisted denial decisions)
+→ Claims downcoding by AI
+→ Provider clinical use and disclosure
+→ Patient consent requirements
+→ Mental health / psychotherapy AI — specifically named in statute
+→ Consumer chatbots
+→ Comprehensive AI acts
+
+That mental health AI carve-out is worth pausing on. When multiple state legislatures independently write psychotherapy AI into specific law, they're not doing theoretical policy work. They saw specific deployments and responded.
+
+For health systems evaluating vendors: the compliance question is no longer just HIPAA and FDA 510(k) clearance. It's "does this vendor know what Utah, Colorado, and Illinois enacted in the last 18 months?"
+
+For vendors: the legal surface just got a lot more complex. And it's moving faster than most in-house legal teams are tracking.
+
+We publish the full registry — 41 laws, all source-linked, updated weekly — at bigskylabs.ai.
+
+#HealthcareAI #DigitalHealth #HealthTech #HealthcareCompliance #AIinHealthcare
+
+=== LINKEDIN FIRST COMMENT (paste immediately after publishing) ===
+Full state health AI legislation registry (41 laws, 24 states, all source-linked):
+https://app.bigskylabs.ai/legislation
+
+Which category do you think is most underestimated — payer utilization review or mental health AI?
+
+#HealthcareAI #DigitalHealth #HealthTech #HealthcareCompliance #AIinHealthcare
+
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body above (everything between === LINKEDIN POST BODY === and === LINKEDIN FIRST COMMENT ===)
+2. Go to linkedin.com → Start a post
+3. Paste the body text
+4. DO NOT add any URL to the post body — it kills organic reach 40-60%
+5. Publish the post
+6. Immediately open the post and paste the First Comment as the very first comment
+7. Best posting window: Monday 7:30–9:00 AM local time
+
+TIMING NOTE: This post references last week's Saturday roundup as context.
+If engagement is strong, reply to comments with a specific law example from the registry.
