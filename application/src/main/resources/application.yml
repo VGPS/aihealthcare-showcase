@@ -127,6 +127,7 @@ logging:
   level:
     com.wgblackmon: DEBUG
     org.springframework.web: INFO
+    org.springframework.ai: DEBUG
 
 # -----------------------------------------------------------------------------
 # springdoc — Swagger UI for self-service API documentation.
