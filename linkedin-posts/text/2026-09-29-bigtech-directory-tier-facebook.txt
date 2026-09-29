@@ -1,0 +1,42 @@
+=== FACEBOOK POST BODY ===
+Something quietly flipped in our AI healthcare company tracker this week, and it's worth sitting with.
+
+3 of the top 7 companies in our 602-company directory weren't built for healthcare at all. Google. Microsoft. Intel. They're sitting at the exact same maximum relevance score — live trending + funding signal — as Ada Health, Eko Health, GE HealthCare, and K Health, companies that exist for nothing but this market.
+
+This didn't happen in isolation. This week alone:
+• Amazon unveiled Connect Health, AWS's dedicated healthcare AI push
+• OpenEvidence partnered with Anthropic and Penn Medicine to expand physician AI access into Africa and Asia
+• Our trend tracker flagged "Big Tech Healthcare AI Push" as the #2 fastest-rising keyword across all tracked sources this week (37 mentions) — second only to ambient documentation AI
+• Microsoft and Intel are both filed in our directory under full healthcare AI strategies (Azure Health Data Services; AI-optimized diagnostic imaging hardware) — not side projects or pilot programs
+
+For years, "Big Tech vs. healthcare AI startups" was a hypothetical framing — something analysts debated but hadn't actually measured. It isn't hypothetical anymore. By the numbers we track daily, they're tied.
+
+Here's why that matters if you sell into this space: a hospital system's existing Azure or AWS enterprise contract can absorb a healthcare AI module at near-zero incremental sales cost. A point-solution vendor pitching the same capability doesn't have that distribution advantage, no matter how good the product is.
+
+Full directory, live scores, 602 companies, free to browse:
+https://app.bigskylabs.ai/directory?sort=trending
+
+#HealthcareAI #DigitalHealth #HealthTech #BigTech
+
+=== FACEBOOK IMAGE ===
+File: linkedin-posts/shots/2026-09-29-bigtech-directory-tier.png
+Use this as the post image. It's a curated live screenshot showing the exact 7 companies named in the post — Ada Health, Eko Health, GE HealthCare, Google, Intel, K Health, and Microsoft — all sitting at the ★50 max score with their real trending/funded badges. Filtered from the live page so the story reads cleanly.
+
+=== LINK ===
+https://app.bigskylabs.ai/directory?sort=trending
+
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body above
+2. Go to your Facebook page or group
+3. Paste the body text
+4. Facebook link preview will auto-generate from the URL in the body — check that it loads before publishing
+5. If the OG card preview looks clean, you don't need a separate image
+6. If the OG card fails to load, attach linkedin-posts/shots/2026-09-29-bigtech-directory-tier.png manually
+7. Best posting window: Tuesday 8:00–10:00 AM or 12:00–2:00 PM local time
+8. After 1 hour, reply to the first comment/engagement with the engagement follow-up below
+
+=== ENGAGEMENT FOLLOW-UP COMMENT ===
+Use this as your reply to early comments to boost algorithmic reach:
+
+"One specific example worth naming: Microsoft's healthcare AI push isn't a single product — it's Azure Health Data Services plus Nuance's clinical conversational AI plus a broader ambient documentation strategy, all rolled into one enterprise relationship hospitals already have. That's a very different sales motion than a startup cold-pitching the same capability."
