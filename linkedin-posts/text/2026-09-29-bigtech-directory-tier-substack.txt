@@ -1,0 +1,84 @@
+# Big Tech Wasn't Built for Healthcare. Now It's Tied for the Top of It.
+### September 29, 2026
+
+---
+
+We track 602 AI healthcare companies daily on three live signals: article velocity, detected funding, and sentiment risk. This week, for the first time, 3 of the 7 companies sitting at the maximum relevance score weren't built for healthcare at all.
+
+Google. Microsoft. Intel. Tied, at the exact same score, with Ada Health, Eko Health, GE HealthCare, and K Health — companies that exist for nothing but this market.
+
+---
+
+## What the directory actually shows
+
+Pulled directly from the live scoring, here's today's ★50 tier:
+
+**Ada Health** (Berlin, est. 2011) — AI-powered symptom assessment and care navigation, Series B plus debt financing.
+
+**Eko Health** (Emeryville, CA, est. 2013) — digital stethoscopes and ECG/auscultation AI, Series D, privately held.
+
+**GE HealthCare** (Chicago, est. 1892) — diagnostic imaging and patient monitoring at global scale, public.
+
+**Google** (Mountain View, est. 1998) — Alphabet subsidiary applying generative AI and cloud infrastructure to healthcare.
+
+**Intel Corporation** (Santa Clara, est. 1968) — AI-optimized hardware and software platforms for medical diagnostics.
+
+**K Health** (New York, est. 2016) — agentic, physician- and consumer-facing virtual care platform, Series E.
+
+**Microsoft Corporation** (Redmond, est. 1975) — Azure cloud, Nuance's clinical conversational AI, and a broader ambient documentation push.
+
+Notably absent: NVIDIA Healthcare, despite plenty of headlines this year, sits well below this tier in our live scoring (★35). This isn't "every tech giant is winning" — it's that the ones running a genuine, sustained healthcare strategy are now indistinguishable, by measured signal, from the startups built for nothing else.
+
+---
+
+## This week's supporting evidence
+
+Three independent signals converged on the same story:
+
+**Amazon unveiled Connect Health**, AWS's dedicated healthcare AI product.
+
+**OpenEvidence partnered with Anthropic and Penn Medicine** to expand physician AI access into Africa and Asia.
+
+Our trend tracker flagged **"Big Tech Healthcare AI Push" as the #2 fastest-rising keyword** across all tracked sources this week (37 mentions), trailing only ambient documentation AI.
+
+Directory scoring, deal-flow news, and keyword velocity all pointing the same direction, in the same week, isn't noise.
+
+---
+
+## What this means for vendors
+
+The obvious reaction is "Big Tech has always circled healthcare." True — but circling and tying for the top of a live relevance ranking are different things, and the difference shows up in how deals actually get won.
+
+A hospital system evaluating a point-solution vendor is very often *already* an Azure or AWS enterprise customer. Microsoft doesn't need to win a new procurement cycle to sell that hospital an ambient-documentation module — it needs to expand a contract that already exists. That's a structurally cheaper sales motion than anything a standalone vendor can run, independent of whose model performs better.
+
+The competitive question for healthcare AI startups just changed. It's no longer "how do we compare to the last three point-solution vendors this buyer evaluated." It's "why would this buyer choose us over expanding a platform contract they already have."
+
+---
+
+## Track it yourself
+
+The full directory — 602 companies, live trending/funding/sentiment signals, updated daily — is public:
+
+**[app.bigskylabs.ai/directory](https://app.bigskylabs.ai/directory?sort=trending)** — sort by trending to see the current top tier.
+
+---
+
+*This analysis is published by [Big Sky Labs](https://app.bigskylabs.ai). We track 57+ sources and 602+ AI healthcare companies daily. [Subscribe](https://app.bigskylabs.ai) to get the full intelligence feed delivered to your inbox.*
+
+---
+
+=== SUBSTACK POSTING INSTRUCTIONS ===
+
+1. Log in to Substack → New Post
+2. Title: "Big Tech Wasn't Built for Healthcare. Now It's Tied for the Top of It."
+3. Subtitle (optional): "Google, Microsoft, and Intel now sit at the same maximum relevance score as the startups built only for this market"
+4. Paste the body above (from the # heading down through the footer)
+5. Cover image: linkedin-posts/shots/2026-09-29-bigtech-directory-tier.png — upload as the post cover image before publishing
+6. Set the post section: "Intelligence" or your main content section
+7. Audience: All subscribers (free + paid)
+8. Send as email: YES — this is newsletter-worthy content
+9. Best send time: Tuesday 7:00 AM local time (arrives before the workday)
+10. Social share preview: The opening paragraph works as the preview text — check that Substack uses it
+
+=== ENGAGEMENT FOLLOW-UP ===
+If a subscriber asks why NVIDIA isn't on the list despite all the headlines, point them to the live directory and explain that NVIDIA Healthcare's current score (★35) reflects lower measured article velocity and funding signal than the ★50 tier right now — the tracker updates daily, so that can change.
