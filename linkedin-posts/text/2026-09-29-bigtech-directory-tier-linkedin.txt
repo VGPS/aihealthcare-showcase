@@ -1,0 +1,53 @@
+=== LINKEDIN POST BODY ===
+3 of the top 7 companies in our 602-company AI healthcare directory weren't built for healthcare at all.
+
+Google. Microsoft. Intel.
+
+They're sitting at the exact same maximum relevance score as Ada Health, Eko Health, GE HealthCare, and K Health — companies built for nothing but this market.
+
+This week, "Big Tech Healthcare AI Push" became the #2 fastest-rising keyword across our tracked sources (37 mentions), trailing only ambient documentation AI.
+
+It's not a coincidence. This week alone:
+→ Amazon unveiled Connect Health, AWS's dedicated healthcare AI push
+→ OpenEvidence partnered with Anthropic and Penn Medicine to expand physician AI access into Africa and Asia
+→ Microsoft and Intel are filed in our directory under full healthcare AI strategies — Azure Health Data Services and AI-optimized diagnostic imaging hardware, not side projects
+
+For years, "Big Tech vs. healthcare AI startups" was a hypothetical framing. It isn't anymore. They're tied.
+
+For vendors: the competitive set you're benchmarking against just changed. A hospital system's existing Azure or AWS contract can absorb a healthcare AI module at near-zero incremental sales cost — something point-solution vendors can't match.
+
+We track 602 AI healthcare companies with live trending/funding/sentiment signals, updated daily, free to browse.
+
+bigskylabs.ai/directory
+
+#HealthcareAI #DigitalHealth #HealthTech #BigTech #AIinHealthcare
+
+=== IMAGE ===
+File: linkedin-posts/shots/2026-09-29-bigtech-directory-tier.png
+Attach as the post image before publishing. Curated live screenshot of the 7 companies named in the post body, pulled from https://app.bigskylabs.ai/directory?sort=trending — real product data, filtered to just those 7 so the shot isn't cluttered by unrelated tied entries.
+
+=== LINK ===
+https://app.bigskylabs.ai/directory?sort=trending
+
+=== LINKEDIN FIRST COMMENT (paste immediately after publishing) ===
+Full directory, sorted by live relevance score (602 companies):
+https://app.bigskylabs.ai/directory?sort=trending
+
+Which side wins the next 12 months in your view — platform-scale Big Tech or the healthcare-native startups?
+
+#HealthcareAI #DigitalHealth #HealthTech #BigTech #AIinHealthcare
+
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body above (everything between === LINKEDIN POST BODY === and === IMAGE ===)
+2. Go to linkedin.com → Start a post
+3. Paste the body text
+4. DO NOT add any URL to the post body — it kills organic reach 40-60%
+5. Attach linkedin-posts/shots/2026-09-29-bigtech-directory-tier.png as the post image
+6. Publish the post
+7. Immediately open the post and paste the First Comment as the very first comment
+8. Best posting window: Tuesday 7:30–9:00 AM local time
+
+DATA NOTE: NVIDIA Healthcare was excluded from this post — its live directory score (★35)
+does not match the ★50 max tier claimed for Google/Microsoft/Intel. Verified against the
+live site before publishing; do not substitute NVIDIA back in without re-checking the score.
