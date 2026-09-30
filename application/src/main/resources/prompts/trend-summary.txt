@@ -4,8 +4,18 @@ Below are the articles driving this trend:
 
 {articleList}
 
-Write a concise 2-3 sentence summary explaining:
-1. WHY this keyword is trending (what happened or is happening)
-2. What it means for healthcare AI analysts and investors
+Write exactly 3 short sentences — one per line, separated by a blank line — covering:
 
-Be specific and factual. Reference concrete developments from the articles. Do not use bullet points or headers — write flowing prose suitable for an executive brief. Do not start with "The keyword..." — lead with the substance.
+Line 1: WHY this keyword is trending right now. Name specific companies, products, or events from the articles. One sentence only.
+
+Line 2: What this means for healthcare AI analysts and investors. Be concrete about market impact or competitive implications. One sentence only.
+
+Line 3: The one specific development or signal analysts should watch over the next 30–90 days. One sentence only.
+
+Rules:
+- Each line must be a single complete sentence.
+- Separate each sentence with one blank line so they render as distinct paragraphs.
+- Do not use bullet points, numbered lists, headers, or bold text.
+- Do not start with "The keyword..." — lead with substance.
+- Do not use: leverage, robust, seamless, transformative, game-changer, paradigm shift, cutting-edge, pivotal, crucial, holistic, notably, importantly, furthermore, moreover.
+- Reference at least one specific named entity (company, agency, product, person) from the articles.
