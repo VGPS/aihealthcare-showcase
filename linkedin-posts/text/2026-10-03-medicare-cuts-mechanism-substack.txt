@@ -1,0 +1,116 @@
+=== SUBSTACK POSTING INSTRUCTIONS ===
+
+1. Log in to Substack → New Post
+2. Title: "$536 Billion in Medicare Cuts. Here's the AI That Will Implement Them."
+3. Subtitle: "The infrastructure already exists. It's already in federal court. And Congress
+   just gave it $76 billion a year in new financial incentive to run harder."
+4. Paste the body below (from the opening through the footer)
+5. Cover image: linkedin-posts/shots/2026-10-03-medicare-cuts-legislation.png
+6. Section: "Intelligence" or "Policy" — this is distinct from the market analysis posts;
+   label it accordingly if you have separate sections
+7. Audience: All subscribers (free + paid)
+8. Send as email: YES — this is the most important send of the Medicare series; it sets
+   the frame for everything that follows over the next 5 weeks
+9. Best send time: Saturday 7:00 AM local time OR Monday 7:00 AM
+10. Note in the email: "This is the first post in a 6-week series on Medicare cuts and AI.
+    Each week covers a different piece of the story."
+
+=== ENGAGEMENT FOLLOW-UP ===
+If a subscriber asks what they can do about this personally, use this:
+
+"The most direct action available right now is contacting your two U.S. Senators and your
+House representative. The specific ask: support legislation requiring minimum human review
+for Medicare prior authorization decisions, and an appeals window tied to the patient's
+treatment timeline — not an administrative calendar. Some states have passed this. There
+is no federal law. That's the gap. The Senate Finance Committee knows it exists. Whether
+Congress acts depends on whether constituents push."
+
+---
+
+# $536 Billion in Medicare Cuts. Here's the AI That Will Implement Them.
+
+### October 3, 2026
+
+---
+
+I'm going to tell you something that most healthcare AI coverage — even the critical coverage — doesn't connect directly.
+
+Congress just triggered $536 billion in mandatory Medicare cuts over the next 10 years, scaling to $76 billion a year by 2034, through a budget reconciliation bill that activated the Statutory Pay-As-You-Go Act. These are not proposed cuts. They are automatic reductions that happen unless Congress votes specifically to stop them.
+
+The question I want to answer is how those cuts get implemented. Not in a policy document. Operationally. Dollar by dollar. Claim by claim.
+
+The answer is AI prior authorization. And the infrastructure that will do the work is already built, already deployed, and already in federal court.
+
+---
+
+## What PAYGO actually means
+
+The Statutory Pay-As-You-Go Act was designed as a deficit control mechanism: legislation that increases the federal deficit triggers automatic spending cuts across mandatory programs. Medicare is a mandatory program.
+
+Recent budget reconciliation legislation increased the national deficit without including a PAYGO waiver. The trigger is active. The AMA, the House Budget Committee, and the Medicare Rights Center are all tracking the same projected figures: roughly $45 billion in near-term Medicare cuts, scaling to $76 billion annually by 2034, totaling $536 billion over 10 years.
+
+For roughly 67 million Medicare beneficiaries, the official language is "indirect consequences" — higher premiums, fewer plan choices, reduced supplemental benefits. That is the bureaucratic framing.
+
+The actual mechanism is simpler: Medicare Advantage plans receive fixed per-member payments from CMS. When those payments get cut, the plans cut claims. The tool they have for cutting claims at scale is prior authorization. And the tool that processes prior authorization at $76 billion per year in volume is AI.
+
+---
+
+## The infrastructure that already exists
+
+This is not a future scenario. The AI prior authorization infrastructure that large insurers will use to implement these cuts was built years ago. It is already the subject of active federal litigation.
+
+**Cigna.** In March 2023, ProPublica published an investigation documenting that Cigna's medical reviewers were processing prior authorization denials in batches without reviewing individual patient files — at rates that made meaningful clinical review operationally impossible. A class action lawsuit followed.
+
+**UnitedHealth Group.** Multiple federal class action lawsuits were filed in 2023 and 2024 alleging that UnitedHealth's AI prior authorization platform — referred to in the complaints as nH Predict — systematically denied medically necessary care to Medicare Advantage patients. The complaints allege the system was configured to maximize denial rates, with the financial model incorporating the expected percentage of patients who would not appeal, or would not survive the appeals timeline. The litigation is active.
+
+**The Senate Finance Committee.** A formal majority staff report published in 2024 documented systematic AI-driven denial patterns across multiple major Medicare Advantage insurers. Congress has not passed federal legislation in response.
+
+The infrastructure exists. The litigation is active. And the financial incentive just increased by $76 billion a year.
+
+---
+
+## Who benefits, and who pays
+
+It is worth being direct about the economics.
+
+Medicare Advantage insurers are publicly traded companies with shareholders. UnitedHealth Group, Cigna, Elevance Health, Humana — each of these companies has a fiduciary obligation to maximize returns. Under $76 billion per year in increased Medicare Advantage payment pressure, the financial incentive to expand AI prior authorization is not subtle. Every denial that holds — that is not appealed, or whose appeal is not pursued, or whose appeal takes longer than the patient's treatment window — is a cost the plan avoids.
+
+That is the business model. It is not hidden. It is visible in the litigation. It is visible in the Senate Finance Committee report. It is visible in the patchwork of state laws being passed in response.
+
+What is not visible is a federal law that stops it.
+
+---
+
+## Fifty-eight state laws and no federal floor
+
+Fifty-eight health AI laws have been enacted across 27 states and jurisdictions. Several specifically target AI prior authorization — requiring minimum human review, disclosure that AI was used in a denial, appeals timelines that account for clinical urgency.
+
+These laws exist because individual states watched what was happening and responded. They are reactive, uncoordinated, and incomplete. A patient in a state with a strong AI prior auth law has meaningfully different protections than a patient in a state with none.
+
+There is no federal floor. There is no minimum human review requirement for Medicare prior authorization. There is no federal rule requiring that an appeals window be resolved within a patient's treatment timeline. The Senate Finance Committee found the problem in 2024. Congress has not acted.
+
+---
+
+## This is a 6-week series
+
+This post is the first. Over the next five weeks, this newsletter will cover:
+
+- **Week 2:** The lawsuit map — what's in federal court, what the complaints say, where the cases stand
+- **Week 3:** The offshoring angle — HIPAA Business Associate Agreement exceptions allow offshore processing of claims data; cost pressure accelerates it
+- **Week 4:** The deaths post — wrongful death litigation specifically naming AI prior auth. This will be published only with specific case citations, not general claims.
+- **Week 5:** American jobs — which healthcare administrative roles are being eliminated and what those communities look like
+- **Week 6:** What responsible policy would actually require — specific proposals, not abstractions
+
+I track AI in healthcare every day. I build tools to track it. I'm 72 and I have Medicare.
+
+This is the story that connects everything else happening in this market right now.
+
+---
+
+**[State health AI legislation registry](https://app.bigskylabs.ai/legislation)** — 58 enacted laws, source-linked, updated weekly.
+
+**[Regulatory event tracker](https://app.bigskylabs.ai/dashboard/regulatory)** — CMS and FDA regulatory events, updated daily.
+
+---
+
+*Big Sky Labs covers AI healthcare market intelligence, regulatory events, deal signals, and competitive analysis across 602+ companies. [Subscribe](https://app.bigskylabs.ai) for the full weekly intelligence feed.*

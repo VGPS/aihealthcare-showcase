@@ -1,0 +1,55 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === FACEBOOK POST BODY === and === FACEBOOK IMAGE ===)
+2. Go to your Facebook page or personal profile
+3. Paste the body text
+4. URL at the bottom will generate a link preview — check it renders before publishing
+5. If OG card fails, attach linkedin-posts/shots/2026-10-02-pilot-purgatory-market.png manually
+6. Best posting window: Friday 8:00–10:00 AM or 12:00–2:00 PM local time
+7. Friday posts tend to get slower initial engagement but stronger weekend tail — don't
+   evaluate reach until Sunday evening
+8. Reply to early comments with the Engagement Follow-Up text below
+
+=== FACEBOOK POST BODY ===
+
+A pattern that shows up consistently across the healthcare AI market and almost never gets said plainly:
+
+Every healthcare AI pilot succeeds. The 50-bed ICU sepsis trial. The radiology AI proof of concept. The ambient documentation pilot in one clinic. Almost all of them produce positive results. The vendor gets a case study. The clinical champion declares victory.
+
+Then the enterprise contract gets signed and the rollout stalls.
+
+Not because the technology failed. The same product that worked in the pilot is sitting underutilized 12 months after enterprise signature. Something else happened.
+
+Here's what actually kills healthcare AI at scale, based on what shows up consistently in the market:
+
+The clinical champion who ran the pilot leaves or gets promoted. They were the institutional glue — they knew why the tool worked, who to call when it didn't, and how to get physicians to actually use it. When they're gone, none of that transferred.
+
+The ROI metric from the pilot doesn't scale. "20% reduction in sepsis response time in one ICU" is a great case study line. It is not a CFO-trackable metric across a 12-hospital system, and without that metric, there's no organizational urgency to keep pushing adoption.
+
+Operational ownership was never defined. Procurement got done. Nobody owns "make sure 200 physicians are using this in 18 months" as a job responsibility with budget and accountability.
+
+Vendor implementation support was front-loaded for the pilot because the pilot was a sales tool. Enterprise rollout is a customer success problem — and customer success is staffed lighter than sales.
+
+This is not a technology critique. Healthcare AI has gotten genuinely better, faster. This is an organizational design critique: health systems are built to run pilots, not to scale them. The procurement process, the committee structure, the champion model — all of it is optimized for evaluation, not deployment.
+
+The one structural variable I've seen correlate with successful enterprise AI deployment: a Chief AI Officer or equivalent who has operational budget authority and a performance metric tied to post-deployment outcomes. Not just a title. An actual budget line and accountability.
+
+Health systems with that person are getting ROI from AI at scale. Health systems with a pilot committee are generating vendor case studies.
+
+Full deal signal and enterprise AI deployment tracking:
+https://app.bigskylabs.ai/dashboard/deals
+
+#HealthcareAI #DigitalHealth #HealthTech #DigitalTransformation
+
+=== FACEBOOK IMAGE ===
+File: linkedin-posts/shots/2026-10-02-pilot-purgatory-market.png
+Screenshot from the market digest or trends dashboard showing the breadth of AI applications
+being tracked. Upload manually if OG card doesn't render.
+
+=== LINK ===
+https://app.bigskylabs.ai/dashboard/deals
+
+=== ENGAGEMENT FOLLOW-UP COMMENT ===
+Use this to reply to early comments:
+
+"The most consistent success story I've seen in this market is health systems that treat AI deployment the way they treat quality improvement — dedicated staff, defined metrics, regular review cadence, and executive accountability. The health systems that treat it as a procurement exercise get pilot case studies. The ones that treat it as a capability they're building get compounding ROI. Those are two completely different organizational postures, and the vendor can't create the second one for you."

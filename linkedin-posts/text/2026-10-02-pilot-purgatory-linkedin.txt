@@ -1,0 +1,58 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === LINKEDIN POST BODY === and === IMAGE ===)
+2. Go to linkedin.com → Start a post
+3. Paste the body text
+4. DO NOT add any URL to the post body — kills organic reach 40-60%
+5. Screenshot needed: go to app.bigskylabs.ai/dashboard/market (or /dashboard/trends) and
+   capture something that conveys the breadth of AI applications being tracked across the
+   space. Save as: linkedin-posts/shots/2026-10-02-pilot-purgatory-market.png
+6. Attach the screenshot as the post image
+7. Publish, then immediately paste the First Comment as the very first comment
+8. Best posting window: Friday 7:30–9:00 AM local time
+9. Friday engagement note: this post surfaces practitioner experience — reply to anyone
+   who shares a specific pilot story, even briefly; those thread interactions compound over
+   the weekend
+
+=== LINKEDIN POST BODY ===
+
+Every healthcare AI pilot succeeds.
+
+The 50-bed pilot at the academic medical center. The 3-month proof of concept in radiology. The sepsis model trial in the ICU. Almost all of them work. The data looks good. The clinical champion is enthusiastic. The vendor gets a case study.
+
+Then the contract goes to procurement for enterprise rollout.
+
+And something happens that almost nobody in the vendor ecosystem talks about honestly:
+
+→ The clinical champion who ran the pilot gets promoted, reassigned, or leaves. The institutional knowledge of how the tool actually works leaves with them.
+→ The ROI calculation from the pilot used controlled conditions — dedicated implementation support, hand-picked patients, motivated staff. None of that transfers automatically to 200 physicians who weren't part of the pilot.
+→ Operational ownership was never defined. Procurement got done; nobody owns "make sure 200 physicians are using this 12 months from now."
+→ The vendor's implementation budget was front-loaded for the pilot as a sales tool. The enterprise rollout is now a customer success problem, not a sales problem — and customer success is usually staffed lighter.
+→ The success metric from the pilot ("20% reduction in sepsis response time in one ICU") doesn't translate into a metric the CFO can track across the enterprise. So there's no organizational urgency to scale.
+
+Healthcare AI has a pilot problem. It is not a technology problem. The technology that passed the pilot is the same technology that's now sitting underutilized after enterprise contract signature.
+
+The single best predictor of whether a healthcare AI deployment actually scales I've seen across the market: whether the health system has a Chief AI Officer — or equivalent — with operational budget authority and accountability for post-deployment outcomes. Not a title. A budget line and a performance metric.
+
+Health systems that have that person are getting ROI from healthcare AI at scale. Health systems that have a pilot committee and a procurement process are generating vendor case studies.
+
+We track deal signals and enterprise deployment patterns across 602 AI healthcare companies.
+
+#HealthcareAI #DigitalHealth #HealthTech #DigitalTransformation #AIinHealthcare
+
+=== IMAGE ===
+File: linkedin-posts/shots/2026-10-02-pilot-purgatory-market.png
+Screenshot from app.bigskylabs.ai/dashboard/market or /dashboard/trends — showing the
+breadth of AI applications and market activity being tracked. Grounds the post in platform
+data without being specific to a single company.
+
+=== LINK (first comment only — not in post body) ===
+https://app.bigskylabs.ai/dashboard/deals
+
+=== LINKEDIN FIRST COMMENT (paste immediately after publishing) ===
+Deal signals and enterprise AI deployment activity tracked live:
+https://app.bigskylabs.ai/dashboard/deals
+
+Have you seen a healthcare AI pilot that scaled successfully? What was different about that one?
+
+#HealthcareAI #DigitalHealth #HealthTech #DigitalTransformation #AIinHealthcare
