@@ -225,12 +225,11 @@ class PublicCompanyControllerTest {
     }
 
     @Test
-    void detail_notFound_redirectsToDirectory() throws Exception {
+    void detail_notFound_returns404() throws Exception {
         when(browseCompaniesUseCase.getCompany("no-such-co")).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/directory/no-such-co"))
-               .andExpect(status().is3xxRedirection())
-               .andExpect(redirectedUrl("/directory"));
+               .andExpect(status().isNotFound());
     }
 
     @Test

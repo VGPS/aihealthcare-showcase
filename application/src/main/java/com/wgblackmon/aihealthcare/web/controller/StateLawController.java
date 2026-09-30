@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageStateLawsUseCase;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -40,7 +42,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-06
- * @updated 2026-09-12
+ * @updated 2026-09-30 — T1/T5: 404 on missing slug, rich per-law pageDescription
  */
 @Slf4j
 @Controller
@@ -148,8 +150,8 @@ public class StateLawController {
 
         Optional<StateLaw> found = legislationUseCase.getById(id);
         if (found.isEmpty()) {
-            log.debug("detail() | return=redirect:/legislation (not found)");
-            return "redirect:/legislation";
+            log.debug("detail() | return=404 (not found, id={})", id);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Law not found: " + id);
         }
 
         boolean fullAccess = tierResolver.hasFullAccess(principal);
@@ -157,11 +159,16 @@ public class StateLawController {
         StateLaw law = found.get();
         Map<String, String> formattedDates = buildFormattedDatesForLaw(law);
 
+        String effectiveNote = law.effectiveDate() != null && !law.effectiveDate().isBlank()
+                ? ", effective " + formatIsoDate(law.effectiveDate()) : "";
+        String pageDesc = law.stateName() + " " + law.billNumber() + " (" + law.status().displayLabel()
+                + effectiveNote + "): " + law.title() + ". " + (law.keyRequirements() != null
+                ? law.keyRequirements().substring(0, Math.min(80, law.keyRequirements().length())) + "…" : "");
+
         model.addAttribute("law", law);
         model.addAttribute("formattedDates", formattedDates);
         model.addAttribute("fullAccess", fullAccess);
-        model.addAttribute("pageDescription",
-                law.stateName() + " " + law.billNumber() + " — " + law.title() + " (" + law.yearEnacted() + ").");
+        model.addAttribute("pageDescription", pageDesc);
 
         log.debug("detail() | return=legislation-detail, law={}", law.id());
         return "legislation-detail";

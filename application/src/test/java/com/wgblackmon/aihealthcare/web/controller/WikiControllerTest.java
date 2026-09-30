@@ -186,11 +186,11 @@ class WikiControllerTest {
     }
 
     @Test
-    void wikiPage_nonexistentSlug_redirectsToIndex() throws Exception {
+    void wikiPage_nonexistentSlug_returns404() throws Exception {
         when(wikiQueryPort.getPage("nonexistent")).thenReturn(null);
 
         mockMvc.perform(get("/wiki/nonexistent"))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isNotFound());
     }
 
     @Test
