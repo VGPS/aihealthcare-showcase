@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-28
- * @updated 2026-09-18
+ * @updated 2026-09-30
  */
 class PerplexityDeepResearchAdapterTest {
 
@@ -119,6 +119,39 @@ class PerplexityDeepResearchAdapterTest {
         assertThat(prompt).contains("FDA clears AI radiology tool");
         assertThat(prompt).contains("MedCity News");
         assertThat(prompt).contains("executive brief");
+    }
+
+    @Test
+    void stripCitations_removesWebCitationMarkers() {
+        String content = "Abridge is deployed at 75 medical centers. [web:2][web:3][web:12] Research supports this.";
+
+        String result = PerplexityDeepResearchAdapter.stripCitations(content);
+
+        assertThat(result).isEqualTo("Abridge is deployed at 75 medical centers. Research supports this.");
+        assertThat(result).doesNotContain("[web:");
+    }
+
+    @Test
+    void stripCitations_collapsesDuplicateSpaces() {
+        String content = "Sentence one.[web:5]  Sentence two.";
+
+        String result = PerplexityDeepResearchAdapter.stripCitations(content);
+
+        assertThat(result).isEqualTo("Sentence one. Sentence two.");
+    }
+
+    @Test
+    void stripCitations_preservesNewlines() {
+        String content = "Paragraph one.[web:1]\n\nParagraph two.[web:2]";
+
+        String result = PerplexityDeepResearchAdapter.stripCitations(content);
+
+        assertThat(result).isEqualTo("Paragraph one.\n\nParagraph two.");
+    }
+
+    @Test
+    void stripCitations_handlesNull() {
+        assertThat(PerplexityDeepResearchAdapter.stripCitations(null)).isNull();
     }
 
     @Test

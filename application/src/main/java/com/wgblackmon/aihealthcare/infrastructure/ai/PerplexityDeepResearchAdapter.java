@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-28
- * @updated 2026-09-18
+ * @updated 2026-09-30
  */
 @Slf4j
 @Component
@@ -47,6 +47,7 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
     private static final String BASE_URL = "https://api.perplexity.ai";
     private static final Pattern THINK_BLOCK = Pattern.compile(
             "<think>.*?</think>\\s*", Pattern.DOTALL);
+    private static final Pattern CITATION = Pattern.compile("\\[web:\\d+\\]");
 
     private final String apiKey;
     private final RestClient restClient;
@@ -136,7 +137,7 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
             return null;
         }
 
-        String cleaned = stripThinkBlocks(rawContent);
+        String cleaned = stripCitations(stripThinkBlocks(rawContent));
 
         if (finalResponse.usage() != null && finalResponse.usage().cost() != null) {
             PerplexityAgentResponse.UsageCost cost = finalResponse.usage().cost();
@@ -189,7 +190,8 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
 
         sb.append("Write in flowing prose suitable for an executive brief. ");
         sb.append("Be specific and cite concrete developments. ");
-        sb.append("Do not use bullet points or numbered lists in the output.");
+        sb.append("Do not use bullet points or numbered lists in the output. ");
+        sb.append("Separate each paragraph with a blank line (two newlines).");
 
         String result = sb.toString();
         log.debug("buildPrompt() | return=prompt ({} chars)", result.length());
@@ -301,5 +303,18 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
         }
         Matcher matcher = THINK_BLOCK.matcher(content);
         return matcher.replaceAll("").trim();
+    }
+
+    /**
+     * Removes Perplexity inline citation markers ({@code [web:N]}) from content.
+     * These are orphaned references — the source URLs are not surfaced in the
+     * response, so the markers add noise without value.
+     * Multiple consecutive spaces left by removed markers are collapsed to one.
+     */
+    static String stripCitations(String content) {
+        if (content == null) {
+            return null;
+        }
+        return CITATION.matcher(content).replaceAll("").replaceAll("[ \\t]{2,}", " ").trim();
     }
 }

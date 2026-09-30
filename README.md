@@ -51,21 +51,23 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **PII Masking** | LogSanitizer utility masks email addresses in log statements to prevent PII exposure in production logs |
 | **Branded Error Handling** | Custom error pages replacing Spring Boot's Whitelabel Error Page with consistent branded UI |
 | **Document Library** | Admin-managed document upload (PDF/DOCX/TXT/MD, 50MB limit) with vector store embedding for RAG search and public wiki page generation |
-| **SEO & Social** | Dynamic XML sitemap, robots.txt, Open Graph meta tags on hosted insights pages for rich social media previews |
+| **SEO & Social** | Dynamic XML sitemap (company/wiki/legislation/trend URLs), robots.txt, Open Graph meta tags; public `/trends/{date}` pages with bar chart + Analysis boxes + subscribe CTA — indexed by Google, no login required |
 | **Weekly Intel Roundup** | Saturday weekly roundup generator — fetches 7-day LEGAL + COMPETITOR articles, deduplicates, caps at 10, generates LinkedIn post (body + first comment), Substack markdown article, and standalone infographic HTML with Playwright screenshot |
 | **LinkedIn/Facebook/Substack Post Library** | Structured post archive with per-topic txt files (LinkedIn body + first comment + Facebook + Substack + posting instructions), Playwright-generated screenshots, and character-count validation — covers regulatory, legislation, market, and AI paradox angles |
 | **91-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, enterprise data console, LinkedIn feature post rotation, combined social post generator, weekly intel roundup, and SSO provider management |
-| **2,975 Automated Tests** | Comprehensive test suite across 358 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **Anti-Slop Content Pipeline** | 3-stage Extract→Write→Check pipeline enforcing house-style rules on AI-generated summaries: Stage 1 extracts structured JSON from articles (writer never sees raw sources), Stage 2 writes prose from the extraction, Stage 3 runs SlopLinter (9 rules: banned-phrase, uncited-claim, bad-citation BLOCK; too-much-bold, bullet-heavy, filler-opener, reflexive-triplet, em-dash-heavy, restating-conclusion WARN). Wiki pages are lint-checked post-generation via W-SLOP gate; BLOCK findings surfaced in CompilationReport.warnings(). Topic summaries now run through the full pipeline — new summaries show a green "✓ Linted · score/100" badge; legacy summaries show a "legacy" badge. Prompt files live-reload from `prompts/` with no restart. Admin report triggers at `/admin/pipelines` |
+| **3,018 Automated Tests** | Comprehensive test suite across 360 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 21, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 107 domain model records, 119 port interfaces, and 104 controllers across 899 Java classes — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **2,975 automated tests** across 357 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **3,018 automated tests** across 360 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
-- Built **23 externalized prompt templates** powering newsletter summarization, sentiment analysis, framework scoring, deal classification, wiki compilation, trend extraction, market news research, and LLM-as-judge evaluation across 5 quality dimensions
+- Built **27 externalized prompt templates** powering newsletter summarization, sentiment analysis, framework scoring, deal classification, wiki compilation, trend extraction, market news research, LLM-as-judge evaluation, and anti-slop content quality enforcement across 5 quality dimensions; prompt files live-reload via `PromptLoaderService` with no restart
+- Implemented **anti-slop content quality pipeline** — 3-stage Extract→Write→Check enforcing house-style rules on all AI-generated summaries: SlopLinter applies 9 regex-based rules (3 BLOCK: banned phrases, uncited claims, invalid citations; 6 WARN: formatting and rhetoric patterns) scoring output 0–100; wiki pages are lint-checked post-generation (W-SLOP gate) with BLOCK findings surfaced in CompilationReport.warnings(); admin report triggers for baseline audit and before/after comparison
 
 **Data Pipeline & Ingestion**
 - Engineered an **11-step self-maintaining pipeline orchestrator** that sequences competitor scraping, regulatory harvesting, article embedding, framework analysis, sentiment scoring, trend detection, and wiki compilation — each step isolated with try-catch to prevent cascade failures
@@ -331,7 +333,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Security Testing | spring-security-test (@WithMockUser) | — |
 | Web Testing | MockMvc (@WebMvcTest slices) | — |
 | Persistence Testing | @DataJpaTest (H2 in-memory) | — |
-| Coverage | 2,975 tests across 358 test classes | — |
+| Coverage | 3,018 tests across 360 test classes | — |
 
 ### Infrastructure & DevOps
 | Component | Technology | Version |
@@ -391,6 +393,7 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 | `/insights/**`, `/robots.txt`, `/sitemap.xml` | Public (static insights pages, SEO) |
 | `/directory`, `/directory/**` | Public (no login required) |
 | `/wiki` | Public (index page, no login required) |
+| `/trends`, `/trends/**` | Public (SEO trend pages, no login required) |
 | `/api/**`, `/monitoring/**`, `/stripe/**` | Public (secured separately via API keys / Stripe signatures) |
 | `/dashboard/**`, `/newsletter/**`, `/research/**`, `/wiki/**` (except index) | Requires login |
 | `/admin/**`, `/monitoring/**` | Requires ADMIN role |
@@ -718,7 +721,7 @@ aihealthcare:
 
 ## Testing
 
-2,975 tests across 358 test classes — all pass with no live AI or network calls.
+3,018 tests across 360 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)

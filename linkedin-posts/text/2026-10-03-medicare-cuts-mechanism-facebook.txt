@@ -1,0 +1,57 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === FACEBOOK POST BODY === and === FACEBOOK IMAGE ===)
+2. Go to your Facebook page or personal profile
+3. Paste the body text
+4. The URL at the bottom generates a link preview — check it renders before publishing
+5. If OG card fails, attach linkedin-posts/shots/2026-10-03-medicare-cuts-legislation.png manually
+6. Best posting window: Saturday 9:00–11:00 AM or Monday 8:00–10:00 AM local time
+7. Facebook note: This topic will resonate strongly with general public / patient audience —
+   not just healthcare business people. That's an advantage on Facebook over LinkedIn.
+8. Reply to early comments with the Engagement Follow-Up text below
+
+SOURCING NOTE: Same as LinkedIn — ProPublica 2023 (Cigna), federal class action filings
+2023–2024 (UnitedHealth), Senate Finance Committee 2024 report.
+
+=== FACEBOOK POST BODY ===
+
+I'm 72 years old. I have Medicare. And I want to explain something that most business coverage of healthcare AI is not saying directly.
+
+Congress just cut $536 billion from Medicare over the next 10 years through a budget reconciliation bill that triggered the Statutory Pay-As-You-Go Act. By 2034, that's $76 billion a year in automatic cuts — unless Congress acts to stop them.
+
+Here is how those cuts actually get implemented. Not in a press release. In practice.
+
+Insurance companies administer Medicare Advantage plans. When Medicare gets cut, Medicare Advantage plans need to deny more claims. And when you need to deny claims at the scale of $76 billion a year, you build an AI system to do it.
+
+The infrastructure already exists. It is already in federal court.
+
+Cigna was the subject of a ProPublica investigation in 2023 that documented their doctors rejecting prior authorization claims in batches — without reviewing individual patient files. A class action lawsuit was filed.
+
+UnitedHealth Group faces multiple federal class action lawsuits filed in 2023 and 2024 alleging that their AI prior authorization system denied medically necessary care to Medicare Advantage patients at scale.
+
+The Senate Finance Committee opened a formal investigation in 2024 into AI-driven denials across Medicare Advantage. They found systematic patterns. There is still no federal law regulating it.
+
+Meanwhile, 58 state laws have been passed trying to put guardrails on AI prior authorization. States acted because they saw what was happening. The federal government is still watching.
+
+I track AI in healthcare every single day. I build tools to track it. This is the story that connects everything happening in this market right now.
+
+The same technology being sold as clinical innovation — faster diagnoses, better care, reduced physician burnout — is also the infrastructure for the largest automated denial system in American history.
+
+$536 billion over 10 years gives that system a very compelling reason to get bigger.
+
+Full state health AI legislation registry:
+https://app.bigskylabs.ai/legislation
+
+#Medicare #HealthcarePolicy #HealthcareAI #PatientRights
+
+=== FACEBOOK IMAGE ===
+File: linkedin-posts/shots/2026-10-03-medicare-cuts-legislation.png
+Upload manually if the OG card from the URL doesn't generate cleanly.
+
+=== LINK ===
+https://app.bigskylabs.ai/legislation
+
+=== ENGAGEMENT FOLLOW-UP COMMENT ===
+Use this to reply to early comments or reactions:
+
+"The part that gets me: the Senate Finance Committee did a formal investigation in 2024. They found the pattern. They published a report. And there is still no federal law that sets a minimum human review requirement, or limits how fast an AI system can process a prior authorization denial, or ensures the appeals window doesn't outlast a terminally ill patient's treatment timeline. Some states have passed those protections. Most haven't. And there is no federal floor. That's where we are."

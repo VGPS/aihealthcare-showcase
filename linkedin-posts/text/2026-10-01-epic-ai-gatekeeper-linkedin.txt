@@ -1,0 +1,62 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === LINKEDIN POST BODY === and === IMAGE ===)
+2. Go to linkedin.com → Start a post
+3. Paste the body text
+4. DO NOT add any URL to the post body — it kills organic reach 40-60%
+5. Screenshot needed: go to app.bigskylabs.ai/directory, filter by "Health IT" or search
+   "Epic" or "EHR" to show infrastructure/platform companies in the directory, then capture.
+   Save as: linkedin-posts/shots/2026-10-01-epic-gatekeeper-directory.png
+   (Alternatively, use the market digest page if it has EHR/Epic coverage this week.)
+6. Attach that screenshot as the post image
+7. Publish the post
+8. Immediately paste the First Comment as the very first comment
+9. Best posting window: Thursday 7:30–9:00 AM local time
+10. Engagement tip: Health system CTOs and CIOs respond strongly to this topic — engage any
+    who reply; ask them directly what their Epic App Orchard experience has been
+
+=== LINKEDIN POST BODY ===
+
+38% of U.S. hospital patient records flow through one company.
+
+That company runs an app marketplace where healthcare AI vendors apply for distribution access, go through a security and integration review, and are accepted or not.
+
+That company also builds AI products of its own.
+
+Nobody writes about Epic the way they write about Apple's App Store. The leverage is comparable.
+
+Epic's App Orchard has 400+ partner applications. To reach clinicians inside Epic's workflow — where physicians actually work, not in a separate tab — you need to be in App Orchard, certified on SMART on FHIR, security-reviewed, and approved. That process takes months. It has a cost structure. It has rules Epic sets unilaterally.
+
+For healthcare AI startups, this creates a distribution reality that doesn't get named directly in pitch decks:
+
+→ "Epic-integrated" is table stakes for enterprise hospital sales. Most health system procurement teams won't open a separate conversation for a tool that isn't embedded in the EHR their clinicians already use.
+→ Epic's own predictive models (sepsis risk, deterioration scores, readmission probability) compete with the vendors it gates.
+→ A vendor that builds a better sepsis model than Epic's can still lose on distribution — if Epic's version is the one embedded in the workflow by default.
+→ When Epic adds a feature to its core product that an App Orchard partner was selling, that partner has no recourse. Sound familiar?
+
+This is not an argument that Epic is acting maliciously. It's an argument that this concentration of distribution power over clinical AI has not received the regulatory or competitive analysis attention it deserves, given what's at stake.
+
+The Apple App Store faced antitrust scrutiny over 30% revenue cuts and preferential placement. Epic's model is different in structure but similar in effect: the platform sets the rules for access to the most valuable distribution channel in the category.
+
+If you're building healthcare AI and not modeling your Epic dependency explicitly, that's a risk you haven't priced.
+
+We track 602 AI healthcare companies and their market signals daily, including health IT infrastructure plays.
+
+#HealthcareAI #DigitalHealth #HealthTech #EHR #AIinHealthcare
+
+=== IMAGE ===
+File: linkedin-posts/shots/2026-10-01-epic-gatekeeper-directory.png
+Screenshot from app.bigskylabs.ai/directory showing health IT / EHR-adjacent companies
+in the directory. Grounds the post in platform data, reinforces the competitive intelligence
+product angle.
+
+=== LINK (first comment only — not in post body) ===
+https://app.bigskylabs.ai/directory
+
+=== LINKEDIN FIRST COMMENT (paste immediately after publishing) ===
+Full 602-company AI healthcare directory with live market signals — including health IT infrastructure:
+https://app.bigskylabs.ai/directory
+
+Has your team modeled Epic dependency as a distribution risk in your go-to-market? What's been your App Orchard experience?
+
+#HealthcareAI #DigitalHealth #HealthTech #EHR #AIinHealthcare

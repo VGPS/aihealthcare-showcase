@@ -21,9 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * directly in {@link #setUp()} via constructor injection.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-21
- * @updated 2026-05-21
+ * @updated 2026-09-29
  */
 @DataJpaTest
 class TopicSummaryAdapterTest {
@@ -44,7 +44,7 @@ class TopicSummaryAdapterTest {
     void save_persistsAndFindByTopicReturns() {
         TopicSummary summary = new TopicSummary(
                 "AI Healthcare", "This is a summary. Second sentence. Third sentence.",
-                Instant.parse("2026-05-21T10:00:00Z"));
+                Instant.parse("2026-05-21T10:00:00Z"), null, null);
 
         adapter.save(summary);
 
@@ -59,9 +59,9 @@ class TopicSummaryAdapterTest {
     @DisplayName("save with same topic overwrites previous summary (upsert)")
     void save_upsertOverwritesPreviousSummary() {
         TopicSummary first = new TopicSummary(
-                "OpenAI Healthcare", "First summary.", Instant.parse("2026-05-20T10:00:00Z"));
+                "OpenAI Healthcare", "First summary.", Instant.parse("2026-05-20T10:00:00Z"), null, null);
         TopicSummary second = new TopicSummary(
-                "OpenAI Healthcare", "Updated summary.", Instant.parse("2026-05-21T10:00:00Z"));
+                "OpenAI Healthcare", "Updated summary.", Instant.parse("2026-05-21T10:00:00Z"), null, null);
 
         adapter.save(first);
         adapter.save(second);
@@ -85,11 +85,45 @@ class TopicSummaryAdapterTest {
     @Test
     @DisplayName("findAll returns all saved summaries")
     void findAll_returnsAllSavedSummaries() {
-        adapter.save(new TopicSummary("Topic A", "Summary A.", Instant.now()));
-        adapter.save(new TopicSummary("Topic B", "Summary B.", Instant.now()));
-        adapter.save(new TopicSummary("Topic C", "Summary C.", Instant.now()));
+        adapter.save(new TopicSummary("Topic A", "Summary A.", Instant.now(), null, null));
+        adapter.save(new TopicSummary("Topic B", "Summary B.", Instant.now(), null, null));
+        adapter.save(new TopicSummary("Topic C", "Summary C.", Instant.now(), null, null));
 
         List<TopicSummary> result = adapter.findAll();
         assertThat(result).hasSize(3);
+    }
+
+    @Test
+    @DisplayName("pipeline metadata round-trips through entity")
+    void save_pipelineMetadataRoundTrips() {
+        TopicSummary summary = new TopicSummary(
+                "Linted Topic",
+                "FDA cut prior-auth turnaround from 5 to 2 days after AI deployment [S1].",
+                Instant.now(),
+                "anti-slop-v1",
+                87);
+
+        adapter.save(summary);
+
+        Optional<TopicSummary> result = adapter.findByTopic("Linted Topic");
+        assertThat(result).isPresent();
+        assertThat(result.get().pipelineVersion()).isEqualTo("anti-slop-v1");
+        assertThat(result.get().lintScore()).isEqualTo(87);
+        assertThat(result.get().isAntiSlop()).isTrue();
+    }
+
+    @Test
+    @DisplayName("legacy summary with null pipeline fields round-trips correctly")
+    void save_legacySummaryNullFieldsRoundTrip() {
+        TopicSummary summary = new TopicSummary(
+                "Legacy Topic", "AI is transforming healthcare.", Instant.now(), null, null);
+
+        adapter.save(summary);
+
+        Optional<TopicSummary> result = adapter.findByTopic("Legacy Topic");
+        assertThat(result).isPresent();
+        assertThat(result.get().pipelineVersion()).isNull();
+        assertThat(result.get().lintScore()).isNull();
+        assertThat(result.get().isAntiSlop()).isFalse();
     }
 }

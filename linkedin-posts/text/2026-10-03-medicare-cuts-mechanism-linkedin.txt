@@ -1,0 +1,69 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === LINKEDIN POST BODY === and === IMAGE ===)
+2. Go to linkedin.com → Start a post
+3. Paste the body text
+4. DO NOT add any URL to the post body
+5. Screenshot needed: go to app.bigskylabs.ai/legislation and capture the state health AI
+   law registry page showing the prior auth laws. Save as:
+   linkedin-posts/shots/2026-10-03-medicare-cuts-legislation.png
+   (Alternatively, a screenshot of the regulatory tracker at /dashboard/regulatory works.)
+6. Attach screenshot as post image
+7. Publish, then immediately paste the First Comment
+8. Best posting window: Saturday 8:00–10:00 AM or Monday 7:30–9:00 AM local time
+   (Saturday if you want the weekend healthcare policy audience; Monday for the business week)
+9. Tone note: This post is written in Bill's direct personal voice. Do not soften it before
+   posting. The directness is the point.
+
+SOURCING NOTE FOR THIS POST:
+- $536B / $45B / $76B figures: AMA, House Budget Committee Democrats, Medicare Rights Center
+- Cigna batch denials: ProPublica, March 2023
+- UnitedHealth litigation: Reuters, STAT News, NYT coverage of federal class action filings 2023–2024
+- Senate Finance Committee: 2024 Senate Finance Committee report on Medicare Advantage AI denials
+
+=== LINKEDIN POST BODY ===
+
+I'm 72. I have Medicare. So I'm going to say this plainly.
+
+Congress just triggered $536 billion in mandatory Medicare cuts over the next 10 years — scaling to $76 billion a year by 2034 — through a budget reconciliation law that activated the Statutory PAYGO Act. Unless Congress intervenes, those cuts happen automatically.
+
+Here is how $76 billion a year gets cut from Medicare spending. Not in the abstract. Operationally.
+
+Insurance companies — specifically Medicare Advantage plans — are the ones who process the claims. And the tool they will use to implement denial at that scale is AI prior authorization.
+
+This is not speculation. The infrastructure already exists and is already in federal court:
+
+→ Cigna: ProPublica reported in 2023 that Cigna's doctors were rejecting prior auth claims in batches — reviewing patient records for an average of seconds per case before denial. A class action lawsuit followed.
+
+→ UnitedHealth Group: Federal class action suits were filed in 2023 and 2024 alleging that UnitedHealth's AI prior authorization system denied medically necessary care at scale under Medicare Advantage plans. The case is active in federal court.
+
+→ The Senate Finance Committee opened a formal investigation into AI-driven prior auth denials across Medicare Advantage in 2024. The investigation found systematic patterns. Congress has not yet passed federal legislation in response.
+
+This is not Big Tech disrupting healthcare for the better. This is large insurance companies building automated denial engines — then receiving $76 billion per year in additional financial incentive to run them harder.
+
+Fifty-eight state laws have been enacted attempting to regulate AI prior authorization. Most of the states that passed them did so because they saw specific deployments and responded. The federal government has not.
+
+I track AI in healthcare every day. This is the story that connects all of it. The technology that looked like clinical innovation is also the infrastructure for the largest automated denial operation in American history.
+
+That's not an opinion. That's the business case.
+
+#Medicare #HealthcareAI #HealthcarePolicy #HealthcareReform #AIinHealthcare
+
+=== IMAGE ===
+File: linkedin-posts/shots/2026-10-03-medicare-cuts-legislation.png
+Screenshot of app.bigskylabs.ai/legislation showing state health AI laws, particularly
+those targeting prior authorization. Grounds the post in real tracked data.
+
+=== LINK (first comment only) ===
+https://app.bigskylabs.ai/legislation
+
+=== LINKEDIN FIRST COMMENT (paste immediately after publishing) ===
+Full state health AI legislation registry — 58 enacted laws, many targeting AI prior authorization:
+https://app.bigskylabs.ai/legislation
+
+And the regulatory event tracker for CMS/FDA actions:
+https://app.bigskylabs.ai/dashboard/regulatory
+
+What's your experience with AI prior authorization? I'd like to hear from people on the ground.
+
+#Medicare #HealthcareAI #HealthcarePolicy #HealthcareReform #AIinHealthcare

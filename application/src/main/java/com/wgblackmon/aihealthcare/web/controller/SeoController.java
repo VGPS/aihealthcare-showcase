@@ -4,6 +4,8 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.HealthcareAiCompan
 import com.wgblackmon.aihealthcare.infrastructure.persistence.HealthcareAiCompanyRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.StateLawEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.StateLawRepository;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.TrendSnapshotEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.TrendSnapshotRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +36,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-10
- * @updated 2026-09-17
+ * @updated 2026-09-30
  */
 @Slf4j
 @Controller
@@ -44,15 +46,18 @@ public class SeoController {
     private final HealthcareAiCompanyRepository companyRepository;
     private final StateLawRepository stateLawRepository;
     private final WikiPageRepository wikiPageRepository;
+    private final TrendSnapshotRepository trendSnapshotRepository;
 
     public SeoController(@Value("${aihealthcare.base-url}") String baseUrl,
                           HealthcareAiCompanyRepository companyRepository,
                           StateLawRepository stateLawRepository,
-                          WikiPageRepository wikiPageRepository) {
+                          WikiPageRepository wikiPageRepository,
+                          TrendSnapshotRepository trendSnapshotRepository) {
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         this.companyRepository = companyRepository;
         this.stateLawRepository = stateLawRepository;
         this.wikiPageRepository = wikiPageRepository;
+        this.trendSnapshotRepository = trendSnapshotRepository;
         log.debug("SeoController() | baseUrl={}", this.baseUrl);
     }
 
@@ -73,6 +78,8 @@ public class SeoController {
                 Allow: /wiki/
                 Allow: /legislation
                 Allow: /legislation/
+                Allow: /trends
+                Allow: /trends/
                 Allow: /about
                 Allow: /pricing
                 Allow: /developer
@@ -116,6 +123,7 @@ public class SeoController {
         addUrl(sb, "/developer", "0.6", "monthly", today);
         addUrl(sb, "/directory", "0.9", "daily", today);
         addUrl(sb, "/legislation", "0.9", "daily", today);
+        addUrl(sb, "/trends", "0.8", "weekly", today);
         addUrl(sb, "/wiki", "0.8", "daily", today);
         addUrl(sb, "/privacy", "0.3", "yearly", today);
 
@@ -139,11 +147,20 @@ public class SeoController {
             addUrl(sb, "/wiki/" + page.getSlug(), "0.5", "weekly", today);
         }
 
+        List<TrendSnapshotEntity> snapshots = trendSnapshotRepository.findAllByOrderByGeneratedAtDesc();
+        DateTimeFormatter snapshotDateFmt = DateTimeFormatter.ISO_LOCAL_DATE;
+        for (TrendSnapshotEntity snapshot : snapshots) {
+            String dateSlug = snapshotDateFmt.format(
+                    snapshot.getGeneratedAt().atZone(java.time.ZoneOffset.UTC).toLocalDate());
+            addUrl(sb, "/trends/" + dateSlug, "0.7", "weekly", today);
+        }
+
         sb.append("</urlset>\n");
 
         String result = sb.toString();
         log.debug("sitemapXml() | return=sitemap with {} URLs",
-                  8 + insightPages.size() + companies.size() + laws.size() + wikiPages.size());
+                  9 + insightPages.size() + companies.size() + laws.size()
+                  + wikiPages.size() + snapshots.size());
         return result;
     }
 
