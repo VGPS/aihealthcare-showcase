@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.domain.service;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.TopicSummary;
+import com.wgblackmon.aihealthcare.domain.model.TopicSummaryResult;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
@@ -25,9 +26,9 @@ import java.util.logging.Logger;
  * no Spring dependencies itself (domain-layer purity).
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-21
- * @updated 2026-05-21
+ * @updated 2026-09-29
  */
 public class TopicSummaryGenerationService {
 
@@ -69,8 +70,10 @@ public class TopicSummaryGenerationService {
             }
 
             try {
-                String summaryText = aiPort.generateTopicSummary(topic, articles);
-                TopicSummary summary = new TopicSummary(topic, summaryText, Instant.now());
+                TopicSummaryResult result = aiPort.generateTopicSummary(topic, articles);
+                TopicSummary summary = new TopicSummary(
+                        topic, result.text(), Instant.now(),
+                        result.pipelineVersion(), result.lintScore());
                 summaryPort.save(summary);
                 LOG.info(String.format("generateSummaries() | saved summary for topic=%s (articleCount=%d)",
                         topic, articles.size()));

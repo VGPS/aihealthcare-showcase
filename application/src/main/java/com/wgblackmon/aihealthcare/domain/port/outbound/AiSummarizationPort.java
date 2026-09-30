@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.domain.port.outbound;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
+import com.wgblackmon.aihealthcare.domain.model.TopicSummaryResult;
 
 import java.util.List;
 
@@ -14,9 +15,9 @@ import java.util.List;
  * are made outside the {@code ai-integration} Spring profile.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2025-01-27
- * @updated 2026-05-21
+ * @updated 2026-09-29
  */
 public interface AiSummarizationPort {
 
@@ -90,15 +91,16 @@ public interface AiSummarizationPort {
     String generateIntroduction(List<NewsletterSection> sections, NewsletterTone tone);
 
     /**
-     * Generate a concise 3-sentence summary of the given articles for a topic
-     * section on the news listing page.
+     * Generate a summary of the given articles for a topic section on the news
+     * listing page, using the anti-slop Extract→Write→Check pipeline.
      *
-     * <p>Uses only article titles (not full body text) to keep token cost low.
-     * The returned string is plain text — no headline, no bullet points.
+     * <p>Returns a {@link TopicSummaryResult} carrying the generated prose, the
+     * pipeline identifier, and the SlopLinter score so callers can persist quality
+     * metadata alongside the text.
      *
      * @param topic    the topic name these articles belong to
      * @param articles articles to summarize; should contain more than one entry
-     * @return a 3-sentence plain-text summary
+     * @return a {@link TopicSummaryResult} with text, pipelineVersion, and lintScore
      */
-    String generateTopicSummary(String topic, List<NewsArticle> articles);
+    TopicSummaryResult generateTopicSummary(String topic, List<NewsArticle> articles);
 }

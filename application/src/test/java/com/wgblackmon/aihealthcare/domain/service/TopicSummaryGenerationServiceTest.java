@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.domain.service;
 
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.TopicSummary;
+import com.wgblackmon.aihealthcare.domain.model.TopicSummaryResult;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
@@ -31,9 +32,9 @@ import static org.mockito.Mockito.when;
  * <p>All AI and persistence calls are mocked — no real API calls or DB writes.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-21
- * @updated 2026-05-21
+ * @updated 2026-09-29
  */
 @ExtendWith(MockitoExtension.class)
 class TopicSummaryGenerationServiceTest {
@@ -87,7 +88,9 @@ class TopicSummaryGenerationServiceTest {
         List<NewsArticle> articles = List.of(sampleArticle("Article 1"), sampleArticle("Article 2"));
         when(ingestionPort.fetchAllByTopic("AI Healthcare")).thenReturn(articles);
         when(aiPort.generateTopicSummary(eq("AI Healthcare"), eq(articles)))
-                .thenReturn("This is a 3-sentence summary. It covers key themes. More details follow.");
+                .thenReturn(new TopicSummaryResult(
+                        "This is a 3-sentence summary. It covers key themes. More details follow.",
+                        "anti-slop-v1", 88));
 
         service.generateSummaries(List.of("AI Healthcare"));
 
@@ -97,6 +100,9 @@ class TopicSummaryGenerationServiceTest {
         assertThat(saved.topic()).isEqualTo("AI Healthcare");
         assertThat(saved.summaryText()).contains("3-sentence summary");
         assertThat(saved.generatedAt()).isNotNull();
+        assertThat(saved.pipelineVersion()).isEqualTo("anti-slop-v1");
+        assertThat(saved.lintScore()).isEqualTo(88);
+        assertThat(saved.isAntiSlop()).isTrue();
     }
 
     // -------------------------------------------------------------------------
@@ -111,7 +117,9 @@ class TopicSummaryGenerationServiceTest {
         when(aiPort.generateTopicSummary(eq("Failing Topic"), anyList()))
                 .thenThrow(new RuntimeException("AI service down"));
         when(aiPort.generateTopicSummary(eq("Good Topic"), anyList()))
-                .thenReturn("Good summary here. Second sentence. Third sentence.");
+                .thenReturn(new TopicSummaryResult(
+                        "Good summary here. Second sentence. Third sentence.",
+                        "anti-slop-v1", 85));
 
         service.generateSummaries(List.of("Failing Topic", "Good Topic"));
 
