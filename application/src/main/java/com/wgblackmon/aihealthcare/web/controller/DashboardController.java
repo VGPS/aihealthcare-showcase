@@ -453,15 +453,13 @@ public class DashboardController {
             totalArticles += articles.size();
         }
 
-        Map<String, String> topicSummaries = new HashMap<>();
+        Map<String, com.wgblackmon.aihealthcare.domain.model.TopicSummary> topicSummaries = new HashMap<>();
         for (String topic : topicNames) {
             List<NewsArticle> articles = topicArticles.get(topic);
             if (articles != null && articles.size() > 1) {
                 Optional<com.wgblackmon.aihealthcare.domain.model.TopicSummary> summary =
                         topicSummaryPort.findByTopic(topic);
-                if (summary.isPresent()) {
-                    topicSummaries.put(topic, summary.get().summaryText());
-                }
+                summary.ifPresent(s -> topicSummaries.put(topic, s));
             }
         }
 

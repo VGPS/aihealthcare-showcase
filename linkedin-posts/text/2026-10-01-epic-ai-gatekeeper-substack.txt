@@ -1,0 +1,97 @@
+=== SUBSTACK POSTING INSTRUCTIONS ===
+
+1. Log in to Substack → New Post
+2. Title: "Epic Runs the Healthcare AI App Store. Nobody's Writing About It Like One."
+3. Subtitle: "38% of U.S. patient records flow through a platform that approves which AI tools
+   reach clinicians, competes with those vendors, and answers to no regulator for doing so."
+4. Paste the body below (from the opening paragraph through the footer)
+5. Cover image: linkedin-posts/shots/2026-10-01-epic-gatekeeper-directory.png
+6. Section: "Intelligence" or "Analysis" — not the weekly roundup
+7. Audience: All subscribers (free + paid)
+8. Send as email: YES
+9. Best send time: Thursday 7:00 AM local time
+10. After publishing: share the post URL as a follow-up comment on Thursday's LinkedIn post
+
+=== ENGAGEMENT FOLLOW-UP ===
+If a subscriber responds asking whether Oracle Health (formerly Cerner) faces the same
+scrutiny, use this:
+
+"Oracle Health is the right comparison point — they hold roughly 25% of U.S. hospital EHR
+market share vs. Epic's 38%, and they've been more aggressive recently about expanding their
+own AI offerings since Oracle's acquisition. The combined Epic + Oracle footprint represents
+the majority of U.S. hospital clinical workflows. The gatekeeper dynamic applies to both,
+but Epic's App Orchard is the more mature partner ecosystem and therefore the more visible
+distribution chokepoint right now. Oracle's AI marketplace is worth watching as a second
+data point in the same story."
+
+---
+
+# Epic Runs the Healthcare AI App Store. Nobody's Writing About It Like One.
+
+### October 1, 2026
+
+---
+
+The most important distribution channel in clinical AI is not a cloud platform, a consumer app store, or a venture-backed marketplace.
+
+It's the EHR workflow that 38% of U.S. hospital clinicians use every day. And the company that controls it — Epic Systems — has built an app marketplace, built competing AI products, and set the rules for which AI tools reach those clinicians.
+
+Nobody in healthcare policy is treating this the way they'd treat the same structure in any other industry.
+
+---
+
+## The baseline facts
+
+Epic's EHR platform handles patient records for approximately 38% of U.S. hospitals. The top 100 health systems in the country are heavily Epic-weighted. When a clinician opens a patient chart, writes a note, reviews alerts, or views a risk score, they are operating in Epic's interface.
+
+Epic operates App Orchard, a partner application marketplace with 400+ listed products. To integrate into Epic's clinical workflow — the place clinicians actually work — third-party vendors must apply, complete a security review, certify SMART on FHIR compatibility, and accept Epic's participation terms. The process takes months. It has costs. Epic controls the approval.
+
+Epic also builds AI of its own. Sepsis prediction. Readmission risk. Deterioration alerts. Embedded by default in the patient summary view, visible to every clinician on every Epic chart with no extra clicks required.
+
+Those two facts — gating third-party AI access to the workflow, while building first-party AI inside it — constitute a distribution dynamic that deserves more direct analysis than it's getting.
+
+---
+
+## The Apple comparison (with caveats)
+
+The structural parallel to Apple's App Store is imperfect but useful.
+
+Apple controls iOS, the dominant mobile operating system in the U.S. premium segment. App developers must go through App Review, accept Apple's terms, pay Apple's developer fees and revenue cuts, and comply with rules that Apple can change. Apple also builds apps that compete with App Store developers — Maps, Music, Podcasts, Fitness. The competitive overlap between the platform and the developers it hosts drew years of antitrust scrutiny and eventually legislative action.
+
+Epic controls the dominant clinical EHR in U.S. hospitals. Third-party AI vendors must go through App Orchard review, accept Epic's terms, and comply with rules Epic sets. Epic also builds AI that competes with those vendors. The competitive overlap between the EHR platform and the AI developers it hosts has not drawn comparable regulatory attention.
+
+The differences are real: Epic's customers are institutions, not consumers. There is no 30% revenue cut on partner sales through App Orchard. A healthcare AI startup can sell direct without App Orchard access — it just becomes much harder in enterprise health system sales. The dynamics are meaningfully different from the consumer software context.
+
+But "different structure" doesn't mean "no leverage." The distribution power over the most valuable clinical workflow in the country is highly concentrated, and the first-party/third-party competitive overlap is structural, not incidental.
+
+---
+
+## What the market feels but doesn't name
+
+Talk to healthcare AI founders off the record about their Epic strategy and the conversation is consistent: App Orchard integration is mandatory for serious enterprise sales, the timeline is long, the requirements are opaque, and Epic's native AI is a competitor they can't fully benchmark against because they don't know what Epic's internal data training set looks like or how Epic's models are being updated.
+
+That last point matters. Epic's predictive models are trained on a proprietary dataset of tens of millions of patients across hundreds of health systems. That's a training advantage no third-party vendor can fully replicate. The clinical validation studies that vendors publish to prove their models outperform Epic's benchmarks are doing it on a subset of the data Epic actually uses.
+
+None of this is inherently improper. But it creates an asymmetric competitive environment that benefits from more transparent scrutiny than it's currently receiving.
+
+---
+
+## Three questions worth watching
+
+**Does the regulatory framework catch up?** The FDA governs AI medical devices through 510(k) and De Novo pathways. State legislatures are passing laws on AI-assisted clinical decisions. Neither framework addresses EHR distribution power. That gap may close as policymakers become more sophisticated about where the actual leverage points are in clinical AI.
+
+**Does interoperability mandate change the dynamics?** CMS has pushed hard on FHIR-based interoperability requirements. If health systems are required to support standardized API access to clinical data, the EHR's role as the exclusive workflow gateway weakens — and the value of App Orchard as a distribution channel changes.
+
+**Does the competitive landscape shift?** Oracle Health (formerly Cerner) has roughly 25% U.S. hospital EHR market share and has been more aggressive since Oracle's acquisition about expanding its own AI offerings. A world where Epic and Oracle both run mature AI marketplaces while competing with their own native AI creates duplicated gatekeeper risk for vendors — but also creates competitive pressure between the two platforms that might benefit third parties.
+
+---
+
+## The directory view
+
+We track 602 AI healthcare companies with live daily signals. Health IT infrastructure and EHR-ecosystem plays are tracked alongside clinical AI companies:
+
+**[app.bigskylabs.ai/directory](https://app.bigskylabs.ai/directory)** — sorted by trending to show current market signals.
+
+---
+
+*Big Sky Labs covers deal signals, regulatory events, competitive intelligence, and market analysis for the AI healthcare sector. [Subscribe](https://app.bigskylabs.ai) for the full weekly intelligence feed.*

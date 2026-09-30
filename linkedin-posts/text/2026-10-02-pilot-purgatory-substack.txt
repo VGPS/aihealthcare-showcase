@@ -1,0 +1,95 @@
+=== SUBSTACK POSTING INSTRUCTIONS ===
+
+1. Log in to Substack → New Post
+2. Title: "Every Healthcare AI Pilot Succeeds. Ask Why So Few Become Programs."
+3. Subtitle: "The technology isn't the problem. The organizational design is."
+4. Paste the body below (from the opening through the footer)
+5. Cover image: linkedin-posts/shots/2026-10-02-pilot-purgatory-market.png
+6. Section: "Intelligence" or "Analysis"
+7. Audience: All subscribers (free + paid)
+8. Send as email: YES
+9. Best send time: Friday 7:00 AM local time — arrives before the weekend, gets read over
+   coffee Saturday morning by the readers who save things for the weekend
+10. After publishing: share post URL as a follow-up on Friday's LinkedIn post
+
+=== ENGAGEMENT FOLLOW-UP ===
+If a subscriber replies asking how to evaluate vendors on post-deployment support quality, use this:
+
+"Three questions I'd put directly to any healthcare AI vendor in a final evaluation conversation:
+(1) What is your median 12-month active-user rate across enterprise deployments in your last 10 contracts? (If they don't track this, that's the answer.)
+(2) Can you connect me with a customer success contact — not a sales contact — at a reference site that's been live for 18+ months?
+(3) What does your team do when the clinical champion who ran the pilot leaves? Walk me through the actual handoff process.
+
+A vendor that has good answers to all three has thought seriously about deployment, not just closing. A vendor that pivots back to clinical validation data hasn't."
+
+---
+
+# Every Healthcare AI Pilot Succeeds. Ask Why So Few Become Programs.
+
+### October 2, 2026
+
+---
+
+The most discussed failure mode in healthcare AI is the technology that doesn't work — the algorithm that hallucinations, the diagnostic model with unacceptable false-positive rates, the chatbot that gives patients wrong information.
+
+The more common failure mode, and the one almost nobody talks about honestly, is the technology that works — that passed its clinical validation, that produced positive results in a controlled pilot, that got an enterprise contract signed — and then quietly stagnated at 15% physician adoption for two years while the vendor relationship manager sent optimistic quarterly reports.
+
+This is pilot purgatory. It is common enough that it deserves a clear-eyed accounting of why it happens.
+
+---
+
+## The incentive problem built into the pilot model
+
+Healthcare AI pilots serve two interests simultaneously: the health system's interest in evaluating whether the technology delivers value, and the vendor's interest in producing a reference site and closing an enterprise contract.
+
+Both interests are best served by a successful pilot. This alignment of incentives is not malicious — it produces genuine evaluation results. But it also means pilots are structurally designed to show the technology in optimized conditions: dedicated vendor implementation support, a motivated clinical champion with protected time, a hand-selected patient population, and staff who are paying attention because they know they're being evaluated.
+
+None of those conditions persist at enterprise scale. The technology stays the same. The context changes entirely.
+
+---
+
+## Five things that kill enterprise rollouts
+
+**The champion departs.** The single most consistent predictor of post-pilot stall is whether the clinical champion who ran the evaluation is still in the same role 18 months later. In healthcare, they often aren't. When they leave, they take the implementation knowledge that was never written down — why the alert threshold is set where it is, which physicians trust the model and which ones need to see it prove itself, how the tool was integrated into the specific workflow of that specific unit.
+
+The vendor's documentation doesn't have that. The new person inheriting the contract has to rebuild it from scratch, with less motivation and no institutional momentum.
+
+**The ROI metric doesn't translate.** "30% reduction in false-positive sepsis alerts in one ICU over 90 days" is a strong pilot result. It cannot be directly tracked across a 12-hospital system with different ICU configurations, staffing models, and baseline alert behaviors. Without a metric the CFO can track at enterprise scale, there is no organizational pressure to drive adoption. The implementation timeline slips. Nobody escalates.
+
+**Operational ownership was never assigned.** Procurement is designed to evaluate and purchase. It is not designed to define accountability for whether the purchased technology gets used.
+
+An enterprise AI contract without a named owner of the post-deployment outcome is not unusual — it is the default. There is no one at the health system whose annual performance review includes "75% of licensed physicians are active monthly users at 12 months." Without that accountability, adoption drift is invisible until someone pulls an access log and discovers that 80% of licenses haven't been touched in two months.
+
+**Vendor support changes at contract signature.** Pilot implementation support is a sales investment. The vendor's best people work the pilot because winning the enterprise contract justifies the cost. After signature, the account transitions to standard customer success — a team with a higher case load, less specialized knowledge of the health system's specific configuration, and a relationship that's now about retention rather than winning.
+
+Health systems that experience this transition as a drop in service quality are not wrong. It is a structural shift in vendor incentive. Knowing it's coming doesn't make it easier to manage. Expecting it in advance does.
+
+**The scale metric is different from the pilot metric.** Clinical validation metrics answer "does this technology work." Enterprise deployment metrics answer "is this technology being used." Health systems that are excellent at evaluating the former and mediocre at building infrastructure for the latter can buy accurate, validated AI products that nobody uses. These are separate organizational capabilities. Most health systems have invested much more in one than the other.
+
+---
+
+## What successful deployments actually look like
+
+The counterexample exists. Health systems have deployed healthcare AI at real enterprise scale. They share a consistent structural profile.
+
+**Someone owns it with a budget.** The health systems that scale AI consistently have a person — Chief AI Officer, VP of Digital Health, whatever the title — who is accountable for post-deployment outcomes, controls a budget, and has a performance metric that includes adoption. This is not a strategy role. It is an operational role. The distinction matters.
+
+**Deployment runs like a program, not a project.** Quality improvement, infection control, patient safety — the programs that health systems run well run continuously, with structured measurement and ongoing accountability. The health systems that scale AI treat it the same way. Regular review cadence. Defined metrics. Feedback loops from clinicians. An accountable team. A project ends at go-live. A program doesn't.
+
+**Reference checks include post-deployment data.** The health systems that consistently make good vendor selections ask the right questions during evaluation: not just "show me your 90-day pilot results" but "what is your 18-month adoption rate across enterprise deployments, and can I talk to a customer who has been live for 18 months?" A vendor that doesn't track 18-month adoption data has told you something important about how they think about their business.
+
+---
+
+## Looking at the week
+
+This week's market intelligence showed deal activity continuing to concentrate in ambient documentation AI (the #1 trending keyword for three consecutive weeks) and health IT infrastructure — categories where the pilot-to-enterprise gap is especially consequential because the volume of deals is high and the organizational complexity of deployment is also high.
+
+The pipeline of healthcare AI enterprise contracts being signed is real and growing. The question worth tracking is how many of those contracts are generating durable operational value versus sitting in various stages of adoption stagnation.
+
+Full deal signal and market activity tracking:
+
+**[app.bigskylabs.ai/dashboard/deals](https://app.bigskylabs.ai/dashboard/deals)** — updated daily.
+
+---
+
+*Big Sky Labs covers deal signals, regulatory events, competitive intelligence, and market analysis for AI healthcare. [Subscribe](https://app.bigskylabs.ai) for the full weekly intelligence feed, published every Saturday morning.*

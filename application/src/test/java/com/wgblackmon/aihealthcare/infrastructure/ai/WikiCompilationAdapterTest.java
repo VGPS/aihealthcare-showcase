@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiSourceRefRepository;
+import com.wgblackmon.aihealthcare.infrastructure.summary.SlopLinter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,9 +36,9 @@ import static org.mockito.Mockito.when;
  * response parsing, and persistence calls without making real LLM calls.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-09-29
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -109,6 +110,7 @@ class WikiCompilationAdapterTest {
     @BeforeEach
     void setUp() {
         when(chatClientBuilder.build()).thenReturn(chatClient);
+        SlopLinter slopLinter = new SlopLinter(SlopLinter.DEFAULT_BANNED_PHRASES);
         adapter = new WikiCompilationAdapter(
                 chatClientBuilder,
                 pageRepository,
@@ -117,7 +119,8 @@ class WikiCompilationAdapterTest {
                 revisionRepository,
                 new WikiResponseParser(),
                 PROMPT_TEMPLATE,
-                "claude-haiku-4-5"
+                "claude-haiku-4-5",
+                slopLinter
         );
     }
 
@@ -218,5 +221,55 @@ class WikiCompilationAdapterTest {
         String prompt = adapter.buildPrompt(List.of(ARTICLE), List.of());
 
         assertThat(prompt).contains("first compilation run");
+    }
+
+    // -------------------------------------------------------------------------
+    // W-SLOP: slop lint gate on compiled wiki pages
+    // -------------------------------------------------------------------------
+
+    private static final String LLM_RESPONSE_SLOP_PAGE =
+            "### PAGE: ai-paradigm-shift\n"
+            + "TITLE: AI Paradigm Shift\n"
+            + "TYPE: CONCEPT\n"
+            + "TAGS: ai\n"
+            + "STATUS: CREATED\n"
+            + "SOURCES: article-001\n"
+            + "RELATED:\n"
+            + "CONTENT:\n"
+            + "# AI Paradigm Shift\n"
+            + "This paradigm shift will revolutionize healthcare delivery across the ecosystem.\n";
+
+    private static final String LLM_RESPONSE_CLEAN_PAGE =
+            "### PAGE: fda-510k-process\n"
+            + "TITLE: FDA 510k Process\n"
+            + "TYPE: ENTITY\n"
+            + "TAGS: fda, regulatory\n"
+            + "STATUS: CREATED\n"
+            + "SOURCES: article-001\n"
+            + "RELATED:\n"
+            + "CONTENT:\n"
+            + "# FDA 510k Process\n"
+            + "The FDA 510k pathway requires substantial equivalence to a predicate device.\n";
+
+    @Test
+    void slopPage_addsBlockFindingsToWarnings() {
+        mockChatResponse(LLM_RESPONSE_SLOP_PAGE);
+        when(pageRepository.findAll()).thenReturn(List.of());
+        when(pageRepository.existsById("ai-paradigm-shift")).thenReturn(false);
+
+        CompilationReport report = adapter.compileNewSources(List.of(ARTICLE));
+
+        assertThat(report.warnings()).anyMatch(w -> w.startsWith("[SLOP]") && w.contains("banned-phrase"));
+    }
+
+    @Test
+    void cleanPage_noSlopWarnings() {
+        mockChatResponse(LLM_RESPONSE_CLEAN_PAGE);
+        when(pageRepository.findAll()).thenReturn(List.of());
+        when(pageRepository.existsById("fda-510k-process")).thenReturn(false);
+
+        CompilationReport report = adapter.compileNewSources(List.of(ARTICLE));
+
+        assertThat(report.warnings()).noneMatch(w -> w.startsWith("[SLOP]"));
     }
 }

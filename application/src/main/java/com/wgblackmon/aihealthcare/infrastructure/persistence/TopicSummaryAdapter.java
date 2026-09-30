@@ -17,9 +17,9 @@ import java.util.Optional;
  * so {@code save()} acts as an upsert — the latest summary always wins.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-05-21
- * @updated 2026-05-21
+ * @updated 2026-09-29
  */
 @Slf4j
 @Component
@@ -66,6 +66,8 @@ public class TopicSummaryAdapter implements TopicSummaryPort {
         entity.setTopic(summary.topic());
         entity.setSummaryText(summary.summaryText());
         entity.setGeneratedAt(summary.generatedAt());
+        entity.setPipelineVersion(summary.pipelineVersion());
+        entity.setLintScore(summary.lintScore());
         log.debug("toEntity() | return={}", entity.getTopic());
         return entity;
     }
@@ -75,7 +77,9 @@ public class TopicSummaryAdapter implements TopicSummaryPort {
         TopicSummary result = new TopicSummary(
                 entity.getTopic(),
                 entity.getSummaryText(),
-                entity.getGeneratedAt()
+                entity.getGeneratedAt(),
+                entity.getPipelineVersion(),
+                entity.getLintScore()
         );
         log.debug("toDomain() | return={}", result.topic());
         return result;

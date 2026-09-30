@@ -1,0 +1,45 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === FACEBOOK POST BODY === and === FACEBOOK IMAGE ===)
+2. Go to your Facebook page or personal profile
+3. Paste the body text
+4. The URL at the bottom will generate a link preview — check it renders before publishing
+5. If OG card fails, attach linkedin-posts/shots/2026-10-01-epic-gatekeeper-directory.png manually
+6. Best posting window: Thursday 8:00–10:00 AM or 12:00–2:00 PM local time
+7. After 1 hour, reply to any comment with the Engagement Follow-Up text below
+
+=== FACEBOOK POST BODY ===
+
+Here's a concentration-of-power story in healthcare AI that almost nobody is telling:
+
+38% of U.S. hospital patient records — roughly 305 million patients — flow through Epic Systems. And Epic runs an app marketplace called App Orchard, where healthcare AI vendors apply to be listed, go through a security and integration review, and get approved or not. That process takes months, carries costs, and operates entirely under rules that Epic sets and can change.
+
+Epic also builds AI products of its own. Sepsis prediction. Deterioration scoring. Readmission risk. All embedded by default in the workflow that 38% of U.S. hospital clinicians use every day.
+
+For healthcare AI companies, this creates a distribution dynamic that is rarely named directly in the industry:
+
+Being "Epic-integrated" has become table stakes for enterprise hospital sales. Most health system procurement teams won't seriously evaluate a clinical AI tool that requires clinicians to work in a separate application outside the EHR. The pitch is "embedded in your existing workflow" or it's an uphill battle.
+
+That means Epic sits at the top of the healthcare AI distribution stack — approving or delaying access to the most valuable channel in the category, competing with vendors in that channel, and setting rules that apply to everyone except itself.
+
+The Apple App Store drew antitrust scrutiny over a 30% revenue cut and preferential first-party placement. Epic's structure is different — it's not a revenue cut, it's a gatekeeping and workflow-embedding mechanism. But the competitive dynamics are comparable, and the regulatory attention hasn't caught up.
+
+If you're building healthcare AI, your Epic strategy isn't a business development question. It's a risk assessment.
+
+We track 602 AI healthcare companies daily, including health IT infrastructure plays:
+https://app.bigskylabs.ai/directory
+
+#HealthcareAI #DigitalHealth #HealthTech #EHR
+
+=== FACEBOOK IMAGE ===
+File: linkedin-posts/shots/2026-10-01-epic-gatekeeper-directory.png
+Company directory screenshot showing health IT / EHR-adjacent companies. Upload manually
+if the OG card from the URL doesn't generate a clean preview.
+
+=== LINK ===
+https://app.bigskylabs.ai/directory
+
+=== ENGAGEMENT FOLLOW-UP COMMENT ===
+Use this as your reply to early comments:
+
+"To be clear — Epic does provide real value through App Orchard. SMART on FHIR certification means patients get consistent data security standards across partner apps. The security review is legitimate. But 'the gatekeeper provides real value' doesn't mean the gatekeeper dynamic isn't worth analyzing. Apple's App Store provides real value too. The question isn't whether the platform is good — it's whether the structural concentration of distribution power over a category this important is getting the scrutiny it would receive in any other industry."

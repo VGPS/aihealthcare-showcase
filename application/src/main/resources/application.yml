@@ -1781,3 +1781,21 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   ingestion:
     domain-denylist: []
+
+  # ---------------------------------------------------------------------------
+  # Anti-Slop Summary Pipeline
+  # Phase 1: lint-only baseline scan (no LLM calls).
+  # Phase 2: full extraction + writer pipeline (LLM calls per topic).
+  # Reports are written to summary.report.output-dir as timestamped .md files.
+  # ---------------------------------------------------------------------------
+  summary:
+    report:
+      output-dir: ./linted
+    lint:
+      pass-score: 80
+      max-bold: 1
+      enabled: true
+    pipeline:
+      enabled: false                 # set true when ready for Phase 2 live runs
+      max-articles-per-topic: 8
+      target-words: 180

@@ -15,6 +15,7 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionEn
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRevisionRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiSourceRefEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiSourceRefRepository;
+import com.wgblackmon.aihealthcare.infrastructure.summary.SlopLinter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.chat.client.ChatClient;
@@ -43,9 +44,9 @@ import java.util.Optional;
  * persistence.  The domain layer remains unaware of how compilation is implemented.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-04
- * @updated 2026-09-23
+ * @updated 2026-09-29
  */
 @Slf4j
 public class WikiCompilationAdapter implements KnowledgeCompilationPort {
@@ -58,6 +59,7 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
     private final WikiResponseParser responseParser;
     private final String wikiCompilePrompt;
     private final String classificationModel;
+    private final SlopLinter slopLinter;
 
     public WikiCompilationAdapter(ChatClient.Builder chatClientBuilder,
                                    WikiPageRepository pageRepository,
@@ -66,7 +68,8 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
                                    WikiPageRevisionRepository revisionRepository,
                                    WikiResponseParser responseParser,
                                    String wikiCompilePrompt,
-                                   String classificationModel) {
+                                   String classificationModel,
+                                   SlopLinter slopLinter) {
         log.debug("WikiCompilationAdapter() | constructing with prompt length={}, classificationModel={}",
                 wikiCompilePrompt != null ? wikiCompilePrompt.length() : 0, classificationModel);
         this.chatClient = chatClientBuilder.build();
@@ -77,6 +80,7 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
         this.responseParser = responseParser;
         this.wikiCompilePrompt = wikiCompilePrompt;
         this.classificationModel = classificationModel;
+        this.slopLinter = slopLinter;
         log.debug("WikiCompilationAdapter() | return=void");
     }
 
@@ -105,9 +109,9 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
         // 2d. Parse response
         List<WikiPage> pages = responseParser.parsePages(response, started);
         List<Contradiction> contradictions = responseParser.parseContradictions(response, started);
-        List<String> warnings = responseParser.parseWarnings(response);
+        List<String> warnings = new ArrayList<>(responseParser.parseWarnings(response));
 
-        // 2e. Persist
+        // 2e. Persist + lint each page
         List<String> createdSlugs = new ArrayList<>();
         List<String> updatedSlugs = new ArrayList<>();
         for (WikiPage page : pages) {
@@ -116,6 +120,17 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
                 updatedSlugs.add(page.slug());
             } else {
                 createdSlugs.add(page.slug());
+            }
+            if (page.contentMarkdown() != null && !page.contentMarkdown().isBlank()) {
+                SlopLinter.LintResult lint = slopLinter.lintWiki(page.contentMarkdown());
+                if (lint.hasBlocks()) {
+                    for (SlopLinter.Finding f : lint.findings()) {
+                        if (f.severity() == SlopLinter.Severity.BLOCK) {
+                            warnings.add("[SLOP] " + page.slug() + ": " + f.rule() + " — " + f.detail());
+                        }
+                    }
+                    log.warn("compileNewSources() | slop BLOCK findings on page={}: {}", page.slug(), lint.findings());
+                }
             }
             persistPage(page, exists);
         }
