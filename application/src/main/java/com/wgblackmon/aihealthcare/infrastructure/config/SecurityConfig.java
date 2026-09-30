@@ -98,6 +98,7 @@ public class SecurityConfig {
                 .requestMatchers("/dashboard/weekly-roundup").permitAll()
                 .requestMatchers("/wiki", "/wiki/**").permitAll()
                 .requestMatchers("/legislation", "/legislation/**").permitAll()
+                .requestMatchers("/trends", "/trends/**").permitAll()
                 .requestMatchers("/stripe/**").permitAll()
                 .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 .requestMatchers("/newsletter/runs/**").hasRole("ADMIN")

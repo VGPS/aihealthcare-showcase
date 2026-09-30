@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.HealthcareAiCompan
 import com.wgblackmon.aihealthcare.infrastructure.persistence.HealthcareAiCompanyRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.StateLawEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.StateLawRepository;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.TrendSnapshotRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-10
- * @updated 2026-09-10
+ * @updated 2026-09-30 — add TrendSnapshotRepository mock
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(SeoController.class)
@@ -49,6 +50,9 @@ class SeoControllerTest {
 
     @MockitoBean
     private WikiPageRepository wikiPageRepository;
+
+    @MockitoBean
+    private TrendSnapshotRepository trendSnapshotRepository;
 
     @Test
     void robotsTxt_returnsTextPlain() throws Exception {
@@ -88,6 +92,7 @@ class SeoControllerTest {
         when(companyRepository.findAll()).thenReturn(List.of());
         when(stateLawRepository.findAll()).thenReturn(List.of());
         when(wikiPageRepository.findAll()).thenReturn(List.of());
+        when(trendSnapshotRepository.findAllByOrderByGeneratedAtDesc()).thenReturn(List.of());
 
         mockMvc.perform(get("/sitemap.xml"))
                 .andExpect(status().isOk())
@@ -99,6 +104,7 @@ class SeoControllerTest {
         when(companyRepository.findAll()).thenReturn(List.of());
         when(stateLawRepository.findAll()).thenReturn(List.of());
         when(wikiPageRepository.findAll()).thenReturn(List.of());
+        when(trendSnapshotRepository.findAllByOrderByGeneratedAtDesc()).thenReturn(List.of());
 
         mockMvc.perform(get("/sitemap.xml"))
                 .andExpect(status().isOk())
@@ -116,6 +122,7 @@ class SeoControllerTest {
         when(companyRepository.findAll()).thenReturn(List.of(company));
         when(stateLawRepository.findAll()).thenReturn(List.of());
         when(wikiPageRepository.findAll()).thenReturn(List.of());
+        when(trendSnapshotRepository.findAllByOrderByGeneratedAtDesc()).thenReturn(List.of());
 
         mockMvc.perform(get("/sitemap.xml"))
                 .andExpect(status().isOk())
@@ -133,6 +140,7 @@ class SeoControllerTest {
         WikiPageEntity wiki = new WikiPageEntity();
         wiki.setSlug("fda-ai-guidance");
         when(wikiPageRepository.findAll()).thenReturn(List.of(wiki));
+        when(trendSnapshotRepository.findAllByOrderByGeneratedAtDesc()).thenReturn(List.of());
 
         mockMvc.perform(get("/sitemap.xml"))
                 .andExpect(status().isOk())
