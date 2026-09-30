@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Public insights hub — lists all static insight articles with title,
+ * date, and summary. No login required.
+ *
+ * Articles are static HTML files at /insights/{filename}.
+ * This hub page provides the internal link structure Google needs to
+ * discover and index each article.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-09-30
+ * @updated 2026-09-30
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('AI Healthcare Insights | BigSkyLabs')}">
+</head>
+<body class="bg-surface font-sans text-on-surface min-h-screen flex flex-col">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <p class="font-display text-2xl font-bold tracking-tight text-white">AI Healthcare Intelligence</p>
+    <p class="text-primary-200 text-sm mt-0.5">Insights &amp; Analysis</p>
+</header>
+
+<nav th:replace="~{fragments/public-nav :: public-nav('')}"></nav>
+
+<main class="flex-1 max-w-4xl mx-auto px-4 py-8 w-full">
+
+    <div class="mb-8">
+        <h1 class="font-display text-2xl font-bold text-on-surface mb-2">AI Healthcare Insights</h1>
+        <p class="text-sm text-on-surface-variant">
+            Analysis and intelligence on AI in healthcare — regulatory trends, market moves, and platform developments.
+        </p>
+    </div>
+
+    <!-- Article list -->
+    <div class="space-y-4">
+        <article th:each="article : ${articles}"
+                 class="bg-white rounded-lg border border-outline-variant shadow-sm p-5 hover:shadow-md transition-shadow">
+            <a th:href="@{/insights/{f}(f=${article.filename()})}"
+               class="no-underline group">
+                <div class="text-xs text-on-surface-variant mb-2" th:text="${article.displayDate()}">Date</div>
+                <h2 class="font-display text-base font-semibold text-on-surface group-hover:text-primary-600 transition-colors mb-2"
+                    th:text="${article.title()}">Article Title</h2>
+                <p class="text-sm text-on-surface-variant leading-relaxed"
+                   th:text="${article.description()}">Description</p>
+                <div class="mt-3 text-xs text-primary-600 font-medium">Read more →</div>
+            </a>
+        </article>
+    </div>
+
+    <div th:if="${articles.isEmpty()}" class="text-center py-16 text-on-surface-variant text-sm">
+        No insights available yet.
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+</body>
+</html>

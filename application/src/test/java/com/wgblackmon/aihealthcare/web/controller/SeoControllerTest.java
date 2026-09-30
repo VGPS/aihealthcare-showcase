@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
@@ -25,12 +26,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * MockMvc tests for {@link SeoController} (robots.txt + sitemap.xml).
+ * MockMvc tests for {@link SeoController} (robots.txt + sitemap index + child sitemaps).
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-09-10
- * @updated 2026-09-30 — add TrendSnapshotRepository mock
+ * @updated 2026-09-30 — updated for sitemap index split; real lastmod timestamps
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(SeoController.class)
@@ -89,24 +90,27 @@ class SeoControllerTest {
 
     @Test
     void sitemapXml_returnsXml() throws Exception {
-        when(companyRepository.findAll()).thenReturn(List.of());
-        when(stateLawRepository.findAll()).thenReturn(List.of());
-        when(wikiPageRepository.findAll()).thenReturn(List.of());
-        when(trendSnapshotRepository.findAllByOrderByGeneratedAtDesc()).thenReturn(List.of());
-
         mockMvc.perform(get("/sitemap.xml"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/xml"));
     }
 
     @Test
-    void sitemapXml_containsStaticPages() throws Exception {
-        when(companyRepository.findAll()).thenReturn(List.of());
-        when(stateLawRepository.findAll()).thenReturn(List.of());
-        when(wikiPageRepository.findAll()).thenReturn(List.of());
-        when(trendSnapshotRepository.findAllByOrderByGeneratedAtDesc()).thenReturn(List.of());
-
+    void sitemapIndex_containsChildSitemapLinks() throws Exception {
         mockMvc.perform(get("/sitemap.xml"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<sitemapindex")))
+                .andExpect(content().string(containsString("sitemap-pages.xml")))
+                .andExpect(content().string(containsString("sitemap-wiki.xml")))
+                .andExpect(content().string(containsString("sitemap-directory.xml")))
+                .andExpect(content().string(containsString("sitemap-legislation.xml")))
+                .andExpect(content().string(containsString("sitemap-trends.xml")))
+                .andExpect(content().string(containsString("sitemap-insights.xml")));
+    }
+
+    @Test
+    void sitemapPages_containsStaticPages() throws Exception {
+        mockMvc.perform(get("/sitemap-pages.xml"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/about")))
                 .andExpect(content().string(containsString("/pricing")))
@@ -116,35 +120,38 @@ class SeoControllerTest {
     }
 
     @Test
-    void sitemapXml_includesCompanyUrls() throws Exception {
+    void sitemapDirectory_includesCompanyUrls() throws Exception {
         HealthcareAiCompanyEntity company = new HealthcareAiCompanyEntity();
         company.setSlug("ada-health");
+        company.setDiscoveredAt(Instant.now());
         when(companyRepository.findAll()).thenReturn(List.of(company));
-        when(stateLawRepository.findAll()).thenReturn(List.of());
-        when(wikiPageRepository.findAll()).thenReturn(List.of());
-        when(trendSnapshotRepository.findAllByOrderByGeneratedAtDesc()).thenReturn(List.of());
 
-        mockMvc.perform(get("/sitemap.xml"))
+        mockMvc.perform(get("/sitemap-directory.xml"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/directory/ada-health")));
     }
 
     @Test
-    void sitemapXml_includesLegislationAndWikiUrls() throws Exception {
-        when(companyRepository.findAll()).thenReturn(List.of());
-
+    void sitemapLegislation_includesLawUrls() throws Exception {
         StateLawEntity law = new StateLawEntity();
         law.setId("ca-ab-3030");
+        law.setUpdatedAt(Instant.now());
         when(stateLawRepository.findAll()).thenReturn(List.of(law));
 
+        mockMvc.perform(get("/sitemap-legislation.xml"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/legislation/ca-ab-3030")));
+    }
+
+    @Test
+    void sitemapWiki_includesWikiUrls() throws Exception {
         WikiPageEntity wiki = new WikiPageEntity();
         wiki.setSlug("fda-ai-guidance");
+        wiki.setCreatedAt(Instant.now());
         when(wikiPageRepository.findAll()).thenReturn(List.of(wiki));
-        when(trendSnapshotRepository.findAllByOrderByGeneratedAtDesc()).thenReturn(List.of());
 
-        mockMvc.perform(get("/sitemap.xml"))
+        mockMvc.perform(get("/sitemap-wiki.xml"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("/legislation/ca-ab-3030")))
                 .andExpect(content().string(containsString("/wiki/fda-ai-guidance")));
     }
 }

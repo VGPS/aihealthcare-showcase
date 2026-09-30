@@ -188,5 +188,30 @@
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 
+<!-- JSON-LD: Organization + WebSite with SearchAction -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "BigSkyLabs",
+  "url": "https://bigskylabs.ai",
+  "description": "AI Healthcare Intelligence — daily market analysis, regulatory tracking, company directory, and state legislation registry for AI in healthcare.",
+  "sameAs": ["https://app.bigskylabs.ai"]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "AI Healthcare Intelligence",
+  "url": "https://app.bigskylabs.ai",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {"@type": "EntryPoint", "urlTemplate": "https://app.bigskylabs.ai/wiki?query={search_term_string}"},
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
 </body>
 </html>
