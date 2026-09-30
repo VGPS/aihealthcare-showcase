@@ -1,0 +1,53 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === FACEBOOK POST BODY === and === FACEBOOK IMAGE ===)
+2. Go to your Facebook page or personal profile
+3. Paste the body text
+4. Facebook will generate a link preview from the URL at the end of the body — check that it
+   loads before publishing
+5. If the OG card preview renders cleanly, you may not need a separate image upload
+6. If it fails to load, attach linkedin-posts/shots/2026-09-30-ambient-ai-trends.png manually
+7. Best posting window: Wednesday 8:00–10:00 AM or 12:00–2:00 PM local time
+8. After 1 hour, reply to any comment or reaction with the Engagement Follow-Up text below
+   to boost algorithmic reach
+
+=== FACEBOOK POST BODY ===
+
+Something that keeps coming up in our market data and isn't getting enough honest attention:
+
+Ambient documentation AI — the AI scribes that listen to physician-patient conversations and auto-generate clinical notes — is genuinely the most-adopted AI application in healthcare right now. Nuance DAX, Abridge, Nabla, Suki. The technology works. Physicians love not typing. Adoption numbers look great at launch.
+
+But there's a gap in how this is being deployed that nobody in the vendor ecosystem wants to say out loud:
+
+Health systems are buying it to increase throughput. Physicians are being told it's for their benefit.
+
+Those are not the same product.
+
+The business case health systems use to justify ambient AI almost always centers on "20–30 minutes saved per physician per day." What the business case almost never shows is what happens to those 20 minutes. At most of the systems where this is being rolled out, they go into two more patient appointments per day — not into shorter schedules, not into reduced documentation burden overall.
+
+Physicians are also still reviewing AI-generated notes before signing. That's a new cognitive step — reading and spot-checking a clinical note you didn't write about an encounter you just had — that doesn't appear in any of the published time-savings numbers.
+
+Initial adoption data is flattering. Longitudinal data is where the story starts to change. Physicians who realize their saved time has been converted directly into higher patient quotas don't stay enthusiastic about the tool.
+
+The one metric that would settle this debate for good: does long-term ambient AI deployment reduce physician turnover? That's the ROI claim vendors need to prove.
+
+Nobody has published that data yet. When they do, it'll rewrite how this entire category is sold.
+
+Ambient documentation AI was the #1 trending keyword in our market intelligence feed this week — more coverage than any other healthcare AI topic. Signal of where the money is flowing. Not yet a signal of where the value lands.
+
+Full trend data: https://app.bigskylabs.ai/dashboard/trends
+
+#HealthcareAI #DigitalHealth #AmbientAI #PhysicianBurnout
+
+=== FACEBOOK IMAGE ===
+File: linkedin-posts/shots/2026-09-30-ambient-ai-trends.png
+Screenshot of app.bigskylabs.ai/dashboard/trends showing ambient documentation AI at the
+top of the trending keyword chart. Upload manually if the OG card doesn't render.
+
+=== LINK ===
+https://app.bigskylabs.ai/dashboard/trends
+
+=== ENGAGEMENT FOLLOW-UP COMMENT ===
+Use this as your reply to early comments to drive further engagement:
+
+"One thing I haven't seen any vendor publish yet: physician retention data at health systems that fully deployed ambient AI. Satisfaction surveys at 30 days look great. What does the data look like at 12 months, once the time savings have been absorbed into higher patient volume targets? That number would tell you everything about whether this technology is actually working for physicians or just for healthcare operations teams."
