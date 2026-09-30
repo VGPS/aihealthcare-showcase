@@ -9,6 +9,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.BrowseCompaniesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -219,17 +221,23 @@ public class PublicCompanyController {
 
         Optional<HealthcareAiCompany> found = browseCompaniesUseCase.getCompany(slug);
         if (found.isEmpty()) {
-            log.debug("detail() | return=redirect:/directory (not found)");
-            return "redirect:/directory";
+            log.debug("detail() | return=404 (not found, slug={})", slug);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found: " + slug);
         }
 
         HealthcareAiCompany c = found.get();
+
+        // Use the first ~155 chars of the description as the meta description
+        String desc = c.description() != null && !c.description().isBlank() ? c.description() : "";
+        String metaDesc = desc.length() > 155
+                ? desc.substring(0, desc.lastIndexOf(' ', 155)) + "…"
+                : desc.isBlank() ? c.name() + " — AI healthcare company profile." : desc;
+
         model.addAttribute("company", c);
         model.addAttribute("slug", slug);
         model.addAttribute("jsonLd", buildJsonLd(c));
         model.addAttribute("descriptionHtml", buildDescriptionHtml(c.description()));
-        model.addAttribute("pageDescription",
-                c.name() + " — AI healthcare company profile: " + (c.category() != null ? c.category() : "healthcare AI") + ".");
+        model.addAttribute("pageDescription", metaDesc);
 
         log.debug("detail() | return=company-directory-detail, name={}", c.name());
         return "company-directory-detail";
