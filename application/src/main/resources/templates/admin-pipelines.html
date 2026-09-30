@@ -10,7 +10,7 @@
  * @author  Bill Blackmon
  * @version 2.1
  * @since   2026-07-30
- * @updated 2026-09-23
+ * @updated 2026-09-29
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -479,6 +479,61 @@
             </div>
             <div class="flex items-center gap-2 mt-auto">
                 <a href="/dashboard/social" target="_blank" class="btn-search text-sm px-3 py-1.5 no-underline">Open Social Posts</a>
+            </div>
+        </div>
+
+        <!-- Anti-Slop Lint Baseline -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Anti-Slop Lint Baseline</h3>
+                <span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">No LLM</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Lints all existing topic summaries in the database against the house style guide.
+                No LLM calls — pure deterministic Java (9 rules: banned phrases, uncited claims, bad citations, bullet-heavy, filler openers, etc.).
+                Writes a markdown report to <code class="text-xs bg-gray-100 px-1 rounded">./linted/lint-baseline-*.md</code>.
+            </p>
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Endpoint: <span class="font-mono text-primary-600">POST /admin/summary/lint-report</span></div>
+                <div>Est. duration: <span>~1 second (no network calls)</span></div>
+                <div>Output: <span class="font-semibold">./linted/lint-baseline-{timestamp}.md</span></div>
+            </div>
+            <div class="flex items-center gap-3 mt-auto">
+                <button type="button" class="btn-search text-sm px-3 py-1.5"
+                        onclick="runSlopLint(this)">Run Lint Report</button>
+                <span id="slopLintStatus" class="text-xs"></span>
+            </div>
+        </div>
+
+        <!-- Anti-Slop Before/After Comparison -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Anti-Slop Before/After</h3>
+                <span class="inline-block bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-semibold">High (LLM)</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Runs the full 3-stage anti-slop pipeline (Extract → Write → Lint) on a sample of topics.
+                Stage 1 uses Gemini to extract structured facts; Stage 2 uses Claude to write prose from
+                the extraction only. Writes side-by-side BEFORE/AFTER markdown to
+                <code class="text-xs bg-gray-100 px-1 rounded">./linted/before-after-*.md</code>.
+            </p>
+            <div class="bg-amber-50 border border-amber-100 rounded px-3 py-2 mb-3 text-xs text-amber-900">
+                <p class="font-semibold mb-0.5">LLM cost warning</p>
+                <p>Triggers Gemini extraction + Claude writer calls for each topic. Run at most once per session.</p>
+            </div>
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Endpoint: <span class="font-mono text-primary-600">POST /admin/summary/before-after</span></div>
+                <div>Topics per run: <span class="font-semibold" id="slopTopicsDisplay">5</span>
+                    &nbsp;<input type="number" id="slopMaxTopics" value="5" min="1" max="20"
+                                 class="border border-gray-300 rounded px-1 py-0.5 text-xs w-12 text-center" />
+                </div>
+                <div>Est. duration: <span>~30–60 sec per topic</span></div>
+                <div>Output: <span class="font-semibold">./linted/before-after-{timestamp}.md</span></div>
+            </div>
+            <div class="flex items-center gap-3 mt-auto">
+                <button type="button" class="btn-search text-sm px-3 py-1.5"
+                        onclick="runSlopBeforeAfter(this)">Run Before/After</button>
+                <span id="slopBeforeAfterStatus" class="text-xs"></span>
             </div>
         </div>
 
@@ -984,6 +1039,61 @@ function sendSampleNewsletter(btn) {
             }
         })
         .catch(function(e) { btn.disabled = false; btn.textContent = 'Send'; statusEl.textContent = 'Error: ' + e; statusEl.className = 'text-xs mt-2 block text-red-600'; });
+}
+
+function runSlopLint(btn) {
+    var statusEl = document.getElementById('slopLintStatus');
+    btn.disabled = true;
+    btn.textContent = 'Running...';
+    statusEl.textContent = 'Linting summaries...';
+    statusEl.className = 'text-xs text-blue-600';
+    var headers = { 'Content-Type': 'application/json' };
+    headers[getCsrfHeader()] = getCsrfToken();
+    fetch('/admin/summary/lint-report', { method: 'POST', headers: headers, credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.disabled = false; btn.textContent = 'Run Lint Report';
+            if (data.status === 'ok') {
+                statusEl.textContent = 'Done — ' + data.file;
+                statusEl.className = 'text-xs text-green-700 font-semibold';
+            } else {
+                statusEl.textContent = data.error || data.status || 'Failed';
+                statusEl.className = 'text-xs text-red-600';
+            }
+        })
+        .catch(function(e) {
+            btn.disabled = false; btn.textContent = 'Run Lint Report';
+            statusEl.textContent = 'Error: ' + e;
+            statusEl.className = 'text-xs text-red-600';
+        });
+}
+
+function runSlopBeforeAfter(btn) {
+    var maxTopics = parseInt(document.getElementById('slopMaxTopics').value, 10) || 5;
+    var statusEl = document.getElementById('slopBeforeAfterStatus');
+    btn.disabled = true;
+    btn.textContent = 'Running...';
+    statusEl.textContent = 'Extracting + writing ' + maxTopics + ' topics...';
+    statusEl.className = 'text-xs text-blue-600';
+    var headers = { 'Content-Type': 'application/json' };
+    headers[getCsrfHeader()] = getCsrfToken();
+    fetch('/admin/summary/before-after?maxTopics=' + maxTopics, { method: 'POST', headers: headers, credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.disabled = false; btn.textContent = 'Run Before/After';
+            if (data.status === 'ok') {
+                statusEl.textContent = data.topicsRun + ' topics — ' + data.file;
+                statusEl.className = 'text-xs text-green-700 font-semibold';
+            } else {
+                statusEl.textContent = data.error || data.status || 'Failed';
+                statusEl.className = 'text-xs text-red-600';
+            }
+        })
+        .catch(function(e) {
+            btn.disabled = false; btn.textContent = 'Run Before/After';
+            statusEl.textContent = 'Error: ' + e;
+            statusEl.className = 'text-xs text-red-600';
+        });
 }
 
 /*]]>*/

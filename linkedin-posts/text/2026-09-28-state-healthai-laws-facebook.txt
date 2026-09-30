@@ -1,7 +1,7 @@
 === FACEBOOK POST BODY ===
 Something's been building quietly while everyone watches the big vendors fight for clinical AI market share.
 
-41 states have now enacted health AI laws. 24 states. Real legislation, signed and on the books.
+58 health AI laws are now on the books — across 27 jurisdictions. Real legislation, signed and enacted.
 
 The categories cover:
 • Payer utilization review — AI-driven coverage denials now have legally required human review thresholds in multiple states
@@ -16,15 +16,14 @@ The mental health AI carve-out tells you something real. Multiple state legislat
 
 For anyone in healthcare IT, compliance, vendor selection, or administration: this is the compliance layer your RFPs probably aren't asking about yet.
 
-Full registry with source links for all 41 laws:
+Full registry with source links for all 58 laws:
 https://app.bigskylabs.ai/legislation
 
 #HealthcareAI #DigitalHealth #HealthTech #HealthcareCompliance
 
 === FACEBOOK IMAGE ===
-Option 1: Create a simple graphic — dark background, white text: "41 State Health AI Laws. Is your vendor compliant?" with the bigskylabs.ai URL.
-Option 2: Screenshot the /legislation page from the app showing the law registry table.
-Option 3: Post text-only — Facebook's algorithm treats link-preview posts well if the OG card loads cleanly.
+File: linkedin-posts/shots/2026-09-28-state-healthai-laws-legislation-page.png
+Use this as the post image. It shows the live registry with the 58/53/27 badge stats and filter controls — reads instantly as a real product screenshot.
 
 === POSTING INSTRUCTIONS ===
 
