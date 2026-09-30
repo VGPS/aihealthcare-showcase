@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-28
- * @updated 2026-09-18
+ * @updated 2026-09-30
  */
 @Slf4j
 @Component
@@ -189,7 +189,8 @@ public class PerplexityDeepResearchAdapter implements TrendSummaryPort {
 
         sb.append("Write in flowing prose suitable for an executive brief. ");
         sb.append("Be specific and cite concrete developments. ");
-        sb.append("Do not use bullet points or numbered lists in the output.");
+        sb.append("Do not use bullet points or numbered lists in the output. ");
+        sb.append("Separate each paragraph with a blank line (two newlines).");
 
         String result = sb.toString();
         log.debug("buildPrompt() | return=prompt ({} chars)", result.length());
