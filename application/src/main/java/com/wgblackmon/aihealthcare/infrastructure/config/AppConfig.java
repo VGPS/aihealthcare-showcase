@@ -120,6 +120,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
 import com.wgblackmon.aihealthcare.infrastructure.ai.WikiCompilationAdapter;
+import com.wgblackmon.aihealthcare.infrastructure.summary.SlopLinter;
 import com.wgblackmon.aihealthcare.infrastructure.ai.WikiGapAnalysisAdapter;
 import com.wgblackmon.aihealthcare.infrastructure.ai.WikiGapResponseParser;
 import com.wgblackmon.aihealthcare.infrastructure.ai.WikiResponseParser;
@@ -964,6 +965,24 @@ public class AppConfig {
     }
 
     /**
+     * Creates the shared {@link SlopLinter} bean used by both the anti-slop report
+     * pipeline and the wiki compilation quality gate.
+     *
+     * <p>Uses {@link SlopLinter#DEFAULT_BANNED_PHRASES}.  To extend the list, edit
+     * {@code DEFAULT_BANNED_PHRASES} in {@link SlopLinter}. To change writer tone
+     * or mood, edit {@code house-style.md} — it reloads on every pipeline run.
+     */
+    @Bean
+    public SlopLinter slopLinter(
+            @Value("${aihealthcare.summary.lint.pass-score:80}") int passScore,
+            @Value("${aihealthcare.summary.lint.max-bold:1}") int maxBold) {
+        log.debug("slopLinter() | passScore={}, maxBold={}", passScore, maxBold);
+        SlopLinter result = new SlopLinter(SlopLinter.DEFAULT_BANNED_PHRASES, passScore, maxBold);
+        log.debug("slopLinter() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
      * Creates the {@link WikiCompilationAdapter} bean that implements
      * {@link KnowledgeCompilationPort} — the LLM-powered wiki compilation pipeline.
      *
@@ -987,6 +1006,7 @@ public class AppConfig {
             WikiSourceRefRepository sourceRefRepository,
             WikiContradictionRepository contradictionRepository,
             WikiPageRevisionRepository revisionRepository,
+            SlopLinter slopLinter,
             @Value("${aihealthcare.ai.classification-model:claude-haiku-4-5}") String classificationModel) {
         log.debug("wikiCompilationAdapter() | wiring wiki compilation pipeline");
         String wikiCompilePrompt = promptLoaderService.load("wiki-compile.txt");
@@ -994,7 +1014,7 @@ public class AppConfig {
         WikiCompilationAdapter result = new WikiCompilationAdapter(
                 chatClientBuilder, pageRepository, sourceRefRepository,
                 contradictionRepository, revisionRepository,
-                responseParser, wikiCompilePrompt, classificationModel);
+                responseParser, wikiCompilePrompt, classificationModel, slopLinter);
         log.debug("wikiCompilationAdapter() | return={}", result.getClass().getSimpleName());
         return result;
     }

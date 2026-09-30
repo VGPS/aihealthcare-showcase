@@ -1,6 +1,6 @@
 === MEDIUM POST ===
 
-TITLE: State Health AI Laws: 41 Enacted, 24 States — What Healthcare AI Vendors Need to Know in 2026
+TITLE: Health AI Laws: 58 Enacted Across 27 Jurisdictions — What Healthcare AI Vendors Need to Know in 2026
 
 SUBTITLE: While the cloud giants race into clinical AI, a compliance layer is building beneath them that most mid-size vendors haven't fully mapped.
 
@@ -27,7 +27,7 @@ The healthcare AI vendor race dominated headlines last week: Amazon's Connect He
 
 What's getting less attention is the regulatory layer building underneath that race.
 
-As of September 2026, **41 U.S. states have enacted specific health AI legislation** across 24 states. These aren't pending bills, regulatory guidance documents, or white papers. They're signed, enacted laws — and the pace has accelerated sharply since 2024.
+As of September 2026, **58 health AI laws are on the books** across 27 jurisdictions. These aren't pending bills, regulatory guidance documents, or white papers. They're signed, enacted laws — and the pace has accelerated sharply since 2024.
 
 ---
 
@@ -95,7 +95,7 @@ Most vendors don't have a ready answer. That gap won't last — the compliance c
 
 ## Tracking the Registry
 
-[Big Sky Labs](https://app.bigskylabs.ai) maintains a public registry of all 41 enacted laws with official source links, effective dates, enforcement mechanisms, and regulatory categories for each law. The registry is updated weekly as new legislation is signed.
+[Big Sky Labs](https://app.bigskylabs.ai) maintains a public registry of all 58 laws with official source links, effective dates, enforcement mechanisms, and regulatory categories for each law. The registry is updated weekly as new legislation is signed.
 
 The full registry is free to access: **[app.bigskylabs.ai/legislation](https://app.bigskylabs.ai/legislation)**
 
@@ -109,14 +109,11 @@ The full registry is free to access: **[app.bigskylabs.ai/legislation](https://a
 
 1. Log in to Medium
 2. Click "Write a story"
-3. Title: "State Health AI Laws: 41 Enacted, 24 States — What Healthcare AI Vendors Need to Know in 2026"
+3. Title: "Health AI Laws: 58 Enacted Across 27 Jurisdictions — What Healthcare AI Vendors Need to Know in 2026"
 4. Paste the body above (starting from "The healthcare AI vendor race dominated headlines...")
 5. Add the subtitle as a second-line large text or use Medium's subtitle field if available
 6. Add the 5 tags listed above
-7. Add a cover image — options:
-   a. Screenshot of the /legislation page on bigskylabs.ai
-   b. A simple graphic: "41 State Health AI Laws" on a dark background
-   c. A U.S. state map with highlighted states (24 states)
+7. Cover image: linkedin-posts/shots/2026-09-28-state-healthai-laws-legislation-page.png — upload as the story cover image
 8. Submit to the "Health Tech" publication for broader distribution, OR post directly to your profile
 9. Set the canonical URL if this content also lives on bigskylabs.ai
 10. Best publishing time: Monday 8:00–10:00 AM ET (Medium's algorithm favors early-week publishing for discovery)
