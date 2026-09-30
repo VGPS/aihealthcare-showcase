@@ -130,11 +130,11 @@ class StateLawControllerTest {
 
     @Test
     @WithMockUser
-    void legislation_detail_notFound_redirectsToIndex() throws Exception {
+    void legislation_detail_notFound_returns404() throws Exception {
         when(legislationUseCase.getById("nonexistent")).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/legislation/nonexistent"))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isNotFound());
     }
 
     @Test

@@ -8,19 +8,19 @@
  * view limit see an upgrade prompt.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-09-06
- * @updated 2026-09-28
+ * @updated 2026-09-30 — T5: per-law page title + H1 (was static "Legislation Detail")
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/head :: head('Legislation Detail')}">
+<head th:replace="~{fragments/head :: head(${law.stateName()} + ' ' + ${law.billNumber()} + ': ' + ${law.title()})}">
 </head>
 <body class="bg-surface font-sans text-on-surface">
 
 <header class="bg-primary-600 text-white px-6 py-4 shadow-md">
-    <h1 class="font-display text-2xl font-bold tracking-tight">Legislation Detail</h1>
+    <p class="font-display text-2xl font-bold tracking-tight text-white" th:text="${law.stateName() + ' ' + law.billNumber()}">State Bill</p>
     <p class="text-primary-200 text-sm mt-0.5">Health-AI Legislation Registry</p>
 </header>
 
@@ -37,7 +37,7 @@
 
     <!-- Law header -->
     <div class="mb-6">
-        <h2 class="font-display text-2xl font-bold text-on-surface" th:text="${law.title()}">Law Title</h2>
+        <h1 class="font-display text-2xl font-bold text-on-surface" th:text="${law.title()}">Law Title</h1>
         <p class="text-gray-500 mt-1">
             <span th:text="${law.stateName()}">California</span>
             <span class="mx-1">|</span>

@@ -38,6 +38,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.net.URI;
 import java.security.Principal;
 import java.time.Instant;
@@ -47,8 +50,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Thymeleaf controller for the public read-only wiki view.
@@ -71,7 +76,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-04
- * @updated 2026-09-12
+ * @updated 2026-09-30 — T4/T5 SEO: 404 on missing slug, preview text + source names for anonymous, real meta description
  */
 @Slf4j
 @Controller
@@ -213,7 +218,7 @@ public class WikiController {
         WikiPage page = wikiQueryPort.getPage(slug);
         if (page == null) {
             log.warn("wikiPage() | page not found for slug={}", slug);
-            return "redirect:/wiki";
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Wiki page not found: " + slug);
         }
 
         SubscriptionTier tier = tierResolver.resolveTier(principal);
@@ -312,9 +317,35 @@ public class WikiController {
             evidenceColors.put(source.articleId(), evidenceGradeColor(grade));
         }
 
+        // Build SEO preview text — plain text, first 300 chars of content for anonymous users + meta description
+        String plainContent = page.contentMarkdown() != null
+                ? page.contentMarkdown().replaceAll("(?s)#+ |\\*\\*?|`|\\[([^]]+)]\\([^)]+\\)", "$1")
+                        .replaceAll("\\s+", " ").trim()
+                : "";
+        String previewText = plainContent.length() > 300
+                ? plainContent.substring(0, plainContent.lastIndexOf(' ', 300)) + "…"
+                : plainContent;
+        String metaDescription = plainContent.length() > 155
+                ? plainContent.substring(0, plainContent.lastIndexOf(' ', 155)) + "…"
+                : plainContent;
+        if (metaDescription.isBlank()) {
+            metaDescription = page.title() + " — AI healthcare knowledge base entry with source provenance.";
+        }
+
+        // Collect distinct source publication names for anonymous preview
+        Set<String> sourcePublications = new LinkedHashSet<>();
+        for (SourceRef source : displaySources) {
+            if (source.sourceName() != null && !source.sourceName().isBlank()) {
+                sourcePublications.add(source.sourceName());
+                if (sourcePublications.size() >= 8) break;
+            }
+        }
+
         model.addAttribute("page", page);
         model.addAttribute("displaySources", displaySources);
         model.addAttribute("renderedContent", renderedContent);
+        model.addAttribute("previewText", previewText);
+        model.addAttribute("sourcePublications", sourcePublications);
         model.addAttribute("articleUrlMap", articleUrlMap);
         model.addAttribute("articleTitleMap", articleTitleMap);
         model.addAttribute("evidenceGrades", evidenceGrades);
@@ -340,8 +371,7 @@ public class WikiController {
         model.addAttribute("analystNoteDates", analystNoteDates);
         model.addAttribute("returnUrl", "/wiki/" + slug);
         model.addAttribute("fullAccess", fullAccess);
-        model.addAttribute("pageDescription",
-                page.title() + " — AI healthcare wiki page with source provenance and evidence grading.");
+        model.addAttribute("pageDescription", metaDescription);
 
         log.debug("wikiPage() | return=wiki-detail (slug={}, sources={}, contradictions={}, notes={}, fullAccess={})",
                 slug, page.sources().size(), contradictions.size(), analystNotes.size(), fullAccess);
