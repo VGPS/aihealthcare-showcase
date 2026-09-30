@@ -412,7 +412,7 @@ class DashboardControllerTest {
                 .thenReturn(Optional.of(new TopicSummary(
                         "General AI Healthcare News",
                         "AI healthcare is advancing rapidly. New tools are emerging. Research continues.",
-                        Instant.parse("2026-05-21T10:00:00Z"))));
+                        Instant.parse("2026-05-21T10:00:00Z"), null, null)));
 
         mockMvc.perform(get("/dashboard/news"))
                 .andExpect(status().isOk())

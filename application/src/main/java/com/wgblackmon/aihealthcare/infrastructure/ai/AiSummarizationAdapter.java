@@ -4,14 +4,25 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterSection;
 import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
 import com.wgblackmon.aihealthcare.domain.model.SectionType;
+import com.wgblackmon.aihealthcare.domain.model.TopicSummaryResult;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSummarizationPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
+import com.wgblackmon.aihealthcare.infrastructure.summary.ExtractionService;
+import com.wgblackmon.aihealthcare.infrastructure.summary.SlopLinter;
+import com.wgblackmon.aihealthcare.infrastructure.summary.SourceDoc;
+import com.wgblackmon.aihealthcare.infrastructure.summary.SummaryExtraction;
+import com.wgblackmon.aihealthcare.infrastructure.summary.SummaryWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Spring AI adapter that implements {@link AiSummarizationPort} using a large-language
@@ -62,21 +73,23 @@ import java.util.List;
  * LLM happen only in smoke tests annotated with {@code @ActiveProfiles("ai-integration")}.
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 2.1
  * @since   2026-04-04
- * @updated 2026-05-21
+ * @updated 2026-09-29
  */
 @Slf4j
 @Component
 public class AiSummarizationAdapter implements AiSummarizationPort {
 
-    /**
-     * Spring AI's fluent HTTP client for LLM communication.
-     * Built once from the auto-configured {@link ChatClient.Builder} and reused for
-     * every request — {@link ChatClient} instances are thread-safe.
-     */
+    private static final int SUMMARY_TARGET_WORDS = 180;
+    private static final int MAX_SOURCE_DOCS       = 8;
+    private static final int MAX_BODY_CHARS        = 1500;
+
     private final ChatClient chatClient;
     private final PromptLoaderService promptLoaderService;
+    private final ExtractionService extractionService;
+    private final SummaryWriter summaryWriter;
+    private final SlopLinter slopLinter;
 
     /**
      * Constructs the adapter and builds the shared {@link ChatClient}.
@@ -91,11 +104,17 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
      *                             external filesystem directory or classpath fallback.
      */
     public AiSummarizationAdapter(ChatClient.Builder chatClientBuilder,
-                                   PromptLoaderService promptLoaderService) {
+                                   PromptLoaderService promptLoaderService,
+                                   ExtractionService extractionService,
+                                   SummaryWriter summaryWriter,
+                                   SlopLinter slopLinter) {
         log.debug("AiSummarizationAdapter() | chatClientBuilder={}, promptLoaderService={}",
                   chatClientBuilder, promptLoaderService.getClass().getSimpleName());
         this.chatClient = chatClientBuilder.build();
         this.promptLoaderService = promptLoaderService;
+        this.extractionService = extractionService;
+        this.summaryWriter = summaryWriter;
+        this.slopLinter = slopLinter;
         log.debug("AiSummarizationAdapter() | return=void");
     }
 
@@ -214,22 +233,54 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
     /**
      * {@inheritDoc}
      *
-     * <p><b>Implementation detail:</b> builds a lightweight prompt using only article
-     * titles (not full body text) to minimize token cost.  Returns the model's
-     * response directly as a plain-text string.
+     * <p><b>Implementation:</b> runs the anti-slop Extract→Write→Check pipeline.
+     * Stage 1 extracts structured JSON from up to {@value #MAX_SOURCE_DOCS} articles
+     * (sorted by source weight).  Stage 2 writes ~{@value #SUMMARY_TARGET_WORDS}-word
+     * prose from the extraction.  Stage 3 runs {@link SlopLinter} and records the score.
      */
     @Override
-    public String generateTopicSummary(String topic, List<NewsArticle> articles) {
+    public TopicSummaryResult generateTopicSummary(String topic, List<NewsArticle> articles) {
         log.debug("generateTopicSummary() | topic={}, articleCount={}", topic, articles.size());
 
-        String prompt = buildTopicSummaryPrompt(topic, articles);
-        log.debug("generateTopicSummary() | sending prompt to LLM, length={} chars", prompt.length());
+        List<SourceDoc> sources = buildSourceDocs(articles);
+        Set<String> validIds = sources.stream()
+                .map(SourceDoc::citeId)
+                .collect(Collectors.toSet());
 
-        String result = chatClient.prompt(prompt).call().content();
-        log.info("generateTopicSummary() | Summary generated for topic={}, length={} chars",
-                 topic, result.length());
+        SummaryExtraction extraction = extractionService.extract("TOPIC_SUMMARY", topic, sources);
+        String text = summaryWriter.write("TOPIC_SUMMARY", extraction, SUMMARY_TARGET_WORDS);
+        SlopLinter.LintResult lint = slopLinter.lint(text, validIds);
+
+        TopicSummaryResult result = new TopicSummaryResult(text, "anti-slop-v1", lint.score());
+        log.info("generateTopicSummary() | topic={}, lintScore={}", topic, result.lintScore());
         log.debug("generateTopicSummary() | return={}", result);
         return result;
+    }
+
+    private List<SourceDoc> buildSourceDocs(List<NewsArticle> articles) {
+        List<NewsArticle> selected = articles.stream()
+                .sorted(Comparator.comparingDouble(NewsArticle::sourceWeight).reversed())
+                .limit(MAX_SOURCE_DOCS)
+                .collect(Collectors.toList());
+        List<SourceDoc> docs = new ArrayList<>();
+        for (int i = 0; i < selected.size(); i++) {
+            NewsArticle a = selected.get(i);
+            String content = a.bodyText() != null && !a.bodyText().isBlank()
+                    ? a.bodyText().substring(0, Math.min(a.bodyText().length(), MAX_BODY_CHARS))
+                    : a.title();
+            LocalDate pub = a.publishedAt() != null
+                    ? a.publishedAt().atZone(ZoneOffset.UTC).toLocalDate()
+                    : null;
+            docs.add(new SourceDoc(
+                    "S" + (i + 1),
+                    SourceDoc.SourceType.NEWS_ARTICLE,
+                    a.title(),
+                    a.url() != null ? a.url().toString() : null,
+                    "article:" + a.articleId(),
+                    pub,
+                    content));
+        }
+        return docs;
     }
 
     // -------------------------------------------------------------------------

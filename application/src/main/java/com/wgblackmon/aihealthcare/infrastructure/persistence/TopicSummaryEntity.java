@@ -37,6 +37,12 @@ public class TopicSummaryEntity {
     @Column(name = "generated_at")
     private Instant generatedAt;
 
+    @Column(name = "pipeline_version", length = 64)
+    private String pipelineVersion;
+
+    @Column(name = "lint_score")
+    private Integer lintScore;
+
     /** Required no-arg constructor for JPA. */
     public TopicSummaryEntity() {}
 
@@ -48,4 +54,10 @@ public class TopicSummaryEntity {
 
     public Instant getGeneratedAt() { return generatedAt; }
     public void setGeneratedAt(Instant generatedAt) { this.generatedAt = generatedAt; }
+
+    public String getPipelineVersion() { return pipelineVersion; }
+    public void setPipelineVersion(String pipelineVersion) { this.pipelineVersion = pipelineVersion; }
+
+    public Integer getLintScore() { return lintScore; }
+    public void setLintScore(Integer lintScore) { this.lintScore = lintScore; }
 }
