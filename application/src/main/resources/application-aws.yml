@@ -45,6 +45,7 @@ spring:
       mail.smtp.starttls.required: true
 
 server:
+  forward-headers-strategy: native
   tomcat:
     threads:
       max: 200      # Spring Boot default; explicit so load tests don't surprise you
