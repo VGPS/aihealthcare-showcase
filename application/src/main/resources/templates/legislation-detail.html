@@ -197,6 +197,24 @@
         </a>
     </div>
 
+
+    <!-- JSON-LD Legislation structured data -->
+    <script type="application/ld+json" th:inline="javascript">
+    {
+      "@context": "https://schema.org",
+      "@type": "Legislation",
+      "name": /*[[${law.title()}]]*/ "Title",
+      "legislationIdentifier": /*[[${law.billNumber()}]]*/ "Bill",
+      "legislationJurisdiction": {
+        "@type": "AdministrativeArea",
+        "name": /*[[${law.stateName()}]]*/ "State"
+      },
+      "datePublished": /*[[${law.dateSigned() != null ? law.dateSigned() : law.yearEnacted()}]]*/ "",
+      "legislationLegalForce": /*[[${law.status().displayLabel()}]]*/ "",
+      "publisher": {"@type": "Organization", "name": "BigSkyLabs", "url": "https://bigskylabs.ai"}
+    }
+    </script>
+
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>

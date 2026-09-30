@@ -22,7 +22,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-10
- * @updated 2026-09-30 — add /trends to PUBLIC_PREFIXES
+ * @updated 2026-09-30 — add /trends and /insights to PUBLIC_PREFIXES
  */
 @Slf4j
 @ControllerAdvice
@@ -35,7 +35,8 @@ public class SeoModelAdvice {
     private static final Set<String> PUBLIC_PREFIXES = Set.of(
             "/", "/about", "/pricing", "/press", "/login", "/register",
             "/directory", "/wiki", "/legislation", "/trends", "/developer", "/privacy",
-            "/tour", "/choose-path", "/forgot-password", "/reset-password", "/error"
+            "/tour", "/choose-path", "/forgot-password", "/reset-password", "/error",
+            "/insights"
     );
 
     private final String baseUrl;

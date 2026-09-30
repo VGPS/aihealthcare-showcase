@@ -93,7 +93,10 @@ public class SecurityConfig {
                 .requestMatchers("/monitoring/**").hasRole("ADMIN")
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/developer").permitAll()
-                .requestMatchers("/robots.txt", "/sitemap.xml", "/google4197b7811cdace1b.html").permitAll()
+                .requestMatchers("/robots.txt", "/sitemap.xml",
+                        "/sitemap-pages.xml", "/sitemap-wiki.xml", "/sitemap-directory.xml",
+                        "/sitemap-legislation.xml", "/sitemap-trends.xml", "/sitemap-insights.xml",
+                        "/google4197b7811cdace1b.html").permitAll()
                 .requestMatchers("/images/**", "/insights/**").permitAll()
                 .requestMatchers("/dashboard/weekly-roundup").permitAll()
                 .requestMatchers("/wiki", "/wiki/**").permitAll()
