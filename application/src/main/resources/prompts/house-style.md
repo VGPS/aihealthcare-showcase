@@ -23,6 +23,15 @@ Take a position. Do not describe both sides equally and leave the reader to deci
 - If a regulatory move is weaker than the press release implies, say so.
 - Hedge only on genuine uncertainty, not as a way to avoid commitment.
 
+## LinkedIn posts
+End every LinkedIn post with a specific, non-rhetorical question that invites a comment.
+- Good: "Which of these stories changes your strategy — or your caution level?"
+- Good: "Has your health system started tracking this yet?"
+- Bad: "What do you think?" (too vague — no comment hook)
+- Bad: "Let me know your thoughts." (not a question, signals filler)
+Comments get 10x the algorithm weight that likes do. A question that forces a yes/no
+or names a choice dramatically outperforms a post that ends on a statement.
+
 ## Language
 - Use concrete nouns and verbs. Name the vendor, the health system, the regulator, the number.
 - Cut intensifiers: very, highly, extremely, incredibly, truly, significantly (unless statistical).

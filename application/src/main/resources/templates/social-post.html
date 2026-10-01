@@ -10,7 +10,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-14
- * @updated 2026-09-14
+ * @updated 2026-10-01
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -74,6 +74,23 @@
             <strong>Facebook:</strong> links OK in body (no penalty), lead headline above the 390-char "See more" fold, bullets for additional stories.
             Copy each section with one click and follow the platform-specific posting steps below.
         </p>
+    </div>
+
+    <!-- Your Take input -->
+    <div th:if="${fullAccess}" class="bg-white rounded-lg shadow-card p-4 mb-6 border-l-4 border-emerald-400">
+        <h2 class="text-sm font-semibold text-gray-700 mb-1">Your Take <span class="text-xs font-normal text-gray-400">(optional — prepended to both posts)</span></h2>
+        <form method="get" th:action="@{/dashboard/social}" class="flex flex-col gap-2">
+            <textarea name="yourTake" rows="2"
+                      placeholder="e.g. I spent 10 years as an ER doc. Here&#x2019;s what this funding wave means on the floor&#x2026;"
+                      class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-y focus:ring-2 focus:ring-emerald-300 focus:outline-none"
+                      th:text="${yourTake}"></textarea>
+            <div class="flex justify-end">
+                <button type="submit"
+                        class="px-4 py-1.5 bg-emerald-600 text-white text-xs font-medium rounded hover:bg-emerald-700 transition-colors">
+                    Regenerate with My Take
+                </button>
+            </div>
+        </form>
     </div>
 
     <!-- No digest state -->

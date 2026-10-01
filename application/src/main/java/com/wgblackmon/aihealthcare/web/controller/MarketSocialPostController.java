@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.URI;
@@ -40,7 +41,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-14
- * @updated 2026-09-14
+ * @updated 2026-10-01
  */
 @Slf4j
 @Controller
@@ -68,8 +69,9 @@ public class MarketSocialPostController {
     }
 
     @GetMapping("/dashboard/social")
-    public String socialPosts(Model model, Principal principal) {
-        log.debug("socialPosts() | principal={}", principal != null ? principal.getName() : "anonymous");
+    public String socialPosts(@RequestParam(required = false, defaultValue = "") String yourTake,
+                              Model model, Principal principal) {
+        log.debug("socialPosts() | principal={}, yourTake.length={}", principal != null ? principal.getName() : "anonymous", yourTake.length());
 
         boolean fullAccess = tierResolver.hasFullAccess(principal);
         model.addAttribute("fullAccess", fullAccess);
@@ -107,9 +109,9 @@ public class MarketSocialPostController {
 
         String digestDate = DisplayFormats.LONG_DATE.format(digest.date());
 
-        String linkedinBody = buildLinkedInBody(top, digestDate);
+        String linkedinBody = buildLinkedInBody(top, digestDate, yourTake);
         String linkedinComment = buildLinkedInComment(top, digestDate);
-        String facebookBody = buildFacebookBody(top, digestDate);
+        String facebookBody = buildFacebookBody(top, digestDate, yourTake);
         String facebookComment = buildFacebookComment(top, digestDate);
 
         model.addAttribute("dateLabel", digestDate);
@@ -123,6 +125,7 @@ public class MarketSocialPostController {
         model.addAttribute("linkedinCommentLength", linkedinComment.length());
         model.addAttribute("facebookBodyLength", facebookBody.length());
         model.addAttribute("facebookCommentLength", facebookComment.length());
+        model.addAttribute("yourTake", yourTake);
 
         log.debug("socialPosts() | return=social-post, entries={}", top.size());
         return "social-post";
@@ -130,12 +133,16 @@ public class MarketSocialPostController {
 
     // ─── LinkedIn ───────────────────────────────────────────────────────────
 
-    private String buildLinkedInBody(List<MarketDigestEntry> entries, String dateLabel) {
-        log.debug("buildLinkedInBody() | entries={}", entries.size());
+    private String buildLinkedInBody(List<MarketDigestEntry> entries, String dateLabel, String yourTake) {
+        log.debug("buildLinkedInBody() | entries={}, yourTake.blank={}", entries.size(), yourTake.isBlank());
         StringBuilder sb = new StringBuilder();
 
         sb.append("AI did what to whom. When, where, and why.\n");
         sb.append("AI in Healthcare — Market Intelligence · ").append(dateLabel).append("\n\n");
+
+        if (!yourTake.isBlank()) {
+            sb.append(yourTake.trim()).append("\n\n");
+        }
 
         for (int i = 0; i < entries.size(); i++) {
             MarketDigestEntry e = entries.get(i);
@@ -159,6 +166,7 @@ public class MarketSocialPostController {
         sb.append("Source links in the first comment below.\n\n");
         sb.append("Follow for daily AI healthcare market intelligence.\n");
         sb.append("→ Full digest: ").append(SITE_URL).append("/dashboard/market\n\n");
+        sb.append("Which of these stories changes your strategy — or your caution level? Drop it in the comments.\n\n");
         sb.append(HASHTAGS);
 
         String result = sb.toString();
@@ -199,9 +207,13 @@ public class MarketSocialPostController {
 
     // ─── Facebook ───────────────────────────────────────────────────────────
 
-    private String buildFacebookBody(List<MarketDigestEntry> entries, String dateLabel) {
-        log.debug("buildFacebookBody() | entries={}", entries.size());
+    private String buildFacebookBody(List<MarketDigestEntry> entries, String dateLabel, String yourTake) {
+        log.debug("buildFacebookBody() | entries={}, yourTake.blank={}", entries.size(), yourTake.isBlank());
         StringBuilder sb = new StringBuilder();
+
+        if (!yourTake.isBlank()) {
+            sb.append(yourTake.trim()).append("\n\n");
+        }
 
         MarketDigestEntry lead = entries.get(0);
         String leadEmoji = categoryEmoji(lead);
