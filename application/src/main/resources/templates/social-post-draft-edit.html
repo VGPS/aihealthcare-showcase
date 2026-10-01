@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--
+/**
+ * Social post draft editor — TinyMCE-powered edit page for a saved draft.
+ *
+ * Shows the post body in a TinyMCE editor and the optional comment in a
+ * plain textarea below. "Your Take" prefix is editable separately so it
+ * stays visually distinct from the generated content.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2026-10-01
+ * @updated 2026-10-01
+ */
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Edit Draft')}">
+</head>
+
+<body class="bg-surface font-sans text-on-surface">
+
+<header class="bg-primary-600 text-white px-6 py-4 shadow-md">
+    <h1 class="font-display text-2xl font-bold tracking-tight">Edit Post Draft</h1>
+    <p class="text-primary-200 text-sm mt-0.5">
+        <span th:text="${post.platform.name()}"></span>
+        <span th:if="${post.digestDate}" th:text="' &middot; ' + ${post.digestDate}"></span>
+    </p>
+</header>
+
+<nav th:replace="~{fragments/nav :: nav('social')}"></nav>
+
+<main class="max-w-4xl mx-auto px-4 py-6">
+
+    <!-- Flash -->
+    <div th:if="${successMsg}" class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm"
+         th:text="${successMsg}"></div>
+    <div th:if="${errorMsg}" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
+         th:text="${errorMsg}"></div>
+
+    <form id="editForm" th:action="@{/dashboard/social/drafts/{id}/edit(id=${post.postId})}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+        <!-- Your Take (plain text, no TinyMCE) -->
+        <div class="bg-white rounded-lg shadow-card p-4 mb-4 border-l-4 border-emerald-400">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                Your Take <span class="text-xs font-normal text-gray-400">(prepended to the post)</span>
+            </label>
+            <textarea name="yourTake" rows="2"
+                      class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-y focus:ring-2 focus:ring-emerald-300 focus:outline-none"
+                      th:text="${post.yourTake}"></textarea>
+        </div>
+
+        <!-- Body (TinyMCE) -->
+        <div class="bg-white rounded-lg shadow-card p-4 mb-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Post Body</label>
+            <textarea id="bodyEditor" name="body"
+                      th:text="${post.body}"
+                      class="w-full min-h-[300px]"></textarea>
+        </div>
+
+        <!-- Comment (plain textarea) -->
+        <div class="bg-white rounded-lg shadow-card p-4 mb-4">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                Comment <span class="text-xs font-normal text-gray-400">(first comment / expanded detail — optional)</span>
+            </label>
+            <textarea name="comment" rows="5"
+                      class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-y focus:ring-2 focus:ring-blue-200 focus:outline-none font-mono"
+                      th:text="${post.comment}"></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3 flex-wrap">
+            <button type="submit" onclick="syncEditor()"
+                    class="px-5 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
+                Save Draft
+            </button>
+            <form th:action="@{/dashboard/social/drafts/{id}/post(id=${post.postId})}"
+                  method="post" class="inline">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit"
+                        class="px-5 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                    Mark as Posted
+                </button>
+            </form>
+            <a th:href="@{/dashboard/social/drafts}"
+               class="px-5 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                Back to Drafts
+            </a>
+        </div>
+    </form>
+
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script th:src="@{/webjars/tinymce/7.9.0/tinymce.min.js}"></script>
+<script>
+    tinymce.init({
+        selector: '#bodyEditor',
+        height: 400,
+        menubar: false,
+        plugins: 'link lists code',
+        toolbar: 'undo redo | bold italic underline | bullist | link | code',
+        content_style: 'body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; padding: 8px; }',
+        promotion: false,
+        license_key: 'gpl'
+    });
+
+    function syncEditor() {
+        if (tinymce.activeEditor) {
+            document.querySelector('textarea[name="body"]').value = tinymce.activeEditor.getContent({format: 'text'});
+        }
+    }
+</script>
+
+</body>
+</html>
