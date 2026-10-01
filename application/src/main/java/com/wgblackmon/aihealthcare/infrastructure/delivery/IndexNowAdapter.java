@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.delivery;
 
 import com.wgblackmon.aihealthcare.domain.port.outbound.SearchEngineNotificationPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,7 @@ public class IndexNowAdapter implements SearchEngineNotificationPort {
     private final String keyLocation;
     private final boolean enabled;
 
+    @Autowired
     public IndexNowAdapter(@Value("${aihealthcare.base-url}") String baseUrl,
                             @Value("${aihealthcare.indexnow.key}") String key,
                             @Value("${aihealthcare.indexnow.enabled:false}") boolean enabled) {
