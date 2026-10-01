@@ -351,7 +351,10 @@ public class DigestNewsletterRenderer {
         log.debug("renderArticleCards() | articleCount={}", articles.size());
 
         StringBuilder sb = new StringBuilder();
-        sb.append("<div style=\"margin-bottom:36px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.08); overflow:hidden;\">\n");
+        // Outer table replaces the div+box-shadow pattern — box-shadow is stripped by Outlook
+        // (Word rendering engine); a bordered table renders correctly in all clients.
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" ")
+          .append("style=\"margin-bottom:36px; border-collapse:collapse; border:1px solid #e4eaf1;\">\n");
 
         int index = 0;
         for (NewsArticle article : articles) {
@@ -360,7 +363,7 @@ public class DigestNewsletterRenderer {
             String url          = article.url() != null ? article.url().toString() : "#";
             String borderTop    = index == 1 ? "" : " border-top:1px solid #e4eaf1;";
 
-            sb.append("  <div id=\"article-").append(index)
+            sb.append("  <tr><td id=\"article-").append(index)
               .append("\" style=\"background:#fff; padding:18px 22px;").append(borderTop).append("\">\n");
             sb.append("    <div style=\"font-size:1.05em; font-weight:bold; margin-bottom:6px;\">")
               .append("<a href=\"").append(escapeHtml(url))
@@ -379,9 +382,9 @@ public class DigestNewsletterRenderer {
                 sb.append("    <div style=\"font-size:0.9em; color:#444; margin-top:4px; line-height:1.5; font-family:Arial,sans-serif;\">")
                   .append(escapeHtml(bodyPreview)).append("</div>\n");
             }
-            sb.append("  </div>\n");
+            sb.append("  </td></tr>\n");
         }
-        sb.append("</div>\n");
+        sb.append("</table>\n");
 
         String result = sb.toString();
         log.debug("renderArticleCards() | return={} chars", result.length());
