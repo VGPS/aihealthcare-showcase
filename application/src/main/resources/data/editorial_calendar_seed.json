@@ -1,0 +1,333 @@
+[
+  {
+    "id": "texas-traiga-healthcare-ai-disclosure",
+    "title": "Texas TRAIGA and Healthcare AI: What the Patient Disclosure Rule Means",
+    "hook": "If a healthcare service uses AI, what must the patient be told—and by when?",
+    "theme": "HEALTHCARE_GOVERNANCE",
+    "demandSignal": "HOT",
+    "priorityTier": "P0",
+    "effort": "M",
+    "format": "explainer",
+    "publishWindowStart": "2026-10-05",
+    "publishWindowEnd": "2026-10-09",
+    "preferredDate": "2026-10-06",
+    "cta": "Download the disclosure review checklist",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["healthcare-compliance", "providers", "healthcare-product"],
+    "primarySources": [
+      {
+        "url": "https://www.texasattorneygeneral.gov/consumer-protection/file-consumer-complaint/consumer-ai-rights",
+        "label": "Texas Attorney General Consumer AI Rights",
+        "sourceType": "government"
+      },
+      {
+        "url": "https://capitol.texas.gov/tlodocs/89R/analysis/html/HB00149S.htm",
+        "label": "Texas Legislature HB 149 analysis",
+        "sourceType": "legislature"
+      }
+    ]
+  },
+  {
+    "id": "eu-ai-act-healthcare-timeline-2026",
+    "title": "EU AI Act Healthcare Timeline: What Applies Now, What Moved, and What to Verify",
+    "hook": "The dangerous mistake is treating an old compliance deadline as current.",
+    "theme": "HEALTHCARE_GOVERNANCE",
+    "demandSignal": "HOT",
+    "priorityTier": "P0",
+    "effort": "L",
+    "format": "timeline",
+    "publishWindowStart": "2026-10-12",
+    "publishWindowEnd": "2026-10-16",
+    "preferredDate": "2026-10-13",
+    "cta": "Subscribe to deadline-change updates",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["eu-healthcare-vendors", "health-system-leaders"],
+    "primarySources": [
+      {
+        "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+        "label": "European Commission AI Act framework",
+        "sourceType": "government"
+      },
+      {
+        "url": "https://www.healthseed.vc/insights/vital-signs-ai-healthcare-august-2026",
+        "label": "HealthSeed August 2026 AI Act timeline update",
+        "sourceType": "industry_analysis"
+      }
+    ]
+  },
+  {
+    "id": "fda-pccp-ai-medical-device",
+    "title": "FDA PCCP Explained: How an AI Medical Device Can Plan for Future Model Changes",
+    "hook": "The model update is not the whole story; the regulator wants the change plan, validation method, and impact assessment.",
+    "theme": "HEALTHCARE_GOVERNANCE",
+    "demandSignal": "HOT",
+    "priorityTier": "P0",
+    "effort": "M",
+    "format": "technical_explainer",
+    "publishWindowStart": "2026-10-19",
+    "publishWindowEnd": "2026-10-23",
+    "preferredDate": "2026-10-20",
+    "cta": "Download a PCCP scoping template",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["medical-device-product", "regulatory", "engineering"],
+    "primarySources": [
+      {
+        "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/marketing-submission-recommendations-predetermined-change-control-plan-artificial-intelligence",
+        "label": "FDA AI PCCP guidance",
+        "sourceType": "government"
+      }
+    ]
+  },
+  {
+    "id": "ambient-ai-scribes-adoption-value",
+    "title": "Ambient AI Scribes: Adoption Is Not the Same as Value",
+    "hook": "If the note gets faster but review work, consent concerns, or inequity increase, the business case is incomplete.",
+    "theme": "HEALTHCARE_OPERATIONS",
+    "demandSignal": "HOT",
+    "priorityTier": "P0",
+    "effort": "L",
+    "format": "evidence_brief",
+    "publishWindowStart": "2026-10-26",
+    "publishWindowEnd": "2026-10-30",
+    "preferredDate": "2026-10-27",
+    "cta": "Use the workflow-and-trust scorecard",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["clinicians", "cmios", "practice-managers"],
+    "primarySources": [
+      {
+        "url": "https://sph.emory.edu/news/new-study-finds-nearly-two-thirds-us-hospitals-using-epic-have-adopted-ambient-ai-disparities",
+        "label": "Emory ambient AI adoption study",
+        "sourceType": "university"
+      }
+    ]
+  },
+  {
+    "id": "prior-authorization-2026-clocks",
+    "title": "Prior Authorization in 2026: Where the 72-Hour and Seven-Day Clocks Fit",
+    "hook": "Faster decisions are useful only when the request is complete, the reason is visible, and the patient is not lost in the handoff.",
+    "theme": "HEALTHCARE_OPERATIONS",
+    "demandSignal": "HOT",
+    "priorityTier": "P0",
+    "effort": "M",
+    "format": "process_map",
+    "publishWindowStart": "2026-11-02",
+    "publishWindowEnd": "2026-11-06",
+    "preferredDate": "2026-11-03",
+    "cta": "Map one current prior-authorization workflow",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["payers", "providers", "revenue-cycle"],
+    "primarySources": [
+      {
+        "url": "https://www.cms.gov/newsroom/blog/moving-prior-authorization-21st-century",
+        "label": "CMS prior-authorization guidance",
+        "sourceType": "government"
+      }
+    ]
+  },
+  {
+    "id": "hipaa-ai-safety-controls",
+    "title": "HIPAA-Compliant Is Not an AI Safety Strategy: Seven Controls to Inspect",
+    "hook": "A BAA and access control matter, but they do not prove that a clinical workflow is safe, accurate, or fit for purpose.",
+    "theme": "HEALTHCARE_GOVERNANCE",
+    "demandSignal": "STEADY",
+    "priorityTier": "P1",
+    "effort": "L",
+    "format": "architecture_explainer",
+    "publishWindowStart": "2026-11-09",
+    "publishWindowEnd": "2026-11-13",
+    "preferredDate": "2026-11-10",
+    "cta": "Download the control-matrix starter",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["security", "privacy", "platform-engineering"],
+    "primarySources": [
+      {
+        "url": "https://aws.amazon.com/blogs/industries/building-a-hipaa-ready-generative-ai-architecture-for-healthcare-on-aws/",
+        "label": "AWS HIPAA-ready generative AI architecture",
+        "sourceType": "industry_technical"
+      }
+    ]
+  },
+  {
+    "id": "ai-prior-authorization-human-accountability",
+    "title": "AI in Prior Authorization: What Automation Can Assist With—and What Humans Must Own",
+    "hook": "Automation can organize evidence; it should not quietly become the accountable medical-necessity decision-maker.",
+    "theme": "HEALTHCARE_OPERATIONS",
+    "demandSignal": "HOT",
+    "priorityTier": "P0",
+    "effort": "M",
+    "format": "myth_reality",
+    "publishWindowStart": "2026-11-16",
+    "publishWindowEnd": "2026-11-20",
+    "preferredDate": "2026-11-17",
+    "cta": "Download the human-review control list",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["payers", "clinicians", "patient-advocates"],
+    "primarySources": [
+      {
+        "url": "https://www.cms.gov/newsroom/blog/moving-prior-authorization-21st-century",
+        "label": "CMS prior-authorization guidance",
+        "sourceType": "government"
+      },
+      {
+        "url": "https://www.aha.org/news/headline/2026-05-12-macpac-calls-increased-transparency-ai-supported-prior-authorization",
+        "label": "AHA summary of MACPAC AI prior-authorization recommendations",
+        "sourceType": "industry_analysis"
+      }
+    ]
+  },
+  {
+    "id": "total-cost-ai-healthcare-pilot",
+    "title": "The Total Cost of an AI Healthcare Pilot: License Price Is the Smallest Line Item",
+    "hook": "Count integration, training, review time, monitoring, exception handling, and change management before claiming ROI.",
+    "theme": "HEALTHCARE_ECONOMICS",
+    "demandSignal": "STEADY",
+    "priorityTier": "P1",
+    "effort": "L",
+    "format": "cost_model",
+    "publishWindowStart": "2026-11-23",
+    "publishWindowEnd": "2026-11-27",
+    "preferredDate": "2026-11-24",
+    "cta": "Use the pilot cost model",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["cfos", "cios", "procurement", "operators"],
+    "primarySources": [
+      {
+        "url": "https://sph.emory.edu/news/new-study-finds-nearly-two-thirds-us-hospitals-using-epic-have-adopted-ambient-ai-disparities",
+        "label": "Emory ambient AI adoption study",
+        "sourceType": "university"
+      }
+    ]
+  },
+  {
+    "id": "colorado-hb26-1139-healthcare-ai",
+    "title": "Colorado HB26-1139: What the 2027 Utilization-Review Requirements Imply for AI Teams",
+    "hook": "A utilization-review model must be tied to the individual's clinical circumstances, not only a population pattern.",
+    "theme": "HEALTHCARE_GOVERNANCE",
+    "demandSignal": "HOT",
+    "priorityTier": "P0",
+    "effort": "M",
+    "format": "legislative_explainer",
+    "publishWindowStart": "2026-11-30",
+    "publishWindowEnd": "2026-12-04",
+    "preferredDate": "2026-12-01",
+    "cta": "Create a 2027 readiness backlog",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["payers", "utilization-review-leaders", "policymakers"],
+    "primarySources": [
+      {
+        "url": "https://leg.colorado.gov/bills/HB26-1139",
+        "label": "Colorado HB26-1139",
+        "sourceType": "legislature"
+      }
+    ]
+  },
+  {
+    "id": "clinical-ai-validation-beyond-accuracy",
+    "title": "Clinical AI Validation: Accuracy Is One Metric, Not the Finish Line",
+    "hook": "A model can be accurate in a test set and still fail in the handoff, the alert burden, or the patient population that matters.",
+    "theme": "HEALTHCARE_GOVERNANCE",
+    "demandSignal": "STEADY",
+    "priorityTier": "P1",
+    "effort": "L",
+    "format": "evaluation_framework",
+    "publishWindowStart": "2026-12-07",
+    "publishWindowEnd": "2026-12-11",
+    "preferredDate": "2026-12-08",
+    "cta": "Use the clinical-AI evaluation canvas",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["clinical-ai-builders", "researchers", "safety-leaders"],
+    "primarySources": [
+      {
+        "url": "https://www.fda.gov/medical-devices/digital-health-center-excellence/artificial-intelligence-enabled-medical-devices",
+        "label": "FDA AI-enabled medical-device overview",
+        "sourceType": "government"
+      },
+      {
+        "url": "https://sph.emory.edu/news/new-study-finds-nearly-two-thirds-us-hospitals-using-epic-have-adopted-ambient-ai-disparities",
+        "label": "Emory ambient AI adoption study",
+        "sourceType": "university"
+      }
+    ]
+  },
+  {
+    "id": "ai-healthcare-value-case-renewal",
+    "title": "From AI Pilot to Value Case: The Evidence a Renewal Decision Should Require",
+    "hook": "Renewal should follow measured outcomes, full costs, and known failure modes—not enthusiasm at launch.",
+    "theme": "HEALTHCARE_ECONOMICS",
+    "demandSignal": "STEADY",
+    "priorityTier": "P1",
+    "effort": "L",
+    "format": "operating_template",
+    "publishWindowStart": "2026-12-14",
+    "publishWindowEnd": "2026-12-18",
+    "preferredDate": "2026-12-15",
+    "cta": "Download the value-case template",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["executives", "product-owners", "ai-governance"],
+    "primarySources": []
+  },
+  {
+    "id": "2026-year-end-healthcare-benefits-checklist",
+    "title": "The 2026 Year-End Healthcare Benefits Checklist",
+    "hook": "Before the calendar turns, review your HSA balance, open-enrollment deadlines, prior-authorization status, and AI-tool disclosures in one sitting.",
+    "theme": "AI_HEALTH_FINANCES",
+    "demandSignal": "HOT",
+    "priorityTier": "P0",
+    "effort": "M",
+    "format": "year_end_checklist",
+    "publishWindowStart": "2026-12-21",
+    "publishWindowEnd": "2026-12-29",
+    "preferredDate": "2026-12-22",
+    "cta": "Download the printable checklist",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["employees", "patients", "caregivers"],
+    "primarySources": [
+      {
+        "url": "https://www.cms.gov/newsroom/blog/moving-prior-authorization-21st-century",
+        "label": "CMS prior-authorization guidance",
+        "sourceType": "government"
+      }
+    ]
+  },
+  {
+    "id": "healthcare-ai-pilot-postmortem-2026",
+    "title": "2026 Healthcare AI Pilot Postmortem: What Should Enter the 2027 Backlog?",
+    "hook": "A useful postmortem records not only wins, but the evidence gaps, hidden costs, and decisions that should stop.",
+    "theme": "HEALTHCARE_ECONOMICS",
+    "demandSignal": "STEADY",
+    "priorityTier": "P1",
+    "effort": "L",
+    "format": "synthesis_backlog_template",
+    "publishWindowStart": "2026-12-28",
+    "publishWindowEnd": "2026-12-29",
+    "preferredDate": "2026-12-29",
+    "cta": "Create a prioritized 2027 backlog",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-01",
+    "audiences": ["ai-product-teams", "operators"],
+    "primarySources": [
+      {
+        "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/marketing-submission-recommendations-predetermined-change-control-plan-artificial-intelligence",
+        "label": "FDA AI PCCP guidance",
+        "sourceType": "government"
+      },
+      {
+        "url": "https://www.cms.gov/newsroom/blog/moving-prior-authorization-21st-century",
+        "label": "CMS prior-authorization guidance",
+        "sourceType": "government"
+      }
+    ]
+  }
+]

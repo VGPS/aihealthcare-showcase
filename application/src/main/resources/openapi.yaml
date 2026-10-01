@@ -895,8 +895,120 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/v1/editorial:
+    get:
+      summary: List editorial calendar items
+      operationId: listEditorialItems
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PLANNED, RESEARCHING, DRAFTING, REVIEW, SCHEDULED, PUBLISHED, NEEDS_UPDATE]
+      responses:
+        '200':
+          description: List of editorial items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EditorialItemResponse'
+
+  /api/v1/editorial/next:
+    get:
+      summary: Get the next recommended editorial item
+      operationId: getNextEditorialItem
+      responses:
+        '200':
+          description: Next PLANNED item by priority then preferred date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EditorialItemResponse'
+        '204':
+          description: No PLANNED items remain
+
+  /api/v1/editorial/{id}:
+    get:
+      summary: Get a single editorial item by slug id
+      operationId: getEditorialItemById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Editorial item found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EditorialItemResponse'
+        '404':
+          description: Item not found
+
+  /api/v1/editorial/{id}/status:
+    post:
+      summary: Advance an editorial item's lifecycle status by one step (ADMIN)
+      operationId: advanceEditorialStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Status advanced
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+                  title:
+                    type: string
+        '404':
+          description: Item not found
+
 components:
   schemas:
+    EditorialItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        hook:
+          type: string
+        theme:
+          type: string
+        demandSignal:
+          type: string
+        priorityTier:
+          type: string
+        effort:
+          type: string
+        format:
+          type: string
+        preferredDate:
+          type: string
+          format: date
+        status:
+          type: string
+        cta:
+          type: string
+        audiences:
+          type: array
+          items:
+            type: string
 
     IngestRequest:
       type: object

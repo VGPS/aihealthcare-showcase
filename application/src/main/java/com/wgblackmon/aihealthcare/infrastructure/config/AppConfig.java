@@ -16,6 +16,8 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
 import com.wgblackmon.aihealthcare.domain.service.AiSearchService;
 import com.wgblackmon.aihealthcare.domain.service.AnalyticsService;
 import com.wgblackmon.aihealthcare.domain.service.ArticleSearchService;
+import com.wgblackmon.aihealthcare.domain.service.EditorialCalendarService;
+import com.wgblackmon.aihealthcare.domain.port.outbound.EditorialCalendarPort;
 import com.wgblackmon.aihealthcare.domain.service.CitationAssembler;
 import com.wgblackmon.aihealthcare.domain.service.CompanyClassifier;
 import com.wgblackmon.aihealthcare.domain.service.CompanyDeduplicator;
@@ -1499,6 +1501,23 @@ public class AppConfig {
      * @param spEntityId   The SP entity ID from configuration.
      * @return The wired repository instance.
      */
+    /**
+     * Creates the {@link EditorialCalendarService} — pure domain service for
+     * the healthcare AI editorial calendar.
+     *
+     * @param editorialCalendarPort Adapter implementing editorial item persistence.
+     * @return The wired service instance.
+     */
+    @Bean
+    public EditorialCalendarService editorialCalendarService(
+            EditorialCalendarPort editorialCalendarPort) {
+        log.debug("editorialCalendarService() | editorialCalendarPort={}",
+                editorialCalendarPort.getClass().getSimpleName());
+        EditorialCalendarService result = new EditorialCalendarService(editorialCalendarPort);
+        log.debug("editorialCalendarService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
     @Bean
     public org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository
             relyingPartyRegistrationRepository(
