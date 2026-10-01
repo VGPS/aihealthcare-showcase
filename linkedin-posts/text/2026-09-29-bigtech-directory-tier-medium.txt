@@ -1,0 +1,108 @@
+=== MEDIUM POST ===
+
+TITLE: Big Tech Wasn't Built for Healthcare. Now It's Tied for the Top of It.
+
+SUBTITLE: Google, Microsoft, and Intel now sit at the same maximum relevance score as the startups built only for this market — and this week's news explains why.
+
+DATE: September 29, 2026
+
+TAGS (add all 5):
+- Healthcare AI
+- Digital Health
+- Big Tech
+- Artificial Intelligence
+- Startups
+
+PUBLICATION: Submit to "Health Tech" or "Future of Healthcare" Medium publication, or post to your own profile if not accepted.
+
+CANONICAL URL: If you publish this to your own site first, set the canonical URL to https://app.bigskylabs.ai/directory to consolidate SEO authority.
+
+ESTIMATED READ TIME: 5 minutes
+
+---
+
+=== MEDIUM POST BODY ===
+
+"Big Tech vs. healthcare AI startups" has been a framing analysts reach for without much to measure it against. This week, our own tracking data gave it a number.
+
+We maintain a live directory of 602 AI healthcare companies, scored daily on three signals: article velocity (trending), detected funding events, and sentiment risk. As of this week, 3 of the 7 companies sitting at the maximum relevance score weren't built for healthcare at all — Google, Microsoft, and Intel. They're tied, at the exact same score, with Ada Health, Eko Health, GE HealthCare, and K Health — companies that exist for nothing but this market.
+
+---
+
+## What the directory actually shows
+
+Pulled directly from the live scoring, here's the ★50 tier as it stands today:
+
+**Ada Health** (Berlin, est. 2011) — AI-powered symptom assessment and care navigation, Series B plus debt financing.
+
+**Eko Health** (Emeryville, CA, est. 2013) — digital stethoscopes and ECG/auscultation AI, Series D, privately held.
+
+**GE HealthCare** (Chicago, est. 1892) — diagnostic imaging, patient monitoring, and pharmaceutical diagnostics at global scale, public.
+
+**Google** (Mountain View, est. 1998) — a subsidiary of Alphabet Inc. applying generative AI, cloud infrastructure, and consumer products to healthcare.
+
+**Intel Corporation** (Santa Clara, est. 1968) — AI-optimized hardware and software platforms used across healthcare and medical diagnostics.
+
+**K Health** (New York, est. 2016) — agentic, physician- and consumer-facing virtual care platform, Series E.
+
+**Microsoft Corporation** (Redmond, est. 1975) — healthcare AI strategy built on the Azure cloud, Nuance's clinical conversational AI, and a broader ambient documentation push.
+
+Notice what's missing: NVIDIA Healthcare, despite plenty of headlines this year, sits well below this tier in our live scoring (★35). The story here isn't "every tech giant is winning" — it's that the ones with a genuine, sustained healthcare strategy are now indistinguishable, by measured signal, from the startups built for nothing else.
+
+---
+
+## The week's supporting evidence
+
+The directory tier isn't an isolated data point. It lines up with what actually happened in the news this week:
+
+**Amazon unveiled Connect Health**, AWS's dedicated healthcare AI product — covered by both AWS's own channels and TechTarget, framed explicitly as "AWS's AI solution to improve patient care."
+
+**OpenEvidence partnered with Anthropic and Penn Medicine** to expand physician access to AI-assisted clinical tools across Africa and Asia — a healthcare-native company reaching for Big Tech's model infrastructure and Big Tech's distribution simultaneously.
+
+Our trend tracker independently flagged **"Big Tech Healthcare AI Push" as the #2 fastest-rising keyword** across all tracked sources this week — 37 mentions, trailing only ambient documentation AI. Three independent signals — directory scoring, deal-flow news, and keyword velocity — converging on the same story in the same week is not noise.
+
+---
+
+## Why this matters for vendors
+
+The obvious reaction is "so what — Big Tech has always circled healthcare." True, but circling and tying for the top of a live relevance ranking are different things. The practical difference shows up in how deals get won, not in whether the technology is comparable.
+
+A hospital system evaluating a point-solution vendor for, say, clinical documentation AI is very often *also* an Azure or AWS enterprise customer already. Microsoft doesn't need to win a new procurement cycle to sell that hospital an ambient-documentation module — it needs to expand an existing contract. That's a fundamentally cheaper sales motion than anything a standalone vendor can run, independent of whose underlying model performs better.
+
+For healthcare AI startups, this doesn't mean the game is over. It means the competitive question has changed. The relevant benchmark for a vendor's pitch deck is no longer "how do we compare to the last three point-solution vendors this buyer evaluated." It's "why would this buyer choose us over expanding a platform contract they already have."
+
+---
+
+## Track it yourself
+
+We publish the full 602-company directory with live trending, funding, and sentiment signals, updated daily, free to browse:
+
+**[app.bigskylabs.ai/directory](https://app.bigskylabs.ai/directory?sort=trending)** — sort by trending to see the current top tier.
+
+---
+
+*Big Sky Labs tracks 57+ sources and 602+ AI healthcare companies daily. The platform covers deal signals, regulatory events, competitive intelligence, and market analysis for the AI healthcare sector. Weekly intel roundups are published every Saturday.*
+
+---
+
+=== MEDIUM POSTING INSTRUCTIONS ===
+
+1. Log in to Medium
+2. Click "Write a story"
+3. Title: "Big Tech Wasn't Built for Healthcare. Now It's Tied for the Top of It."
+4. Paste the body above (starting from "'Big Tech vs. healthcare AI startups' has been a framing...")
+5. Add the subtitle as a second-line large text or use Medium's subtitle field if available
+6. Add the 5 tags listed above
+7. Cover image: linkedin-posts/shots/2026-09-29-bigtech-directory-tier.png — upload as the story cover image
+8. Submit to the "Health Tech" publication for broader distribution, OR post directly to your profile
+9. Set the canonical URL if this content also lives on bigskylabs.ai
+10. Best publishing time: Tuesday 8:00–10:00 AM ET (Medium's algorithm favors early-week publishing for discovery)
+
+=== SEO NOTES ===
+- Primary keyword: "big tech healthcare AI" — appears in title, headers, and body
+- Secondary keywords: "healthcare AI companies," "healthcare AI market 2026," "AI healthcare startups vs big tech"
+- The headline is optimized for search and CTR; do not change the title structure
+- The first 150 characters of the post appear in Google previews — the current opener is intentionally specific
+
+=== INTERNAL LINK OPPORTUNITY ===
+If you have a prior Medium post on the company directory or healthcare AI vendor landscape, link to it from this post to build topical authority.
