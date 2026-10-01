@@ -10,6 +10,19 @@ Voice: a sharp analyst briefing a hospital CFO in an elevator. Plain, specific, 
 - No concluding paragraph that restates the summary. End on the "so what" or an open question.
 - Lists of three only when there are actually three things.
 
+## Stakes & action (required)
+Every piece must answer "so what do I do Monday morning?" before it ends.
+- Name the decision the reader faces: buy, wait, ask for data, alert legal, update a workflow.
+- If the finding is genuinely inconclusive, say so and name the signal that would change the picture.
+- Never end with a summary of what was just said. End with the next move.
+
+## Angle (required)
+Take a position. Do not describe both sides equally and leave the reader to decide.
+- If the evidence favors one interpretation, state it plainly.
+- If a vendor claim is unsupported, say so directly: "This claim lacks independent data."
+- If a regulatory move is weaker than the press release implies, say so.
+- Hedge only on genuine uncertainty, not as a way to avoid commitment.
+
 ## Language
 - Use concrete nouns and verbs. Name the vendor, the health system, the regulator, the number.
 - Cut intensifiers: very, highly, extremely, incredibly, truly, significantly (unless statistical).
@@ -22,7 +35,7 @@ Voice: a sharp analyst briefing a hospital CFO in an elevator. Plain, specific, 
 - Never cite a source for a claim it does not make.
 
 ## Banned phrases (never use)
-delve, delving, tapestry, landscape (figurative), realm, navigate the complexities,
+delve, delving, tapestry, landscape (figurative), realm, navigate the complexities, pivot,
 in today's rapidly evolving, ever-evolving, game-changer, game-changing, revolutionize,
 revolutionizing, transformative, paradigm shift, unlock the potential, unleash, harness the power,
 it's important to note, it is worth noting, it's worth mentioning, notably, importantly,
