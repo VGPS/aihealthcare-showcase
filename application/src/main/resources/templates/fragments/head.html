@@ -44,18 +44,18 @@
     <meta property="og:description" th:content="${pageDescription != null ? pageDescription : defaultDescription}"/>
     <meta property="og:url" th:content="${canonicalUrl}"/>
     <meta property="og:type" content="website"/>
-    <meta property="og:image" th:content="${baseUrl} + (${ogImage} != null ? ${ogImage} : '/images/brand-icon.png')"/>
-    <meta property="og:image:width" content="1920"/>
-    <meta property="og:image:height" content="1080"/>
+    <meta property="og:image" th:content="${baseUrl} + (${ogImage} != null ? ${ogImage} : '/images/og-default.png')"/>
+    <meta property="og:image:width" th:content="${ogImageWidth != null ? ogImageWidth : 1200}"/>
+    <meta property="og:image:height" th:content="${ogImageHeight != null ? ogImageHeight : 630}"/>
     <meta property="og:site_name" content="AI Healthcare Intelligence"/>
 
     <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:card" content="summary_large_image"/>
     <meta name="twitter:title" th:content="${pageTitle} + ' — AIHealthcare'"/>
     <meta name="twitter:description" th:content="${pageDescription != null ? pageDescription : defaultDescription}"/>
 
-    <!-- Robots — noindex for auth-required pages -->
-    <meta th:if="${noIndex}" name="robots" content="noindex, nofollow"/>
+    <!-- Robots — noindex,nofollow for auth-required pages; noindex,follow for filtered list views -->
+    <meta th:if="${robotsDirective != null}" name="robots" th:content="${robotsDirective}"/>
 
     <!-- CSRF meta tags — read by htmx-csrf.js to attach the token to HTMX requests -->
     <meta name="_csrf"        th:content="${_csrf.token}"/>

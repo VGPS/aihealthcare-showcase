@@ -9,8 +9,10 @@ import com.wgblackmon.aihealthcare.domain.model.LawStatus;
 import com.wgblackmon.aihealthcare.domain.model.SourceType;
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SearchEngineNotificationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.StateLawPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
@@ -47,10 +49,16 @@ public class StateLawSeedRunner implements ApplicationRunner {
     private static final String SEED_FILE = "data/state_health_ai_laws_seed.json";
 
     private final StateLawPort stateLawPort;
+    private final SearchEngineNotificationPort searchEngineNotificationPort;
+    private final String baseUrl;
 
-    public StateLawSeedRunner(StateLawPort stateLawPort) {
+    public StateLawSeedRunner(StateLawPort stateLawPort,
+                              SearchEngineNotificationPort searchEngineNotificationPort,
+                              @Value("${aihealthcare.base-url}") String baseUrl) {
         log.debug("StateLawSeedRunner() | stateLawPort={}", stateLawPort.getClass().getSimpleName());
         this.stateLawPort = stateLawPort;
+        this.searchEngineNotificationPort = searchEngineNotificationPort;
+        this.baseUrl = baseUrl;
     }
 
     /**
@@ -78,17 +86,21 @@ public class StateLawSeedRunner implements ApplicationRunner {
 
             Instant now = Instant.now();
             int count = 0;
+            List<String> upsertedUrls = new ArrayList<>();
 
             for (Map<String, Object> raw : rawList) {
                 try {
                     StateLaw law = mapToStateLaw(raw, now);
                     stateLawPort.upsert(law);
+                    upsertedUrls.add(baseUrl + "/legislation/" + law.id());
                     count++;
                 } catch (Exception e) {
                     log.warn("run() | skipping seed record id={}: {}",
                              raw.get("id"), e.getMessage());
                 }
             }
+
+            searchEngineNotificationPort.notifyUrlsChanged(upsertedUrls);
 
             log.info("StateLawSeedRunner | seeded {} laws (state + federal)", count);
             log.debug("run() | return=void");

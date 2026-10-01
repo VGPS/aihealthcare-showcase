@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
  * and outreach links.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-09-25
- * @updated 2026-09-25 — add ogImage + sharper pageDescription for LinkedIn OG card
+ * @updated 2026-09-30 — T10 SEO: declare actual tour-og.png dimensions (1920x1080, not the site default 1200x630)
  */
 @Slf4j
 @Controller
@@ -28,6 +28,8 @@ public class TourController {
         model.addAttribute("pageDescription",
                 "See AI Healthcare Intelligence in action — market digests, deal signals, regulatory tracking, sentiment analysis, and more. Free trial available.");
         model.addAttribute("ogImage", "/images/tour-og.png");
+        model.addAttribute("ogImageWidth", 1920);
+        model.addAttribute("ogImageHeight", 1080);
         log.debug("tour() | return=tour");
         return "tour";
     }

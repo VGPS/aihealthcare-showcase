@@ -1,11 +1,13 @@
 package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SearchEngineNotificationPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import com.wgblackmon.aihealthcare.domain.service.HealthcareAiCompanyClassifier;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * {@code @DataJpaTest} tests for {@link HealthcareAiCompanyAdapter}.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-02
- * @updated 2026-08-27
+ * @updated 2026-09-30 — T12 SEO: mock SearchEngineNotificationPort (new constructor dep)
  */
 @DataJpaTest
 @Import({HealthcareAiCompanyAdapter.class, HealthcareAiCompanyClassifier.class})
@@ -27,6 +29,9 @@ class HealthcareAiCompanyAdapterTest {
 
     @Autowired
     private HealthcareAiCompanyAdapter adapter;
+
+    @MockitoBean
+    private SearchEngineNotificationPort searchEngineNotificationPort;
 
     @Test
     void save_andFindByNameNormalized() {

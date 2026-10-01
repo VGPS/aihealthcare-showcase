@@ -32,4 +32,6 @@ public interface HealthcareAiCompanyRepository
     List<HealthcareAiCompanyEntity> findAllByOrderByDiscoveredAtDesc();
 
     List<HealthcareAiCompanyEntity> findAllByOrderByNameAsc();
+
+    List<HealthcareAiCompanyEntity> findTop5ByOrderByDiscoveredAtDesc();
 }

@@ -119,6 +119,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.SearchPromptPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.TopicSummaryPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SearchEngineNotificationPort;
 import com.wgblackmon.aihealthcare.infrastructure.ai.WikiCompilationAdapter;
 import com.wgblackmon.aihealthcare.infrastructure.summary.SlopLinter;
 import com.wgblackmon.aihealthcare.infrastructure.ai.WikiGapAnalysisAdapter;
@@ -1007,14 +1008,17 @@ public class AppConfig {
             WikiContradictionRepository contradictionRepository,
             WikiPageRevisionRepository revisionRepository,
             SlopLinter slopLinter,
-            @Value("${aihealthcare.ai.classification-model:claude-haiku-4-5}") String classificationModel) {
+            SearchEngineNotificationPort searchEngineNotificationPort,
+            @Value("${aihealthcare.ai.classification-model:claude-haiku-4-5}") String classificationModel,
+            @Value("${aihealthcare.base-url}") String baseUrl) {
         log.debug("wikiCompilationAdapter() | wiring wiki compilation pipeline");
         String wikiCompilePrompt = promptLoaderService.load("wiki-compile.txt");
         WikiResponseParser responseParser = new WikiResponseParser();
         WikiCompilationAdapter result = new WikiCompilationAdapter(
                 chatClientBuilder, pageRepository, sourceRefRepository,
                 contradictionRepository, revisionRepository,
-                responseParser, wikiCompilePrompt, classificationModel, slopLinter);
+                responseParser, wikiCompilePrompt, classificationModel, slopLinter,
+                searchEngineNotificationPort, baseUrl);
         log.debug("wikiCompilationAdapter() | return={}", result.getClass().getSimpleName());
         return result;
     }

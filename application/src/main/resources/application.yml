@@ -162,6 +162,23 @@ aihealthcare:
   base-url: http://localhost:8080
 
   # ---------------------------------------------------------------------------
+  # IndexNow — pings Bing (and IndexNow-participating engines) whenever a wiki
+  # page, company, or state law is created/updated, so new content is crawled
+  # faster than waiting on the next scheduled sitemap crawl. Google does not
+  # consume IndexNow, but Bing does, and Bing results feed several AI search
+  # tools. The key is a public, non-secret token proving domain ownership — it
+  # is served back verbatim at GET /{key}.txt per the IndexNow protocol.
+  #
+  # Disabled by default — application-aws.yml turns it on for production.
+  # StateLawSeedRunner and similar @PostConstruct/ApplicationRunner upserts
+  # fire on every app context startup, including test contexts; without this
+  # off switch every test run would make real outbound calls to api.indexnow.org.
+  # ---------------------------------------------------------------------------
+  indexnow:
+    enabled: false
+    key: bd4debfb9b3b028915758e01ef215e51
+
+  # ---------------------------------------------------------------------------
   # AI cost tiering — cheaper model for batch classification/extraction tasks
   # (sentiment labels, deal classification, framework scoring, wiki compilation)
   # that don't need frontier-model reasoning. Narrative/synthesis tasks (research

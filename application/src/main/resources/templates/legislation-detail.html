@@ -186,6 +186,28 @@
         </div>
     </div>
 
+    <!-- Related content (T9 internal linking) -->
+    <div th:if="${not #lists.isEmpty(relatedCompanies)} or ${not #lists.isEmpty(relatedWikiPages)}" class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div th:if="${not #lists.isEmpty(relatedCompanies)}">
+            <h3 class="font-display text-lg font-semibold mb-2 border-l-4 border-primary-600 pl-3">Companies Affected</h3>
+            <ul class="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+                <li th:each="co : ${relatedCompanies}">
+                    <a th:href="@{'/directory/' + ${co.slug}}" th:text="${co.name}"
+                       class="block px-4 py-2 text-sm text-primary-600 hover:bg-gray-50 hover:underline">Company</a>
+                </li>
+            </ul>
+        </div>
+        <div th:if="${not #lists.isEmpty(relatedWikiPages)}">
+            <h3 class="font-display text-lg font-semibold mb-2 border-l-4 border-primary-600 pl-3">Related Wiki Pages</h3>
+            <ul class="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+                <li th:each="page : ${relatedWikiPages}">
+                    <a th:href="@{'/wiki/' + ${page.slug}}" th:text="${page.title}"
+                       class="block px-4 py-2 text-sm text-primary-600 hover:bg-gray-50 hover:underline">Wiki Page</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
     <!-- Upgrade prompt for FREE users -->
     <div th:unless="${fullAccess}" class="mt-8 bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
         <p class="text-amber-800 font-medium mb-2">Want full access to all legislation details?</p>

@@ -60,6 +60,8 @@ server:
 
 aihealthcare:
   base-url: https://app.bigskylabs.ai
+  indexnow:
+    enabled: true
   startup:
     harvest-enabled: false
   newsletter:

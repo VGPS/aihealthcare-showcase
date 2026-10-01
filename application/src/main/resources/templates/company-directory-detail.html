@@ -141,6 +141,28 @@
         </div>
     </div>
 
+    <!-- Related content (T9 internal linking) -->
+    <div th:if="${not #lists.isEmpty(relevantLaws)} or ${not #lists.isEmpty(relatedWikiPages)}" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div th:if="${not #lists.isEmpty(relevantLaws)}">
+            <h3 class="font-display font-semibold text-base text-on-surface mb-2">Relevant State Laws</h3>
+            <ul class="bg-white rounded-lg border border-outline-variant divide-y divide-gray-100">
+                <li th:each="law : ${relevantLaws}">
+                    <a th:href="@{'/legislation/' + ${law.id}}" th:text="${law.stateName} + ' ' + ${law.billNumber}"
+                       class="block px-4 py-2 text-sm text-primary-600 hover:bg-gray-50 hover:underline">Law</a>
+                </li>
+            </ul>
+        </div>
+        <div th:if="${not #lists.isEmpty(relatedWikiPages)}">
+            <h3 class="font-display font-semibold text-base text-on-surface mb-2">Related Wiki Pages</h3>
+            <ul class="bg-white rounded-lg border border-outline-variant divide-y divide-gray-100">
+                <li th:each="page : ${relatedWikiPages}">
+                    <a th:href="@{'/wiki/' + ${page.slug}}" th:text="${page.title}"
+                       class="block px-4 py-2 text-sm text-primary-600 hover:bg-gray-50 hover:underline">Wiki Page</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
     <!-- Back link -->
     <a href="/directory" class="text-sm text-primary-600 hover:text-primary-800 font-medium">
         ← Back to Company Directory

@@ -6,6 +6,10 @@ import com.wgblackmon.aihealthcare.domain.model.LawStatus;
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageStateLawsUseCase;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.HealthcareAiCompanyEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.HealthcareAiCompanyRepository;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageIndexView;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,17 +54,26 @@ import java.util.Set;
 public class StateLawController {
 
     private static final int FREE_DETAIL_LIMIT = 5;
+    private static final int RELATED_LIMIT = 5;
 
     private final ManageStateLawsUseCase legislationUseCase;
     private final TierResolver tierResolver;
+    private final WikiPageRepository wikiPageRepository;
+    private final HealthcareAiCompanyRepository companyRepository;
 
     public StateLawController(ManageStateLawsUseCase legislationUseCase,
-                              TierResolver tierResolver) {
-        log.debug("StateLawController() | legislationUseCase={}, tierResolver={}",
+                              TierResolver tierResolver,
+                              WikiPageRepository wikiPageRepository,
+                              HealthcareAiCompanyRepository companyRepository) {
+        log.debug("StateLawController() | legislationUseCase={}, tierResolver={}, wikiPageRepository={}, companyRepository={}",
                   legislationUseCase.getClass().getSimpleName(),
-                  tierResolver.getClass().getSimpleName());
+                  tierResolver.getClass().getSimpleName(),
+                  wikiPageRepository.getClass().getSimpleName(),
+                  companyRepository.getClass().getSimpleName());
         this.legislationUseCase = legislationUseCase;
         this.tierResolver = tierResolver;
+        this.wikiPageRepository = wikiPageRepository;
+        this.companyRepository = companyRepository;
     }
 
     /**
@@ -165,13 +178,51 @@ public class StateLawController {
                 + effectiveNote + "): " + law.title() + ". " + (law.keyRequirements() != null
                 ? law.keyRequirements().substring(0, Math.min(80, law.keyRequirements().length())) + "…" : "");
 
+        String matchKeyword = law.categories().isEmpty()
+                ? law.stateName()
+                : RelatedContentKeywords.forLawCategory(law.categories().get(0));
+
+        List<WikiPageIndexView> relatedWikiPages = wikiPageRepository.searchByKeywordForIndex(matchKeyword);
+        if (relatedWikiPages.size() > RELATED_LIMIT) {
+            relatedWikiPages = relatedWikiPages.subList(0, RELATED_LIMIT);
+        }
+
         model.addAttribute("law", law);
         model.addAttribute("formattedDates", formattedDates);
         model.addAttribute("fullAccess", fullAccess);
         model.addAttribute("pageDescription", pageDesc);
+        model.addAttribute("relatedWikiPages", relatedWikiPages);
+        model.addAttribute("relatedCompanies", findRelatedCompanies(matchKeyword));
 
         log.debug("detail() | return=legislation-detail, law={}", law.id());
         return "legislation-detail";
+    }
+
+    /**
+     * Best-effort match of companies whose category, sector, or description
+     * contains the given keyword — used to surface "related companies" links
+     * on a law's detail page. Not a scored relevance engine.
+     */
+    private List<HealthcareAiCompanyEntity> findRelatedCompanies(String keyword) {
+        log.debug("findRelatedCompanies() | keyword={}", keyword);
+        String needle = keyword.toLowerCase();
+        List<HealthcareAiCompanyEntity> matches = new ArrayList<>();
+        for (HealthcareAiCompanyEntity c : companyRepository.findAllByOrderByNameAsc()) {
+            String haystack = (nullToEmpty(c.getCategory()) + " " + nullToEmpty(c.getSector())
+                    + " " + nullToEmpty(c.getDescription())).toLowerCase();
+            if (haystack.contains(needle)) {
+                matches.add(c);
+                if (matches.size() >= RELATED_LIMIT) {
+                    break;
+                }
+            }
+        }
+        log.debug("findRelatedCompanies() | return={} matches", matches.size());
+        return matches;
+    }
+
+    private static String nullToEmpty(String value) {
+        return value != null ? value : "";
     }
 
     /**

@@ -13,10 +13,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -59,18 +62,40 @@ public class SeoController {
     private final StateLawRepository stateLawRepository;
     private final WikiPageRepository wikiPageRepository;
     private final TrendSnapshotRepository trendSnapshotRepository;
+    private final String indexNowKey;
 
     public SeoController(@Value("${aihealthcare.base-url}") String baseUrl,
                           HealthcareAiCompanyRepository companyRepository,
                           StateLawRepository stateLawRepository,
                           WikiPageRepository wikiPageRepository,
-                          TrendSnapshotRepository trendSnapshotRepository) {
+                          TrendSnapshotRepository trendSnapshotRepository,
+                          @Value("${aihealthcare.indexnow.key}") String indexNowKey) {
         this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
         this.companyRepository = companyRepository;
         this.stateLawRepository = stateLawRepository;
         this.wikiPageRepository = wikiPageRepository;
         this.trendSnapshotRepository = trendSnapshotRepository;
+        this.indexNowKey = indexNowKey;
         log.debug("SeoController() | baseUrl={}", this.baseUrl);
+    }
+
+    // ── IndexNow key verification ────────────────────────────────────────────
+
+    /**
+     * Serves the IndexNow key file at {@code GET /{key}.txt} so Bing can verify
+     * domain ownership. Returns 404 for any filename that doesn't match the
+     * configured key — this route only ever serves the one real key file.
+     */
+    @GetMapping(value = "/{key:[0-9a-f]+}.txt", produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseBody
+    public String indexNowKeyFile(@PathVariable String key) {
+        log.debug("indexNowKeyFile() | key={}", key);
+        if (!indexNowKey.equals(key)) {
+            log.debug("indexNowKeyFile() | return=404 (key mismatch)");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        log.debug("indexNowKeyFile() | return={}", indexNowKey);
+        return indexNowKey;
     }
 
     // ── robots.txt ────────────────────────────────────────────────────────────

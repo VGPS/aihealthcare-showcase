@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.SourceRef;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SearchEngineNotificationPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiContradictionEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiContradictionRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
@@ -60,6 +61,8 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
     private final String wikiCompilePrompt;
     private final String classificationModel;
     private final SlopLinter slopLinter;
+    private final SearchEngineNotificationPort searchEngineNotificationPort;
+    private final String baseUrl;
 
     public WikiCompilationAdapter(ChatClient.Builder chatClientBuilder,
                                    WikiPageRepository pageRepository,
@@ -69,7 +72,9 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
                                    WikiResponseParser responseParser,
                                    String wikiCompilePrompt,
                                    String classificationModel,
-                                   SlopLinter slopLinter) {
+                                   SlopLinter slopLinter,
+                                   SearchEngineNotificationPort searchEngineNotificationPort,
+                                   String baseUrl) {
         log.debug("WikiCompilationAdapter() | constructing with prompt length={}, classificationModel={}",
                 wikiCompilePrompt != null ? wikiCompilePrompt.length() : 0, classificationModel);
         this.chatClient = chatClientBuilder.build();
@@ -81,6 +86,8 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
         this.wikiCompilePrompt = wikiCompilePrompt;
         this.classificationModel = classificationModel;
         this.slopLinter = slopLinter;
+        this.searchEngineNotificationPort = searchEngineNotificationPort;
+        this.baseUrl = baseUrl;
         log.debug("WikiCompilationAdapter() | return=void");
     }
 
@@ -138,7 +145,17 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
             persistContradiction(c);
         }
 
-        // 2f. Build report
+        // 2f. Notify search engines (batched — one call per compilation run)
+        List<String> changedUrls = new ArrayList<>();
+        for (String slug : createdSlugs) {
+            changedUrls.add(baseUrl + "/wiki/" + slug);
+        }
+        for (String slug : updatedSlugs) {
+            changedUrls.add(baseUrl + "/wiki/" + slug);
+        }
+        searchEngineNotificationPort.notifyUrlsChanged(changedUrls);
+
+        // 2g. Build report
         Instant completed = Instant.now();
         CompilationReport report = new CompilationReport(
                 started, completed, newArticles.size(),

@@ -28,9 +28,9 @@ import java.util.List;
  * at {@code GET /insights/} so Google can discover all articles via internal links.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-09-30
- * @updated 2026-09-30
+ * @updated 2026-09-30 — T9 SEO: loadInsights() package-visible for HomeController reuse
  */
 @Slf4j
 @Controller
@@ -58,7 +58,8 @@ public class InsightsController {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private List<InsightEntry> loadInsights() {
+    /** Package-visible so {@link HomeController} can reuse the classpath scan for its "Latest Insights" list. */
+    List<InsightEntry> loadInsights() {
         List<InsightEntry> entries = new ArrayList<>();
         try {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();

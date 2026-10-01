@@ -8,6 +8,8 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.BrowseCompaniesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.StateLawRepository;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -53,6 +55,12 @@ class PublicCompanyControllerTest {
 
     @MockitoBean
     private TierResolver tierResolver;
+
+    @MockitoBean
+    private WikiPageRepository wikiPageRepository;
+
+    @MockitoBean
+    private StateLawRepository stateLawRepository;
 
     @Test
     void directory_returnsOkWithCompanies() throws Exception {
