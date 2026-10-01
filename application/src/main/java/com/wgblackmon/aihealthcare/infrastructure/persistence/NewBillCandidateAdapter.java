@@ -5,8 +5,10 @@ import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
 import com.wgblackmon.aihealthcare.domain.port.outbound.NewBillCandidatePort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SearchEngineNotificationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.StateLawPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,14 +42,20 @@ public class NewBillCandidateAdapter implements NewBillCandidatePort {
 
     private final NewBillCandidateRepository candidateRepository;
     private final StateLawPort stateLawPort;
+    private final SearchEngineNotificationPort searchEngineNotificationPort;
+    private final String baseUrl;
 
     public NewBillCandidateAdapter(NewBillCandidateRepository candidateRepository,
-                                   StateLawPort stateLawPort) {
+                                   StateLawPort stateLawPort,
+                                   SearchEngineNotificationPort searchEngineNotificationPort,
+                                   @Value("${aihealthcare.base-url}") String baseUrl) {
         log.debug("NewBillCandidateAdapter() | candidateRepository={}, stateLawPort={}",
                 candidateRepository.getClass().getSimpleName(),
                 stateLawPort.getClass().getSimpleName());
         this.candidateRepository = candidateRepository;
         this.stateLawPort = stateLawPort;
+        this.searchEngineNotificationPort = searchEngineNotificationPort;
+        this.baseUrl = baseUrl;
     }
 
     @Override
@@ -85,6 +93,7 @@ public class NewBillCandidateAdapter implements NewBillCandidatePort {
     public void promote(Long candidateId, StateLaw law) {
         log.debug("promote() | candidateId={}, lawId={}", candidateId, law.id());
         stateLawPort.upsert(law);
+        searchEngineNotificationPort.notifyUrlsChanged(List.of(baseUrl + "/legislation/" + law.id()));
         candidateRepository.findById(candidateId).ifPresent(entity -> {
             entity.setReviewed(true);
             entity.setPromotedLawId(law.id());

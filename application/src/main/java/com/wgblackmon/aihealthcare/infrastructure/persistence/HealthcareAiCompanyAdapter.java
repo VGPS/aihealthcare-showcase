@@ -2,11 +2,13 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SearchEngineNotificationPort;
 import com.wgblackmon.aihealthcare.domain.service.HealthcareAiCompanyClassifier;
 import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import com.wgblackmon.aihealthcare.domain.service.SlugUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -39,12 +41,18 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
 
     private final HealthcareAiCompanyRepository repository;
     private final HealthcareAiCompanyClassifier classifier;
+    private final SearchEngineNotificationPort searchEngineNotificationPort;
+    private final String baseUrl;
 
     public HealthcareAiCompanyAdapter(HealthcareAiCompanyRepository repository,
-                                       HealthcareAiCompanyClassifier classifier) {
+                                       HealthcareAiCompanyClassifier classifier,
+                                       SearchEngineNotificationPort searchEngineNotificationPort,
+                                       @Value("${aihealthcare.base-url}") String baseUrl) {
         log.debug("HealthcareAiCompanyAdapter() | repository={}", repository.getClass().getSimpleName());
         this.repository = repository;
         this.classifier = classifier;
+        this.searchEngineNotificationPort = searchEngineNotificationPort;
+        this.baseUrl = baseUrl;
     }
 
     @PostConstruct
@@ -55,7 +63,11 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
     @Override
     public void save(HealthcareAiCompany company) {
         log.debug("save() | companyId={}, name={}", company.companyId(), company.name());
-        repository.save(toEntity(company));
+        HealthcareAiCompanyEntity entity = toEntity(company);
+        repository.save(entity);
+        if (entity.getSlug() != null && !entity.getSlug().isBlank()) {
+            searchEngineNotificationPort.notifyUrlsChanged(List.of(baseUrl + "/directory/" + entity.getSlug()));
+        }
         log.debug("save() | return=void");
     }
 

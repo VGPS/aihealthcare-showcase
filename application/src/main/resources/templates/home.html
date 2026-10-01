@@ -23,7 +23,11 @@
             <h1 class="font-display text-2xl font-bold tracking-tight">AIHealthcare</h1>
             <p class="text-primary-200 text-sm mt-0.5">AI-Powered Healthcare Intelligence Platform</p>
         </div>
-        <div class="flex gap-3">
+        <div class="flex gap-3 items-center">
+            <a th:href="@{/directory}" class="text-primary-200 hover:text-white text-sm font-medium px-3 py-2 transition-colors">Directory</a>
+            <a th:href="@{/wiki}" class="text-primary-200 hover:text-white text-sm font-medium px-3 py-2 transition-colors">Wiki</a>
+            <a th:href="@{/legislation}" class="text-primary-200 hover:text-white text-sm font-medium px-3 py-2 transition-colors">Legislation</a>
+            <a th:href="@{/insights/}" class="text-primary-200 hover:text-white text-sm font-medium px-3 py-2 transition-colors">Insights</a>
             <a th:href="@{/pricing}" class="text-primary-200 hover:text-white text-sm font-medium px-3 py-2 transition-colors">Pricing</a>
             <a th:href="@{/about}" class="text-primary-200 hover:text-white text-sm font-medium px-3 py-2 transition-colors">About</a>
             <a th:href="@{/login}" class="bg-white/10 hover:bg-white/20 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors border border-white/20">Sign In</a>
@@ -162,6 +166,53 @@
                         See Enterprise Features
                     </a>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Latest Intelligence (T9 internal linking — spreads crawl across public sections) -->
+    <section class="max-w-6xl mx-auto px-4 py-10">
+        <h3 class="font-display text-xl font-bold text-on-surface text-center mb-6">Latest Intelligence</h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+            <div>
+                <h4 class="font-semibold text-sm text-on-surface-variant uppercase tracking-wide mb-2">Latest Wiki Pages</h4>
+                <ul class="space-y-1.5">
+                    <li th:each="page : ${latestWikiPages}">
+                        <a th:href="@{'/wiki/' + ${page.slug}}" th:text="${page.title}"
+                           class="text-sm text-primary-600 hover:underline">Wiki Page</a>
+                    </li>
+                </ul>
+                <a th:href="@{/wiki}" class="inline-block mt-2 text-xs font-medium text-primary-700 hover:underline">Browse the Wiki &rarr;</a>
+            </div>
+            <div>
+                <h4 class="font-semibold text-sm text-on-surface-variant uppercase tracking-wide mb-2">Recently Added Companies</h4>
+                <ul class="space-y-1.5">
+                    <li th:each="co : ${recentCompanies}">
+                        <a th:href="@{'/directory/' + ${co.slug}}" th:text="${co.name}"
+                           class="text-sm text-primary-600 hover:underline">Company</a>
+                    </li>
+                </ul>
+                <a th:href="@{/directory}" class="inline-block mt-2 text-xs font-medium text-primary-700 hover:underline">Browse the Directory &rarr;</a>
+            </div>
+            <div>
+                <h4 class="font-semibold text-sm text-on-surface-variant uppercase tracking-wide mb-2">Newest Laws</h4>
+                <ul class="space-y-1.5">
+                    <li th:each="law : ${newestLaws}">
+                        <a th:href="@{'/legislation/' + ${law.id}}" th:text="${law.stateName} + ' ' + ${law.billNumber}"
+                           class="text-sm text-primary-600 hover:underline">Law</a>
+                    </li>
+                </ul>
+                <a th:href="@{/legislation}" class="inline-block mt-2 text-xs font-medium text-primary-700 hover:underline">Browse the Registry &rarr;</a>
+            </div>
+            <div>
+                <h4 class="font-semibold text-sm text-on-surface-variant uppercase tracking-wide mb-2">Latest Insights</h4>
+                <ul class="space-y-1.5">
+                    <li th:each="insight : ${latestInsights}">
+                        <a th:href="@{'/insights/' + ${insight.filename()}}" th:text="${insight.title()}"
+                           class="text-sm text-primary-600 hover:underline">Insight</a>
+                    </li>
+                </ul>
+                <a th:href="@{/insights/}" class="inline-block mt-2 text-xs font-medium text-primary-700 hover:underline">Read All Insights &rarr;</a>
             </div>
         </div>
     </section>

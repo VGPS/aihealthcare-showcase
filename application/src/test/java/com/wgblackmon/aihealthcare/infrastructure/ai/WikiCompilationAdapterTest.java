@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ai;
 
 import com.wgblackmon.aihealthcare.domain.model.CompilationReport;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SearchEngineNotificationPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiContradictionRepository;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
@@ -62,6 +63,9 @@ class WikiCompilationAdapterTest {
     @Mock
     private WikiPageRevisionRepository revisionRepository;
 
+    @Mock
+    private SearchEngineNotificationPort searchEngineNotificationPort;
+
     private WikiCompilationAdapter adapter;
 
     private static final String PROMPT_TEMPLATE =
@@ -120,7 +124,9 @@ class WikiCompilationAdapterTest {
                 new WikiResponseParser(),
                 PROMPT_TEMPLATE,
                 "claude-haiku-4-5",
-                slopLinter
+                slopLinter,
+                searchEngineNotificationPort,
+                "https://app.bigskylabs.ai"
         );
     }
 

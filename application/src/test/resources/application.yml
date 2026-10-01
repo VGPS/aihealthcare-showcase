@@ -79,6 +79,9 @@ logging:
 
 aihealthcare:
   base-url: http://localhost:8080
+  indexnow:
+    enabled: false
+    key: bd4debfb9b3b028915758e01ef215e51
   prompts:
     directory: ""
   feeds:

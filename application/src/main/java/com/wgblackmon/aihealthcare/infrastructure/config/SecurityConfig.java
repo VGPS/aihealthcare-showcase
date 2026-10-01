@@ -97,6 +97,9 @@ public class SecurityConfig {
                         "/sitemap-pages.xml", "/sitemap-wiki.xml", "/sitemap-directory.xml",
                         "/sitemap-legislation.xml", "/sitemap-trends.xml", "/sitemap-insights.xml",
                         "/google4197b7811cdace1b.html").permitAll()
+                // Plain AntPathRequestMatcher (not MVC-introspection-based requestMatchers(String)) so any
+                // *.txt request reaches SeoController#indexNowKeyFile(), which 404s on a key mismatch itself.
+                .requestMatchers(new AntPathRequestMatcher("/*.txt")).permitAll()
                 .requestMatchers("/images/**", "/insights/**").permitAll()
                 .requestMatchers("/dashboard/weekly-roundup").permitAll()
                 .requestMatchers("/wiki", "/wiki/**").permitAll()

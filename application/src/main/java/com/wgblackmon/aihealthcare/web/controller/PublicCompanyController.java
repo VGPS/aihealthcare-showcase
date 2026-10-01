@@ -1,12 +1,18 @@
 package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.CompanySignal;
+import com.wgblackmon.aihealthcare.domain.model.LawCategory;
+import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import com.wgblackmon.aihealthcare.domain.service.SlugUtils;
 import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.BrowseCompaniesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.StateLawEntity;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.StateLawRepository;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageIndexView;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -58,20 +64,31 @@ import java.util.Optional;
 @RequestMapping("/directory")
 public class PublicCompanyController {
 
+    private static final int RELATED_LIMIT = 5;
+
     private final BrowseCompaniesUseCase browseCompaniesUseCase;
     private final SubscriberPort subscriberPort;
     private final TierResolver tierResolver;
+    private final WikiPageRepository wikiPageRepository;
+    private final StateLawRepository stateLawRepository;
 
     public PublicCompanyController(BrowseCompaniesUseCase browseCompaniesUseCase,
                                     SubscriberPort subscriberPort,
-                                    TierResolver tierResolver) {
-        log.debug("PublicCompanyController() | browseCompaniesUseCase={}, subscriberPort={}, tierResolver={}",
+                                    TierResolver tierResolver,
+                                    WikiPageRepository wikiPageRepository,
+                                    StateLawRepository stateLawRepository) {
+        log.debug("PublicCompanyController() | browseCompaniesUseCase={}, subscriberPort={}, tierResolver={}, "
+                + "wikiPageRepository={}, stateLawRepository={}",
                   browseCompaniesUseCase.getClass().getSimpleName(),
                   subscriberPort.getClass().getSimpleName(),
-                  tierResolver.getClass().getSimpleName());
+                  tierResolver.getClass().getSimpleName(),
+                  wikiPageRepository.getClass().getSimpleName(),
+                  stateLawRepository.getClass().getSimpleName());
         this.browseCompaniesUseCase = browseCompaniesUseCase;
         this.subscriberPort = subscriberPort;
         this.tierResolver = tierResolver;
+        this.wikiPageRepository = wikiPageRepository;
+        this.stateLawRepository = stateLawRepository;
     }
 
     /**
@@ -233,14 +250,56 @@ public class PublicCompanyController {
                 ? desc.substring(0, desc.lastIndexOf(' ', 155)) + "…"
                 : desc.isBlank() ? c.name() + " — AI healthcare company profile." : desc;
 
+        List<WikiPageIndexView> relatedWikiPages = wikiPageRepository.searchByKeywordForIndex(c.name());
+        if (relatedWikiPages.size() > RELATED_LIMIT) {
+            relatedWikiPages = relatedWikiPages.subList(0, RELATED_LIMIT);
+        }
+
         model.addAttribute("company", c);
         model.addAttribute("slug", slug);
         model.addAttribute("jsonLd", buildJsonLd(c));
         model.addAttribute("descriptionHtml", buildDescriptionHtml(c.description()));
         model.addAttribute("pageDescription", metaDesc);
+        model.addAttribute("relatedWikiPages", relatedWikiPages);
+        model.addAttribute("relevantLaws", findRelevantLaws(c));
 
         log.debug("detail() | return=company-directory-detail, name={}", c.name());
         return "company-directory-detail";
+    }
+
+    /**
+     * Best-effort match of state laws whose category keyword appears in this
+     * company's category, sector, or description — used to surface "relevant
+     * state laws" links on a company's detail page. Not a scored relevance engine.
+     */
+    private List<StateLawEntity> findRelevantLaws(HealthcareAiCompany c) {
+        log.debug("findRelevantLaws() | companyId={}", c.companyId());
+        String haystack = (nullToEmpty(c.category()) + " " + nullToEmpty(c.sector())
+                + " " + nullToEmpty(c.description())).toLowerCase();
+        List<StateLawEntity> matches = new ArrayList<>();
+        for (StateLawEntity law : stateLawRepository.findAll()) {
+            for (String categoryName : PipeDelimitedUtils.split(law.getCategories())) {
+                LawCategory category;
+                try {
+                    category = LawCategory.valueOf(categoryName);
+                } catch (IllegalArgumentException e) {
+                    continue;
+                }
+                if (haystack.contains(RelatedContentKeywords.forLawCategory(category).toLowerCase())) {
+                    matches.add(law);
+                    break;
+                }
+            }
+            if (matches.size() >= RELATED_LIMIT) {
+                break;
+            }
+        }
+        log.debug("findRelevantLaws() | return={} matches", matches.size());
+        return matches;
+    }
+
+    private static String nullToEmpty(String value) {
+        return value != null ? value : "";
     }
 
     // ── Tier checks ───────────────────────────────────────────────────────────

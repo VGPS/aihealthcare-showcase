@@ -26,6 +26,8 @@ public interface StateLawRepository extends JpaRepository<StateLawEntity, String
 
     List<StateLawEntity> findByCategoriesContaining(String category);
 
+    List<StateLawEntity> findTop5ByOrderByCreatedAtDesc();
+
     @Query("SELECT e FROM StateLawEntity e WHERE " +
            "LOWER(e.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(e.billNumber) LIKE LOWER(CONCAT('%', :query, '%')) OR " +

@@ -154,4 +154,18 @@ class SeoControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/wiki/fda-ai-guidance")));
     }
+
+    @Test
+    void indexNowKeyFile_matchingKey_returnsKeyText() throws Exception {
+        mockMvc.perform(get("/bd4debfb9b3b028915758e01ef215e51.txt"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("text/plain"))
+                .andExpect(content().string("bd4debfb9b3b028915758e01ef215e51"));
+    }
+
+    @Test
+    void indexNowKeyFile_mismatchedKey_returns404() throws Exception {
+        mockMvc.perform(get("/0000000000000000000000000000000.txt"))
+                .andExpect(status().isNotFound());
+    }
 }

@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.config;
 
 import com.wgblackmon.aihealthcare.domain.model.StateCode;
 import com.wgblackmon.aihealthcare.domain.model.StateLaw;
+import com.wgblackmon.aihealthcare.domain.port.outbound.SearchEngineNotificationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.StateLawPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,8 @@ class StateLawSeedRunnerTest {
     @BeforeEach
     void setUp() {
         stateLawPort = mock(StateLawPort.class);
-        runner = new StateLawSeedRunner(stateLawPort);
+        runner = new StateLawSeedRunner(stateLawPort, mock(SearchEngineNotificationPort.class),
+                "https://app.bigskylabs.ai");
     }
 
     @Test
