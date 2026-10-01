@@ -15,7 +15,7 @@
  *                    wiki | trends | trend-history | regulatory | legal | legal-trends | legislation |
  *                    clinical-trials | companies | company-directory | risk | frameworks | watchlist | notes |
  *                    relationships | search | pricing | about | profile | developer | webhooks | admin | admin-pipelines |
- *                    intelligence | deals | market | market-history | admin-documents | enterprise-data | social
+ *                    intelligence | deals | market | market-history | admin-documents | enterprise-data | social | social-drafts
  *
  * Nav groups: Enterprise | Dashboard | Content | Research | Legal | Reference | Account
  *
@@ -160,6 +160,8 @@
                th:classappend="${activePage == 'admin-pipelines'} ? ' active'">Pipelines</a>
             <a sec:authorize="isAuthenticated()" th:href="@{/dashboard/social}"
                th:classappend="${activePage == 'social'} ? ' active'">Social Posts</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/dashboard/social/drafts}"
+               th:classappend="${activePage == 'social-drafts'} ? ' active'">Post Drafts</a>
             <a th:href="@{/dashboard/weekly-roundup}"
                th:classappend="${activePage == 'weekly-roundup'} ? ' active'">Weekly Roundup</a>
             <a th:href="@{/about}"

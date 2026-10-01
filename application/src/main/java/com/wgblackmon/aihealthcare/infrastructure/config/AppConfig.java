@@ -1539,6 +1539,16 @@ public class AppConfig {
      * @return The wired handler instance.
      */
     @Bean
+    public com.wgblackmon.aihealthcare.domain.service.SavedPostService savedPostService(
+            com.wgblackmon.aihealthcare.domain.port.outbound.SavedPostPort savedPostPort) {
+        log.debug("savedPostService() | savedPostPort={}", savedPostPort.getClass().getSimpleName());
+        com.wgblackmon.aihealthcare.domain.service.SavedPostService result =
+                new com.wgblackmon.aihealthcare.domain.service.SavedPostService(savedPostPort);
+        log.debug("savedPostService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    @Bean
     public SsoAuthenticationSuccessHandler ssoAuthenticationSuccessHandler(
             com.wgblackmon.aihealthcare.domain.service.SsoProvisioningService provisioningService,
             com.wgblackmon.aihealthcare.domain.port.outbound.SsoIdentityProviderPort providerPort) {
