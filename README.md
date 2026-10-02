@@ -10,7 +10,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 |---------|-------------|
 | **Multi-Source Article Harvesting** | Automated ingestion from 57+ RSS feeds, web scrapers, and APIs across academic, regulatory, and industry tiers |
 | **AI Newsletter Generation** | Daily automated newsletter drafts with topic-grouped sections, attributed sources, and TinyMCE WYSIWYG editing |
-| **Multi-Model AI Search** | Fan-out synthesis across Claude, GPT, Perplexity Sonar, Perplexity Deep Research, and Gemini with numbered citation references; Deep Research checkbox labeled ~30–60 s with violet badge |
+| **Multi-Model AI Search** | Fan-out synthesis across Claude, GPT, Perplexity Sonar, Perplexity Deep Research, and Gemini with numbered citation references; Deep Research checkbox labeled ~30–60 s with violet badge; anonymous visitors see a teaser gate (locked card + free trial CTA) instead of a login redirect — enables shared links in social posts |
 | **Staged Research Pipeline** | AI-planned query decomposition, multi-source retrieval, citation assembly, and synthesized research answers |
 | **LLM-Compiled Knowledge Wiki** | AI synthesizes harvested articles into a persistent, searchable wiki with revision history and cross-references — public nav link for discovery/SEO; detail pages, Reversal Watch, Digest, and Ask are tier-gated (SUBSCRIBER/DEMO/ENTERPRISE/ADMIN get full access, FREE sees teaser + upgrade prompt) |
 | **Source Provenance Tracking** | Every wiki claim links to its original PubMed, FDA, or industry source for verifiable trust |

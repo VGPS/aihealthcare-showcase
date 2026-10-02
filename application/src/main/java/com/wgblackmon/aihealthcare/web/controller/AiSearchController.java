@@ -107,6 +107,16 @@ public class AiSearchController {
         log.debug("search() | q={}, topK={}, models={}, principal={}", q, topK, models,
                   principal != null ? principal.getName() : "anonymous");
 
+        // Anonymous visitors — show teaser without running any AI calls
+        if (principal == null) {
+            model.addAttribute("guestTeaser", true);
+            if (q != null && !q.isBlank()) {
+                model.addAttribute("q", q);
+            }
+            log.debug("search() | return=ai-search (guestTeaser)");
+            return "ai-search";
+        }
+
         boolean admin = tierResolver.isAdmin(principal);
 
         if (!admin) {
