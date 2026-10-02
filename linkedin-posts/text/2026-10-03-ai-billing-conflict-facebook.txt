@@ -1,0 +1,52 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === FACEBOOK POST BODY === and === FACEBOOK IMAGE ===)
+2. Go to your Facebook page or personal profile
+3. Paste the body text
+4. The URL at the bottom will generate a link preview — check it renders before publishing
+5. If OG card fails, attach linkedin-posts/shots/2026-10-03-ai-billing-conflict-search.png manually
+6. Best posting window: Friday 8:00–10:00 AM or 12:00–2:00 PM local time
+7. After 1 hour, reply to any comment with the Engagement Follow-Up text below
+
+=== FACEBOOK POST BODY ===
+
+What happens when the AI your hospital uses to document your care conflicts with the AI your insurance company uses to review it?
+
+The answer is now hitting the news — and there's a $942 million price tag on it.
+
+Blue Cross Blue Shield just reported that hospitals' AI-assisted medical coding added nearly $1 billion in extra costs to its plans over two years. Hospitals say AI helps them accurately document the full complexity of care. Insurers say AI is catching inflated billing. Both sides are deploying AI to fight each other — and the battleground is your medical claim.
+
+Here's what that looks like in practice:
+
+When a physician documents your hospital stay, AI tools now scan those notes and identify additional diagnosis codes and severity levels that support higher reimbursement. These aren't fabricated — they're documented in the chart. But they justify higher payment.
+
+On the insurer side, AI tools automatically flag those same higher-complexity codes as suspicious and downcode or deny the claim. Prior authorization denial rates at major Medicare Advantage insurers jumped 54–108% after they implemented AI review tools. At UnitedHealthcare, post-acute care denials more than doubled between 2020 and 2022.
+
+Doctors are feeling it. In a survey from the AMA, 61% of physicians said they are concerned that health insurers' use of AI is increasing medically unjustified prior authorization denials. Some reported denial rates 16 times higher than normal when insurer AI systems first went live.
+
+Four states passed laws in 2025 prohibiting insurance companies from using AI alone — with no physician review — to deny medical care. Congress and CMS have both issued guidance, but coverage for commercial insurance remains sparse.
+
+Meanwhile, McKinsey estimates AI saves insurers about $970 million per $10 billion in revenue through claims management and prior auth. That "savings" is largely care that wasn't paid for. From the hospital's perspective, that's revenue denied.
+
+The people caught in the middle are patients — waiting for approvals, appealing denials, and absorbing the administrative overflow of two adversarial AI systems running at scale against each other.
+
+We cover this story weekly through 600+ AI healthcare company signals at our intelligence platform.
+
+https://app.bigskylabs.ai/research/ai-search
+
+=== FACEBOOK IMAGE ===
+File: linkedin-posts/shots/2026-10-03-ai-billing-conflict-search.png
+Same screenshot as LinkedIn — AI Search results page showing the deep research synthesis
+on AI billing conflict. Visually demonstrates the intelligence tool.
+
+=== ENGAGEMENT FOLLOW-UP ===
+If someone asks which side is right (hospitals or insurers):
+
+"Both systems are doing exactly what they're designed to do — that's what makes this so
+hard to resolve. Hospital AI is trained to surface the full clinical complexity of a case
+and translate it into accurate codes. Insurer AI is trained to identify patterns that
+historically correlate with overbilling and adjust claims accordingly. When both systems
+are functioning correctly and still produce contradictory outputs, you have a structural
+conflict baked into the system design, not individual bad actors. The policy question is
+who arbitrates when two autonomous systems disagree — and right now, it's largely
+human appeals staff on both sides, at enormous cost."
