@@ -2,7 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ai;
 
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
-import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityChatCompletionResponse;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityAgentResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,9 +13,9 @@ import org.mockito.quality.Strictness;
 import org.springframework.web.client.RestClient;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.time.Instant;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-02
- * @updated 2026-10-02
+ * @updated 2026-10-04
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -88,15 +88,15 @@ class PerplexityDeepResearchAiSearchAdapterTest {
     }
 
     @Test
-    void synthesize_withArticles_callsChatCompletionsAndReturnsResult() {
+    void synthesize_withArticles_callsAgentApiAndReturnsResult() {
         var adapter = new PerplexityDeepResearchAiSearchAdapter(responseParser, "api-key", "sonar-deep-research", restClient);
 
-        PerplexityChatCompletionResponse.Message msg =
-                new PerplexityChatCompletionResponse.Message("assistant", "SUMMARY: Deep result\nKEY_FINDINGS:\n- Finding one");
-        PerplexityChatCompletionResponse.Choice choice =
-                new PerplexityChatCompletionResponse.Choice(0, "stop", msg);
-        PerplexityChatCompletionResponse apiResponse =
-                new PerplexityChatCompletionResponse("id-1", "sonar-deep-research", List.of(choice), null, null);
+        PerplexityAgentResponse.ContentPart part =
+                new PerplexityAgentResponse.ContentPart("output_text", "SUMMARY: Deep result\nKEY_FINDINGS:\n- Finding one");
+        PerplexityAgentResponse.OutputItem item =
+                new PerplexityAgentResponse.OutputItem("message", List.of(part), null);
+        PerplexityAgentResponse apiResponse =
+                new PerplexityAgentResponse("job-1", "completed", null, List.of(item), null, null, null);
 
         when(responseParser.buildPrompt(anyString(), any())).thenReturn("built prompt");
         when(responseParser.parseResponse(anyString(), anyString()))
@@ -108,7 +108,7 @@ class PerplexityDeepResearchAiSearchAdapterTest {
         doReturn(bodySpec).when(bodySpec).contentType(any());
         doReturn(bodySpec).when(bodySpec).body(any(Map.class));
         doReturn(responseSpec).when(bodySpec).retrieve();
-        when(responseSpec.body(PerplexityChatCompletionResponse.class)).thenReturn(apiResponse);
+        when(responseSpec.body(PerplexityAgentResponse.class)).thenReturn(apiResponse);
 
         AiSearchSynthesis result = adapter.synthesize("AI billing conflict", List.of(sampleArticle));
 
@@ -116,5 +116,31 @@ class PerplexityDeepResearchAiSearchAdapterTest {
         assertThat(result.summary()).isEqualTo("Deep result");
         verify(responseParser).buildPrompt("AI billing conflict", List.of(sampleArticle));
         verify(responseParser).parseResponse(anyString(), eq("Perplexity Deep"));
+    }
+
+    @Test
+    void synthesize_failedStatus_returnsNullFromParser() {
+        var adapter = new PerplexityDeepResearchAiSearchAdapter(responseParser, "api-key", "sonar-deep-research", restClient);
+
+        PerplexityAgentResponse failedResponse =
+                new PerplexityAgentResponse("job-2", "failed", null, List.of(), null, null, null);
+
+        when(responseParser.buildPrompt(anyString(), any())).thenReturn("built prompt");
+        when(responseParser.parseResponse(any(), anyString()))
+                .thenReturn(new AiSearchSynthesis("Perplexity Deep", "", List.of(), Instant.now()));
+
+        when(restClient.post()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(bodySpec);
+        doReturn(bodySpec).when(bodySpec).header(anyString(), anyString());
+        doReturn(bodySpec).when(bodySpec).contentType(any());
+        doReturn(bodySpec).when(bodySpec).body(any(Map.class));
+        doReturn(responseSpec).when(bodySpec).retrieve();
+        when(responseSpec.body(PerplexityAgentResponse.class)).thenReturn(failedResponse);
+
+        AiSearchSynthesis result = adapter.synthesize("AI billing conflict", List.of(sampleArticle));
+
+        // failed status → callAgentApi returns null → parseResponse(null, MODEL_NAME)
+        verify(responseParser).parseResponse(eq(null), eq("Perplexity Deep"));
+        assertThat(result).isNotNull();
     }
 }

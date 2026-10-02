@@ -3,7 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ai;
 import com.wgblackmon.aihealthcare.domain.model.AiSearchSynthesis;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiSearchPort;
-import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityChatCompletionResponse;
+import com.wgblackmon.aihealthcare.infrastructure.ingestion.perplexity.PerplexityAgentResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,9 +22,9 @@ import java.util.Map;
  * Perplexity Deep Research adapter for AI-enhanced search synthesis.
  *
  * <p>Implements {@link AiSearchPort} using the {@code sonar-deep-research} model
- * via {@code POST https://api.perplexity.ai/chat/completions}. Unlike the
- * standard {@code PerplexityAiSearchAdapter} (which uses the Agents API at
- * {@code /v1/agent} for fast Sonar responses), this adapter invokes Perplexity's
+ * via {@code POST https://api.perplexity.ai/v1/agent} (Agent API). Unlike the
+ * standard {@code PerplexityAiSearchAdapter} (which also uses the Agent API with
+ * the {@code sonar} model for fast responses), this adapter invokes Perplexity's
  * Deep Research model which performs multiple internal web-search rounds before
  * synthesising — producing analyst-grade reports at the cost of 30–60 s latency.
  *
@@ -34,13 +34,13 @@ import java.util.Map;
  * models on the AI Search page.
  *
  * <p>Note: the existing {@code PerplexityDeepResearchAdapter} (in the same package)
- * implements {@code TrendSummaryPort} using the background Agent API — a separate
- * concern. This class is the AI Search peer of that adapter.
+ * implements {@code TrendSummaryPort} using background Agent API polling — a separate
+ * concern. This class runs synchronously (no background flag) for the AI Search flow.
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-02
- * @updated 2026-10-03
+ * @updated 2026-10-04
  */
 @Slf4j
 @Component
@@ -113,7 +113,7 @@ public class PerplexityDeepResearchAiSearchAdapter implements AiSearchPort {
         String prompt = responseParser.buildPrompt(query, articles);
         log.info("synthesize() | sending deep research prompt ({} chars) — expect 30–60 s", prompt.length());
 
-        String response = callChatCompletions(prompt);
+        String response = callAgentApi(prompt);
         log.info("synthesize() | received response ({} chars)",
                  response == null ? 0 : response.length());
 
@@ -141,8 +141,8 @@ public class PerplexityDeepResearchAiSearchAdapter implements AiSearchPort {
     // Private helpers
     // -------------------------------------------------------------------------
 
-    private String callChatCompletions(String prompt) {
-        log.debug("callChatCompletions() | promptLength={}", prompt.length());
+    private String callAgentApi(String prompt) {
+        log.debug("callAgentApi() | promptLength={}", prompt.length());
 
         Map<String, String> userMessage = new LinkedHashMap<>();
         userMessage.put("role", "user");
@@ -150,24 +150,30 @@ public class PerplexityDeepResearchAiSearchAdapter implements AiSearchPort {
 
         Map<String, Object> requestBody = new LinkedHashMap<>();
         requestBody.put("model", modelId);
-        requestBody.put("messages", List.of(userMessage));
+        requestBody.put("input", List.of(userMessage));
 
-        PerplexityChatCompletionResponse response = restClient.post()
-                .uri("/chat/completions")
+        PerplexityAgentResponse response = restClient.post()
+                .uri("/v1/agent")
                 .header("Authorization", "Bearer " + apiKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody)
                 .retrieve()
-                .body(PerplexityChatCompletionResponse.class);
+                .body(PerplexityAgentResponse.class);
 
         if (response == null) {
-            log.warn("callChatCompletions() | null response from Perplexity Deep Research");
-            log.debug("callChatCompletions() | return=null");
+            log.warn("callAgentApi() | null response from Perplexity Agent API");
+            log.debug("callAgentApi() | return=null");
+            return null;
+        }
+
+        if (response.isFailed()) {
+            log.warn("callAgentApi() | Agent API returned failed/cancelled status");
+            log.debug("callAgentApi() | return=null (failed status)");
             return null;
         }
 
         String content = response.extractText();
-        log.debug("callChatCompletions() | return=content[{} chars]", content == null ? 0 : content.length());
+        log.debug("callAgentApi() | return=content[{} chars]", content == null ? 0 : content.length());
         return content;
     }
 
