@@ -173,7 +173,7 @@
                       th:text="${synthesis.modelName()}">Model</span>
                 <h3 class="font-semibold text-on-surface text-sm" th:text="${synthesis.modelName() + ' Synthesis'}">AI Synthesis</h3>
             </div>
-            <div class="synthesis-text text-sm text-gray-700 leading-relaxed mb-3" th:utext="${synthesis.summary()}">Summary text</div>
+            <div class="synthesis-text text-sm text-gray-700 leading-relaxed mb-3" style="white-space: pre-line" th:utext="${synthesis.summary()}">Summary text</div>
             <div th:if="${!synthesis.keyFindings().isEmpty()}">
                 <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Key Findings</div>
                 <ul class="space-y-1">

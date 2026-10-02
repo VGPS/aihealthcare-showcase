@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-11
- * @updated 2026-09-11
+ * @updated 2026-10-04
  */
 class AiSearchResponseParserTest {
 
@@ -94,6 +94,44 @@ class AiSearchResponseParserTest {
         AiSearchSynthesis result = parser.parseResponse("NO_MATCH: Articles are not relevant to the query.", "Perplexity");
 
         assertThat(result).isNull();
+    }
+
+    @Test
+    void parseResponse_multiParagraphSummary_preservesBlankLineSeparators() {
+        String response = "SUMMARY: First paragraph sentence one. First paragraph sentence two.\n"
+                + "\n"
+                + "Second paragraph sentence one. Second paragraph sentence two.\n"
+                + "\n"
+                + "Third paragraph.\n"
+                + "KEY_FINDINGS:\n"
+                + "- Finding one";
+
+        AiSearchSynthesis result = parser.parseResponse(response, "Claude");
+
+        assertThat(result).isNotNull();
+        assertThat(result.summary()).contains("\n\n");
+        assertThat(result.summary()).startsWith("First paragraph sentence one.");
+        assertThat(result.summary()).contains("Second paragraph sentence one.");
+        assertThat(result.summary()).contains("Third paragraph.");
+        assertThat(result.summary()).doesNotStartWith("\n");
+        assertThat(result.summary()).doesNotEndWith("\n");
+        assertThat(result.keyFindings()).containsExactly("Finding one");
+    }
+
+    @Test
+    void parseResponse_consecutiveBlankLines_deduplicatedToOneBreak() {
+        String response = "SUMMARY: Paragraph one.\n"
+                + "\n"
+                + "\n"
+                + "Paragraph two.\n"
+                + "KEY_FINDINGS:\n"
+                + "- Finding one";
+
+        AiSearchSynthesis result = parser.parseResponse(response, "Claude");
+
+        assertThat(result).isNotNull();
+        // consecutive blanks collapse to a single \n\n
+        assertThat(result.summary()).isEqualTo("Paragraph one.\n\nParagraph two.");
     }
 
     @Test
