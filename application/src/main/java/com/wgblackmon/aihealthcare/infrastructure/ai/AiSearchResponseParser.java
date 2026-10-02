@@ -24,7 +24,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-11
- * @updated 2026-09-11
+ * @updated 2026-10-04
  */
 @Slf4j
 @Component
@@ -90,8 +90,19 @@ public class AiSearchResponseParser {
             } else if (trimmed.equals("KEY_FINDINGS:")) {
                 inSummary = false;
                 inFindings = true;
-            } else if (inSummary && !trimmed.isEmpty()) {
-                summaryBuilder.append(" ").append(trimmed);
+            } else if (inSummary) {
+                if (trimmed.isEmpty()) {
+                    // blank line = paragraph break; deduplicate consecutive blanks
+                    if (summaryBuilder.length() > 0 && !summaryBuilder.toString().endsWith("\n\n")) {
+                        summaryBuilder.append("\n\n");
+                    }
+                } else {
+                    // continuation within the current paragraph — join with space
+                    if (summaryBuilder.length() > 0 && !summaryBuilder.toString().endsWith("\n\n")) {
+                        summaryBuilder.append(" ");
+                    }
+                    summaryBuilder.append(trimmed);
+                }
             } else if (inFindings && trimmed.startsWith("- ")) {
                 keyFindings.add(trimmed.substring(2).trim());
             } else if (inFindings && trimmed.startsWith("* ")) {
