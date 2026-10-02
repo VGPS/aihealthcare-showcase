@@ -10,7 +10,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 |---------|-------------|
 | **Multi-Source Article Harvesting** | Automated ingestion from 57+ RSS feeds, web scrapers, and APIs across academic, regulatory, and industry tiers |
 | **AI Newsletter Generation** | Daily automated newsletter drafts with topic-grouped sections, attributed sources, and TinyMCE WYSIWYG editing |
-| **Multi-Model AI Search** | Fan-out synthesis across Claude, GPT, Perplexity Sonar, and Gemini with numbered citation references |
+| **Multi-Model AI Search** | Fan-out synthesis across Claude, GPT, Perplexity Sonar, Perplexity Deep Research, and Gemini with numbered citation references; Deep Research checkbox labeled ~30–60 s with violet badge |
 | **Staged Research Pipeline** | AI-planned query decomposition, multi-source retrieval, citation assembly, and synthesized research answers |
 | **LLM-Compiled Knowledge Wiki** | AI synthesizes harvested articles into a persistent, searchable wiki with revision history and cross-references — public nav link for discovery/SEO; detail pages, Reversal Watch, Digest, and Ask are tier-gated (SUBSCRIBER/DEMO/ENTERPRISE/ADMIN get full access, FREE sees teaser + upgrade prompt) |
 | **Source Provenance Tracking** | Every wiki claim links to its original PubMed, FDA, or industry source for verifiable trust |
@@ -57,7 +57,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **92-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, enterprise data console, LinkedIn feature post rotation, combined social post generator + draft editor, weekly intel roundup, SSO provider management, and public insights hub |
 | **Anti-Slop Content Pipeline** | 3-stage Extract→Write→Check pipeline enforcing house-style rules on AI-generated summaries: Stage 1 extracts structured JSON from articles (writer never sees raw sources), Stage 2 writes prose from the extraction, Stage 3 runs SlopLinter (9 rules: banned-phrase, uncited-claim, bad-citation BLOCK; too-much-bold, bullet-heavy, filler-opener, reflexive-triplet, em-dash-heavy, restating-conclusion WARN). Wiki pages are lint-checked post-generation via W-SLOP gate; BLOCK findings surfaced in CompilationReport.warnings(). Topic summaries now run through the full pipeline — new summaries show a green "✓ Linted · score/100" badge; legacy summaries show a "legacy" badge. Prompt files live-reload from `prompts/` with no restart. Admin report triggers at `/admin/pipelines` |
 | **Social Post Draft Editing** | "Your Take" textarea on the social post generator prepends the user's own voice to both LinkedIn and Facebook posts. LinkedIn posts end with a reader question for comment engagement. "Save as Drafts" saves generated posts to DB; `/dashboard/social/drafts` lists all drafts; each draft opens in a TinyMCE WYSIWYG editor for full editing before posting. Drafts are marked POSTED/ARCHIVED after publishing. |
-| **3,051 Automated Tests** | Comprehensive test suite across 364 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **3,057 Automated Tests** | Comprehensive test suite across 365 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 

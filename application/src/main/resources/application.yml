@@ -1549,6 +1549,7 @@ aihealthcare:
   perplexity:
     api-key: ${PERPLEXITY_API_KEY:}
     model: ${PERPLEXITY_MODEL_ID:perplexity/sonar}
+    deep-research-model: ${PERPLEXITY_DEEP_RESEARCH_MODEL:sonar-deep-research}
     market-news:
       model: ${PERPLEXITY_MARKET_NEWS_MODEL:perplexity/sonar}
 
