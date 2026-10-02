@@ -1,4 +1,4 @@
-# 41 Laws and Counting: The State Health AI Compliance Map Most Vendors Are Ignoring
+# 58 Laws and Counting: The Health AI Compliance Map Most Vendors Are Ignoring
 ### September 28, 2026
 
 ---
@@ -7,7 +7,7 @@ Last Saturday's roundup closed with an observation: the vendor land grab for cli
 
 Here's what was left unsaid: the legal surface beneath that vendor race has been building faster than most people are tracking.
 
-As of this week, **41 U.S. states have enacted health AI legislation** — across 24 states, with more in progress. These aren't pending bills or regulatory guidance documents. They're signed, enacted laws, and the pace has accelerated sharply since 2024.
+As of this week, **58 health AI laws are on the books** — across 27 jurisdictions, with more in progress. These aren't pending bills or regulatory guidance documents. They're signed, enacted laws, and the pace has accelerated sharply since 2024.
 
 ---
 
@@ -58,7 +58,7 @@ Most vendors don't have a ready answer. That gap won't last — but it exists ri
 
 ## The full registry
 
-[Big Sky Labs](https://app.bigskylabs.ai) maintains a registry of all 41 enacted laws with official source links, effective dates, enforcement mechanisms, and regulatory categories. It's updated weekly as new legislation is signed.
+[Big Sky Labs](https://app.bigskylabs.ai) maintains a registry of all 58 laws with official source links, effective dates, enforcement mechanisms, and regulatory categories. It's updated weekly as new legislation is signed.
 
 The full registry is public: **[app.bigskylabs.ai/legislation](https://app.bigskylabs.ai/legislation)**
 
@@ -71,10 +71,11 @@ The full registry is public: **[app.bigskylabs.ai/legislation](https://app.bigsk
 === SUBSTACK POSTING INSTRUCTIONS ===
 
 1. Log in to Substack → New Post
-2. Title: "41 Laws and Counting: The State Health AI Compliance Map Most Vendors Are Ignoring"
+2. Title: "58 Laws and Counting: The Health AI Compliance Map Most Vendors Are Ignoring"
 3. Subtitle (optional): "While vendors race into clinical workflows, the legal surface beneath them is expanding fast"
 4. Paste the body above (from the # heading down through the footer)
-5. Set the post section: "Intelligence" or your main content section
+5. Cover image: linkedin-posts/shots/2026-09-28-state-healthai-laws-legislation-page.png — upload as the post cover image before publishing
+6. Set the post section: "Intelligence" or your main content section
 6. Audience: All subscribers (free + paid)
 7. Send as email: YES — this is newsletter-worthy content
 8. Best send time: Monday 7:00 AM local time (arrives before the workday)

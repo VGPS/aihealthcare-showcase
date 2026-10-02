@@ -43,6 +43,8 @@ Run with `timeout 600000` — the JAR is large.
 scp -i "$KEY" "$JAR" "ec2-user@${IP}:${REMOTE_DIR}/app.jar"
 scp -i "$KEY" "$AWS_YML" "ec2-user@${IP}:${REMOTE_DIR}/"
 scp -i "$KEY" deploy/static/index.html "ec2-user@${IP}:/opt/bigskylabs/static/"
+scp -i "$KEY" deploy/static/robots.txt "ec2-user@${IP}:/opt/bigskylabs/static/"
+scp -i "$KEY" deploy/static/sitemap.xml "ec2-user@${IP}:/opt/bigskylabs/static/"
 ```
 
 ### 4. Restart service
