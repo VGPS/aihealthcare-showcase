@@ -22,7 +22,7 @@ import java.util.Map;
  * Perplexity Deep Research adapter for AI-enhanced search synthesis.
  *
  * <p>Implements {@link AiSearchPort} using the {@code sonar-deep-research} model
- * via {@code POST https://api.perplexity.ai/v1/chat/completions}. Unlike the
+ * via {@code POST https://api.perplexity.ai/chat/completions}. Unlike the
  * standard {@code PerplexityAiSearchAdapter} (which uses the Agents API at
  * {@code /v1/agent} for fast Sonar responses), this adapter invokes Perplexity's
  * Deep Research model which performs multiple internal web-search rounds before
@@ -40,7 +40,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-02
- * @updated 2026-10-02
+ * @updated 2026-10-03
  */
 @Slf4j
 @Component
@@ -153,7 +153,7 @@ public class PerplexityDeepResearchAiSearchAdapter implements AiSearchPort {
         requestBody.put("messages", List.of(userMessage));
 
         PerplexityChatCompletionResponse response = restClient.post()
-                .uri("/v1/chat/completions")
+                .uri("/chat/completions")
                 .header("Authorization", "Bearer " + apiKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody)
