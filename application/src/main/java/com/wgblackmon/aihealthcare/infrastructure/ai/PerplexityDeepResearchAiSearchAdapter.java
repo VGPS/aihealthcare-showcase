@@ -21,12 +21,12 @@ import java.util.Map;
 /**
  * Perplexity Deep Research adapter for AI-enhanced search synthesis.
  *
- * <p>Implements {@link AiSearchPort} using the {@code sonar-deep-research} model
- * via {@code POST https://api.perplexity.ai/v1/agent} (Agent API). Unlike the
- * standard {@code PerplexityAiSearchAdapter} (which also uses the Agent API with
- * the {@code sonar} model for fast responses), this adapter invokes Perplexity's
- * Deep Research model which performs multiple internal web-search rounds before
- * synthesising — producing analyst-grade reports at the cost of 30–60 s latency.
+ * <p>Implements {@link AiSearchPort} using Perplexity's "medium" (deep-research) preset
+ * via {@code POST https://api.perplexity.ai/v1/agent} (Agent API). The {@code sonar-deep-research}
+ * model slug does not exist on the Agent API — the correct mapping is {@code preset: "medium"}.
+ * Unlike the standard {@code PerplexityAiSearchAdapter}, this adapter performs multiple
+ * internal web-search rounds before synthesising — producing analyst-grade reports at
+ * the cost of 30–60 s latency.
  *
  * <p>A 90-second read timeout is configured via {@link SimpleClientHttpRequestFactory}
  * to accommodate the extended processing time. The model name surfaced to the UI
@@ -148,8 +148,9 @@ public class PerplexityDeepResearchAiSearchAdapter implements AiSearchPort {
         userMessage.put("role", "user");
         userMessage.put("content", prompt);
 
+        // sonar-deep-research has no slug on Agent API — use the "medium" (deep-research) preset
         Map<String, Object> requestBody = new LinkedHashMap<>();
-        requestBody.put("model", modelId);
+        requestBody.put("preset", "medium");
         requestBody.put("input", List.of(userMessage));
 
         PerplexityAgentResponse response = restClient.post()
