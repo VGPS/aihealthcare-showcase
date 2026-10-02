@@ -182,6 +182,24 @@
                         class="synthesis-text text-sm text-gray-600 pl-4 relative before:content-['•'] before:absolute before:left-0 before:text-primary-500 before:font-bold leading-relaxed">Finding</li>
                 </ul>
             </div>
+            <!-- Save synthesis as draft -->
+            <form sec:authorize="isAuthenticated()"
+                  th:action="@{/dashboard/social/drafts/save-from-generator}" method="post"
+                  class="mt-3 pt-3 border-t border-gray-100">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="linkedinBody" th:value="${synthesis.summary()}" />
+                <input type="hidden" name="facebookBody" th:value="${synthesis.summary()}" />
+                <input type="hidden" name="digestDate" th:value="${q}" />
+                <input type="hidden" name="linkedinComment" value="" />
+                <input type="hidden" name="facebookComment" value="" />
+                <input type="hidden" name="yourTake" value="" />
+                <div class="flex justify-end">
+                    <button type="submit"
+                            class="text-xs px-3 py-1.5 bg-violet-600 text-white rounded-md hover:bg-violet-700 font-medium">
+                        Save as Draft ↗
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
