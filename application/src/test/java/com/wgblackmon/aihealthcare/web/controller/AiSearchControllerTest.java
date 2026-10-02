@@ -135,10 +135,20 @@ class AiSearchControllerTest {
     // -------------------------------------------------------------------------
 
     @Test
-    void search_noAuth_redirectsToLogin() throws Exception {
+    void search_noAuth_showsGuestTeaser() throws Exception {
         mockMvc.perform(get("/research/ai-search"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/login"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("ai-search"))
+                .andExpect(model().attribute("guestTeaser", true));
+    }
+
+    @Test
+    void search_noAuth_withQuery_echosQueryInTeaser() throws Exception {
+        mockMvc.perform(get("/research/ai-search").param("q", "AI billing conflict"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("ai-search"))
+                .andExpect(model().attribute("guestTeaser", true))
+                .andExpect(model().attribute("q", "AI billing conflict"));
     }
 
     // -------------------------------------------------------------------------

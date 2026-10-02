@@ -105,6 +105,7 @@ public class SecurityConfig {
                 .requestMatchers("/wiki", "/wiki/**").permitAll()
                 .requestMatchers("/legislation", "/legislation/**").permitAll()
                 .requestMatchers("/trends", "/trends/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/research/ai-search").permitAll()
                 .requestMatchers("/stripe/**").permitAll()
                 .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 .requestMatchers("/newsletter/runs/**").hasRole("ADMIN")
