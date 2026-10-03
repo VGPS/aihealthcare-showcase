@@ -1702,7 +1702,7 @@ aihealthcare:
       monthly-query-limit: 15
     subscriber:
       archive-days: 0
-      monthly-query-limit: 200
+      monthly-query-limit: 100
     enterprise:
       archive-days: 0
       monthly-query-limit: 2000

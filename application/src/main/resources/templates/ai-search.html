@@ -62,12 +62,26 @@
            class="bg-white text-primary-600 font-semibold text-sm px-4 py-2 rounded-md hover:bg-gray-100 ml-6 shrink-0">Upgrade</a>
     </div>
 
-    <!-- Limit reached warning for SUBSCRIBER users -->
+    <!-- Limit reached — SUBSCRIBER users who have exhausted their monthly credits -->
     <div th:if="${limitReached}"
-         class="bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 rounded-lg mb-6 text-sm">
-        <strong>Monthly query limit reached.</strong>
-        You have used <span th:text="${used}">0</span> of <span th:text="${limit}">200</span>
-        queries this month. Your limit resets at the start of next month.
+         class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mb-6">
+        <div class="flex items-start gap-4">
+            <div class="text-3xl leading-none select-none">🔬</div>
+            <div class="flex-1">
+                <h3 class="font-semibold text-gray-900 mb-1">Monthly AI research limit reached</h3>
+                <p class="text-sm text-gray-500 mb-4">
+                    Subscriber accounts include 100 credits per month, shared across all model
+                    selections. Deep Research uses 10 credits per search; Claude and GPT use 3
+                    credits each; standard Perplexity uses 1. Your balance resets at the start
+                    of next month.
+                </p>
+                <a th:href="@{/pricing}"
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 transition-colors">
+                    Upgrade to Enterprise
+                    <span class="text-purple-200 font-normal">— 2,000 credits/month</span>
+                </a>
+            </div>
+        </div>
     </div>
 
     <!-- Guest teaser — anonymous visitors landing from a shared link -->

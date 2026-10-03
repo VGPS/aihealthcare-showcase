@@ -70,16 +70,15 @@
 
     <!-- Usage card -->
     <div class="bg-white rounded-lg shadow-sm p-6 mb-5">
-        <h2 class="font-display text-lg font-semibold text-on-surface mb-4">AI Search Usage — This Month</h2>
-        <div class="text-sm text-on-surface-variant flex justify-between mb-1">
-            <span th:text="${queriesUsed} + ' of ' + ${queryLimit} + ' queries used'">5 of 200</span>
-            <span th:text="${usagePct} + '%'">3%</span>
+        <h2 class="font-display text-lg font-semibold text-on-surface mb-4">AI Search Credits — This Month</h2>
+        <div class="text-sm text-on-surface-variant mb-1">
+            <span th:text="${queriesUsed} + ' of ' + ${queryLimit} + ' credits used'">5 of 100</span>
         </div>
         <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div class="h-2.5 rounded-full transition-all"
-                 th:classappend="${usagePct > 80 ? 'bg-red-500' : (usagePct > 50 ? 'bg-amber-500' : 'bg-primary-600')}"
+            <div class="h-2.5 rounded-full bg-primary-600 transition-all"
                  th:style="'width:' + ${usagePct} + '%'"></div>
         </div>
+        <p class="text-xs text-gray-400 mt-2">Resets monthly &nbsp;·&nbsp; Deep Research: 10 credits &nbsp;·&nbsp; Claude / GPT: 3 credits &nbsp;·&nbsp; Perplexity: 1 credit</p>
     </div>
 
     <!-- Actions card -->

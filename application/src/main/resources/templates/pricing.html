@@ -64,7 +64,7 @@
                 <li><span class="text-green-600 mr-1">&#10003;</span> Full daily newsletter</li>
                 <li><span class="text-red-400 mr-1">&#10007;</span> Platform access</li>
                 <li><span class="text-red-400 mr-1">&#10007;</span> Article archive</li>
-                <li><span class="text-red-400 mr-1">&#10007;</span> AI research queries</li>
+                <li><span class="text-red-400 mr-1">&#10007;</span> AI Search</li>
                 <li><span class="text-red-400 mr-1">&#10007;</span> Semantic / vector search</li>
                 <li><span class="text-red-400 mr-1">&#10007;</span> LLM model choice</li>
                 <li><span class="text-red-400 mr-1">&#10007;</span> Full newsletter content</li>
@@ -85,7 +85,7 @@
                 <li><span class="text-green-600 mr-1">&#10003;</span> Full daily newsletter</li>
                 <li><span class="text-green-600 mr-1">&#10003;</span> <span th:text="${subscriberArchiveDays == 0} ? 'Unlimited article archive' : ${subscriberArchiveDays} + '-day article archive'">Unlimited</span></li>
                 <li><span class="text-green-600 mr-1">&#10003;</span> Basic + semantic search</li>
-                <li><span class="text-green-600 mr-1">&#10003;</span> <span th:text="${subscriberQueryLimit} + ' AI research queries/month'">200/month</span></li>
+                <li><span class="text-green-600 mr-1">&#10003;</span> <span th:text="${subscriberQueryLimit} + ' AI Search credits/month'">100/month</span></li>
                 <li><span class="text-green-600 mr-1">&#10003;</span> Semantic / vector search</li>
                 <li><span class="text-green-600 mr-1">&#10003;</span> LLM model choice</li>
                 <li><span class="text-green-600 mr-1">&#10003;</span> Vendor comparisons &amp; reports</li>
@@ -133,7 +133,7 @@
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Source provenance — study-level attribution</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Platform Race tracker (6 vendors)</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Cross-domain synthesis (7 domains)</div>
-            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> 2,000 AI queries/month</div>
+            <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> 2,000 AI Search credits/month</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Historical intelligence archive</div>
             <div class="text-sm"><span class="text-green-600 mr-1">&#10003;</span> Company Directory CSV export</div>
             <div class="text-sm font-semibold text-purple-900"><span class="text-purple-600 mr-1">&#10003;</span> Enterprise Data Console — async job-based export</div>
@@ -186,7 +186,7 @@
                 <tr><td>Newsletter content</td><td>Full daily</td><td>Full daily</td><td>Full daily</td><td style="color:#7c3aed;">Full daily</td></tr>
                 <tr><td>Web app access</td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
                 <tr><td><span class="tt-wrap">Article archive <span class="tt" data-tip="How far back you can browse the article database. Subscriber and Enterprise get unlimited history.">?</span></span></td><td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td><td><span class="text-red-400">&#10007;</span></td><td th:text="${subscriberArchiveDays == 0} ? 'Unlimited' : ${subscriberArchiveDays} + ' days'">Unlimited</td><td>Unlimited</td></tr>
-                <tr><td><span class="tt-wrap">AI research queries <span class="tt" data-tip="Ask multi-source research questions synthesized across your article archive and live Perplexity results — with numbered citations. Each query counts toward your monthly limit.">?</span></span></td><td th:text="${subscriberQueryLimit} + ' / trial'">200</td><td><span class="text-red-400">&#10007;</span></td><td th:text="${subscriberQueryLimit} + ' / month'">200/mo</td><td style="color:#7c3aed;">2,000/month</td></tr>
+                <tr><td><span class="tt-wrap">AI Search Credits <span class="tt" data-tip="Run multi-model AI research queries synthesized from your article archive and live Perplexity results — with numbered citations. Credits per search: Deep Research 10, Claude or GPT 3 each, standard Perplexity 1.">?</span></span></td><td th:text="${subscriberQueryLimit} + ' / trial'">100</td><td><span class="text-red-400">&#10007;</span></td><td th:text="${subscriberQueryLimit} + ' / month'">100/mo</td><td style="color:#7c3aed;">2,000/month</td></tr>
                 <tr><td><span class="tt-wrap">Vendor assessments <span class="tt" data-tip="Side-by-side AI assessment of healthcare AI vendors: strengths, weaknesses, and fit for your use case — generated from your live article archive.">?</span></span></td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-green-600">&#10003;</span></td><td><span class="text-green-600">&#10003;</span></td></tr>
                 <tr style="background:#faf5ff;"><td style="font-weight:600;color:#6b21a8;"><span class="tt-wrap">Framework Competitive Analysis <span class="tt" data-tip="6-dimension AI scoring per company: Clinical Evidence, Regulatory Track Record, Scalability, Integration Depth, Data Advantage, and Cost Efficiency — each scored 1–10 from article evidence.">?</span></span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; 6-dimension LLM scoring</td></tr>
                 <tr style="background:#faf5ff;"><td style="font-weight:600;color:#6b21a8;"><span class="tt-wrap">Deal Intelligence Briefs <span class="tt" data-tip="LLM-confirmed funding rounds, acquisitions, and partnerships — with extracted deal amounts, counterparty names, and AI-generated strategic analysis.">?</span></span></td><td style="color:#7c3aed;font-weight:600;">&#10003;</td><td><span class="text-red-400">&#10007;</span></td><td><span class="text-red-400">&#10007;</span></td><td style="color:#7c3aed;font-weight:600;">&#10003; Cross-referenced context</td></tr>
