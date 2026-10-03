@@ -1560,4 +1560,17 @@ public class AppConfig {
         log.debug("ssoAuthenticationSuccessHandler() | return={}", result.getClass().getSimpleName());
         return result;
     }
+
+    @Bean
+    public com.wgblackmon.aihealthcare.domain.service.OutreachService outreachService(
+            com.wgblackmon.aihealthcare.domain.port.outbound.CompanyOutreachPort outreachPort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.CompanyContactPort contactPort) {
+        log.debug("outreachService() | outreachPort={}, contactPort={}",
+                  outreachPort.getClass().getSimpleName(),
+                  contactPort.getClass().getSimpleName());
+        com.wgblackmon.aihealthcare.domain.service.OutreachService result =
+                new com.wgblackmon.aihealthcare.domain.service.OutreachService(outreachPort, contactPort);
+        log.debug("outreachService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
 }

@@ -188,6 +188,8 @@
                th:classappend="${activePage == 'admin-wiki-gaps'} ? ' active'">Wiki Gaps</a>
             <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/sso}"
                th:classappend="${activePage == 'admin-sso'} ? ' active'">SSO Providers</a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/outreach}"
+               th:classappend="${activePage == 'admin-outreach'} ? ' active'">Outreach CRM</a>
         </div>
     </div>
 
