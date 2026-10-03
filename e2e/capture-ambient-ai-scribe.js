@@ -40,11 +40,11 @@ const SHOTS = [
     },
     {
         label:   'Company directory — ambient AI vendors',
-        url:     `${BASE_URL}/directory?sector=AI+Documentation`,
+        url:     `${BASE_URL}/directory?sector=Clinical+Documentation`,
         file:    path.join(SHOTS_DIR, '2026-10-04-ambient-ai-scribe-directory.png'),
         timeout: 30_000,
         check:   async (page) => {
-            const n = await page.locator('.company-card, [class*="company"], article').count();
+            const n = await page.locator('a[href*="/directory/"]').count();
             console.log(`  Company cards visible: ${n}`);
         },
     },
