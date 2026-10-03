@@ -4,10 +4,13 @@ import com.wgblackmon.aihealthcare.domain.model.CompanyContact;
 import com.wgblackmon.aihealthcare.domain.model.CompanyOutreach;
 import com.wgblackmon.aihealthcare.domain.model.ContactSource;
 import com.wgblackmon.aihealthcare.domain.model.ContactStatus;
+import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 import com.wgblackmon.aihealthcare.domain.model.OutreachPurpose;
 import com.wgblackmon.aihealthcare.domain.model.OutreachStatus;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageOutreachUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,11 +18,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Admin controller for the Company Outreach CRM.
@@ -42,23 +48,60 @@ public class OutreachController {
             DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm").withZone(ZoneId.of("America/Chicago"));
 
     private final ManageOutreachUseCase outreachUseCase;
+    private final HealthcareAiCompanyPort companyPort;
 
-    public OutreachController(ManageOutreachUseCase outreachUseCase) {
-        log.debug("OutreachController() | outreachUseCase={}", outreachUseCase.getClass().getSimpleName());
+    public OutreachController(ManageOutreachUseCase outreachUseCase,
+                              HealthcareAiCompanyPort companyPort) {
+        log.debug("OutreachController() | outreachUseCase={}, companyPort={}",
+                outreachUseCase.getClass().getSimpleName(), companyPort.getClass().getSimpleName());
         this.outreachUseCase = outreachUseCase;
+        this.companyPort = companyPort;
     }
 
-    /** List all outreach records grouped by slug. */
+    /** List all outreach records. Companies list populates the add-form combo box. */
     @GetMapping
     public String listOutreach(Model model) {
         log.debug("listOutreach()");
         List<CompanyOutreach> allOutreach = outreachUseCase.listAllOutreach();
+        List<HealthcareAiCompany> companies = companyPort.findAllByOrderByName();
+        // Build name→id map for JS combo box lookup
+        Map<String, String> companyNameToId = new LinkedHashMap<>();
+        for (HealthcareAiCompany c : companies) {
+            companyNameToId.put(c.name(), c.companyId());
+        }
         model.addAttribute("allOutreach", allOutreach);
+        model.addAttribute("companies", companies);
+        model.addAttribute("companyNameToId", companyNameToId);
         model.addAttribute("purposes", OutreachPurpose.values());
         model.addAttribute("statuses", OutreachStatus.values());
         model.addAttribute("displayFmt", DISPLAY_FMT);
-        log.debug("listOutreach() | return=view:outreach");
+        log.debug("listOutreach() | return=view:outreach, companies={}", companies.size());
         return "outreach";
+    }
+
+    /**
+     * JSON endpoint — returns existing contacts for a slug.
+     * Used by the add-form combo box to show contacts below when a company is selected.
+     * Literal path takes precedence over the /{slug} pattern.
+     */
+    @GetMapping(value = "/contacts-json", produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> contactsJson(@RequestParam String slug) {
+        log.debug("contactsJson() | slug={}", slug);
+        List<CompanyContact> contacts = outreachUseCase.listContacts(slug);
+        List<Map<String, Object>> result = contacts.stream().map(c -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", c.id());
+            m.put("fullName", c.fullName());
+            m.put("jobTitle", c.jobTitle() != null ? c.jobTitle() : "");
+            m.put("email", c.email() != null ? c.email() : "");
+            m.put("linkedinUrl", c.linkedinUrl() != null ? c.linkedinUrl() : "");
+            m.put("source", c.source().name());
+            m.put("status", c.status().name());
+            return m;
+        }).toList();
+        log.debug("contactsJson() | return=size:{}", result.size());
+        return ResponseEntity.ok(result);
     }
 
     /** Add a new outreach record for a company. */

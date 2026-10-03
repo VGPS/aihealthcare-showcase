@@ -4,10 +4,12 @@ import com.wgblackmon.aihealthcare.domain.model.CompanyContact;
 import com.wgblackmon.aihealthcare.domain.model.CompanyOutreach;
 import com.wgblackmon.aihealthcare.domain.model.ContactSource;
 import com.wgblackmon.aihealthcare.domain.model.ContactStatus;
+import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 import com.wgblackmon.aihealthcare.domain.model.OutreachPurpose;
 import com.wgblackmon.aihealthcare.domain.model.OutreachStatus;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageOutreachUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -29,6 +32,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -56,6 +60,9 @@ class OutreachControllerTest {
     @MockitoBean
     private ManageOutreachUseCase outreachUseCase;
 
+    @MockitoBean
+    private HealthcareAiCompanyPort companyPort;
+
     private static final Instant NOW = Instant.parse("2026-10-03T12:00:00Z");
 
     private static CompanyOutreach outreachRow() {
@@ -68,14 +75,45 @@ class OutreachControllerTest {
                 "jane@ms.com", null, ContactSource.LINKEDIN, ContactStatus.IDENTIFIED, null, NOW, NOW);
     }
 
+    private static HealthcareAiCompany company() {
+        return new HealthcareAiCompany(
+                "microsoft", "Microsoft Health", "microsoft-health",
+                "microsoft.com", "Microsoft healthcare AI", null, null,
+                null, null, null, null, null, null,
+                List.of(), false, List.of(), NOW, NOW);
+    }
+
     @Test
     void listOutreach_returns200WithModel() throws Exception {
         when(outreachUseCase.listAllOutreach()).thenReturn(List.of(outreachRow()));
+        when(companyPort.findAllByOrderByName()).thenReturn(List.of(company()));
 
         mockMvc.perform(get("/admin/outreach"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("outreach"))
-                .andExpect(model().attributeExists("allOutreach"));
+                .andExpect(model().attributeExists("allOutreach"))
+                .andExpect(model().attributeExists("companies"))
+                .andExpect(model().attributeExists("companyNameToId"));
+    }
+
+    @Test
+    void contactsJson_returnsEmptyListForUnknownSlug() throws Exception {
+        when(outreachUseCase.listContacts("unknown-co")).thenReturn(List.of());
+
+        mockMvc.perform(get("/admin/outreach/contacts-json").param("slug", "unknown-co"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(content().string("[]"));
+    }
+
+    @Test
+    void contactsJson_returnsContactsForKnownSlug() throws Exception {
+        when(outreachUseCase.listContacts("microsoft")).thenReturn(List.of(contact()));
+
+        mockMvc.perform(get("/admin/outreach/contacts-json").param("slug", "microsoft"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(content().string(containsString("Jane Doe")));
     }
 
     @Test
