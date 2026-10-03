@@ -25,8 +25,8 @@ COVER IMAGE (upload in Substack cover image field — NOT inline in body):
 
 OPTIONAL INLINE IMAGE (can insert near the specialty gap section):
   File: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-directory.png
-  What it shows: BigSkyLabs company directory filtered to AI Documentation — 43 ambient AI
-    vendors with signal scores, deal activity, and sector tags. Insert before or after the
+  What it shows: BigSkyLabs company directory filtered to Clinical Documentation — ambient AI
+    scribe vendors with signal scores, deal activity, and sector tags. Insert before or after the
     "Market Pricing" section to support the vendor landscape claims.
   Necessary: OPTIONAL
   To regenerate: node e2e/capture-ambient-ai-scribe.js

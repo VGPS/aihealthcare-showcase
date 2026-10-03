@@ -15,8 +15,8 @@ BODY IMAGE — attach when publishing the post:
 
 FIRST COMMENT IMAGE — paste in first comment after publishing:
   File: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-directory.png
-  What it shows: BigSkyLabs company directory filtered to AI Documentation — showing ambient AI
-    vendors tracked by the platform with signal scoring, deal activity, and sector categorization.
+  What it shows: BigSkyLabs company directory filtered to Clinical Documentation — ambient AI
+    scribe vendors tracked by the platform with signal scoring, deal activity, and sector tags.
   Necessary: OPTIONAL — include to drive clicks to the company directory.
   To regenerate: node e2e/capture-ambient-ai-scribe.js
 
