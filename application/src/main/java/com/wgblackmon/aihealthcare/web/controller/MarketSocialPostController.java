@@ -52,7 +52,7 @@ public class MarketSocialPostController {
     private static final int LINKEDIN_COMMENT_LIMIT = 1050;
     private static final int FACEBOOK_FOLD_LIMIT = 390;
     private static final String SITE_URL = "https://app.bigskylabs.ai";
-    private static final String HASHTAGS = "#AIHealthcare #HealthcareAI #DigitalHealth #HealthTech #MedicalInnovation";
+    private static final String HASHTAGS = "#AIHealthcare #HealthcareAI #MarketIntelligence #DigitalHealth #HealthTech";
 
     private final ProduceMarketDigestUseCase digestUseCase;
     private final TierResolver tierResolver;

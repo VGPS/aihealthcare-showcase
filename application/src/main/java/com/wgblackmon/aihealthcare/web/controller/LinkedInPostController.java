@@ -577,7 +577,7 @@ public class LinkedInPostController {
         sb.append("Source links in the first comment below.\n\n");
         sb.append("Follow for daily AI healthcare intelligence.\n");
         sb.append("→ Full platform: ").append(SITE_URL).append("\n\n");
-        sb.append("#AIHealthcare #HealthcareAI #DigitalHealth #HealthTech #MedicalInnovation");
+        sb.append("#AIHealthcare #HealthcareAI #MarketIntelligence #DigitalHealth #HealthTech");
 
         String result = sb.toString();
         if (result.length() > POST_BODY_LIMIT) {
@@ -607,7 +607,7 @@ public class LinkedInPostController {
             sb.append(item);
         }
 
-        sb.append("\n#AIHealthcare #HealthcareAI #DigitalHealth");
+        sb.append("\n#AIHealthcare #HealthcareAI #MarketIntelligence #DigitalHealth");
 
         String result = sb.toString().trim();
         log.debug("buildResearchLinksBlock() | return=length:{}", result.length());

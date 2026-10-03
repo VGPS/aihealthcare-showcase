@@ -264,7 +264,7 @@ public class WeeklyRoundupController {
         sb.append("AI in Healthcare — Weekly Intel Roundup\n");
         sb.append(dateLabel).append("\n\n");
         sb.append(narrative).append("\n\n");
-        sb.append("#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #WeeklyRoundup");
+        sb.append("#HealthcareAI #AIinHealthcare #MarketIntelligence #DigitalHealth #WeeklyRoundup");
 
         String result = sb.toString();
         if (result.length() > POST_BODY_LIMIT) {
@@ -287,7 +287,7 @@ public class WeeklyRoundupController {
         sb.append(SITE_URL).append("/insights/\n\n");
         sb.append("We track 57+ sources and 318 companies daily.\n");
         sb.append("Subscribe for the full intelligence feed: ").append(SITE_URL).append("\n\n");
-        sb.append("#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #WeeklyRoundup");
+        sb.append("#HealthcareAI #AIinHealthcare #MarketIntelligence #DigitalHealth #WeeklyRoundup");
 
         String result = sb.toString().trim();
         log.debug("buildLinkedInComment() | return=length:{}", result.length());
