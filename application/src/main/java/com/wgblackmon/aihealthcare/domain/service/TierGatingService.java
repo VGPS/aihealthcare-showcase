@@ -18,7 +18,7 @@ import com.wgblackmon.aihealthcare.domain.model.UsageRecord;
  * @author  Bill Blackmon
  * @version 2.0
  * @since   2026-05-26
- * @updated 2026-09-11
+ * @updated 2026-10-03 — canQueryWithCost() added for credit-weighted AI Search throttling
  */
 public class TierGatingService {
 
@@ -80,6 +80,28 @@ public class TierGatingService {
         boolean result = usage.queryCount() < usage.queryLimit();
 
         log.debug("canQuery() | return={}", result);
+        return result;
+    }
+
+    /**
+     * Returns {@code true} if the subscriber has enough remaining credits to run
+     * a query costing {@code creditCost} credits.
+     *
+     * <p>Satisfies the constraint: {@code queryCount + creditCost <= queryLimit}.
+     * This is stricter than {@link #canQuery(UsageRecord)} for high-cost models
+     * such as Deep Research (10 credits).
+     *
+     * @param usage      the subscriber's current usage record for the month.
+     * @param creditCost the credit cost of the planned operation; must be &gt; 0.
+     * @return whether the subscriber has enough remaining credits.
+     */
+    public boolean canQueryWithCost(UsageRecord usage, int creditCost) {
+        log.debug("canQueryWithCost() | email={}, used={}, limit={}, cost={}",
+                  usage.email(), usage.queryCount(), usage.queryLimit(), creditCost);
+
+        boolean result = (usage.queryCount() + creditCost) <= usage.queryLimit();
+
+        log.debug("canQueryWithCost() | return={}", result);
         return result;
     }
 

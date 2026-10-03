@@ -43,6 +43,21 @@ public interface UsageTrackingPort {
     UsageRecord incrementAndGet(String email, String yearMonth);
 
     /**
+     * Atomically adds {@code credits} to the query count for the given subscriber and month,
+     * then returns the updated record.  If no record exists, one is created with the given
+     * credit amount as the initial count.
+     *
+     * <p>Each AI Search query costs a variable number of credits depending on the selected
+     * models (e.g. Deep Research = 10, Claude/GPT/Gemini = 3, standard Perplexity = 1).
+     *
+     * @param email     Subscriber email address.
+     * @param yearMonth Month in {@code "YYYY-MM"} format.
+     * @param credits   Number of credits to add; must be &gt; 0.
+     * @return The updated usage record with incremented count.
+     */
+    UsageRecord incrementByCredits(String email, String yearMonth, int credits);
+
+    /**
      * Returns all usage records for a given month.  Useful for admin reporting.
      *
      * @param yearMonth Month in {@code "YYYY-MM"} format.

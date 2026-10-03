@@ -25,7 +25,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-05-26
- * @updated 2026-05-26
+ * @updated 2026-10-03 — incrementByCredits() added for credit-weighted AI Search throttling
  */
 @Slf4j
 @Component
@@ -95,6 +95,32 @@ public class UsageTrackingAdapter implements UsageTrackingPort {
 
         UsageRecord result = toDomain(entity);
         log.debug("incrementAndGet() | return={}", result);
+        return result;
+    }
+
+    @Override
+    public UsageRecord incrementByCredits(String email, String yearMonth, int credits) {
+        log.debug("incrementByCredits() | email={}, yearMonth={}, credits={}", email, yearMonth, credits);
+
+        Optional<UsageRecordEntity> existing = repository.findByEmailAndYearMonth(email, yearMonth);
+        UsageRecordEntity entity;
+        if (existing.isPresent()) {
+            entity = existing.get();
+        } else {
+            int limit = resolveQueryLimit(email);
+            entity = new UsageRecordEntity();
+            entity.setEmail(email);
+            entity.setYearMonth(yearMonth);
+            entity.setQueryCount(0);
+            entity.setQueryLimit(limit);
+        }
+
+        entity.setQueryCount(entity.getQueryCount() + credits);
+        entity.setUpdatedAt(Instant.now());
+        repository.save(entity);
+
+        UsageRecord result = toDomain(entity);
+        log.debug("incrementByCredits() | return={}", result);
         return result;
     }
 

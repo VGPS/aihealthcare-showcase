@@ -104,9 +104,11 @@ class AiSearchControllerTest {
 
     private void stubSubscriberTier(String email) {
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
-        UsageRecord usage = new UsageRecord(email, "2026-06", 5, 200);
+        UsageRecord usage = new UsageRecord(email, "2026-06", 5, 100);
         when(usageTrackingPort.getOrCreateUsage(eq(email), anyString())).thenReturn(usage);
-        when(tierGatingService.canQuery(any(UsageRecord.class))).thenReturn(true);
+        when(tierGatingService.canQueryWithCost(any(UsageRecord.class), anyInt())).thenReturn(true);
+        UsageRecord updated = new UsageRecord(email, "2026-06", 8, 100);
+        when(usageTrackingPort.incrementByCredits(eq(email), anyString(), anyInt())).thenReturn(updated);
     }
 
     private void stubFreeTier() {
@@ -202,7 +204,8 @@ class AiSearchControllerTest {
         mockMvc.perform(get("/research/ai-search").param("q", "test query"))
                 .andExpect(status().isOk());
 
-        verify(usageTrackingPort).incrementAndGet(eq("subscriber@example.com"), anyString());
+        // No models param → calculateCreditCost(null) = 3 (default single-model cost)
+        verify(usageTrackingPort).incrementByCredits(eq("subscriber@example.com"), anyString(), eq(3));
     }
 
     @Test
@@ -232,14 +235,14 @@ class AiSearchControllerTest {
     @WithMockUser(username = "subscriber@example.com")
     void search_subscriberTier_limitReached_showsWarning() throws Exception {
         when(tierResolver.resolveTier(any(Principal.class))).thenReturn(SubscriptionTier.SUBSCRIBER);
-        UsageRecord exhausted = new UsageRecord("subscriber@example.com", "2026-06", 200, 200);
+        UsageRecord exhausted = new UsageRecord("subscriber@example.com", "2026-06", 100, 100);
         when(usageTrackingPort.getOrCreateUsage(eq("subscriber@example.com"), anyString())).thenReturn(exhausted);
-        when(tierGatingService.canQuery(any(UsageRecord.class))).thenReturn(false);
+        when(tierGatingService.canQueryWithCost(any(UsageRecord.class), anyInt())).thenReturn(false);
 
         mockMvc.perform(get("/research/ai-search").param("q", "some query"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("limitReached", true))
-                .andExpect(content().string(containsString("Monthly query limit reached")));
+                .andExpect(content().string(containsString("Monthly AI research limit reached")));
 
         verify(aiSearchUseCase, never()).search(anyString(), anyInt(), any());
     }
