@@ -1,0 +1,68 @@
+=== FACEBOOK POSTING INSTRUCTIONS ===
+
+Platform: Facebook (personal profile or Business page)
+Best posting time: Saturday 9:00–11:00 AM local time
+Screenshot: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-search.png
+  → Generate with: node e2e/capture-ambient-ai-scribe.js
+
+To edit before posting: revise the Post Body section below in any text editor.
+
+=== POST BODY ===
+
+Ambient AI companies claim their tools save physicians 2 hours per day on documentation.
+
+That sounds like a solved problem.
+
+It isn't.
+
+---
+
+Independent studies average 25–35 minutes of actual time savings — not 2 hours.
+
+One health system found documentation time dropped 31% for physicians — but nursing staff correction time for AI note errors went up 18%.
+
+The time is being saved somewhere. The question is: where does it actually go?
+
+---
+
+In fee-for-service medicine: faster notes → more patients → more revenue. The ROI math closes.
+
+In employed physician models: the health system captures the gain. The physician's documentation burden drops. Their RVU targets stay the same. Their compensation doesn't change.
+
+Adoption resistance often isn't about the AI. It's about who benefits from the saved time.
+
+---
+
+In value-based care: volume doesn't drive revenue. The 2-hour savings only generates ROI if it reduces burnout, expands panel size, or improves quality scores — none of which appear in a 90-day vendor pilot.
+
+The market is pricing every ambient AI deployment as if it's fee-for-service.
+
+---
+
+No one in the pilot is asking the right question: What does the saved time actually become?
+
+More patients. Earlier departure. Less burnout. Or just different paperwork.
+
+The vendors don't fund that study. Most health systems haven't built the measurement infrastructure to find out.
+
+---
+
+I track 43 ambient AI companies through BigSkyLabs weekly AI healthcare intelligence.
+
+What are you actually seeing in real deployments?
+
+https://app.bigskylabs.ai/research/ai-search
+
+=== IMAGE ===
+File: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-search.png
+
+=== ENGAGEMENT FOLLOW-UP ===
+If someone asks which vendor actually delivers on the ROI claim:
+
+"The honest answer is: it depends heavily on your care model and specialty mix.
+Fee-for-service primary care tends to show the clearest ROI because faster documentation
+directly enables more visits. Surgical specialties and value-based care models are more
+mixed — the time savings are real but often don't translate to the revenue or quality
+metrics that would justify $200-$400 per physician per month. The vendors who are most
+transparent about this — Abridge, Ambience — tend to have stronger long-term retention
+than those who lead with the 2-hour headline."
