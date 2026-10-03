@@ -1,0 +1,74 @@
+=== FACEBOOK POSTING INSTRUCTIONS ===
+
+Platform: Facebook (personal profile or Business page)
+Best posting time: Friday 8:00–10:00 AM or 12:00–2:00 PM local time
+Screenshot: linkedin-posts/shots/2026-10-03-ai-billing-conflict-search.png
+  → Generate with: node e2e/capture-ai-billing-conflict.js
+
+To edit before posting: revise the Post Body section below in any text editor.
+
+=== POST BODY ===
+
+Your hospital's AI and your insurance company's AI are fighting over your medical claim.
+
+And neither one is wrong.
+
+---
+
+Here's what's happening:
+
+When you're hospitalized, AI tools now scan physician notes and find every diagnosis code and severity level the documentation supports.
+
+These codes are real — they're in the chart. But they justify higher payment.
+
+On the other side, your insurer's AI looks at the same claim and compares it to a statistical model of what similar cases typically cost.
+
+If the code looks like an outlier — denied.
+
+Both systems are doing exactly what they were designed to do.
+
+---
+
+The numbers are getting impossible to ignore.
+
+Blue Cross Blue Shield reported last week that hospital AI coding added $942 million to its costs over two years.
+
+Major Medicare Advantage insurers more than doubled their denial rates for post-acute care after deploying AI review tools.
+
+In an AMA survey, 61% of physicians said insurer AI is increasingly denying medically necessary care.
+
+Some reported denial rates 16× normal when insurer AI first went live.
+
+---
+
+Four states passed laws in 2025 requiring physician review of AI-generated denials before they become final.
+
+CMS issued rules for Medicare Advantage in 2024.
+
+But most commercially insured Americans — through self-funded employer plans — aren't covered by those protections yet.
+
+---
+
+The people caught in the middle are patients.
+
+Waiting for approvals. Appealing denials. Absorbing the overflow of two adversarial AI systems running at scale against each other.
+
+---
+
+We cover this story weekly through AI healthcare intelligence at BigSkyLabs.
+
+What questions do you have about how AI is changing billing and coverage decisions?
+
+https://app.bigskylabs.ai/research/ai-search
+
+=== IMAGE ===
+File: linkedin-posts/shots/2026-10-03-ai-billing-conflict-search.png
+
+=== ENGAGEMENT FOLLOW-UP ===
+If someone asks which side is right:
+
+"Both sides have a legitimate point — that's what makes this hard to resolve. Hospital AI
+surfaces real documentation supporting higher codes. Insurer AI identifies real statistical
+patterns that correlate with billing outliers. The conflict isn't about fraud. It's about
+two systems optimizing for opposite objectives on the same underlying data. The patient
+gets caught in the middle while the appeals pile up."
