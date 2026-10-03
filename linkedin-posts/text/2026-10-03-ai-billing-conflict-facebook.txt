@@ -1,12 +1,39 @@
 === POSTING INSTRUCTIONS ===
 
-1. Copy the Post Body below (everything between === FACEBOOK POST BODY === and === FACEBOOK IMAGE ===)
+1. Copy the Post Body below (everything between === FACEBOOK POST BODY === and === SCREENSHOT INSTRUCTIONS ===)
 2. Go to your Facebook page or personal profile
 3. Paste the body text
-4. The URL at the bottom will generate a link preview — check it renders before publishing
-5. If OG card fails, attach linkedin-posts/shots/2026-10-03-ai-billing-conflict-search.png manually
+4. Attach the Body Image (see SCREENSHOT INSTRUCTIONS below) when publishing
+5. DO NOT add the URL in the post body — it suppresses reach; put it in the first comment
 6. Best posting window: Friday 8:00–10:00 AM or 12:00–2:00 PM local time
 7. After 1 hour, reply to any comment with the Engagement Follow-Up text below
+
+=== SCREENSHOT INSTRUCTIONS ===
+
+BODY IMAGE — attach when publishing the post:
+  File: linkedin-posts/shots/2026-10-03-ai-billing-conflict-search.png
+  What it shows: Full-page AI Search results for "AI billing conflict hospitals vs insurers"
+    using Perplexity Deep Research. Shows the multi-model synthesis, key findings, and numbered
+    citations to source articles. Demonstrates the live research pipeline behind this analysis.
+  Necessary: YES — grounds the post in data-driven research, not opinion.
+  To regenerate: node e2e/capture-ai-billing-conflict.js
+
+FIRST COMMENT IMAGE — paste in first comment after publishing:
+  File: linkedin-posts/shots/2026-10-03-ai-billing-conflict-regulatory.png
+  What it shows: BigSkyLabs regulatory dashboard tracking AI prior authorization rules, CMS
+    enforcement actions, and state law events in real time. Supports the regulatory section.
+  Necessary: OPTIONAL — include if you want to drive clicks to the regulatory dashboard.
+  To regenerate: node e2e/capture-ai-billing-conflict.js
+
+SOURCING NOTE (all figures verified Oct 2026):
+- $942M: BCBS Association analysis, CNBC/Medical Daily Sept 24–27, 2026
+- 54% Humana denial rate: Congressional investigation, 2020–2022 data
+- UHC more than doubled post-acute denials: Congressional investigation, 2019–2022
+- 61% AMA survey: AMA December 2024 survey (1,000 physicians)
+- 16× denial rates: 2024 Senate committee report
+- McKinsey $380M–$970M range: McKinsey "AI opportunity for health insurers"
+  (post uses upper end; full range is $380M–$970M in medical cost savings per $10B revenue)
+- State laws count: at least 6 states enacted by 2025 (CA, AZ, NE, TX, IL, MD); 6+ more in 2026
 
 === FACEBOOK POST BODY ===
 
@@ -20,26 +47,23 @@ Here's what that looks like in practice:
 
 When a physician documents your hospital stay, AI tools now scan those notes and identify additional diagnosis codes and severity levels that support higher reimbursement. These aren't fabricated — they're documented in the chart. But they justify higher payment.
 
-On the insurer side, AI tools automatically flag those same higher-complexity codes as suspicious and downcode or deny the claim. Prior authorization denial rates at major Medicare Advantage insurers jumped 54–108% after they implemented AI review tools. At UnitedHealthcare, post-acute care denials more than doubled between 2020 and 2022.
+On the insurer side, AI tools automatically flag those same higher-complexity codes as suspicious and downcode or deny the claim. Prior authorization denial rates at Humana jumped 54% after AI review tools deployed; UnitedHealthcare more than doubled its post-acute care denial rate between 2019 and 2022.
 
 Doctors are feeling it. In a survey from the AMA, 61% of physicians said they are concerned that health insurers' use of AI is increasing medically unjustified prior authorization denials. Some reported denial rates 16 times higher than normal when insurer AI systems first went live.
 
-Four states passed laws in 2025 prohibiting insurance companies from using AI alone — with no physician review — to deny medical care. Congress and CMS have both issued guidance, but coverage for commercial insurance remains sparse.
+At least six states — California, Arizona, Nebraska, Texas, Illinois, and Maryland — passed laws by 2025 prohibiting insurance companies from using AI alone — with no physician review — to deny medical care. More states followed in 2026. Congress and CMS have both issued guidance, but coverage for commercial insurance remains sparse.
 
-Meanwhile, McKinsey estimates AI saves insurers about $970 million per $10 billion in revenue through claims management and prior auth. That "savings" is largely care that wasn't paid for. From the hospital's perspective, that's revenue denied.
+Meanwhile, McKinsey estimates AI saves insurers $380M–$970M per $10 billion in revenue through claims management and prior auth. That "savings" is largely care that wasn't paid for. From the hospital's perspective, that's revenue denied.
 
 The people caught in the middle are patients — waiting for approvals, appealing denials, and absorbing the administrative overflow of two adversarial AI systems running at scale against each other.
 
 We cover this story weekly through 600+ AI healthcare company signals at our intelligence platform.
 
-https://app.bigskylabs.ai/research/ai-search
-
-=== FACEBOOK IMAGE ===
-File: linkedin-posts/shots/2026-10-03-ai-billing-conflict-search.png
-Same screenshot as LinkedIn — AI Search results page showing the deep research synthesis
-on AI billing conflict. Visually demonstrates the intelligence tool.
-
 === ENGAGEMENT FOLLOW-UP ===
+First comment (post immediately after publishing):
+  Link to research: https://app.bigskylabs.ai/research/ai-search
+  State laws tracker: https://app.bigskylabs.ai/legislation
+
 If someone asks which side is right (hospitals or insurers):
 
 "Both systems are doing exactly what they're designed to do — that's what makes this so

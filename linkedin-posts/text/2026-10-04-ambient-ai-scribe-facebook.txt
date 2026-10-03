@@ -2,10 +2,32 @@
 
 Platform: Facebook (personal profile or Business page)
 Best posting time: Saturday 9:00–11:00 AM local time
-Screenshot: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-search.png
-  → Generate with: node e2e/capture-ambient-ai-scribe.js
 
-To edit before posting: revise the Post Body section below in any text editor.
+=== SCREENSHOT INSTRUCTIONS ===
+
+BODY IMAGE — attach when publishing the post:
+  File: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-search.png
+  What it shows: Full-page AI Search results for "ambient AI scribe physician time savings ROI"
+    using Perplexity Deep Research. Shows the multi-model synthesis, key findings, and numbered
+    citations to source articles that grounded this post. Demonstrates the live research pipeline.
+  Necessary: YES — the visual evidence that this is research-backed.
+  To regenerate: node e2e/capture-ambient-ai-scribe.js
+
+FIRST COMMENT IMAGE — paste in first comment after publishing:
+  File: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-directory.png
+  What it shows: BigSkyLabs company directory filtered to AI Documentation — showing ambient AI
+    vendors tracked by the platform with signal scoring, deal activity, and sector categorization.
+  Necessary: OPTIONAL — include to drive clicks to the company directory.
+  To regenerate: node e2e/capture-ambient-ai-scribe.js
+
+SOURCING NOTE (all figures verified 2025–2026):
+- 16 min / 27 min: JAMA multisite study (2025), 5 academic medical centers — Ambience, DAX, Abridge
+- 1.7% RCT finding, p=0.66: NEJM AI randomized controlled trial (2025), 238 physicians, 14 specialties
+- Atrium Health no-improvement finding: NEJM AI (2024) post-implementation study
+- Consultation length unchanged: JMIR Medical Informatics observational (2026)
+- Specialty gap (shorter encounters): DAX peds hematology-oncology study (2025)
+- Burnout 51.9% → 38.8%: JAMA Network Open quality improvement study, 263 clinicians
+- $150–$500/physician/month: industry standard enterprise pricing (verify current sheets)
 
 === POST BODY ===
 
@@ -17,11 +39,21 @@ It isn't.
 
 ---
 
-Independent studies average 25–35 minutes of actual time savings — not 2 hours.
+Here's what the independent data actually shows:
 
-One health system found documentation time dropped 31% for physicians — but nursing staff correction time for AI note errors went up 18%.
+→ JAMA multisite study (2025, five academic medical centers): 16 minutes saved per 8-hour day on average. Heavy users hit 27 minutes. Not 2 hours.
 
-The time is being saved somewhere. The question is: where does it actually go?
+→ The only randomized controlled trial (NEJM AI, 238 physicians, 14 specialties): 1.7% less time-in-note — not statistically significant.
+
+→ Atrium Health post-implementation study (NEJM AI, 2024): no significant improvement in key efficiency metrics at the system level.
+
+→ The one consistent finding across all studies: burnout decreases. JAMA Network Open found burnout dropped from 51.9% to 38.8% after 30 days. That's real — and arguably the most important outcome.
+
+---
+
+The time savings are real. The 2-hour benchmark is not.
+
+Vendor claims come from self-reported physician time studies. Physicians overestimate how long they spend on tasks they find unpleasant — documentation being the canonical example. Controlled measurement produces much smaller numbers.
 
 ---
 
@@ -33,7 +65,7 @@ Adoption resistance often isn't about the AI. It's about who benefits from the s
 
 ---
 
-In value-based care: volume doesn't drive revenue. The 2-hour savings only generates ROI if it reduces burnout, expands panel size, or improves quality scores — none of which appear in a 90-day vendor pilot.
+In value-based care: volume doesn't drive revenue. The time savings only generates ROI if it reduces burnout, expands panel size, or improves quality scores — none of which appear in a 90-day vendor pilot.
 
 The market is pricing every ambient AI deployment as if it's fee-for-service.
 
@@ -51,10 +83,10 @@ I track 43 ambient AI companies through BigSkyLabs weekly AI healthcare intellig
 
 What are you actually seeing in real deployments?
 
-https://app.bigskylabs.ai/research/ai-search
-
-=== IMAGE ===
-File: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-search.png
+=== FIRST COMMENT ===
+Full research + company directory:
+https://app.bigskylabs.ai/research/ai-search?q=ambient+AI+scribe+physician+time+savings+ROI
+https://app.bigskylabs.ai/directory
 
 === ENGAGEMENT FOLLOW-UP ===
 If someone asks which vendor actually delivers on the ROI claim:

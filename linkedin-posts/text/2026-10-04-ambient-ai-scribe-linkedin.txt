@@ -4,14 +4,28 @@
 2. Go to linkedin.com → Start a post
 3. Paste the body text
 4. DO NOT add any URL to the post body — kills organic reach 40-60%
-5. Screenshot: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-search.png
-   → Full-page AI Search results for "ambient AI scribe physician time savings ROI"
-   → To regenerate: node e2e/capture-ambient-ai-scribe.js
-   → Alternative: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-directory.png
-     (Company directory showing ambient AI vendors tracked in the platform)
-6. Attach screenshot as the post image
+5. See SCREENSHOT INSTRUCTIONS below for which file to attach and where
+6. Attach the Body Image as the post image when publishing
 7. Publish, then immediately paste the First Comment as the very first comment
 8. Best posting window: Saturday 8:00–10:00 AM local time
+
+=== SCREENSHOT INSTRUCTIONS ===
+
+BODY IMAGE — attach when publishing the post:
+  File: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-search.png
+  What it shows: Full-page AI Search results for "ambient AI scribe physician time savings ROI"
+    using Perplexity Deep Research. Shows the multi-model synthesis, key findings, and numbered
+    citations to source articles. Demonstrates the live research pipeline behind the analysis.
+  Necessary: YES — grounds the post in published study data, not vendor benchmarks.
+  To regenerate: node e2e/capture-ambient-ai-scribe.js
+
+FIRST COMMENT IMAGE — paste in first comment immediately after publishing:
+  File: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-directory.png
+  What it shows: BigSkyLabs company directory filtered to AI Documentation — 43 ambient AI
+    vendors tracked with signal scores, deal activity, and sector categorization. Supports
+    the "43 vendors tracked" claim in the post body.
+  Necessary: OPTIONAL — include to drive clicks to the company directory.
+  To regenerate: node e2e/capture-ambient-ai-scribe.js
 
 SOURCING NOTE FOR THIS POST (all figures verified 2025–2026):
 - "2 hours per day" benchmark: widely cited in vendor marketing materials (Nuance, Suki, Abridge)
@@ -122,11 +136,6 @@ What does "2 hours saved" actually look like on the ground?
 👇
 
 #HealthcareAI #AmbientAI #PhysicianBurnout #HealthIT #AIScribe #HealthcareInnovation #ClinicalDocumentation
-
-=== IMAGE ===
-File: linkedin-posts/shots/2026-10-04-ambient-ai-scribe-search.png
-Full-page AI Search results for "ambient AI scribe physician time savings ROI" — shows
-synthesis, key findings, and source articles from the live article archive.
 
 === LINK (first comment only — not in post body) ===
 https://app.bigskylabs.ai/research/ai-search?q=ambient+AI+scribe+physician+time+savings+ROI
