@@ -110,8 +110,8 @@ class ArticleToneClassifierTest {
     @Test
     void linkedInHashtags_containsAllBaseTags() {
         String tags = classifier.linkedInHashtags(List.of());
-        assertThat(tags).contains("#HealthcareAI", "#AIinHealthcare", "#DigitalHealth",
-                "#HealthTech", "#MedicalInnovation");
+        assertThat(tags).contains("#HealthcareAI", "#AIinHealthcare", "#MarketIntelligence",
+                "#DigitalHealth", "#HealthTech");
     }
 
     @Test
@@ -149,10 +149,10 @@ class ArticleToneClassifierTest {
     }
 
     @Test
-    void facebookHashtags_doesNotContainMedicalInnovation() {
-        // MedicalInnovation is LinkedIn-only; FB has BigSkyLabs instead
+    void facebookHashtags_doesNotContainMarketIntelligence() {
+        // MarketIntelligence is LinkedIn-only; FB has BigSkyLabs instead
         String tags = classifier.facebookHashtags(List.of());
-        assertThat(tags).doesNotContain("#MedicalInnovation");
+        assertThat(tags).doesNotContain("#MarketIntelligence");
     }
 
     @Test

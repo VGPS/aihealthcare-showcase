@@ -109,7 +109,7 @@ public class ArticleToneClassifier {
     // ------------------------------------------------------------------
 
     private static final String LINKEDIN_BASE =
-            "#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #MedicalInnovation";
+            "#HealthcareAI #AIinHealthcare #MarketIntelligence #DigitalHealth #HealthTech";
 
     private static final String FACEBOOK_BASE =
             "#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #BigSkyLabs";

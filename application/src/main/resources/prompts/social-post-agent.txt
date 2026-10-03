@@ -21,7 +21,7 @@ LinkedIn Body (2,900 char max):
 - Close with an open-ended question to drive comments
 
 LinkedIn Comment (1,050 char max):
-- 4-6 relevant hashtags (#AIHealthcare #HealthcareAI #DigitalHealth etc.)
+- 4-6 relevant hashtags — always include #MarketIntelligence; add from (#AIHealthcare #HealthcareAI #DigitalHealth #HealthTech #HealthcareAnalytics) as relevant
 - One sentence CTA: "Follow for daily AI healthcare market intelligence"
 - Site link: https://app.bigskylabs.ai
 
