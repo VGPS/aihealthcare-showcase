@@ -10,7 +10,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 |---------|-------------|
 | **Multi-Source Article Harvesting** | Automated ingestion from 57+ RSS feeds, web scrapers, and APIs across academic, regulatory, and industry tiers |
 | **AI Newsletter Generation** | Daily automated newsletter drafts with topic-grouped sections, attributed sources, and TinyMCE WYSIWYG editing |
-| **Multi-Model AI Search** | Fan-out synthesis across Claude, GPT, Perplexity Sonar, Perplexity Deep Research, and Gemini with numbered citation references; Deep Research checkbox labeled ~30–60 s with violet badge |
+| **Multi-Model AI Search** | Fan-out synthesis across Claude, GPT, Perplexity Sonar, Perplexity Deep Research, and Gemini with numbered citation references; credit-weighted model selection (Deep Research = 10 credits, Claude / GPT / Gemini = 3 credits, standard Perplexity = 1 credit) with tier-based topK caps (SUBSCRIBER = 20, ENTERPRISE = 50); Deep Research checkbox labeled ~30–60 s with violet badge; anonymous visitors see a teaser gate (locked card + free trial CTA) instead of a login redirect — enables shared links in social posts |
 | **Staged Research Pipeline** | AI-planned query decomposition, multi-source retrieval, citation assembly, and synthesized research answers |
 | **LLM-Compiled Knowledge Wiki** | AI synthesizes harvested articles into a persistent, searchable wiki with revision history and cross-references — public nav link for discovery/SEO; detail pages, Reversal Watch, Digest, and Ask are tier-gated (SUBSCRIBER/DEMO/ENTERPRISE/ADMIN get full access, FREE sees teaser + upgrade prompt) |
 | **Source Provenance Tracking** | Every wiki claim links to its original PubMed, FDA, or industry source for verifiable trust |
@@ -42,7 +42,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Data Export** | CSV and structured export of articles, companies, trends, and deal signals for external analysis |
 | **Enterprise Data Access** | Async job-based data export for ENTERPRISE-tier customers — submit jobs via console or REST, LLM query planning, confined file I/O, remote HTTPS connector with IP-pinned security, job reaper + 14-day retention sweeper, full audit trail, systemd-hardened deployment; scheduled push delivery with per-customer cron schedules, DB-sweeper scheduler with atomic claim semantics, email attachment with size-aware signed-link fallback, and auto-deactivation after consecutive failures |
 | **Self-Maintaining Pipeline Orchestrator** | Sequences all 11 post-harvest pipelines with try-catch isolation per step — no single failure breaks the chain; all 25+ admin pipeline triggers are async (202 Accepted) via PipelineAsyncRunner to eliminate gateway timeouts |
-| **Subscription Tier Gating** | 5-tier access model (DEMO/FREE_PENDING/FREE/SUBSCRIBER/ENTERPRISE) with Stripe Billing, usage metering, and feature-level gating |
+| **Subscription Tier Gating** | 5-tier access model (DEMO/FREE_PENDING/FREE/SUBSCRIBER/ENTERPRISE) with Stripe Billing, credit-weighted AI Search throttling (100 credits/month SUBSCRIBER, 2,000 credits/month ENTERPRISE), usage metering, and feature-level gating |
 | **SAML2 Enterprise SSO** | Multi-tenant SAML2 Service Provider with per-customer IdP registry, JIT user provisioning, admin CRUD UI, and dual auth (form login + SAML coexist) |
 | **Role-Based Access Control** | Spring Security with ADMIN/USER roles, session-based auth, and per-page authorization |
 | **Hexagonal Architecture** | Framework-free domain layer with pluggable adapters — swap AI providers or databases with zero domain changes |
@@ -54,16 +54,17 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **SEO & Social** | Sitemap index with 6 real-lastmod child sitemaps (pages, wiki, directory, legislation, trends, insights), robots.txt, Open Graph meta tags; public `/trends/{date}` pages with bar chart + Analysis boxes + subscribe CTA — indexed by Google, no login required; per-page `<title>` + `metaDescription` on wiki, legislation, and company detail pages; JSON-LD structured data (Organization + WebSite on home, Legislation schema on law detail pages, paywall schema on wiki detail); 404 on missing slugs; branded 404 error page; `/insights/` public hub page linking to all insight articles |
 | **Weekly Intel Roundup** | Saturday weekly roundup generator — fetches 7-day LEGAL + COMPETITOR articles, deduplicates, caps at 10, generates LinkedIn post (body + first comment), Substack markdown article, and standalone infographic HTML with Playwright screenshot |
 | **LinkedIn/Facebook/Substack Post Library** | Structured post archive with per-topic txt files (LinkedIn body + first comment + Facebook + Substack + posting instructions), Playwright-generated screenshots, and character-count validation — covers regulatory, legislation, market, and AI paradox angles |
-| **92-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, enterprise data console, LinkedIn feature post rotation, combined social post generator + draft editor, weekly intel roundup, SSO provider management, and public insights hub |
+| **93-Page Thymeleaf UI** | Dashboard, wiki, research, newsletter editor, admin panel, search, pricing, trends, regulatory, legislation, watchlist, sentiment, frameworks, deals, market enrichment, company pages, public company directory, enterprise data console, LinkedIn feature post rotation, combined social post generator + draft editor, weekly intel roundup, SSO provider management, and public insights hub |
 | **Anti-Slop Content Pipeline** | 3-stage Extract→Write→Check pipeline enforcing house-style rules on AI-generated summaries: Stage 1 extracts structured JSON from articles (writer never sees raw sources), Stage 2 writes prose from the extraction, Stage 3 runs SlopLinter (9 rules: banned-phrase, uncited-claim, bad-citation BLOCK; too-much-bold, bullet-heavy, filler-opener, reflexive-triplet, em-dash-heavy, restating-conclusion WARN). Wiki pages are lint-checked post-generation via W-SLOP gate; BLOCK findings surfaced in CompilationReport.warnings(). Topic summaries now run through the full pipeline — new summaries show a green "✓ Linted · score/100" badge; legacy summaries show a "legacy" badge. Prompt files live-reload from `prompts/` with no restart. Admin report triggers at `/admin/pipelines` |
 | **Social Post Draft Editing** | "Your Take" textarea on the social post generator prepends the user's own voice to both LinkedIn and Facebook posts. LinkedIn posts end with a reader question for comment engagement. "Save as Drafts" saves generated posts to DB; `/dashboard/social/drafts` lists all drafts; each draft opens in a TinyMCE WYSIWYG editor for full editing before posting. Drafts are marked POSTED/ARCHIVED after publishing. Each AI Search synthesis card now has a **"Save as Draft ↗"** button that saves the synthesis directly to the draft queue. |
-| **3,057 Automated Tests** | Comprehensive test suite across 365 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **Company Outreach CRM** | Admin-only CRM at `/admin/outreach` — tracks employment and subscription outreach by company slug (one row per company per purpose), with inline status/notes editing, contactedAt auto-stamp, and a separate 1-to-many contacts table (name, job title, email, LinkedIn URL, source, status) for storing LinkedIn employees and other contacts |
+| **3,096 Automated Tests** | Comprehensive test suite across 370 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 21, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 107 domain model records, 119 port interfaces, and 104 controllers across 899 Java classes — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **3,020 automated tests** across 360 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **3,096 automated tests** across 370 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
@@ -95,10 +96,10 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 - Built a **staged research pipeline** with AI-planned query decomposition, multi-source retrieval (Perplexity API + PostgreSQL), citation assembly, and synthesized research answers persisted for audit trail
 
 **SaaS & Monetization**
-- Implemented **5-tier subscription model** (DEMO/FREE_PENDING/FREE/SUBSCRIBER/ENTERPRISE) with **Stripe Billing** integration (SDK 28.2.0), Checkout sessions, customer portal, webhook signature verification, and per-feature usage metering
+- Implemented **5-tier subscription model** (DEMO/FREE_PENDING/FREE/SUBSCRIBER/ENTERPRISE) with **Stripe Billing** integration (SDK 28.2.0), Checkout sessions, customer portal, webhook signature verification, per-feature usage metering, and credit-weighted AI Search throttling (Deep Research = 10 credits, Claude/GPT/Gemini = 3 credits, Perplexity = 1 credit; SUBSCRIBER = 100 credits/month, ENTERPRISE = 2,000 credits/month)
 - Built **Enterprise Data Access** platform with async job-based data export, LLM query planning, HMAC-SHA256 signed download links, per-customer cron push schedules with atomic claim-based delivery, IP-pinned SSRF-safe remote HTTPS connector, confined file I/O, full audit trail, and systemd-hardened deployment
 - Built **Spring Security 6** session-based authentication with ADMIN/USER roles, BCrypt password hashing, **SAML2 SSO** (multi-tenant IdP registry with JIT provisioning), tier-based feature gating, X-API-Key header authentication, and webhook channel notifications for REST endpoints
-- Delivered **91-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
+- Delivered **93-page Thymeleaf + Tailwind CSS UI** with Chart.js visualizations, responsive dashboard, Swagger UI API documentation, and branded error pages
 
 **Performance Engineering & Load Testing**
 - Eliminated a critical **N+1 query problem** on the wiki index page (1,299 DB queries/request → 1), confirmed by k6 load testing that revealed 2% pass rate for `/wiki` under 50 concurrent VUs
@@ -334,7 +335,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Security Testing | spring-security-test (@WithMockUser) | — |
 | Web Testing | MockMvc (@WebMvcTest slices) | — |
 | Persistence Testing | @DataJpaTest (H2 in-memory) | — |
-| Coverage | 3,020 tests across 360 test classes | — |
+| Coverage | 3,061 tests across 365 test classes | — |
 
 ### Infrastructure & DevOps
 | Component | Technology | Version |
@@ -665,7 +666,7 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 |---------|------|------|---------------------|------------|
 | Newsletter content | Full newsletter | Digest summary | Full newsletter | Full newsletter |
 | Article archive | Unlimited | 7 days | Unlimited | Unlimited |
-| AI research queries | 200/month | 15/month | 200/month | Unlimited |
+| AI Search credits | 15/month | 15/month | 100/month | 2,000/month |
 | Semantic search | Yes | No | Yes | Yes |
 | Multi-model AI search | Yes | Limited | Yes | Yes |
 | New AI Healthcare Companies | Yes | No | Yes | Yes |
@@ -722,7 +723,7 @@ aihealthcare:
 
 ## Testing
 
-3,020 tests across 360 test classes — all pass with no live AI or network calls.
+3,061 tests across 365 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
