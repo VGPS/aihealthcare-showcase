@@ -132,11 +132,13 @@ class OutreachControllerTest {
     void companyDetail_returns200WithSlugAndContacts() throws Exception {
         when(outreachUseCase.listOutreachBySlug("microsoft")).thenReturn(List.of(outreachRow()));
         when(outreachUseCase.listContacts("microsoft")).thenReturn(List.of(contact()));
+        when(companyPort.findBySlug("microsoft")).thenReturn(java.util.Optional.of(company()));
 
         mockMvc.perform(get("/admin/outreach/microsoft"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("outreach-company"))
                 .andExpect(model().attribute("slug", "microsoft"))
+                .andExpect(model().attribute("companyName", "Microsoft Health"))
                 .andExpect(model().attributeExists("contacts"));
     }
 

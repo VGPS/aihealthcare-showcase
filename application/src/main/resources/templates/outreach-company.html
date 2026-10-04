@@ -40,7 +40,9 @@
 
     <!-- ── Outreach rows ── -->
     <section>
-        <h2 class="text-lg font-semibold text-gray-800 mb-3">Outreach Records</h2>
+        <h2 class="text-lg font-semibold text-gray-800 mb-3">
+            Outreach Records for <span th:text="${companyName}" class="text-primary-700"></span>
+        </h2>
 
         <div th:if="${outreachRows.isEmpty()}" class="text-sm text-gray-400 italic">No outreach rows for this company yet.</div>
 

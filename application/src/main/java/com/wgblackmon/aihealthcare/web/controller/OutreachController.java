@@ -128,7 +128,11 @@ public class OutreachController {
         log.debug("companyDetail() | slug={}", slug);
         List<CompanyOutreach> outreachRows = outreachUseCase.listOutreachBySlug(slug);
         List<CompanyContact> contacts = outreachUseCase.listContacts(slug);
+        String companyName = companyPort.findBySlug(slug)
+                .map(HealthcareAiCompany::name)
+                .orElse(slug);
         model.addAttribute("slug", slug);
+        model.addAttribute("companyName", companyName);
         model.addAttribute("outreachRows", outreachRows);
         model.addAttribute("contacts", contacts);
         model.addAttribute("purposes", OutreachPurpose.values());
@@ -136,7 +140,7 @@ public class OutreachController {
         model.addAttribute("contactStatuses", ContactStatus.values());
         model.addAttribute("contactSources", ContactSource.values());
         model.addAttribute("displayFmt", DISPLAY_FMT);
-        log.debug("companyDetail() | return=view:outreach-company");
+        log.debug("companyDetail() | return=view:outreach-company, companyName={}", companyName);
         return "outreach-company";
     }
 
