@@ -108,6 +108,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | SSO-1 | SAML2 Enterprise SSO — multi-tenant IdP registry, JIT provisioning, admin CRUD, dual auth | 1509+ |
 | — | Combined LinkedIn + Facebook Social Post Generator — tier-gated, market-digest-sourced | 1509+ |
 | — | Deal Signal Staleness Fix — 30-day scan window, keyword fallback, standalone 6-hour cron | 1509+ |
+| — | Company Outreach CRM — employment/subscription outreach tracking, 1-to-many contacts, datalist combo box with live contact preview, inline Register to Directory form | 3,105 |
 
 ---
 
@@ -257,6 +258,8 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /admin/sso/new` | `SsoAdminController` | `sso-provider-form.html` — create new IdP configuration |
 | `GET /admin/sso/{id}/edit` | `SsoAdminController` | `sso-provider-form.html` — edit IdP configuration |
 | `GET /admin/pipelines` | `PipelineManagementController` | `admin-pipelines.html` — manual pipeline triggers |
+| `GET /admin/outreach` | `OutreachController` | `outreach.html` — outreach CRM list with datalist combo box add form + live contact preview |
+| `GET /admin/outreach/{slug}` | `OutreachController` | `outreach-company.html` — company detail: outreach rows, contacts, inline status/notes editing, Register to Directory form when company not in directory |
 | `GET /dashboard/social` | `MarketSocialPostController` | `social-post.html` — combined LinkedIn + Facebook post generator |
 | `GET /profile` | `ProfileController` | `profile.html` — subscriber self-service |
 | `GET /register` | `RegistrationController` | `register.html` — self-registration for DEMO users |
@@ -299,6 +302,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | GET/GET/GET/POST | `/api/v1/legislation/state-laws`, `/api/v1/legislation/state-laws/{id}`, `/api/v1/legislation/state-laws/upcoming`, `/api/v1/legislation/refresh` | `StateLawRestController` |
 | GET/GET/POST | `/api/v1/sentiment`, `/api/v1/sentiment/{slug}`, `/api/v1/sentiment/analyze` | `SentimentRestController` |
 | GET/GET/POST | `/api/v1/frameworks`, `/api/v1/frameworks/{slug}`, `/api/v1/frameworks/analyze` | `FrameworkRestController` |
+| GET/POST/POST/POST/POST/POST/POST | `/admin/outreach/contacts-json`, `/admin/outreach/add`, `/admin/outreach/{id}/status`, `/admin/outreach/{id}/notes`, `/admin/outreach/{id}/delete`, `/admin/outreach/{slug}/contacts/add`, `/admin/outreach/{slug}/register-company` | `OutreachController` |
 
 ---
 
@@ -352,6 +356,8 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `company_sentiments` | `CompanySentimentEntity` | companySlug PK, overallScore, JSON-serialized article sentiments |
 | `framework_analyses` | `FrameworkAnalysisEntity` | companySlug PK, JSON-serialized dimensions/strengths/weaknesses |
 | `deal_signals` | `DealSignalEntity` | signalId PK, signalType, companyName, dealAmount, counterpartyName, llmAnalysis |
+| `company_outreach` | `CompanyOutreachEntity` | id BIGSERIAL PK, slug, purpose, status, contactedAt, notes, unique(slug, purpose) |
+| `company_contacts` | `CompanyContactEntity` | id BIGSERIAL PK, slug FK (company slug), fullName, jobTitle, email, linkedinUrl, source, status, notes |
 
 ---
 
