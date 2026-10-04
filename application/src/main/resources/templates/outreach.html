@@ -56,9 +56,6 @@
                 <datalist id="company-datalist">
                     <option th:each="c : ${companies}" th:value="${c.name()}"></option>
                 </datalist>
-                <p id="slug-display" class="text-xs text-gray-400 mt-0.5 hidden">
-                    slug: <span id="slug-display-val" class="font-mono"></span>
-                </p>
             </div>
 
             <div class="flex flex-col gap-1">
@@ -93,8 +90,6 @@
     (function () {
         const searchInput  = document.getElementById('company-search');
         const slugHidden   = document.getElementById('slug-hidden');
-        const slugDisplay  = document.getElementById('slug-display');
-        const slugVal      = document.getElementById('slug-display-val');
         const preview      = document.getElementById('contact-preview');
         const previewName  = document.getElementById('preview-company-name');
         const previewBody  = document.getElementById('contact-preview-body');
@@ -107,8 +102,6 @@
 
         function setSlug(slug) {
             slugHidden.value = slug;
-            slugVal.textContent = slug;
-            slugDisplay.classList.toggle('hidden', !slug);
         }
 
         function renderContacts(contacts) {
