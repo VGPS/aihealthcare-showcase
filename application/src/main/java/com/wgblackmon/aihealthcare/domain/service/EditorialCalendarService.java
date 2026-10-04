@@ -93,6 +93,14 @@ public class EditorialCalendarService implements ManageEditorialCalendarUseCase 
     }
 
     @Override
+    public List<EditorialItem> getBySeries(String series) {
+        log.log(System.Logger.Level.DEBUG, () -> "getBySeries() | series=" + series);
+        List<EditorialItem> result = editorialCalendarPort.findBySeries(series);
+        log.log(System.Logger.Level.DEBUG, () -> "getBySeries() | return=" + result.size());
+        return result;
+    }
+
+    @Override
     public EditorialItem advanceStatus(String id) {
         log.log(System.Logger.Level.DEBUG, () -> "advanceStatus() | id=" + id);
         EditorialItem item = editorialCalendarPort.findById(id)

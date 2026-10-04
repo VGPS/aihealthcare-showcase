@@ -15,10 +15,13 @@ import java.util.List;
  * topics (credit scores, 401k basics, BNPL, student loans) are out of scope
  * and were intentionally excluded from the seed dataset.
  *
+ * <p>The optional {@code series} field groups related multi-part articles
+ * (e.g. {@code "the-fault-lines-of-clinical-ai"}).
+ *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-01
- * @updated 2026-10-01
+ * @updated 2026-10-03
  */
 public record EditorialItem(
         String id,
@@ -36,7 +39,8 @@ public record EditorialItem(
         EditorialStatus status,
         LocalDate lastVerified,
         List<String> audiences,
-        List<EditorialSource> primarySources) {
+        List<EditorialSource> primarySources,
+        String series) {
 
     public EditorialItem {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("id must not be blank");

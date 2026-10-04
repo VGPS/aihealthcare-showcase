@@ -85,7 +85,7 @@ class EditorialCalendarControllerTest {
                 LocalDate.of(2026, 11, 23), LocalDate.of(2026, 11, 27),
                 LocalDate.of(2026, 11, 24), "CTA",
                 EditorialStatus.PLANNED, LocalDate.of(2026, 10, 1),
-                List.of(), List.of());
+                List.of(), List.of(), null);
         when(editorialUseCase.getQueue()).thenReturn(List.of(p0Item, p1Item));
         when(editorialUseCase.getNext()).thenReturn(Optional.empty());
 
@@ -102,7 +102,7 @@ class EditorialCalendarControllerTest {
                 EditorialPriority.P0, EditorialEffort.M, "explainer",
                 LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 9),
                 LocalDate.of(2026, 10, 6), "CTA",
-                EditorialStatus.RESEARCHING, LocalDate.of(2026, 10, 1), List.of(), List.of());
+                EditorialStatus.RESEARCHING, LocalDate.of(2026, 10, 1), List.of(), List.of(), null);
         when(editorialUseCase.advanceStatus(anyString()))
                 .thenReturn(advanced);
 
@@ -129,6 +129,6 @@ class EditorialCalendarControllerTest {
                 LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 9),
                 LocalDate.of(2026, 10, 6), "CTA",
                 EditorialStatus.PLANNED, LocalDate.of(2026, 10, 1),
-                List.of("healthcare-compliance"), List.of());
+                List.of("healthcare-compliance"), List.of(), null);
     }
 }

@@ -329,5 +329,165 @@
         "sourceType": "government"
       }
     ]
+  },
+  {
+    "id": "prior-auth-ai-arms-race-billion-dollar-war",
+    "title": "The Bot-vs-Bot Battlefield: Inside the $1 Billion Prior-Authorization AI War",
+    "hook": "Hospitals deploy AI to claim revenue; insurers deploy algorithms to deny care. Between them lies a $1 billion cost surge and patients in limbo.",
+    "theme": "HEALTHCARE_OPERATIONS",
+    "demandSignal": "HOT",
+    "priorityTier": "P0",
+    "effort": "L",
+    "format": "investigative_feature",
+    "publishWindowStart": "2026-10-12",
+    "publishWindowEnd": "2026-10-16",
+    "preferredDate": "2026-10-14",
+    "cta": "Download the AI Prior-Authorization Audit & Human-in-the-Loop Protocol",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-03",
+    "series": "the-fault-lines-of-clinical-ai",
+    "audiences": ["hospital-cfos", "clinical-operators", "revenue-cycle-teams", "patient-advocates"],
+    "primarySources": [
+      {
+        "url": "https://www.nytimes.com/2026/09/24/business/ai-hospitals-insurers-health-care-costs.html",
+        "label": "New York Times report on hospital vs. insurer AI costs",
+        "sourceType": "industry_analysis"
+      },
+      {
+        "url": "https://www.eff.org/deeplinks/2026/09/new-records-reveal-problems-medicares-ai-prior-authorization-experiment",
+        "label": "EFF investigation into Medicare WISeR AI model",
+        "sourceType": "nonprofit_analysis"
+      },
+      {
+        "url": "https://www.vox.com/good-medicine-newsletter/503932/ai-health-insurance-united-medicare-cigna-humana",
+        "label": "Vox investigation on algorithmic care denials in Medicare Advantage",
+        "sourceType": "industry_analysis"
+      }
+    ]
+  },
+  {
+    "id": "ambient-ai-scribes-wiretapping-hallucination-risks",
+    "title": "The Scribe in the Exam Room: Wiretapping Class Actions, Hallucinations, and Clinical Trust",
+    "hook": "Ambient AI scribes promise to eliminate physician pajama time, but wiretapping claims and silent note hallucinations are testing the legal boundaries of the exam room.",
+    "theme": "HEALTHCARE_GOVERNANCE",
+    "demandSignal": "HOT",
+    "priorityTier": "P0",
+    "effort": "L",
+    "format": "clinical_safety_brief",
+    "publishWindowStart": "2026-10-26",
+    "publishWindowEnd": "2026-10-30",
+    "preferredDate": "2026-10-28",
+    "cta": "Use the Ambient Scribe Informed-Consent & Note-Verification Checklist",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-03",
+    "series": "the-fault-lines-of-clinical-ai",
+    "audiences": ["cmios", "practice-managers", "compliance-officers", "ambulatory-physicians"],
+    "primarySources": [
+      {
+        "url": "https://www.reuters.com/legal/litigation/health-care-ambient-scribes-offer-promise-create-new-legal-frontiers--pracin-2026-01-23/",
+        "label": "Reuters analysis on ambient scribe litigation and wiretapping risks",
+        "sourceType": "industry_analysis"
+      },
+      {
+        "url": "https://sph.emory.edu/news/new-study-finds-nearly-two-thirds-us-hospitals-using-epic-have-adopted-ambient-ai-disparities",
+        "label": "Emory University ambient AI adoption study across Epic hospitals",
+        "sourceType": "university"
+      },
+      {
+        "url": "https://americanbazaaronline.com/2026/06/19/the-ambient-ai-scribe-illusion-doctors-need-to-pay-attention-483125/",
+        "label": "Clinical evaluation of ambient AI scribe hallucination rates",
+        "sourceType": "industry_analysis"
+      }
+    ]
+  },
+  {
+    "id": "patient-genetic-data-harvesting-healthcare-ma",
+    "title": "Did Your DNA Train Their AI? The Corporate Scramble for Patient Genetic Repositories",
+    "hook": "When health-tech firms acquire genetics databases, do patient records become proprietary model-training fuel? Lawsuits against Tempus AI are forcing a reckoning.",
+    "theme": "HEALTHCARE_GOVERNANCE",
+    "demandSignal": "STEADY",
+    "priorityTier": "P1",
+    "effort": "M",
+    "format": "legal_privacy_deep_dive",
+    "publishWindowStart": "2026-11-09",
+    "publishWindowEnd": "2026-11-13",
+    "preferredDate": "2026-11-11",
+    "cta": "Download the M&A Clinical Data Rights & BAA Training-Clause Checklist",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-03",
+    "series": "the-fault-lines-of-clinical-ai",
+    "audiences": ["health-system-legal-counsel", "privacy-officers", "data-architects", "health-tech-engineers"],
+    "primarySources": [
+      {
+        "url": "https://www.hipaajournal.com/tempus-ai-class-action-alawsuit-genetic-data-disclosures/",
+        "label": "HIPAA Journal report on Tempus AI genetic data class action",
+        "sourceType": "industry_analysis"
+      },
+      {
+        "url": "https://witness.ai/blog/ai-and-patient-privacy/",
+        "label": "Witness AI analysis on patient privacy and LLM re-identification risks",
+        "sourceType": "industry_technical"
+      }
+    ]
+  },
+  {
+    "id": "fda-510k-ai-medical-device-demographic-blind-spot",
+    "title": "The 510(k) Blind Spot: Why FDA-Cleared AI Can Skip Clinical Demographics",
+    "hook": "Fewer than one-third of 900+ FDA-authorized AI devices reported sex-specific performance data. Inside the regulatory loophole threatening clinical equity.",
+    "theme": "HEALTHCARE_GOVERNANCE",
+    "demandSignal": "STEADY",
+    "priorityTier": "P1",
+    "effort": "L",
+    "format": "regulatory_investigation",
+    "publishWindowStart": "2026-11-23",
+    "publishWindowEnd": "2026-11-27",
+    "preferredDate": "2026-11-25",
+    "cta": "Download the Medical Device Demographic-Validation & Bias Assessment Canvas",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-03",
+    "series": "the-fault-lines-of-clinical-ai",
+    "audiences": ["medical-device-pms", "regulatory-affairs", "clinical-researchers", "health-equity-leaders"],
+    "primarySources": [
+      {
+        "url": "https://www.techtimes.com/articles/327719/20260918/fdas-ai-device-rules-let-healthcare-diagnostics-skip-female-validation.htm",
+        "label": "TechTimes analysis of JAMA cross-sectional review on FDA AI device demographics",
+        "sourceType": "industry_analysis"
+      },
+      {
+        "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/marketing-submission-recommendations-predetermined-change-control-plan-artificial-intelligence",
+        "label": "FDA Predetermined Change Control Plan guidance",
+        "sourceType": "government"
+      }
+    ]
+  },
+  {
+    "id": "patient-medical-chatbot-malpractice-liability",
+    "title": "When the Patient Consults the Bot: The Unsettled Map of Healthcare Chatbot Malpractice",
+    "hook": "Patients are treating AI as a second opinion, but when advice leads to delayed care or harm, who is liable? Why terms-of-service disclaimers won't protect providers or vendors.",
+    "theme": "AI_HEALTH_FINANCES",
+    "demandSignal": "STEADY",
+    "priorityTier": "P1",
+    "effort": "M",
+    "format": "medical_legal_guide",
+    "publishWindowStart": "2026-12-07",
+    "publishWindowEnd": "2026-12-11",
+    "preferredDate": "2026-12-09",
+    "cta": "Download the Provider Guide to Responding to Patient AI Self-Diagnostics",
+    "status": "PLANNED",
+    "lastVerified": "2026-10-03",
+    "series": "the-fault-lines-of-clinical-ai",
+    "audiences": ["practicing-physicians", "risk-management-teams", "healthcare-product-designers", "patient-advocates"],
+    "primarySources": [
+      {
+        "url": "https://medcitynews.com/2026/07/ai-chatbot-healthcare-law/",
+        "label": "MedCity News analysis on patient AI trust and healthcare liability",
+        "sourceType": "industry_analysis"
+      },
+      {
+        "url": "https://www.ncbi.nlm.nih.gov/books/NBK613216/",
+        "label": "NCBI overview of liability for artificial intelligence in medicine",
+        "sourceType": "government"
+      }
+    ]
   }
 ]

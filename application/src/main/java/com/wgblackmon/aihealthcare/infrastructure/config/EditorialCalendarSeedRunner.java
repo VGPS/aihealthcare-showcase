@@ -123,9 +123,11 @@ public class EditorialCalendarSeedRunner implements ApplicationRunner {
                     .toList();
         }
 
+        String series = (String) row.get("series");
+
         return new EditorialItem(id, title, hook, theme, demandSignal, priorityTier, effort,
                 format, publishWindowStart, publishWindowEnd, preferredDate, cta,
-                status, lastVerified, audiences, sources);
+                status, lastVerified, audiences, sources, series);
     }
 
     private LocalDate parseDate(Object value) {

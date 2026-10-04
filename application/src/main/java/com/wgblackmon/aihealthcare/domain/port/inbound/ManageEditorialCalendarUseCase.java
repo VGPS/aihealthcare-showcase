@@ -50,4 +50,7 @@ public interface ManageEditorialCalendarUseCase {
      * @throws IllegalArgumentException if the id does not exist
      */
     EditorialItem advanceStatus(String id);
+
+    /** Returns all items belonging to a named series, ordered by preferred date. */
+    List<EditorialItem> getBySeries(String series);
 }

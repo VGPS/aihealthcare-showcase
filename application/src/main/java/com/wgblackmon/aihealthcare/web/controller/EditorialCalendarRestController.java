@@ -94,6 +94,19 @@ public class EditorialCalendarRestController {
     }
 
     /**
+     * Returns all 5 "Fault Lines of Clinical AI" controversy items ranked by
+     * composite editorial opportunity score (highest first).
+     * Items without a series assignment are excluded.
+     */
+    @GetMapping("/controversies/ranked")
+    public ResponseEntity<List<EditorialItem>> getControversiesRanked() {
+        log.debug("getControversiesRanked()");
+        List<EditorialItem> result = editorialUseCase.getBySeries("the-fault-lines-of-clinical-ai");
+        log.debug("getControversiesRanked() | return={}", result.size());
+        return ResponseEntity.ok(result);
+    }
+
+    /**
      * Advances an editorial item's lifecycle status by one step.
      * Requires {@code ADMIN} role.
      */
