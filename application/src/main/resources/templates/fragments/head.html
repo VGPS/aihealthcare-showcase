@@ -58,8 +58,9 @@
     <meta th:if="${robotsDirective != null}" name="robots" th:content="${robotsDirective}"/>
 
     <!-- CSRF meta tags — read by htmx-csrf.js to attach the token to HTMX requests -->
-    <meta name="_csrf"        th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <!-- th:if guards prevent null-dereference when Spring forwards to /error without a CSRF context -->
+    <meta th:if="${_csrf != null}" name="_csrf"        th:content="${_csrf.token}"/>
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}"/>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
