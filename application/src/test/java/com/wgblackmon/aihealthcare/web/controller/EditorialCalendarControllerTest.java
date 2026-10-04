@@ -6,7 +6,11 @@ import com.wgblackmon.aihealthcare.domain.model.EditorialItem;
 import com.wgblackmon.aihealthcare.domain.model.EditorialPriority;
 import com.wgblackmon.aihealthcare.domain.model.EditorialStatus;
 import com.wgblackmon.aihealthcare.domain.model.EditorialTheme;
+import com.wgblackmon.aihealthcare.domain.model.SavedPost;
+import com.wgblackmon.aihealthcare.domain.model.SavedPostStatus;
+import com.wgblackmon.aihealthcare.domain.model.SocialPlatform;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageEditorialCalendarUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.ManageSavedPostsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +19,16 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -46,6 +55,9 @@ class EditorialCalendarControllerTest {
 
     @MockitoBean
     private ManageEditorialCalendarUseCase editorialUseCase;
+
+    @MockitoBean
+    private ManageSavedPostsUseCase savedPostsUseCase;
 
     @MockitoBean
     private ApiKeyPort apiKeyPort;
@@ -117,6 +129,24 @@ class EditorialCalendarControllerTest {
     void queue_unauthenticated_returns401() throws Exception {
         mockMvc.perform(get("/admin/editorial"))
                 .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void generatePost_createsLinkedInAndFacebookDraftsAndRedirects() throws Exception {
+        EditorialItem item = createItem("texas-traiga");
+        when(editorialUseCase.getById("texas-traiga")).thenReturn(Optional.of(item));
+        SavedPost stub = new SavedPost("pid", SocialPlatform.LINKEDIN, "2026-10-06",
+                "body", null, "", SavedPostStatus.DRAFT, Instant.now(), Instant.now(), null);
+        when(savedPostsUseCase.save(any(), anyString(), anyString(), isNull(), eq("")))
+                .thenReturn(stub);
+
+        mockMvc.perform(post("/admin/editorial/texas-traiga/generate-post").with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/dashboard/social/drafts"));
+
+        verify(savedPostsUseCase, times(2)).save(any(SocialPlatform.class),
+                eq("2026-10-06"), anyString(), isNull(), eq(""));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
