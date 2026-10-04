@@ -137,6 +137,6 @@ class EditorialCalendarServiceTest {
                 status,
                 LocalDate.of(2026, 10, 1),
                 List.of("healthcare-compliance"),
-                List.of());
+                List.of(), null);
     }
 }

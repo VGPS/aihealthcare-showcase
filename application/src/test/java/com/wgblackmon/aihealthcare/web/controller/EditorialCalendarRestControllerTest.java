@@ -108,7 +108,7 @@ class EditorialCalendarRestControllerTest {
                 LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 9),
                 LocalDate.of(2026, 10, 6), "CTA",
                 EditorialStatus.RESEARCHING,
-                LocalDate.of(2026, 10, 1), List.of(), List.of());
+                LocalDate.of(2026, 10, 1), List.of(), List.of(), null);
         when(editorialUseCase.advanceStatus("texas-traiga")).thenReturn(updated);
 
         mockMvc.perform(post("/api/v1/editorial/texas-traiga/status").with(csrf()))
@@ -129,6 +129,28 @@ class EditorialCalendarRestControllerTest {
                 LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 9),
                 LocalDate.of(2026, 10, 6), "Download the checklist",
                 EditorialStatus.PLANNED,
-                LocalDate.of(2026, 10, 1), List.of("healthcare-compliance"), List.of());
+                LocalDate.of(2026, 10, 1), List.of("healthcare-compliance"), List.of(), null);
+    }
+
+    @Test
+    @WithMockUser
+    void getControversiesRanked_returnsFaultLinesItems() throws Exception {
+        EditorialItem controversy = new EditorialItem(
+                "prior-auth-ai-arms-race-billion-dollar-war", "The Bot-vs-Bot Battlefield", "hook",
+                EditorialTheme.HEALTHCARE_OPERATIONS, EditorialDemandSignal.HOT,
+                EditorialPriority.P0, EditorialEffort.L, "investigative_feature",
+                LocalDate.of(2026, 10, 12), LocalDate.of(2026, 10, 16),
+                LocalDate.of(2026, 10, 14), "Download the protocol",
+                EditorialStatus.PLANNED, LocalDate.of(2026, 10, 3),
+                List.of(), List.of(), "the-fault-lines-of-clinical-ai");
+        when(editorialUseCase.getBySeries("the-fault-lines-of-clinical-ai"))
+                .thenReturn(List.of(controversy));
+
+        mockMvc.perform(get("/api/v1/editorial/controversies/ranked"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("prior-auth-ai-arms-race-billion-dollar-war"))
+                .andExpect(jsonPath("$[0].series").value("the-fault-lines-of-clinical-ai"));
+
+        verify(editorialUseCase).getBySeries("the-fault-lines-of-clinical-ai");
     }
 }
