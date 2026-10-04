@@ -119,6 +119,17 @@ public class EditorialCalendarItemAdapter implements EditorialCalendarPort {
         return result;
     }
 
+    @Override
+    public List<EditorialItem> findBySeries(String series) {
+        log.debug("findBySeries() | series={}", series);
+        List<EditorialItem> result = repository.findBySeriesOrderByPreferredDateAsc(series)
+                .stream()
+                .map(this::toDomain)
+                .toList();
+        log.debug("findBySeries() | return={}", result.size());
+        return result;
+    }
+
     // ── Mapping ───────────────────────────────────────────────────────────────
 
     private EditorialCalendarItemEntity toEntity(EditorialItem item) {
@@ -139,6 +150,7 @@ public class EditorialCalendarItemAdapter implements EditorialCalendarPort {
         e.setLastVerified(item.lastVerified());
         e.setAudiences(item.audiences().isEmpty() ? null : String.join(PIPE, item.audiences()));
         e.setPrimarySourcesJson(serializeSources(item.primarySources()));
+        e.setSeries(item.series());
         return e;
     }
 
@@ -162,7 +174,8 @@ public class EditorialCalendarItemAdapter implements EditorialCalendarPort {
                 EditorialStatus.valueOf(e.getStatus()),
                 e.getLastVerified(),
                 audiences,
-                deserializeSources(e.getPrimarySourcesJson()));
+                deserializeSources(e.getPrimarySourcesJson()),
+                e.getSeries());
     }
 
     private String serializeSources(List<EditorialSource> sources) {

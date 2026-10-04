@@ -40,4 +40,7 @@ public interface EditorialCalendarPort {
      * {@code priority_tier ASC}, then {@code preferred_date ASC}.
      */
     Optional<EditorialItem> findNext();
+
+    /** Returns all items belonging to the given series slug, ordered by preferred date. */
+    List<EditorialItem> findBySeries(String series);
 }

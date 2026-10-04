@@ -26,4 +26,6 @@ public interface EditorialCalendarItemRepository
     List<EditorialCalendarItemEntity> findByPriorityTierOrderByPreferredDateAsc(String priorityTier);
 
     Optional<EditorialCalendarItemEntity> findFirstByStatusOrderByPriorityTierAscPreferredDateAsc(String status);
+
+    List<EditorialCalendarItemEntity> findBySeriesOrderByPreferredDateAsc(String series);
 }

@@ -80,6 +80,9 @@ public class EditorialCalendarItemEntity {
     @Column(name = "primary_sources_json", columnDefinition = "TEXT")
     private String primarySourcesJson;
 
+    @Column(name = "series", length = 128)
+    private String series;
+
     protected EditorialCalendarItemEntity() {}
 
     public String getId() { return id; }
@@ -129,4 +132,7 @@ public class EditorialCalendarItemEntity {
 
     public String getPrimarySourcesJson() { return primarySourcesJson; }
     public void setPrimarySourcesJson(String primarySourcesJson) { this.primarySourcesJson = primarySourcesJson; }
+
+    public String getSeries() { return series; }
+    public void setSeries(String series) { this.series = series; }
 }
