@@ -178,6 +178,18 @@ class OutreachControllerTest {
     }
 
     @Test
+    void registerCompany_redirectsToCompanyPage() throws Exception {
+        mockMvc.perform(post("/admin/outreach/new-co/register-company").with(csrf())
+                        .param("name", "New Company")
+                        .param("domain", "newco.com")
+                        .param("description", "A test company"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/outreach/new-co"));
+
+        verify(companyPort).save(any(HealthcareAiCompany.class));
+    }
+
+    @Test
     void deleteContact_redirectsToCompanyPage() throws Exception {
         mockMvc.perform(post("/admin/outreach/contacts/5/delete").with(csrf())
                         .param("slug", "microsoft"))

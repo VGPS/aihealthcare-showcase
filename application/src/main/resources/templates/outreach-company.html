@@ -38,6 +38,36 @@
     <div th:if="${errorMsg}" class="bg-red-50 border-l-4 border-red-500 text-red-800 text-sm p-3 rounded"
          th:text="${errorMsg}"></div>
 
+    <!-- ── Not in directory notice ── -->
+    <div th:if="${!companyFound}"
+         class="bg-amber-50 border border-amber-200 rounded-lg p-5">
+        <p class="text-sm font-medium text-amber-800 mb-3">
+            This company is not yet in the directory. Register it to enable signal scoring, sentiment analysis, and framework comparisons.
+        </p>
+        <form th:action="@{/admin/outreach/{slug}/register-company(slug=${slug})}" method="post"
+              class="flex flex-wrap gap-3 items-end">
+            <div class="flex flex-col gap-1 flex-1 min-w-48">
+                <label class="text-xs font-medium text-amber-700">Company Name *</label>
+                <input type="text" name="name" required placeholder="e.g. Tempus AI"
+                       class="border border-amber-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"/>
+            </div>
+            <div class="flex flex-col gap-1 flex-1 min-w-48">
+                <label class="text-xs font-medium text-amber-700">Website Domain</label>
+                <input type="text" name="domain" placeholder="e.g. tempus.com"
+                       class="border border-amber-300 rounded px-3 py-2 text-sm focus:outline-none bg-white"/>
+            </div>
+            <div class="flex flex-col gap-1 flex-1 min-w-64">
+                <label class="text-xs font-medium text-amber-700">Description</label>
+                <input type="text" name="description" placeholder="One-line description..."
+                       class="border border-amber-300 rounded px-3 py-2 text-sm focus:outline-none bg-white"/>
+            </div>
+            <button type="submit"
+                    class="bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium px-5 py-2 rounded transition-colors">
+                Add to Directory
+            </button>
+        </form>
+    </div>
+
     <!-- ── Outreach rows ── -->
     <section>
         <h2 class="text-lg font-semibold text-gray-800 mb-3">

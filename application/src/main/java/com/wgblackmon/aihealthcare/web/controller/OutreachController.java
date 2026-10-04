@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
@@ -128,11 +129,11 @@ public class OutreachController {
         log.debug("companyDetail() | slug={}", slug);
         List<CompanyOutreach> outreachRows = outreachUseCase.listOutreachBySlug(slug);
         List<CompanyContact> contacts = outreachUseCase.listContacts(slug);
-        String companyName = companyPort.findBySlug(slug)
-                .map(HealthcareAiCompany::name)
-                .orElse(slug);
+        java.util.Optional<HealthcareAiCompany> found = companyPort.findBySlug(slug);
+        String companyName = found.map(HealthcareAiCompany::name).orElse(slug);
         model.addAttribute("slug", slug);
         model.addAttribute("companyName", companyName);
+        model.addAttribute("companyFound", found.isPresent());
         model.addAttribute("outreachRows", outreachRows);
         model.addAttribute("contacts", contacts);
         model.addAttribute("purposes", OutreachPurpose.values());
@@ -140,8 +141,35 @@ public class OutreachController {
         model.addAttribute("contactStatuses", ContactStatus.values());
         model.addAttribute("contactSources", ContactSource.values());
         model.addAttribute("displayFmt", DISPLAY_FMT);
-        log.debug("companyDetail() | return=view:outreach-company, companyName={}", companyName);
+        log.debug("companyDetail() | return=view:outreach-company, companyFound={}", found.isPresent());
         return "outreach-company";
+    }
+
+    /** Register a company in the directory from the outreach detail page. */
+    @PostMapping("/{slug}/register-company")
+    public String registerCompany(@PathVariable String slug,
+                                  @RequestParam String name,
+                                  @RequestParam(required = false) String domain,
+                                  @RequestParam(required = false) String description,
+                                  RedirectAttributes flash) {
+        log.debug("registerCompany() | slug={}, name={}", slug, name);
+        try {
+            String nameNormalized = name.trim().toLowerCase().replaceAll("[^a-z0-9]+", "-");
+            HealthcareAiCompany company = new HealthcareAiCompany(
+                    slug, name.trim(), nameNormalized,
+                    (domain != null && !domain.isBlank()) ? domain.trim() : null,
+                    (description != null && !description.isBlank()) ? description.trim() : null,
+                    null, null, null, null, null, null, null, null,
+                    java.util.List.of(), false, java.util.List.of(),
+                    Instant.now(), null);
+            companyPort.save(company);
+            flash.addFlashAttribute("successMsg", name + " added to the company directory");
+        } catch (Exception ex) {
+            log.warn("registerCompany() | error: {}", ex.getMessage());
+            flash.addFlashAttribute("errorMsg", "Could not register company: " + ex.getMessage());
+        }
+        log.debug("registerCompany() | return=redirect:/admin/outreach/{}", slug);
+        return "redirect:/admin/outreach/" + slug;
     }
 
     /** Update outreach status. */
