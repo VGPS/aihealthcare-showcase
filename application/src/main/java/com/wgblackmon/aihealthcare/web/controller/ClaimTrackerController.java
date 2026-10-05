@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +34,7 @@ import java.util.stream.Collectors;
  * type is applied before the tier cap.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-10-05
  * @updated 2026-10-05
  */
@@ -41,6 +44,10 @@ import java.util.stream.Collectors;
 public class ClaimTrackerController {
 
     static final int FREE_LIMIT = 5;
+
+    private static final DateTimeFormatter CLAIM_FMT =
+            DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z")
+                             .withZone(ZoneId.of("America/Chicago"));
 
     private final TrackFrontierClaimsUseCase claimsUseCase;
     private final TierResolver tierResolver;
@@ -82,6 +89,11 @@ public class ClaimTrackerController {
                 + verdictCounts.getOrDefault(ClaimVerdict.MARKETING_HYPE, 0L)
                 + verdictCounts.getOrDefault(ClaimVerdict.CONTRADICTED, 0L);
 
+        Map<String, String> claimTimestamps = new HashMap<>();
+        for (FrontierClaim c : claims) {
+            claimTimestamps.put(c.claimId(), CLAIM_FMT.format(c.detectedAt()));
+        }
+
         model.addAttribute("claims", claims);
         model.addAttribute("companies", companies);
         model.addAttribute("verdictCounts", verdictCounts);
@@ -93,6 +105,7 @@ public class ClaimTrackerController {
         model.addAttribute("filterType", type);
         model.addAttribute("fullAccess", fullAccess);
         model.addAttribute("freeLimit", FREE_LIMIT);
+        model.addAttribute("claimTimestamps", claimTimestamps);
         model.addAttribute("activePage", "claims");
 
         log.debug("claimTracker() | return=claim-tracker, claimsShown={}", claims.size());
