@@ -7,7 +7,9 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClaimClassifierPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -26,8 +28,12 @@ import java.util.UUID;
  * <p>Response line format (pipe-delimited):
  * {@code COMPANY|TYPE|VERDICT|CLAIM_TEXT|EVIDENCE_NOTES|SOURCE_URL|ARTICLE_ID}
  *
+ * <p>Both the extraction call and the contradiction-check call use the
+ * {@code aihealthcare.ai.classification-model} (Haiku by default) — neither
+ * task requires frontier-model reasoning depth.
+ *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-10-05
  * @updated 2026-10-05
  */
@@ -41,9 +47,12 @@ public class ClaimClassifierAdapter implements ClaimClassifierPort {
     private final PromptLoaderService promptLoaderService;
 
     public ClaimClassifierAdapter(ChatClient.Builder chatClientBuilder,
-                                   PromptLoaderService promptLoaderService) {
-        log.debug("ClaimClassifierAdapter() | initializing");
-        this.chatClient = chatClientBuilder.build();
+                                   PromptLoaderService promptLoaderService,
+                                   @Value("${aihealthcare.ai.classification-model:claude-haiku-4-5}") String classificationModel) {
+        log.debug("ClaimClassifierAdapter() | classificationModel={}", classificationModel);
+        this.chatClient = chatClientBuilder
+                .defaultOptions(AnthropicChatOptions.builder().model(classificationModel).build())
+                .build();
         this.promptLoaderService = promptLoaderService;
     }
 
@@ -62,6 +71,89 @@ public class ClaimClassifierAdapter implements ClaimClassifierPort {
 
         log.debug("classifyClaims() | return={} claims", allClaims.size());
         return allClaims;
+    }
+
+    @Override
+    public List<FrontierClaim> detectContradictions(List<FrontierClaim> newClaims,
+                                                     List<FrontierClaim> priorClaims) {
+        log.debug("detectContradictions() | newClaims={}, priorClaims={}", newClaims.size(), priorClaims.size());
+
+        String promptTemplate = promptLoaderService.load("claim-contradiction.txt");
+        String newBlock  = buildClaimBlock(newClaims, "NEW");
+        String priorBlock = buildClaimBlock(priorClaims, "PRIOR");
+        String prompt = promptTemplate
+                .replace("{newClaimsBlock}", newBlock)
+                .replace("{priorClaimsBlock}", priorBlock);
+
+        String response;
+        try {
+            response = chatClient.prompt(prompt).call().content();
+        } catch (Exception e) {
+            log.warn("detectContradictions() | LLM call failed: {}, returning new claims unchanged", e.getMessage());
+            return newClaims;
+        }
+
+        List<FrontierClaim> result = applyContradictionResults(response, newClaims);
+        log.debug("detectContradictions() | return={} claims ({} contradictions found)",
+                result.size(), result.stream().filter(c -> c.verdict() == ClaimVerdict.CONTRADICTED).count());
+        return result;
+    }
+
+    private String buildClaimBlock(List<FrontierClaim> claims, String label) {
+        StringBuilder sb = new StringBuilder();
+        for (FrontierClaim c : claims) {
+            sb.append("[").append(label).append("|").append(c.claimId()).append("] ")
+              .append(c.company()).append(" — ").append(c.claimText());
+            if (c.evidenceNotes() != null && !c.evidenceNotes().isBlank()) {
+                sb.append(" (evidence: ").append(c.evidenceNotes()).append(")");
+            }
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+    private List<FrontierClaim> applyContradictionResults(String response, List<FrontierClaim> newClaims) {
+        if (response == null || !response.contains("CONTRADICTION_RESULTS:")) {
+            log.debug("applyContradictionResults() | no CONTRADICTION_RESULTS block, returning unchanged");
+            return newClaims;
+        }
+
+        List<String> contradictedIds = new ArrayList<>();
+        java.util.Map<String, String> contradictionNotes = new java.util.HashMap<>();
+        boolean inBlock = false;
+
+        for (String line : response.split("\n")) {
+            String trimmed = line.trim();
+            if (trimmed.equals("CONTRADICTION_RESULTS:")) { inBlock = true; continue; }
+            if (!inBlock || trimmed.isEmpty() || trimmed.startsWith("CLAIM_ID|")) continue;
+
+            String[] parts = trimmed.split("\\|", -1);
+            if (parts.length >= 2 && "CONTRADICTED".equalsIgnoreCase(parts[1].trim())) {
+                String id = parts[0].trim();
+                contradictedIds.add(id);
+                if (parts.length >= 3) {
+                    contradictionNotes.put(id, parts[2].trim());
+                }
+            }
+        }
+
+        if (contradictedIds.isEmpty()) {
+            return newClaims;
+        }
+
+        List<FrontierClaim> updated = new ArrayList<>();
+        for (FrontierClaim c : newClaims) {
+            if (contradictedIds.contains(c.claimId())) {
+                String note = contradictionNotes.getOrDefault(c.claimId(), c.evidenceNotes());
+                updated.add(new FrontierClaim(c.claimId(), c.company(), c.claimText(),
+                        c.claimDate(), c.sourceUrl(), c.sourceTitle(),
+                        c.claimType(), ClaimVerdict.CONTRADICTED, note,
+                        c.articleId(), c.detectedAt(), c.lastReviewedAt()));
+            } else {
+                updated.add(c);
+            }
+        }
+        return updated;
     }
 
     private List<FrontierClaim> classifyBatch(List<NewsArticle> batch) {

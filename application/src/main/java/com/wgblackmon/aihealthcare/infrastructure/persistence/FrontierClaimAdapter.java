@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.FrontierClaimPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -89,6 +90,16 @@ public class FrontierClaimAdapter implements FrontierClaimPort {
         log.debug("findById() | claimId={}", claimId);
         Optional<FrontierClaim> result = repository.findById(claimId).map(this::toDomain);
         log.debug("findById() | return={}", result.isPresent() ? "present" : "empty");
+        return result;
+    }
+
+    @Override
+    public List<FrontierClaim> findByCompanyDetectedAfter(String company, Instant since) {
+        log.debug("findByCompanyDetectedAfter() | company={}, since={}", company, since);
+        List<FrontierClaim> result = repository
+                .findByCompanyIgnoreCaseAndDetectedAtAfterOrderByDetectedAtDesc(company, since)
+                .stream().map(this::toDomain).collect(Collectors.toList());
+        log.debug("findByCompanyDetectedAfter() | return={} claims", result.size());
         return result;
     }
 

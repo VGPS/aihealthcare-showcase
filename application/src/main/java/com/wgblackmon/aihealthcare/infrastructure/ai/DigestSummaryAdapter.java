@@ -4,7 +4,9 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DigestSummaryPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -30,10 +32,13 @@ public class DigestSummaryAdapter implements DigestSummaryPort {
     private final PromptLoaderService promptLoaderService;
 
     public DigestSummaryAdapter(ChatClient.Builder chatClientBuilder,
-                                 PromptLoaderService promptLoaderService) {
-        log.debug("DigestSummaryAdapter() | chatClientBuilder={}, promptLoaderService={}",
-                  chatClientBuilder, promptLoaderService.getClass().getSimpleName());
-        this.chatClient = chatClientBuilder.build();
+                                 PromptLoaderService promptLoaderService,
+                                 @Value("${aihealthcare.ai.classification-model:claude-haiku-4-5}") String classificationModel) {
+        log.debug("DigestSummaryAdapter() | promptLoaderService={}, classificationModel={}",
+                  promptLoaderService.getClass().getSimpleName(), classificationModel);
+        this.chatClient = chatClientBuilder
+                .defaultOptions(AnthropicChatOptions.builder().model(classificationModel).build())
+                .build();
         this.promptLoaderService = promptLoaderService;
     }
 

@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -74,10 +75,11 @@ class AiEvaluationAdapterTest {
 
     @BeforeEach
     void setUp() {
+        when(chatClientBuilder.defaultOptions(any())).thenReturn(chatClientBuilder);
         when(chatClientBuilder.build()).thenReturn(chatClient);
         when(promptLoaderService.load("evaluate-section.txt"))
                 .thenReturn("Evaluate {topic} {tone} {headline} {summary} {sectionType} {articles}");
-        adapter = new AiEvaluationAdapter(chatClientBuilder, promptLoaderService);
+        adapter = new AiEvaluationAdapter(chatClientBuilder, promptLoaderService, "claude-haiku-4-5");
     }
 
     @Test

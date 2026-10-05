@@ -10,6 +10,7 @@ import java.net.URI;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -50,7 +51,8 @@ class DigestSummaryAdapterTest {
         ChatClient chatClient = mock(ChatClient.class);
         when(builder.build()).thenReturn(chatClient);
 
-        adapter = new DigestSummaryAdapter(builder, promptLoaderService);
+        when(builder.defaultOptions(any())).thenReturn(builder);
+        adapter = new DigestSummaryAdapter(builder, promptLoaderService, "claude-haiku-4-5");
 
         List<NewsArticle> articles = List.of(
                 article("a-001", "First Article", "Body one"),
@@ -67,7 +69,8 @@ class DigestSummaryAdapterTest {
         ChatClient chatClient = mock(ChatClient.class);
         when(builder.build()).thenReturn(chatClient);
 
-        adapter = new DigestSummaryAdapter(builder, promptLoaderService);
+        when(builder.defaultOptions(any())).thenReturn(builder);
+        adapter = new DigestSummaryAdapter(builder, promptLoaderService, "claude-haiku-4-5");
 
         List<NewsArticle> articles = List.of(
                 article("a-001", "First Article", "Body one"),
@@ -85,7 +88,8 @@ class DigestSummaryAdapterTest {
         ChatClient chatClient = mock(ChatClient.class);
         when(builder.build()).thenReturn(chatClient);
 
-        adapter = new DigestSummaryAdapter(builder, promptLoaderService);
+        when(builder.defaultOptions(any())).thenReturn(builder);
+        adapter = new DigestSummaryAdapter(builder, promptLoaderService, "claude-haiku-4-5");
 
         String longBody = "A".repeat(500);
         List<NewsArticle> articles = List.of(article("a-001", "Long Article", longBody));
@@ -101,7 +105,8 @@ class DigestSummaryAdapterTest {
         ChatClient chatClient = mock(ChatClient.class);
         when(builder.build()).thenReturn(chatClient);
 
-        adapter = new DigestSummaryAdapter(builder, promptLoaderService);
+        when(builder.defaultOptions(any())).thenReturn(builder);
+        adapter = new DigestSummaryAdapter(builder, promptLoaderService, "claude-haiku-4-5");
 
         String result = adapter.generateDigestSummary(null);
         assertThat(result).isEmpty();
@@ -113,7 +118,8 @@ class DigestSummaryAdapterTest {
         ChatClient chatClient = mock(ChatClient.class);
         when(builder.build()).thenReturn(chatClient);
 
-        adapter = new DigestSummaryAdapter(builder, promptLoaderService);
+        when(builder.defaultOptions(any())).thenReturn(builder);
+        adapter = new DigestSummaryAdapter(builder, promptLoaderService, "claude-haiku-4-5");
 
         String result = adapter.generateDigestSummary(List.of());
         assertThat(result).isEmpty();

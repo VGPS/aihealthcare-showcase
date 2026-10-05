@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -25,4 +26,7 @@ public interface FrontierClaimRepository extends JpaRepository<FrontierClaimEnti
     List<FrontierClaimEntity> findByClaimTypeOrderByDetectedAtDesc(String claimType);
 
     List<FrontierClaimEntity> findAllByOrderByDetectedAtDesc();
+
+    List<FrontierClaimEntity> findByCompanyIgnoreCaseAndDetectedAtAfterOrderByDetectedAtDesc(
+            String company, Instant since);
 }
