@@ -331,7 +331,7 @@ public class AdminPipelineController {
     public ResponseEntity<Map<String, Object>> detectFrontierClaims() {
         log.debug("detectFrontierClaims()");
         return asyncRunner.runAsync("claim-detection", () -> {
-            List<NewsArticle> articles = articleIngestionPort.fetchRecentArticles(7);
+            List<NewsArticle> articles = articleIngestionPort.fetchRecentArticles(30);
             trackFrontierClaimsUseCase.detectClaims(articles);
         });
     }
@@ -549,7 +549,7 @@ public class AdminPipelineController {
                 "/api/v1/frameworks/analyze", "POST", false, "~2-4 min", "Medium (LLM)"));
 
         list.add(new PipelineInfo("claim-detection", "Frontier Claim Detection",
-                "Scans the last 7 days of articles for claims made by frontier AI companies " +
+                "Scans the last 30 days of articles for claims made by frontier AI companies " +
                 "(OpenAI, Anthropic, Google, Meta, Microsoft, NVIDIA, etc.) and classifies each by evidence quality: " +
                 "EVIDENCE_BACKED (peer-reviewed / independently verified), ALLEGED_UNVERIFIED (stated without citation), " +
                 "MARKETING_HYPE (superlatives without data), CONTRADICTED (conflicts with other sourced evidence), " +
