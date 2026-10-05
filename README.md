@@ -60,13 +60,13 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Company Outreach CRM** | Admin-only CRM at `/admin/outreach` — tracks employment and subscription outreach by company slug, one row per company per purpose (EMPLOYMENT / SUBSCRIPTION), with inline status/notes editing and contactedAt auto-stamp on first transition from NOT_STARTED; separate 1-to-many contacts table (name, job title, email, LinkedIn URL, source, status) shared across purposes for the same company; add form uses an HTML5 datalist combo box pre-populated alphabetically from the company directory with dynamic letter-by-letter filtering and a live `fetch()`-powered contact preview panel; detail page resolves company name via `findBySlug()` and shows an amber "Register to Directory" inline form (name, domain, description) when the company is not yet in the directory — submits to `POST /{slug}/register-company` and saves a minimal `HealthcareAiCompany` record so signal scoring, sentiment analysis, and framework comparisons become available |
 | **Frontier AI Claim Tracker** | LLM-powered pipeline at `/dashboard/claims` that extracts and classifies claims made by frontier AI companies (OpenAI, Anthropic, Google, Meta, Microsoft, NVIDIA) from harvested articles. Each claim is assigned a `ClaimType` (CAPABILITY, SAFETY, BENCHMARK, TIMELINE, REGULATORY, PARTNERSHIP) and a `ClaimVerdict` (EVIDENCE_BACKED, ALLEGED_UNVERIFIED, MARKETING_HYPE, CONTRADICTED, RETRACTED) with LLM-written evidence notes explaining the rating. Claims are deduplicated by company+text hash before persistence. Dashboard shows verdict summary pills, company/verdict/type filter dropdowns, expandable evidence notes, and source links. Sentinel "No_qualifying_claims_found" company names are filtered from the datalist and storage. Admin-only Actions column for Generate Post. Verdict/Type sort headers appear conditionally only when no filter is applied. Collapsible usage guide explains verdict definitions. CSV export for SUBSCRIBER+. Tier-gated: FREE=5 claims, SUBSCRIBER/DEMO/ADMIN=all. REST API at `/api/v1/claims`. Detection runs automatically as the 15th cascade step in `StartupPipelineOrchestrator`. |
 | **Accurate Pipeline Last-Run Tracking** | All 7 scheduler classes (`FeedHarvestScheduler`, `EmbeddingScheduler`, `TrendDetectionScheduler`, `RegulatoryHarvestScheduler`, `WebMonitoringScheduler`, `ResearchHarvestScheduler`, `MarketAnalysisScheduler`) now call `PipelineHealthService.recordRun()` after each `@Scheduled` cron execution so the Admin Pipeline page displays accurate last-run times reflecting actual cron fires, not only manual triggers. |
-| **3,202 Automated Tests** | Comprehensive test suite across 376 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **3,203 Automated Tests** | Comprehensive test suite across 376 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 21, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 107 domain model records, 119 port interfaces, and 104 controllers across 899 Java classes — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **3,202 automated tests** across 376 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **3,203 automated tests** across 376 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
@@ -337,7 +337,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Security Testing | spring-security-test (@WithMockUser) | — |
 | Web Testing | MockMvc (@WebMvcTest slices) | — |
 | Persistence Testing | @DataJpaTest (H2 in-memory) | — |
-| Coverage | 3,202 tests across 376 test classes | — |
+| Coverage | 3,203 tests across 376 test classes | — |
 
 ### Infrastructure & DevOps
 | Component | Technology | Version |
@@ -725,7 +725,7 @@ aihealthcare:
 
 ## Testing
 
-3,202 tests across 376 test classes — all pass with no live AI or network calls.
+3,203 tests across 376 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)

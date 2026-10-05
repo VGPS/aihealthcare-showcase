@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -179,6 +180,19 @@ class ClaimTrackerControllerTest {
         mockMvc.perform(post("/dashboard/claims/missing/generate-post")
                         .with(csrf()))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser
+    void claimTracker_noQualifyingClaims_filteredFromTableAndDropdown() throws Exception {
+        FrontierClaim sentinel = buildClaim("s1", "No_qualifying_claims_found", "sentinel", ClaimVerdict.ALLEGED_UNVERIFIED);
+        FrontierClaim real = buildClaim("r1", "OpenAI", "GPT-5 is AGI.", ClaimVerdict.ALLEGED_UNVERIFIED);
+        when(claimsUseCase.getAll()).thenReturn(List.of(sentinel, real));
+
+        mockMvc.perform(get("/dashboard/claims").with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("claims", hasSize(1)))
+                .andExpect(model().attribute("companies", hasSize(1)));
     }
 
     private FrontierClaim buildClaim(String id, String company, String text, ClaimVerdict verdict) {
