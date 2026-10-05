@@ -132,6 +132,68 @@ Detection is two-stage: keyword pre-filter across five keyword arrays, then opti
 
 ---
 
+### `/dashboard/market/enrichment` — Market Enrichment Detail
+
+**What it shows:**
+A three-tab page exposing the structured data extracted from the daily market digest pipeline as post-save enrichment: Regulatory Trackers, Private Funding Rounds, and Deal Terms. Each tab shows summary count badges (total items, approaching deadlines for trackers), then the full dataset. Regulatory Trackers include: jurisdiction, rulemaking stage, docket ID, comment deadline, and last-updated date. Private Funding Rounds show: company name, round stage, amount, lead investors, and announced date. Deal Terms show: headline (linked to the digest entry), upfront cash, milestone payments, equity stake %, royalty %, and disclosed portion. FREE users see 3 items per tab; SUBSCRIBER+ see all.
+
+**Data source:**
+- Regulatory Trackers: `regulatory_trackers` table via `RegulatoryTrackerRepository.findAll()` + `findApproachingDeadlines(now + 30 days)`.
+- Private Funding Rounds: `private_funding_rounds` table via `PrivateFundingPort.findRecentRounds(now - 180 days, null)` (180-day lookback, no peer-group filter).
+- Deal Terms: `deal_terms` table via `DealTermsPort.findAllWithHeadlines()` — returns a `Map<String, DealTerms>` keyed by headline string.
+- All three ports are `@Autowired(required = false)` — if a bean is absent, the corresponding tab renders as empty without error.
+
+**Access / tier gating:**
+FREE: 3 items per tab (FREE_LIMIT = 3). SUBSCRIBER / DEMO / ADMIN: all items. No anonymous access. Note: Deal Terms `fullAccess` gating is applied to regulatory trackers and funding rounds only — deal terms map is not sliced (this is a minor bug; the full deal terms map is always passed to the template regardless of tier).
+
+**How data gets here:**
+The enrichment data is written by `MarketDigestService`'s post-save step, which runs after every daily digest is persisted. Three extraction routines run against the digest entries: regulatory tracker inference (jurisdiction/stage from entry text + docket regex), private funding round inference (round-stage from funding category entries), and deal terms extraction (keyword-based amount parsing from M&A/partnership entries). There is no standalone scheduler for this page — all data flows from the market digest pipeline.
+
+---
+
+### `/dashboard/legal/trends` — Legal Trend Analysis
+
+**What it shows:**
+A bar chart and card grid of rising legal and regulatory keyword trends, sourced from a dedicated `LegalTrendSnapshot` that tracks keyword frequency across legal, litigation, regulation, and policy categories. Each trend card shows: keyword (title-cased), category badge (LITIGATION / REGULATION / POLICY), current 30-day frequency, previous 90-day baseline, momentum score, direction (UP/DOWN/STABLE), and a linked-items list of the specific articles and regulatory events that drove the trend. Summary counts at the top show total keywords tracked and per-category breakdowns. FREE users see only the top 3 trends; SUBSCRIBER+ see all.
+
+**Data source:**
+`legal_trend_snapshots` table via `DetectLegalTrendsUseCase.getLatestSnapshot()`. Linked items per trend are resolved at page-render time: article IDs in `topArticleIds` are looked up via `ArticleIngestionPort.fetchArticlesByIds()`, and any IDs that don't match articles are tried against `MonitorRegulatoryEventsUseCase.getEvent(id)` as regulatory events. This means each page load issues one `IN` query for articles plus N individual regulatory-event lookups for unmatched IDs.
+
+**Access / tier gating:**
+FREE: top 3 trends. SUBSCRIBER / DEMO / ADMIN: all trends. No anonymous access. The chart is rendered with `chartLimit = min(displayTrends.size(), 10)` — the chart shows at most 10 items even for full-access users.
+
+**How data gets here:**
+`LegalTrendDetectionScheduler` runs on a configurable schedule (cron key: `aihealthcare.legal-trends.schedule`) and calls `DetectLegalTrendsUseCase.detectLegalTrends()`. This analyzes articles from the `AI Healthcare Legal` and `AI Healthcare Government Policy` topics for keyword frequency across 30-day and 90-day windows, then persists a `LegalTrendSnapshot` with the `risingTrends` list. A manual trigger is available via `POST /dashboard/legal/trends/detect` (ADMIN role required, enforced at method level, not SecurityConfig).
+
+**Known limitations:**
+- If no snapshot exists yet, the page renders with `hasSnapshot = false` and all model attributes set to empty/zero defaults. There is no "run detection now" prompt for non-admin users.
+- The N regulatory-event lookups per page render are individual queries, not a batch fetch. On a trend card with many unmatched article IDs, this adds O(N) sequential queries at render time.
+- Keywords are title-cased at display time in `toTitleCase()` but stored lowercase in the database. The display key used in `trendLinkedItems` uses the title-cased version, which must match exactly — a mismatch would silently drop linked items for a trend card.
+
+---
+
+### `/dashboard/weekly-roundup` — Weekly Content Roundup Generator
+
+**What it shows:**
+A copy-ready social publishing tool that generates an LLM-synthesized analytical narrative from the past week's LEGAL and COMPETITOR tier articles, formatted for three channels: a LinkedIn post body (≤2,900 chars, no URLs), a LinkedIn first comment (source publication names + insights page link), and a Substack article (longer-form with section headers). The page shows the date range for the week (Sunday to today, America/Chicago), article counts by tier, and character counts for each output block. There is no submit button — outputs are plain text for manual copy-paste into the respective publishing platform.
+
+**Data source:**
+`news_articles` table via `ArticleIngestionPort.fetchRecentArticles(7)`. Only articles with `sourceTier` of LEGAL or COMPETITOR are kept; articles with `sourceWeight < 0.5`, generic "Google News" titles, `NFE/`-prefixed body text, or titles identical to their topic label are filtered out. Results are sorted LEGAL-first then by `sourceWeight` descending. Deduplication by normalized title (lowercase, non-alphanumeric stripped). Top 10 articles are passed to `WeeklyRoundupSynthesizer.synthesizeNarrative()`, which calls the Claude ChatClient. On LLM failure, a fallback string-concatenation narrative is used.
+
+**Access / tier gating:**
+No explicit tier gating in the controller — any authenticated user can access the page. Content is always generated on page load (including the LLM call), so every page visit consumes a `WeeklyRoundupSynthesizer` call regardless of tier.
+
+**How data gets here:**
+This page generates content at request time from the article corpus — it is not backed by any pre-computed table. Every `GET /dashboard/weekly-roundup` triggers a fresh LLM synthesis call. There is no caching.
+
+**Known limitations:**
+- **LLM call on every GET request.** Unlike most pages, every page load makes a synchronous ChatClient call. If the Anthropic API is slow or rate-limited, the page hangs until the call completes or the fallback kicks in.
+- **No caching.** The synthesized narrative is not persisted. Refreshing the page generates a new narrative and a new LLM call.
+- **LinkedIn body hard-truncated at 2,900 chars.** If the narrative is long, `buildLinkedInBody()` cuts at 2,900 characters and then looks for the last newline within the last 200 chars to avoid mid-sentence truncation. If no newline is found in that range, the cut may be mid-sentence.
+- **`weekStart` computed as "previous Sunday" from today.** If today is Sunday, `TemporalAdjusters.previous(DayOfWeek.SUNDAY)` returns the previous Sunday, not today — the date range will be one full week behind actual Sunday-to-today span.
+
+---
+
 ## How Data Gets In
 
 | Pipeline | Trigger | Config key | What it produces |

@@ -131,6 +131,34 @@ A user can exist in `app_users` without a matching `subscribers` row (e.g., if a
 
 ---
 
+### `/settings/webhooks` — User Webhook Channels
+
+**What it shows:**
+A list of the current user's configured `WebhookChannel` records. Each row shows: channel label, channel type (SLACK, TEAMS, GENERIC_HTTP), the target webhook URL (truncated for display), the event types subscribed to (pipe-delimited list rendered as pills: DEAL_SIGNAL, REGULATORY_EVENT, TREND_ALERT, DIGEST_READY), active flag, last-triggered date, and action buttons (Edit, Delete, Test). A form above the list lets the user add a new channel by providing a label, type, URL, and event type checkboxes.
+
+**Data source:**
+`webhook_channels` table via `WebhookChannelPort.findByOwnerEmail(principal.getName())`. Queries are strictly owner-scoped — only the current user's channels are returned.
+
+**Access / tier gating:**
+Authenticated users only. All tiers (FREE, DEMO, SUBSCRIBER, ENTERPRISE, ADMIN) can access the webhooks page and create channels. No tier minimum. `principal.getName()` is the owner identifier — all reads and writes use the authenticated user's email as the owner key.
+
+**How webhooks fire:**
+When a triggering event occurs (e.g., a new `DealSignal` is saved), `WebhookDispatchService` queries all active channels subscribed to the matching event type and posts a JSON payload to each channel URL. `WebhookChannel.lastTriggeredAt` is updated on each delivery. Delivery failures are logged but do not retry — a failed webhook silently moves on.
+
+**Actions available:**
+- `POST /settings/webhooks/add` — create a new channel. The URL is validated to start with `https://` before save.
+- `POST /settings/webhooks/{id}/test` — posts a `TEST_PING` payload to the channel URL immediately. Returns a success or failure flash message depending on the HTTP response from the target.
+- `POST /settings/webhooks/{id}/delete` — deletes the channel record. Owner check is enforced: deleting another user's channel returns 404.
+- `POST /settings/webhooks/{id}/toggle` — toggles the `active` flag. Inactive channels receive no deliveries.
+
+**Known limitations:**
+- No webhook delivery history. There is no log of past dispatches — only `lastTriggeredAt` timestamp is stored, with no per-delivery status.
+- No retry on failure. A transient network error or 5xx response from the target silently drops the event.
+- `POST /settings/webhooks/{id}/test` makes a synchronous HTTP call from the app server to the webhook URL. If the target URL is slow or unreachable, the test action blocks the request thread until the HTTP client timeout (30 seconds).
+- The channel URL `https://` prefix check is done at the controller layer. The underlying `WebhookDispatchService` also enforces HTTPS-only via `RemoteEndpointGuard` — plain HTTP URLs that somehow bypass the controller check will be rejected at dispatch time.
+
+---
+
 ## Known Limitations
 
 - **DEMO tier never downgrades in the database.** An expired DEMO user's `AppUser.tier` column still reads `DEMO`. Any code that reads `tier` directly without going through `TierResolver` will see the wrong effective tier. All controllers in the app use `TierResolver` for this reason, but any future code that bypasses it will have a latent bug.
@@ -139,4 +167,4 @@ A user can exist in `app_users` without a matching `subscribers` row (e.g., if a
 - **Unsubscribe does not cancel Stripe billing.** `POST /profile/unsubscribe` only sets `subscribers.active = false` — it does not cancel the Stripe subscription. The user will continue to be billed unless they also cancel via the Stripe portal.
 - **Usage meters reset by date, not UTC midnight.** `UsageMeteringService` resets daily counters by comparing `lastResetAt` date in America/Chicago. If the server timezone differs, usage windows may not align with what users expect.
 - **Profile Stripe portal link requires a stored customer ID.** If `AppUser.stripeCustomerId` is null (e.g., for manually-upgraded SUBSCRIBER users), the Stripe portal link is absent with no explanation to the user.
-- **No password reset.** There is no `/forgot-password` or `/reset-password` flow. A user who loses their password must contact the admin directly to have it reset in the database.
+- **Password reset exists but is not linked from the login page.** `PasswordResetController` handles `GET /forgot-password` and `POST /reset-password`. The templates `forgot-password.html` and `reset-password.html` exist. However, the login page does not display a "Forgot password?" link, so users must know the URL directly.
