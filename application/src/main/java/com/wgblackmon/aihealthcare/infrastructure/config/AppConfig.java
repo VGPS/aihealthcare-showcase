@@ -1573,4 +1573,17 @@ public class AppConfig {
         log.debug("outreachService() | return={}", result.getClass().getSimpleName());
         return result;
     }
+
+    @Bean
+    public com.wgblackmon.aihealthcare.domain.service.FrontierClaimService frontierClaimService(
+            com.wgblackmon.aihealthcare.domain.port.outbound.ClaimClassifierPort classifierPort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.FrontierClaimPort claimPort) {
+        log.debug("frontierClaimService() | classifierPort={}, claimPort={}",
+                  classifierPort.getClass().getSimpleName(),
+                  claimPort.getClass().getSimpleName());
+        com.wgblackmon.aihealthcare.domain.service.FrontierClaimService result =
+                new com.wgblackmon.aihealthcare.domain.service.FrontierClaimService(classifierPort, claimPort);
+        log.debug("frontierClaimService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
 }
