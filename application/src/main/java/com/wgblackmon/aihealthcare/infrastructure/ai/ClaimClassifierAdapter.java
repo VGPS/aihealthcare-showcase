@@ -28,12 +28,13 @@ import java.util.UUID;
  * <p>Response line format (pipe-delimited):
  * {@code COMPANY|TYPE|VERDICT|CLAIM_TEXT|EVIDENCE_NOTES|SOURCE_URL|ARTICLE_ID}
  *
- * <p>Both the extraction call and the contradiction-check call use the
- * {@code aihealthcare.ai.classification-model} (Haiku by default) — neither
- * task requires frontier-model reasoning depth.
+ * <p>Uses {@code aihealthcare.ai.claim-classifier-model} (Sonnet by default) —
+ * verdict judgment (MARKETING_HYPE vs ALLEGED_UNVERIFIED) requires reasoning
+ * depth beyond Haiku's literal pattern-matching. Override to Haiku in YAML to
+ * reduce cost if quality is acceptable.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-10-05
  * @updated 2026-10-05
  */
@@ -48,10 +49,10 @@ public class ClaimClassifierAdapter implements ClaimClassifierPort {
 
     public ClaimClassifierAdapter(ChatClient.Builder chatClientBuilder,
                                    PromptLoaderService promptLoaderService,
-                                   @Value("${aihealthcare.ai.classification-model:claude-haiku-4-5}") String classificationModel) {
-        log.debug("ClaimClassifierAdapter() | classificationModel={}", classificationModel);
+                                   @Value("${aihealthcare.ai.claim-classifier-model:claude-sonnet-4-5}") String claimClassifierModel) {
+        log.debug("ClaimClassifierAdapter() | claimClassifierModel={}", claimClassifierModel);
         this.chatClient = chatClientBuilder
-                .defaultOptions(AnthropicChatOptions.builder().model(classificationModel).build())
+                .defaultOptions(AnthropicChatOptions.builder().model(claimClassifierModel).build())
                 .build();
         this.promptLoaderService = promptLoaderService;
     }

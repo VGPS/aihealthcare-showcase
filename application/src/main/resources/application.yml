@@ -187,6 +187,9 @@ aihealthcare:
   # ---------------------------------------------------------------------------
   ai:
     classification-model: claude-haiku-4-5
+    # Claim classifier uses Sonnet — verdict judgment (MARKETING_HYPE vs ALLEGED_UNVERIFIED)
+    # requires reasoning depth that Haiku misses. Override to haiku for cost savings.
+    claim-classifier-model: claude-sonnet-4-5
   # ---------------------------------------------------------------------------
   # Article query — how far back (in days) to look when fetching articles.
   # Set to 0 for no date restriction.  Change freely for experimentation.

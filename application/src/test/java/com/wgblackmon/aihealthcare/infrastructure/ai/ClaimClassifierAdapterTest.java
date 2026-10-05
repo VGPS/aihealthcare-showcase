@@ -58,7 +58,7 @@ class ClaimClassifierAdapterTest {
     void setUp() {
         when(chatClientBuilder.defaultOptions(any())).thenReturn(chatClientBuilder);
         when(chatClientBuilder.build()).thenReturn(chatClient);
-        adapter = new ClaimClassifierAdapter(chatClientBuilder, promptLoaderService, "claude-haiku-4-5");
+        adapter = new ClaimClassifierAdapter(chatClientBuilder, promptLoaderService, "claude-sonnet-4-5");
         when(promptLoaderService.load("claim-classifier.txt"))
                 .thenReturn("You are analyst. {articleCount} {numberedArticleList}");
         when(promptLoaderService.load("claim-contradiction.txt"))
