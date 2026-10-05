@@ -12,6 +12,11 @@ import java.util.List;
  * {@link com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort}.
  * The {@code web} layer calls this interface; it never touches the application
  * service class directly.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2025-01-27
+ * @updated 2026-10-05
  */
 public interface IngestArticlesUseCase {
 

@@ -14,6 +14,11 @@ import java.util.List;
  * <p>For Slice 1 the implementation performs a direct HTTP fetch of a supplied URL list.
  * Future slices may add RSS readers, news API clients, or a configurable source registry
  * without changing this contract.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2025-01-27
+ * @updated 2026-10-05
  */
 public interface ArticleIngestionPort {
 
