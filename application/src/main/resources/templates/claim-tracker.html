@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <!--
 /**
- * Frontier AI Claim Tracker — list view for claims extracted from articles.
+ * Frontier AI Claim Tracker — sortable table view for claims extracted from articles.
  *
  * Displays AI company claims with verdict badges color-coded by evidence
- * quality. Filterable by company, verdict, and claim type. FREE-tier users
- * see at most 5 claims with an upgrade prompt.
+ * quality. Sortable by company, verdict, type, detected date. Filterable
+ * by company datalist, verdict, and claim type. "Generate Post" button
+ * creates LinkedIn + Facebook drafts for any claim. FREE-tier users see
+ * at most 5 claims with an upgrade prompt.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.2
  * @since   2026-10-05
- * @updated 2026-10-05 — company datalist search, formatted timestamps
+ * @updated 2026-10-05 — sortable table, Generate Post button per row
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -55,11 +57,13 @@
                   th:text="${verdictCounts.get(T(com.wgblackmon.aihealthcare.domain.model.ClaimVerdict).RETRACTED)}">0</span>
             <span class="text-gray-600 ml-1">Retracted</span>
         </div>
+        <div class="ml-auto text-sm text-gray-500 self-center"
+             th:text="${claims.size()} + ' claims shown'">0 claims shown</div>
     </div>
 
     <!-- Filter bar -->
-    <form method="get" action="/dashboard/claims" class="flex flex-wrap gap-3 mb-5 items-center">
-        <span class="text-sm text-gray-600 font-medium">Filter:</span>
+    <form method="get" action="/dashboard/claims" class="flex flex-wrap gap-3 mb-5 items-end">
+        <span class="text-sm text-gray-600 font-medium self-center">Filter:</span>
 
         <!-- Company: native datalist for search-by-letter -->
         <div class="flex flex-col gap-0.5">
@@ -93,13 +97,14 @@
             </select>
         </div>
 
+        <!-- Preserve sort params through filter changes -->
+        <input type="hidden" name="sort" th:value="${sortField}">
+        <input type="hidden" name="dir" th:value="${sortDir}">
+
         <div class="flex items-end gap-2">
             <button type="submit" class="btn-search text-sm">Apply</button>
             <a href="/dashboard/claims" class="text-sm text-gray-500 underline">Clear</a>
         </div>
-
-        <span class="text-sm text-gray-400 ml-auto"
-              th:text="${claims.size()} + ' claims shown'">0 claims shown</span>
     </form>
 
     <!-- FREE-tier gate notice -->
@@ -108,70 +113,123 @@
         <a th:href="@{/pricing}" class="underline font-medium">Upgrade to SUBSCRIBER</a> to see all claims and filters.
     </div>
 
-    <!-- Claims list -->
-    <div class="space-y-4">
-        <div th:each="claim : ${claims}"
-             class="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+    <!-- Flash success message -->
+    <div th:if="${successMsg != null}" class="bg-green-50 border border-green-200 rounded-lg p-3 mb-5 text-sm text-green-800"
+         th:text="${successMsg}"></div>
 
-            <div class="flex flex-wrap items-start gap-2 mb-2">
+    <!-- Sortable table -->
+    <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+        <table class="w-full text-sm bg-white">
+            <thead class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                <tr>
+                    <th class="px-3 py-2.5 text-left whitespace-nowrap">
+                        <a class="hover:text-primary-700"
+                           th:href="@{/dashboard/claims(company=${filterCompany},verdict=${filterVerdict},type=${filterType},sort='company',dir=${sortField == 'company' ? (sortDir == 'asc' ? 'desc' : 'asc') : 'asc'})}">
+                            Company
+                            <span th:if="${sortField == 'company'}" th:text="${sortDir == 'asc' ? ' ↑' : ' ↓'}"></span>
+                        </a>
+                    </th>
+                    <th class="px-3 py-2.5 text-left whitespace-nowrap">
+                        <a class="hover:text-primary-700"
+                           th:href="@{/dashboard/claims(company=${filterCompany},verdict=${filterVerdict},type=${filterType},sort='verdict',dir=${sortField == 'verdict' ? (sortDir == 'asc' ? 'desc' : 'asc') : 'asc'})}">
+                            Verdict
+                            <span th:if="${sortField == 'verdict'}" th:text="${sortDir == 'asc' ? ' ↑' : ' ↓'}"></span>
+                        </a>
+                    </th>
+                    <th class="px-3 py-2.5 text-left whitespace-nowrap">
+                        <a class="hover:text-primary-700"
+                           th:href="@{/dashboard/claims(company=${filterCompany},verdict=${filterVerdict},type=${filterType},sort='type',dir=${sortField == 'type' ? (sortDir == 'asc' ? 'desc' : 'asc') : 'asc'})}">
+                            Type
+                            <span th:if="${sortField == 'type'}" th:text="${sortDir == 'asc' ? ' ↑' : ' ↓'}"></span>
+                        </a>
+                    </th>
+                    <th class="px-3 py-2.5 text-left">Claim</th>
+                    <th class="px-3 py-2.5 text-left whitespace-nowrap">
+                        <a class="hover:text-primary-700"
+                           th:href="@{/dashboard/claims(company=${filterCompany},verdict=${filterVerdict},type=${filterType},sort='detectedAt',dir=${sortField == 'detectedAt' ? (sortDir == 'desc' ? 'asc' : 'desc') : 'desc'})}">
+                            Detected
+                            <span th:if="${sortField == 'detectedAt'}" th:text="${sortDir == 'desc' ? ' ↓' : ' ↑'}"></span>
+                        </a>
+                    </th>
+                    <th class="px-3 py-2.5 text-left">Source</th>
+                    <th class="px-3 py-2.5 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
 
-                <!-- Verdict badge -->
-                <span th:classappend="${claim.verdict().name() == 'EVIDENCE_BACKED'} ? 'bg-green-100 text-green-800'
-                                    : (${claim.verdict().name() == 'ALLEGED_UNVERIFIED'} ? 'bg-orange-100 text-orange-800'
-                                    : (${claim.verdict().name() == 'MARKETING_HYPE'} ? 'bg-red-100 text-red-800'
-                                    : (${claim.verdict().name() == 'CONTRADICTED'} ? 'bg-red-100 text-red-800'
-                                    : 'bg-gray-100 text-gray-700')))"
-                      class="inline-block px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide"
-                      th:text="${claim.verdict().name().replace('_', ' ')}">VERDICT</span>
+                <tr th:each="claim : ${claims}" class="hover:bg-gray-50">
 
-                <!-- Claim type badge -->
-                <span class="inline-block bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium"
-                      th:text="${claim.claimType().name().replace('_', ' ')}">TYPE</span>
+                    <!-- Company -->
+                    <td class="px-3 py-3 font-semibold text-gray-800 whitespace-nowrap"
+                        th:text="${claim.company()}">Company</td>
 
-                <!-- Company chip -->
-                <span class="inline-block bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs font-semibold"
-                      th:text="${claim.company()}">Company</span>
+                    <!-- Verdict badge -->
+                    <td class="px-3 py-3">
+                        <span th:classappend="${claim.verdict().name() == 'EVIDENCE_BACKED'} ? 'bg-green-100 text-green-800'
+                                            : (${claim.verdict().name() == 'ALLEGED_UNVERIFIED'} ? 'bg-orange-100 text-orange-800'
+                                            : (${claim.verdict().name() == 'MARKETING_HYPE'} ? 'bg-red-100 text-red-800'
+                                            : (${claim.verdict().name() == 'CONTRADICTED'} ? 'bg-red-100 text-red-800'
+                                            : 'bg-gray-100 text-gray-700')))"
+                              class="inline-block px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide whitespace-nowrap"
+                              th:text="${claim.verdict().name().replace('_', ' ')}">VERDICT</span>
+                    </td>
 
-                <!-- Date if present -->
-                <span th:if="${claim.claimDate() != null}"
-                      class="text-xs text-gray-400 self-center"
-                      th:text="${claim.claimDate()}">2026-10-01</span>
-            </div>
+                    <!-- Claim type badge -->
+                    <td class="px-3 py-3">
+                        <span class="inline-block bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap"
+                              th:text="${claim.claimType().name().replace('_', ' ')}">TYPE</span>
+                    </td>
 
-            <!-- Claim text -->
-            <p class="text-sm text-gray-900 leading-snug font-medium mb-1"
-               th:text="${claim.claimText()}">Claim text</p>
+                    <!-- Claim text + expandable evidence notes -->
+                    <td class="px-3 py-3 max-w-sm">
+                        <p class="text-gray-900 leading-snug line-clamp-2 text-xs" th:text="${claim.claimText()}">Claim text</p>
+                        <div th:if="${claim.evidenceNotes() != null}" x-data="{ open: false }">
+                            <button @click="open = !open"
+                                    class="text-xs text-gray-400 hover:text-gray-600 underline mt-1">
+                                <span x-show="!open">Notes ▸</span>
+                                <span x-show="open" x-cloak>Notes ▴</span>
+                            </button>
+                            <p x-show="open" x-cloak
+                               class="mt-1 text-xs text-gray-600 italic leading-snug"
+                               th:text="${claim.evidenceNotes()}"></p>
+                        </div>
+                    </td>
 
-            <!-- Evidence notes (expandable via Alpine) -->
-            <div th:if="${claim.evidenceNotes() != null}" x-data="{ open: false }">
-                <button @click="open = !open"
-                        class="text-xs text-gray-400 hover:text-gray-600 underline mt-1">
-                    <span x-show="!open">Show evidence notes ▸</span>
-                    <span x-show="open" x-cloak>Hide evidence notes ▴</span>
-                </button>
-                <p x-show="open" x-cloak
-                   class="mt-1 text-xs text-gray-600 italic leading-snug"
-                   th:text="${claim.evidenceNotes()}">Notes</p>
-            </div>
+                    <!-- Detected timestamp -->
+                    <td class="px-3 py-3 text-xs text-gray-500 whitespace-nowrap"
+                        th:text="${claimTimestamps[claim.claimId()]}">date</td>
 
-            <!-- Source link -->
-            <div th:if="${claim.sourceUrl() != null}" class="mt-2">
-                <a th:href="${claim.sourceUrl()}" target="_blank" rel="noopener noreferrer"
-                   class="text-xs text-primary-600 hover:text-primary-800 underline">
-                    Source ↗
-                </a>
-            </div>
+                    <!-- Source link -->
+                    <td class="px-3 py-3">
+                        <a th:if="${claim.sourceUrl() != null}" th:href="${claim.sourceUrl()}"
+                           target="_blank" rel="noopener noreferrer"
+                           class="text-xs text-primary-600 hover:text-primary-800 underline"
+                           th:text="${claim.sourceTitle() != null ? #strings.abbreviate(claim.sourceTitle(), 28) : 'Source ↗'}">Source</a>
+                    </td>
 
-            <!-- Detected timestamp -->
-            <p class="text-xs text-gray-400 mt-2"
-               th:text="'Detected ' + ${claimTimestamps[claim.claimId()]}">Detected at</p>
-        </div>
+                    <!-- Generate Post button -->
+                    <td class="px-3 py-3">
+                        <form method="post"
+                              th:action="@{/dashboard/claims/{id}/generate-post(id=${claim.claimId()})}">
+                            <button type="submit"
+                                    class="text-xs bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-1 rounded hover:bg-indigo-100 transition-colors whitespace-nowrap">
+                                Generate Post ↗
+                            </button>
+                        </form>
+                    </td>
+                </tr>
 
-        <!-- Empty state -->
-        <div th:if="${#lists.isEmpty(claims)}"
-             class="bg-white rounded-lg border border-gray-200 p-8 text-center text-sm text-gray-400">
-            No claims match the current filter.
-        </div>
+                <!-- Empty state -->
+                <tr th:if="${#lists.isEmpty(claims)}">
+                    <td colspan="7" class="px-3 py-10 text-center text-sm text-gray-400">
+                        No claims match the current filter. Run the
+                        <a href="/admin/pipelines" class="underline text-primary-600">Frontier Claim Detection</a>
+                        pipeline to generate data.
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
     </div>
 
 </main>

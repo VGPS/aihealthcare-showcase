@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
@@ -318,20 +319,23 @@ public class AdminPipelineController {
     }
 
     /**
-     * Manually triggers frontier claim detection across the last 7 days of articles.
+     * Manually triggers frontier claim detection with a configurable lookback window.
      *
      * <p>Fetches recent articles, sends them to the LLM in batches of 10,
      * deduplicates by company + claim-text hash, and persists new claims.
      * Results are visible at {@code /dashboard/claims}.
      *
+     * @param days lookback window in days (default 30, capped at 365)
      * @return JSON result with claim count and duration
      */
     @PostMapping("/claims/detect")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> detectFrontierClaims() {
-        log.debug("detectFrontierClaims()");
+    public ResponseEntity<Map<String, Object>> detectFrontierClaims(
+            @RequestParam(defaultValue = "30") int days) {
+        int effectiveDays = Math.min(days, 365);
+        log.debug("detectFrontierClaims() | days={}, effectiveDays={}", days, effectiveDays);
         return asyncRunner.runAsync("claim-detection", () -> {
-            List<NewsArticle> articles = articleIngestionPort.fetchRecentArticles(30);
+            List<NewsArticle> articles = articleIngestionPort.fetchRecentArticles(effectiveDays);
             trackFrontierClaimsUseCase.detectClaims(articles);
         });
     }
@@ -549,16 +553,17 @@ public class AdminPipelineController {
                 "/api/v1/frameworks/analyze", "POST", false, "~2-4 min", "Medium (LLM)"));
 
         list.add(new PipelineInfo("claim-detection", "Frontier Claim Detection",
-                "Scans the last 30 days of articles for claims made by frontier AI companies " +
+                "Scans up to 1 year of articles for claims made by frontier AI companies " +
                 "(OpenAI, Anthropic, Google, Meta, Microsoft, NVIDIA, etc.) and classifies each by evidence quality: " +
                 "EVIDENCE_BACKED (peer-reviewed / independently verified), ALLEGED_UNVERIFIED (stated without citation), " +
                 "MARKETING_HYPE (superlatives without data), CONTRADICTED (conflicts with other sourced evidence), " +
                 "RETRACTED (company walked it back). LLM processes articles in batches of 10 and writes structured " +
                 "evidence notes explaining each verdict. Deduplicates by company + claim-text before persisting. " +
-                "Also runs automatically as cascade step 15 in StartupPipelineOrchestrator. " +
+                "This button triggers a 365-day scan; pass ?days=N (max 365) to override. " +
+                "Also runs automatically as cascade step 15 in StartupPipelineOrchestrator (1-day window). " +
                 "Results visible at /dashboard/claims.",
                 "Manual only (also runs inside Run Full Cascade)", "StartupPipelineOrchestrator (cascade step 15)",
-                "/admin/pipelines/claims/detect", "POST", true, "~1-3 min", "Medium (LLM)"));
+                "/admin/pipelines/claims/detect?days=365", "POST", true, "~3-8 min", "Medium (LLM)"));
 
         // ── Medium (no LLM) ──────────────────────────────────────────────────
         list.add(new PipelineInfo("legal-backfill", "Legal & Regulatory Backfill",
