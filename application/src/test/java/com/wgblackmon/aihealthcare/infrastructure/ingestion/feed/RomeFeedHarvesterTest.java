@@ -19,6 +19,7 @@ import org.mockito.quality.Strictness;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -178,7 +179,7 @@ class RomeFeedHarvesterTest {
     @Test
     @DisplayName("FeedHarvestScheduler constructs successfully with both ports")
     void feedHarvestScheduler_constructionWithBothPorts_doesNotThrow() {
-        FeedHarvestScheduler scheduler = new FeedHarvestScheduler(harvester, mockArticleStoragePort, mockTopicSummaryService, mockNewsTopicProperties, null, null, null, null, null, null, null, null, null, null, null, null);
+        FeedHarvestScheduler scheduler = new FeedHarvestScheduler(harvester, mockArticleStoragePort, mockTopicSummaryService, mockNewsTopicProperties, null, null, null, null, null, null, null, null, null, null, null, null, mock(com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService.class));
 
         assertThat(scheduler).isNotNull();
     }

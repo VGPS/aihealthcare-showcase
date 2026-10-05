@@ -23,6 +23,7 @@ import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import com.wgblackmon.aihealthcare.infrastructure.delivery.WebhookDispatcher;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.StartupPipelineOrchestrator;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,7 +58,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-04-10
- * @updated 2026-08-07
+ * @updated 2026-10-05
  */
 @Slf4j
 @Component
@@ -78,6 +80,7 @@ public class FeedHarvestScheduler {
     private final WikiGapAnalysisService wikiGapAnalysisService;
     private final WikiPageRepository wikiPageRepository;
     private final DetectDealSignalsUseCase detectDealSignalsUseCase;
+    private final PipelineHealthService healthService;
 
     @Value("${aihealthcare.startup.harvest-enabled:false}")
     private boolean startupHarvestEnabled;
@@ -97,7 +100,8 @@ public class FeedHarvestScheduler {
                                 @Autowired(required = false) WebhookDispatcher webhookDispatcher,
                                 @Autowired(required = false) WikiGapAnalysisService wikiGapAnalysisService,
                                 @Autowired(required = false) WikiPageRepository wikiPageRepository,
-                                @Autowired(required = false) DetectDealSignalsUseCase detectDealSignalsUseCase) {
+                                @Autowired(required = false) DetectDealSignalsUseCase detectDealSignalsUseCase,
+                                PipelineHealthService healthService) {
         log.debug("FeedHarvestScheduler() | harvestingPort={}, articleStoragePort={}, topicSummaryService={}, newsTopicProperties={}, knowledgeCompilationPort={}",
                   harvestingPort.getClass().getSimpleName(),
                   articleStoragePort.getClass().getSimpleName(),
@@ -120,6 +124,7 @@ public class FeedHarvestScheduler {
         this.wikiGapAnalysisService = wikiGapAnalysisService;
         this.wikiPageRepository = wikiPageRepository;
         this.detectDealSignalsUseCase = detectDealSignalsUseCase;
+        this.healthService = healthService;
     }
 
     /**
@@ -156,6 +161,7 @@ public class FeedHarvestScheduler {
     @Scheduled(cron = "${aihealthcare.harvest.daily-cron}", zone = "UTC")
     public void harvestDailyFeeds() {
         log.debug("harvestDailyFeeds() | starting daily ACADEMIC + REGULATORY harvest");
+        Instant start = Instant.now();
         try {
             List<NewsArticle> all = harvestingPort.harvestAll();
 
@@ -177,8 +183,12 @@ public class FeedHarvestScheduler {
             if (pipelineOrchestrator != null) {
                 pipelineOrchestrator.runAllPipelines();
             }
+            healthService.recordRun("rss-feeds", PipelineHealthService.PipelineRunRecord.success(
+                    "rss-feeds", dailyArticles.size(), start, Instant.now()));
         } catch (Exception e) {
             log.error("harvestDailyFeeds() | scheduler exception", e);
+            healthService.recordRun("rss-feeds", PipelineHealthService.PipelineRunRecord.failure(
+                    "rss-feeds", e.getMessage(), start, Instant.now()));
         }
         log.debug("harvestDailyFeeds() | return=void");
     }
@@ -190,6 +200,7 @@ public class FeedHarvestScheduler {
     @Scheduled(fixedRateString = "${aihealthcare.harvest.industry-rate-ms}")
     public void harvestIndustryFeeds() {
         log.debug("harvestIndustryFeeds() | starting 4-hour INDUSTRY harvest");
+        Instant start = Instant.now();
         try {
             List<NewsArticle> all = harvestingPort.harvestAll();
 
@@ -208,8 +219,12 @@ public class FeedHarvestScheduler {
             analyzeWikiGaps(industryArticles);
             matchWatchlistItems(industryArticles);
             runDealDetection();
+            healthService.recordRun("rss-feeds", PipelineHealthService.PipelineRunRecord.success(
+                    "rss-feeds", industryArticles.size(), start, Instant.now()));
         } catch (Exception e) {
             log.error("harvestIndustryFeeds() | scheduler exception", e);
+            healthService.recordRun("rss-feeds", PipelineHealthService.PipelineRunRecord.failure(
+                    "rss-feeds", e.getMessage(), start, Instant.now()));
         }
         log.debug("harvestIndustryFeeds() | return=void");
     }

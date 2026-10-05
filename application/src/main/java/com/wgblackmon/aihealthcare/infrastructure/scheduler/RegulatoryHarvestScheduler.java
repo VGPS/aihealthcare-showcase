@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,13 +42,15 @@ public class RegulatoryHarvestScheduler {
     private final WatchlistMatchPort watchlistMatchPort;
     private final RegulatoryWatchlistMatcher regulatoryWatchlistMatcher;
     private final WebhookDispatcher webhookDispatcher;
+    private final PipelineHealthService healthService;
 
     public RegulatoryHarvestScheduler(RegulatoryHarvestingPort regulatoryHarvestingPort,
                                       RegulatoryEventPort regulatoryEventPort,
                                       WatchlistPort watchlistPort,
                                       WatchlistMatchPort watchlistMatchPort,
                                       RegulatoryWatchlistMatcher regulatoryWatchlistMatcher,
-                                      @Autowired(required = false) WebhookDispatcher webhookDispatcher) {
+                                      @Autowired(required = false) WebhookDispatcher webhookDispatcher,
+                                      PipelineHealthService healthService) {
         log.debug("RegulatoryHarvestScheduler() | regulatoryHarvestingPort={}, regulatoryEventPort={}, " +
                   "watchlistPort={}, watchlistMatchPort={}, regulatoryWatchlistMatcher={}",
                   regulatoryHarvestingPort, regulatoryEventPort,
@@ -58,6 +61,7 @@ public class RegulatoryHarvestScheduler {
         this.watchlistMatchPort = watchlistMatchPort;
         this.regulatoryWatchlistMatcher = regulatoryWatchlistMatcher;
         this.webhookDispatcher = webhookDispatcher;
+        this.healthService = healthService;
     }
 
     /**
@@ -67,6 +71,8 @@ public class RegulatoryHarvestScheduler {
     @Scheduled(cron = "${aihealthcare.regulatory.schedule:0 30 4 * * *}")
     public void runDailyRegulatoryHarvest() {
         log.debug("runDailyRegulatoryHarvest()");
+        Instant start = Instant.now();
+        List<RegulatoryEvent> newEvents = new ArrayList<>();
 
         try {
             // Step 1: Harvest from all sources
@@ -74,7 +80,6 @@ public class RegulatoryHarvestScheduler {
             log.info("runDailyRegulatoryHarvest() | harvested {} raw events", harvested.size());
 
             // Step 2: Deduplicate and save
-            List<RegulatoryEvent> newEvents = new ArrayList<>();
             for (RegulatoryEvent event : harvested) {
                 boolean duplicate = false;
                 if (event.referenceNumber() != null && !event.referenceNumber().isBlank()) {
@@ -124,9 +129,12 @@ public class RegulatoryHarvestScheduler {
                     log.info("runDailyRegulatoryHarvest() | saved {} watchlist matches", freshMatches.size());
                 }
             }
-
+            healthService.recordRun("regulatory", PipelineHealthService.PipelineRunRecord.success(
+                    "regulatory", newEvents.size(), start, Instant.now()));
         } catch (Exception e) {
             log.error("runDailyRegulatoryHarvest() | regulatory harvest failed", e);
+            healthService.recordRun("regulatory", PipelineHealthService.PipelineRunRecord.failure(
+                    "regulatory", e.getMessage(), start, Instant.now()));
         }
 
         log.debug("runDailyRegulatoryHarvest() | return=void");

@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.infrastructure.scheduler;
 
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -10,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,11 +51,14 @@ public class EmbeddingScheduler {
 
     private final NewsArticleRepository repository;
     private final VectorStore           vectorStore;
+    private final PipelineHealthService healthService;
 
     public EmbeddingScheduler(NewsArticleRepository repository,
-                              ObjectProvider<VectorStore> vectorStoreProvider) {
+                              ObjectProvider<VectorStore> vectorStoreProvider,
+                              PipelineHealthService healthService) {
         this.repository  = repository;
         this.vectorStore = vectorStoreProvider.getIfAvailable();
+        this.healthService = healthService;
         log.debug("EmbeddingScheduler() | repository={}, vectorStore={}",
                   repository.getClass().getSimpleName(),
                   vectorStore != null ? vectorStore.getClass().getSimpleName() : "NULL (not configured)");
@@ -69,26 +74,31 @@ public class EmbeddingScheduler {
     @Scheduled(cron = "${aihealthcare.embedding.schedule}")
     public void embedArticles() {
         log.debug("embedArticles() | starting embedding run");
+        Instant start = Instant.now();
         try {
-            embedArticlesInternal();
+            int embedded = embedArticlesInternal();
+            healthService.recordRun("embedding", PipelineHealthService.PipelineRunRecord.success(
+                    "embedding", embedded, start, Instant.now()));
         } catch (Exception e) {
             log.error("embedArticles() | scheduler exception", e);
+            healthService.recordRun("embedding", PipelineHealthService.PipelineRunRecord.failure(
+                    "embedding", e.getMessage(), start, Instant.now()));
         }
         log.debug("embedArticles() | return=void");
     }
 
-    private void embedArticlesInternal() {
+    private int embedArticlesInternal() {
         if (vectorStore == null) {
             log.warn("embedArticles() | VectorStore not available — skipping");
-            return;
+            return 0;
         }
 
         List<NewsArticleEntity> entities = repository.findByEmbeddedFalse();
         log.info("embedArticles() | Found {} new articles to embed (skipping already-embedded)", entities.size());
 
         if (entities.isEmpty()) {
-            log.debug("embedArticles() | return=void (nothing to embed)");
-            return;
+            log.debug("embedArticles() | return=0 (nothing to embed)");
+            return 0;
         }
 
         List<Document> documents = new ArrayList<>();
@@ -135,6 +145,7 @@ public class EmbeddingScheduler {
         }
         log.info("embedArticles() | Completed — {} of {} new articles embedded",
                  totalEmbedded, documents.size());
+        return totalEmbedded;
     }
 
     /**

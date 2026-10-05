@@ -29,7 +29,8 @@ class TrendDetectionSchedulerTest {
     @BeforeEach
     void setUp() {
         detectTrendsUseCase = mock(DetectTrendsUseCase.class);
-        scheduler = new TrendDetectionScheduler(detectTrendsUseCase, null);
+        PipelineHealthService healthService = mock(PipelineHealthService.class);
+        scheduler = new TrendDetectionScheduler(detectTrendsUseCase, null, healthService);
     }
 
     @Test

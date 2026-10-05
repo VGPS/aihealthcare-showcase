@@ -40,13 +40,16 @@ public class MarketAnalysisScheduler {
 
     private final ProduceMarketDigestUseCase marketDigestService;
     private final PriceReactionService priceReactionService;
+    private final PipelineHealthService healthService;
 
     public MarketAnalysisScheduler(ProduceMarketDigestUseCase marketDigestService,
-                                    PriceReactionService priceReactionService) {
+                                    PriceReactionService priceReactionService,
+                                    PipelineHealthService healthService) {
         log.debug("MarketAnalysisScheduler() | marketDigestService={}, priceReactionService={}",
                 marketDigestService, priceReactionService);
         this.marketDigestService = marketDigestService;
         this.priceReactionService = priceReactionService;
+        this.healthService = healthService;
         log.debug("MarketAnalysisScheduler() | return=void");
     }
 
@@ -63,13 +66,18 @@ public class MarketAnalysisScheduler {
         log.debug("runDailyDigest()");
         LocalDate today = LocalDate.now();
         log.info("runDailyDigest() | starting market digest pipeline for {}", today);
+        Instant start = Instant.now();
 
         try {
             MarketDigest digest = marketDigestService.generateDailyDigest(today);
             log.info("runDailyDigest() | digest complete — {} qualifying entries for {}",
                     digest.entries().size(), today);
+            healthService.recordRun("market-digest", PipelineHealthService.PipelineRunRecord.success(
+                    "market-digest", digest.entries().size(), start, Instant.now()));
         } catch (Exception e) {
             log.error("runDailyDigest() | pipeline failed for {}", today, e);
+            healthService.recordRun("market-digest", PipelineHealthService.PipelineRunRecord.failure(
+                    "market-digest", e.getMessage(), start, Instant.now()));
         }
 
         log.debug("runDailyDigest() | return=void");
@@ -82,13 +90,18 @@ public class MarketAnalysisScheduler {
     @Scheduled(cron = "${aihealthcare.market-analysis.reaction.schedule:0 0 * * * *}")
     public void runReactionCapture() {
         log.debug("runReactionCapture()");
-        Instant now = Instant.now();
+        Instant start = Instant.now();
+        Instant now = start;
 
         try {
             List<PriceReactionSnapshot> captured = priceReactionService.capturePendingReactions(now);
             log.info("runReactionCapture() | captured {} new price-reaction snapshots", captured.size());
+            healthService.recordRun("price-reaction-capture", PipelineHealthService.PipelineRunRecord.success(
+                    "price-reaction-capture", captured.size(), start, Instant.now()));
         } catch (Exception e) {
             log.error("runReactionCapture() | polling failed", e);
+            healthService.recordRun("price-reaction-capture", PipelineHealthService.PipelineRunRecord.failure(
+                    "price-reaction-capture", e.getMessage(), start, Instant.now()));
         }
 
         log.debug("runReactionCapture() | return=void");

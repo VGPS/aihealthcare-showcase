@@ -17,6 +17,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -65,7 +66,7 @@ class EmbeddingSchedulerTest {
             @Override public VectorStore getIfAvailable()     { return vectorStore; }
             @Override public VectorStore getIfUnique()        { return vectorStore; }
         };
-        scheduler = new EmbeddingScheduler(repository, provider);
+        scheduler = new EmbeddingScheduler(repository, provider, mock(PipelineHealthService.class));
     }
 
     // -------------------------------------------------------------------------

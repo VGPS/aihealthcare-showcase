@@ -7,7 +7,10 @@ import com.wgblackmon.aihealthcare.domain.model.SocialPlatform;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageSavedPostsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCase;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -184,6 +188,42 @@ public class ClaimTrackerController {
         return "redirect:/dashboard/social/drafts";
     }
 
+    /**
+     * Exports all claims as a UTF-8 CSV file. Requires SUBSCRIBER/DEMO/ADMIN tier.
+     */
+    @GetMapping("/export.csv")
+    public ResponseEntity<byte[]> exportCsv(Principal principal) {
+        log.debug("exportCsv()");
+
+        if (!tierResolver.hasFullAccess(principal)) {
+            log.debug("exportCsv() | insufficient tier");
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header(HttpHeaders.LOCATION, "/pricing")
+                    .build();
+        }
+
+        List<FrontierClaim> all = claimsUseCase.getAll();
+        StringBuilder csv = new StringBuilder();
+        csv.append("Company,Verdict,Type,Claim Text,Evidence Notes,Source URL,Detected At\n");
+        for (FrontierClaim c : all) {
+            csv.append(escapeCsv(c.company())).append(",");
+            csv.append(c.verdict().name()).append(",");
+            csv.append(c.claimType().name()).append(",");
+            csv.append(escapeCsv(c.claimText())).append(",");
+            csv.append(escapeCsv(c.evidenceNotes() != null ? c.evidenceNotes() : "")).append(",");
+            csv.append(escapeCsv(c.sourceUrl() != null ? c.sourceUrl() : "")).append(",");
+            csv.append(CLAIM_FMT.format(c.detectedAt())).append("\n");
+        }
+
+        byte[] bytes = csv.toString().getBytes(StandardCharsets.UTF_8);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv;charset=UTF-8"));
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"frontier-claims.csv\"");
+
+        log.debug("exportCsv() | return={} rows", all.size());
+        return ResponseEntity.ok().headers(headers).body(bytes);
+    }
+
     private List<FrontierClaim> fetchFiltered(String company, String verdict, String type) {
         if (company != null && !company.isBlank()) {
             return claimsUseCase.getByCompany(company);
@@ -241,9 +281,18 @@ public class ClaimTrackerController {
         return "detectedAt".equals(sortField) ? "desc" : "asc";
     }
 
+    private static String escapeCsv(String value) {
+        if (value == null || value.isEmpty()) return "";
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+
     private Set<String> extractCompanies(List<FrontierClaim> all) {
         return all.stream()
                 .map(FrontierClaim::company)
+                .filter(c -> !c.toLowerCase().startsWith("no_qualifying"))
                 .sorted()
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }

@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.model.ResearchMode;
 import com.wgblackmon.aihealthcare.domain.model.ResearchRequest;
 import com.wgblackmon.aihealthcare.domain.model.ResearchSection;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,7 +49,7 @@ class ResearchHarvestSchedulerTest {
     void setUp() {
         properties = new ResearchHarvestProperties();
         properties.setMaxSourcesPerTopic(20);
-        scheduler  = new ResearchHarvestScheduler(conductResearchUseCase, properties);
+        scheduler  = new ResearchHarvestScheduler(conductResearchUseCase, properties, mock(PipelineHealthService.class));
     }
 
     @Test
