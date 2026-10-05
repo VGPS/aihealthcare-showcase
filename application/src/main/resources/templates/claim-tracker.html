@@ -10,7 +10,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-05
- * @updated 2026-10-05
+ * @updated 2026-10-05 — company datalist search, formatted timestamps
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -61,28 +61,42 @@
     <form method="get" action="/dashboard/claims" class="flex flex-wrap gap-3 mb-5 items-center">
         <span class="text-sm text-gray-600 font-medium">Filter:</span>
 
-        <select name="company" class="text-sm border rounded px-2 py-1">
-            <option value="">All companies</option>
-            <option th:each="c : ${companies}" th:value="${c}" th:text="${c}"
-                    th:selected="${filterCompany == c}">Company</option>
-        </select>
+        <!-- Company: native datalist for search-by-letter -->
+        <div class="flex flex-col gap-0.5">
+            <label for="company-input" class="text-xs text-gray-400">Company</label>
+            <input id="company-input" type="text" name="company" list="company-datalist"
+                   class="text-sm border rounded px-2 py-1 w-44"
+                   placeholder="Type to search…"
+                   th:value="${filterCompany != null ? filterCompany : ''}">
+            <datalist id="company-datalist">
+                <option th:each="c : ${companies}" th:value="${c}"></option>
+            </datalist>
+        </div>
 
-        <select name="verdict" class="text-sm border rounded px-2 py-1">
-            <option value="">All verdicts</option>
-            <option th:each="v : ${verdicts}" th:value="${v.name()}"
-                    th:text="${v.name().replace('_', ' ')}"
-                    th:selected="${filterVerdict == v.name()}">Verdict</option>
-        </select>
+        <div class="flex flex-col gap-0.5">
+            <label class="text-xs text-gray-400">Verdict</label>
+            <select name="verdict" class="text-sm border rounded px-2 py-1">
+                <option value="">All verdicts</option>
+                <option th:each="v : ${verdicts}" th:value="${v.name()}"
+                        th:text="${v.name().replace('_', ' ')}"
+                        th:selected="${filterVerdict == v.name()}">Verdict</option>
+            </select>
+        </div>
 
-        <select name="type" class="text-sm border rounded px-2 py-1">
-            <option value="">All types</option>
-            <option th:each="t : ${claimTypes}" th:value="${t.name()}"
-                    th:text="${t.name().replace('_', ' ')}"
-                    th:selected="${filterType == t.name()}">Type</option>
-        </select>
+        <div class="flex flex-col gap-0.5">
+            <label class="text-xs text-gray-400">Claim type</label>
+            <select name="type" class="text-sm border rounded px-2 py-1">
+                <option value="">All types</option>
+                <option th:each="t : ${claimTypes}" th:value="${t.name()}"
+                        th:text="${t.name().replace('_', ' ')}"
+                        th:selected="${filterType == t.name()}">Type</option>
+            </select>
+        </div>
 
-        <button type="submit" class="btn-search text-sm">Apply</button>
-        <a href="/dashboard/claims" class="text-sm text-gray-500 underline">Clear</a>
+        <div class="flex items-end gap-2">
+            <button type="submit" class="btn-search text-sm">Apply</button>
+            <a href="/dashboard/claims" class="text-sm text-gray-500 underline">Clear</a>
+        </div>
 
         <span class="text-sm text-gray-400 ml-auto"
               th:text="${claims.size()} + ' claims shown'">0 claims shown</span>
@@ -150,7 +164,7 @@
 
             <!-- Detected timestamp -->
             <p class="text-xs text-gray-400 mt-2"
-               th:text="'Detected ' + ${claim.detectedAt()}">Detected at</p>
+               th:text="'Detected ' + ${claimTimestamps[claim.claimId()]}">Detected at</p>
         </div>
 
         <!-- Empty state -->

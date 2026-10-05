@@ -13,9 +13,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
+import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
@@ -46,9 +49,9 @@ import java.util.Map;
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 2.8
+ * @version 2.9
  * @since   2026-07-30
- * @updated 2026-09-08
+ * @updated 2026-10-05
  */
 @Slf4j
 @Controller
@@ -70,6 +73,8 @@ public class AdminPipelineController {
     private final DeliverNewsletterUseCase deliverUseCase;
     private final PriceReactionService priceReactionService;
     private final DetectTrendsUseCase detectTrendsUseCase;
+    private final TrackFrontierClaimsUseCase trackFrontierClaimsUseCase;
+    private final ArticleIngestionPort articleIngestionPort;
 
     public AdminPipelineController(PipelineHealthService healthService,
                                    PipelineAsyncRunner asyncRunner,
@@ -77,9 +82,11 @@ public class AdminPipelineController {
                                    ProduceMarketDigestUseCase marketDigestService,
                                    DeliverNewsletterUseCase deliverUseCase,
                                    PriceReactionService priceReactionService,
-                                   DetectTrendsUseCase detectTrendsUseCase) {
-        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}",
-                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase);
+                                   DetectTrendsUseCase detectTrendsUseCase,
+                                   TrackFrontierClaimsUseCase trackFrontierClaimsUseCase,
+                                   ArticleIngestionPort articleIngestionPort) {
+        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}",
+                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort);
         this.healthService = healthService;
         this.asyncRunner = asyncRunner;
         this.newsletterScheduler = newsletterScheduler;
@@ -87,6 +94,8 @@ public class AdminPipelineController {
         this.deliverUseCase = deliverUseCase;
         this.priceReactionService = priceReactionService;
         this.detectTrendsUseCase = detectTrendsUseCase;
+        this.trackFrontierClaimsUseCase = trackFrontierClaimsUseCase;
+        this.articleIngestionPort = articleIngestionPort;
     }
 
     /**
@@ -309,6 +318,25 @@ public class AdminPipelineController {
     }
 
     /**
+     * Manually triggers frontier claim detection across the last 7 days of articles.
+     *
+     * <p>Fetches recent articles, sends them to the LLM in batches of 10,
+     * deduplicates by company + claim-text hash, and persists new claims.
+     * Results are visible at {@code /dashboard/claims}.
+     *
+     * @return JSON result with claim count and duration
+     */
+    @PostMapping("/claims/detect")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> detectFrontierClaims() {
+        log.debug("detectFrontierClaims()");
+        return asyncRunner.runAsync("claim-detection", () -> {
+            List<NewsArticle> articles = articleIngestionPort.fetchRecentArticles(7);
+            trackFrontierClaimsUseCase.detectClaims(articles);
+        });
+    }
+
+    /**
      * Syncs the NotebookLM corpus from EC2 to the local dev machine via SSH + SCP.
      *
      * <p>EC2 runs {@code ResearchHarvestScheduler} (06:00 &amp; 12:00 UTC daily),
@@ -519,6 +547,18 @@ public class AdminPipelineController {
                 "on the /dashboard/frameworks pages after new articles have been harvested.",
                 "Manual only (also runs inside Run Full Cascade)", "StartupPipelineOrchestrator (cascade step)",
                 "/api/v1/frameworks/analyze", "POST", false, "~2-4 min", "Medium (LLM)"));
+
+        list.add(new PipelineInfo("claim-detection", "Frontier Claim Detection",
+                "Scans the last 7 days of articles for claims made by frontier AI companies " +
+                "(OpenAI, Anthropic, Google, Meta, Microsoft, NVIDIA, etc.) and classifies each by evidence quality: " +
+                "EVIDENCE_BACKED (peer-reviewed / independently verified), ALLEGED_UNVERIFIED (stated without citation), " +
+                "MARKETING_HYPE (superlatives without data), CONTRADICTED (conflicts with other sourced evidence), " +
+                "RETRACTED (company walked it back). LLM processes articles in batches of 10 and writes structured " +
+                "evidence notes explaining each verdict. Deduplicates by company + claim-text before persisting. " +
+                "Also runs automatically as cascade step 15 in StartupPipelineOrchestrator. " +
+                "Results visible at /dashboard/claims.",
+                "Manual only (also runs inside Run Full Cascade)", "StartupPipelineOrchestrator (cascade step 15)",
+                "/admin/pipelines/claims/detect", "POST", true, "~1-3 min", "Medium (LLM)"));
 
         // ── Medium (no LLM) ──────────────────────────────────────────────────
         list.add(new PipelineInfo("legal-backfill", "Legal & Regulatory Backfill",
