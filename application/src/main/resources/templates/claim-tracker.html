@@ -165,14 +165,14 @@
         <table class="w-full text-sm bg-white">
             <thead class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wide">
                 <tr>
-                    <!-- Company: sortable when claims exist -->
+                    <!-- Company: sortable only when "All Companies" is selected and claims exist -->
                     <th class="px-3 py-2.5 text-left whitespace-nowrap">
-                        <a th:if="${!#lists.isEmpty(claims)}" class="hover:text-primary-700"
+                        <a th:if="${filterCompany == null and !#lists.isEmpty(claims)}" class="hover:text-primary-700"
                            th:href="@{/dashboard/claims(company=${filterCompany},verdict=${filterVerdict},type=${filterType},sort='company',dir=${sortField == 'company' ? (sortDir == 'asc' ? 'desc' : 'asc') : 'asc'})}">
                             Company
                             <span th:if="${sortField == 'company'}" th:text="${sortDir == 'asc' ? ' ↑' : ' ↓'}"></span>
                         </a>
-                        <span th:if="${#lists.isEmpty(claims)}">Company</span>
+                        <span th:if="${filterCompany != null or #lists.isEmpty(claims)}">Company</span>
                     </th>
 
                     <!-- Verdict: sortable only when "All Verdicts" is selected -->
