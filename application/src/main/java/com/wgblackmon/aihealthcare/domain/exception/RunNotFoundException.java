@@ -5,6 +5,11 @@ package com.wgblackmon.aihealthcare.domain.exception;
  * no ingestion run exists in the current store.
  *
  * <p>Maps to HTTP 404 in the web layer.
+ *
+ * @author  Bill Blackmon
+ * @version 1.0
+ * @since   2025-01-27
+ * @updated 2026-10-05
  */
 public class RunNotFoundException extends RuntimeException {
 
