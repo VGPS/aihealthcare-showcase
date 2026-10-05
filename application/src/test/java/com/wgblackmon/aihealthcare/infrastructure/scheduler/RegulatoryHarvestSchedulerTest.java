@@ -52,7 +52,8 @@ class RegulatoryHarvestSchedulerTest {
         watchlistMatchPort = mock(WatchlistMatchPort.class);
         matcher = new RegulatoryWatchlistMatcher();
         scheduler = new RegulatoryHarvestScheduler(
-                harvestingPort, eventPort, watchlistPort, watchlistMatchPort, matcher, null);
+                harvestingPort, eventPort, watchlistPort, watchlistMatchPort, matcher, null,
+                mock(PipelineHealthService.class));
     }
 
     @Test

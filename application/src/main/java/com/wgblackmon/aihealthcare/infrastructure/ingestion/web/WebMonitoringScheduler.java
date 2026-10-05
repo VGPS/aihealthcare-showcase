@@ -3,10 +3,12 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion.web;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -38,10 +40,12 @@ public class WebMonitoringScheduler {
     private final WebPageHarvester webPageHarvester;
     private final HuggingFaceHarvester huggingFaceHarvester;
     private final ArticleStoragePort articleStoragePort;
+    private final PipelineHealthService healthService;
 
     public WebMonitoringScheduler(WebPageHarvester webPageHarvester,
                                   HuggingFaceHarvester huggingFaceHarvester,
-                                  ArticleStoragePort articleStoragePort) {
+                                  ArticleStoragePort articleStoragePort,
+                                  PipelineHealthService healthService) {
         log.debug("WebMonitoringScheduler() | webPageHarvester={}, huggingFaceHarvester={}, articleStoragePort={}",
                   webPageHarvester.getClass().getSimpleName(),
                   huggingFaceHarvester.getClass().getSimpleName(),
@@ -49,6 +53,7 @@ public class WebMonitoringScheduler {
         this.webPageHarvester = webPageHarvester;
         this.huggingFaceHarvester = huggingFaceHarvester;
         this.articleStoragePort = articleStoragePort;
+        this.healthService = healthService;
     }
 
     /**
@@ -58,6 +63,7 @@ public class WebMonitoringScheduler {
     @Scheduled(cron = "${aihealthcare.harvest.competitor-cron}", zone = "UTC")
     public void harvestCompetitorPages() {
         log.debug("harvestCompetitorPages() | starting daily COMPETITOR harvest");
+        Instant start = Instant.now();
         try {
             List<NewsArticle> articles = webPageHarvester.harvestChangedPages();
             if (!articles.isEmpty()) {
@@ -67,8 +73,12 @@ public class WebMonitoringScheduler {
             } else {
                 log.info("harvestCompetitorPages() | no competitor page changes detected");
             }
+            healthService.recordRun("competitor", PipelineHealthService.PipelineRunRecord.success(
+                    "competitor", articles.size(), start, Instant.now()));
         } catch (Exception ex) {
             log.error("harvestCompetitorPages() | harvest failed: {}", ex.getMessage(), ex);
+            healthService.recordRun("competitor", PipelineHealthService.PipelineRunRecord.failure(
+                    "competitor", ex.getMessage(), start, Instant.now()));
         }
         log.debug("harvestCompetitorPages() | return=void");
     }
@@ -80,6 +90,7 @@ public class WebMonitoringScheduler {
     @Scheduled(cron = "${aihealthcare.harvest.huggingface-cron}", zone = "UTC")
     public void harvestHuggingFaceModels() {
         log.debug("harvestHuggingFaceModels() | starting daily HUGGINGFACE harvest");
+        Instant start = Instant.now();
         try {
             List<NewsArticle> articles = huggingFaceHarvester.harvestModels();
             if (!articles.isEmpty()) {
@@ -89,8 +100,12 @@ public class WebMonitoringScheduler {
             } else {
                 log.info("harvestHuggingFaceModels() | no new HuggingFace models discovered");
             }
+            healthService.recordRun("huggingface", PipelineHealthService.PipelineRunRecord.success(
+                    "huggingface", articles.size(), start, Instant.now()));
         } catch (Exception ex) {
             log.error("harvestHuggingFaceModels() | harvest failed: {}", ex.getMessage(), ex);
+            healthService.recordRun("huggingface", PipelineHealthService.PipelineRunRecord.failure(
+                    "huggingface", ex.getMessage(), start, Instant.now()));
         }
         log.debug("harvestHuggingFaceModels() | return=void");
     }

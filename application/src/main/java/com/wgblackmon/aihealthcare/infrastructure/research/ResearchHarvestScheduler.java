@@ -3,9 +3,12 @@ package com.wgblackmon.aihealthcare.infrastructure.research;
 import com.wgblackmon.aihealthcare.domain.model.ResearchMode;
 import com.wgblackmon.aihealthcare.domain.model.ResearchRequest;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
 
 /**
  * Scheduled driver that proactively harvests research results for all configured
@@ -50,20 +53,24 @@ public class ResearchHarvestScheduler {
 
     private final ConductResearchUseCase    conductResearchUseCase;
     private final ResearchHarvestProperties harvestProperties;
+    private final PipelineHealthService     healthService;
 
     /**
      * Constructs the scheduler with its use-case and configuration dependencies.
      *
      * @param conductResearchUseCase Use case driving the COMBINED research pipeline.
      * @param harvestProperties      Externalized config: topics, cron, maxSources.
+     * @param healthService          Pipeline health tracker for last-run recording.
      */
     public ResearchHarvestScheduler(ConductResearchUseCase conductResearchUseCase,
-                                    ResearchHarvestProperties harvestProperties) {
+                                    ResearchHarvestProperties harvestProperties,
+                                    PipelineHealthService healthService) {
         log.debug("ResearchHarvestScheduler() | conductResearchUseCase={}, topics={}",
                   conductResearchUseCase.getClass().getSimpleName(),
                   harvestProperties.getTopics().size());
         this.conductResearchUseCase = conductResearchUseCase;
         this.harvestProperties      = harvestProperties;
+        this.healthService          = healthService;
         log.debug("ResearchHarvestScheduler() | return=void");
     }
 
@@ -79,6 +86,7 @@ public class ResearchHarvestScheduler {
     @Scheduled(cron = "${aihealthcare.research.harvest.cron:0 0 6 * * *}", zone = "UTC")
     public void harvestResearchTopics() {
         log.debug("harvestResearchTopics() | topicCount={}", harvestProperties.getTopics().size());
+        Instant start = Instant.now();
 
         if (harvestProperties.getTopics().isEmpty()) {
             log.info("harvestResearchTopics() | no topics configured — skipping");
@@ -109,6 +117,13 @@ public class ResearchHarvestScheduler {
 
         log.info("harvestResearchTopics() | harvest run complete: {} succeeded, {} failed",
                  success, failed);
+        if (failed == 0) {
+            healthService.recordRun("research-harvest", PipelineHealthService.PipelineRunRecord.success(
+                    "research-harvest", success, start, Instant.now()));
+        } else {
+            healthService.recordRun("research-harvest", PipelineHealthService.PipelineRunRecord.failure(
+                    "research-harvest", failed + " topic(s) failed", start, Instant.now()));
+        }
         log.debug("harvestResearchTopics() | return=void");
     }
 }

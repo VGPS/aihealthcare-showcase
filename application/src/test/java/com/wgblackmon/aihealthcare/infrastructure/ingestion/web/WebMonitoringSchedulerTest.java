@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.ingestion.web;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
 import com.wgblackmon.aihealthcare.infrastructure.ingestion.huggingface.HuggingFaceHarvester;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +44,7 @@ class WebMonitoringSchedulerTest {
     @BeforeEach
     void setUp() {
         scheduler = new WebMonitoringScheduler(webPageHarvester, huggingFaceHarvester,
-                                               articleStoragePort);
+                                               articleStoragePort, mock(PipelineHealthService.class));
     }
 
     @Test

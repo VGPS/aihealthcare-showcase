@@ -4,10 +4,13 @@ import com.wgblackmon.aihealthcare.domain.model.TrendSnapshot;
 import com.wgblackmon.aihealthcare.domain.model.WebhookEventType;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.infrastructure.delivery.WebhookDispatcher;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
 
 /**
  * Scheduled job that runs trend detection weekly and persists the snapshot.
@@ -29,12 +32,15 @@ public class TrendDetectionScheduler {
 
     private final DetectTrendsUseCase detectTrendsUseCase;
     private final WebhookDispatcher webhookDispatcher;
+    private final PipelineHealthService healthService;
 
     public TrendDetectionScheduler(DetectTrendsUseCase detectTrendsUseCase,
-                                    @Autowired(required = false) WebhookDispatcher webhookDispatcher) {
+                                    @Autowired(required = false) WebhookDispatcher webhookDispatcher,
+                                    PipelineHealthService healthService) {
         log.debug("TrendDetectionScheduler() | detectTrendsUseCase={}", detectTrendsUseCase);
         this.detectTrendsUseCase = detectTrendsUseCase;
         this.webhookDispatcher = webhookDispatcher;
+        this.healthService = healthService;
     }
 
     /**
@@ -43,6 +49,7 @@ public class TrendDetectionScheduler {
     @Scheduled(cron = "${aihealthcare.trends.schedule:0 0 8 ? * SUN}")
     public void runWeeklyTrendDetection() {
         log.debug("runWeeklyTrendDetection()");
+        Instant start = Instant.now();
 
         try {
             TrendSnapshot snapshot = detectTrendsUseCase.detectTrends();
@@ -62,8 +69,12 @@ public class TrendDetectionScheduler {
                     log.warn("runWeeklyTrendDetection() | webhook dispatch failed: {}", we.getMessage());
                 }
             }
+            healthService.recordRun("trend-detection", PipelineHealthService.PipelineRunRecord.success(
+                    "trend-detection", snapshot.totalKeywords(), start, Instant.now()));
         } catch (Exception e) {
             log.error("runWeeklyTrendDetection() | trend detection failed", e);
+            healthService.recordRun("trend-detection", PipelineHealthService.PipelineRunRecord.failure(
+                    "trend-detection", e.getMessage(), start, Instant.now()));
         }
 
         log.debug("runWeeklyTrendDetection() | return=void");

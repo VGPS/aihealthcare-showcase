@@ -135,6 +135,10 @@ public class ClaimClassifierAdapter implements ClaimClassifierPort {
 
             try {
                 String company = toTitleCase(parts[0].trim());
+                if (company.toLowerCase().startsWith("no_qualifying") || company.equalsIgnoreCase("none")) {
+                    log.debug("parseResponse() | skipping sentinel company: {}", company);
+                    continue;
+                }
                 ClaimType claimType = parseClaimType(parts[1].trim());
                 ClaimVerdict verdict = parseVerdict(parts[2].trim());
                 String claimText = parts[3].trim();
