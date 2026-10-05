@@ -5,7 +5,9 @@ import com.wgblackmon.aihealthcare.domain.model.ScoredArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleScoringPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -43,10 +45,13 @@ public class ArticleScoringAdapter implements ArticleScoringPort {
      * @param promptLoaderService service to load prompt templates
      */
     public ArticleScoringAdapter(ChatClient.Builder chatClientBuilder,
-                                  PromptLoaderService promptLoaderService) {
-        log.debug("ArticleScoringAdapter() | chatClientBuilder={}, promptLoaderService={}",
-                  chatClientBuilder, promptLoaderService.getClass().getSimpleName());
-        this.chatClient = chatClientBuilder.build();
+                                  PromptLoaderService promptLoaderService,
+                                  @Value("${aihealthcare.ai.classification-model:claude-haiku-4-5}") String classificationModel) {
+        log.debug("ArticleScoringAdapter() | promptLoaderService={}, classificationModel={}",
+                  promptLoaderService.getClass().getSimpleName(), classificationModel);
+        this.chatClient = chatClientBuilder
+                .defaultOptions(AnthropicChatOptions.builder().model(classificationModel).build())
+                .build();
         this.promptLoaderService = promptLoaderService;
         log.debug("ArticleScoringAdapter() | return=void");
     }

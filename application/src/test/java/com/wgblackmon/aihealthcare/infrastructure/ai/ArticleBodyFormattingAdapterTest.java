@@ -95,7 +95,7 @@ class ArticleBodyFormattingAdapterTest {
                         org.springframework.ai.chat.prompt.Prompt prompt) {
                     return null;
                 }
-            }), promptLoaderService);
+            }), promptLoaderService, "claude-haiku-4-5");
         }
     }
 }

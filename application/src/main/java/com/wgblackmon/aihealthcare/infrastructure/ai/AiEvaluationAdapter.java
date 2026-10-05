@@ -7,7 +7,9 @@ import com.wgblackmon.aihealthcare.domain.model.NewsletterTone;
 import com.wgblackmon.aihealthcare.domain.port.outbound.AiEvaluationPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -40,10 +42,13 @@ public class AiEvaluationAdapter implements AiEvaluationPort {
     private final PromptLoaderService promptLoaderService;
 
     public AiEvaluationAdapter(ChatClient.Builder chatClientBuilder,
-                                PromptLoaderService promptLoaderService) {
-        log.debug("AiEvaluationAdapter() | chatClientBuilder={}, promptLoaderService={}",
-                  chatClientBuilder, promptLoaderService.getClass().getSimpleName());
-        this.chatClient = chatClientBuilder.build();
+                                PromptLoaderService promptLoaderService,
+                                @Value("${aihealthcare.ai.classification-model:claude-haiku-4-5}") String classificationModel) {
+        log.debug("AiEvaluationAdapter() | promptLoaderService={}, classificationModel={}",
+                  promptLoaderService.getClass().getSimpleName(), classificationModel);
+        this.chatClient = chatClientBuilder
+                .defaultOptions(AnthropicChatOptions.builder().model(classificationModel).build())
+                .build();
         this.promptLoaderService = promptLoaderService;
         log.debug("AiEvaluationAdapter() | return=void");
     }

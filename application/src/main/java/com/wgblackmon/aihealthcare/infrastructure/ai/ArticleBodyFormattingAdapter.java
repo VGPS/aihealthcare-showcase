@@ -3,7 +3,9 @@ package com.wgblackmon.aihealthcare.infrastructure.ai;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleBodyFormattingPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,10 +35,13 @@ public class ArticleBodyFormattingAdapter implements ArticleBodyFormattingPort {
     private final PromptLoaderService promptLoaderService;
 
     public ArticleBodyFormattingAdapter(ChatClient.Builder chatClientBuilder,
-                                        PromptLoaderService promptLoaderService) {
-        log.debug("ArticleBodyFormattingAdapter() | promptLoaderService={}",
-                  promptLoaderService.getClass().getSimpleName());
-        this.chatClient          = chatClientBuilder.build();
+                                        PromptLoaderService promptLoaderService,
+                                        @Value("${aihealthcare.ai.classification-model:claude-haiku-4-5}") String classificationModel) {
+        log.debug("ArticleBodyFormattingAdapter() | promptLoaderService={}, classificationModel={}",
+                  promptLoaderService.getClass().getSimpleName(), classificationModel);
+        this.chatClient          = chatClientBuilder
+                .defaultOptions(AnthropicChatOptions.builder().model(classificationModel).build())
+                .build();
         this.promptLoaderService = promptLoaderService;
         log.debug("ArticleBodyFormattingAdapter() | return=void");
     }

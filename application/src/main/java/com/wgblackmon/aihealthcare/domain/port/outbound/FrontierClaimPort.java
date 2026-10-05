@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.domain.port.outbound;
 
 import com.wgblackmon.aihealthcare.domain.model.FrontierClaim;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,4 +40,10 @@ public interface FrontierClaimPort {
 
     /** Returns the claim with the given identifier, or empty if not found. */
     Optional<FrontierClaim> findById(String claimId);
+
+    /**
+     * Returns all claims for the given company detected on or after {@code since}.
+     * Used to build the 90-day prior-claims context for contradiction detection.
+     */
+    List<FrontierClaim> findByCompanyDetectedAfter(String company, Instant since);
 }

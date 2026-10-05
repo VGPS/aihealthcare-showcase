@@ -8,9 +8,13 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCas
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClaimClassifierPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FrontierClaimPort;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,7 +30,7 @@ import java.util.Set;
  * <p>No Spring or Lombok dependencies — wired entirely through {@code AppConfig}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-10-05
  * @updated 2026-10-05
  */
@@ -59,11 +63,15 @@ public class FrontierClaimService implements TrackFrontierClaimsUseCase {
             }
         }
 
-        if (!fresh.isEmpty()) {
-            claimPort.saveAll(fresh);
+        // Contradiction pass: group fresh claims by company, fetch 90-day prior claims,
+        // ask LLM to flag conflicts. Only runs when there are prior claims to compare.
+        List<FrontierClaim> withContradictions = applyContradictionCheck(fresh);
+
+        if (!withContradictions.isEmpty()) {
+            claimPort.saveAll(withContradictions);
         }
 
-        return fresh;
+        return withContradictions;
     }
 
     @Override
@@ -89,6 +97,28 @@ public class FrontierClaimService implements TrackFrontierClaimsUseCase {
     @Override
     public Optional<FrontierClaim> getById(String claimId) {
         return claimPort.findById(claimId);
+    }
+
+    private List<FrontierClaim> applyContradictionCheck(List<FrontierClaim> fresh) {
+        if (fresh.isEmpty()) {
+            return fresh;
+        }
+        Instant since = Instant.now().minus(90, ChronoUnit.DAYS);
+        Map<String, List<FrontierClaim>> byCompany = new HashMap<>();
+        for (FrontierClaim c : fresh) {
+            byCompany.computeIfAbsent(c.company().toLowerCase(), k -> new ArrayList<>()).add(c);
+        }
+        List<FrontierClaim> result = new ArrayList<>();
+        for (Map.Entry<String, List<FrontierClaim>> entry : byCompany.entrySet()) {
+            List<FrontierClaim> newForCompany = entry.getValue();
+            List<FrontierClaim> prior = claimPort.findByCompanyDetectedAfter(entry.getKey(), since);
+            if (prior.isEmpty()) {
+                result.addAll(newForCompany);
+            } else {
+                result.addAll(classifierPort.detectContradictions(newForCompany, prior));
+            }
+        }
+        return result;
     }
 
     private Set<String> buildExistingKeys() {

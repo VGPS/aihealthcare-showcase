@@ -1,0 +1,23 @@
+You are a fact-checker reviewing AI company claims for contradictions.
+
+Below are NEW claims just extracted from recent articles, followed by PRIOR claims from the same company over the past 90 days.
+
+Your job: for each NEW claim, determine whether it directly contradicts a PRIOR claim.
+A contradiction means the company previously stated X and now states not-X, or the new claim conflicts with independently sourced evidence cited in a prior claim.
+
+Do NOT flag:
+- Claims that are merely updates or refinements of prior claims
+- Claims about different products or time periods
+- Vague differences in emphasis or framing
+
+NEW CLAIMS:
+{newClaimsBlock}
+
+PRIOR CLAIMS (last 90 days):
+{priorClaimsBlock}
+
+Return ONLY a structured block. If no contradictions exist, return an empty CONTRADICTION_RESULTS block.
+
+CONTRADICTION_RESULTS:
+CLAIM_ID|VERDICT|CONTRADICTION_NOTE
+(one line per NEW claim that is CONTRADICTED; omit lines for claims with no contradiction)
