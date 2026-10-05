@@ -111,7 +111,9 @@ public class ClaimTrackerController {
         String effectiveSort = (sort == null || sort.isBlank()) ? "detectedAt" : sort;
         String effectiveDir = resolveDir(effectiveSort, dir);
 
-        List<FrontierClaim> all = claimsUseCase.getAll();
+        List<FrontierClaim> all = claimsUseCase.getAll().stream()
+                .filter(c -> !c.company().toLowerCase().startsWith("no_qualifying"))
+                .collect(Collectors.toList());
         Set<String> companies = extractCompanies(all);
         Map<ClaimVerdict, Long> verdictCounts = buildVerdictCounts(all);
         long totalUnverified = verdictCounts.getOrDefault(ClaimVerdict.ALLEGED_UNVERIFIED, 0L)
@@ -225,24 +227,27 @@ public class ClaimTrackerController {
     }
 
     private List<FrontierClaim> fetchFiltered(String company, String verdict, String type) {
+        List<FrontierClaim> results;
         if (company != null && !company.isBlank()) {
-            return claimsUseCase.getByCompany(company);
-        }
-        if (verdict != null && !verdict.isBlank()) {
+            results = claimsUseCase.getByCompany(company);
+        } else if (verdict != null && !verdict.isBlank()) {
             try {
-                return claimsUseCase.getByVerdict(ClaimVerdict.valueOf(verdict));
+                results = claimsUseCase.getByVerdict(ClaimVerdict.valueOf(verdict));
             } catch (IllegalArgumentException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown verdict: " + verdict);
             }
-        }
-        if (type != null && !type.isBlank()) {
+        } else if (type != null && !type.isBlank()) {
             try {
-                return claimsUseCase.getByType(ClaimType.valueOf(type));
+                results = claimsUseCase.getByType(ClaimType.valueOf(type));
             } catch (IllegalArgumentException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown claim type: " + type);
             }
+        } else {
+            results = claimsUseCase.getAll();
         }
-        return claimsUseCase.getAll();
+        return results.stream()
+                .filter(c -> !c.company().toLowerCase().startsWith("no_qualifying"))
+                .collect(Collectors.toList());
     }
 
     private List<FrontierClaim> applySort(List<FrontierClaim> claims, String sort, String dir) {
