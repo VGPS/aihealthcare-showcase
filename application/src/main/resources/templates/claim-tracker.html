@@ -11,7 +11,7 @@
  * @author  Bill Blackmon
  * @version 1.3
  * @since   2026-10-05
- * @updated 2026-10-05 — usage panel, admin-only actions, conditional sort, spinner, CSV export
+ * @updated 2026-10-05 — usage panel, admin-only actions, conditional sort, spinner, CSV + Text export, tier-gated export area
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -84,11 +84,22 @@
         </div>
         <div class="ml-auto flex items-center gap-3">
             <span class="text-sm text-gray-400" th:text="${claims.size()} + ' claims shown'">0 claims shown</span>
-            <!-- CSV export (SUBSCRIBER+) -->
-            <a th:if="${fullAccess}" href="/dashboard/claims/export.csv"
-               class="text-xs border border-gray-300 rounded px-2 py-1 text-gray-600 hover:bg-gray-50 hover:text-primary-700 transition-colors">
-                Save as CSV ↓
-            </a>
+            <!-- Export buttons: SUBSCRIBER/DEMO/ADMIN -->
+            <span th:if="${fullAccess}" class="flex items-center gap-1.5">
+                <span class="text-xs text-gray-500">Save as:</span>
+                <a href="/dashboard/claims/export.csv"
+                   class="text-xs border border-gray-300 rounded px-2 py-1 text-gray-600 hover:bg-gray-50 hover:text-primary-700 transition-colors">
+                    ⬇ CSV
+                </a>
+                <button onclick="exportText()"
+                        class="text-xs border border-gray-300 rounded px-2 py-1 text-gray-600 hover:bg-gray-50 hover:text-primary-700 transition-colors">
+                    ⬇ Text
+                </button>
+            </span>
+            <!-- Export upgrade prompt: FREE -->
+            <span th:unless="${fullAccess}" class="text-xs text-gray-400">
+                <a th:href="@{/pricing}" class="underline hover:text-primary-600">Upgrade</a> to export
+            </span>
         </div>
     </div>
 
@@ -141,7 +152,7 @@
     <!-- FREE-tier gate notice -->
     <div th:if="${!fullAccess}" class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-5 text-sm text-amber-800">
         You are seeing the <strong th:text="${freeLimit}">5</strong> most recent claims.
-        <a th:href="@{/pricing}" class="underline font-medium">Upgrade to SUBSCRIBER</a> to see all claims, filters, and CSV export.
+        <a th:href="@{/pricing}" class="underline font-medium">Upgrade to SUBSCRIBER</a> to see all claims, filters, and CSV + Text export.
     </div>
 
     <!-- Flash success message -->
@@ -285,5 +296,44 @@
     </div>
 
 </main>
+
+<script>
+function exportText() {
+    var table = document.querySelector('table');
+    if (!table) return;
+    var headers = [];
+    var ths = table.querySelectorAll('thead th');
+    for (var i = 0; i < ths.length; i++) {
+        var h = ths[i].textContent.replace(/[↑↓\s]+/g, ' ').trim();
+        if (h) headers.push(h);
+    }
+    var lines = ['Frontier AI Claim Tracker', '='.repeat(60), '', headers.join(' | ')];
+    lines.push('-'.repeat(100));
+    var rows = table.querySelectorAll('tbody tr');
+    for (var r = 0; r < rows.length; r++) {
+        var cols = [];
+        for (var c = 0; c < rows[r].cells.length; c++) {
+            cols.push(rows[r].cells[c].textContent.trim().replace(/\s+/g, ' '));
+        }
+        if (cols.some(function(x) { return x.length > 0; })) {
+            lines.push(cols.join(' | '));
+        }
+    }
+    lines.push('', 'Exported from Big Sky Labs — https://app.bigskylabs.ai/dashboard/claims');
+    downloadFile(lines.join('\n'), 'frontier-ai-claims.txt', 'text/plain');
+}
+
+function downloadFile(content, filename, mimeType) {
+    var blob = new Blob([content], { type: mimeType + ';charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>
 </body>
 </html>
