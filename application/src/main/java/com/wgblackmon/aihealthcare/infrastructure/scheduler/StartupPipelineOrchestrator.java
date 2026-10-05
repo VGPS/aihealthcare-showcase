@@ -11,6 +11,8 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.AnalyzeFrameworksUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectDealSignalsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MapCompanyRelationshipsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectLegalTrendsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PipelineRunEventPort;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler;
@@ -72,6 +74,8 @@ public class StartupPipelineOrchestrator {
     private final DetectDealSignalsUseCase detectDealSignalsUseCase;
     private final MapCompanyRelationshipsUseCase mapRelationshipsUseCase;
     private final ProduceMarketDigestUseCase marketDigestService;
+    private final TrackFrontierClaimsUseCase trackFrontierClaimsUseCase;
+    private final ArticleIngestionPort articleIngestionPort;
 
     public StartupPipelineOrchestrator(
             @Autowired(required = false) WebMonitoringScheduler webMonitoringScheduler,
@@ -88,7 +92,9 @@ public class StartupPipelineOrchestrator {
             @Autowired(required = false) WebhookDispatcher webhookDispatcher,
             @Autowired(required = false) DetectDealSignalsUseCase detectDealSignalsUseCase,
             @Autowired(required = false) MapCompanyRelationshipsUseCase mapRelationshipsUseCase,
-            @Autowired(required = false) ProduceMarketDigestUseCase marketDigestService) {
+            @Autowired(required = false) ProduceMarketDigestUseCase marketDigestService,
+            @Autowired(required = false) TrackFrontierClaimsUseCase trackFrontierClaimsUseCase,
+            @Autowired(required = false) ArticleIngestionPort articleIngestionPort) {
         log.debug("StartupPipelineOrchestrator() | initializing with {} available pipelines",
                 countNonNull(webMonitoringScheduler, regulatoryHarvestScheduler,
                         clinicalTrialHarvestScheduler, embeddingScheduler,
@@ -111,6 +117,8 @@ public class StartupPipelineOrchestrator {
         this.detectDealSignalsUseCase = detectDealSignalsUseCase;
         this.mapRelationshipsUseCase = mapRelationshipsUseCase;
         this.marketDigestService = marketDigestService;
+        this.trackFrontierClaimsUseCase = trackFrontierClaimsUseCase;
+        this.articleIngestionPort = articleIngestionPort;
     }
 
     /**
@@ -186,6 +194,16 @@ public class StartupPipelineOrchestrator {
             }
         });
 
+        runStep("Frontier claim detection", () -> {
+            if (trackFrontierClaimsUseCase != null && articleIngestionPort != null) {
+                java.util.List<com.wgblackmon.aihealthcare.domain.model.NewsArticle> recentArticles =
+                        articleIngestionPort.fetchRecentArticles(1);
+                java.util.List<com.wgblackmon.aihealthcare.domain.model.FrontierClaim> claims =
+                        trackFrontierClaimsUseCase.detectClaims(recentArticles);
+                log.info("runAllPipelines() | frontier claims detected={}", claims.size());
+            }
+        });
+
         runStep("Company discovery", () -> {
             if (companyDiscoveryScheduler != null) {
                 companyDiscoveryScheduler.runWeeklyCompanyDiscovery();
@@ -250,7 +268,7 @@ public class StartupPipelineOrchestrator {
                 webhookDispatcher.dispatch(
                         WebhookEventType.PIPELINE_COMPLETE,
                         "Pipeline Run Complete",
-                        "All 14 data pipelines completed in " + elapsed + " seconds.",
+                        "All 15 data pipelines completed in " + elapsed + " seconds.",
                         "/admin/pipeline"
                 );
             } catch (Exception e) {
@@ -406,6 +424,8 @@ public class StartupPipelineOrchestrator {
                 return "embedding";
             case "Framework analysis":
                 return "framework-analysis";
+            case "Frontier claim detection":
+                return "frontier-claims";
             case "Company discovery":
                 return "company-discovery";
             case "Sentiment analysis":

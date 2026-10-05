@@ -15,7 +15,8 @@
  *                    wiki | trends | trend-history | regulatory | legal | legal-trends | legislation |
  *                    clinical-trials | companies | company-directory | risk | frameworks | watchlist | notes |
  *                    relationships | search | pricing | about | profile | developer | webhooks | admin | admin-pipelines |
- *                    intelligence | deals | market | market-history | admin-documents | enterprise-data | social | social-drafts
+ *                    intelligence | deals | market | market-history | admin-documents | enterprise-data | social | social-drafts |
+ *                    claims
  *
  * Nav groups: Enterprise | Dashboard | Content | Research | Legal | Reference | Account
  *
@@ -66,10 +67,12 @@
     <!-- Content group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
-                th:classappend="${activePage == 'news' || activePage == 'trends' || activePage == 'trend-history' || activePage == 'market' || activePage == 'market-history' || activePage == 'market-enrichment' || activePage == 'deals'} ? ' active'">
+                th:classappend="${activePage == 'news' || activePage == 'trends' || activePage == 'trend-history' || activePage == 'market' || activePage == 'market-history' || activePage == 'market-enrichment' || activePage == 'deals' || activePage == 'claims'} ? ' active'">
             Content ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
+            <a th:href="@{/dashboard/claims}"
+               th:classappend="${activePage == 'claims'} ? ' active'">Claim Tracker</a>
             <a th:href="@{/dashboard/deals}"
                th:classappend="${activePage == 'deals'} ? ' active'">Deal Signals</a>
             <a th:href="@{/dashboard/market}"
