@@ -166,6 +166,90 @@ The admin area reflects data produced by a set of background schedulers. Here is
 
 ---
 
+### `/admin/documents` — Document Library
+
+**What it shows:**
+A paginated list of all documents that have been uploaded to the vector store + wiki pipeline. Each row shows: filename, status badge (INGESTED / PROCESSING / FAILED), file size, MIME type, uploaded date, wiki deep-link (if ingestion produced a wiki page), and a delete button. Summary counts at the top show total documents, ingested count, and failed count.
+
+**Data source:**
+`document_library` table (or equivalent `DocumentRecord` persistence) via `DocumentLibraryPort.findAll()`. Wiki deep-links are built from the `wikiPageSlug` field on the `DocumentRecord`, which is populated by `DocumentUploadService` after `WikiCompilationAdapter` produces a page for the uploaded content.
+
+**Access / tier gating:**
+ADMIN role required. No tier check.
+
+**How documents get here:**
+`POST /admin/documents/upload` — multipart form upload. `DocumentLibraryController` validates MIME type (PDF, DOCX, TXT, MD only) and file size (max 50 MB; enforced by Spring's `MaxUploadSizeExceededException`). The file is saved to a UUID subdirectory under `${aihealthcare.documents.upload-dir:/tmp/aihealthcare-documents}` with the original filename sanitized (all non-alphanumeric characters except `.` and `-` replaced with `_`). `DocumentUploadService.uploadAndIngest()` is then called, which:
+1. Parses the file via the appropriate `FileParserPort` implementation (`PdfParser`, `DocxParser`, or `PlainTextParser`).
+2. Splits the content into chunks and calls `DocumentVectorPort.store()` to write embeddings to the pgvector store.
+3. Passes the content as a synthetic `NewsArticle` to `KnowledgeCompilationPort.compileNewSources()` to generate a wiki page.
+4. Persists the `DocumentRecord` with status INGESTED and the resulting wiki page slug.
+
+On any failure at any step, the `DocumentRecord` is persisted with status FAILED and the error message in the `errorDetail` field. The file is not deleted on failure.
+
+**Actions available:**
+- `POST /admin/documents/upload` — upload a new document (multipart/form-data, field name `file`).
+- `POST /admin/documents/{id}/delete` — delete the database record and the file from disk. ADMIN only.
+
+**Known limitations:**
+- The upload directory defaults to `/tmp/aihealthcare-documents`, which is ephemeral on EC2. On EC2, `aihealthcare.documents.upload-dir` is set to `/opt/aihealthcare/documents` in `application-aws.yml`.
+- There is no re-ingest button. If a document fails ingestion, the admin must delete it and re-upload.
+- `MaxUploadSizeExceededException` from Spring's multipart resolver shows a generic 500 error page if not caught by `GlobalExceptionHandler`. The exception handler catches it and redirects to the upload page with a `sizeError=true` query parameter.
+
+---
+
+### `/admin/wiki-gaps` — Wiki Gap Analysis
+
+**What it shows:**
+A review interface for wiki coverage gaps identified by `WikiGapAnalysisService`. The list page shows all completed `WikiGapRun` records with: run date, articles analyzed, gaps found, gaps pending review, and gaps approved/dismissed counts. A "pending items" section at the top shows items awaiting review across all runs. Each item shows: the article or topic that lacks a wiki page, the suggested page title, the suggested page type (ENTITY/CONCEPT/COMPARISON/OVERVIEW), a rationale from the LLM analysis, and approve/dismiss action buttons.
+
+The run detail page (`/admin/wiki-gaps/{runId}`) shows the full list of gap items for that run — pending, approved, and dismissed — with sortable columns.
+
+**Data source:**
+`wiki_gap_runs` table and `wiki_gap_items` table via `WikiGapAnalysisService`. The service directly uses `WikiGapRunEntity` and `WikiGapItemEntity` JPA objects — there is no domain port or use-case interface wrapping this persistence. The controller also calls `NewsArticleRepository.findByArticleIdIn(ids)` directly (bypassing the use-case layer) to resolve article titles for the items list.
+
+**Access / tier gating:**
+ADMIN role required. No tier check.
+
+**How data gets here:**
+`WikiGapAnalysisService.runAnalysis()` can be triggered manually from the Pipeline page (`POST /admin/pipelines` → `wiki-gap-analysis` pipeline card) or is called by `StartupPipelineOrchestrator` as a cascade step. The service queries articles from the last 30 days, checks which topics are not yet covered by a wiki page, and uses the Claude ChatClient to score coverage gaps and suggest new page titles. Results are persisted to `wiki_gap_runs` and `wiki_gap_items`.
+
+**Actions available:**
+- `POST /admin/wiki-gaps/items/{id}/approve` — marks the item as approved (`reviewed = true`, `approved = true`). Does not automatically create the wiki page — approval is a human decision signal, not an automated trigger.
+- `POST /admin/wiki-gaps/items/{id}/dismiss` — marks the item as dismissed (`reviewed = true`, `approved = false`). The item is excluded from future pending counts.
+
+**Known limitations:**
+- **Architecture deviation:** `AdminWikiGapController` injects `WikiGapAnalysisService` and calls `NewsArticleRepository` directly instead of going through a use-case port. This breaks the hexagonal boundary and makes the controller harder to test in isolation.
+- Approving an item does not create the wiki page — the admin must manually trigger wiki compilation (`POST /monitoring/wiki/compile`) after approving items.
+- Dismissed items remain in the database; there is no UI to un-dismiss a mistakenly dismissed item.
+
+---
+
+### `/admin/editorial` — Editorial Calendar Queue
+
+**What it shows:**
+A paginated queue of editorial items from the `EditorialItem` table. Each row shows: headline/hook text, call-to-action preview, priority badge (P0=red, P1=orange, P2=gray), signal badge (HOT=pulsing, STEADY=blue, EVERGREEN=green), effort badge (S/M/L), source company (linked to company directory), lifecycle stage badge, created date, and two action buttons: "Advance →" and "Post Draft ↗". Summary counts at the top show items by priority and signal. Three filter forms (priority, signal, effort) narrow the queue independently via query params.
+
+**Data source:**
+`editorial_items` table via `ManageEditorialItemsUseCase.getFiltered(priority, signal, effort)`. No pagination is implemented server-side — all matching items are loaded into memory in one query and sorted by `createdAt` descending.
+
+**Access / tier gating:**
+`@PreAuthorize("hasRole('ADMIN')")` at the class level — all methods require ADMIN role. No tier check.
+
+**How data gets here:**
+Editorial items are created by two paths: (1) the LLM claim extractor cascade (`FrontierClaimService`) can generate editorial items from high-confidence claims via an optional `EditorialItemPort` — this wiring is configured in `AppConfig`; (2) admin users can create items manually via the Pipeline page by triggering the `editorial-generation` pipeline card.
+
+**Actions available:**
+- `POST /admin/editorial/{id}/advance` — advances the item's lifecycle stage through a fixed sequence (IDEA → DRAFTED → SCHEDULED → PUBLISHED → ARCHIVED). Calling advance on an ARCHIVED item is a no-op.
+- `POST /admin/editorial/{id}/generate-post` — calls `ManageSavedPostsUseCase.save()` with LinkedIn and Facebook post drafts assembled from the editorial item's `hook`, `title`, and `callToAction` fields. Redirects to `/dashboard/social/drafts` where the newly created drafts appear for review and editing.
+- No delete endpoint — items are archived via the lifecycle advance, never deleted.
+
+**Known limitations:**
+- No server-side pagination. A large backlog loads all items into the model.
+- The "generate-post" bridge calls `ManageSavedPostsUseCase.save()` twice (once for LinkedIn, once for Facebook) in the same request. If the second save fails, the LinkedIn draft was already created with no rollback.
+- The advance lifecycle endpoint does not validate that the acting user is the one who created the item — any ADMIN can advance any item.
+
+---
+
 ## Known Limitations
 
 - **Subscriber count is a full table scan.** `SubscriberPort.findAll().size()` on `/admin` loads every subscriber row into memory. This will degrade at high subscriber volume. A `COUNT(*)` query would be more appropriate.
