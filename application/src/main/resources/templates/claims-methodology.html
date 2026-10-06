@@ -71,7 +71,7 @@
         <div class="flex flex-wrap items-start gap-3">
             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800 shrink-0"
                   th:text="${latestHype.company()}">Company</span>
-            <p class="text-sm text-red-900 italic flex-1" th:text='"' + ${latestHype.claimText()} + '"'>claim</p>
+            <p class="text-sm text-red-900 italic flex-1">"<span th:text="${latestHype.claimText()}">claim</span>"</p>
         </div>
         <p th:if="${latestHype.evidenceNotes() != null}" class="mt-2 text-xs text-red-700"
            th:text="${latestHype.evidenceNotes()}"></p>
