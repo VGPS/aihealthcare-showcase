@@ -33,9 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link ClaimTrackerController}.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-10-05
- * @updated 2026-10-05 — sort params, generate-post endpoint tests
+ * @updated 2026-10-06 — sortable column visibility tests
  */
 @WebMvcTest(ClaimTrackerController.class)
 class ClaimTrackerControllerTest {
@@ -193,6 +193,46 @@ class ClaimTrackerControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("claims", hasSize(1)))
                 .andExpect(model().attribute("companies", hasSize(1)));
+    }
+
+    @Test
+    @WithMockUser
+    void sortableCompany_trueWhenMultipleDistinctCompanies() throws Exception {
+        // buildManyClaims creates Company-0, Company-1, Company-2 — 3 distinct companies
+        List<FrontierClaim> many = buildManyClaims(3);
+        when(claimsUseCase.getAll()).thenReturn(many);
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
+
+        mockMvc.perform(get("/dashboard/claims"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("sortableCompany", true));
+    }
+
+    @Test
+    @WithMockUser
+    void sortableCompany_falseWhenAllClaimsSameCompany() throws Exception {
+        FrontierClaim c1 = buildClaim("a1", "OpenAI", "Claim 1.", ClaimVerdict.ALLEGED_UNVERIFIED);
+        FrontierClaim c2 = buildClaim("a2", "OpenAI", "Claim 2.", ClaimVerdict.MARKETING_HYPE);
+        when(claimsUseCase.getByCompany("OpenAI")).thenReturn(List.of(c1, c2));
+        when(claimsUseCase.getAll()).thenReturn(List.of(c1, c2));
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
+
+        mockMvc.perform(get("/dashboard/claims").param("company", "OpenAI"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("sortableCompany", false));
+    }
+
+    @Test
+    @WithMockUser
+    void sortableVerdict_trueWhenMultipleDistinctVerdicts() throws Exception {
+        FrontierClaim c1 = buildClaim("v1", "OpenAI", "Claim 1.", ClaimVerdict.ALLEGED_UNVERIFIED);
+        FrontierClaim c2 = buildClaim("v2", "Google", "Claim 2.", ClaimVerdict.MARKETING_HYPE);
+        when(claimsUseCase.getAll()).thenReturn(List.of(c1, c2));
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
+
+        mockMvc.perform(get("/dashboard/claims"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("sortableVerdict", true));
     }
 
     private FrontierClaim buildClaim(String id, String company, String text, ClaimVerdict verdict) {

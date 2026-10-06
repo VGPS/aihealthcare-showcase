@@ -170,34 +170,34 @@
         <table class="w-full text-sm bg-white">
             <thead class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wide">
                 <tr>
-                    <!-- Company: sortable only when "All Companies" is selected and claims exist -->
+                    <!-- Company: sortable only when 2+ distinct companies in current result set -->
                     <th class="px-3 py-2.5 text-left whitespace-nowrap">
-                        <a th:if="${filterCompany == null and !#lists.isEmpty(claims)}" class="hover:text-primary-700"
+                        <a th:if="${sortableCompany}" class="hover:text-primary-700"
                            th:href="@{/dashboard/claims(company=${filterCompany},verdict=${filterVerdict},type=${filterType},sort='company',dir=${sortField == 'company' ? (sortDir == 'asc' ? 'desc' : 'asc') : 'asc'})}">
                             Company
                             <span th:if="${sortField == 'company'}" th:text="${sortDir == 'asc' ? ' ↑' : ' ↓'}"></span>
                         </a>
-                        <span th:if="${filterCompany != null or #lists.isEmpty(claims)}">Company</span>
+                        <span th:if="${!sortableCompany}">Company</span>
                     </th>
 
-                    <!-- Verdict: sortable only when "All Verdicts" is selected -->
+                    <!-- Verdict: sortable only when 2+ distinct verdicts in current result set -->
                     <th class="px-3 py-2.5 text-left whitespace-nowrap">
-                        <a th:if="${filterVerdict == null and !#lists.isEmpty(claims)}" class="hover:text-primary-700"
+                        <a th:if="${sortableVerdict}" class="hover:text-primary-700"
                            th:href="@{/dashboard/claims(company=${filterCompany},verdict=${filterVerdict},type=${filterType},sort='verdict',dir=${sortField == 'verdict' ? (sortDir == 'asc' ? 'desc' : 'asc') : 'asc'})}">
                             Verdict
                             <span th:if="${sortField == 'verdict'}" th:text="${sortDir == 'asc' ? ' ↑' : ' ↓'}"></span>
                         </a>
-                        <span th:if="${filterVerdict != null or #lists.isEmpty(claims)}">Verdict</span>
+                        <span th:if="${!sortableVerdict}">Verdict</span>
                     </th>
 
-                    <!-- Type: sortable only when "All Types" is selected -->
+                    <!-- Type: sortable only when 2+ distinct types in current result set -->
                     <th class="px-3 py-2.5 text-left whitespace-nowrap">
-                        <a th:if="${filterType == null and !#lists.isEmpty(claims)}" class="hover:text-primary-700"
+                        <a th:if="${sortableType}" class="hover:text-primary-700"
                            th:href="@{/dashboard/claims(company=${filterCompany},verdict=${filterVerdict},type=${filterType},sort='type',dir=${sortField == 'type' ? (sortDir == 'asc' ? 'desc' : 'asc') : 'asc'})}">
                             Type
                             <span th:if="${sortField == 'type'}" th:text="${sortDir == 'asc' ? ' ↑' : ' ↓'}"></span>
                         </a>
-                        <span th:if="${filterType != null or #lists.isEmpty(claims)}">Type</span>
+                        <span th:if="${!sortableType}">Type</span>
                     </th>
 
                     <th class="px-3 py-2.5 text-left">Claim</th>
