@@ -154,6 +154,21 @@ The tracker is currently running against six claim types: Capability, Safety, Be
 
 **Cross-reference with clinical trials** — matching capability claims against the ClinicalTrials.gov registry to identify whether the underlying evidence generation is underway.
 
+## The Methodology Is Public
+
+We published the complete methodology this week at [app.bigskylabs.ai/claims/methodology](https://app.bigskylabs.ai/claims/methodology).
+
+It covers:
+- How claims are extracted from the 600+ weekly signal feed
+- The five verdict definitions with explicit evidence standards (what it takes to go from Alleged/Unverified to Evidence-Backed, or from Alleged/Unverified to Contradicted)
+- All six claim types and the evidence bar for each
+- The dispute process — any company or researcher can submit a correction with published evidence, and verdicts that pass review are updated within 5 business days
+- The milestone roadmap: what the distribution tells us at 50 claims, 100 claims, and beyond
+
+It is public, citable, and requires no login. If you reference a verdict in research or procurement analysis, you can link directly to the methodology page as the evidentiary standard.
+
+---
+
 The Frontier Claim Tracker is live at [app.bigskylabs.ai/dashboard/claims](https://app.bigskylabs.ai/dashboard/claims).
 
 25 claims tracked. 600+ signals per week. Every verdict updatable.
@@ -162,7 +177,7 @@ The record is open.
 
 ---
 
-*Research conducted using the BigSkyLabs AI Healthcare Intelligence Platform. Claim verdicts reflect the evidence record as of October 6, 2026 and are subject to update as new data enters the record. Verdict methodology available on request.*
+*Research conducted using the BigSkyLabs AI Healthcare Intelligence Platform. Claim verdicts reflect the evidence record as of October 6, 2026 and are subject to update as new data enters the record. Full methodology and dispute process: [app.bigskylabs.ai/claims/methodology](https://app.bigskylabs.ai/claims/methodology)*
 
 *[BigSkyLabs.ai](https://app.bigskylabs.ai) | AI Healthcare Intelligence Platform — 600+ weekly signals, frontier claim tracking, market analysis*
 

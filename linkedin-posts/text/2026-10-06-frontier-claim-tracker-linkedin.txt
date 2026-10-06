@@ -110,6 +110,14 @@ When Anthropic's Claude for Life Sciences publishes clinical outcomes data — w
 
 ---
 
+One more thing we did this week.
+
+We published the full methodology — verdict definitions, evidence standards, claim type breakdown, the dispute process, and why the distribution becomes a more valuable signal at 50, 100, and 500 claims.
+
+It's public. No login. Cite it if you want to.
+
+---
+
 The tracker is live at bigskylabs.ai.
 
 It runs weekly against 600+ AI healthcare signals. Every claim is sourced. Every verdict is updatable.
@@ -128,6 +136,9 @@ https://app.bigskylabs.ai/dashboard/claims
 === LINKEDIN FIRST COMMENT (paste immediately after publishing) ===
 The live tracker — 25 claims, 5 companies, updated weekly from 600+ AI healthcare signals:
 https://app.bigskylabs.ai/dashboard/claims
+
+Full methodology — verdict definitions, evidence standards, and dispute process (public, no login):
+https://app.bigskylabs.ai/claims/methodology
 
 Filter by verdict (Evidence-backed / Alleged-Unverified / Marketing Hype / Contradicted / Retracted), by company, or by claim type (Capability / Safety / Benchmark / Timeline / Regulatory / Partnership).
 
