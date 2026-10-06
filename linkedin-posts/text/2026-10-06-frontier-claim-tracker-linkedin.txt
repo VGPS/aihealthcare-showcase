@@ -1,0 +1,136 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === LINKEDIN POST BODY === and === LINK ===)
+2. Go to linkedin.com → Start a post
+3. Paste the body text
+4. DO NOT add any URL to the post body — kills organic reach 40-60%
+5. See SCREENSHOT INSTRUCTIONS below for which file to attach and where
+6. Attach the Body Image as the post image when publishing
+7. Publish, then immediately paste the First Comment as the very first comment
+8. Best posting window: Tuesday or Wednesday 7:00–9:00 AM local time
+   (data-transparency posts perform best early-week when professionals are scanning)
+
+=== SCREENSHOT INSTRUCTIONS ===
+
+BODY IMAGE — attach when publishing the post:
+  File: linkedin-posts/shots/2026-10-06-claims-dashboard-demo.png
+  What it shows: The Frontier AI Claim Tracker dashboard at app.bigskylabs.ai/dashboard/claims —
+    7-Day Trial user view showing 25 tracked claims from Anthropic, Google, OpenAI, and Amazon.
+    Verdict summary pills at top: 0 Evidence-backed · 24 Alleged/Unverified · 1 Marketing Hype.
+    Table columns: Company · Verdict (color-coded badge) · Claim Type · Claim text (truncated) ·
+    Detected timestamp · Source link. Filters visible: Company · All verdicts · All types.
+  Necessary: YES — the 0/25 stat is the entire post; the screenshot is the proof.
+  To regenerate: node e2e/capture-claims-dashboard.js
+
+FIRST COMMENT IMAGE — none required for this post.
+
+=== DATA NOTES (verified from live tracker 2026-10-06) ===
+- Total claims: 25
+- Evidence-backed: 0 (0%)
+- Alleged/Unverified: 24 (96%)
+- Marketing Hype: 1 (4%) — Nolla Health, REGULATORY_CLAIM
+- Contradicted: 0
+- Retracted: 0
+- Companies tracked: Anthropic (most entries), Amazon/AWS, Google, OpenAI, Nolla Health
+- Most common type: CAPABILITY_CLAIM
+- Other types present: PARTNERSHIP_CLAIM, REGULATORY_CLAIM, TIMELINE_CLAIM
+- Notable Marketing Hype entry: Nolla Health "is the first organization in the U.S. cleared
+  for AI to write new prescriptions" — rated MARKETING_HYPE / REGULATORY_CLAIM
+- Notable claims in the tracker:
+    Anthropic: "Claude Sonnet 5.5 runs 30% faster and costs up to 30% less for most work"
+    Google: "Gemini 4 Argon uncovered a critical vulnerability in healthcare software
+             used by hospitals worldwide"
+    OpenAI: "Avoiding AI health advice is 'medical malpractice'"
+    Amazon: "Amazon Connect Health reduces administrative burden and accelerates
+             access to care for patients"
+
+=== LINKEDIN POST BODY ===
+
+0 out of 25.
+
+That's how many frontier AI healthcare claims we've independently rated as evidence-backed.
+
+Not because the claims are false. Because almost none of them come with verifiable, published evidence.
+
+---
+
+Here's what we built.
+
+The Frontier AI Claim Tracker monitors public statements from Anthropic, Google, OpenAI, Amazon, and other major AI companies specifically about healthcare applications.
+
+Every time a company announces a new capability, a clinical partnership, a regulatory milestone, or a benchmark — we extract the claim and assign one of five evidence verdicts:
+
+→ EVIDENCE_BACKED — verifiable published data supports it
+→ ALLEGED/UNVERIFIED — company stated it; not independently confirmed
+→ MARKETING HYPE — promotional language presented as a measurable fact
+→ CONTRADICTED — published evidence directly contradicts it
+→ RETRACTED — the company walked it back
+
+---
+
+First 25 entries. Here's the breakdown.
+
+→ 0 Evidence-backed
+→ 24 Alleged/Unverified
+→ 1 Marketing Hype
+→ 0 Contradicted
+→ 0 Retracted
+
+---
+
+The one Marketing Hype flag — and why it matters.
+
+The claim: Nolla Health "is the first organization in the U.S. cleared for AI to write new prescriptions."
+
+That's a regulatory claim. Which means the standard of evidence is the highest in the tracker.
+
+FDA 510(k) clearance is a finding of substantial equivalence to a predicate device. It is not an authorization for AI to independently write prescriptions. The claim uses regulatory language — "cleared" — to imply a scope of approval the clearance doesn't grant.
+
+That's what Marketing Hype looks like in healthcare AI. Not an outright fabrication. A real regulatory event, described in language engineered to imply more than it authorizes. The kind of claim that makes it into a pitch deck and stays there.
+
+---
+
+The 24 Alleged/Unverified entries span every major player.
+
+Anthropic's Claude Life Sciences launch. Google's Gemini 4 Argon "uncovering a critical vulnerability in hospital software." OpenAI's assertion that avoiding AI health advice is "medical malpractice." Amazon Connect Health's claim to "reduce administrative burden and accelerate access to care."
+
+These may be true. Some may be important. But none of them arrived with the peer-reviewed evidence, the independent audit, or the reproducible methodology that would let a CIO, a CMO, or a clinician actually verify them before committing to a deployment decision.
+
+---
+
+Why this matters.
+
+Healthcare AI adoption decisions are currently being made on marketing claims that have never cleared an evidence bar.
+
+A health system buying an AI tool isn't just purchasing software. They're integrating a system that will affect diagnosis, documentation, prior authorization, and patient triage. The standard of evidence for that decision should be higher than a company press release.
+
+The Frontier AI Claim Tracker isn't built to discredit these companies. It's built to create the permanent, searchable record that makes those claims accountable over time.
+
+When Anthropic's Claude for Life Sciences publishes clinical outcomes data — we'll update the verdict to EVIDENCE_BACKED. When a capability claim is directly contradicted by a published study — we'll flag it CONTRADICTED. When a company retracts a claim — it stays in the tracker.
+
+---
+
+The tracker is live at bigskylabs.ai.
+
+It runs weekly against 600+ AI healthcare signals. Every claim is sourced. Every verdict is updatable.
+
+If you track AI in healthcare decisions, this is the signal feed that doesn't disappear when the next press release drops.
+
+What claim would you most like to see rated?
+
+👇
+
+#HealthcareAI #AITransparency #FrontierAI #HealthIT #ClinicalAI #EvidenceBasedMedicine #AIAccountability
+
+=== LINK (first comment only — not in post body) ===
+https://app.bigskylabs.ai/dashboard/claims
+
+=== LINKEDIN FIRST COMMENT (paste immediately after publishing) ===
+The live tracker — 25 claims, 5 companies, updated weekly from 600+ AI healthcare signals:
+https://app.bigskylabs.ai/dashboard/claims
+
+Filter by verdict (Evidence-backed / Alleged-Unverified / Marketing Hype / Contradicted / Retracted), by company, or by claim type (Capability / Safety / Benchmark / Timeline / Regulatory / Partnership).
+
+Every claim is sourced. Every verdict is updatable as new evidence emerges.
+
+#HealthcareAI #AITransparency #FrontierAI #HealthIT #ClinicalAI #EvidenceBasedMedicine #AIAccountability

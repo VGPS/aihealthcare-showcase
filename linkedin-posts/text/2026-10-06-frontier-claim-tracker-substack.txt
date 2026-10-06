@@ -1,0 +1,178 @@
+=== SUBSTACK POSTING INSTRUCTIONS ===
+
+1. Log in to Substack → New Post
+2. Title: "Big Tech Makes Bold Claims About Healthcare AI. We're Keeping Score."
+3. Subtitle: "25 claims tracked from Anthropic, Google, OpenAI, and Amazon. Zero are
+   evidence-backed. One was flagged Marketing Hype. Here's what the data shows — and
+   why this matters for every healthcare system buying AI right now."
+4. Paste the body below starting from the opening line (after the H1)
+5. Cover image: linkedin-posts/shots/2026-10-06-claims-dashboard-demo.png
+6. Section: "Intelligence" or "Analysis"
+7. Audience: All subscribers (free + paid)
+8. Send as email: YES
+9. Best send time: Tuesday 8:00 AM local time
+10. After publishing: share the post URL as a follow-up comment on Tuesday's LinkedIn post
+
+=== SCREENSHOT INSTRUCTIONS ===
+
+COVER IMAGE (upload in Substack cover image field — NOT inline in body):
+  File: linkedin-posts/shots/2026-10-06-claims-dashboard-demo.png
+  What it shows: Frontier AI Claim Tracker — 7-Day Trial user view, 25 claims from
+    Anthropic, Google, OpenAI, and Amazon. Summary pills show 0 Evidence-backed,
+    24 Alleged/Unverified, 1 Marketing Hype. Full sortable table with color-coded
+    verdict badges and claim type tags. This is the tool, shown as a non-admin user sees it.
+  Necessary: YES — the number is the story; the screenshot is the proof.
+  To regenerate: node e2e/capture-claims-dashboard.js
+
+=== SUBSTACK BODY (paste from here) ===
+
+# Big Tech Makes Bold Claims About Healthcare AI. We're Keeping Score.
+
+*October 6, 2026*
+
+---
+
+Every week, the largest AI companies in the world issue public statements about what their technology can do in healthcare settings.
+
+Anthropic announces that Claude is now "a productive research partner for scientists and clinicians." Google says its new Gemini model "uncovered a critical vulnerability in healthcare software used by hospitals worldwide." OpenAI asserts that avoiding AI health advice constitutes "medical malpractice." Amazon tells health systems that Connect Health will "reduce administrative burden and accelerate access to care."
+
+These claims reach hospital procurement committees, health system CIOs, clinical informatics teams, and frontline physicians who are being asked to make deployment decisions worth millions of dollars.
+
+Almost none of them come with verifiable evidence.
+
+---
+
+## What We Built
+
+We launched the Frontier AI Claim Tracker — a tool that monitors public statements from major AI companies specifically about healthcare applications, and assigns each claim one of five evidence verdicts:
+
+- **EVIDENCE_BACKED** — verifiable, published data supports the claim
+- **ALLEGED/UNVERIFIED** — stated by the company; not independently confirmed
+- **MARKETING HYPE** — promotional or aspirational language presented as measurable fact
+- **CONTRADICTED** — published evidence directly contradicts the claim
+- **RETRACTED** — the company has since walked it back
+
+The tracker runs weekly against 600+ AI healthcare signals. Every claim is linked to its source. Every verdict is updatable as new evidence emerges.
+
+The goal isn't to discredit these companies. It's to build the permanent, searchable record that makes public claims accountable over time.
+
+---
+
+## First 25 Claims: The Data
+
+After the first 25 entries, here's where things stand:
+
+| Verdict | Count | % |
+|---|---|---|
+| Evidence-backed | 0 | 0% |
+| Alleged/Unverified | 24 | 96% |
+| Marketing Hype | 1 | 4% |
+| Contradicted | 0 | 0% |
+| Retracted | 0 | 0% |
+
+**Zero out of twenty-five claims are evidence-backed.**
+
+This is not a statement about whether these claims are false. It is a statement about the evidence standard that major AI companies apply when making public assertions about healthcare AI capabilities. The threshold, in practice, is "we said it."
+
+---
+
+## The One Marketing Hype Flag
+
+The single Marketing Hype verdict went to **Nolla Health**, for the claim that it "is the first organization in the U.S. cleared for AI to write new prescriptions."
+
+This is a Regulatory Claim — the category where the evidence bar is highest, because regulatory language carries legal weight. The claim misrepresents what FDA 510(k) clearance actually authorizes. A 510(k) clearance is a finding of substantial equivalence to a predicate device — it does not constitute approval of a specific clinical function, and it does not authorize AI to independently "write prescriptions." The claim was flagged Marketing Hype because it presents regulatory status in language designed to imply a broader authorization than the clearance actually granted.
+
+This is the type of claim that a health system's legal and compliance team should have flagged before it reached the press release.
+
+---
+
+## What 24 "Alleged/Unverified" Actually Means
+
+The 24 claims currently rated Alleged/Unverified are not random noise. They include assertions from every major frontier AI company operating in the healthcare space:
+
+**Anthropic** accounts for the largest share, with multiple claims related to the Claude for Life Sciences launch. These include performance comparisons ("Claude Sonnet 5.5 runs 30% faster and costs up to 30% less"), ARPA-H partnership announcements, and capability assertions about clinical research support. None of these launched with independent clinical validation or peer-reviewed benchmarks.
+
+**Google** claims include the assertion that Gemini 4 Argon "uncovered a critical vulnerability in healthcare software used by hospitals worldwide." This is a significant claim — if true, it would be a landmark demonstration of AI-driven healthcare security research. It is currently unverified: no published vulnerability report, no independent security audit, and no disclosure from an affected health system has appeared in the record.
+
+**OpenAI** contributed one claim that generated significant attention: an OpenAI official's assertion that "avoiding AI health advice is medical malpractice." This is a legal claim made without citation, in a domain where AI liability law remains unsettled. It appears in the tracker as Alleged/Unverified.
+
+**Amazon** is the most consistent in claim type: every Amazon Connect Health entry is a Capability Claim describing what the product "does" — scheduling appointments, accessing health records, reducing administrative burden — without published clinical outcomes or independent workflow studies to support the characterization.
+
+---
+
+## Why the Verdict Distribution Matters
+
+The 0 Evidence-backed, 24 Alleged/Unverified distribution tells a story about the current state of healthcare AI marketing.
+
+AI companies making claims about clinical capabilities face a structural incentive to move faster than the evidence cycle. Publishing a peer-reviewed validation study takes 18–36 months. A product launch takes 90 days. The commercial incentive is to announce capability first and seek validation later — or not at all, if the market has already moved on.
+
+Healthcare procurement doesn't operate on the same timeline as tech product cycles. A health system that deploys an AI scheduling tool in Q1 is committed to a multi-year integration, staff training cycle, and patient experience change. If the capability claims on which that decision was made later fail to hold up under independent evaluation, the cost isn't a churned SaaS subscription — it's a clinical workflow disruption that takes years to unwind.
+
+The Alleged/Unverified category isn't a disqualification. It's a flag. It says: this claim is live in the market, it is influencing procurement decisions, and it has not yet been independently confirmed.
+
+---
+
+## What Changes the Verdict
+
+Verdicts in the tracker are not permanent. They update as new evidence enters the record.
+
+A claim currently rated Alleged/Unverified becomes EVIDENCE_BACKED when:
+- A peer-reviewed study in a clinical journal validates the specific claim
+- An independent clinical informatics assessment replicates the stated outcome
+- A regulatory body formally approves the claimed function
+
+A claim becomes CONTRADICTED when:
+- A published study finds meaningfully different results from what was claimed
+- An independent audit finds the stated capability fails under clinical conditions
+
+A claim becomes RETRACTED when:
+- The company issues a correction, walks back the language, or removes the claim from public materials
+
+This means the tracker becomes more valuable over time, not less. When Anthropic's Claude for Life Sciences produces peer-reviewed clinical outcomes data — the verdict updates. When a benchmark claim is tested by an independent lab — the verdict updates.
+
+The record doesn't disappear when the next press release drops.
+
+---
+
+## The Signal This Creates
+
+If you are a CIO, CMO, or clinical informatics director being asked to evaluate a vendor claim, the Frontier Claim Tracker gives you a fast answer to the question: "Has this claim been independently rated?"
+
+If the claim is in the tracker as Alleged/Unverified, you have a starting point for your due diligence.
+
+If the claim is in the tracker as Marketing Hype, you know to apply a higher standard of scrutiny before allowing it to influence a procurement decision.
+
+If the claim is not yet in the tracker, you can submit it.
+
+---
+
+## What Comes Next
+
+The tracker is currently running against six claim types: Capability, Safety, Benchmark, Timeline, Regulatory, and Partnership. We are adding two additional dimensions:
+
+**Claim aging** — tracking how long an Alleged/Unverified claim remains unverified. A claim that persists unverified for 12+ months without published evidence is a different signal than a claim made last week.
+
+**Cross-reference with clinical trials** — matching capability claims against the ClinicalTrials.gov registry to identify whether the underlying evidence generation is underway.
+
+The Frontier Claim Tracker is live at [app.bigskylabs.ai/dashboard/claims](https://app.bigskylabs.ai/dashboard/claims).
+
+25 claims tracked. 600+ signals per week. Every verdict updatable.
+
+The record is open.
+
+---
+
+*Research conducted using the BigSkyLabs AI Healthcare Intelligence Platform. Claim verdicts reflect the evidence record as of October 6, 2026 and are subject to update as new data enters the record. Verdict methodology available on request.*
+
+*[BigSkyLabs.ai](https://app.bigskylabs.ai) | AI Healthcare Intelligence Platform — 600+ weekly signals, frontier claim tracking, market analysis*
+
+=== ENGAGEMENT FOLLOW-UP ===
+If a reader challenges the 0 evidence-backed stat or defends their company:
+
+"The zero evidence-backed count isn't a judgment that the claims are false — it's a
+judgment that no independent, published evidence has been provided to support them as
+of October 6. The standard I'm applying is: would a clinical peer reviewer accept this
+as evidence in a medical journal? That's a high bar, but it's the bar that matters when
+AI is making assertions about clinical outcomes. If you have published data that supports
+one of the claims in the tracker, I'll update the verdict immediately. That's exactly
+how the system is designed to work."
