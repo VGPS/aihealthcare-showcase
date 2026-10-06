@@ -58,7 +58,7 @@ Here's what we built.
 
 The Frontier AI Claim Tracker monitors public statements from Anthropic, Google, OpenAI, Amazon, and other major AI companies specifically about healthcare applications.
 
-Every time a company announces a new capability, a clinical partnership, a regulatory milestone, or a benchmark — we extract the claim and assign one of five evidence verdicts:
+Every time a company announces a capability, a partnership, or a regulatory milestone — we extract the claim and assign one of five evidence verdicts:
 
 → EVIDENCE_BACKED — verifiable published data supports it
 → ALLEGED/UNVERIFIED — company stated it; not independently confirmed
@@ -78,15 +78,9 @@ First 25 entries. Here's the breakdown.
 
 ---
 
-The one Marketing Hype flag — and why it matters.
+The one Marketing Hype flag: Nolla Health's claim to be "the first organization in the U.S. cleared for AI to write new prescriptions."
 
-The claim: Nolla Health "is the first organization in the U.S. cleared for AI to write new prescriptions."
-
-That's a regulatory claim. Which means the standard of evidence is the highest in the tracker.
-
-FDA 510(k) clearance is a finding of substantial equivalence to a predicate device. It is not an authorization for AI to independently write prescriptions. The claim uses regulatory language — "cleared" — to imply a scope of approval the clearance doesn't grant.
-
-That's what Marketing Hype looks like in healthcare AI. Not an outright fabrication. A real regulatory event, described in language engineered to imply more than it authorizes. The kind of claim that makes it into a pitch deck and stays there.
+FDA 510(k) clearance is a finding of substantial equivalence — not an authorization for AI to write prescriptions. Real regulatory event. Language engineered to imply more than the clearance granted. The kind of claim that makes it into a pitch deck and stays there.
 
 ---
 
@@ -94,25 +88,21 @@ The 24 Alleged/Unverified entries span every major player.
 
 Anthropic's Claude Life Sciences launch. Google's Gemini 4 Argon "uncovering a critical vulnerability in hospital software." OpenAI's assertion that avoiding AI health advice is "medical malpractice." Amazon Connect Health's claim to "reduce administrative burden and accelerate access to care."
 
-These may be true. Some may be important. But none of them arrived with the peer-reviewed evidence, the independent audit, or the reproducible methodology that would let a CIO, a CMO, or a clinician actually verify them before committing to a deployment decision.
+None arrived with the peer-reviewed evidence a CIO, CMO, or clinician could verify before committing to a deployment decision.
 
 ---
 
 Why this matters.
 
-Healthcare AI adoption decisions are currently being made on marketing claims that have never cleared an evidence bar.
+Healthcare AI adoption decisions are being made on marketing claims that have never cleared an evidence bar. The Frontier AI Claim Tracker creates the permanent, searchable record that makes those claims accountable over time.
 
-A health system buying an AI tool isn't just purchasing software. They're integrating a system that will affect diagnosis, documentation, prior authorization, and patient triage. The standard of evidence for that decision should be higher than a company press release.
-
-The Frontier AI Claim Tracker isn't built to discredit these companies. It's built to create the permanent, searchable record that makes those claims accountable over time.
-
-When Anthropic's Claude for Life Sciences publishes clinical outcomes data — we'll update the verdict to EVIDENCE_BACKED. When a capability claim is directly contradicted by a published study — we'll flag it CONTRADICTED. When a company retracts a claim — it stays in the tracker.
+When evidence emerges — verdicts update. When companies retract — it stays in the tracker.
 
 ---
 
 One more thing we did this week.
 
-We published the full methodology — verdict definitions, evidence standards, claim type breakdown, the dispute process, and why the distribution becomes a more valuable signal at 50, 100, and 500 claims.
+We published the full methodology — verdict definitions, evidence standards, the dispute process, and why the distribution becomes more valuable at 50, 100, and 500 claims.
 
 It's public. No login. Cite it if you want to.
 
@@ -120,9 +110,7 @@ It's public. No login. Cite it if you want to.
 
 The tracker is live at bigskylabs.ai.
 
-It runs weekly against 600+ AI healthcare signals. Every claim is sourced. Every verdict is updatable.
-
-If you track AI in healthcare decisions, this is the signal feed that doesn't disappear when the next press release drops.
+600+ AI healthcare signals weekly. Every claim sourced. Every verdict updatable.
 
 What claim would you most like to see rated?
 
