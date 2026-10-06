@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head(title='Claims Methodology — BigSkyLabs')}"></head>
+<body class="bg-gray-50 text-gray-900">
+
+<nav th:replace="~{fragments/nav :: nav}"></nav>
+
+<div class="max-w-4xl mx-auto px-4 py-10">
+
+    <!-- Page header -->
+    <div class="mb-8">
+        <div class="flex items-center gap-3 mb-2">
+            <a th:href="@{/dashboard/claims}" class="text-sm text-blue-600 hover:underline">← Claim Tracker</a>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900">How Frontier AI Claims Are Rated</h1>
+        <p class="mt-2 text-gray-500 text-sm">
+            Methodology for the BigSkyLabs Frontier AI Claim Tracker ·
+            Tracking since <span th:text="${trackingSince}">recently</span>
+        </p>
+    </div>
+
+    <!-- Live stats bar -->
+    <div class="bg-white border border-gray-200 rounded-xl p-5 mb-8 shadow-sm">
+        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">Current tracker snapshot</p>
+        <div class="flex flex-wrap gap-4 text-sm">
+            <div>
+                <span class="font-bold text-2xl text-gray-900" th:text="${total}">0</span>
+                <span class="ml-1 text-gray-500">claims rated</span>
+            </div>
+            <div class="border-l border-gray-200 pl-4">
+                <span class="font-bold text-2xl text-green-700"
+                      th:text="${verdictCounts.get(T(com.wgblackmon.aihealthcare.domain.model.ClaimVerdict).EVIDENCE_BACKED)}">0</span>
+                <span class="ml-1 text-gray-500">evidence-backed</span>
+            </div>
+            <div class="border-l border-gray-200 pl-4">
+                <span class="font-bold text-2xl text-orange-600"
+                      th:text="${verdictCounts.get(T(com.wgblackmon.aihealthcare.domain.model.ClaimVerdict).ALLEGED_UNVERIFIED)}">0</span>
+                <span class="ml-1 text-gray-500">alleged / unverified</span>
+            </div>
+            <div class="border-l border-gray-200 pl-4">
+                <span class="font-bold text-2xl text-red-600"
+                      th:text="${verdictCounts.get(T(com.wgblackmon.aihealthcare.domain.model.ClaimVerdict).MARKETING_HYPE)}">0</span>
+                <span class="ml-1 text-gray-500">marketing hype</span>
+            </div>
+            <div class="border-l border-gray-200 pl-4">
+                <span class="font-bold text-2xl text-red-800"
+                      th:text="${verdictCounts.get(T(com.wgblackmon.aihealthcare.domain.model.ClaimVerdict).CONTRADICTED)}">0</span>
+                <span class="ml-1 text-gray-500">contradicted</span>
+            </div>
+            <div class="border-l border-gray-200 pl-4">
+                <span class="font-bold text-2xl text-gray-500"
+                      th:text="${verdictCounts.get(T(com.wgblackmon.aihealthcare.domain.model.ClaimVerdict).RETRACTED)}">0</span>
+                <span class="ml-1 text-gray-500">retracted</span>
+            </div>
+            <div class="border-l border-gray-200 pl-4">
+                <span class="font-bold text-2xl text-gray-700" th:text="${companyCount}">0</span>
+                <span class="ml-1 text-gray-500">companies tracked</span>
+            </div>
+        </div>
+        <p class="mt-3 text-xs text-gray-400">
+            Counts update in real time as the detection pipeline runs.
+            <a th:href="@{/dashboard/claims}" class="text-blue-500 hover:underline">View all claims →</a>
+        </p>
+    </div>
+
+    <!-- Most recent Marketing Hype callout -->
+    <div th:if="${latestHype != null}"
+         class="bg-red-50 border border-red-200 rounded-xl p-5 mb-8">
+        <p class="text-xs font-semibold uppercase tracking-wide text-red-500 mb-1">Most recent Marketing Hype flag</p>
+        <div class="flex flex-wrap items-start gap-3">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800 shrink-0"
+                  th:text="${latestHype.company()}">Company</span>
+            <p class="text-sm text-red-900 italic flex-1" th:text='"' + ${latestHype.claimText()} + '"'>claim</p>
+        </div>
+        <p th:if="${latestHype.evidenceNotes() != null}" class="mt-2 text-xs text-red-700"
+           th:text="${latestHype.evidenceNotes()}"></p>
+    </div>
+
+    <!-- Section 1: How claims are detected -->
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">How Claims Are Detected</h2>
+        <div class="prose prose-sm text-gray-700 space-y-3">
+            <p>
+                The Frontier AI Claim Tracker runs as part of the BigSkyLabs weekly intelligence pipeline,
+                which processes 600+ articles per week from RSS feeds, Perplexity Research API, academic
+                databases, and regulatory sources.
+            </p>
+            <p>
+                For each article, a large language model reviews the text and extracts specific factual
+                claims made <strong>by</strong> frontier AI companies — OpenAI, Anthropic, Google, Amazon,
+                Meta, Microsoft, NVIDIA, and others — about their own products, capabilities, or regulatory
+                status. The model is instructed to focus on first-party assertions: statements the company
+                made, not what analysts or journalists concluded about them.
+            </p>
+            <p>
+                Extracted claims are deduplicated against the existing record. A claim already in the tracker
+                is not re-added; instead, new source articles are attached to the existing entry, strengthening
+                or weakening the evidentiary basis and potentially triggering a verdict update.
+            </p>
+            <p>
+                The pipeline also runs on demand from the Admin Pipelines page, allowing manual sweeps when
+                a high-volume event (a product launch, a congressional hearing, an FDA action) produces more
+                claims than the daily cycle captures.
+            </p>
+        </div>
+    </section>
+
+    <!-- Section 2: The five verdicts -->
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">The Five Verdicts</h2>
+        <p class="text-sm text-gray-500 mb-5">
+            Verdicts are assigned at detection and updated when new evidence enters the record.
+            A verdict is never permanent — the tracker reflects the best available evidence as of
+            the date shown in each entry.
+        </p>
+
+        <div class="space-y-4">
+
+            <!-- EVIDENCE_BACKED -->
+            <div class="bg-white border border-green-200 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-green-100 text-green-800 uppercase tracking-wide">Evidence-Backed</span>
+                </div>
+                <p class="text-sm text-gray-700 mb-2">
+                    The claim is supported by verifiable, independently produced evidence available in the
+                    article or cited source at time of detection. This includes peer-reviewed clinical studies,
+                    published safety benchmarks, independently audited performance data, or formal regulatory
+                    approvals whose scope matches the language of the claim.
+                </p>
+                <p class="text-sm text-gray-500 italic">
+                    This is the highest bar. A company announcing a new capability without a link to the
+                    underlying study does not qualify — the evidence must be present in the source, not
+                    promised in a future publication.
+                </p>
+            </div>
+
+            <!-- ALLEGED_UNVERIFIED -->
+            <div class="bg-white border border-orange-200 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-700 uppercase tracking-wide">Alleged / Unverified</span>
+                </div>
+                <p class="text-sm text-gray-700 mb-2">
+                    The claim was made by the company but no independent, verifiable citation accompanied
+                    it at time of detection. This is the most common verdict — the majority of capability
+                    announcements and partnership claims from major AI companies are issued via press release
+                    or blog post without peer-reviewed backing.
+                </p>
+                <p class="text-sm text-gray-500 italic">
+                    Alleged/Unverified is not a finding of falsity. It is a finding of insufficient evidence.
+                    Many of these claims may be accurate. None of them have cleared an independent evidence
+                    standard. This verdict changes to EVIDENCE_BACKED when the underlying data is published
+                    and verified.
+                </p>
+            </div>
+
+            <!-- MARKETING_HYPE -->
+            <div class="bg-white border border-red-200 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700 uppercase tracking-wide">Marketing Hype</span>
+                </div>
+                <p class="text-sm text-gray-700 mb-2">
+                    The claim uses superlative, absolute, or regulatory language in a manner that implies
+                    a scope, authorization, or performance level that the available evidence does not support.
+                    This includes claims that misrepresent the scope of a regulatory clearance, assert
+                    uniqueness ("first," "only," "most advanced") without citation, or use quantified
+                    performance figures that cannot be traced to a reproducible source.
+                </p>
+                <p class="text-sm text-gray-500 italic">
+                    Marketing Hype is the most consequential verdict in a healthcare context. A health system
+                    or clinician acting on a Marketing Hype claim — particularly a Regulatory Claim rated
+                    Marketing Hype — may make deployment or prescribing decisions based on an authorization
+                    the product does not hold.
+                </p>
+            </div>
+
+            <!-- CONTRADICTED -->
+            <div class="bg-white border border-red-300 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-red-200 text-red-900 uppercase tracking-wide">Contradicted</span>
+                </div>
+                <p class="text-sm text-gray-700 mb-2">
+                    One or more claims in the company's published evidence base directly contradict the
+                    original claim, or an independent peer-reviewed study finds materially different results
+                    from those the company stated. The contradicting evidence must be specific to the
+                    original claim — a general finding of AI limitations does not automatically contradict
+                    a specific capability claim.
+                </p>
+                <p class="text-sm text-gray-500 italic">
+                    As the wiki knowledge base grows, CONTRADICTED counts will rise. The tracker cross-references
+                    new incoming articles against existing claims. When a contradiction is detected, the
+                    original claim is flagged and a note is added linking both records.
+                </p>
+            </div>
+
+            <!-- RETRACTED -->
+            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-600 uppercase tracking-wide">Retracted</span>
+                </div>
+                <p class="text-sm text-gray-700 mb-2">
+                    The company has publicly walked back, corrected, or removed the original claim.
+                    Retracted claims remain in the tracker permanently. The original claim text, the
+                    original verdict, and the retraction source are all preserved. Deletion from the
+                    company's own materials does not remove the entry from this record.
+                </p>
+                <p class="text-sm text-gray-500 italic">
+                    Retraction is a significant event. When it happens, we publish a standalone note.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Section 3: Claim types -->
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">Claim Types</h2>
+        <p class="text-sm text-gray-500 mb-4">
+            Each claim is classified by type. Type determines the evidence standard — Regulatory Claims
+            are held to the highest bar; Capability Claims are the most common and the most frequently
+            unverified.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div th:each="entry : ${typeCounts}"
+                 class="bg-white border border-blue-100 rounded-lg px-4 py-3 flex items-center justify-between">
+                <div>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 uppercase tracking-wide"
+                          th:text="${entry.key.name().replace('_', ' ')}">TYPE</span>
+                </div>
+                <span class="text-sm font-semibold text-gray-700">
+                    <span th:text="${entry.value}">0</span>
+                    <span class="font-normal text-gray-400">claims</span>
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Why the distribution matters — the growing story -->
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">Why the Distribution Matters — And Where It Goes</h2>
+        <div class="prose prose-sm text-gray-700 space-y-4">
+            <p>
+                The current verdict distribution — heavily weighted toward Alleged/Unverified, with isolated
+                Marketing Hype flags — is not a static picture. It is a baseline. The tracker's analytical
+                value grows non-linearly with the number of claims rated.
+            </p>
+
+            <h3 class="text-base font-semibold text-gray-800 mt-5">The first milestones</h3>
+            <p>
+                At <strong>50 claims</strong>, per-company credibility patterns emerge: which companies
+                issue the most unverifiable capability claims, which claim types generate the most Marketing
+                Hype flags, and whether any company is consistently issuing claims that later get
+                contradicted. These are patterns that don't exist at 25 claims but become statistically
+                meaningful at 50.
+            </p>
+            <p>
+                At <strong>100 claims</strong>, the tracker supports a credibility ranking — an ordered list
+                of frontier AI companies by the percentage of their healthcare claims that have cleared an
+                evidence bar. That ranking will be published. It will be citable. It will be uncomfortable
+                for some companies.
+            </p>
+
+            <h3 class="text-base font-semibold text-gray-800 mt-5">When the first CONTRADICTED claim lands</h3>
+            <p>
+                A claim moves from Alleged/Unverified to Contradicted when a peer-reviewed study, an
+                independent audit, or a regulatory finding directly contradicts what the company said.
+                The first time this happens, it is a standalone story: a specific company made a specific
+                claim about a specific healthcare capability, and the published evidence says otherwise.
+                The claim, the original source, and the contradiction are all in the permanent record.
+            </p>
+            <p>
+                As the wiki knowledge base grows — cross-referencing new articles against existing claims —
+                the Contradicted count will rise. The healthcare AI market is producing enough independent
+                clinical evidence that contradictions are a matter of time, not possibility.
+            </p>
+
+            <h3 class="text-base font-semibold text-gray-800 mt-5">When the first RETRACTED claim lands</h3>
+            <p>
+                Retractions are rare but significant. When a frontier AI company corrects or removes a
+                healthcare AI claim — whether under regulatory pressure, legal challenge, or internal
+                review — that event is recorded here. The claim stays. The retraction source is added.
+                The record does not follow the company's editorial decisions.
+            </p>
+
+            <h3 class="text-base font-semibold text-gray-800 mt-5">The regulatory and legal convergence</h3>
+            <p>
+                The infrastructure to hold healthcare AI claims accountable is being built in parallel.
+                The FDA's Digital Health Center of Excellence is actively reviewing AI-generated clinical
+                recommendations. The FTC issued AI claim enforcement guidance in 2024. The EU AI Act's
+                Article 6 high-risk classification for clinical decision support is in force.
+            </p>
+            <p>
+                When a regulatory action or a class action lawsuit cites a company's capability claims,
+                the tracker provides the dated, sourced record of what was claimed and when. That record
+                is independent of what the company's website or press archive currently shows.
+            </p>
+            <p>
+                The tracker is designed to be cited — by journalists, by compliance officers, by
+                plaintiffs' attorneys, and by regulators building the evidentiary record for enforcement
+                actions. The value of any individual claim entry is low. The value of the full record
+                at 500 claims, with a two-year history, is substantially higher — and it compounds.
+            </p>
+
+            <h3 class="text-base font-semibold text-gray-800 mt-5">The running count as its own signal</h3>
+            <p>
+                Every post in the BigSkyLabs weekly intelligence series includes the current
+                <strong>Marketing Hype count</strong> as a running tally. That number — currently
+                <span class="font-semibold text-red-700"
+                      th:text="${verdictCounts.get(T(com.wgblackmon.aihealthcare.domain.model.ClaimVerdict).MARKETING_HYPE)}">1</span>
+                since tracking began — will grow over weeks and months as more product launches and
+                regulatory announcements are rated.
+            </p>
+            <p>
+                When it reaches 10, we will publish a synthesis: the 10 healthcare AI claims most likely
+                to mislead the health systems buying them. When it reaches 25, we will publish a pattern
+                analysis: the specific language constructs that reliably predict a Marketing Hype verdict.
+                The running count is not a footnote. It is the story.
+            </p>
+        </div>
+    </section>
+
+    <!-- Section 5: Dispute a verdict -->
+    <section class="mb-10">
+        <h2 class="text-xl font-semibold text-gray-900 mb-3">Dispute a Verdict</h2>
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-5 text-sm text-gray-700 space-y-3">
+            <p>
+                If you believe a verdict is incorrect — because published evidence exists that was not
+                captured at detection, because a claim was misattributed, or because the evidentiary
+                standard was misapplied — you can submit a dispute.
+            </p>
+            <p>
+                Include: the claim ID (visible in the URL when you click a claim on the tracker), the
+                proposed corrected verdict, and a link to the published evidence that supports the
+                correction. Verdicts supported by peer-reviewed publications or formal regulatory
+                documents will be reviewed and updated within 5 business days.
+            </p>
+            <p>
+                <a href="mailto:newsletter@bigskylabs.ai?subject=Claim%20Verdict%20Dispute"
+                   class="inline-flex items-center gap-1 text-blue-600 font-medium hover:underline">
+                    Submit a dispute → newsletter@bigskylabs.ai
+                </a>
+            </p>
+            <p class="text-xs text-gray-400">
+                Note: Requests to remove claims from the tracker without providing contradicting evidence
+                are not accepted. Verified retractions result in a RETRACTED verdict, not deletion.
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer link back to tracker -->
+    <div class="mt-10 pt-6 border-t border-gray-200 flex items-center justify-between text-sm">
+        <a th:href="@{/dashboard/claims}" class="text-blue-600 hover:underline font-medium">
+            ← View the Claim Tracker
+        </a>
+        <span class="text-gray-400 text-xs">
+            BigSkyLabs · AI Healthcare Intelligence ·
+            <a href="https://app.bigskylabs.ai" class="hover:underline">app.bigskylabs.ai</a>
+        </span>
+    </div>
+
+</div>
+
+</body>
+</html>
