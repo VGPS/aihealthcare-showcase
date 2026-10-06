@@ -1,0 +1,2747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI in Healthcare &mdash; User Manual</title>
+  <style>
+
+:root {
+  --purple:      #7c3aed;
+  --purple-lt:   #f5f3ff;
+  --purple-acc:  #a78bfa;
+  --sidebar-bg:  #1e1e2e;
+  --sidebar-txt: #cdd6f4;
+  --sidebar-mut: #7c7d8e;
+  --sidebar-act: #a78bfa;
+  --sidebar-w:   272px;
+  --body:        #1f2937;
+  --muted:       #6b7280;
+  --border:      #e5e7eb;
+  --code-bg:     #f3f4f6;
+  --stripe:      #f9fafb;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  color: var(--body);
+  background: #f4f5f7;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-txt);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar::-webkit-scrollbar { width: 5px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: #3d3d52; border-radius: 3px; }
+
+.sidebar-header {
+  padding: 20px 16px 14px;
+  border-bottom: 1px solid #2a2a3e;
+  flex-shrink: 0;
+}
+.sidebar-appname  { font-size: 11px; color: var(--sidebar-mut); text-transform: uppercase; letter-spacing: .07em; }
+.sidebar-title    { font-size: 15px; font-weight: 700; color: var(--sidebar-txt); margin-top: 3px; }
+.sidebar-version  { font-size: 11px; color: var(--sidebar-mut); margin-top: 2px; }
+
+.sidebar-search { padding: 10px 12px; flex-shrink: 0; }
+.sidebar-search input {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #3d3d52;
+  background: #2a2a3e;
+  color: var(--sidebar-txt);
+  font-size: 13px;
+  outline: none;
+}
+.sidebar-search input:focus { border-color: var(--purple-acc); }
+.sidebar-search input::placeholder { color: var(--sidebar-mut); }
+
+#sidebarNav { flex: 1; overflow-y: auto; }
+
+.nav-group { border-bottom: 1px solid #25253a; }
+.nav-group > summary {
+  padding: 9px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--sidebar-mut);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+.nav-group > summary:hover { color: var(--sidebar-txt); }
+.nav-group > summary::before { content: "▸"; font-size: 9px; transition: transform .2s; }
+.nav-group[open] > summary::before { transform: rotate(90deg); }
+.nav-group::-webkit-details-marker { display: none; }
+
+.nav-group ul { list-style: none; padding-bottom: 6px; }
+.nav-group ul li a {
+  display: block;
+  padding: 5px 16px 5px 28px;
+  font-size: 13px;
+  color: var(--sidebar-txt);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: background .15s, border-color .15s, color .15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nav-group ul li a:hover  { background: #2a2a3e; border-left-color: #3d3d52; color: var(--purple-acc); }
+.nav-group ul li a.active { background: #2a2a3e; border-left-color: var(--sidebar-act); color: var(--sidebar-act); font-weight: 600; }
+.nav-group ul li a.admin-link { color: #818cf8; font-style: italic; }
+
+/* ── Main content ── */
+.content { flex: 1; min-width: 0; }
+
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, #3b0764 0%, #7c3aed 60%, #4f46e5 100%);
+  color: #fff;
+  padding: 40px 52px;
+}
+.hero h1   { font-size: 30px; font-weight: 800; margin-bottom: 6px; }
+.hero p    { font-size: 15px; opacity: .8; max-width: 700px; line-height: 1.7; }
+.hero-meta { margin-top: 18px; display: flex; gap: 24px; font-size: 12px; opacity: .65; flex-wrap: wrap; }
+.hero-meta span::before { margin-right: 4px; }
+
+/* ── Content body ── */
+.content-body { max-width: 960px; padding: 44px 52px 80px; }
+
+/* headings */
+.content-body h1 { font-size: 26px; font-weight: 800; color: var(--purple); margin: 40px 0 10px; border-bottom: 2px solid var(--purple); padding-bottom: 8px; }
+.content-body h2 { font-size: 21px; font-weight: 700; color: #111827; margin: 36px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.content-body h3 { font-size: 17px; font-weight: 700; color: #1e3a5f; margin: 28px 0 10px; }
+.content-body h4 { font-size: 14px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 20px 0 8px; }
+
+.content-body p  { margin-bottom: 12px; line-height: 1.75; }
+.content-body ul, .content-body ol { padding-left: 22px; margin-bottom: 14px; }
+.content-body li { margin-bottom: 4px; line-height: 1.7; }
+.content-body hr { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
+
+/* tables */
+.content-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0 20px;
+  font-size: 14px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.content-body th {
+  background: #f1f5f9;
+  padding: 9px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+.content-body td {
+  padding: 8px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: top;
+}
+.content-body tr:last-child td { border-bottom: none; }
+.content-body tr:hover td { background: var(--stripe); }
+/* First-column info tables (th width 150px) */
+.content-body tr > th:first-child:only-of-type { width: 150px; }
+
+/* code */
+.content-body code {
+  background: var(--code-bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: "Cascadia Code", "Fira Code", "Source Code Pro", monospace;
+  color: #4b5563;
+}
+.content-body pre {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 16px 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 13px;
+  margin: 14px 0;
+}
+.content-body pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* blockquote → callout */
+.content-body blockquote {
+  border-left: 4px solid var(--purple-acc);
+  background: var(--purple-lt);
+  padding: 12px 16px;
+  margin: 14px 0;
+  border-radius: 0 8px 8px 0;
+  font-size: 14px;
+  color: #4c1d95;
+}
+.content-body blockquote p { margin-bottom: 0; }
+
+.callout {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.callout-note      { background: #eff6ff; border-left: 4px solid #3b82f6; color: #1e40af; }
+.callout-important { background: #fef3c7; border-left: 4px solid #f59e0b; color: #78350f; }
+.callout-warning   { background: #fff1f2; border-left: 4px solid #f43f5e; color: #881337; }
+.callout-tip       { background: #f0fdf4; border-left: 4px solid #22c55e; color: #14532d; }
+
+/* ── Tier badges ── */
+.tier {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  vertical-align: middle;
+  line-height: 1.6;
+}
+.t-public     { background: #f3f4f6; color: #374151; }
+.t-free       { background: #d1fae5; color: #065f46; }
+.t-demo       { background: #fef3c7; color: #92400e; }
+.t-subscriber { background: #dbeafe; color: #1e40af; }
+.t-enterprise { background: #ede9fe; color: #5b21b6; }
+.t-admin      { background: #fee2e2; color: #991b1b; }
+
+/* print */
+@media print {
+  .sidebar { display: none !important; }
+  .content-body { max-width: 100%; padding: 20px; }
+  .hero { background: var(--purple) !important; }
+  .content-body table { font-size: 12px; }
+  a[href]::after { content: ""; }
+}
+
+  </style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-appname">AI in Healthcare</div>
+    <div class="sidebar-title">User Manual</div>
+    <div class="sidebar-version">v1.0 &middot; October 2026</div>
+  </div>
+  <div class="sidebar-search">
+    <input type="text" id="sidebarSearch" placeholder="&#128269; Filter pages&hellip;" autocomplete="off">
+  </div>
+  <div id="sidebarNav">
+    <details class="nav-group" open>
+      <summary>Overview</summary>
+      <ul>
+        <li><a href="#table-of-contents">Table of Contents</a></li>
+        <li><a href="#subscription-tiers-quick-reference">Subscription Tiers</a></li>
+      </ul>
+    </details>
+    <details class="nav-group" open>
+      <summary>Dashboard</summary>
+      <ul>
+        <li><a href="#dashboard">Dashboard</a></li>
+        <li><a href="#tour">Tour</a></li>
+      </ul>
+    </details>
+    <details class="nav-group" open>
+      <summary>Content</summary>
+      <ul>
+        <li><a href="#claim-tracker">Claim Tracker</a></li>
+        <li><a href="#deal-signals">Deal Signals</a></li>
+        <li><a href="#market-digest">Market Digest</a></li>
+        <li><a href="#market-enrichment">Market Enrichment</a></li>
+        <li><a href="#market-history">Market History</a></li>
+        <li><a href="#news-listing">News Listing</a></li>
+        <li><a href="#trend-history">Trend History</a></li>
+        <li><a href="#trends">Trends</a></li>
+      </ul>
+    </details>
+    <details class="nav-group">
+      <summary>Research</summary>
+      <ul>
+        <li><a href="#ai-search">AI Search</a></li>
+        <li><a href="#find-articles">Find Articles</a></li>
+        <li><a href="#framework-analysis">Framework Analysis</a></li>
+        <li><a href="#intel-reports">Intel Reports</a></li>
+        <li><a href="#research-runs">Research Runs</a></li>
+        <li><a href="#vendor-compare">Vendor Compare</a></li>
+      </ul>
+    </details>
+    <details class="nav-group">
+      <summary>Legal</summary>
+      <ul>
+        <li><a href="#legal-timeline">Legal Timeline</a></li>
+        <li><a href="#legal-trends">Legal Trends</a></li>
+        <li><a href="#regulatory">Regulatory</a></li>
+        <li><a href="#legislation">Legislation</a></li>
+      </ul>
+    </details>
+    <details class="nav-group">
+      <summary>Reference</summary>
+      <ul>
+        <li><a href="#clinical-trials">Clinical Trials</a></li>
+        <li><a href="#companies">Companies</a></li>
+        <li><a href="#company-directory">Company Directory</a></li>
+        <li><a href="#relationships">Relationships</a></li>
+        <li><a href="#sentiment-risk">Sentiment &amp; Risk</a></li>
+        <li><a href="#wiki">Wiki</a></li>
+      </ul>
+    </details>
+    <details class="nav-group">
+      <summary>Account</summary>
+      <ul>
+        <li><a href="#social-posts">Social Posts</a></li>
+        <li><a href="#post-drafts">Post Drafts</a></li>
+        <li><a href="#weekly-roundup">Weekly Roundup</a></li>
+        <li><a href="#watchlist">Watchlist</a></li>
+        <li><a href="#profile">Profile</a></li>
+        <li><a href="#webhooks">Webhooks</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#developer">Developer</a></li>
+        <li><a href="#pipelines" class="admin-link">Pipelines</a></li>
+        <li><a href="#admin" class="admin-link">Admin</a></li>
+        <li><a href="#newsletter-runs" class="admin-link">Newsletter Runs</a></li>
+        <li><a href="#document-library" class="admin-link">Document Library</a></li>
+        <li><a href="#wiki-gaps" class="admin-link">Wiki Gaps</a></li>
+        <li><a href="#sso-providers" class="admin-link">SSO Providers</a></li>
+        <li><a href="#outreach-crm" class="admin-link">Outreach CRM</a></li>
+      </ul>
+    </details>
+    <details class="nav-group">
+      <summary>Enterprise</summary>
+      <ul>
+        <li><a href="#data-console">Data Console</a></li>
+        <li><a href="#intelligence-console">Intelligence Console</a></li>
+      </ul>
+    </details>
+    <details class="nav-group">
+      <summary>Login &amp; Registration</summary>
+      <ul>
+        <li><a href="#login">Login</a></li>
+        <li><a href="#register">Register</a></li>
+        <li><a href="#privacy-policy">Privacy Policy</a></li>
+      </ul>
+    </details>
+  </div>
+</nav>
+
+  <main class="content">
+    <header class="hero">
+      <h1>AI in Healthcare &mdash; User Manual</h1>
+      <p>A complete reference for every page in the application, organized
+         by the navigation menu. Each entry shows the menu label, URL,
+         access level, and what you can do there.</p>
+      <div class="hero-meta">
+        <span>v1.0</span>
+        <span>October 2026</span>
+        <span>bigskylabs.ai</span>
+      </div>
+    </header>
+    <div class="content-body">
+<h1 id="ai-in-healthcare-user-manual">AI in Healthcare — User Manual</h1>
+<blockquote>
+<p>Version 1.0 · Last updated: 2026-10-05</p>
+<p>This manual covers every page in the application, organized exactly as the navigation menu appears. Each entry includes the menu label (so you can find it while browsing the app), the URL, who can access it, and what you can do there. For full technical detail see the linked spec files in <code>docs/specs/</code>.</p>
+</blockquote>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Page</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>—</td>
+<td><a href="#dashboard">Dashboard</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td>—</td>
+<td><a href="#tour">Tour</a></td>
+<td>Public</td>
+</tr>
+<tr>
+<td><strong>Content</strong></td>
+<td><a href="#claim-tracker">Claim Tracker</a></td>
+<td><span class="tier t-free">FREE</span> (5) · <span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Content</strong></td>
+<td><a href="#deal-signals">Deal Signals</a></td>
+<td><span class="tier t-free">FREE</span> (10) · <span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Content</strong></td>
+<td><a href="#market-digest">Market Digest</a></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Content</strong></td>
+<td><a href="#market-enrichment">Market Enrichment</a></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Content</strong></td>
+<td><a href="#market-history">Market History</a></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Content</strong></td>
+<td><a href="#news-listing">News Listing</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td><strong>Content</strong></td>
+<td><a href="#trend-history">Trend History</a></td>
+<td><span class="tier t-free">FREE</span> (4 snaps) · <span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Content</strong></td>
+<td><a href="#trends">Trends</a></td>
+<td><span class="tier t-free">FREE</span> (top 5) · <span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Research</strong></td>
+<td><a href="#ai-search">AI Search</a></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Research</strong></td>
+<td><a href="#find-articles">Find Articles</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td><strong>Research</strong></td>
+<td><a href="#framework-analysis">Framework Analysis</a></td>
+<td>Public (overview) · <span class="tier t-subscriber">SUBSCRIBER</span>+ (detail)</td>
+</tr>
+<tr>
+<td><strong>Research</strong></td>
+<td><a href="#intel-reports">Intel Reports</a></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Research</strong></td>
+<td><a href="#research-runs">Research Runs</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td><strong>Research</strong></td>
+<td><a href="#vendor-compare">Vendor Compare</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td><strong>Legal</strong></td>
+<td><a href="#legal-timeline">Legal Timeline</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td><strong>Legal</strong></td>
+<td><a href="#legal-trends">Legal Trends</a></td>
+<td><span class="tier t-free">FREE</span> (top 3) · <span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Legal</strong></td>
+<td><a href="#regulatory">Regulatory</a></td>
+<td><span class="tier t-free">FREE</span> (5) · <span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Legal</strong></td>
+<td><a href="#legislation">Legislation</a></td>
+<td>Public (index) · All tiers (detail)</td>
+</tr>
+<tr>
+<td><strong>Reference</strong></td>
+<td><a href="#clinical-trials">Clinical Trials</a></td>
+<td><span class="tier t-free">FREE</span> (5) · <span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Reference</strong></td>
+<td><a href="#companies">Companies</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td><strong>Reference</strong></td>
+<td><a href="#company-directory">Company Directory</a></td>
+<td>Public</td>
+</tr>
+<tr>
+<td><strong>Reference</strong></td>
+<td><a href="#relationships">Relationships</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td><strong>Reference</strong></td>
+<td><a href="#sentiment--risk">Sentiment &amp; Risk</a></td>
+<td><span class="tier t-free">FREE</span> (5) · <span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Reference</strong></td>
+<td><a href="#wiki">Wiki</a></td>
+<td>Public (index) · All tiers (detail)</td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#social-posts">Social Posts</a></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#post-drafts">Post Drafts</a></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#weekly-roundup">Weekly Roundup</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#watchlist">Watchlist</a></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#profile">Profile</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#webhooks">Webhooks</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#pricing">Pricing</a></td>
+<td>Public</td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#developer">Developer</a></td>
+<td>All tiers</td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#pipelines">Pipelines</a> <em>(Admin)</em></td>
+<td><span class="tier t-admin">ADMIN</span></td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#admin">Admin</a> <em>(Admin)</em></td>
+<td><span class="tier t-admin">ADMIN</span></td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#newsletter-runs">Newsletter Runs</a> <em>(Admin)</em></td>
+<td><span class="tier t-admin">ADMIN</span></td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#document-library">Document Library</a> <em>(Admin)</em></td>
+<td><span class="tier t-admin">ADMIN</span></td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#wiki-gaps">Wiki Gaps</a> <em>(Admin)</em></td>
+<td><span class="tier t-admin">ADMIN</span></td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#sso-providers">SSO Providers</a> <em>(Admin)</em></td>
+<td><span class="tier t-admin">ADMIN</span></td>
+</tr>
+<tr>
+<td><strong>Account</strong></td>
+<td><a href="#outreach-crm">Outreach CRM</a> <em>(Admin)</em></td>
+<td><span class="tier t-admin">ADMIN</span></td>
+</tr>
+<tr>
+<td><strong>Enterprise</strong></td>
+<td><a href="#data-console">Data Console</a></td>
+<td><span class="tier t-enterprise">ENTERPRISE</span>+</td>
+</tr>
+<tr>
+<td><strong>Enterprise</strong></td>
+<td><a href="#intelligence-console">Intelligence Console</a></td>
+<td><span class="tier t-enterprise">ENTERPRISE</span>+ / <span class="tier t-admin">ADMIN</span></td>
+</tr>
+<tr>
+<td>—</td>
+<td><a href="#login">Login</a></td>
+<td>Public</td>
+</tr>
+<tr>
+<td>—</td>
+<td><a href="#register">Register</a></td>
+<td>Public</td>
+</tr>
+<tr>
+<td>—</td>
+<td><a href="#privacy-policy">Privacy Policy</a></td>
+<td>Public</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="subscription-tiers-quick-reference">Subscription Tiers — Quick Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>How you get it</th>
+<th>Key capabilities</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><span class="tier t-public">PUBLIC</span></strong></td>
+<td>No account needed</td>
+<td>Company Directory index, Legislation index, Wiki index, Pricing, Privacy, Tour</td>
+</tr>
+<tr>
+<td><strong><span class="tier t-free">FREE</span></strong></td>
+<td>Default after <span class="tier t-demo">DEMO</span> expires</td>
+<td>Dashboard, News, limited archives, top-5 subset of gated pages</td>
+</tr>
+<tr>
+<td><strong><span class="tier t-demo">DEMO</span></strong></td>
+<td>Self-registration at <code>/register</code></td>
+<td>Full access for 7 days; degrades to <span class="tier t-free">FREE</span> at expiry</td>
+</tr>
+<tr>
+<td><strong><span class="tier t-subscriber">SUBSCRIBER</span></strong></td>
+<td>Stripe checkout ($49/mo)</td>
+<td>Full access to all content and research pages</td>
+</tr>
+<tr>
+<td><strong><span class="tier t-enterprise">ENTERPRISE</span></strong></td>
+<td>Admin-assigned or SAML SSO</td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span> + Data Console + Intelligence Console</td>
+</tr>
+<tr>
+<td><strong><span class="tier t-admin">ADMIN</span></strong></td>
+<td>Admin-assigned</td>
+<td>Everything, all limits removed, admin pages unlocked</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-note"><span class="callout-icon">&#9432;</span><div><strong>Note:</strong> DEMO expiration is passive — your account tier stays <code>DEMO</code> in the database but is treated as FREE by every page after the 7-day window. No upgrade is needed to pay; use the <strong>Pricing</strong> page.</div></div>
+<hr />
+<h2 id="dashboard">Dashboard</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Dashboard (top-level link)</td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All tiers (authenticated)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Articles: daily 04:00 UTC · Regulatory: daily 04:30 UTC · Trends: weekly Sunday 08:00 UTC</td>
+</tr>
+</tbody>
+</table>
+<p>The main landing page after login. Shows four widgets: <strong>Today's Headlines</strong> (top 8 AI-in-healthcare articles from the last 7 days), <strong>Trending Keywords</strong> (top 5 rising signals from the latest trend snapshot), <strong>Regulatory Watch</strong> (3 most recent FDA/CMS events), and <strong>Legal Pulse</strong> (3 most recent AI-healthcare legal articles). If you have a configured Watchlist, a fifth widget appears with recent keyword or company matches.</p>
+<p>You can also search the article corpus directly from this page using the <code>?q=</code> URL parameter or the inline search bar — results appear below the widgets without navigating away.</p>
+<p><strong>Sub-pages:</strong> <code>/dashboard/articles?topic=</code> — full article list for a single topic (no date limit).</p>
+<hr />
+<h2 id="tour">Tour</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Tour (top-level link)</td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/tour</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Public (no login required)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Static content</td>
+</tr>
+</tbody>
+</table>
+<p>A guided walkthrough of the application's capabilities for prospective users and evaluators. Share-friendly — no login is required to view it.</p>
+<hr />
+<h2 id="content">Content</h2>
+<p>The <strong>Content</strong> group is the primary day-to-day reading surface. It covers the AI-in-healthcare news feed, deal tracking, market intelligence, and trend analysis.</p>
+<hr />
+<h3 id="claim-tracker">Claim Tracker</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Content → <strong>Claim Tracker</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/claims</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-free">FREE</span> (top 5 claims) · <span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (all claims)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>After each article harvest (via pipeline cascade) · Manual trigger on Pipelines page</td>
+</tr>
+</tbody>
+</table>
+<p>Track specific factual claims made by frontier AI companies (OpenAI, Anthropic, Google, Meta, Microsoft, NVIDIA, etc.) about their own products and capabilities. Each claim is extracted from harvested articles by Claude and rated:</p>
+<table>
+<thead>
+<tr>
+<th>Verdict</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Evidence-Backed</strong></td>
+<td>Peer-reviewed or independently verified</td>
+</tr>
+<tr>
+<td><strong>Alleged / Unverified</strong></td>
+<td>Stated by the company without supporting citation</td>
+</tr>
+<tr>
+<td><strong>Marketing Hype</strong></td>
+<td>Superlative language with no measurable backing</td>
+</tr>
+<tr>
+<td><strong>Contradicted</strong></td>
+<td>Conflicts with other sourced evidence</td>
+</tr>
+<tr>
+<td><strong>Retracted</strong></td>
+<td>The company has since walked it back</td>
+</tr>
+</tbody>
+</table>
+<p>Filter by company, claim type (Capability / Safety / Benchmark / Timeline / Regulatory / Partnership), or verdict. Each row links to the source article.</p>
+<p><strong>Sub-pages:</strong> Claim detail at <code>/dashboard/claims/{claimId}</code> — full evidence notes, source URL, and detected date.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/content.md</code> (via pipeline integration), CLAUDE.md CT-1 slice</p>
+</blockquote>
+<hr />
+<h3 id="deal-signals">Deal Signals</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Content → <strong>Deal Signals</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/deals</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-free">FREE</span> (10 signals) · <span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (100 signals)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Every 6 hours (standalone cron) + post-harvest cascade</td>
+</tr>
+</tbody>
+</table>
+<p>Automatically detected deal activity in the AI-in-healthcare sector — acquisitions, partnerships, funding rounds, licensing agreements, and clinical integrations. Each signal shows the company, deal type, extracted amount (when available), counterparty (when available), and a one-sentence LLM summary. A filter bar at the top narrows by deal type.</p>
+<p>The detail page cross-references the deal against three other data sources: the company's current <strong>Sentiment Score</strong>, its <strong>Framework Analysis</strong> competitive position, and any related <strong>Regulatory Events</strong> — giving you a fuller picture of what the deal means.</p>
+<p><strong>Sub-pages:</strong> Deal detail at <code>/dashboard/deals/{signalId}</code> — cross-reference cards for sentiment, framework, regulatory context, and company profile.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> CLAUDE.md DS-1 slice</p>
+</blockquote>
+<hr />
+<h3 id="market-digest">Market Digest</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Content → <strong>Market Digest</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/market</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (<span class="tier t-free">FREE</span>: restricted)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Daily 12:00 UTC (noon)</td>
+</tr>
+</tbody>
+</table>
+<p>The daily ranked digest of market-moving AI-in-healthcare news. Each entry is classified by Claude as either <strong>Confirmed</strong> (verified facts) or <strong>Speculative</strong> (analyst opinion, unconfirmed reports) and ranked 1–5 by market impact. Impact assessment cards break down each entry across dimensions: Revenue, Earnings, Valuation, Investor Sentiment, and Future Growth. Affected company chips show ticker symbols with real-time Alpaca quote data when available.</p>
+<p>Entries that meet the qualifying bar appear in the digest: earnings reports, regulatory actions, M&amp;A, major partnerships, and funding rounds over $50M. Sub-threshold items are still persisted but do not trigger email alerts.</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Qualifies?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>EARNINGS</td>
+<td>Always</td>
+</tr>
+<tr>
+<td>REGULATORY</td>
+<td>Always</td>
+</tr>
+<tr>
+<td>FUNDING</td>
+<td>Only if amount &gt; $50M (strictly)</td>
+</tr>
+<tr>
+<td>M&amp;A</td>
+<td>Always</td>
+</tr>
+<tr>
+<td>MAJOR_PARTNERSHIP</td>
+<td>Always</td>
+</tr>
+<tr>
+<td>Other categories</td>
+<td>Never</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sub-pages:</strong> Market weekly rollup at <code>/dashboard/market/weekly</code> — 7-day narrative synthesis. Market enrichment at <code>/dashboard/market/enrichment</code> (see <a href="#market-enrichment">Market Enrichment</a>).</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/market.md</code></p>
+</blockquote>
+<hr />
+<h3 id="market-enrichment">Market Enrichment</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Content → <strong>Market Enrichment</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/market/enrichment</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-free">FREE</span> (3 items per tab) · <span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (all)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Populated by the daily Market Digest pipeline (post-save enrichment step)</td>
+</tr>
+</tbody>
+</table>
+<p>A three-tab view of the structured data extracted from market digest entries:</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>What it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Regulatory Trackers</strong></td>
+<td>Pending rulemakings with jurisdiction, stage (Discussion Paper → Enforcement), docket ID, comment deadline</td>
+</tr>
+<tr>
+<td><strong>Private Funding Rounds</strong></td>
+<td>Company name, round stage, amount, lead investors, announced date (180-day lookback)</td>
+</tr>
+<tr>
+<td><strong>Deal Terms</strong></td>
+<td>Headline, upfront cash, milestone payments, equity stake %, royalty %, disclosed portion</td>
+</tr>
+</tbody>
+</table>
+<p>Data is automatically extracted from digest entries by keyword and regex patterns — no manual entry required. If a tab is empty, the market pipeline has not identified qualifying activity in that category recently.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/market.md</code></p>
+</blockquote>
+<hr />
+<h3 id="market-history">Market History</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Content → <strong>Market History</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/market/history</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span></td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Appended daily by the Market Digest pipeline</td>
+</tr>
+</tbody>
+</table>
+<p>A date-range browser for all past market digests. Use the from/to date pickers to narrow the view, or scroll the summary table to find a specific day. Click any row to open the full digest detail for that date. Summary columns show entry count, top categories, and whether the digest triggered any subscriber alerts.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/market.md</code></p>
+</blockquote>
+<hr />
+<h3 id="news-listing">News Listing</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Content → <strong>News Listing</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/news</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All tiers (archive depth varies: <span class="tier t-free">FREE</span> = limited days, <span class="tier t-subscriber">SUBSCRIBER</span>+ = unlimited)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Daily 04:00 UTC (RSS harvest), 04:00 UTC (Perplexity), 05:00–05:30 UTC (web scraping)</td>
+</tr>
+</tbody>
+</table>
+<p>All active news topics listed in order, each with its recent articles. Topics with 2 or more recent articles show a one-paragraph AI-generated summary at the top of their section. Articles show title, source name, publication date, and source tier badge (ACADEMIC / REGULATORY / INDUSTRY / LEGAL / RESEARCH / COMPETITOR).</p>
+<p>FREE users see a limited date window with an upgrade prompt. SUBSCRIBER and ADMIN users see the full historical archive for every topic.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/content.md</code></p>
+</blockquote>
+<hr />
+<h3 id="trend-history">Trend History</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Content → <strong>Trend History</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/trends/history</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-free">FREE</span> (last 4 snapshots) · <span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (all snapshots)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Weekly, Sunday 08:00 UTC</td>
+</tr>
+</tbody>
+</table>
+<p>A multi-line chart showing how the top 10 AI-in-healthcare keywords have trended across all weekly snapshots, with a clickable timeline table below. Each row in the table links to a full snapshot detail page showing the rising, fading, and new keyword cards with linked article examples for that week.</p>
+<p><strong>Sub-pages:</strong> Snapshot detail at <code>/dashboard/trends/history/{epochMillis}</code> — full signal cards for a single historical snapshot.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/content.md</code></p>
+</blockquote>
+<hr />
+<h3 id="trends">Trends</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Content → <strong>Trends</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/trends</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-free">FREE</span> (top 5 rising) · <span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (all signals)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Weekly, Sunday 08:00 UTC (snapshot) · Falls back to live computation if no snapshot exists</td>
+</tr>
+</tbody>
+</table>
+<p>The latest keyword trend analysis across 30/90/180-day windows. A bar chart visualizes the top 10 rising keywords. Below the chart, three card sections show <strong>Rising</strong> (accelerating frequency), <strong>Fading</strong> (declining frequency), and <strong>New</strong> (first appearance) keyword signals. Each card links to the specific articles that drove the keyword's activity.</p>
+<div class="callout callout-important"><span class="callout-icon">&#9432;</span><div><strong>Important:</strong> Fading and new keyword cards currently show as empty — only the rising signals list is populated by the detection pipeline.</p>
+<p><strong>Spec reference:</strong> <code>docs/specs/content.md</code></div></div>
+<hr />
+<h2 id="research">Research</h2>
+<p>The <strong>Research</strong> group provides tools for deeper, query-driven analysis of the article corpus and competitive landscape using LLM synthesis.</p>
+<hr />
+<h3 id="ai-search">AI Search</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Research → <strong>AI Search</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/research/ai-search</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (credit-based throttle) · <span class="tier t-free">FREE</span> / anonymous: blocked</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Vector index updated daily 07:00 UTC (after article harvest)</td>
+</tr>
+</tbody>
+</table>
+<p>Enter any query to get: (1) a ranked list of semantically similar articles retrieved from the vector store, and (2) a full-text synthesis card from each enabled AI model. You can select which models to query using the checkboxes (Claude, GPT, Gemini, Perplexity Sonar). Each synthesis card shows a multi-paragraph summary and key findings, with numbered <code>[N]</code> citations linking to source articles.</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Credit cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude / GPT / Gemini</td>
+<td>3 credits per search</td>
+</tr>
+<tr>
+<td>Perplexity Sonar</td>
+<td>1 credit per search</td>
+</tr>
+<tr>
+<td>Deep research models</td>
+<td>10 credits per search</td>
+</tr>
+</tbody>
+</table>
+<p>ADMIN users have no credit limit. The topK result count is capped at 20 for SUBSCRIBER, 50 for ADMIN.</p>
+<div class="callout callout-note"><span class="callout-icon">&#9432;</span><div><strong>Note:</strong> New articles are not searchable until after the 07:00 UTC embedding job runs the following morning.</p>
+<p><strong>Spec reference:</strong> <code>docs/specs/research.md</code></div></div>
+<hr />
+<h3 id="find-articles">Find Articles</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Research → <strong>Find Articles</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/search</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All tiers (any authenticated user, no date limit)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Real-time against the article database</td>
+</tr>
+</tbody>
+</table>
+<p>A multi-field search form with filters for title, topic, author, source name, body text, and date range. Results update in-place via HTMX as you type or adjust filters — no page reload needed. Unlike AI Search, this searches stored article metadata directly (no vector similarity) and imposes no tier limits or credit costs.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/content.md</code></p>
+</blockquote>
+<hr />
+<h3 id="framework-analysis">Framework Analysis</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Research → <strong>Framework Analysis</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/frameworks</code> (overview) · <code>/dashboard/frameworks/{slug}</code> (company detail)</td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Public (overview radar chart) · <span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (detail + source articles)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>After each article harvest (via pipeline cascade) · Manual trigger on Pipelines page</td>
+</tr>
+</tbody>
+</table>
+<p>Competitive analysis of configured AI healthcare companies scored across 6 dimensions by Claude:</p>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>What it measures</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clinical Evidence</td>
+<td>Peer-reviewed validation of outcomes</td>
+</tr>
+<tr>
+<td>Market Penetration</td>
+<td>Adoption breadth across health systems</td>
+</tr>
+<tr>
+<td>Regulatory Positioning</td>
+<td>FDA clearances and compliance posture</td>
+</tr>
+<tr>
+<td>Technical Differentiation</td>
+<td>Model architecture and proprietary data moats</td>
+</tr>
+<tr>
+<td>Partnership Ecosystem</td>
+<td>Integration depth with EHR and payer partners</td>
+</tr>
+<tr>
+<td>Business Momentum</td>
+<td>Funding trajectory and revenue signals</td>
+</tr>
+</tbody>
+</table>
+<p>Each company gets a 1–10 score per dimension, an overall score, strengths list, weaknesses list, and recent developments summary. The overview page shows a Chart.js radar chart comparing all companies. The detail page shows dimension breakdown with rationale paragraphs.</p>
+<blockquote>
+<p><strong>Adding companies:</strong> Configured via <code>aihealthcare.frameworks.companies</code> in <code>application.yml</code>. No code changes needed.</p>
+<p><strong>Spec reference:</strong> <code>docs/specs/reference.md</code></p>
+</blockquote>
+<hr />
+<h3 id="intel-reports">Intel Reports</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Research → <strong>Intel Reports</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/research/intel</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span></td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>On demand only (no scheduler)</td>
+</tr>
+</tbody>
+</table>
+<p>On-demand competitive intelligence reports. Enter a freeform query (e.g., "AI-assisted prior authorization market sizing") and the system calls Perplexity to gather live web sources, then synthesizes a structured report with numbered citations using Claude. Reports are stored permanently and shared across all SUBSCRIBER+ users — you can browse the full history of past queries.</p>
+<div class="callout callout-important"><span class="callout-icon">&#9432;</span><div><strong>Important:</strong> Report generation is synchronous and can take 30–60 seconds. If the browser connection times out, the report may still have been generated — check the list page for it.</p>
+<p><strong>Spec reference:</strong> <code>docs/specs/research.md</code></div></div>
+<hr />
+<h3 id="research-runs">Research Runs</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Research → <strong>Research Runs</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/research/runs</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All tiers (any authenticated user)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Written after every research pipeline execution (automated + manual)</td>
+</tr>
+</tbody>
+</table>
+<p>A sortable audit log of every research pipeline run — both automated daily runs and queries triggered manually via the REST API. Columns: timestamp, query text, pipeline mode (LEGACY_GOOGLE / STAGED_RESEARCH / COMBINED), and citation count. Click any row for the full detail including the complete synthesized answer and source citation list.</p>
+<div class="callout callout-note"><span class="callout-icon">&#9432;</span><div><strong>Note:</strong> Automated daily runs (from <code>ResearchHarvestScheduler</code>) are mixed in with manual user queries — there is no flag distinguishing them.</p>
+<p><strong>Spec reference:</strong> <code>docs/specs/research.md</code></div></div>
+<hr />
+<h3 id="vendor-compare">Vendor Compare</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Research → <strong>Vendor Compare</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/research/vendors</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All tiers (any authenticated user)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Vendor checkboxes pull from COMPETITOR-tier articles (refreshed daily 05:00 UTC); free-form uses live Perplexity</td>
+</tr>
+</tbody>
+</table>
+<p>Two comparison modes:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>How it works</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Vendor-select</strong></td>
+<td>Check boxes for specific competitors; cards appear with Strengths (+), Weaknesses (−), and a relevance score bar drawn from stored COMPETITOR-tier articles</td>
+</tr>
+<tr>
+<td><strong>Free-form query</strong></td>
+<td>Enter any question; the system runs a live Perplexity + article search and synthesizes a structured vendor comparison</td>
+</tr>
+</tbody>
+</table>
+<p>Results are not saved. There is no history — each comparison is generated fresh.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/research.md</code></p>
+</blockquote>
+<hr />
+<h2 id="legal">Legal</h2>
+<p>The <strong>Legal</strong> group covers time-sensitive regulatory and legislative intelligence for AI-in-healthcare compliance tracking.</p>
+<hr />
+<h3 id="legal-timeline">Legal Timeline</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Legal → <strong>Legal Timeline</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/legal</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All tiers (authenticated)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Article harvest daily 04:00 UTC · Regulatory harvest daily 04:30 UTC</td>
+</tr>
+</tbody>
+</table>
+<p>A unified chronological view merging two streams: <strong>AI-healthcare legal articles</strong> (from LEGAL and ACADEMIC-tier feeds) and <strong>regulatory events</strong> (from FDA and CMS APIs). Both appear on a single timeline sorted by date. Filter by source type to view articles-only or regulatory events-only. Each item links to its source (article URL or regulatory reference number) and shows a category badge.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/market.md</code> (Legal Trends section), CLAUDE.md L-1 slice</p>
+</blockquote>
+<hr />
+<h3 id="legal-trends">Legal Trends</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Legal → <strong>Legal Trends</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/legal/trends</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-free">FREE</span> (top 3 trends) · <span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (all trends, chart capped at 10)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Configurable schedule (<code>aihealthcare.legal-trends.schedule</code>) · Manual trigger (<span class="tier t-admin">ADMIN</span>)</td>
+</tr>
+</tbody>
+</table>
+<p>Keyword trend analysis focused specifically on legal, regulatory, and policy language. Rising trend cards show the keyword, category badge (LITIGATION / REGULATION / POLICY), 30-day frequency, 90-day baseline, momentum score, and a linked list of the specific articles or regulatory events that drove the keyword's activity.</p>
+<div class="callout callout-note"><span class="callout-icon">&#9432;</span><div><strong>Note:</strong> The "Detect Now" trigger is ADMIN-only. If no snapshot exists yet, the page renders with empty cards and no chart.</p>
+<p><strong>Spec reference:</strong> <code>docs/specs/market.md</code></div></div>
+<hr />
+<h3 id="regulatory">Regulatory</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Legal → <strong>Regulatory</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/regulatory</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-free">FREE</span> (5 events) · <span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (50 events)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Daily 04:30 UTC</td>
+</tr>
+</tbody>
+</table>
+<p>The regulatory event feed from the FDA (510(k) clearances, De Novo grants) and CMS (Federal Register rules). Each event shows a color-coded type badge, reference number, applicant/organization name, device or rule name, regulatory body badge (FDA / CMS), and event date. Filter tabs let you narrow to FDA-only or CMS-only.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> CLAUDE.md R-REG slice</p>
+</blockquote>
+<hr />
+<h3 id="legislation">Legislation</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Legal → <strong>Legislation</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/legislation</code> (index) · <code>/legislation/{id}</code> (detail) · <code>/legislation/map</code> (state map) · <code>/legislation/upcoming</code> (timeline)</td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Public (index, map, upcoming) · All tiers (detail)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Seeded at every app startup · Source freshness check: Monday 10:30 UTC · New bill discovery: Monday 11:00 UTC</td>
+</tr>
+</tbody>
+</table>
+<p>A registry of 41 enacted U.S. state laws regulating AI in healthcare across 24 states. The index is a searchable, filterable table with columns for state, bill number, year enacted, categories (Payer Utilization Review, Provider Disclosure, Consumer Chatbots, etc.), and status. The state map shows per-state law counts at a glance. The upcoming page shows laws with effective dates in the next 90 days.</p>
+<p>The detail page for each law includes: full requirements text, enforcement provisions, official source links with freshness status (checked weekly), a change history log, related wiki pages, and related company directory entries.</p>
+<table>
+<thead>
+<tr>
+<th>Filter type</th>
+<th>How to use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free-text search</td>
+<td>Matches bill number, title, requirements text</td>
+</tr>
+<tr>
+<td>State filter</td>
+<td>Drop-down by <code>StateCode</code> (all 50 states + DC)</td>
+</tr>
+<tr>
+<td>Category filter</td>
+<td>One of 8 law categories</td>
+</tr>
+<tr>
+<td>Status filter</td>
+<td>ENACTED / ENACTED_STAYED / PENDING</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-note"><span class="callout-icon">&#9432;</span><div><strong>Note:</strong> Filters are applied one at a time (first non-blank parameter wins). You cannot combine state + category filters in the same query.</p>
+<p><strong>Spec reference:</strong> <code>docs/specs/reference.md</code></div></div>
+<hr />
+<h2 id="reference">Reference</h2>
+<p>The <strong>Reference</strong> group provides structured intelligence about companies, clinical research, and regulatory risk — the kind of data subscribers use for due diligence.</p>
+<hr />
+<h3 id="clinical-trials">Clinical Trials</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Reference → <strong>Clinical Trials</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/clinical-trials</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-free">FREE</span> (5 trials) · <span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (50 trials)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Configurable schedule (<code>aihealthcare.clinical-trials.schedule</code>) · Manual trigger on Pipelines page</td>
+</tr>
+</tbody>
+</table>
+<p>AI-related clinical trials from ClinicalTrials.gov. Each row shows the NCT ID (linked to the trial record), trial title, sponsor, phase, status, and conditions list. Summary badges at the top count recruiting trials, completed trials, Phase 2, and Phase 3 by tier. Filter buttons let you narrow to Recruiting or Completed trials only.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/companies.md</code></p>
+</blockquote>
+<hr />
+<h3 id="companies">Companies</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Reference → <strong>Companies</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/companies</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All tiers (authenticated)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Weekly (company discovery scheduler)</td>
+</tr>
+</tbody>
+</table>
+<p>The <strong>internal</strong> operational view of the company database — distinct from the public-facing <a href="#company-directory">Company Directory</a>. Shows raw discovery metadata including: sub-sector classification, funding stage, HQ location, founded year, validation status badge (green ✓ = validated, gray ? = unreviewed), and discovered/validated dates.</p>
+<p>Use this page to review what the automated discovery pipeline has found, check which companies have been human-validated, and identify gaps in coverage by sub-sector.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/companies.md</code></p>
+</blockquote>
+<hr />
+<h3 id="company-directory">Company Directory</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Reference → <strong>Company Directory</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/directory</code> (index) · <code>/directory/{slug}</code> (detail) · <code>/directory/export.csv</code> (CSV)</td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Public (no login required) · CSV export: <span class="tier t-enterprise">ENTERPRISE</span> / <span class="tier t-admin">ADMIN</span></td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Signal scores recomputed on every page request (articles, deals, sentiment)</td>
+</tr>
+</tbody>
+</table>
+<p>The public-facing, SEO-optimized showcase of AI healthcare companies. Sort the directory four ways:</p>
+<table>
+<thead>
+<tr>
+<th>Sort tab</th>
+<th>What it prioritizes</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Relevance</strong></td>
+<td>Recent article velocity + signal score</td>
+<td>Public</td>
+</tr>
+<tr>
+<td><strong>Trending</strong></td>
+<td>Momentum over 90-day article window</td>
+<td>Authenticated</td>
+</tr>
+<tr>
+<td><strong>Recently Funded</strong></td>
+<td>Latest deal signal date (FUNDING type)</td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td><strong>Watch List</strong></td>
+<td>Companies with active watchlist items</td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+</tbody>
+</table>
+<p>Each company card shows a relevance score chip and signal badges: 🔥 Trending, 💰 Recently Funded, ⚠ Watchlist Alert. The detail page shows the full company profile, JSON-LD Organization schema (for SEO), up to 5 related wiki pages, and up to 5 relevant state laws.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/reference.md</code></p>
+</blockquote>
+<hr />
+<h3 id="relationships">Relationships</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Reference → <strong>Relationships</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/relationships</code> (table) · <code>/dashboard/relationships/graph</code> (D3 visualization)</td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All tiers (authenticated)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>After each article harvest (via pipeline cascade)</td>
+</tr>
+</tbody>
+</table>
+<p>LLM-detected inter-company relationships in the AI healthcare sector. Each relationship shows: source company, target company, relationship type badge (Partnership / Acquisition / Investment / Integration / Competition / Licensing / Distribution), confidence percentage, evidence article title and link, and detected date. Use the company filter dropdown to zoom in on a specific organization.</p>
+<p>The graph view (<code>/relationships/graph</code>) renders the same data as an interactive node-link diagram — useful for visualizing the overall partnership and investment network.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/companies.md</code></p>
+</blockquote>
+<hr />
+<h3 id="sentiment-risk">Sentiment &amp; Risk</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Reference → <strong>Sentiment &amp; Risk</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/risk</code> (overview) · <code>/dashboard/risk/{slug}</code> (company detail)</td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-free">FREE</span> (top 5 companies) · <span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (all companies + detail)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>After each article harvest (via pipeline cascade) · Manual trigger on Pipelines page</td>
+</tr>
+</tbody>
+</table>
+<p>Company-level sentiment aggregated from article-by-article LLM classification. Each company gets:<br />
+- An <strong>overall score</strong> on a continuous [-1.0, +1.0] scale<br />
+- A <strong>label</strong> (POSITIVE / NEGATIVE / MIXED / NEUTRAL)<br />
+- An article count and distribution bar (% positive, % negative, % mixed, % neutral)</p>
+<p>The detail page adds a per-article sentiment table with source name, URL, publication date, individual label, confidence score, and the LLM's one-sentence rationale. Authenticated users can also add personal analyst notes on the detail page.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/reference.md</code></p>
+</blockquote>
+<hr />
+<h3 id="wiki">Wiki</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Reference → <strong>Wiki</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/wiki</code> (index) · <code>/wiki/{slug}</code> (page detail) · <code>/wiki/contradictions</code> (reversal watch)</td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Public (index) · Authenticated for detail + contradiction pages · <span class="tier t-subscriber">SUBSCRIBER</span>+ for analyst notes</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>After each RSS harvest (wiki compilation cascade) · Manual trigger: <code>POST /monitoring/wiki/compile</code></td>
+</tr>
+</tbody>
+</table>
+<p>A persistent, LLM-compiled knowledge base of AI-in-healthcare topics built from harvested articles. The index is a searchable, paginated grid (20 pages per page) filterable by page type (ENTITY / CONCEPT / COMPARISON / OVERVIEW).</p>
+<p>Each wiki page shows:<br />
+- <strong>Rendered markdown</strong> content<br />
+- <strong>Source provenance table</strong> — every claim traces back to a specific article with a grade<br />
+- <strong>Contradiction history</strong> — when later articles contradict earlier claims<br />
+- <strong>Revision history</strong> — all past versions of the page<br />
+- <strong>Related pages</strong> — cross-links to other wiki topics<br />
+- <strong>Analyst notes</strong> — personal notes for SUBSCRIBER+ users</p>
+<p>The <strong>Contradictions</strong> feed (<code>/wiki/contradictions</code>) shows all detected reversals across all pages in the last 90 days — useful for tracking when a company reverses a prior claim.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/content.md</code></p>
+</blockquote>
+<hr />
+<h2 id="account">Account</h2>
+<p>The <strong>Account</strong> group (right side of the nav) contains publication tools, personal settings, and admin operations.</p>
+<hr />
+<h3 id="social-posts">Social Posts</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Social Posts</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/social</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Authenticated users</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Generated on demand from recent Market Digest entries</td>
+</tr>
+</tbody>
+</table>
+<p>Generate LinkedIn and Facebook post drafts from the latest market digest intelligence using a Spring AI agent. The agent accesses market digest data, company profiles, and deal signals as tools to produce a post body, hashtags, and a first-comment citation block appropriate for each platform. Generated drafts are saved to Post Drafts for editing before publishing.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> CLAUDE.md SOC-1 slice</p>
+</blockquote>
+<hr />
+<h3 id="post-drafts">Post Drafts</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Post Drafts</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/social/drafts</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Authenticated users</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Written by Social Post generator and Editorial Calendar</td>
+</tr>
+</tbody>
+</table>
+<p>A queue of saved LinkedIn and Facebook post drafts. Drafts are created by the Social Posts generator and by the Editorial Calendar's "generate post" action. Edit any draft before copying it to publish manually on the respective platform.</p>
+<hr />
+<h3 id="weekly-roundup">Weekly Roundup</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Weekly Roundup</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/dashboard/weekly-roundup</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All authenticated tiers (no tier gate)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Generated live on every page load — no caching</td>
+</tr>
+</tbody>
+</table>
+<p>Produces copy-ready social content for three channels from the past 7 days of LEGAL and COMPETITOR-tier articles:</p>
+<table>
+<thead>
+<tr>
+<th>Output</th>
+<th>Format</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LinkedIn post body</td>
+<td>Analytical narrative, no URLs</td>
+<td>≤ 2,900 chars</td>
+</tr>
+<tr>
+<td>LinkedIn first comment</td>
+<td>Source publication names + insights page link</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Substack article</td>
+<td>Long-form with section headers</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>The synthesis is generated by Claude at page-load time. If the LLM call fails, a fallback narrative is constructed from article headlines.</p>
+<div class="callout callout-important"><span class="callout-icon">&#9432;</span><div><strong>Important:</strong> Every page visit makes a live LLM call. Avoid refreshing repeatedly to minimize cost.</p>
+<p><strong>Spec reference:</strong> <code>docs/specs/market.md</code></div></div>
+<hr />
+<h3 id="watchlist">Watchlist</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Watchlist</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/watchlist</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-enterprise">ENTERPRISE</span> / <span class="tier t-admin">ADMIN</span> only (<span class="tier t-free">FREE</span> redirected to Pricing)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>After each RSS harvest (watchlist matching runs automatically)</td>
+</tr>
+</tbody>
+</table>
+<p>Configure keyword, company, and topic monitors. After every article harvest, the watchlist matching service scans new articles for your configured items and records matches with a snippet. The page shows:<br />
+- Your watchlist items grouped by type (COMPANY / KEYWORD / TOPIC)<br />
+- A table of the 50 most recent matches with article titles, snippets, and source links</p>
+<p>Add items using the form at the top. There is no limit on the number of items.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/content.md</code></p>
+</blockquote>
+<hr />
+<h3 id="profile">Profile</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Profile</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/profile</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All tiers (authenticated)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Usage metrics updated in real-time by search and article-read events</td>
+</tr>
+</tbody>
+</table>
+<p>Your subscription status page. Shows: email address, tier badge, demo expiration date (if DEMO), monthly AI search usage meter, articles read today, and digest email subscription status. SUBSCRIBER-tier users see a Stripe billing portal link for managing payment method, invoice history, and cancellation.</p>
+<p><strong>Actions:</strong><br />
+- <strong>Unsubscribe</strong> — stops digest email delivery; does not cancel Stripe billing or change your tier<br />
+- <strong>Resubscribe</strong> — re-enables digest email delivery<br />
+- <strong>Stripe Portal</strong> — manage your subscription payment (SUBSCRIBER only)</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/account.md</code></p>
+</blockquote>
+<hr />
+<h3 id="webhooks">Webhooks</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Webhooks</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/settings/webhooks</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All tiers (authenticated)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Triggered in real-time by application events</td>
+</tr>
+</tbody>
+</table>
+<p>Configure webhook delivery channels to receive real-time notifications when events occur. Supported channel types: Slack, Microsoft Teams, or Generic HTTP. Each channel subscribes to one or more event types:</p>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>When it fires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DEAL_SIGNAL</strong></td>
+<td>A new deal signal is detected</td>
+</tr>
+<tr>
+<td><strong>REGULATORY_EVENT</strong></td>
+<td>A new FDA/CMS regulatory event is harvested</td>
+</tr>
+<tr>
+<td><strong>TREND_ALERT</strong></td>
+<td>A new trend snapshot is generated</td>
+</tr>
+<tr>
+<td><strong>DIGEST_READY</strong></td>
+<td>A new newsletter digest run is available</td>
+</tr>
+</tbody>
+</table>
+<p>Each channel entry shows the last-triggered timestamp. Use the <strong>Test</strong> button to send a <code>TEST_PING</code> payload and verify the endpoint is reachable.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/account.md</code></p>
+</blockquote>
+<hr />
+<h3 id="pricing">Pricing</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Pricing</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/pricing</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Public (no login required)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Static (tier pricing is configured in Stripe)</td>
+</tr>
+</tbody>
+</table>
+<p>Side-by-side comparison of FREE and SUBSCRIBER tiers with feature checkmarks. The <strong>Upgrade</strong> button initiates Stripe Checkout ($49/month). On successful payment, Stripe calls the application webhook and upgrades your account — this typically takes a few seconds after checkout completes.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/account.md</code></p>
+</blockquote>
+<hr />
+<h3 id="developer">Developer</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Developer</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/developer</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>All tiers (authenticated)</td>
+</tr>
+</tbody>
+</table>
+<p>API key management for programmatic access to the REST API. Keys use <code>X-API-Key</code> header authentication. Generate keys to access endpoints like <code>/api/v1/articles</code>, <code>/api/v1/search/ai</code>, and <code>/api/v1/market-digest</code> from external tools or scripts.</p>
+<hr />
+<h3 id="about">About</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>About</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/about</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Public</td>
+</tr>
+</tbody>
+</table>
+<p>Background on the AI in Healthcare platform, Big Sky Labs, and the data sources that power the application.</p>
+<hr />
+<h3 id="notes">Notes</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Notes</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/notes</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Authenticated users</td>
+</tr>
+</tbody>
+</table>
+<p>Personal notes page for the authenticated user.</p>
+<hr />
+<hr />
+<h2 id="admin-pages">Admin Pages</h2>
+<p>The following pages are visible in the <strong>Account</strong> menu only to users with the <strong>ADMIN</strong> role.</p>
+<hr />
+<h3 id="pipelines">Pipelines</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Pipelines</strong> <em>(<span class="tier t-admin">ADMIN</span> only)</em></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/admin/pipelines</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-admin">ADMIN</span> role required</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Last-run status updated after each pipeline execution</td>
+</tr>
+</tbody>
+</table>
+<p>The operations console for all 24 background data pipelines. Each card shows: pipeline name, description, schedule, last-run status (SUCCESS / FAILED / PARTIAL), last-run duration and item count, pre-flight warnings (missing API keys, connectivity issues), and a <strong>Run Now</strong> button for manual triggering.</p>
+<p>A recent history table at the bottom shows the last 50 pipeline run events with error classification by type (LLM_AUTH / LLM_QUOTA / NETWORK / FATAL) and responsible provider (Anthropic / OpenAI / Perplexity / Alpaca).</p>
+<table>
+<thead>
+<tr>
+<th>Pipeline card</th>
+<th>What it triggers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rss-feeds</td>
+<td>RSS + research article harvest</td>
+</tr>
+<tr>
+<td>web-monitoring</td>
+<td>Competitor page scraping</td>
+</tr>
+<tr>
+<td>huggingface</td>
+<td>HuggingFace model discovery</td>
+</tr>
+<tr>
+<td>regulatory-harvest</td>
+<td>FDA/CMS event fetch</td>
+</tr>
+<tr>
+<td>embedding</td>
+<td>pgvector article embedding</td>
+</tr>
+<tr>
+<td>wiki-compile</td>
+<td>LLM wiki compilation</td>
+</tr>
+<tr>
+<td>sentiment-analysis</td>
+<td>Company sentiment scoring</td>
+</tr>
+<tr>
+<td>framework-analysis</td>
+<td>Competitive framework scoring</td>
+</tr>
+<tr>
+<td>trend-detection</td>
+<td>Keyword trend snapshot</td>
+</tr>
+<tr>
+<td>deal-signals</td>
+<td>Deal signal detection scan</td>
+</tr>
+<tr>
+<td>claim-detection</td>
+<td>Frontier claim extraction</td>
+</tr>
+<tr>
+<td>market-digest</td>
+<td>Daily market digest</td>
+</tr>
+<tr>
+<td>price-reaction</td>
+<td>Multi-horizon price-reaction scoring</td>
+</tr>
+<tr>
+<td>legislation-source-check</td>
+<td>Source URL freshness check</td>
+</tr>
+<tr>
+<td>legislation-discovery</td>
+<td>Perplexity new bill discovery</td>
+</tr>
+<tr>
+<td>notebooklm-sync</td>
+<td>EC2 → NotebookLM export <em>(dev-machine only)</em></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/admin.md</code></p>
+</blockquote>
+<hr />
+<h3 id="admin">Admin</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Admin</strong> <em>(<span class="tier t-admin">ADMIN</span> only)</em></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/admin</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-admin">ADMIN</span> role required</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Real-time (user and article counts read directly from DB)</td>
+</tr>
+</tbody>
+</table>
+<p>User management and system analytics. The top section shows all registered users with email, role, enabled status, tier, and demo expiration. Inline actions let you toggle a user's enabled flag or change their role. Below the user table: ingestion analytics (article counts, daily ingestion chart, topic distribution), newsletter run count, and subscriber count.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/admin.md</code></p>
+</blockquote>
+<hr />
+<h3 id="newsletter-runs">Newsletter Runs</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Newsletter Runs</strong> <em>(<span class="tier t-admin">ADMIN</span> only)</em></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/newsletter/runs</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-admin">ADMIN</span> role required</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>New DRAFT written daily at 00:00 UTC</td>
+</tr>
+</tbody>
+</table>
+<p>The newsletter run list with status badges (DRAFT / SENT / ARCHIVED). Click any DRAFT row to open the TinyMCE editor where you can revise the HTML content before sending. The <strong>Send</strong> button delivers the newsletter to all active subscribers via AWS SES.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/content.md</code></p>
+</blockquote>
+<hr />
+<h3 id="document-library">Document Library</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Document Library</strong> <em>(<span class="tier t-admin">ADMIN</span> only)</em></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/admin/documents</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-admin">ADMIN</span> role required</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Written on upload</td>
+</tr>
+</tbody>
+</table>
+<p>Upload PDF, DOCX, TXT, or Markdown files (max 50 MB each) for ingestion into the vector store and wiki. Each uploaded document is parsed, chunked, embedded into the pgvector store, and compiled into a wiki page. Status badges (INGESTED / PROCESSING / FAILED) track ingestion progress. Wiki deep-links appear once a page is successfully compiled.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/admin.md</code></p>
+</blockquote>
+<hr />
+<h3 id="wiki-gaps">Wiki Gaps</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Wiki Gaps</strong> <em>(<span class="tier t-admin">ADMIN</span> only)</em></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/admin/wiki-gaps</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-admin">ADMIN</span> role required</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Generated by the wiki gap analysis pipeline (manual or scheduled)</td>
+</tr>
+</tbody>
+</table>
+<p>Review the LLM's analysis of which topics in the article corpus lack wiki coverage. Each gap item shows: the suggested page title, page type (ENTITY / CONCEPT / COMPARISON / OVERVIEW), and a one-sentence rationale. <strong>Approve</strong> items you want to create; <strong>Dismiss</strong> items that are out of scope. Approving marks the item for wiki compilation — trigger <code>POST /monitoring/wiki/compile</code> from the Pipelines page afterward to actually create the pages.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/admin.md</code></p>
+</blockquote>
+<hr />
+<h3 id="sso-providers">SSO Providers</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>SSO Providers</strong> <em>(<span class="tier t-admin">ADMIN</span> only)</em></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/admin/sso</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-admin">ADMIN</span> role required</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Manual (no pipeline)</td>
+</tr>
+</tbody>
+</table>
+<p>Configure SAML2 identity providers for enterprise customer SSO. Each IdP entry requires: a registration ID (permanent, cannot be changed after creation), entity ID, SSO URL, X.509 certificate, email attribute name, and optional metadata URL. Users who authenticate via a configured IdP are automatically provisioned at ENTERPRISE tier.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/admin.md</code></p>
+</blockquote>
+<hr />
+<h3 id="outreach-crm">Outreach CRM</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → <strong>Outreach CRM</strong> <em>(<span class="tier t-admin">ADMIN</span> only)</em></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/admin/outreach</code> (list) · <code>/admin/outreach/{slug}</code> (company detail)</td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-admin">ADMIN</span> role required</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Manual entry</td>
+</tr>
+</tbody>
+</table>
+<p>A lightweight CRM for tracking outreach to healthcare AI companies. The list page shows all outreach records with purpose (e.g., SALES / PARTNERSHIP / INTELLIGENCE), status (CONTACTED / RESPONDED / CLOSED / etc.), and notes. A combo box populated from the company database lets you add a new record by company name with live contact preview.</p>
+<p>The company detail page shows all outreach rows for that company, the full contact list (name, title, email, LinkedIn), and inline status/notes editing. If the company is not yet in the public Directory, a <strong>Register to Directory</strong> form appears to add a minimal listing.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/admin.md</code></p>
+</blockquote>
+<hr />
+<h2 id="enterprise">Enterprise</h2>
+<p>The <strong>Enterprise</strong> group is visible only to users with the <strong>ENTERPRISE</strong> tier or <strong>ADMIN</strong> role.</p>
+<hr />
+<h3 id="data-console">Data Console</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Enterprise → <strong>Data Console</strong></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/enterprise/data</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-enterprise">ENTERPRISE</span> tier or <span class="tier t-admin">ADMIN</span> role</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Jobs written on submit · Push schedules fire per configured cron</td>
+</tr>
+</tbody>
+</table>
+<p>A three-tab self-service console for structured data exports:</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>What it shows / does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Feeds</strong></td>
+<td>Available data feeds (article corpus, market digests, company data) with supported formats and row limits</td>
+</tr>
+<tr>
+<td><strong>Jobs</strong></td>
+<td>Your last 50 export jobs with status, row count, file size, timestamps, and download link for completed jobs. Auto-polls for in-flight jobs.</td>
+</tr>
+<tr>
+<td><strong>Schedules</strong></td>
+<td>Push delivery schedules — configure a cron expression, recipient list, and format for automated email delivery of exports</td>
+</tr>
+</tbody>
+</table>
+<p>Each job is owner-scoped: you see only your own jobs and schedules. Completed artifacts are available at a signed download URL (<code>/d/{token}</code>) that requires no login.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/admin.md</code></p>
+</blockquote>
+<hr />
+<h3 id="intelligence-console">Intelligence Console</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Enterprise → <strong>Intelligence</strong> <em>(<span class="tier t-admin">ADMIN</span> only in nav; <span class="tier t-enterprise">ENTERPRISE</span>+ in practice)</em></td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/admin/intelligence</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span> (5 tabs) · <span class="tier t-enterprise">ENTERPRISE</span> / <span class="tier t-demo">DEMO</span> / <span class="tier t-admin">ADMIN</span> (all 9 tabs)</td>
+</tr>
+<tr>
+<td><strong>Data refreshes</strong></td>
+<td>Live — proxied to the Claude Intelligence Service</td>
+</tr>
+</tbody>
+</table>
+<p>A tabbed console for the Claude Healthcare Intelligence Service — a companion application running alongside the main app. All tab content is fetched live from the intelligence service via an HTTP proxy.</p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>Purpose</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chat</td>
+<td>Conversational AI queries about healthcare AI</td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td>Analyze</td>
+<td>Document or market segment deep-dive</td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td>Synthesis</td>
+<td>Multi-source narrative synthesis</td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td>Platform Race</td>
+<td>Competitive platform tracking</td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td>History</td>
+<td>Past session history</td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td>Wiki Ask</td>
+<td>Natural language queries against the wiki</td>
+<td><span class="tier t-subscriber">SUBSCRIBER</span>+</td>
+</tr>
+<tr>
+<td>Verify</td>
+<td>Claim verification against sourced evidence</td>
+<td><span class="tier t-enterprise">ENTERPRISE</span>+</td>
+</tr>
+<tr>
+<td>Trending</td>
+<td>Live trending signals from intelligence service</td>
+<td><span class="tier t-enterprise">ENTERPRISE</span>+</td>
+</tr>
+<tr>
+<td>Files</td>
+<td>Uploaded document management</td>
+<td><span class="tier t-enterprise">ENTERPRISE</span>+</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-note"><span class="callout-icon">&#9432;</span><div><strong>Note:</strong> If the Claude Intelligence Service is unavailable, all tabs show an error state. The console page itself still loads.</p>
+<p><strong>Spec reference:</strong> <code>docs/specs/research.md</code></div></div>
+<hr />
+<h2 id="login-registration">Login &amp; Registration</h2>
+<hr />
+<h3 id="login">Login</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>(Redirect — no direct nav link)</td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/login</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Public</td>
+</tr>
+</tbody>
+</table>
+<p>Standard email + password login form. On failure, a generic error message appears (no hint of which field was wrong). On success, you are redirected to the page you originally tried to reach, or to <code>/dashboard</code> if you navigated directly to <code>/login</code>. SAML SSO users bypass this form and authenticate via their configured IdP.</p>
+<p>Password reset is available at <code>/forgot-password</code> (not linked from the login page — navigate directly).</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/account.md</code></p>
+</blockquote>
+<hr />
+<h3 id="register">Register</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>(Linked from Login page and Pricing page)</td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/register</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Public</td>
+</tr>
+</tbody>
+</table>
+<p>Self-registration for a 7-day DEMO account. Provide full name, email, and password. On submit, your account is created, a welcome email with your expiration date is sent, and you are automatically logged in and directed to the dashboard.</p>
+<p>After 7 days, your effective access downgrades to FREE. Upgrade at any time on the Pricing page.</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/account.md</code></p>
+</blockquote>
+<hr />
+<h3 id="privacy-policy">Privacy Policy</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Menu label</strong></td>
+<td>Account → Pricing (footer link)</td>
+</tr>
+<tr>
+<td><strong>URL</strong></td>
+<td><code>/privacy</code></td>
+</tr>
+<tr>
+<td><strong>Access</strong></td>
+<td>Public</td>
+</tr>
+</tbody>
+</table>
+<p>The privacy policy for bigskylabs.ai. Covers data collection, email usage, third-party services (AWS SES, Stripe, Perplexity), and a contact address (<code>newsletter@bigskylabs.ai</code>).</p>
+<blockquote>
+<p><strong>Spec reference:</strong> <code>docs/specs/account.md</code></p>
+</blockquote>
+<hr />
+<h2 id="spec-file-index">Spec File Index</h2>
+<p>Each section of this manual corresponds to one or more detailed spec files in <code>docs/specs/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Spec file</th>
+<th>Pages covered</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docs/specs/content.md</code></td>
+<td>Dashboard, News Listing, Find Articles, Wiki, Trends, Trend History, Watchlist, Newsletter Runs</td>
+</tr>
+<tr>
+<td><code>docs/specs/market.md</code></td>
+<td>Market Digest, Market Enrichment, Market History, Deal Signals, Legal Trends, Weekly Roundup</td>
+</tr>
+<tr>
+<td><code>docs/specs/research.md</code></td>
+<td>AI Search, Vendor Compare, Research Runs, Intel Reports, Intelligence Console</td>
+</tr>
+<tr>
+<td><code>docs/specs/reference.md</code></td>
+<td>Sentiment &amp; Risk, Framework Analysis, Company Directory, Legislation</td>
+</tr>
+<tr>
+<td><code>docs/specs/companies.md</code></td>
+<td>Clinical Trials, Companies (internal), Relationships</td>
+</tr>
+<tr>
+<td><code>docs/specs/admin.md</code></td>
+<td>Admin, SSO Providers, Outreach CRM, Pipelines, Data Console, Document Library, Wiki Gaps, Editorial Calendar</td>
+</tr>
+<tr>
+<td><code>docs/specs/account.md</code></td>
+<td>Login, Register, Profile, Pricing, Privacy, Webhooks</td>
+</tr>
+</tbody>
+</table>
+    </div>
+  </main>
+
+</div>
+<script>
+
+(function () {
+  // ── Sidebar search ──────────────────────────────────────────────────────────
+  var input = document.getElementById('sidebarSearch');
+  if (input) {
+    input.addEventListener('input', function () {
+      var q = this.value.trim().toLowerCase();
+      document.querySelectorAll('.nav-group').forEach(function (group) {
+        var matched = false;
+        group.querySelectorAll('li').forEach(function (li) {
+          var text = li.textContent.toLowerCase();
+          var show = !q || text.indexOf(q) !== -1;
+          li.style.display = show ? '' : 'none';
+          if (show) matched = true;
+        });
+        group.style.display = matched || !q ? '' : 'none';
+        if (q && matched) group.open = true;
+      });
+    });
+  }
+
+  // ── Active-link tracking via IntersectionObserver ───────────────────────────
+  var allLinks = Array.from(document.querySelectorAll('#sidebarNav a[href^="#"]'));
+
+  function setActive(id) {
+    allLinks.forEach(function (a) {
+      var href = a.getAttribute('href').slice(1);
+      if (href === id) {
+        a.classList.add('active');
+        // open parent details if closed
+        var det = a.closest('details');
+        if (det) det.open = true;
+      } else {
+        a.classList.remove('active');
+      }
+    });
+  }
+
+  var sections = Array.from(document.querySelectorAll('.content-body h2[id], .content-body h3[id]'));
+
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) setActive(entry.target.id);
+      });
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function (s) { observer.observe(s); });
+  }
+})();
+
+</script>
+</body>
+</html>
