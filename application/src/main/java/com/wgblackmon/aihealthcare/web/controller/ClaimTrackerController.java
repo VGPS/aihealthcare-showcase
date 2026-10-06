@@ -50,9 +50,9 @@ import java.util.stream.Collectors;
  * LinkedIn and Facebook drafts via {@link ManageSavedPostsUseCase}.
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-10-05
- * @updated 2026-10-05
+ * @updated 2026-10-06
  */
 @Slf4j
 @Controller
@@ -108,6 +108,10 @@ public class ClaimTrackerController {
             claims = claims.subList(0, FREE_LIMIT);
         }
 
+        boolean sortableCompany = claims.stream().map(FrontierClaim::company).distinct().count() > 1;
+        boolean sortableVerdict = claims.stream().map(FrontierClaim::verdict).distinct().count() > 1;
+        boolean sortableType    = claims.stream().map(FrontierClaim::claimType).distinct().count() > 1;
+
         String effectiveSort = (sort == null || sort.isBlank()) ? "detectedAt" : sort;
         String effectiveDir = resolveDir(effectiveSort, dir);
 
@@ -139,6 +143,9 @@ public class ClaimTrackerController {
         model.addAttribute("fullAccess", fullAccess);
         model.addAttribute("freeLimit", FREE_LIMIT);
         model.addAttribute("claimTimestamps", claimTimestamps);
+        model.addAttribute("sortableCompany", sortableCompany);
+        model.addAttribute("sortableVerdict", sortableVerdict);
+        model.addAttribute("sortableType", sortableType);
         model.addAttribute("activePage", "claims");
 
         log.debug("claimTracker() | return=claim-tracker, claimsShown={}", claims.size());
