@@ -1,0 +1,46 @@
+PLATFORM: LinkedIn
+DATE: 2026-10-07
+SLUG: relationships-feature
+ANGLE: Feature value + comparison to enterprise alternatives
+
+--- POST BODY ---
+
+PitchBook charges $30,000–$60,000/year to track M&A deals and company relationships.
+
+CB Insights starts at $15,000/year for healthcare tech intelligence.
+
+A Bloomberg Terminal — if you want relationship data with market context — runs $25,000/year.
+
+We built continuous, AI-extracted company relationship tracking into Big Sky Labs AI Healthcare for under $50/month.
+
+Here's how it works.
+
+Every day our pipeline scans 30 days of AI healthcare articles through a three-stage process:
+
+**Stage 1 — Keyword filter.** 29 relationship phrases (partnerships, acquisitions, investments, integrations) identify candidate articles. Fast and cheap. No data leaves the system yet.
+
+**Stage 2 — LLM classification.** Candidate articles go to an AI model that reads the full context, identifies the two companies, classifies the relationship type, and produces a confidence score and natural-language summary. If it can't find two clearly named company parties, it returns NO_RELATIONSHIP and the article is excluded. This is the quality gate.
+
+**Stage 3 — Directory canonicalization.** Extracted company names are normalized against a 627-company AI healthcare directory to resolve spelling variants — "R1 RCM" becomes "R1," "Microsoft Corporation" becomes "Microsoft." Health systems and universities that appear as partners are left as-is; they're valid participants, just not in the vendor directory.
+
+The result: a continuously updated relationship graph showing WHO is partnering with whom, WHO is acquiring whom, and WHERE investment is flowing — specific to the AI healthcare space, sourced from live news, with evidence articles you can trace back to.
+
+PitchBook covers thousands of industries with editorial staff entering data 2–7 days after the fact. We cover one sector automatically, with same-day extraction from the same news your analysts are reading.
+
+Different tools for different jobs. But if AI healthcare deal flow is your job — you probably don't need the $30K option.
+
+The relationship graph is live at app.bigskylabs.ai
+
+#AIHealthcare #HealthTech #CompetitiveIntelligence #MarketIntelligence #StartupIntel
+
+"AI in healthcare is history being written right now. I'm building the archive."
+
+--- FIRST COMMENT (post separately for reach) ---
+
+A note on what this doesn't claim to be: PitchBook and CB Insights have broader coverage, richer financials, and decades of curated data. This is a focused, automated alternative for people who specifically need to track the AI healthcare space — not a replacement for enterprise research tools when you need EDGAR filings, cap tables, or global M&A coverage.
+
+--- POSTING INSTRUCTIONS ---
+1. Post the body section above as the main post
+2. Add the image: linkedin-posts/shots/<date>-relationships-feature.png
+3. Within ~15 min, add the First Comment section as a comment on your own post
+4. Engage with any replies in the first 2 hours for algorithm benefit
