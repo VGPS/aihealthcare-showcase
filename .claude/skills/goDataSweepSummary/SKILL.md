@@ -164,3 +164,10 @@ Report a structured summary:
 ```
 
 Stop here and wait for user direction. Do NOT generate infographic or post text.
+
+## Positioning statement — include in every post this sweep leads to
+
+When the user proceeds to generate post content based on this sweep, always close every
+LinkedIn, Facebook, and Substack post with this line in quotes, on its own line:
+
+> *"AI in healthcare is history being written right now. I'm building the archive."*

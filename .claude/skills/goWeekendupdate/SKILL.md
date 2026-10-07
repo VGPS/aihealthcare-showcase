@@ -234,6 +234,16 @@ Report to the user:
 4. Post to Substack (article + cover image → publish)
 ```
 
+## Positioning statement — include in every post
+
+Always close every LinkedIn, Facebook, and Substack post with this line in quotes, on its own line,
+after the hashtags or final paragraph:
+
+> *"AI in healthcare is history being written right now. I'm building the archive."*
+
+This is the brand's founding statement — it appears on every page of the app and should appear
+in every piece of content. No exceptions.
+
 ## Platform rules reminder
 
 - **LinkedIn:** Links in post body reduce reach 40-60%. Put links in first comment only.
