@@ -76,7 +76,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-07-04
- * @updated 2026-09-30 — T4/T5 SEO: 404 on missing slug, preview text + source names for anonymous, real meta description
+ * @updated 2026-10-07 — expand preview text 300→1500 chars (~250 words); fix sourcePublications to use all sources not just URL-resolved
  */
 @Slf4j
 @Controller
@@ -317,13 +317,13 @@ public class WikiController {
             evidenceColors.put(source.articleId(), evidenceGradeColor(grade));
         }
 
-        // Build SEO preview text — plain text, first 300 chars of content for anonymous users + meta description
+        // Build SEO preview text — plain text, first ~250 words for anonymous users + meta description
         String plainContent = page.contentMarkdown() != null
                 ? page.contentMarkdown().replaceAll("(?s)#+ |\\*\\*?|`|\\[([^]]+)]\\([^)]+\\)", "$1")
                         .replaceAll("\\s+", " ").trim()
                 : "";
-        String previewText = plainContent.length() > 300
-                ? plainContent.substring(0, plainContent.lastIndexOf(' ', 300)) + "…"
+        String previewText = plainContent.length() > 1500
+                ? plainContent.substring(0, plainContent.lastIndexOf(' ', 1500)) + "…"
                 : plainContent;
         String metaDescription = plainContent.length() > 155
                 ? plainContent.substring(0, plainContent.lastIndexOf(' ', 155)) + "…"
@@ -332,9 +332,11 @@ public class WikiController {
             metaDescription = page.title() + " — AI healthcare knowledge base entry with source provenance.";
         }
 
-        // Collect distinct source publication names for anonymous preview
+        // Collect distinct source publication names for anonymous preview — use all sources,
+        // not just URL-resolved ones, so Google sees real source attribution even when
+        // the article isn't in the local DB
         Set<String> sourcePublications = new LinkedHashSet<>();
-        for (SourceRef source : displaySources) {
+        for (SourceRef source : page.sources()) {
             if (source.sourceName() != null && !source.sourceName().isBlank()) {
                 sourcePublications.add(source.sourceName());
                 if (sourcePublications.size() >= 8) break;

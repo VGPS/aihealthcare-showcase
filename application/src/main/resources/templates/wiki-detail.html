@@ -56,7 +56,7 @@
         <div class="text-xs text-gray-400 space-x-3">
             <span th:text="'Rev ' + ${page.revision()}">Rev 1</span>
             <span th:text="${pageTimestamp}">Jul 4, 2026 10:00 UTC</span>
-            <span th:text="${displaySources.size()} + ' sources'">0 sources</span>
+            <span th:text="${page.sources().size()} + ' sources'">0 sources</span>
         </div>
     </div>
 
