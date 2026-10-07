@@ -2,10 +2,12 @@ package com.wgblackmon.aihealthcare.domain.service;
 
 import com.wgblackmon.aihealthcare.domain.model.CompanyRelationship;
 import com.wgblackmon.aihealthcare.domain.model.CompanyRelationshipType;
+import com.wgblackmon.aihealthcare.domain.model.HealthcareAiCompany;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MapCompanyRelationshipsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyRelationshipPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.RelationshipClassificationPort;
 
 import java.time.Instant;
@@ -38,8 +40,18 @@ import java.util.regex.Pattern;
  * returns no results, falls back to keyword-only extraction. Without the LLM
  * port, uses keyword-only extraction directly.
  *
+ * <p>Every extracted source/target name is also resolved against the
+ * {@link HealthcareAiCompanyPort} directory ({@link #canonicalizeAgainstDirectory}):
+ * an exact or first-token-prefix match (e.g. "R1" / "R1 RCM" both resolving to
+ * the directory's canonical "R1") rewrites the extracted name to the directory's
+ * stored name, so the same real company never persists under multiple string
+ * variants. This is deliberately canonicalization, not a rejection gate — the
+ * directory only covers AI vendor companies, not the universities, health
+ * systems, or government bodies that legitimately appear as relationship
+ * parties, so a name with no directory match is left as-is rather than dropped.
+ *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-08-04
  * @updated 2026-10-07
  */
@@ -103,13 +115,16 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
     private final ArticleIngestionPort articleIngestionPort;
     private final CompanyRelationshipPort relationshipPort;
     private final RelationshipClassificationPort classificationPort;
+    private final HealthcareAiCompanyPort companyPort;
 
     public CompanyRelationshipService(ArticleIngestionPort articleIngestionPort,
                                        CompanyRelationshipPort relationshipPort,
-                                       RelationshipClassificationPort classificationPort) {
+                                       RelationshipClassificationPort classificationPort,
+                                       HealthcareAiCompanyPort companyPort) {
         this.articleIngestionPort = articleIngestionPort;
         this.relationshipPort = relationshipPort;
         this.classificationPort = classificationPort;
+        this.companyPort = companyPort;
     }
 
     @Override
@@ -135,6 +150,7 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
 
         List<CompanyRelationship> newRelationships = new ArrayList<>();
         Set<String> seen = new HashSet<>();
+        List<HealthcareAiCompany> directory = null;
         for (CompanyRelationship rel : extracted) {
             if (rel.sourceCompany().equalsIgnoreCase(rel.targetCompany())) {
                 continue;
@@ -142,13 +158,22 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
             if (!isValidCompanyName(rel.sourceCompany()) || !isValidCompanyName(rel.targetCompany())) {
                 continue;
             }
-            String dedupKey = rel.sourceCompany() + "|" + rel.targetCompany() + "|" + rel.relationshipType().name();
+
+            if (directory == null) {
+                directory = companyPort.findAll();
+            }
+            CompanyRelationship canonical = canonicalizeAgainstDirectory(rel, directory);
+            if (canonical.sourceCompany().equalsIgnoreCase(canonical.targetCompany())) {
+                continue;
+            }
+
+            String dedupKey = canonical.sourceCompany() + "|" + canonical.targetCompany() + "|" + canonical.relationshipType().name();
             if (seen.contains(dedupKey)) {
                 continue;
             }
             if (!relationshipPort.existsBySourceAndTargetAndType(
-                    rel.sourceCompany(), rel.targetCompany(), rel.relationshipType().name())) {
-                newRelationships.add(rel);
+                    canonical.sourceCompany(), canonical.targetCompany(), canonical.relationshipType().name())) {
+                newRelationships.add(canonical);
                 seen.add(dedupKey);
             }
         }
@@ -158,6 +183,32 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
         }
 
         return newRelationships;
+    }
+
+    private CompanyRelationship canonicalizeAgainstDirectory(CompanyRelationship rel, List<HealthcareAiCompany> directory) {
+        String canonicalSource = resolveCanonicalName(rel.sourceCompany(), directory);
+        String canonicalTarget = resolveCanonicalName(rel.targetCompany(), directory);
+        if (canonicalSource.equals(rel.sourceCompany()) && canonicalTarget.equals(rel.targetCompany())) {
+            return rel;
+        }
+        return new CompanyRelationship(rel.relationshipId(), canonicalSource, canonicalTarget,
+                rel.relationshipType(), rel.evidenceArticleId(), rel.summary(), rel.confidence(), rel.detectedAt());
+    }
+
+    private String resolveCanonicalName(String extractedName, List<HealthcareAiCompany> directory) {
+        String target = extractedName.toLowerCase(Locale.ENGLISH).trim();
+        for (HealthcareAiCompany company : directory) {
+            if (company.nameNormalized().equals(target)) {
+                return company.name();
+            }
+        }
+        for (HealthcareAiCompany company : directory) {
+            String candidate = company.nameNormalized();
+            if (candidate.startsWith(target + " ") || target.startsWith(candidate + " ")) {
+                return company.name();
+            }
+        }
+        return extractedName;
     }
 
     private List<CompanyRelationship> keywordExtractAll(List<NewsArticle> candidates, Instant now) {

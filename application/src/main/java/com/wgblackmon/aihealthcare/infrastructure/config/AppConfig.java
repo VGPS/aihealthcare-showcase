@@ -1358,25 +1358,29 @@ public class AppConfig {
     /**
      * Wires the {@link CompanyRelationshipService} — keyword-prefiltered,
      * optionally LLM-classified inter-company relationship extraction from
-     * recently harvested articles.
+     * recently harvested articles, with directory-based name canonicalization.
      *
      * @param articleIngestionPort     Adapter for fetching recent articles.
      * @param companyRelationshipPort  Adapter for persisting relationships.
      * @param classificationPort       Optional LLM classification adapter; falls
      *                                 back to keyword-only extraction when absent.
+     * @param companyPort              Company directory adapter used to canonicalize
+     *                                 extracted names to a single known spelling.
      * @return The wired {@link CompanyRelationshipService} instance.
      */
     @Bean
     public CompanyRelationshipService companyRelationshipService(
             ArticleIngestionPort articleIngestionPort,
             CompanyRelationshipPort companyRelationshipPort,
-            @Autowired(required = false) RelationshipClassificationPort classificationPort) {
-        log.debug("companyRelationshipService() | articleIngestionPort={}, companyRelationshipPort={}, classificationPort={}",
+            @Autowired(required = false) RelationshipClassificationPort classificationPort,
+            HealthcareAiCompanyPort companyPort) {
+        log.debug("companyRelationshipService() | articleIngestionPort={}, companyRelationshipPort={}, classificationPort={}, companyPort={}",
                   articleIngestionPort.getClass().getSimpleName(),
                   companyRelationshipPort.getClass().getSimpleName(),
-                  classificationPort != null ? classificationPort.getClass().getSimpleName() : "null");
+                  classificationPort != null ? classificationPort.getClass().getSimpleName() : "null",
+                  companyPort.getClass().getSimpleName());
         CompanyRelationshipService result = new CompanyRelationshipService(
-                articleIngestionPort, companyRelationshipPort, classificationPort);
+                articleIngestionPort, companyRelationshipPort, classificationPort, companyPort);
         log.debug("companyRelationshipService() | return={}", result.getClass().getSimpleName());
         return result;
     }
