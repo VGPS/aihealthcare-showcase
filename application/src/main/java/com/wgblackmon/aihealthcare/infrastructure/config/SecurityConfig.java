@@ -85,6 +85,7 @@ public class SecurityConfig {
                 .requestMatchers("/saml2/**", "/login/saml2/**").permitAll()
                 .requestMatchers("/api/v1/stripe/webhook").permitAll()
                 .requestMatchers("/api/v1/feedback/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/companies/count").permitAll()
                 .requestMatchers("/api/v1/monitoring/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/sso/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/v1/subscribers").hasRole("ADMIN")

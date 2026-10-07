@@ -87,8 +87,17 @@ with prior claim vs new claim and detection date.
 
 ### Source 5: Company Directory (public)
 
-WebFetch `https://app.bigskylabs.ai/directory?sort=trending` — note top trending
-companies, total count, dominant sectors, and any notable signal changes.
+First fetch the live company count from the public API — this is the authoritative number
+for any post copy referencing the directory size:
+
+```bash
+curl -s https://app.bigskylabs.ai/api/v1/companies/count
+# Returns: {"count": 627}
+```
+
+Then WebFetch `https://app.bigskylabs.ai/directory?sort=trending` — note top trending
+companies, dominant sectors, and any notable signal changes. Use the API count (not the
+page HTML) as the canonical number: it reflects the live database total at time of fetch.
 
 ### Source 6: Market Digest (DB query)
 
@@ -142,7 +151,7 @@ Report a structured summary:
 **Source 2 — Deal Signals (7-day):** [count by type, notable amounts, key companies]
 **Source 3 — Trends:** [top rising keywords with counts, any fading]
 **Source 4 — Wiki Contradictions:** [any new reversals]
-**Source 5 — Company Directory:** [total count, top trending, sector shifts]
+**Source 5 — Company Directory:** [live count from /api/v1/companies/count, top trending, sector shifts]
 **Source 6 — Market Digest (today):** [top headlines ranked by impact]
 
 ## Strongest Angles (ranked)

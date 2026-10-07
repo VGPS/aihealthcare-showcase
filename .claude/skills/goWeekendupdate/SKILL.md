@@ -31,6 +31,14 @@ ssh -i "$KEY" "ec2-user@${IP}" "curl -s -o /dev/null -w '%{http_code}' http://lo
 
 Should return `200`. If not, check if the app is running:
 
+Also fetch the live company count — use this in any post copy that references the directory size,
+never a hardcoded number:
+
+```bash
+curl -s https://app.bigskylabs.ai/api/v1/companies/count
+# Returns: {"count": 627}  — store this as COMPANY_COUNT for use in post text
+```
+
 ```bash
 ssh -i "$KEY" "ec2-user@${IP}" "sudo systemctl status aihealthcare | head -10"
 ```
