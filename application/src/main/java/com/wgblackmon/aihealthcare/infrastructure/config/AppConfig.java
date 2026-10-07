@@ -57,6 +57,7 @@ import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyRelationshipPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.RelationshipClassificationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanySentimentPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DealClassificationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.DealSignalPort;
@@ -1355,21 +1356,27 @@ public class AppConfig {
     }
 
     /**
-     * Wires the {@link CompanyRelationshipService} — keyword-based inter-company
-     * relationship extraction from recently harvested articles.
+     * Wires the {@link CompanyRelationshipService} — keyword-prefiltered,
+     * optionally LLM-classified inter-company relationship extraction from
+     * recently harvested articles.
      *
      * @param articleIngestionPort     Adapter for fetching recent articles.
      * @param companyRelationshipPort  Adapter for persisting relationships.
+     * @param classificationPort       Optional LLM classification adapter; falls
+     *                                 back to keyword-only extraction when absent.
      * @return The wired {@link CompanyRelationshipService} instance.
      */
     @Bean
     public CompanyRelationshipService companyRelationshipService(
             ArticleIngestionPort articleIngestionPort,
-            CompanyRelationshipPort companyRelationshipPort) {
-        log.debug("companyRelationshipService() | articleIngestionPort={}, companyRelationshipPort={}",
+            CompanyRelationshipPort companyRelationshipPort,
+            @Autowired(required = false) RelationshipClassificationPort classificationPort) {
+        log.debug("companyRelationshipService() | articleIngestionPort={}, companyRelationshipPort={}, classificationPort={}",
                   articleIngestionPort.getClass().getSimpleName(),
-                  companyRelationshipPort.getClass().getSimpleName());
-        CompanyRelationshipService result = new CompanyRelationshipService(articleIngestionPort, companyRelationshipPort);
+                  companyRelationshipPort.getClass().getSimpleName(),
+                  classificationPort != null ? classificationPort.getClass().getSimpleName() : "null");
+        CompanyRelationshipService result = new CompanyRelationshipService(
+                articleIngestionPort, companyRelationshipPort, classificationPort);
         log.debug("companyRelationshipService() | return={}", result.getClass().getSimpleName());
         return result;
     }

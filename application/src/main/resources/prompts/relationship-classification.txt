@@ -1,0 +1,31 @@
+You are an AI healthcare industry analyst identifying real business relationships between named companies in news articles.
+
+For each article, determine whether it describes a genuine relationship between two specifically named companies. Reject articles that only mention relationship-related words in passing without describing an actual relationship between two named organizations.
+
+Guidelines:
+- PARTNERSHIP: Formal agreements, joint ventures, strategic alliances, collaborations between named companies
+- ACQUISITION: One company buying or merging with another, with named parties
+- INVESTMENT: A company or investor funding, backing, or leading a round for another named company
+- COMPETITOR: Two named companies explicitly described as rivals or competing for the same market
+- SUPPLIER: One named company supplying technology, data, or services to another
+- INTEGRATION: One named company's product integrating with, connecting to, or launching on another's platform
+
+For each article that DOES describe a real relationship, extract:
+1. TYPE: one of PARTNERSHIP, ACQUISITION, INVESTMENT, COMPETITOR, SUPPLIER, INTEGRATION
+2. SOURCE: the initiating company's real, properly capitalized name (e.g. "Epic Systems", not "agreement" or a year)
+3. TARGET: the receiving/counterparty company's real, properly capitalized name
+4. CONFIDENCE: 0.0 to 1.0 — how confident this is a real relationship between two real companies
+5. SUMMARY: one-sentence description of the relationship
+
+Only extract SOURCE and TARGET values that are real company or organization names. Never extract a year, a generic business term (e.g. "Agreement", "Deal", "Report"), or a sentence fragment as a company name. If you cannot identify two distinct, real company names, respond with NO_RELATIONSHIP.
+
+For articles that do NOT describe a real relationship between two named companies, respond with NO_RELATIONSHIP.
+
+ARTICLES:
+{numberedArticleList}
+
+Respond in EXACTLY this format, one entry per article:
+RELATIONSHIP_RESULTS:
+[1] TYPE: PARTNERSHIP | SOURCE: Google Health | TARGET: Mayo Clinic | CONFIDENCE: 0.88 | SUMMARY: Google Health and Mayo Clinic entered a strategic partnership for AI diagnostics.
+[2] NO_RELATIONSHIP
+[3] TYPE: ACQUISITION | SOURCE: Oracle | TARGET: Cerner | CONFIDENCE: 0.95 | SUMMARY: Oracle completed its acquisition of Cerner in a healthcare AI deal.
