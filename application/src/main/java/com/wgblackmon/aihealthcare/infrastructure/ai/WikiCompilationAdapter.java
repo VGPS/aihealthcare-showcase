@@ -25,7 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -45,9 +47,9 @@ import java.util.Optional;
  * persistence.  The domain layer remains unaware of how compilation is implemented.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-07-04
- * @updated 2026-09-29
+ * @updated 2026-10-07 — prevent LLM slug drift via normalised-title lookup before persist
  */
 @Slf4j
 public class WikiCompilationAdapter implements KnowledgeCompilationPort {
@@ -102,6 +104,14 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
         List<WikiPageEntity> existingPages = pageRepository.findAll();
         log.debug("compileNewSources() | existingPages={}", existingPages.size());
 
+        // Build normalised-title → canonical-slug map to redirect LLM slug drift
+        Map<String, String> normalizedTitleToSlug = new HashMap<>();
+        for (WikiPageEntity p : existingPages) {
+            if (p.getTitle() != null) {
+                normalizedTitleToSlug.put(normalizeTitle(p.getTitle()), p.getSlug());
+            }
+        }
+
         // 2b. Build prompt
         String prompt = buildPrompt(newArticles, existingPages);
         log.debug("compileNewSources() | promptLength={}", prompt.length());
@@ -122,24 +132,36 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
         List<String> createdSlugs = new ArrayList<>();
         List<String> updatedSlugs = new ArrayList<>();
         for (WikiPage page : pages) {
-            boolean exists = pageRepository.existsById(page.slug());
-            if (exists) {
-                updatedSlugs.add(page.slug());
-            } else {
-                createdSlugs.add(page.slug());
+            // Resolve canonical slug — map to existing slug when LLM drifted to a new one
+            String normalizedTitle = normalizeTitle(page.title());
+            String canonicalSlug = normalizedTitleToSlug.getOrDefault(normalizedTitle, page.slug());
+            boolean isRedirect = !canonicalSlug.equals(page.slug());
+            boolean exists = isRedirect || pageRepository.existsById(canonicalSlug);
+
+            if (isRedirect) {
+                log.info("compileNewSources() | slug dedup: LLM='{}' -> canonical='{}' (title='{}')",
+                        page.slug(), canonicalSlug, page.title());
             }
+            if (exists) {
+                updatedSlugs.add(canonicalSlug);
+            } else {
+                createdSlugs.add(canonicalSlug);
+                // Register so subsequent pages in this batch don't create a second duplicate
+                normalizedTitleToSlug.put(normalizedTitle, canonicalSlug);
+            }
+
             if (page.contentMarkdown() != null && !page.contentMarkdown().isBlank()) {
                 SlopLinter.LintResult lint = slopLinter.lintWiki(page.contentMarkdown());
                 if (lint.hasBlocks()) {
                     for (SlopLinter.Finding f : lint.findings()) {
                         if (f.severity() == SlopLinter.Severity.BLOCK) {
-                            warnings.add("[SLOP] " + page.slug() + ": " + f.rule() + " — " + f.detail());
+                            warnings.add("[SLOP] " + canonicalSlug + ": " + f.rule() + " — " + f.detail());
                         }
                     }
-                    log.warn("compileNewSources() | slop BLOCK findings on page={}: {}", page.slug(), lint.findings());
+                    log.warn("compileNewSources() | slop BLOCK findings on page={}: {}", canonicalSlug, lint.findings());
                 }
             }
-            persistPage(page, exists);
+            persistPage(page, canonicalSlug);
         }
         for (Contradiction c : contradictions) {
             persistContradiction(c);
@@ -205,18 +227,19 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
         return prompt;
     }
 
-    private void persistPage(WikiPage page, boolean isUpdate) {
-        log.debug("persistPage() | slug={}, isUpdate={}", page.slug(), isUpdate);
+    private void persistPage(WikiPage page, String effectiveSlug) {
+        log.debug("persistPage() | effectiveSlug={}, llmSlug={}", effectiveSlug, page.slug());
 
+        boolean isUpdate = pageRepository.existsById(effectiveSlug);
         WikiPageEntity entity;
         if (isUpdate) {
-            Optional<WikiPageEntity> existing = pageRepository.findById(page.slug());
+            Optional<WikiPageEntity> existing = pageRepository.findById(effectiveSlug);
             entity = existing.orElseGet(WikiPageEntity::new);
             entity.setRevision(entity.getRevision() + 1);
             entity.setUpdatedAt(Instant.now());
         } else {
             entity = new WikiPageEntity();
-            entity.setSlug(page.slug());
+            entity.setSlug(effectiveSlug);
             entity.setCreatedAt(Instant.now());
             entity.setRevision(1);
         }
@@ -230,17 +253,17 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
 
         // Save revision for audit trail
         WikiPageRevisionEntity revision = new WikiPageRevisionEntity();
-        revision.setPageSlug(page.slug());
+        revision.setPageSlug(effectiveSlug);
         revision.setRevision(entity.getRevision());
         revision.setContentMarkdown(page.contentMarkdown());
         revision.setCompiledAt(Instant.now());
         revisionRepository.save(revision);
 
         // Replace source refs (delete old, insert new)
-        sourceRefRepository.deleteByPageSlug(page.slug());
+        sourceRefRepository.deleteByPageSlug(effectiveSlug);
         for (SourceRef source : page.sources()) {
             WikiSourceRefEntity refEntity = new WikiSourceRefEntity();
-            refEntity.setPageSlug(page.slug());
+            refEntity.setPageSlug(effectiveSlug);
             refEntity.setArticleId(source.articleId());
             refEntity.setSourceName(source.sourceName());
             refEntity.setHarvestedOn(source.harvestedOn() != null ? source.harvestedOn() : LocalDate.now());
@@ -249,6 +272,14 @@ public class WikiCompilationAdapter implements KnowledgeCompilationPort {
         }
 
         log.debug("persistPage() | return=void");
+    }
+
+    static String normalizeTitle(String title) {
+        if (title == null) return "";
+        return title.toLowerCase()
+                .replaceAll("[^a-z0-9 ]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 
     private void persistContradiction(Contradiction contradiction) {

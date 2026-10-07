@@ -27,7 +27,9 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Serves robots.txt, a sitemap index, and six per-section child sitemaps
@@ -47,9 +49,9 @@ import java.util.List;
  * request.
  *
  * @author  Bill Blackmon
- * @version 2.0
+ * @version 2.1
  * @since   2026-09-10
- * @updated 2026-09-30 — split into sitemap index + 6 children; real per-entity lastmod
+ * @updated 2026-10-07 — sitemapWiki deduplicates by normalised title before building XML
  */
 @Slf4j
 @Controller
@@ -196,22 +198,40 @@ public class SeoController {
     }
 
     /**
-     * Wiki pages sitemap — one entry per wiki page, lastmod from entity timestamp.
+     * Wiki pages sitemap — one entry per unique wiki page title, lastmod from entity timestamp.
+     * Deduplicates by normalised title (same logic as {@link com.wgblackmon.aihealthcare.infrastructure.persistence.WikiDeduplicationService})
+     * so that LLM slug-drift duplicates don't inflate the sitemap with canonical-less URLs.
      */
     @GetMapping(value = "/sitemap-wiki.xml", produces = MediaType.APPLICATION_XML_VALUE)
     @ResponseBody
     @Cacheable(value = "sitemap", key = "'wiki'")
     public String sitemapWiki() {
         log.debug("sitemapWiki()");
-        List<WikiPageEntity> pages = wikiPageRepository.findAll();
+        List<WikiPageEntity> allPages = wikiPageRepository.findAll();
+
+        // Deduplicate by normalised title — keep highest revision, then shortest slug
+        Map<String, WikiPageEntity> canonicalByTitle = new LinkedHashMap<>();
+        for (WikiPageEntity page : allPages) {
+            String nt = normalizeTitle(page.getTitle());
+            WikiPageEntity existing = canonicalByTitle.get(nt);
+            if (existing == null) {
+                canonicalByTitle.put(nt, page);
+            } else if (page.getRevision() > existing.getRevision()
+                    || (page.getRevision() == existing.getRevision()
+                        && page.getSlug().length() < existing.getSlug().length())) {
+                canonicalByTitle.put(nt, page);
+            }
+        }
+
         StringBuilder sb = startUrlset();
-        for (WikiPageEntity page : pages) {
+        for (WikiPageEntity page : canonicalByTitle.values()) {
             Instant ts = page.getUpdatedAt() != null ? page.getUpdatedAt() : page.getCreatedAt();
             addUrl(sb, "/wiki/" + page.getSlug(), toDate(ts));
         }
         sb.append("</urlset>\n");
         String result = sb.toString();
-        log.debug("sitemapWiki() | return=sitemap with {} wiki pages", pages.size());
+        log.debug("sitemapWiki() | return=sitemap with {} wiki pages (deduplicated from {})",
+                canonicalByTitle.size(), allPages.size());
         return result;
     }
 
@@ -316,6 +336,14 @@ public class SeoController {
             log.warn("discoverInsightPages() | failed to scan insights directory: {}", e.getMessage());
         }
         return pages;
+    }
+
+    private static String normalizeTitle(String title) {
+        if (title == null) return "";
+        return title.toLowerCase()
+                .replaceAll("[^a-z0-9 ]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
     }
 
     private StringBuilder startUrlset() {

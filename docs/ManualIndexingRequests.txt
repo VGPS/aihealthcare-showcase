@@ -1,0 +1,60 @@
+GOOGLE SEARCH CONSOLE — MANUAL INDEXING REQUESTS
+https://search.google.com/search-console?resource_id=https%3A%2F%2Fapp.bigskylabs.ai%2F&hl=en
+
+How to submit:
+  URL Inspection → paste URL → click "Request Indexing"
+  Quota: ~10 per day. Space them out over 3 days.
+
+===================================================================
+DAY 1 — Major company pages (highest search volume)
+===================================================================
+https://app.bigskylabs.ai/wiki/anthropic-claude-healthcare-expansion
+https://app.bigskylabs.ai/wiki/amazon-connect-health-agentic
+https://app.bigskylabs.ai/wiki/abridge-va-ambient-ai-deployment
+https://app.bigskylabs.ai/wiki/arpa-h-heart-failure-ai-63m
+https://app.bigskylabs.ai/wiki/angle-health-ai-startup-funding
+https://app.bigskylabs.ai/wiki/akasa-autonomous-ai-medical-coding
+https://app.bigskylabs.ai/wiki/august-ai-fda-authorized-prescription-renewal-utah
+https://app.bigskylabs.ai/wiki/aidoc-diagnostic-ai-consortium
+https://app.bigskylabs.ai/wiki/ascension-ai-clinician-satisfaction
+https://app.bigskylabs.ai/wiki/anthropic-openevidence-penn-medicine-global-expansion
+
+===================================================================
+DAY 2 — Regulatory events (durable SEO value, specific search terms)
+===================================================================
+https://app.bigskylabs.ai/wiki/fda-tempo-pilot-genai-pre-auth-pathway
+https://app.bigskylabs.ai/wiki/fda-cleared-ai-devices-outcomes-gap
+https://app.bigskylabs.ai/wiki/fda-adaptive-ai-devices-public-input
+https://app.bigskylabs.ai/wiki/fda-ai-regulatory-framework-2026
+https://app.bigskylabs.ai/wiki/fda-breakthrough-genai-surgical-chatbot
+https://app.bigskylabs.ai/wiki/fda-ai-medical-device-regulation
+https://app.bigskylabs.ai/wiki/colorado-ai-healthcare-guardrails
+https://app.bigskylabs.ai/wiki/eu-ai-health-ban
+https://app.bigskylabs.ai/wiki/ai-scribes-regulatory-status
+https://app.bigskylabs.ai/wiki/healthcare-ai-fraud-detection-cms-priority
+
+===================================================================
+DAY 3 — Concept/condition pages (broad informational search volume)
+===================================================================
+https://app.bigskylabs.ai/wiki/agentic-ai-healthcare
+https://app.bigskylabs.ai/wiki/ai-prior-authorization-bot-vs-bot
+https://app.bigskylabs.ai/wiki/hipaa-ai-compliance
+https://app.bigskylabs.ai/wiki/explainable-ai-healthcare
+https://app.bigskylabs.ai/wiki/federated-learning-healthcare
+https://app.bigskylabs.ai/wiki/shadow-ai-medicine-hospital-governance
+https://app.bigskylabs.ai/wiki/retrieval-augmented-generation-clinical
+https://app.bigskylabs.ai/wiki/software-as-medical-device-regulation
+https://app.bigskylabs.ai/wiki/ai-scribe-data-privacy
+https://app.bigskylabs.ai/wiki/clinical-ai-implementation
+
+===================================================================
+NOTES
+===================================================================
+- After the wiki deduplication pass runs, many duplicate slugs will be
+  deleted. The above URLs are the canonical slugs (safe to submit).
+- Re-submit the sitemap after dedup: Search Console → Sitemaps →
+  https://app.bigskylabs.ai/sitemap.xml → Resubmit
+- Check back in 5-7 days: Coverage report → "Crawled - currently not
+  indexed" count should start declining.
+- Add Bing Webmaster Tools (free): https://www.bing.com/webmasters
+  Import from Google Search Console with one click.

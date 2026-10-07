@@ -34,4 +34,13 @@ public interface WikiContradictionRepository extends JpaRepository<WikiContradic
      * @return contradictions for that page; empty if none
      */
     List<WikiContradictionEntity> findByPageSlug(String pageSlug);
+
+    /**
+     * Deletes all contradictions for the given wiki page slug.
+     * Used during deduplication cleanup to remove child records
+     * before deleting the non-canonical page.
+     *
+     * @param pageSlug the slug of the wiki page to delete contradictions for
+     */
+    void deleteByPageSlug(String pageSlug);
 }
