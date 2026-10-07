@@ -540,6 +540,7 @@ Spring Security protects all Thymeleaf UI pages behind session-based form login.
 ### Company & Discovery
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| GET | `/api/v1/companies/count` | Live company directory count — public, no auth required |
 | POST | `/api/v1/companies/discover` | AI healthcare company discovery pipeline (SUBSCRIBER only) |
 
 ### Documents & Export
