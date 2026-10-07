@@ -7,7 +7,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-30
- * @updated 2026-08-30
+ * @updated 2026-10-07
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -36,6 +36,17 @@
            class="px-5 py-2.5 text-sm font-medium text-primary-600 border-b-2 border-primary-600">
             Graph
         </a>
+    </div>
+
+    <!-- Detection + confidence explanation -->
+    <div class="mb-5 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-900">
+        <strong class="font-semibold">How relationships are detected:</strong>
+        our pipeline scans article titles and body text from the last 30 days for phrases like
+        <em>"partners with"</em>, <em>"acquires"</em>, <em>"invests in"</em>, and <em>"integrates with"</em>
+        to extract company pairs — deterministic keyword matching, no LLM involved.
+        <strong class="font-semibold">Confidence</strong> (shown on each edge/card) starts at 50% for a
+        single matching phrase and rises 10 points for each additional corroborating phrase of the same
+        relationship type found in that article, capped at 100%.
     </div>
 
     <!-- Type filter checkboxes -->
