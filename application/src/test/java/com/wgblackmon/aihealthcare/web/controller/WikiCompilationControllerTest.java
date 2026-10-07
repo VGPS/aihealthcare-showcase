@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiDeduplicationService;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,9 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * compilation reports as JSON.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-04
- * @updated 2026-09-08
+ * @updated 2026-10-07 — add mock for WikiDeduplicationService + dedup endpoint test
  */
 @Import(SecurityConfig.class)
 @WithMockUser(roles = "ADMIN")
@@ -61,6 +62,9 @@ class WikiCompilationControllerTest {
 
     @MockBean
     private PipelineAsyncRunner asyncRunner;
+
+    @MockBean
+    private WikiDeduplicationService deduplicationService;
 
     @BeforeEach
     void setUpAsyncRunner() {
@@ -124,6 +128,19 @@ class WikiCompilationControllerTest {
         mockMvc.perform(post("/monitoring/wiki/compile"))
                 .andExpect(status().isAccepted())
                 .andExpect(jsonPath("$.started").value(true));
+    }
+
+    @Test
+    void triggerDeduplication_returnsGroupsAndDeletedCount() throws Exception {
+        when(deduplicationService.deduplicate())
+                .thenReturn(new WikiDeduplicationService.DeduplicationResult(3, 5, 42));
+
+        mockMvc.perform(post("/monitoring/wiki/deduplicate"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.groupsDeduplicated").value(3))
+                .andExpect(jsonPath("$.pagesDeleted").value(5))
+                .andExpect(jsonPath("$.remainingPages").value(42))
+                .andExpect(jsonPath("$.status").value("OK"));
     }
 
     @Test

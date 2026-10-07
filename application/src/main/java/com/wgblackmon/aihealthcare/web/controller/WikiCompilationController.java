@@ -4,6 +4,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
+import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiDeduplicationService;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,9 +35,9 @@ import java.util.Map;
  * {@link com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-04
- * @updated 2026-09-08
+ * @updated 2026-10-07 — add POST /monitoring/wiki/deduplicate endpoint
  */
 @Slf4j
 @RestController
@@ -44,10 +46,12 @@ public class WikiCompilationController {
     private final KnowledgeCompilationPort compilationPort;
     private final NewsArticleRepository articleRepository;
     private final PipelineAsyncRunner asyncRunner;
+    private final WikiDeduplicationService deduplicationService;
 
     public WikiCompilationController(KnowledgeCompilationPort compilationPort,
                                       NewsArticleRepository articleRepository,
-                                      PipelineAsyncRunner asyncRunner) {
+                                      PipelineAsyncRunner asyncRunner,
+                                      WikiDeduplicationService deduplicationService) {
         log.debug("WikiCompilationController() | compilationPort={}, articleRepository={}, asyncRunner={}",
                 compilationPort.getClass().getSimpleName(),
                 articleRepository.getClass().getSimpleName(),
@@ -55,6 +59,7 @@ public class WikiCompilationController {
         this.compilationPort = compilationPort;
         this.articleRepository = articleRepository;
         this.asyncRunner = asyncRunner;
+        this.deduplicationService = deduplicationService;
     }
 
     /**
@@ -76,6 +81,28 @@ public class WikiCompilationController {
             log.info("triggerCompilation() | found {} articles from last 1 day", articles.size());
             compilationPort.compileNewSources(articles);
         });
+    }
+
+    /**
+     * Runs a wiki deduplication pass — collapses pages that share the same
+     * normalised title but have different slugs (LLM slug drift).
+     * Returns a JSON summary of groups deduplicated and pages deleted.
+     *
+     * @return 200 OK with deduplication result counts
+     */
+    @PostMapping("/monitoring/wiki/deduplicate")
+    public ResponseEntity<Map<String, Object>> triggerDeduplication() {
+        log.debug("triggerDeduplication() | (no args)");
+
+        WikiDeduplicationService.DeduplicationResult result = deduplicationService.deduplicate();
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("groupsDeduplicated", result.groupsDeduplicated());
+        response.put("pagesDeleted", result.pagesDeleted());
+        response.put("remainingPages", result.remainingPages());
+        response.put("status", "OK");
+
+        log.debug("triggerDeduplication() | return={}", response);
+        return ResponseEntity.ok(response);
     }
 
     private NewsArticle mapToDomain(NewsArticleEntity entity) {

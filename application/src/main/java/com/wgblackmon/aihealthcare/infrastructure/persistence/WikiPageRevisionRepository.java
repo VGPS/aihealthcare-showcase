@@ -26,4 +26,12 @@ public interface WikiPageRevisionRepository extends JpaRepository<WikiPageRevisi
      * @return revisions ordered by revision descending
      */
     List<WikiPageRevisionEntity> findByPageSlugOrderByRevisionDesc(String pageSlug);
+
+    /**
+     * Deletes all revisions for the given wiki page slug.
+     * Used during deduplication cleanup before deleting non-canonical pages.
+     *
+     * @param pageSlug the slug of the wiki page to delete revisions for
+     */
+    void deleteByPageSlug(String pageSlug);
 }
