@@ -39,14 +39,35 @@
     </div>
 
     <!-- Detection + confidence explanation -->
-    <div class="mb-5 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-900">
-        <strong class="font-semibold">How relationships are detected:</strong>
-        our pipeline scans article titles and body text from the last 30 days for phrases like
-        <em>"partners with"</em>, <em>"acquires"</em>, <em>"invests in"</em>, and <em>"integrates with"</em>
-        to extract company pairs — deterministic keyword matching, no LLM involved.
-        <strong class="font-semibold">Confidence</strong> starts at 50% for a single matching phrase and
-        rises 10 points for each additional corroborating phrase of the same relationship type found in
-        that article, capped at 100%.
+    <div class="mb-5 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-900 leading-relaxed">
+        <strong class="font-semibold">How relationships are detected — three-stage pipeline:</strong>
+        <span class="block mt-1">
+            <strong>1. Keyword pre-filter:</strong> the last 30 days of articles are scanned for
+            29 relationship phrases across four categories (partnership, acquisition, investment,
+            integration). Matches like <em>"partners with"</em>, <em>"acquires"</em>,
+            <em>"invests in"</em>, and <em>"integrates with"</em> promote an article to a candidate
+            for LLM review — no relationship is recorded yet at this stage.
+        </span>
+        <span class="block mt-1">
+            <strong>2. LLM classification:</strong> candidate articles are sent to an AI model that
+            reads the full article context, identifies the two company parties involved, assigns a
+            relationship type, produces a natural-language summary, and returns a confidence score
+            (0–100%). Articles where two clearly named companies cannot be identified receive
+            <em>NO_RELATIONSHIP</em> and are excluded. If the LLM is unavailable, the pipeline
+            falls back to keyword-only extraction with a formulaic score.
+        </span>
+        <span class="block mt-1">
+            <strong>3. Directory canonicalization:</strong> extracted company names are normalized
+            against a 627-company AI healthcare directory to resolve spelling variants
+            (e.g. <em>"R1 RCM"</em> → <em>"R1"</em>). Health systems, universities, and government
+            agencies that appear as relationship partners are left as-is — they are valid
+            participants, just outside the vendor directory.
+        </span>
+        <span class="block mt-1">
+            <strong class="font-semibold">Confidence</strong> is the LLM's own certainty assessment
+            for the relationship, expressed as a percentage. Click any row to expand the evidence
+            article and confidence bar.
+        </span>
     </div>
 
     <!-- Summary Cards -->
