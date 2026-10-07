@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.inbound.MapCompanyRelationshipsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyRelationshipPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.RelationshipClassificationPort;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -30,8 +31,15 @@ import java.util.regex.Pattern;
  * artifacts). {@link #isValidCompanyName(String)} filters those out before a
  * relationship is persisted.
  *
+ * <p>When a {@link RelationshipClassificationPort} is available, keyword-matched
+ * candidate articles are sent to the LLM for clean source/target extraction
+ * instead of the word-window heuristic — the same keyword-prefilter-then-LLM
+ * pattern used by {@code DealSignalDetectionService}. If the LLM call fails or
+ * returns no results, falls back to keyword-only extraction. Without the LLM
+ * port, uses keyword-only extraction directly.
+ *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-08-04
  * @updated 2026-10-07
  */
@@ -94,33 +102,54 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
 
     private final ArticleIngestionPort articleIngestionPort;
     private final CompanyRelationshipPort relationshipPort;
+    private final RelationshipClassificationPort classificationPort;
 
     public CompanyRelationshipService(ArticleIngestionPort articleIngestionPort,
-                                       CompanyRelationshipPort relationshipPort) {
+                                       CompanyRelationshipPort relationshipPort,
+                                       RelationshipClassificationPort classificationPort) {
         this.articleIngestionPort = articleIngestionPort;
         this.relationshipPort = relationshipPort;
+        this.classificationPort = classificationPort;
     }
 
     @Override
     public List<CompanyRelationship> detectRelationships() {
         List<NewsArticle> recentArticles = articleIngestionPort.fetchRecentArticles(SCAN_DAYS);
+        List<NewsArticle> candidates = new ArrayList<>();
+        for (NewsArticle article : recentArticles) {
+            if (hasPatternMatch(buildSearchText(article))) {
+                candidates.add(article);
+            }
+        }
+
+        Instant now = Instant.now();
+        List<CompanyRelationship> extracted;
+        if (classificationPort != null && !candidates.isEmpty()) {
+            extracted = classificationPort.classifyRelationships(candidates);
+            if (extracted.isEmpty()) {
+                extracted = keywordExtractAll(candidates, now);
+            }
+        } else {
+            extracted = keywordExtractAll(candidates, now);
+        }
+
         List<CompanyRelationship> newRelationships = new ArrayList<>();
         Set<String> seen = new HashSet<>();
-        Instant now = Instant.now();
-
-        for (NewsArticle article : recentArticles) {
-            String text = buildSearchText(article);
-            List<CompanyRelationship> detected = extractRelationships(article, text, now);
-            for (CompanyRelationship rel : detected) {
-                String dedupKey = rel.sourceCompany() + "|" + rel.targetCompany() + "|" + rel.relationshipType().name();
-                if (seen.contains(dedupKey)) {
-                    continue;
-                }
-                if (!relationshipPort.existsBySourceAndTargetAndType(
-                        rel.sourceCompany(), rel.targetCompany(), rel.relationshipType().name())) {
-                    newRelationships.add(rel);
-                    seen.add(dedupKey);
-                }
+        for (CompanyRelationship rel : extracted) {
+            if (rel.sourceCompany().equalsIgnoreCase(rel.targetCompany())) {
+                continue;
+            }
+            if (!isValidCompanyName(rel.sourceCompany()) || !isValidCompanyName(rel.targetCompany())) {
+                continue;
+            }
+            String dedupKey = rel.sourceCompany() + "|" + rel.targetCompany() + "|" + rel.relationshipType().name();
+            if (seen.contains(dedupKey)) {
+                continue;
+            }
+            if (!relationshipPort.existsBySourceAndTargetAndType(
+                    rel.sourceCompany(), rel.targetCompany(), rel.relationshipType().name())) {
+                newRelationships.add(rel);
+                seen.add(dedupKey);
             }
         }
 
@@ -129,6 +158,22 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
         }
 
         return newRelationships;
+    }
+
+    private List<CompanyRelationship> keywordExtractAll(List<NewsArticle> candidates, Instant now) {
+        List<CompanyRelationship> results = new ArrayList<>();
+        for (NewsArticle article : candidates) {
+            String text = buildSearchText(article);
+            results.addAll(extractRelationships(article, text, now));
+        }
+        return results;
+    }
+
+    private boolean hasPatternMatch(String text) {
+        return countPatternHits(text, PARTNERSHIP_PATTERNS) > 0
+                || countPatternHits(text, ACQUISITION_PATTERNS) > 0
+                || countPatternHits(text, INVESTMENT_PATTERNS) > 0
+                || countPatternHits(text, INTEGRATION_PATTERNS) > 0;
     }
 
     @Override
@@ -172,12 +217,6 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
             String targetCompany = extractFirstEntity(after);
 
             if (sourceCompany == null || targetCompany == null) {
-                continue;
-            }
-            if (sourceCompany.equalsIgnoreCase(targetCompany)) {
-                continue;
-            }
-            if (!isValidCompanyName(sourceCompany) || !isValidCompanyName(targetCompany)) {
                 continue;
             }
 

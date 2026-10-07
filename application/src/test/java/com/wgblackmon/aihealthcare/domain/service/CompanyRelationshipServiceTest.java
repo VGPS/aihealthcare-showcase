@@ -5,6 +5,7 @@ import com.wgblackmon.aihealthcare.domain.model.CompanyRelationshipType;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.CompanyRelationshipPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.RelationshipClassificationPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -27,9 +29,9 @@ import static org.mockito.Mockito.when;
  * Unit tests for {@link CompanyRelationshipService}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-10-07
  */
 @ExtendWith(MockitoExtension.class)
 class CompanyRelationshipServiceTest {
@@ -40,11 +42,14 @@ class CompanyRelationshipServiceTest {
     @Mock
     private CompanyRelationshipPort relationshipPort;
 
+    @Mock
+    private RelationshipClassificationPort classificationPort;
+
     private CompanyRelationshipService service;
 
     @BeforeEach
     void setUp() {
-        service = new CompanyRelationshipService(articleIngestionPort, relationshipPort);
+        service = new CompanyRelationshipService(articleIngestionPort, relationshipPort, null);
     }
 
     private NewsArticle article(String id, String title, String body) {
@@ -175,5 +180,66 @@ class CompanyRelationshipServiceTest {
 
         assertThat(result).hasSize(1);
         verify(relationshipPort).findByCompany("Google");
+    }
+
+    @Test
+    void detectRelationships_llmAvailable_usesLlmResultInsteadOfKeywordExtraction() {
+        CompanyRelationshipService llmService =
+                new CompanyRelationshipService(articleIngestionPort, relationshipPort, classificationPort);
+        NewsArticle candidateArticle = article("a8",
+                "Health IT Briefing",
+                "An agreement now supports a new rollout.");
+        CompanyRelationship llmRel = new CompanyRelationship(
+                "llm-1", "Epic Systems", "Nuance Communications",
+                CompanyRelationshipType.INTEGRATION, "https://example.com/a8",
+                "Epic integrated Nuance's ambient AI into its EHR.", 0.9, Instant.now());
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(candidateArticle));
+        when(classificationPort.classifyRelationships(anyList())).thenReturn(List.of(llmRel));
+        when(relationshipPort.existsBySourceAndTargetAndType(anyString(), anyString(), anyString()))
+                .thenReturn(false);
+
+        List<CompanyRelationship> result = llmService.detectRelationships();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).sourceCompany()).isEqualTo("Epic Systems");
+        assertThat(result.get(0).targetCompany()).isEqualTo("Nuance Communications");
+    }
+
+    @Test
+    void detectRelationships_llmReturnsEmpty_fallsBackToKeywordExtraction() {
+        CompanyRelationshipService llmService =
+                new CompanyRelationshipService(articleIngestionPort, relationshipPort, classificationPort);
+        NewsArticle candidateArticle = article("a9",
+                "Epic integrates with Nuance AI platform",
+                "Epic Systems announced integration with Nuance.");
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(candidateArticle));
+        when(classificationPort.classifyRelationships(anyList())).thenReturn(List.of());
+        when(relationshipPort.existsBySourceAndTargetAndType(anyString(), anyString(), anyString()))
+                .thenReturn(false);
+
+        List<CompanyRelationship> result = llmService.detectRelationships();
+
+        assertThat(result).isNotEmpty();
+        assertThat(result.get(0).relationshipType()).isEqualTo(CompanyRelationshipType.INTEGRATION);
+    }
+
+    @Test
+    void detectRelationships_llmResultWithJunkName_stillFiltered() {
+        CompanyRelationshipService llmService =
+                new CompanyRelationshipService(articleIngestionPort, relationshipPort, classificationPort);
+        NewsArticle candidateArticle = article("a10",
+                "Health IT Briefing",
+                "An agreement now supports a new rollout.");
+        CompanyRelationship junkRel = new CompanyRelationship(
+                "llm-2", "Agreement", "Some Rollout",
+                CompanyRelationshipType.INTEGRATION, "https://example.com/a10",
+                "Bad extraction despite LLM prompt.", 0.9, Instant.now());
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(candidateArticle));
+        when(classificationPort.classifyRelationships(anyList())).thenReturn(List.of(junkRel));
+
+        List<CompanyRelationship> result = llmService.detectRelationships();
+
+        assertThat(result).isEmpty();
+        verify(relationshipPort, never()).saveAll(any());
     }
 }
