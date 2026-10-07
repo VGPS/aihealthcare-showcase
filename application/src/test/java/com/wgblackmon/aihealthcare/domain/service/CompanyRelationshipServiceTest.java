@@ -97,6 +97,32 @@ class CompanyRelationshipServiceTest {
     }
 
     @Test
+    void detectRelationships_numericExtractedEntity_filteredOut() {
+        NewsArticle numericArticle = article("a6",
+                "Health IT Briefing",
+                "In 2025 invests in Acme Health.");
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(numericArticle));
+
+        List<CompanyRelationship> result = service.detectRelationships();
+
+        assertThat(result).isEmpty();
+        verify(relationshipPort, never()).saveAll(any());
+    }
+
+    @Test
+    void detectRelationships_genericDenylistedEntity_filteredOut() {
+        NewsArticle genericArticle = article("a7",
+                "Health IT Briefing",
+                "An agreement now supports Epic Systems rollout.");
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(genericArticle));
+
+        List<CompanyRelationship> result = service.detectRelationships();
+
+        assertThat(result).isEmpty();
+        verify(relationshipPort, never()).saveAll(any());
+    }
+
+    @Test
     void detectRelationships_duplicateRelationship_skips() {
         NewsArticle partnerArticle = article("a4",
                 "Tempus partners with Roche on precision medicine",

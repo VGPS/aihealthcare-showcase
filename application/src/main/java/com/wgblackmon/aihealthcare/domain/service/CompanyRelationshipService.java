@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * Pure domain service that detects inter-company relationships from recently
@@ -23,14 +24,32 @@ import java.util.UUID;
  * "X acquires Y", "X integrates with Y" to build a company relationship graph.
  * No LLM dependency — uses deterministic keyword extraction.
  *
+ * <p>Because entity extraction is a fixed word-window around the trigger phrase
+ * rather than true NER, it occasionally captures the trigger phrase's own
+ * neighboring words (e.g. "Agreement") or non-entity tokens (years, scraper
+ * artifacts). {@link #isValidCompanyName(String)} filters those out before a
+ * relationship is persisted.
+ *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-04
- * @updated 2026-08-04
+ * @updated 2026-10-07
  */
 public class CompanyRelationshipService implements MapCompanyRelationshipsUseCase {
 
     private static final int SCAN_DAYS = 30;
+
+    private static final Pattern ALL_DIGITS = Pattern.compile("\\d+");
+
+    private static final Set<String> GENERIC_TERM_DENYLIST = Set.of(
+            "agreement", "agreements", "deal", "deals", "round", "rounds",
+            "report", "reports", "news", "announcement", "announcements",
+            "partnership", "partnerships", "investment", "investments",
+            "funding", "statement", "statements", "release", "releases",
+            "update", "updates", "today", "year", "years", "month", "months",
+            "week", "weeks", "re", "via", "per", "amid", "among",
+            "company", "companies", "inc", "llc", "corp", "ltd", "co"
+    );
 
     private static final String[][] PARTNERSHIP_PATTERNS = {
             {"partners with", "PARTNERSHIP"},
@@ -158,6 +177,9 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
             if (sourceCompany.equalsIgnoreCase(targetCompany)) {
                 continue;
             }
+            if (!isValidCompanyName(sourceCompany) || !isValidCompanyName(targetCompany)) {
+                continue;
+            }
 
             int hitCount = countPatternHits(text, patterns);
             double confidence = Math.min(1.0, 0.5 + (hitCount * 0.1));
@@ -254,6 +276,14 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
                 || "have".equals(word) || "is".equals(word) || "was".equals(word)
                 || "will".equals(word) || "that".equals(word) || "this".equals(word)
                 || "with".equals(word) || "from".equals(word) || "as".equals(word);
+    }
+
+    private boolean isValidCompanyName(String name) {
+        String collapsed = name.replaceAll("\\s+", "");
+        if (ALL_DIGITS.matcher(collapsed).matches()) {
+            return false;
+        }
+        return !GENERIC_TERM_DENYLIST.contains(name.toLowerCase(Locale.ENGLISH));
     }
 
     private String capitalizeFirst(String word) {
