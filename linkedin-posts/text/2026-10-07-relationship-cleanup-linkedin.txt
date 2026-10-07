@@ -1,0 +1,53 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === LINKEDIN POST BODY === and === IMAGE ===)
+2. Go to linkedin.com → Start a post
+3. Paste the body text
+4. DO NOT add any URL to the post body — kills organic reach 40-60%
+5. Image: linkedin-posts/shots/2026-10-07-relationship-cleanup.png (already captured —
+   curated, sorted-by-confidence view of /dashboard/relationships, filtered to the
+   verified clean rows from this fix)
+6. Attach the screenshot as the post image
+7. Publish, then immediately paste the First Comment as the very first comment
+8. Best posting window: weekday 7:30–9:00 AM local time
+9. This is a "building in public" / engineering-honesty post — reply to anyone who
+   shares their own data-quality war story, that's the exact audience this resonates with
+
+=== LINKEDIN POST BODY ===
+
+"2025" acquired "Alliance." "Re" invested in "Expanded Ambulatory Access."
+
+Those aren't companies. They're bugs. And they were live on my platform.
+
+Here's what happened:
+
+→ My Company Relationship Graph extracts "X acquires Y" / "X partners with Y" from healthcare AI news using keyword matching — grab the words around a trigger phrase, build a graph edge. No real entity recognition, just a word window.
+→ It worked, until I actually read the Source column. Years. Generic nouns. Sentence fragments standing in as company names.
+→ I had two options: write a denylist and chase garbage forever, or fix the actual problem.
+
+I rebuilt extraction using the same pattern the app already uses for deal-signal detection — Claude classifies the keyword-matched candidate articles directly, extracting real source/target names instead of a fixed word window.
+
+Then a second pass: resolve every extracted name against the 627-company directory the app already maintains, so "R1" and "R1 RCM" collapse into one canonical entity instead of two.
+
+Ran a retroactive cleanup against the live data: 116 relationships → 58. Half the table was duplicate noise — including a case-sensitivity bug in the dedup check that had been quietly letting near-identical rows through for weeks, unrelated to the original fix, found while cleaning up.
+
+Real company names. Real summaries. A duplicate problem fixed at the root instead of patched with more rules.
+
+#SpringAI #HealthcareAI #JavaDev #BuildingInPublic #DataQuality
+
+=== IMAGE ===
+File: linkedin-posts/shots/2026-10-07-relationship-cleanup.png
+Curated screenshot of the live relationships table, sorted by confidence, filtered to
+the verified clean rows. Notice row 4 (QC Healthcare → Sanguina, 90%) and the garbled
+row near the bottom (Qc Healthcare Announces Strategic → Sanguina, 60%) — same real
+event, two different extraction eras, both still visible in the data.
+
+=== LINKEDIN FIRST COMMENT (paste immediately after publishing) ===
+Full before/after and the architecture notes (prompt template, entity-resolution logic,
+retroactive SQL pass) are in the AIHealthcare repo.
+
+Live relationship graph: https://app.bigskylabs.ai/dashboard/relationships
+
+Anyone else had a cleanup pass reveal a bigger bug than the one you went looking for?
+
+#SpringAI #HealthcareAI #BuildingInPublic #DataQuality

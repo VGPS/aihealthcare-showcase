@@ -1,0 +1,108 @@
+=== SUBSTACK POSTING INSTRUCTIONS ===
+
+1. Log in to Substack → New Post
+2. Title: "The Company That Wasn't There"
+3. Subtitle: "What happens when a cheap extraction heuristic graduates into a real feature — and what a cleanup pass revealed that I wasn't even looking for."
+4. Paste the body below (from the opening through the footer)
+5. Cover image: linkedin-posts/shots/2026-10-07-relationship-cleanup.png
+6. Section: "Intelligence" or "Analysis" / "Building in Public"
+7. Audience: All subscribers (free + paid)
+8. Send as email: YES
+9. Best send time: weekday 7:00 AM local time
+10. After publishing: share post URL as a follow-up on the LinkedIn/Facebook posts
+
+=== ENGAGEMENT FOLLOW-UP ===
+If a subscriber asks how to catch this kind of bug earlier, use this:
+
+"The honest answer is I didn't catch it early — I caught it by actually reading the
+output of a feature I'd shipped weeks earlier, not by testing for it. The lesson I'm
+taking from it: any feature that extracts structured data (names, entities, amounts)
+from unstructured text needs an explicit validity check before it ever reaches a UI,
+even a cheap one. 'Does this look like a real example of the thing it claims to be'
+is a five-minute filter that would have caught this on day one."
+
+---
+
+# The Company That Wasn't There
+
+### October 7, 2026
+
+---
+
+"2025" acquired "Alliance." "Re" invested in something called "Expanded Ambulatory Access." "Agreement" acquired a company called "Aipowered Touchless Prior."
+
+None of those are real. They're bugs — rows in a live feature on my AI Healthcare Intelligence platform, sitting in a table meant to track real business relationships between real companies. I found them by doing something embarrassingly simple: actually reading the output of a feature I'd shipped weeks earlier.
+
+This is the story of how that happened, how I fixed it, and — more interesting than the fix itself — what a routine cleanup pass turned up that I wasn't even looking for.
+
+---
+
+## The feature, and the shortcut it was built on
+
+The platform has a Company Relationship Graph: it scans healthcare AI news for phrases like "X partners with Y," "X acquires Y," "X integrates with Y," and builds a graph of who's connected to whom. When it works, it's a genuinely useful map of deal activity across the market.
+
+The original implementation was deliberately cheap. No LLM calls, no named-entity-recognition model — just keyword matching. Find a trigger phrase like "acquires" in an article. Grab a few words immediately before it, call that the source company. Grab a few words immediately after, call that the target. It's the kind of heuristic that looks reasonable in a demo with three hand-picked example articles, and it was genuinely fast and free to run.
+
+The problem: a word-window has no idea what a company name actually looks like. It just grabs whatever's nearby. If the word before the trigger phrase happens to be "2025," or "Agreement," or a stray "Re" left over from a scraped article, that's what gets stored. No validation step ever asked "does this look like a real company."
+
+It worked often enough — correctly extracting "Oracle acquires Cerner," "Epic integrates with Nuance" — that the garbage blended in. A table that's 90% plausible and 10% nonsense doesn't look broken at a glance. It looks like a slightly noisy feature. I'd shipped it and moved on to other things, which is exactly how this kind of bug survives in production for weeks.
+
+---
+
+## The quick fix, and why it wasn't enough
+
+The first pass was the obvious one: a denylist. Reject anything that's purely numeric (catches years). Reject a list of generic business nouns that kept showing up as fake "companies" — "Agreement," "Deal," "Report," "Re." That caught the cleanest examples immediately.
+
+But auditing the data after that fix made the real shape of the problem obvious. The denylist caught single garbage words. It did nothing for word-salad — multi-word fragments like "Aipowered Touchless Prior" or "Expanded Ambulatory Access Ai" that aren't any single bad word, just incoherent strings that happened to sit near a trigger phrase. A denylist is fundamentally reactive: it only knows about the garbage you've already seen. Every new article phrasing is a new way to generate garbage the list hasn't learned yet.
+
+That's not a fixable problem with more rules. It's a fixable problem with a different extraction method.
+
+---
+
+## The real fix: reuse, not reinvent
+
+The platform already had a working pattern for exactly this kind of problem, built for a different feature. Deal-signal detection — the pipeline that finds funding rounds, acquisitions, and partnerships worth surfacing as alerts — uses a two-stage approach: a cheap keyword prefilter identifies candidate articles, then an LLM reads those candidates directly and extracts clean, structured data. The keyword stage is free and fast; the LLM stage only runs on the small subset of articles that already look promising, keeping cost low.
+
+I applied the identical shape to relationship extraction. Keyword matching still decides which articles are worth looking at — that part was never the problem. But instead of a word-window guess, Claude now reads the candidate article directly and extracts the actual source and target company names, with a structured prompt that explicitly instructs it never to extract a year, a generic business term, or a sentence fragment as a company name.
+
+The difference in output was immediate and stark. Where the word-window produced "Agreement" and "2025," the LLM produced "R1 RCM," "Kaiser Permanente," "Yale University," "OpenEvidence" — real entities, with summaries that read like an actual analyst wrote them instead of a regex.
+
+---
+
+## The second bug, hiding behind the first one
+
+Fixing extraction quality surfaced a second problem that had nothing to do with word-window heuristics: the same real company was showing up under multiple names. "R1" and "R1 RCM" — two strings, two separate graph nodes, for the exact same acquisition of Humata Health.
+
+The platform already maintains a 627-company directory, built by a completely separate discovery pipeline that researches and catalogs AI healthcare vendors. I added a canonicalization step: every extracted name gets checked against that directory, and if it matches — exactly or as a recognizable prefix variant like "R1" inside "R1 RCM" — the extracted name gets rewritten to the directory's canonical spelling before anything is stored.
+
+One deliberate design choice here: this is canonicalization, not a rejection filter. The company directory only covers AI vendor companies. It doesn't include universities, health systems, or government bodies — all of which show up constantly and legitimately as relationship parties ("Yale University partners with Indiana University," "Kaiser Permanente partners with Alliance of Health Care Unions"). Requiring every name to match that directory would have silently deleted a lot of completely real, completely valid relationships just because the counterparty isn't a company. So an unmatched name is left exactly as extracted, not discarded. Only names that do match get unified.
+
+---
+
+## The retroactive pass, and the bug I wasn't looking for
+
+A code fix only prevents new garbage. It does nothing for garbage already sitting in the database. So the last step was a retroactive pass: re-resolve every existing relationship against the directory, canonicalize names, and merge any rows that collapsed into exact duplicates after canonicalization.
+
+I expected this to fix a handful of rows — the R1 case, maybe a few others like it. What it actually did was cut the entire table roughly in half: **116 relationships before, 58 after.**
+
+The R1 merge accounted for exactly one of those. The rest was something else entirely: groups of 10, 15, even 20 nearly-identical rows — the same garbled fragment, repeated over and over, that had accumulated silently over weeks. The cause wasn't related to extraction quality at all. It was a case-sensitivity bug in the application's own duplicate-prevention check. Two articles with slightly different capitalization of the same syndicated press release would each pass the "does this already exist" check, because the check was comparing strings exactly, case included. Neither one was recognized as a duplicate of the other, so both got saved. Repeat that across enough near-identical articles — syndicated wire content tends to appear on multiple feeds with minor formatting differences — and the table quietly fills with duplicates that the running application never noticed, because its own dedup logic had a blind spot.
+
+I wasn't looking for that bug. I found it because fixing one problem made me look closely enough at the data to notice a completely different one sitting right next to it.
+
+---
+
+## What this is actually about
+
+None of this is a dramatic story. Nobody got paged. No customer complained. It's the unglamorous, completely typical experience of building a feature that extracts structured information from unstructured text: the first version works well enough to ship, and the real work is in going back, reading the output critically, and being honest about what's actually in the data versus what you assumed would be in the data.
+
+The specific lesson I'm taking from it: any pipeline that pulls names, amounts, or entities out of free text needs a validity check before that data ever reaches a user — even a cheap one. "Does this look like a real example of the thing it claims to be" would have caught the worst of this on day one, before a denylist, before an LLM rewrite, before any of it. I shipped without that check because the demo looked fine. The production data is what told the truth.
+
+---
+
+Live relationship data, updated as new articles are harvested:
+
+**[app.bigskylabs.ai/dashboard/relationships](https://app.bigskylabs.ai/dashboard/relationships)**
+
+---
+
+*Big Sky Labs covers deal signals, regulatory events, competitive intelligence, and market analysis for AI healthcare. [Subscribe](https://app.bigskylabs.ai) for the full weekly intelligence feed.*

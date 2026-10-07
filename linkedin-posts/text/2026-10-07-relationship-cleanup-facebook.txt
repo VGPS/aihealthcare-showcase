@@ -1,0 +1,52 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === FACEBOOK POST BODY === and === FACEBOOK IMAGE ===)
+2. Go to your Facebook page or personal profile
+3. Paste the body text
+4. URL at the bottom will generate a link preview — check it renders before publishing
+5. If OG card fails, attach linkedin-posts/shots/2026-10-07-relationship-cleanup.png manually
+6. Best posting window: weekday 8:00–10:00 AM or 12:00–2:00 PM local time
+7. Reply to early comments with the Engagement Follow-Up text below
+
+=== FACEBOOK POST BODY ===
+
+A feature on my platform was quietly inventing companies. Here's how I found it and fixed it.
+
+My AI Healthcare Intelligence platform has a Company Relationship Graph — it reads healthcare AI news and maps out who's partnering with whom, who's acquiring whom, who's investing in whom. Useful, when it works.
+
+While reviewing it, I noticed some of the "companies" in the data weren't companies at all. "2025." "Agreement." "Re." Nonsense strings sitting in a feature meant to track real business relationships.
+
+Here's why: the original extraction logic was a keyword-window heuristic. It found a trigger phrase like "acquires" or "partners with" in an article, then grabbed a few words on either side and called that the company name. No actual entity recognition — just proximity to a keyword. It worked often enough to look reliable, which is exactly what made the garbage entries easy to miss at first glance.
+
+I had two options. Write a denylist of bad words and chase every new flavor of garbage forever. Or fix the real problem.
+
+I rebuilt the extraction using the same pattern already powering deal-signal detection elsewhere in the app: instead of a word-window guess, Claude reads the keyword-matched candidate articles directly and extracts the real company names. Then I added a second layer — every extracted name gets checked against the 627-company directory the platform already maintains, so name variants of the same company ("R1" vs "R1 RCM") collapse into one canonical entity instead of persisting as two different "companies."
+
+Then I ran a retroactive cleanup pass against the live production data to fix what was already there, not just prevent new garbage going forward.
+
+The result: 116 relationships in the table before cleanup. 58 after. Roughly half the table was duplicate noise — and in the process, I found a second, unrelated bug: the app's own duplicate check was case-sensitive, so near-identical articles producing slightly different capitalization of the same extraction had been slipping past it for weeks, accumulating silently.
+
+None of this is glamorous. It's the unglamorous part of building real AI features: the data has to actually be true, not just look impressive in a demo. A graph full of fake companies is worse than no graph at all, because it looks authoritative while being wrong.
+
+Live relationship data: https://app.bigskylabs.ai/dashboard/relationships
+
+#HealthcareAI #DataQuality #BuildingInPublic #SpringAI
+
+=== FACEBOOK IMAGE ===
+File: linkedin-posts/shots/2026-10-07-relationship-cleanup.png
+Curated screenshot of the live table, sorted by confidence. Shows the clean post-fix
+rows at the top, and (further down) a pre-fix duplicate of the same real event at
+lower confidence — the before/after sits side by side in the same screenshot.
+
+=== LINK ===
+https://app.bigskylabs.ai/dashboard/relationships
+
+=== ENGAGEMENT FOLLOW-UP COMMENT ===
+Use this to reply to early comments:
+
+"The part that surprised me most wasn't the original bug — word-window extraction
+without real NER was always going to produce some junk, that's a known limitation. It
+was that cleaning it up surfaced a second, completely unrelated bug (a case-sensitive
+dedup check) that had been silently letting duplicates through for weeks. That's a
+pattern I've seen before: a focused fix often becomes the flashlight that finds the
+bug you weren't looking for."
