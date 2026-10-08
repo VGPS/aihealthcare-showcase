@@ -1,0 +1,55 @@
+PLATFORM: Facebook
+DATE: 2026-10-08
+SLUG: market-digest-launch
+
+--- FACEBOOK POST ---
+
+$16.07 billion in AI healthcare funding — tracked automatically in 30 days. No analyst, no spreadsheet.
+
+But the number isn't the interesting part. The interesting part is what didn't get labeled.
+
+Most AI healthcare news arrives pre-spun. A rumor and a verified FDA clearance can show up in the same sentence without anyone marking the difference. We built the thing that marks it.
+
+The Market Digest runs daily. Perplexity Sonar researches the news. Claude classifies each item: CONFIRMED (independently verifiable) or SPECULATIVE (reported but unverified). Alpaca enriches any public company mentioned with live market data. Every entry gets an impact rank from 1 to 5. Then it's stored as a permanent dated record — not a feed that scrolls away.
+
+What 30 days looks like:
+→ 199 market-moving entries tracked
+→ 118 confirmed · 81 flagged speculative
+→ 51 regulatory · 45 funding · 40 product launches · 36 partnerships · 13 M&A
+→ 84 funding rounds, $16.07B combined — $600M Angle Health, $500M Thoreau
+→ Public company tickers tracked: TEM, RCM, NVO, LLY, TWST
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+Full 30-day breakdown and methodology:
+👉 https://app.bigskylabs.ai/insights/2026-10-08-market-digest-launch.html
+
+Free resources (no signup needed):
+🏢 Company Directory (318 AI healthcare companies): https://app.bigskylabs.ai/directory
+📚 Knowledge Wiki (1,100+ compiled topics): https://app.bigskylabs.ai/wiki
+
+Full platform access — Market Digest, Deal Signals, Trend Detection, Regulatory Alerts:
+→ https://app.bigskylabs.ai/pricing
+
+#AIHealthcare #HealthTech #MarketIntelligence #DigitalHealth
+
+---
+
+SCREENSHOT GUIDANCE — what to capture at https://app.bigskylabs.ai/dashboard/market (login required):
+
+The page is titled "Market Digest" with the tagline "AI did what to whom. When, where, and why." Capture 3-4 ranked entry cards showing:
+  - CONFIRMED (green) or SPECULATIVE (amber) classification badge on each entry
+  - Category badge (REGULATORY in purple, FUNDING in green, M_AND_A in red, etc.)
+  - Rank badge showing impact rank 1-5
+  - Company ticker chips (TEM, NVO, etc.) when a public company is mentioned
+
+The category filter bar (All · Earnings · Regulatory · Funding · M&A · Partnership · etc.) is also worth including — it shows the breadth of what's being tracked.
+
+ALTERNATIVE: Use the infographic — run the Playwright command in the LinkedIn file.
+
+---
+
+POSTING INSTRUCTIONS:
+1. Use the same image as LinkedIn (infographic or dashboard screenshot)
+2. Facebook allows multiple links in the body — all three links above are correct here
+3. Same image file: linkedin-posts/shots/2026-10-08-market-digest-launch.png
