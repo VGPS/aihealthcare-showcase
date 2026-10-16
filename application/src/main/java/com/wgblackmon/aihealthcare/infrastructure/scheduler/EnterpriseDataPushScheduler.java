@@ -31,14 +31,23 @@ import java.util.concurrent.Executor;
  * <p>When {@code consecutiveFailures} reaches the configured threshold,
  * the schedule is deactivated and an admin notification is raised.
  *
+ * <p>Before querying for due schedules, checks the {@link PipelinePausePort}
+ * kill switch (key {@code "enterprise-push"}, toggled from the Pipeline
+ * Management admin page). This is a global pause across all customers —
+ * distinct from the per-schedule {@code active} flag — for an operator to
+ * halt every scheduled push at once (e.g. a suspected bad classifier
+ * release) without touching each customer's schedule individually.
+ *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-09-08
- * @updated 2026-09-08
+ * @updated 2026-10-16
  */
 @Slf4j
 @Component
 public class EnterpriseDataPushScheduler {
+
+    static final String PAUSE_KEY = "enterprise-push";
 
     private final DataPushSchedulePort schedulePort;
     private final RequestEnterpriseDataUseCase dataService;
@@ -47,6 +56,7 @@ public class EnterpriseDataPushScheduler {
     private final DataJobPort dataJobPort;
     private final DataAccessAuditPort auditPort;
     private final AdminNotificationPort adminNotificationPort;
+    private final PipelinePausePort pausePort;
     private final CronScheduleCalculator cronCalculator;
     private final EnterpriseDataProperties dataProperties;
     private final TierLimitProperties tierLimitProperties;
@@ -61,6 +71,7 @@ public class EnterpriseDataPushScheduler {
             DataJobPort dataJobPort,
             DataAccessAuditPort auditPort,
             AdminNotificationPort adminNotificationPort,
+            PipelinePausePort pausePort,
             CronScheduleCalculator cronCalculator,
             EnterpriseDataProperties dataProperties,
             TierLimitProperties tierLimitProperties,
@@ -74,6 +85,7 @@ public class EnterpriseDataPushScheduler {
         this.dataJobPort = dataJobPort;
         this.auditPort = auditPort;
         this.adminNotificationPort = adminNotificationPort;
+        this.pausePort = pausePort;
         this.cronCalculator = cronCalculator;
         this.dataProperties = dataProperties;
         this.tierLimitProperties = tierLimitProperties;
@@ -84,6 +96,13 @@ public class EnterpriseDataPushScheduler {
     @Scheduled(cron = "${aihealthcare.enterprise.data.push.sweep-cron}")
     public void sweep() {
         log.debug("sweep() | starting");
+
+        if (pausePort.isPaused(PAUSE_KEY)) {
+            log.info("sweep() | Enterprise push paused via admin kill switch — skipping sweep");
+            log.debug("sweep() | return=void (paused)");
+            return;
+        }
+
         Instant now = clock.instant();
         int batchSize = dataProperties.getPush().getDueBatchSize();
 

@@ -20,6 +20,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.PipelinePausePort;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
@@ -47,17 +48,26 @@ import java.util.Map;
  * warns about missing prerequisites before execution. Pipelines are triggered
  * directly from the browser via JavaScript fetch calls to their native endpoints.
  *
+ * <p>Also exposes two pipeline kill switches — {@code digest-send} and
+ * {@code enterprise-push} — backed by {@link PipelinePausePort}. These are
+ * sticky operator pauses (not date-scoped overrides) for schedulers that
+ * build and deliver content in one step with no persisted draft to review
+ * first; an admin can halt a bad run without a redeploy.
+ *
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 2.9
+ * @version 3.0
  * @since   2026-07-30
- * @updated 2026-10-05
+ * @updated 2026-10-16
  */
 @Slf4j
 @Controller
 @RequestMapping("/admin/pipelines")
 public class AdminPipelineController {
+
+    private static final String DIGEST_PAUSE_KEY = "digest-send";
+    private static final String ENTERPRISE_PUSH_PAUSE_KEY = "enterprise-push";
 
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm:ss z")
@@ -76,6 +86,7 @@ public class AdminPipelineController {
     private final DetectTrendsUseCase detectTrendsUseCase;
     private final TrackFrontierClaimsUseCase trackFrontierClaimsUseCase;
     private final ArticleIngestionPort articleIngestionPort;
+    private final PipelinePausePort pausePort;
 
     public AdminPipelineController(PipelineHealthService healthService,
                                    PipelineAsyncRunner asyncRunner,
@@ -85,9 +96,10 @@ public class AdminPipelineController {
                                    PriceReactionService priceReactionService,
                                    DetectTrendsUseCase detectTrendsUseCase,
                                    TrackFrontierClaimsUseCase trackFrontierClaimsUseCase,
-                                   ArticleIngestionPort articleIngestionPort) {
-        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}",
-                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort);
+                                   ArticleIngestionPort articleIngestionPort,
+                                   PipelinePausePort pausePort) {
+        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}, pausePort={}",
+                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort, pausePort);
         this.healthService = healthService;
         this.asyncRunner = asyncRunner;
         this.newsletterScheduler = newsletterScheduler;
@@ -97,6 +109,7 @@ public class AdminPipelineController {
         this.detectTrendsUseCase = detectTrendsUseCase;
         this.trackFrontierClaimsUseCase = trackFrontierClaimsUseCase;
         this.articleIngestionPort = articleIngestionPort;
+        this.pausePort = pausePort;
     }
 
     /**
@@ -160,8 +173,57 @@ public class AdminPipelineController {
         model.addAttribute("recentEvents", recentEvents);
         model.addAttribute("eventTimestamps", eventTimestamps);
 
-        log.debug("pipelines() | return=admin-pipelines, count={}, recentEvents={}", pipelineList.size(), recentEvents.size());
+        boolean digestPaused = pausePort.isPaused(DIGEST_PAUSE_KEY);
+        boolean enterprisePushPaused = pausePort.isPaused(ENTERPRISE_PUSH_PAUSE_KEY);
+        model.addAttribute("digestPaused", digestPaused);
+        model.addAttribute("enterprisePushPaused", enterprisePushPaused);
+
+        log.debug("pipelines() | return=admin-pipelines, count={}, recentEvents={}, digestPaused={}, enterprisePushPaused={}",
+                  pipelineList.size(), recentEvents.size(), digestPaused, enterprisePushPaused);
         return "admin-pipelines";
+    }
+
+    /**
+     * Toggles the digest-send kill switch. When paused, {@code DigestDeliveryScheduler}
+     * skips its daily tick entirely until an admin resumes it here.
+     *
+     * @param paused true to pause, false to resume
+     * @return JSON acknowledgement with the new state
+     */
+    @PostMapping("/digest/pause")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> setDigestPaused(
+            @RequestParam(defaultValue = "false") boolean paused) {
+        log.debug("setDigestPaused() | paused={}", paused);
+        pausePort.setPaused(DIGEST_PAUSE_KEY, paused);
+        log.info("setDigestPaused() | Digest send {} by admin", paused ? "paused" : "resumed");
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("pipelineKey", DIGEST_PAUSE_KEY);
+        result.put("paused", paused);
+        log.debug("setDigestPaused() | return={}", result);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Toggles the enterprise-push kill switch. When paused, {@code EnterpriseDataPushScheduler}
+     * skips its per-minute sweep entirely (all customers) until an admin resumes it here.
+     * Distinct from each schedule's own {@code active} flag — this halts every schedule at once.
+     *
+     * @param paused true to pause, false to resume
+     * @return JSON acknowledgement with the new state
+     */
+    @PostMapping("/enterprise-push/pause")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> setEnterprisePushPaused(
+            @RequestParam(defaultValue = "false") boolean paused) {
+        log.debug("setEnterprisePushPaused() | paused={}", paused);
+        pausePort.setPaused(ENTERPRISE_PUSH_PAUSE_KEY, paused);
+        log.info("setEnterprisePushPaused() | Enterprise push {} by admin", paused ? "paused" : "resumed");
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("pipelineKey", ENTERPRISE_PUSH_PAUSE_KEY);
+        result.put("paused", paused);
+        log.debug("setEnterprisePushPaused() | return={}", result);
+        return ResponseEntity.ok(result);
     }
 
     /**
