@@ -44,6 +44,7 @@ class EnterpriseDataPushSchedulerTest {
     private DataJobPort dataJobPort;
     private DataAccessAuditPort auditPort;
     private AdminNotificationPort adminNotificationPort;
+    private PipelinePausePort pausePort;
     private EnterpriseDataProperties dataProperties;
     private TierLimitProperties tierLimitProperties;
     private EnterpriseDataPushScheduler scheduler;
@@ -57,6 +58,8 @@ class EnterpriseDataPushSchedulerTest {
         dataJobPort = mock(DataJobPort.class);
         auditPort = mock(DataAccessAuditPort.class);
         adminNotificationPort = mock(AdminNotificationPort.class);
+        pausePort = mock(PipelinePausePort.class);
+        when(pausePort.isPaused("enterprise-push")).thenReturn(false);
         CronScheduleCalculator cronCalculator = new CronScheduleCalculator(15);
 
         dataProperties = new EnterpriseDataProperties(null);
@@ -73,7 +76,7 @@ class EnterpriseDataPushSchedulerTest {
 
         scheduler = new EnterpriseDataPushScheduler(
                 schedulePort, dataService, deliveryPort, artifactPort,
-                dataJobPort, auditPort, adminNotificationPort,
+                dataJobPort, auditPort, adminNotificationPort, pausePort,
                 cronCalculator, dataProperties, tierLimitProperties,
                 FIXED_CLOCK, syncExecutor);
     }
@@ -192,6 +195,17 @@ class EnterpriseDataPushSchedulerTest {
         verify(schedulePort).deactivate(eq("sched-1"), contains("consecutive failures"));
         verify(adminNotificationPort, times(1)).notifyScheduleDeactivated(
                 eq("sched-1"), eq("alice@test.com"), eq("Feed unavailable"));
+    }
+
+    @Test
+    @DisplayName("Paused kill switch skips the sweep entirely")
+    void paused_skipsSweepEntirely() {
+        when(pausePort.isPaused("enterprise-push")).thenReturn(true);
+
+        scheduler.sweep();
+
+        verify(schedulePort, never()).findDue(any(), anyInt());
+        verify(dataService, never()).submit(any());
     }
 
     @Test

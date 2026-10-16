@@ -60,6 +60,10 @@ class ResearchOrchestratorServiceTest {
     @BeforeEach
     void setUp() {
         citationAssembler = new CitationAssembler();
+        // Real executor (not a mock) with a null event port — per its documented
+        // @Autowired(required = false) pattern, events are skipped rather than
+        // failing the step, so the first attempt just calls through to the step.
+        ResilientStepExecutor resilientStepExecutor = new ResilientStepExecutor(null);
         orchestrator = new ResearchOrchestratorService(
                 ResearchMode.LEGACY_GOOGLE,
                 legacyAdapter,
@@ -70,7 +74,8 @@ class ResearchOrchestratorServiceTest {
                 articleStoragePort,
                 researchRunPort,
                 researchExportPort,
-                vendorAssessmentService);
+                vendorAssessmentService,
+                resilientStepExecutor);
     }
 
     // -------------------------------------------------------------------------

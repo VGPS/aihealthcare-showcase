@@ -6,7 +6,10 @@ import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.model.PipelineStepStatus;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.PipelinePausePort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
@@ -79,6 +82,15 @@ class AdminPipelineControllerTest {
     @MockitoBean
     private DetectTrendsUseCase detectTrendsUseCase;
 
+    @MockitoBean
+    private TrackFrontierClaimsUseCase trackFrontierClaimsUseCase;
+
+    @MockitoBean
+    private ArticleIngestionPort articleIngestionPort;
+
+    @MockitoBean
+    private PipelinePausePort pausePort;
+
     // --- Page rendering ---
 
     @Test
@@ -92,7 +104,8 @@ class AdminPipelineControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin-pipelines"))
                 .andExpect(model().attributeExists("pipelines", "pipelineCount", "serverTime",
-                        "preFlightWarnings", "lastRunSummaries", "lastRunTimes", "lastRunStatuses"));
+                        "preFlightWarnings", "lastRunSummaries", "lastRunTimes", "lastRunStatuses",
+                        "digestPaused", "enterprisePushPaused"));
     }
 
     @Test
@@ -104,7 +117,7 @@ class AdminPipelineControllerTest {
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("pipelineCount", 25));
+                .andExpect(model().attribute("pipelineCount", 26));
     }
 
     @Test
@@ -284,6 +297,61 @@ class AdminPipelineControllerTest {
     @WithMockUser(roles = "USER")
     void sendDigestReturns403ForNonAdmin() throws Exception {
         mockMvc.perform(post("/admin/pipelines/digest/send").with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    // --- Digest pause kill switch ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void setDigestPausedTrueCallsPausePort() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/digest/pause").with(csrf())
+                        .param("paused", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pipelineKey").value("digest-send"))
+                .andExpect(jsonPath("$.paused").value(true));
+
+        verify(pausePort).setPaused("digest-send", true);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void setDigestPausedFalseCallsPausePort() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/digest/pause").with(csrf())
+                        .param("paused", "false"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paused").value(false));
+
+        verify(pausePort).setPaused("digest-send", false);
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void setDigestPausedReturns403ForNonAdmin() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/digest/pause").with(csrf())
+                        .param("paused", "true"))
+                .andExpect(status().isForbidden());
+    }
+
+    // --- Enterprise push pause kill switch ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void setEnterprisePushPausedTrueCallsPausePort() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/enterprise-push/pause").with(csrf())
+                        .param("paused", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pipelineKey").value("enterprise-push"))
+                .andExpect(jsonPath("$.paused").value(true));
+
+        verify(pausePort).setPaused("enterprise-push", true);
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void setEnterprisePushPausedReturns403ForNonAdmin() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/enterprise-push/pause").with(csrf())
+                        .param("paused", "true"))
                 .andExpect(status().isForbidden());
     }
 
