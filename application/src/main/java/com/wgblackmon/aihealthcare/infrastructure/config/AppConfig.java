@@ -50,9 +50,11 @@ import com.wgblackmon.aihealthcare.domain.service.LegalBriefSectionBuilder;
 import com.wgblackmon.aihealthcare.domain.service.ReversalWatchSectionBuilder;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.PromptEvaluationService;
+import com.wgblackmon.aihealthcare.domain.port.outbound.PipelineRunEventPort;
 import com.wgblackmon.aihealthcare.domain.service.ResearchOrchestratorService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchPlanningService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
+import com.wgblackmon.aihealthcare.domain.service.ResilientStepExecutor;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
@@ -646,6 +648,7 @@ public class AppConfig {
      * @param articleStoragePort      Port for persisting Perplexity-sourced articles.
      * @param researchRunPort         Port for persisting research run audit records.
      * @param researchExportPort      Port for exporting articles to the NotebookLM corpus.
+     * @param resilientStepExecutor   Wraps retrieval/synthesis calls with bounded retry + audit logging.
      * @return The wired {@link ResearchOrchestratorService} instance.
      */
     @Bean
@@ -657,7 +660,8 @@ public class AppConfig {
             PerplexityResearchAdapter perplexityAdapter,
             ArticleStoragePort articleStoragePort,
             ResearchRunPort researchRunPort,
-            ResearchExportPort researchExportPort) {
+            ResearchExportPort researchExportPort,
+            ResilientStepExecutor resilientStepExecutor) {
 
         log.debug("researchOrchestratorService() | researchMode={}", researchModeStr);
 
@@ -683,10 +687,22 @@ public class AppConfig {
                 defaultMode, legacyGoogleAdapter, perplexityAdapter,
                 planningService, synthesisService, citationAssembler,
                 articleStoragePort, researchRunPort, researchExportPort,
-                vendorAssessmentService);
+                vendorAssessmentService, resilientStepExecutor);
 
         log.debug("researchOrchestratorService() | return={}", result.getClass().getSimpleName());
         return result;
+    }
+
+    /**
+     * Creates the {@link ResilientStepExecutor} bean shared by {@link ResearchOrchestratorService}
+     * for bounded-retry, audited execution of retrieval/synthesis calls.
+     *
+     * @param pipelineRunEventPort Port for persisting per-attempt {@code PipelineRunEvent} audit records.
+     * @return The wired {@link ResilientStepExecutor} instance.
+     */
+    @Bean
+    public ResilientStepExecutor resilientStepExecutor(PipelineRunEventPort pipelineRunEventPort) {
+        return new ResilientStepExecutor(pipelineRunEventPort);
     }
 
     /**

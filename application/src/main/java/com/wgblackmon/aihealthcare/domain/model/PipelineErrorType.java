@@ -27,5 +27,14 @@ public enum PipelineErrorType {
     FATAL,
 
     /** Exception did not match any known classification. */
-    UNKNOWN
+    UNKNOWN;
+
+    /**
+     * Returns true if a step that failed with this error type is worth retrying.
+     * Auth failures need a fixed API key and fatal JVM errors need a restart —
+     * neither resolves itself within a retry loop, so those fail fast instead.
+     */
+    public boolean isRetryable() {
+        return this == NETWORK || this == LLM_QUOTA || this == UNKNOWN;
+    }
 }

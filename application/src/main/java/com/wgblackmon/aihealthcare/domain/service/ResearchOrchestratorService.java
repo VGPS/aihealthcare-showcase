@@ -9,7 +9,9 @@ import com.wgblackmon.aihealthcare.domain.model.ResearchRun;
 import com.wgblackmon.aihealthcare.domain.model.ResearchSection;
 import com.wgblackmon.aihealthcare.domain.model.RetrievalQuery;
 import com.wgblackmon.aihealthcare.domain.model.RetrievedSource;
+import com.wgblackmon.aihealthcare.domain.model.RetryPolicy;
 import com.wgblackmon.aihealthcare.domain.model.SourceCitation;
+import com.wgblackmon.aihealthcare.domain.model.StepGateResult;
 import com.wgblackmon.aihealthcare.domain.model.VendorAssessment;
 import com.wgblackmon.aihealthcare.domain.model.VendorCompareResult;
 import com.wgblackmon.aihealthcare.domain.port.inbound.CompareVendorsUseCase;
@@ -57,14 +59,22 @@ import java.util.UUID;
  * <p>This class is not annotated with {@code @Service} — it is wired as a bean
  * in {@link com.wgblackmon.aihealthcare.infrastructure.config.AppConfig}.
  *
+ * <p>Retrieval and synthesis calls are wrapped with {@link ResilientStepExecutor}
+ * for bounded retry and {@code PipelineRunEvent} audit logging — ported from the
+ * {@code PhaseExecutor} pattern in the url-shortener prototype's agentic SDLC
+ * orchestration layer.
+ *
  * @author  Bill Blackmon
- * @version 2.2
+ * @version 2.3
  * @since   2026-05-04
- * @updated 2026-09-11
+ * @updated 2026-10-16
  */
 public class ResearchOrchestratorService implements ConductResearchUseCase, CompareVendorsUseCase {
 
     private static final DomainLogger log = new DomainLogger(ResearchOrchestratorService.class);
+
+    /** Retry policy for retrieval/synthesis calls — 2 retries, 1s initial backoff, 2x multiplier. */
+    private static final RetryPolicy RETRY = RetryPolicy.defaultPolicy();
 
     private final ResearchMode              defaultMode;
     private final SourceRetrievalPort       legacyAdapter;
@@ -76,6 +86,7 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
     private final ResearchRunPort           researchRunPort;
     private final ResearchExportPort        researchExportPort;
     private final VendorAssessmentService   vendorAssessmentService;
+    private final ResilientStepExecutor     resilientStepExecutor;
 
     /**
      * Constructs the orchestrator with all pipeline and persistence dependencies.
@@ -90,6 +101,7 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
      * @param researchRunPort    Port for persisting the research run audit record.
      * @param researchExportPort      Port for exporting articles to the NotebookLM corpus.
      * @param vendorAssessmentService Domain service for vendor-structured AI synthesis.
+     * @param resilientStepExecutor   Wraps retrieval/synthesis calls with bounded retry + audit logging.
      */
     public ResearchOrchestratorService(ResearchMode defaultMode,
                                        SourceRetrievalPort legacyAdapter,
@@ -100,7 +112,8 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
                                        ArticleStoragePort articleStoragePort,
                                        ResearchRunPort researchRunPort,
                                        ResearchExportPort researchExportPort,
-                                       VendorAssessmentService vendorAssessmentService) {
+                                       VendorAssessmentService vendorAssessmentService,
+                                       ResilientStepExecutor resilientStepExecutor) {
         log.debug("ResearchOrchestratorService() | defaultMode={}, legacyAdapter={}, "
                   + "perplexityAdapter={}, planningService={}, synthesisService={}",
                   defaultMode,
@@ -118,6 +131,7 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
         this.researchRunPort         = researchRunPort;
         this.researchExportPort      = researchExportPort;
         this.vendorAssessmentService = vendorAssessmentService;
+        this.resilientStepExecutor   = resilientStepExecutor;
         log.debug("ResearchOrchestratorService() | return=void");
     }
 
@@ -206,14 +220,16 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
             RetrievalQuery rq = new RetrievalQuery(
                     subQuery, "PERPLEXITY",
                     Math.max(1, request.maxSources() / plan.subQueries().size()));
-            List<RetrievedSource> batch = perplexityAdapter.retrieve(rq);
+            List<RetrievedSource> batch = retrieveWithRetry(perplexityAdapter, rq,
+                    "research-retrieval-perplexity", "compare: " + subQuery);
             log.debug("compare() | sub-query='{}' → {} Perplexity sources", subQuery, batch.size());
             perplexitySources.addAll(batch);
         }
 
         // Legacy retrieval for historical depth
         RetrievalQuery legacyQuery = new RetrievalQuery(query, "GOOGLE", maxSources);
-        List<RetrievedSource> legacySources = legacyAdapter.retrieve(legacyQuery);
+        List<RetrievedSource> legacySources = retrieveWithRetry(legacyAdapter, legacyQuery,
+                "research-retrieval-legacy", "compare: " + query);
         log.info("compare() | legacy retrieved {} sources", legacySources.size());
 
         // Filter legacy sources to only those whose title or snippet mentions the query
@@ -266,7 +282,8 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
 
         for (String vendorTopic : vendorTopics) {
             RetrievalQuery rq = new RetrievalQuery(vendorTopic, "GOOGLE", perVendorLimit);
-            List<RetrievedSource> vendorSources = legacyAdapter.retrieve(rq);
+            List<RetrievedSource> vendorSources = retrieveWithRetry(legacyAdapter, rq,
+                    "research-retrieval-legacy", "compareSelected: " + vendorTopic);
             log.info("compareSelected() | topic='{}' → {} sources", vendorTopic, vendorSources.size());
             allSources.addAll(vendorSources);
         }
@@ -356,6 +373,29 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
     }
 
     // -------------------------------------------------------------------------
+    // Resilience helpers — bounded retry + audit trail for external AI/HTTP calls
+    // -------------------------------------------------------------------------
+
+    /**
+     * Retrieves sources through {@code adapter} with bounded retry on classified-retryable
+     * failures (network blips, LLM rate limits). Each attempt is recorded as a
+     * {@code PipelineRunEvent} under {@code pipelineId} so the admin pipeline dashboard
+     * surfaces research-retrieval health alongside the harvest/ingestion pipelines.
+     */
+    private List<RetrievedSource> retrieveWithRetry(SourceRetrievalPort adapter, RetrievalQuery query,
+                                                      String pipelineId, String stepLabel) {
+        return resilientStepExecutor.execute(pipelineId, "Retrieve: " + stepLabel, RETRY,
+                () -> adapter.retrieve(query));
+    }
+
+    /** Synthesizes an answer with bounded retry on classified-retryable AI-call failures. */
+    private ResearchAnswer synthesizeWithRetry(String query, ResearchPlan plan,
+                                                List<RetrievedSource> sources, List<SourceCitation> citations) {
+        return resilientStepExecutor.execute("research-synthesis", "Synthesize: " + query, RETRY,
+                () -> synthesisService.synthesize(query, plan, sources, citations));
+    }
+
+    // -------------------------------------------------------------------------
     // Pipeline branches
     // -------------------------------------------------------------------------
 
@@ -371,7 +411,8 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
                 : request.query();
 
         RetrievalQuery query = new RetrievalQuery(topic, "GOOGLE", request.maxSources());
-        List<RetrievedSource> sources = legacyAdapter.retrieve(query);
+        List<RetrievedSource> sources = retrieveWithRetry(legacyAdapter, query,
+                "research-retrieval-legacy", "conductLegacy: " + topic);
         log.info("conductLegacy() | retrieved {} sources", sources.size());
 
         List<SourceCitation> citations = citationAssembler.assemble(sources);
@@ -407,17 +448,26 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
             RetrievalQuery rq = new RetrievalQuery(
                     subQuery, "PERPLEXITY",
                     Math.max(1, request.maxSources() / plan.subQueries().size()));
-            List<RetrievedSource> batch = perplexityAdapter.retrieve(rq);
+            List<RetrievedSource> batch = retrieveWithRetry(perplexityAdapter, rq,
+                    "research-retrieval-perplexity", "conductStaged: " + subQuery);
             log.debug("conductStaged() | sub-query='{}' → {} sources", subQuery, batch.size());
             allSources.addAll(batch);
         }
 
-        // Fall back to legacy adapter when Perplexity returns nothing
-        if (allSources.isEmpty()) {
-            log.warn("conductStaged() | Perplexity returned no sources — falling back to legacy adapter");
+        // Gate: did Perplexity return anything across all sub-queries? If not, fall back
+        // to the legacy adapter rather than returning an empty-sourced answer.
+        StepGateResult perplexityGate = allSources.isEmpty()
+                ? StepGateResult.fail("Perplexity returned zero sources across "
+                        + plan.subQueries().size() + " sub-queries", "fall back to legacy adapter")
+                : StepGateResult.pass(allSources.size() + " sources retrieved from Perplexity");
+
+        if (!perplexityGate.passed()) {
+            log.warn("conductStaged() | gate failed: {} — {}",
+                    perplexityGate.reason(), perplexityGate.remediation());
             RetrievalQuery fallback = new RetrievalQuery(
                     request.query(), "GOOGLE", request.maxSources());
-            allSources = legacyAdapter.retrieve(fallback);
+            allSources = retrieveWithRetry(legacyAdapter, fallback,
+                    "research-retrieval-legacy", "conductStaged fallback: " + request.query());
             log.info("conductStaged() | legacy fallback retrieved {} sources", allSources.size());
         }
 
@@ -425,8 +475,7 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
         List<SourceCitation> citations = citationAssembler.assemble(allSources);
 
         // Step 4: synthesize
-        ResearchAnswer result = synthesisService.synthesize(
-                request.query(), plan, allSources, citations);
+        ResearchAnswer result = synthesizeWithRetry(request.query(), plan, allSources, citations);
 
         log.debug("conductStaged() | return=ResearchAnswer[sections={}, citations={}]",
                   result.sections().size(), result.allCitations().size());
@@ -460,7 +509,8 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
             RetrievalQuery rq = new RetrievalQuery(
                     subQuery, "PERPLEXITY",
                     Math.max(1, request.maxSources() / plan.subQueries().size()));
-            List<RetrievedSource> batch = perplexityAdapter.retrieve(rq);
+            List<RetrievedSource> batch = retrieveWithRetry(perplexityAdapter, rq,
+                    "research-retrieval-perplexity", "conductCombined: " + subQuery);
             log.debug("conductCombined() | sub-query='{}' → {} Perplexity sources", subQuery, batch.size());
             perplexitySources.addAll(batch);
         }
@@ -469,7 +519,8 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
         // Step 3: legacy retrieval for historical depth
         RetrievalQuery legacyQuery = new RetrievalQuery(
                 request.query(), "GOOGLE", request.maxSources());
-        List<RetrievedSource> legacySources = legacyAdapter.retrieve(legacyQuery);
+        List<RetrievedSource> legacySources = retrieveWithRetry(legacyAdapter, legacyQuery,
+                "research-retrieval-legacy", "conductCombined: " + request.query());
         log.info("conductCombined() | legacy retrieved {} sources", legacySources.size());
 
         // Step 4: merge — Perplexity first (higher relevance weight)
@@ -483,8 +534,7 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
         log.info("conductCombined() | {} citations after dedup", citations.size());
 
         // Step 6: synthesize across the full combined source set
-        ResearchAnswer result = synthesisService.synthesize(
-                request.query(), plan, allSources, citations);
+        ResearchAnswer result = synthesizeWithRetry(request.query(), plan, allSources, citations);
 
         log.debug("conductCombined() | return=ResearchAnswer[sections={}, citations={}]",
                   result.sections().size(), result.allCitations().size());
