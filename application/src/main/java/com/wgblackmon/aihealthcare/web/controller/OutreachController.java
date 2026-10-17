@@ -290,7 +290,19 @@ public class OutreachController {
         return "redirect:/admin/outreach/" + slug;
     }
 
-    /** Update outreach notes. */
+    /** Update outreach notes — JSON response for inline list-page editing. */
+    @PostMapping("/{id}/notes-inline")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateNotesInline(@PathVariable Long id,
+                                                                  @RequestParam String notes) {
+        log.debug("updateNotesInline() | id={}, notes={}", id, notes);
+        outreachUseCase.updateOutreachNotes(id, notes.trim());
+        Map<String, Object> result = Map.of("ok", true, "notes", notes.trim());
+        log.debug("updateNotesInline() | return=ok");
+        return ResponseEntity.ok(result);
+    }
+
+    /** Update outreach notes — redirect variant used by company detail page. */
     @PostMapping("/{id}/notes")
     public String updateNotes(@PathVariable Long id,
                               @RequestParam String notes,

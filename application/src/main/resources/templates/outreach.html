@@ -283,7 +283,18 @@
                               th:text="${displayFmt.format(row.contactedAt())}"></span>
                         <span th:if="${row.contactedAt() == null}" class="text-gray-300">—</span>
                     </td>
-                    <td class="px-5 py-3 text-gray-600 max-w-xs truncate" th:text="${row.notes()}"></td>
+                    <td class="px-5 py-3 text-gray-600 max-w-xs">
+                        <span class="notes-display block cursor-text hover:bg-gray-50 rounded px-1 -mx-1 min-h-[1.25rem]"
+                              th:text="${row.notes()}"
+                              th:attr="data-id=${row.id()}"
+                              title="Click to edit"
+                              onclick="editNotes(this)"></span>
+                        <input type="text"
+                               class="notes-input hidden border border-primary-300 rounded px-2 py-0.5 text-sm w-full focus:outline-none focus:ring-1 focus:ring-primary-400"
+                               th:attr="data-id=${row.id()}"
+                               onblur="saveNotes(this)"
+                               onkeydown="if(event.key==='Enter'){this.blur();} if(event.key==='Escape'){cancelNoteEdit(this);}"/>
+                    </td>
                     <td class="px-5 py-3 text-gray-500 whitespace-nowrap">
                         <span th:if="${row.updatedAt() != null}"
                               th:text="${dateFmt.format(row.updatedAt())}"></span>
@@ -307,6 +318,56 @@
 
 <script>
 (function () {
+    // --- Inline notes editing ---
+    function editNotes(span) {
+        const input = span.nextElementSibling;
+        input.value = span.textContent.trim();
+        span.classList.add('hidden');
+        input.classList.remove('hidden');
+        input.focus();
+        input.select();
+    }
+
+    function cancelNoteEdit(input) {
+        const span = input.previousElementSibling;
+        span.classList.remove('hidden');
+        input.classList.add('hidden');
+    }
+
+    function saveNotes(input) {
+        const span = input.previousElementSibling;
+        const id = input.dataset.id;
+        const notes = input.value.trim();
+        const csrfToken  = document.getElementById('csrf-token').value;
+        const csrfHeader = document.getElementById('csrf-header').getAttribute('content');
+
+        fetch('/admin/outreach/' + id + '/notes-inline', {
+            method: 'POST',
+            headers: {
+                [csrfHeader]: csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'notes=' + encodeURIComponent(notes)
+        })
+        .then(function (resp) { return resp.json(); })
+        .then(function (data) {
+            span.textContent = data.notes;
+        })
+        .catch(function () {
+            // Revert silently on network error — value unchanged in DB
+        })
+        .finally(function () {
+            span.classList.remove('hidden');
+            input.classList.add('hidden');
+        });
+    }
+
+    window.editNotes       = editNotes;
+    window.cancelNoteEdit  = cancelNoteEdit;
+    window.saveNotes       = saveNotes;
+
+    // --- Run pipeline ---
     function runOutreachSync() {
         const btn     = document.getElementById('sync-btn');
         const spinner = document.getElementById('sync-spinner');

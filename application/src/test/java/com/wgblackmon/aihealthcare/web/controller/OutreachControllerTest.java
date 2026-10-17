@@ -132,6 +132,18 @@ class OutreachControllerTest {
     }
 
     @Test
+    void updateNotesInline_returns200WithJson() throws Exception {
+        when(outreachUseCase.updateOutreachNotes(eq(1L), eq("Jane Doe (VP Sales)"))).thenReturn(outreachRow());
+
+        mockMvc.perform(post("/admin/outreach/1/notes-inline").with(csrf())
+                        .param("notes", "Jane Doe (VP Sales)"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(content().string(containsString("\"ok\":true")))
+                .andExpect(content().string(containsString("Jane Doe")));
+    }
+
+    @Test
     void exportCsv_returns200WithCsvContentType() throws Exception {
         when(outreachUseCase.listAllOutreach()).thenReturn(List.of(outreachRow()));
 
