@@ -67,7 +67,7 @@ class OutreachControllerTest {
 
     private static CompanyOutreach outreachRow() {
         return new CompanyOutreach(1L, "microsoft", OutreachPurpose.EMPLOYMENT,
-                OutreachStatus.NOT_STARTED, null, "notes", NOW, NOW);
+                OutreachStatus.NOT_STARTED, null, "notes", null, null, NOW, NOW);
     }
 
     private static CompanyContact contact() {

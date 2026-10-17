@@ -7,6 +7,7 @@ import com.wgblackmon.aihealthcare.domain.model.ContactStatus;
 import com.wgblackmon.aihealthcare.domain.model.OutreachPurpose;
 import com.wgblackmon.aihealthcare.domain.model.OutreachStatus;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -26,6 +27,8 @@ public interface ManageOutreachUseCase {
     CompanyOutreach updateOutreachStatus(Long id, OutreachStatus status);
 
     CompanyOutreach updateOutreachNotes(Long id, String notes);
+
+    CompanyOutreach updateLinkedIn(Long id, Instant linkedinSentAt, String linkedinOutcome);
 
     void deleteOutreach(Long id);
 

@@ -35,7 +35,7 @@ class CompanyOutreachAdapterTest {
     void saveAndFindById() {
         CompanyOutreach o = new CompanyOutreach(null, "microsoft",
                 OutreachPurpose.EMPLOYMENT, OutreachStatus.NOT_STARTED,
-                null, "Notes here", NOW, NOW);
+                null, "Notes here", null, null, NOW, NOW);
 
         CompanyOutreach saved = adapter.save(o);
         Optional<CompanyOutreach> found = adapter.findById(saved.id());
@@ -51,7 +51,7 @@ class CompanyOutreachAdapterTest {
     void findBySlugAndPurpose_returnsPresentWhenExists() {
         CompanyOutreach o = new CompanyOutreach(null, "acme",
                 OutreachPurpose.SUBSCRIPTION, OutreachStatus.IN_PROGRESS,
-                null, null, NOW, NOW);
+                null, null, null, null, NOW, NOW);
         adapter.save(o);
 
         Optional<CompanyOutreach> result = adapter.findBySlugAndPurpose("acme", OutreachPurpose.SUBSCRIPTION);
@@ -62,11 +62,11 @@ class CompanyOutreachAdapterTest {
     @Test
     void findBySlug_returnsMultipleRows() {
         adapter.save(new CompanyOutreach(null, "bigco", OutreachPurpose.EMPLOYMENT,
-                OutreachStatus.NOT_STARTED, null, null, NOW, NOW));
+                OutreachStatus.NOT_STARTED, null, null, null, null, NOW, NOW));
         adapter.save(new CompanyOutreach(null, "bigco", OutreachPurpose.SUBSCRIPTION,
-                OutreachStatus.NOT_STARTED, null, null, NOW, NOW));
+                OutreachStatus.NOT_STARTED, null, null, null, null, NOW, NOW));
         adapter.save(new CompanyOutreach(null, "other", OutreachPurpose.EMPLOYMENT,
-                OutreachStatus.NOT_STARTED, null, null, NOW, NOW));
+                OutreachStatus.NOT_STARTED, null, null, null, null, NOW, NOW));
 
         List<CompanyOutreach> result = adapter.findBySlug("bigco");
         assertThat(result).hasSize(2);
@@ -77,7 +77,7 @@ class CompanyOutreachAdapterTest {
     void deleteById_removesRecord() {
         CompanyOutreach saved = adapter.save(new CompanyOutreach(null, "del-me",
                 OutreachPurpose.EMPLOYMENT, OutreachStatus.NOT_STARTED,
-                null, null, NOW, NOW));
+                null, null, null, null, NOW, NOW));
 
         adapter.deleteById(saved.id());
         assertThat(adapter.findById(saved.id())).isEmpty();
@@ -86,9 +86,9 @@ class CompanyOutreachAdapterTest {
     @Test
     void findAll_returnsAllRows() {
         adapter.save(new CompanyOutreach(null, "co-a", OutreachPurpose.EMPLOYMENT,
-                OutreachStatus.NOT_STARTED, null, null, NOW, NOW));
+                OutreachStatus.NOT_STARTED, null, null, null, null, NOW, NOW));
         adapter.save(new CompanyOutreach(null, "co-b", OutreachPurpose.SUBSCRIPTION,
-                OutreachStatus.IN_PROGRESS, null, null, NOW, NOW));
+                OutreachStatus.IN_PROGRESS, null, null, null, null, NOW, NOW));
 
         assertThat(adapter.findAll()).hasSizeGreaterThanOrEqualTo(2);
     }

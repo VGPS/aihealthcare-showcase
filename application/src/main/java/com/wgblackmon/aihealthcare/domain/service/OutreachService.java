@@ -23,7 +23,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-03
- * @updated 2026-10-03
+ * @updated 2026-10-17
  */
 public class OutreachService implements ManageOutreachUseCase {
 
@@ -41,7 +41,7 @@ public class OutreachService implements ManageOutreachUseCase {
     public CompanyOutreach addOutreach(String slug, OutreachPurpose purpose, String notes) {
         Instant now = Instant.now();
         CompanyOutreach outreach = new CompanyOutreach(null, slug, purpose,
-                OutreachStatus.NOT_STARTED, null, notes, now, now);
+                OutreachStatus.NOT_STARTED, null, notes, null, null, now, now);
         return outreachPort.save(outreach);
     }
 
@@ -54,6 +54,7 @@ public class OutreachService implements ManageOutreachUseCase {
         CompanyOutreach updated = new CompanyOutreach(
                 existing.id(), existing.slug(), existing.purpose(),
                 status, contactedAt, existing.notes(),
+                existing.linkedinSentAt(), existing.linkedinOutcome(),
                 existing.createdAt(), Instant.now());
         return outreachPort.save(updated);
     }
@@ -65,6 +66,19 @@ public class OutreachService implements ManageOutreachUseCase {
         CompanyOutreach updated = new CompanyOutreach(
                 existing.id(), existing.slug(), existing.purpose(),
                 existing.status(), existing.contactedAt(), notes,
+                existing.linkedinSentAt(), existing.linkedinOutcome(),
+                existing.createdAt(), Instant.now());
+        return outreachPort.save(updated);
+    }
+
+    @Override
+    public CompanyOutreach updateLinkedIn(Long id, Instant linkedinSentAt, String linkedinOutcome) {
+        CompanyOutreach existing = outreachPort.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Outreach record not found: " + id));
+        CompanyOutreach updated = new CompanyOutreach(
+                existing.id(), existing.slug(), existing.purpose(),
+                existing.status(), existing.contactedAt(), existing.notes(),
+                linkedinSentAt, linkedinOutcome,
                 existing.createdAt(), Instant.now());
         return outreachPort.save(updated);
     }

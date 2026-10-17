@@ -110,6 +110,35 @@
                 </button>
             </form>
 
+            <!-- LinkedIn tracking -->
+            <form th:action="@{/admin/outreach/{id}/linkedin(id=${row.id()})}" method="post"
+                  class="flex flex-wrap gap-3 items-end mb-3 pt-2 border-t border-gray-100">
+                <input type="hidden" name="slug" th:value="${slug}"/>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-medium text-blue-700">LinkedIn — Date sent</label>
+                    <input type="date" name="linkedinSentAt"
+                           th:value="${row.linkedinSentAt() != null ? #temporals.format(row.linkedinSentAt().atZone(T(java.time.ZoneOffset).UTC), 'yyyy-MM-dd') : ''}"
+                           class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"/>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-medium text-blue-700">Outcome</label>
+                    <select name="linkedinOutcome" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                        <option value="" th:selected="${row.linkedinOutcome() == null}">— not sent —</option>
+                        <option value="connected"    th:selected="${'connected'    == row.linkedinOutcome()}">Connected</option>
+                        <option value="no response"  th:selected="${'no response'  == row.linkedinOutcome()}">No response</option>
+                        <option value="declined"     th:selected="${'declined'     == row.linkedinOutcome()}">Declined</option>
+                        <option value="call booked"  th:selected="${'call booked'  == row.linkedinOutcome()}">Call booked</option>
+                        <option value="replied"      th:selected="${'replied'      == row.linkedinOutcome()}">Replied (other)</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 text-xs px-3 py-1.5 rounded transition-colors">
+                    Save LinkedIn
+                </button>
+                <span th:if="${row.linkedinSentAt() != null}"
+                      class="text-xs text-blue-600 self-end pb-1.5"
+                      th:text="'Sent ' + ${displayFmt.format(row.linkedinSentAt())}"></span>
+            </form>
+
             <!-- Delete -->
             <form th:action="@{/admin/outreach/{id}/delete(id=${row.id()})}" method="post" class="inline"
                   onsubmit="return confirm('Delete this outreach record?')">

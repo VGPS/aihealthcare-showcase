@@ -25,7 +25,7 @@ class CompanyOutreachTest {
     @Test
     void companyOutreach_validRecord_creates() {
         CompanyOutreach o = new CompanyOutreach(null, "microsoft", OutreachPurpose.EMPLOYMENT,
-                OutreachStatus.NOT_STARTED, null, "Initial contact", NOW, NOW);
+                OutreachStatus.NOT_STARTED, null, "Initial contact", null, null, NOW, NOW);
         assertThat(o.slug()).isEqualTo("microsoft");
         assertThat(o.purpose()).isEqualTo(OutreachPurpose.EMPLOYMENT);
         assertThat(o.status()).isEqualTo(OutreachStatus.NOT_STARTED);
@@ -36,7 +36,7 @@ class CompanyOutreachTest {
     void companyOutreach_nullSlug_throws() {
         assertThatThrownBy(() ->
                 new CompanyOutreach(null, null, OutreachPurpose.SUBSCRIPTION,
-                        OutreachStatus.NOT_STARTED, null, null, NOW, NOW))
+                        OutreachStatus.NOT_STARTED, null, null, null, null, NOW, NOW))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("slug");
     }
@@ -45,7 +45,7 @@ class CompanyOutreachTest {
     void companyOutreach_blankSlug_throws() {
         assertThatThrownBy(() ->
                 new CompanyOutreach(null, "  ", OutreachPurpose.SUBSCRIPTION,
-                        OutreachStatus.NOT_STARTED, null, null, NOW, NOW))
+                        OutreachStatus.NOT_STARTED, null, null, null, null, NOW, NOW))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("slug");
     }
@@ -54,7 +54,7 @@ class CompanyOutreachTest {
     void companyOutreach_nullPurpose_throws() {
         assertThatThrownBy(() ->
                 new CompanyOutreach(null, "acme", null,
-                        OutreachStatus.NOT_STARTED, null, null, NOW, NOW))
+                        OutreachStatus.NOT_STARTED, null, null, null, null, NOW, NOW))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("purpose");
     }
@@ -63,7 +63,7 @@ class CompanyOutreachTest {
     void companyOutreach_nullStatus_throws() {
         assertThatThrownBy(() ->
                 new CompanyOutreach(null, "acme", OutreachPurpose.EMPLOYMENT,
-                        null, null, null, NOW, NOW))
+                        null, null, null, null, null, NOW, NOW))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("status");
     }

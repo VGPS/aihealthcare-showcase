@@ -20,7 +20,7 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-03
- * @updated 2026-10-03
+ * @updated 2026-10-17
  */
 @Entity
 @Table(name = "company_outreach",
@@ -44,6 +44,10 @@ public class CompanyOutreachEntity {
 
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    private Instant linkedinSentAt;
+
+    private String linkedinOutcome;
 
     @Column(nullable = false)
     private Instant createdAt;
@@ -71,6 +75,12 @@ public class CompanyOutreachEntity {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public Instant getLinkedinSentAt() { return linkedinSentAt; }
+    public void setLinkedinSentAt(Instant linkedinSentAt) { this.linkedinSentAt = linkedinSentAt; }
+
+    public String getLinkedinOutcome() { return linkedinOutcome; }
+    public void setLinkedinOutcome(String linkedinOutcome) { this.linkedinOutcome = linkedinOutcome; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
