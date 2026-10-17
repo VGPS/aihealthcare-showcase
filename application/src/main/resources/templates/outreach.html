@@ -271,7 +271,8 @@
                 <tr class="hover:bg-gray-50 transition-colors">
                     <td class="px-5 py-3 font-medium">
                         <a th:href="@{/admin/outreach/{slug}(slug=${row.slug()})}"
-                           class="text-primary-700 hover:underline" th:text="${row.slug()}"></a>
+                           class="text-primary-700 hover:underline"
+                           th:text="${slugToName[row.slug()] != null ? slugToName[row.slug()] : row.slug()}"></a>
                     </td>
                     <td class="px-5 py-3">
                         <span th:text="${row.purpose()}" th:classappend="${row.purpose().name() == 'EMPLOYMENT'} ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'" class="text-xs font-medium px-2 py-0.5 rounded-full"></span>
