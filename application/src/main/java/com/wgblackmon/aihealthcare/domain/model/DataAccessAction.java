@@ -8,9 +8,9 @@ package com.wgblackmon.aihealthcare.domain.model;
  * patterns are queryable long after artifacts expire.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-09-08
- * @updated 2026-09-08 — ED-2 push schedule actions added
+ * @updated 2026-10-18 — PUSH_HOLD/PUSH_REJECT added for the approval gate
  */
 public enum DataAccessAction {
 
@@ -34,5 +34,11 @@ public enum DataAccessAction {
     PUSH_SEND,
     PUSH_FAIL,
     SCHEDULE_DEACTIVATE,
-    LINK_REDEEM
+    LINK_REDEEM,
+
+    /** Delivery held pending admin review (approval gate active for the schedule). */
+    PUSH_HOLD,
+
+    /** An admin rejected a held delivery — the artifact was never sent. */
+    PUSH_REJECT
 }

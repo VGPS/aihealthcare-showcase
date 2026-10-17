@@ -38,10 +38,19 @@ import java.util.concurrent.Executor;
  * halt every scheduled push at once (e.g. a suspected bad classifier
  * release) without touching each customer's schedule individually.
  *
+ * <p>After a job succeeds, checks the {@link PushApprovalGatePort} for the
+ * firing schedule. If the gate is set, delivery is held — a
+ * {@link com.wgblackmon.aihealthcare.domain.model.PushApprovalRequest} is
+ * created instead of calling {@link DataPushDeliveryPort}, and an admin must
+ * release it via {@code ReviewPushApprovalsUseCase}. This never touches the
+ * claim-guard or {@code nextRunAt} advancement above — only the final
+ * delivery step is gated, so the ED-2 at-most-once-fire invariant is
+ * unaffected.
+ *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-09-08
- * @updated 2026-10-16
+ * @updated 2026-10-18
  */
 @Slf4j
 @Component
@@ -57,6 +66,8 @@ public class EnterpriseDataPushScheduler {
     private final DataAccessAuditPort auditPort;
     private final AdminNotificationPort adminNotificationPort;
     private final PipelinePausePort pausePort;
+    private final PushApprovalGatePort approvalGatePort;
+    private final PushApprovalPort approvalPort;
     private final CronScheduleCalculator cronCalculator;
     private final EnterpriseDataProperties dataProperties;
     private final TierLimitProperties tierLimitProperties;
@@ -72,6 +83,8 @@ public class EnterpriseDataPushScheduler {
             DataAccessAuditPort auditPort,
             AdminNotificationPort adminNotificationPort,
             PipelinePausePort pausePort,
+            PushApprovalGatePort approvalGatePort,
+            PushApprovalPort approvalPort,
             CronScheduleCalculator cronCalculator,
             EnterpriseDataProperties dataProperties,
             TierLimitProperties tierLimitProperties,
@@ -86,6 +99,8 @@ public class EnterpriseDataPushScheduler {
         this.auditPort = auditPort;
         this.adminNotificationPort = adminNotificationPort;
         this.pausePort = pausePort;
+        this.approvalGatePort = approvalGatePort;
+        this.approvalPort = approvalPort;
         this.cronCalculator = cronCalculator;
         this.dataProperties = dataProperties;
         this.tierLimitProperties = tierLimitProperties;
@@ -197,6 +212,20 @@ public class EnterpriseDataPushScheduler {
             Instant now = clock.instant();
 
             if (job.status() == DataJobStatus.SUCCEEDED && artifactPort.exists(job.jobId())) {
+                if (approvalGatePort.isRequired(schedule.scheduleId())) {
+                    approvalPort.save(new PushApprovalRequest(
+                            jobId, schedule.scheduleId(), schedule.ownerEmail(),
+                            now, PushApprovalStatus.PENDING, null, null));
+                    auditPort.append(new DataAccessAuditEntry(
+                            now, schedule.ownerEmail(), jobId, schedule.scheduleId(),
+                            DataAccessAction.PUSH_HOLD, "PENDING",
+                            "Delivery held for admin approval", job.rowCount(), job.byteSize()));
+                    log.info("awaitAndDeliver() | scheduleId={}, jobId={} held for admin approval",
+                            schedule.scheduleId(), jobId);
+                    log.debug("awaitAndDeliver() | return=void (held for approval)");
+                    return;
+                }
+
                 DataArtifact artifact = new DataArtifact(
                         job.jobId(), job.format(), job.artifactPath(),
                         job.byteSize() != null ? job.byteSize() : 0L,

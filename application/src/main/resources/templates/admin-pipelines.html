@@ -648,6 +648,44 @@
             </div>
         </div>
 
+        <!-- Enterprise Push — Approval Gate -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Push Delivery — Approval Gate</h3>
+                <span class="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold">Operator control</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Flags one customer's push schedule so every delivery it produces is held for
+                admin review instead of sent automatically. The underlying data job still runs
+                and succeeds as normal — only the final send step is held. Enter the schedule id
+                (from the enterprise audit trail) to gate or ungate it.
+            </p>
+            <div class="flex items-center gap-2 mt-auto flex-wrap">
+                <input type="text" id="approvalGateScheduleId" placeholder="schedule id"
+                       class="border border-gray-300 rounded px-2 py-1.5 text-sm flex-1 min-w-[160px] focus:outline-none focus:border-primary-400" />
+                <button type="button" class="btn-search text-sm px-3 py-1.5"
+                        onclick="setApprovalGate(true)">Require Approval</button>
+                <button type="button" class="text-xs text-primary-600 hover:underline"
+                        onclick="setApprovalGate(false)">Clear</button>
+            </div>
+            <span id="approvalGateStatus" class="text-xs mt-2 block"></span>
+        </div>
+
+        <!-- Pending Push Approvals -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Pending Push Approvals</h3>
+                <span class="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold">Operator control</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Deliveries held by the approval gate above, awaiting a decision. Approving sends
+                the artifact now; rejecting leaves it undelivered permanently.
+            </p>
+            <div id="pendingApprovalsList" class="text-xs text-gray-500 space-y-2 mb-3">Loading…</div>
+            <button type="button" class="text-xs text-primary-600 hover:underline mt-auto self-start"
+                    onclick="loadPendingApprovals()">Refresh</button>
+        </div>
+
     </div>
 
     <!-- Pipeline Run History -->
@@ -1220,6 +1258,79 @@ function toggleCascadePause(checkbox) {
             statusEl.className = 'text-xs text-red-600';
         });
 }
+
+function setApprovalGate(required) {
+    var scheduleId = document.getElementById('approvalGateScheduleId').value.trim();
+    var statusEl = document.getElementById('approvalGateStatus');
+    if (!scheduleId) {
+        statusEl.textContent = 'Enter a schedule id first';
+        statusEl.className = 'text-xs mt-2 block text-red-600';
+        return;
+    }
+    var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    headers[getCsrfHeader()] = getCsrfToken();
+    fetch('/admin/push-approvals/gate?scheduleId=' + encodeURIComponent(scheduleId) + '&required=' + required,
+          { method: 'POST', headers: headers, credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            statusEl.textContent = data.required
+                ? 'Approval now required for ' + data.scheduleId
+                : 'Approval requirement cleared for ' + data.scheduleId;
+            statusEl.className = 'text-xs mt-2 block text-green-700 font-semibold';
+        })
+        .catch(function(e) {
+            statusEl.textContent = 'Error: ' + e;
+            statusEl.className = 'text-xs mt-2 block text-red-600';
+        });
+}
+
+function loadPendingApprovals() {
+    var listEl = document.getElementById('pendingApprovalsList');
+    listEl.textContent = 'Loading…';
+    fetch('/admin/push-approvals', { credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(items) {
+            if (!items.length) {
+                listEl.textContent = 'No deliveries awaiting approval.';
+                return;
+            }
+            listEl.innerHTML = '';
+            items.forEach(function(item) {
+                var row = document.createElement('div');
+                row.className = 'flex items-center justify-between gap-2 border-b border-gray-100 pb-1.5';
+                var label = document.createElement('span');
+                label.textContent = item.scheduleId + ' — job ' + item.jobId;
+                var btnWrap = document.createElement('span');
+                btnWrap.className = 'flex gap-1.5';
+                var approveBtn = document.createElement('button');
+                approveBtn.textContent = 'Approve';
+                approveBtn.className = 'text-xs text-green-700 hover:underline';
+                approveBtn.onclick = function() { decideApproval(item.jobId, 'approve'); };
+                var rejectBtn = document.createElement('button');
+                rejectBtn.textContent = 'Reject';
+                rejectBtn.className = 'text-xs text-red-600 hover:underline';
+                rejectBtn.onclick = function() { decideApproval(item.jobId, 'reject'); };
+                btnWrap.appendChild(approveBtn);
+                btnWrap.appendChild(rejectBtn);
+                row.appendChild(label);
+                row.appendChild(btnWrap);
+                listEl.appendChild(row);
+            });
+        })
+        .catch(function(e) { listEl.textContent = 'Error: ' + e; });
+}
+
+function decideApproval(jobId, action) {
+    var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    headers[getCsrfHeader()] = getCsrfToken();
+    fetch('/admin/push-approvals/' + encodeURIComponent(jobId) + '/' + action,
+          { method: 'POST', headers: headers, credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function() { loadPendingApprovals(); })
+        .catch(function(e) { alert('Error: ' + e); });
+}
+
+document.addEventListener('DOMContentLoaded', loadPendingApprovals);
 
 function runSlopBeforeAfter(btn) {
     var maxTopics = parseInt(document.getElementById('slopMaxTopics').value, 10) || 5;

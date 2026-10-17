@@ -1615,6 +1615,25 @@ public class AppConfig {
     }
 
     @Bean
+    public com.wgblackmon.aihealthcare.domain.service.PushApprovalService pushApprovalService(
+            com.wgblackmon.aihealthcare.domain.port.outbound.PushApprovalPort approvalPort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.DataJobPort dataJobPort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.DataArtifactPort artifactPort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.DataPushSchedulePort schedulePort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.DataPushDeliveryPort deliveryPort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.DataAccessAuditPort auditPort) {
+        log.debug("pushApprovalService() | approvalPort={}, dataJobPort={}, artifactPort={}, schedulePort={}, deliveryPort={}, auditPort={}",
+                  approvalPort.getClass().getSimpleName(), dataJobPort.getClass().getSimpleName(),
+                  artifactPort.getClass().getSimpleName(), schedulePort.getClass().getSimpleName(),
+                  deliveryPort.getClass().getSimpleName(), auditPort.getClass().getSimpleName());
+        com.wgblackmon.aihealthcare.domain.service.PushApprovalService result =
+                new com.wgblackmon.aihealthcare.domain.service.PushApprovalService(
+                        approvalPort, dataJobPort, artifactPort, schedulePort, deliveryPort, auditPort);
+        log.debug("pushApprovalService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    @Bean
     public com.wgblackmon.aihealthcare.domain.service.FrontierClaimService frontierClaimService(
             com.wgblackmon.aihealthcare.domain.port.outbound.ClaimClassifierPort classifierPort,
             com.wgblackmon.aihealthcare.domain.port.outbound.FrontierClaimPort claimPort) {
