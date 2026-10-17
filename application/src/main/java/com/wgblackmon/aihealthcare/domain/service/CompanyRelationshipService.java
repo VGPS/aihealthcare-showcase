@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
  * @author  Bill Blackmon
  * @version 1.3
  * @since   2026-08-04
- * @updated 2026-10-07
+ * @updated 2026-10-18
  */
 public class CompanyRelationshipService implements MapCompanyRelationshipsUseCase {
 
@@ -167,7 +167,8 @@ public class CompanyRelationshipService implements MapCompanyRelationshipsUseCas
                 continue;
             }
 
-            String dedupKey = canonical.sourceCompany() + "|" + canonical.targetCompany() + "|" + canonical.relationshipType().name();
+            String dedupKey = canonical.sourceCompany().toLowerCase(Locale.ENGLISH) + "|"
+                    + canonical.targetCompany().toLowerCase(Locale.ENGLISH) + "|" + canonical.relationshipType().name();
             if (seen.contains(dedupKey)) {
                 continue;
             }
