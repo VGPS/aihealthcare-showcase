@@ -9,7 +9,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-03
- * @updated 2026-10-03
+ * @updated 2026-10-17
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -26,6 +26,43 @@
 <nav th:replace="~{fragments/nav :: nav('admin-outreach')}"></nav>
 
 <main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- CSRF token for JS fetch POST -->
+    <input type="hidden" id="csrf-token" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    <meta id="csrf-header" th:content="${_csrf.headerName}" content="X-CSRF-TOKEN"/>
+
+    <!-- Outreach Sync pipeline trigger card -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-5 flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-3">
+            <button id="sync-btn" type="button"
+                    class="bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded transition-colors"
+                    onclick="runOutreachSync()">
+                Run Outreach Sync
+            </button>
+            <span id="sync-spinner" class="hidden text-sm text-gray-500 italic">Running…</span>
+        </div>
+        <div class="text-sm text-gray-500 flex-1">
+            <span class="font-medium text-gray-700">Last run: </span>
+            <!-- Status from server-side last-run record -->
+            <span th:if="${outreachLastRun != null}">
+                <span th:text="${dateFmt.format(outreachLastRun.completedAt())}"
+                      class="font-medium"></span>
+                &nbsp;·&nbsp;
+                <span th:text="${outreachLastRun.status()}"
+                      th:classappend="${outreachLastRun.status() == 'SUCCESS'} ? 'text-green-700 font-medium' :
+                                      (${outreachLastRun.status() == 'FAILED'} ? 'text-red-700 font-medium' : 'text-yellow-700 font-medium')">
+                </span>
+                &nbsp;·&nbsp;
+                <span th:text="${outreachLastRun.itemsProcessed() + ' rows created'}"></span>
+                <span th:if="${outreachLastRun.durationMs() > 0}"
+                      th:text="' (' + ${outreachLastRun.durationMs()} + ' ms)'"
+                      class="text-gray-400 text-xs"></span>
+            </span>
+            <span th:if="${outreachLastRun == null}" class="text-gray-400 italic">Never run</span>
+            <!-- Updated inline after a successful JS-triggered run -->
+            <span id="sync-result" class="ml-2 font-medium hidden"></span>
+        </div>
+    </div>
 
     <!-- Flash messages -->
     <div th:if="${successMsg}" class="bg-green-50 border-l-4 border-green-500 text-green-800 text-sm p-3 mb-4 rounded"
@@ -267,5 +304,57 @@
     </div>
 
 </main>
+
+<script>
+(function () {
+    function runOutreachSync() {
+        const btn     = document.getElementById('sync-btn');
+        const spinner = document.getElementById('sync-spinner');
+        const result  = document.getElementById('sync-result');
+
+        // Block UI
+        btn.disabled = true;
+        btn.textContent = 'Running…';
+        spinner.classList.remove('hidden');
+        result.classList.add('hidden');
+
+        const csrfToken  = document.getElementById('csrf-token').value;
+        const csrfHeader = document.getElementById('csrf-header').getAttribute('content');
+
+        fetch('/admin/pipelines/outreach-sync/run', {
+            method: 'POST',
+            headers: { [csrfHeader]: csrfToken, 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function (resp) {
+            spinner.classList.add('hidden');
+            if (resp.status === 202 || resp.ok) {
+                btn.textContent = 'Started';
+                result.textContent = 'Running in background — refresh for updated row count';
+                result.className = 'ml-2 font-medium text-blue-700';
+            } else {
+                btn.textContent = 'Failed';
+                result.textContent = 'Pipeline failed (HTTP ' + resp.status + ')';
+                result.className = 'ml-2 font-medium text-red-700';
+            }
+            result.classList.remove('hidden');
+        })
+        .catch(function (err) {
+            spinner.classList.add('hidden');
+            btn.textContent = 'Error';
+            result.textContent = 'Network error — try again';
+            result.className = 'ml-2 font-medium text-red-700';
+            result.classList.remove('hidden');
+        })
+        .finally(function () {
+            // Re-enable after a short delay so accidental double-click is prevented
+            setTimeout(function () { btn.disabled = false; btn.textContent = 'Run Outreach Sync'; }, 4000);
+        });
+    }
+
+    // Expose for onclick attribute
+    window.runOutreachSync = runOutreachSync;
+})();
+</script>
+
 </body>
 </html>

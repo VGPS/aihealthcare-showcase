@@ -9,6 +9,7 @@ import com.wgblackmon.aihealthcare.domain.model.OutreachPurpose;
 import com.wgblackmon.aihealthcare.domain.model.OutreachStatus;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageOutreachUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -43,7 +44,7 @@ import org.springframework.http.MediaType;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-03
- * @updated 2026-10-03
+ * @updated 2026-10-17
  */
 @Slf4j
 @Controller
@@ -58,13 +59,17 @@ public class OutreachController {
 
     private final ManageOutreachUseCase outreachUseCase;
     private final HealthcareAiCompanyPort companyPort;
+    private final PipelineHealthService pipelineHealthService;
 
     public OutreachController(ManageOutreachUseCase outreachUseCase,
-                              HealthcareAiCompanyPort companyPort) {
-        log.debug("OutreachController() | outreachUseCase={}, companyPort={}",
-                outreachUseCase.getClass().getSimpleName(), companyPort.getClass().getSimpleName());
+                              HealthcareAiCompanyPort companyPort,
+                              PipelineHealthService pipelineHealthService) {
+        log.debug("OutreachController() | outreachUseCase={}, companyPort={}, pipelineHealthService={}",
+                outreachUseCase.getClass().getSimpleName(), companyPort.getClass().getSimpleName(),
+                pipelineHealthService.getClass().getSimpleName());
         this.outreachUseCase = outreachUseCase;
         this.companyPort = companyPort;
+        this.pipelineHealthService = pipelineHealthService;
     }
 
     /** List all outreach records. Supports sort and dir params; default updatedAt DESC. */
@@ -129,6 +134,7 @@ public class OutreachController {
         model.addAttribute("dateFmt", DATE_FMT);
         model.addAttribute("sortField", effectiveSort);
         model.addAttribute("sortDir", dir);
+        model.addAttribute("outreachLastRun", pipelineHealthService.getLastRun("outreach-sync"));
         log.debug("listOutreach() | return=view:outreach, records={}, sort={}, dir={}",
                 sorted.size(), effectiveSort, dir);
         return "outreach";
