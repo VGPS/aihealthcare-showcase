@@ -49,18 +49,21 @@ import java.util.Map;
  * warns about missing prerequisites before execution. Pipelines are triggered
  * directly from the browser via JavaScript fetch calls to their native endpoints.
  *
- * <p>Also exposes two pipeline kill switches — {@code digest-send} and
- * {@code enterprise-push} — backed by {@link PipelinePausePort}. These are
- * sticky operator pauses (not date-scoped overrides) for schedulers that
- * build and deliver content in one step with no persisted draft to review
- * first; an admin can halt a bad run without a redeploy.
+ * <p>Also exposes three pipeline kill switches — {@code digest-send},
+ * {@code enterprise-push}, and {@code pipeline-cascade} — backed by
+ * {@link PipelinePausePort}. These are sticky operator pauses (not
+ * date-scoped overrides); an admin can halt a bad run without a redeploy.
+ * {@code pipeline-cascade} is the broadest: it halts every remaining step
+ * of {@code StartupPipelineOrchestrator}'s full cascade (and the standalone
+ * deal-detection cron) mid-run, recording each skipped step for the audit
+ * trail, rather than covering a single one-shot send like the other two.
  *
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 3.0
+ * @version 3.1
  * @since   2026-07-30
- * @updated 2026-10-16
+ * @updated 2026-10-18
  */
 @Slf4j
 @Controller
@@ -69,6 +72,7 @@ public class AdminPipelineController {
 
     private static final String DIGEST_PAUSE_KEY = "digest-send";
     private static final String ENTERPRISE_PUSH_PAUSE_KEY = "enterprise-push";
+    private static final String PIPELINE_CASCADE_PAUSE_KEY = "pipeline-cascade";
 
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm:ss z")
@@ -179,11 +183,13 @@ public class AdminPipelineController {
 
         boolean digestPaused = pausePort.isPaused(DIGEST_PAUSE_KEY);
         boolean enterprisePushPaused = pausePort.isPaused(ENTERPRISE_PUSH_PAUSE_KEY);
+        boolean cascadePaused = pausePort.isPaused(PIPELINE_CASCADE_PAUSE_KEY);
         model.addAttribute("digestPaused", digestPaused);
         model.addAttribute("enterprisePushPaused", enterprisePushPaused);
+        model.addAttribute("cascadePaused", cascadePaused);
 
-        log.debug("pipelines() | return=admin-pipelines, count={}, recentEvents={}, digestPaused={}, enterprisePushPaused={}",
-                  pipelineList.size(), recentEvents.size(), digestPaused, enterprisePushPaused);
+        log.debug("pipelines() | return=admin-pipelines, count={}, recentEvents={}, digestPaused={}, enterprisePushPaused={}, cascadePaused={}",
+                  pipelineList.size(), recentEvents.size(), digestPaused, enterprisePushPaused, cascadePaused);
         return "admin-pipelines";
     }
 
@@ -227,6 +233,30 @@ public class AdminPipelineController {
         result.put("pipelineKey", ENTERPRISE_PUSH_PAUSE_KEY);
         result.put("paused", paused);
         log.debug("setEnterprisePushPaused() | return={}", result);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Toggles the pipeline-cascade kill switch. When paused, every remaining step of
+     * {@code StartupPipelineOrchestrator.runAllPipelines()} (and the standalone deal-detection
+     * cron) is skipped and recorded as {@code SKIPPED} rather than run — an admin can halt a
+     * misbehaving cascade mid-run without a redeploy. Broader than the digest/enterprise-push
+     * switches: it covers the whole 16-pipeline cascade, not a single one-shot send.
+     *
+     * @param paused true to pause, false to resume
+     * @return JSON acknowledgement with the new state
+     */
+    @PostMapping("/cascade/pause")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> setCascadePaused(
+            @RequestParam(defaultValue = "false") boolean paused) {
+        log.debug("setCascadePaused() | paused={}", paused);
+        pausePort.setPaused(PIPELINE_CASCADE_PAUSE_KEY, paused);
+        log.info("setCascadePaused() | Pipeline cascade {} by admin", paused ? "paused" : "resumed");
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("pipelineKey", PIPELINE_CASCADE_PAUSE_KEY);
+        result.put("paused", paused);
+        log.debug("setCascadePaused() | return={}", result);
         return ResponseEntity.ok(result);
     }
 
