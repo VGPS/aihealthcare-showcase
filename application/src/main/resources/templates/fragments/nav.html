@@ -7,7 +7,10 @@
  * menus. Links are organized into logical groups (Content, Research,
  * Reference, Account). Role-based visibility uses Spring Security's
  * sec:authorize. The active page is highlighted by comparing the
- * activePage parameter to a fixed string per link.
+ * activePage parameter to a fixed string per link. Every link and group
+ * button carries a title attribute (native browser tooltip) describing
+ * its purpose, added 2026-10-18 after user feedback that some items
+ * "appear to overlap."
  *
  * Usage: <nav th:replace="~{fragments/nav :: nav('search')}">
  *
@@ -27,10 +30,18 @@
  * best-judgment operational frequency (no page-view telemetry exists in this app to measure
  * it directly) — CRM first per explicit request, then daily-ops pages, then occasional/rare ones.
  *
+ * Tooltip audit (2026-10-18): two items were confirmed as genuine content overlap, not just
+ * confusable naming — Regulatory's events are a strict subset already shown inside Legal
+ * Timeline's "Regulation" filter, and Research Runs is literally the execution log for the
+ * pipeline behind Intel Reports/Vendor Compare, not a separate research tool. Their tooltips
+ * say so explicitly rather than paper over it. Kept both pages — Regulatory still serves users
+ * who only want the regulatory-only filtered view, and Research Runs is a legitimate audit log —
+ * but flagged in case consolidation is ever wanted.
+ *
  * @author  Bill Blackmon
- * @version 2.1
+ * @version 2.2
  * @since   2026-07-28
- * @updated 2026-10-18 — split Admin group out of Account; renamed Outreach CRM to CRM, moved to top
+ * @updated 2026-10-18 — added title-attribute tooltips to every nav item
  */
 -->
 <html xmlns:th="http://www.thymeleaf.org"
@@ -38,7 +49,7 @@
 <nav th:fragment="nav(activePage)" class="nav-bar">
 
     <!-- Brand icon — links to dashboard -->
-    <a th:href="@{/dashboard}" class="nav-link" style="padding: 0 0.5rem;">
+    <a th:href="@{/dashboard}" class="nav-link" style="padding: 0 0.5rem;" title="Home — back to your dashboard">
         <img th:src="@{/images/brand-icon.png}" alt="AI in Healthcare"
              height="78" width="78" style="display:block;flex-shrink:0;border-radius:8px;"/>
     </a>
@@ -48,13 +59,15 @@
          th:if="${footerTier == 'ENTERPRISE'}" sec:authorize="isAuthenticated()">
         <button @click="open = !open" class="nav-link nav-group-btn"
                 style="color: #a78bfa; font-weight: 600;"
+                title="Enterprise self-service tools"
                 th:classappend="${activePage == 'intelligence' || activePage == 'enterprise-data'} ? ' active'">
             Enterprise ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
-            <a th:href="@{/enterprise/data}"
+            <a th:href="@{/enterprise/data}" title="Submit and track async data-export jobs against curated feeds"
                th:classappend="${activePage == 'enterprise-data'} ? ' active'">Data Console</a>
             <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/intelligence}"
+               title="Admin-only competitive intelligence dashboard for enterprise accounts"
                th:classappend="${activePage == 'intelligence'} ? ' active'">Intelligence</a>
         </div>
     </div>
@@ -62,37 +75,43 @@
     <!-- Dashboard (standalone) -->
     <a th:href="@{/dashboard}"
        th:classappend="${activePage == 'dashboard'} ? ' active'"
+       title="Analytics overview — ingestion stats, recent pipeline runs, key metrics"
        class="nav-link">Dashboard</a>
 
     <!-- Tour (standalone, public — share-friendly) -->
     <a th:href="@{/tour}"
        th:classappend="${activePage == 'tour'} ? ' active'"
+       title="Guided, shareable walkthrough of the platform — safe to send to prospects"
        class="nav-link">Tour</a>
 
     <!-- Content group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
+                title="News, trends, deal signals, and market digests"
                 th:classappend="${activePage == 'news' || activePage == 'trends' || activePage == 'trend-history' || activePage == 'market' || activePage == 'market-history' || activePage == 'market-enrichment' || activePage == 'deals' || activePage == 'claims' || activePage == 'claimsMethodology'} ? ' active'">
             Content ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
-            <a th:href="@{/dashboard/claims}"
+            <a th:href="@{/dashboard/claims}" title="Public claims made by frontier AI companies, tracked with a verification verdict"
                th:classappend="${activePage == 'claims'} ? ' active'">Claim Tracker</a>
-            <a th:href="@{/claims/methodology}"
+            <a th:href="@{/claims/methodology}" title="How claims are sourced, scored, and verified for the Claim Tracker"
                th:classappend="${activePage == 'claimsMethodology'} ? ' active'">Claims Methodology</a>
             <a th:href="@{/dashboard/deals}"
+               title="LLM-confirmed M&amp;A, funding, and partnership events detected from recent articles — no dollar-size threshold; a very large deal may also appear in Market Digest"
                th:classappend="${activePage == 'deals'} ? ' active'">Deal Signals</a>
             <a th:href="@{/dashboard/market}"
+               title="Daily ranked digest of market-moving news (earnings, regulatory, funding, M&amp;A) — funding only qualifies above $50M"
                th:classappend="${activePage == 'market'} ? ' active'">Market Digest</a>
             <a th:href="@{/dashboard/market/enrichment}"
+               title="Structured sub-data extracted from Market Digest entries — regulatory tracker lifecycle, funding round details, deal terms"
                th:classappend="${activePage == 'market-enrichment'} ? ' active'">Market Enrichment</a>
-            <a th:href="@{/dashboard/market/history}"
+            <a th:href="@{/dashboard/market/history}" title="Browse past Market Digest editions by date range"
                th:classappend="${activePage == 'market-history'} ? ' active'">Market History</a>
-            <a th:href="@{/dashboard/news}"
+            <a th:href="@{/dashboard/news}" title="Recent articles grouped by topic/feed — browse only, no search"
                th:classappend="${activePage == 'news'} ? ' active'">News Listing</a>
-            <a th:href="@{/dashboard/trends/history}"
+            <a th:href="@{/dashboard/trends/history}" title="Multi-line chart of keyword trend snapshots over time"
                th:classappend="${activePage == 'trend-history'} ? ' active'">Trend History</a>
-            <a th:href="@{/dashboard/trends}"
+            <a th:href="@{/dashboard/trends}" title="This week's rising, fading, and newly-emerging keywords"
                th:classappend="${activePage == 'trends'} ? ' active'">Trends</a>
         </div>
     </div>
@@ -100,21 +119,25 @@
     <!-- Research group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
+                title="AI-assisted and manual research tools"
                 th:classappend="${activePage == 'research' || activePage == 'vendors' || activePage == 'ai-search' || activePage == 'search' || activePage == 'intel' || activePage == 'frameworks'} ? ' active'">
             Research ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
             <a th:href="@{/research/ai-search}"
+               title="Ask a question — get multi-model LLM synthesis (Claude, GPT, Gemini, Perplexity) with citations"
                th:classappend="${activePage == 'ai-search'} ? ' active'">AI Search</a>
             <a th:href="@{/dashboard/search}"
+               title="Structured filter search (date/source/topic/keyword) across the article archive — no AI synthesis"
                th:classappend="${activePage == 'search'} ? ' active'">Find Articles</a>
-            <a th:href="@{/dashboard/frameworks}"
+            <a th:href="@{/dashboard/frameworks}" title="6-dimension competitive scoring (LLM-generated) for tracked companies"
                th:classappend="${activePage == 'frameworks'} ? ' active'">Framework Analysis</a>
-            <a th:href="@{/research/intel}"
+            <a th:href="@{/research/intel}" title="Monthly AI-generated market intelligence report"
                th:classappend="${activePage == 'intel'} ? ' active'">Intel Reports</a>
             <a th:href="@{/research/runs}"
+               title="History log of every research query run — powers Intel Reports and Vendor Compare, not a separate research tool"
                th:classappend="${activePage == 'research'} ? ' active'">Research Runs</a>
-            <a th:href="@{/research/vendors}"
+            <a th:href="@{/research/vendors}" title="Side-by-side AI-assessed strengths/weaknesses for selected vendors"
                th:classappend="${activePage == 'vendors'} ? ' active'">Vendor Compare</a>
         </div>
     </div>
@@ -122,17 +145,20 @@
     <!-- Legal group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
+                title="Legal, regulatory, and legislative tracking"
                 th:classappend="${activePage == 'legal' || activePage == 'regulatory' || activePage == 'legal-trends' || activePage == 'legislation'} ? ' active'">
             Legal ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
             <a th:href="@{/dashboard/legal}"
+               title="Unified chronological feed — legal articles plus every regulatory event (includes everything on the Regulatory page)"
                th:classappend="${activePage == 'legal'} ? ' active'">Legal Timeline</a>
-            <a th:href="@{/dashboard/legal/trends}"
+            <a th:href="@{/dashboard/legal/trends}" title="Keyword trend detection scoped to legal/compliance topics"
                th:classappend="${activePage == 'legal-trends'} ? ' active'">Legal Trends</a>
             <a th:href="@{/dashboard/regulatory}"
+               title="FDA 510(k)/De Novo and CMS rule alerts only — the same events also appear in Legal Timeline's Regulation filter"
                th:classappend="${activePage == 'regulatory'} ? ' active'">Regulatory</a>
-            <a th:href="@{/legislation}"
+            <a th:href="@{/legislation}" title="Registry of enacted state AI-healthcare laws"
                th:classappend="${activePage == 'legislation'} ? ' active'">Legislation</a>
         </div>
     </div>
@@ -140,21 +166,24 @@
     <!-- Reference group -->
     <div class="nav-group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
+                title="Companies, clinical trials, sentiment, and the wiki"
                 th:classappend="${activePage == 'wiki' || activePage == 'clinical-trials' || activePage == 'companies' || activePage == 'company-directory' || activePage == 'risk' || activePage == 'relationships'} ? ' active'">
             Reference ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown">
-            <a th:href="@{/dashboard/clinical-trials}"
+            <a th:href="@{/dashboard/clinical-trials}" title="AI-related clinical trials tracked from ClinicalTrials.gov"
                th:classappend="${activePage == 'clinical-trials'} ? ' active'">Clinical Trials</a>
             <a th:href="@{/dashboard/companies}"
+               title="Internal company list with QA fields (sub-sector, validation status) — same data as Company Directory, admin-facing view"
                th:classappend="${activePage == 'companies'} ? ' active'">Companies</a>
             <a th:href="@{/directory}"
+               title="Public-facing company list with relevance/trending/funding signal scoring and CSV export"
                th:classappend="${activePage == 'company-directory'} ? ' active'">Company Directory</a>
-            <a th:href="@{/dashboard/relationships}"
+            <a th:href="@{/dashboard/relationships}" title="Company-to-company relationship graph (partnerships, acquisitions, investments)"
                th:classappend="${activePage == 'relationships'} ? ' active'">Relationships</a>
-            <a th:href="@{/dashboard/risk}"
-               th:classappend="${activePage == 'risk'} ? ' active'">Sentiment & Risk</a>
-            <a th:href="@{/wiki}"
+            <a th:href="@{/dashboard/risk}" title="LLM-classified sentiment score and risk summary per company"
+               th:classappend="${activePage == 'risk'} ? ' active'">Sentiment &amp; Risk</a>
+            <a th:href="@{/wiki}" title="LLM-compiled knowledge base with source provenance and contradiction tracking"
                th:classappend="${activePage == 'wiki'} ? ' active'">Wiki</a>
         </div>
     </div>
@@ -165,23 +194,24 @@
     <div class="nav-group nav-group-right" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false"
          sec:authorize="hasRole('ADMIN')">
         <button @click="open = !open" class="nav-link nav-group-btn"
+                title="Platform operations — pipelines, outreach CRM, users, newsletter, SSO"
                 th:classappend="${activePage == 'admin-outreach' || activePage == 'admin-pipelines' || activePage == 'admin' || activePage == 'newsletter' || activePage == 'admin-documents' || activePage == 'admin-wiki-gaps' || activePage == 'admin-sso'} ? ' active'">
             Admin ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown nav-dropdown-right">
-            <a th:href="@{/admin/outreach}"
+            <a th:href="@{/admin/outreach}" title="Outreach tracker for companies/contacts — employment, subscription, and acquisition targets"
                th:classappend="${activePage == 'admin-outreach'} ? ' active'">CRM</a>
-            <a th:href="@{/admin/pipelines}"
+            <a th:href="@{/admin/pipelines}" title="Manually trigger data pipelines; kill switches for scheduled jobs; run history"
                th:classappend="${activePage == 'admin-pipelines'} ? ' active'">Pipelines</a>
-            <a th:href="@{/admin}"
+            <a th:href="@{/admin}" title="User management and system status dashboard"
                th:classappend="${activePage == 'admin'} ? ' active'">Admin</a>
-            <a th:href="@{/newsletter/runs}"
+            <a th:href="@{/newsletter/runs}" title="Review, edit, and send newsletter drafts before they go out"
                th:classappend="${activePage == 'newsletter'} ? ' active'">Newsletter Runs</a>
-            <a th:href="@{/admin/documents}"
+            <a th:href="@{/admin/documents}" title="Upload PDF/DOCX/TXT files into the vector store and public wiki"
                th:classappend="${activePage == 'admin-documents'} ? ' active'">Document Library</a>
-            <a th:href="@{/admin/wiki-gaps}"
+            <a th:href="@{/admin/wiki-gaps}" title="Linter report — orphaned pages, broken references, stale content in the wiki"
                th:classappend="${activePage == 'admin-wiki-gaps'} ? ' active'">Wiki Gaps</a>
-            <a th:href="@{/admin/sso}"
+            <a th:href="@{/admin/sso}" title="Configure enterprise SAML2 identity providers"
                th:classappend="${activePage == 'admin-sso'} ? ' active'">SSO Providers</a>
         </div>
     </div>
@@ -189,35 +219,39 @@
     <!-- Account group (right side) -->
     <div class="nav-group nav-group-right" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
         <button @click="open = !open" class="nav-link nav-group-btn"
+                title="Your profile, billing, API keys, and personal settings"
                 th:classappend="${activePage == 'social' || activePage == 'social-drafts' || activePage == 'weekly-roundup' || activePage == 'watchlist' || activePage == 'notes' || activePage == 'pricing' || activePage == 'about' || activePage == 'profile' || activePage == 'developer' || activePage == 'webhooks'} ? ' active'">
             Account ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown nav-dropdown-right">
             <a sec:authorize="isAuthenticated()" th:href="@{/dashboard/social}"
+               title="Generate LinkedIn/Facebook post drafts from the latest market digest"
                th:classappend="${activePage == 'social'} ? ' active'">Social Posts</a>
             <a sec:authorize="isAuthenticated()" th:href="@{/dashboard/social/drafts}"
+               title="Previously generated social post drafts awaiting review"
                th:classappend="${activePage == 'social-drafts'} ? ' active'">Post Drafts</a>
-            <a th:href="@{/dashboard/weekly-roundup}"
+            <a th:href="@{/dashboard/weekly-roundup}" title="Saturday's AI-narrated weekly intelligence summary"
                th:classappend="${activePage == 'weekly-roundup'} ? ' active'">Weekly Roundup</a>
-            <a sec:authorize="isAuthenticated()" th:href="@{/profile}"
+            <a sec:authorize="isAuthenticated()" th:href="@{/profile}" title="Your subscription tier, usage meter, and billing portal"
                th:classappend="${activePage == 'profile'} ? ' active'">Profile</a>
-            <a sec:authorize="isAuthenticated()" th:href="@{/developer}"
+            <a sec:authorize="isAuthenticated()" th:href="@{/developer}" title="Manage your API keys for programmatic access"
                th:classappend="${activePage == 'developer'} ? ' active'">Developer</a>
-            <a th:href="@{/watchlist}"
+            <a th:href="@{/watchlist}" title="Keywords, companies, or topics matched against new articles for you"
                th:classappend="${activePage == 'watchlist'} ? ' active'">Watchlist</a>
-            <a th:href="@{/notes}"
+            <a th:href="@{/notes}" title="Your personal notes"
                th:classappend="${activePage == 'notes'} ? ' active'">Notes</a>
-            <a sec:authorize="isAuthenticated()" th:href="@{/settings/webhooks}"
+            <a sec:authorize="isAuthenticated()" th:href="@{/settings/webhooks}" title="Configure outbound webhook notifications for your account"
                th:classappend="${activePage == 'webhooks'} ? ' active'">Webhooks</a>
-            <a th:href="@{/pricing}"
+            <a th:href="@{/pricing}" title="Compare subscription tiers and checkout"
                th:classappend="${activePage == 'pricing'} ? ' active'">Pricing</a>
-            <a th:href="@{/about}"
+            <a th:href="@{/about}" title="About this platform"
                th:classappend="${activePage == 'about'} ? ' active'">About</a>
         </div>
     </div>
 
     <!-- Logout (standalone, right-aligned) -->
     <a sec:authorize="isAuthenticated()" th:href="@{/logout}"
+       title="Sign out"
        class="nav-link nav-logout">Logout</a>
 </nav>
 </html>
