@@ -11,6 +11,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.ManageOutreachUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,6 +20,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService.PipelineRunRecord;
 import java.time.Instant;
 import java.util.List;
 
@@ -44,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-03
- * @updated 2026-10-03
+ * @updated 2026-10-17
  */
 @Import(SecurityConfig.class)
 @WithMockUser(username = "admin@test.com", roles = "ADMIN")
@@ -62,6 +64,9 @@ class OutreachControllerTest {
 
     @MockitoBean
     private HealthcareAiCompanyPort companyPort;
+
+    @MockitoBean
+    private PipelineHealthService pipelineHealthService;
 
     private static final Instant NOW = Instant.parse("2026-10-03T12:00:00Z");
 
@@ -85,8 +90,11 @@ class OutreachControllerTest {
 
     @Test
     void listOutreach_returns200WithModel() throws Exception {
+        PipelineRunRecord lastRun = PipelineRunRecord.success(
+                "outreach-sync", 3, NOW.minusSeconds(60), NOW);
         when(outreachUseCase.listAllOutreach()).thenReturn(List.of(outreachRow()));
         when(companyPort.findAllByOrderByName()).thenReturn(List.of(company()));
+        when(pipelineHealthService.getLastRun("outreach-sync")).thenReturn(lastRun);
 
         mockMvc.perform(get("/admin/outreach"))
                 .andExpect(status().isOk())
@@ -95,7 +103,20 @@ class OutreachControllerTest {
                 .andExpect(model().attributeExists("companies"))
                 .andExpect(model().attributeExists("companyNameToId"))
                 .andExpect(model().attribute("sortField", "updatedAt"))
-                .andExpect(model().attribute("sortDir", "desc"));
+                .andExpect(model().attribute("sortDir", "desc"))
+                .andExpect(model().attribute("outreachLastRun", lastRun));
+    }
+
+    @Test
+    void listOutreach_noLastRun_showsNeverRunCaption() throws Exception {
+        when(outreachUseCase.listAllOutreach()).thenReturn(List.of(outreachRow()));
+        when(companyPort.findAllByOrderByName()).thenReturn(List.of(company()));
+        when(pipelineHealthService.getLastRun("outreach-sync")).thenReturn(null);
+
+        mockMvc.perform(get("/admin/outreach"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("outreach"))
+                .andExpect(content().string(containsString("Never run")));
     }
 
     @Test
