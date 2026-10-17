@@ -103,7 +103,7 @@ class CompanyOutreachTest {
     @Test
     void outreachPurpose_hasExpectedValues() {
         assertThat(OutreachPurpose.values()).containsExactlyInAnyOrder(
-                OutreachPurpose.EMPLOYMENT, OutreachPurpose.SUBSCRIPTION);
+                OutreachPurpose.EMPLOYMENT, OutreachPurpose.SUBSCRIPTION, OutreachPurpose.ACQUISITION);
     }
 
     @Test

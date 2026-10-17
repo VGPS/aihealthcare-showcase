@@ -117,6 +117,21 @@ class OutreachSyncServiceTest {
     }
 
     @Test
+    void syncOutreachRows_neverCreatesAcquisitionRows() {
+        when(companyPort.findAll()).thenReturn(List.of(company("tempus", "Tempus AI")));
+        when(outreachPort.findAll()).thenReturn(List.of());
+        when(outreachPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        int created = service.syncOutreachRows();
+
+        assertThat(created).isEqualTo(2);
+        ArgumentCaptor<CompanyOutreach> captor = ArgumentCaptor.forClass(CompanyOutreach.class);
+        verify(outreachPort, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues()).extracting(CompanyOutreach::purpose)
+                .doesNotContain(OutreachPurpose.ACQUISITION);
+    }
+
+    @Test
     void syncOutreachRows_idempotent_secondRunCreatesZero() {
         when(companyPort.findAll()).thenReturn(List.of(company("khealth", "K Health")));
         when(outreachPort.findAll()).thenReturn(List.of());
