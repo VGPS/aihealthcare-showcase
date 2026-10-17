@@ -29,6 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -129,6 +130,33 @@ class OutreachControllerTest {
                 .andExpect(view().name("outreach"))
                 .andExpect(model().attribute("sortField", "slug"))
                 .andExpect(model().attribute("sortDir", "asc"));
+    }
+
+    @Test
+    void addContactInline_returns200WithJson() throws Exception {
+        when(outreachUseCase.addContact(eq("microsoft"), eq("Jane Doe"), eq("VP Sales"),
+                isNull(), eq("https://linkedin.com/in/jane"), any(), isNull()))
+                .thenReturn(contact());
+
+        mockMvc.perform(post("/admin/outreach/microsoft/contacts/add-inline").with(csrf())
+                        .param("fullName", "Jane Doe")
+                        .param("jobTitle", "VP Sales")
+                        .param("linkedinUrl", "https://linkedin.com/in/jane"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json"))
+                .andExpect(content().string(containsString("\"ok\":true")))
+                .andExpect(content().string(containsString("Jane Doe")));
+    }
+
+    @Test
+    void addContactInline_missingName_returnsBadRequest() throws Exception {
+        when(outreachUseCase.addContact(any(), any(), any(), any(), any(), any(), any()))
+                .thenThrow(new IllegalArgumentException("fullName must not be blank"));
+
+        mockMvc.perform(post("/admin/outreach/microsoft/contacts/add-inline").with(csrf())
+                        .param("fullName", ""))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("\"ok\":false")));
     }
 
     @Test
