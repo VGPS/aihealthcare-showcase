@@ -10,7 +10,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-02
- * @updated 2026-08-02
+ * @updated 2026-10-17
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -48,20 +48,25 @@
         </div>
     </div>
 
-    <!-- Sub-sector filter tabs -->
-    <div th:if="${!subSectors.isEmpty()}" class="flex gap-2 flex-wrap mb-5">
+    <!-- Sub-sector filter tabs — collapsed to active chip when a filter is selected -->
+    <div th:if="${!subSectors.isEmpty() and filter == null}" class="flex gap-2 flex-wrap mb-5">
         <a th:href="@{/dashboard/companies(sort=${sort})}"
-           class="px-3 py-1 rounded-full text-xs font-medium border"
-           th:classappend="${filter == null} ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'">
+           class="px-3 py-1 rounded-full text-xs font-medium border bg-primary-600 text-white border-primary-600">
             All
         </a>
         <a th:each="sector : ${subSectors}"
            th:href="@{/dashboard/companies(filter=${sector},sort=${sort})}"
            th:text="${sector}"
-           class="px-3 py-1 rounded-full text-xs font-medium border"
-           th:classappend="${filter != null && filter.equalsIgnoreCase(sector)} ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'">
+           class="px-3 py-1 rounded-full text-xs font-medium border bg-white text-gray-600 border-gray-300 hover:bg-gray-50">
             Sector
         </a>
+    </div>
+    <div th:if="${filter != null}" class="flex items-center gap-3 mb-5">
+        <span class="text-xs text-gray-500 font-medium">Filtered by:</span>
+        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-primary-600 text-white"
+              th:text="${filter}">filter</span>
+        <a th:href="@{/dashboard/companies(sort=${sort})}"
+           class="text-xs text-gray-500 hover:text-red-600 hover:underline">× Clear filter</a>
     </div>
 
     <!-- Empty state -->
