@@ -27,6 +27,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,14 +121,17 @@ public class OutreachController {
         List<CompanyOutreach> sorted = new ArrayList<>(allOutreach);
         sorted.sort(cmp);
 
-        // Build name→id map for JS combo box lookup
+        // Build name→id map for JS combo box lookup and id→name map for display
         Map<String, String> companyNameToId = new LinkedHashMap<>();
+        Map<String, String> slugToName = new HashMap<>();
         for (HealthcareAiCompany c : companies) {
             companyNameToId.put(c.name(), c.companyId());
+            slugToName.put(c.companyId(), c.name());
         }
         model.addAttribute("allOutreach", sorted);
         model.addAttribute("companies", companies);
         model.addAttribute("companyNameToId", companyNameToId);
+        model.addAttribute("slugToName", slugToName);
         model.addAttribute("purposes", OutreachPurpose.values());
         model.addAttribute("statuses", OutreachStatus.values());
         model.addAttribute("displayFmt", DISPLAY_FMT);
