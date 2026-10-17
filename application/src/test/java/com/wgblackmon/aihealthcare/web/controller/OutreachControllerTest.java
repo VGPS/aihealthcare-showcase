@@ -93,7 +93,32 @@ class OutreachControllerTest {
                 .andExpect(view().name("outreach"))
                 .andExpect(model().attributeExists("allOutreach"))
                 .andExpect(model().attributeExists("companies"))
-                .andExpect(model().attributeExists("companyNameToId"));
+                .andExpect(model().attributeExists("companyNameToId"))
+                .andExpect(model().attribute("sortField", "updatedAt"))
+                .andExpect(model().attribute("sortDir", "desc"));
+    }
+
+    @Test
+    void listOutreach_customSort_returns200WithSortParams() throws Exception {
+        when(outreachUseCase.listAllOutreach()).thenReturn(List.of(outreachRow()));
+        when(companyPort.findAllByOrderByName()).thenReturn(List.of(company()));
+
+        mockMvc.perform(get("/admin/outreach").param("sort", "slug").param("dir", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("outreach"))
+                .andExpect(model().attribute("sortField", "slug"))
+                .andExpect(model().attribute("sortDir", "asc"));
+    }
+
+    @Test
+    void exportCsv_returns200WithCsvContentType() throws Exception {
+        when(outreachUseCase.listAllOutreach()).thenReturn(List.of(outreachRow()));
+
+        mockMvc.perform(get("/admin/outreach/export.csv"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("text/csv"))
+                .andExpect(content().string(containsString("Company Slug")))
+                .andExpect(content().string(containsString("microsoft")));
     }
 
     @Test

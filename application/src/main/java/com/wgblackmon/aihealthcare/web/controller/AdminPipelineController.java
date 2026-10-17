@@ -21,6 +21,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PipelinePausePort;
+import com.wgblackmon.aihealthcare.domain.service.OutreachSyncService;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
@@ -87,6 +88,7 @@ public class AdminPipelineController {
     private final TrackFrontierClaimsUseCase trackFrontierClaimsUseCase;
     private final ArticleIngestionPort articleIngestionPort;
     private final PipelinePausePort pausePort;
+    private final OutreachSyncService outreachSyncService;
 
     public AdminPipelineController(PipelineHealthService healthService,
                                    PipelineAsyncRunner asyncRunner,
@@ -97,9 +99,10 @@ public class AdminPipelineController {
                                    DetectTrendsUseCase detectTrendsUseCase,
                                    TrackFrontierClaimsUseCase trackFrontierClaimsUseCase,
                                    ArticleIngestionPort articleIngestionPort,
-                                   PipelinePausePort pausePort) {
-        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}, pausePort={}",
-                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort, pausePort);
+                                   PipelinePausePort pausePort,
+                                   OutreachSyncService outreachSyncService) {
+        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}, pausePort={}, outreachSyncService={}",
+                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort, pausePort, outreachSyncService);
         this.healthService = healthService;
         this.asyncRunner = asyncRunner;
         this.newsletterScheduler = newsletterScheduler;
@@ -110,6 +113,7 @@ public class AdminPipelineController {
         this.trackFrontierClaimsUseCase = trackFrontierClaimsUseCase;
         this.articleIngestionPort = articleIngestionPort;
         this.pausePort = pausePort;
+        this.outreachSyncService = outreachSyncService;
     }
 
     /**
@@ -403,6 +407,22 @@ public class AdminPipelineController {
     }
 
     /**
+     * Manually triggers the outreach sync pipeline.
+     *
+     * <p>Creates NOT_STARTED EMPLOYMENT and SUBSCRIPTION outreach rows for every
+     * company in the healthcare AI directory that does not yet have them.
+     * Idempotent — safe to run multiple times.
+     *
+     * @return JSON result with created row count and duration
+     */
+    @PostMapping("/outreach-sync/run")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> runOutreachSync() {
+        log.debug("runOutreachSync()");
+        return asyncRunner.runAsync("outreach-sync", () -> outreachSyncService.syncOutreachRows());
+    }
+
+    /**
      * Syncs the NotebookLM corpus from EC2 to the local dev machine via SSH + SCP.
      *
      * <p>EC2 runs {@code ResearchHarvestScheduler} (06:00 &amp; 12:00 UTC daily),
@@ -681,6 +701,13 @@ public class AdminPipelineController {
                 "Harvests AI-related clinical trials from ClinicalTrials.gov. Deduplicates by NCT ID. Matches watchlists.",
                 "Daily 05:00 UTC", "ClinicalTrialHarvestScheduler",
                 "/monitoring/clinical-trials-harvest", "POST", true, "~1 min", "Low"));
+
+        list.add(new PipelineInfo("outreach-sync", "Outreach Sync",
+                "Creates NOT_STARTED EMPLOYMENT and SUBSCRIPTION outreach rows for every company in the " +
+                "healthcare AI directory that does not yet have a row in the CRM. Idempotent — safe to re-run. " +
+                "Results visible at /admin/outreach.",
+                "After daily pipeline cascade", "StartupPipelineOrchestrator (cascade step 16)",
+                "/admin/pipelines/outreach-sync/run", "POST", true, "~5 sec", "Minimal"));
 
         list.add(new PipelineInfo("trend-detection", "Trend Detection",
                 "Analyzes keyword frequency across 30/90/180-day windows to identify rising, fading, and new trends. LLM scores articles per keyword then calls Perplexity Deep Research for analyst summaries — runs synchronously, expect 15-20 minutes.",

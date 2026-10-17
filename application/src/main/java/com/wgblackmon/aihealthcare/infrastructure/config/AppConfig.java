@@ -1602,6 +1602,19 @@ public class AppConfig {
     }
 
     @Bean
+    public com.wgblackmon.aihealthcare.domain.service.OutreachSyncService outreachSyncService(
+            com.wgblackmon.aihealthcare.domain.port.outbound.CompanyOutreachPort outreachPort,
+            com.wgblackmon.aihealthcare.domain.port.outbound.HealthcareAiCompanyPort companyPort) {
+        log.debug("outreachSyncService() | outreachPort={}, companyPort={}",
+                  outreachPort.getClass().getSimpleName(),
+                  companyPort.getClass().getSimpleName());
+        com.wgblackmon.aihealthcare.domain.service.OutreachSyncService result =
+                new com.wgblackmon.aihealthcare.domain.service.OutreachSyncService(outreachPort, companyPort);
+        log.debug("outreachSyncService() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    @Bean
     public com.wgblackmon.aihealthcare.domain.service.FrontierClaimService frontierClaimService(
             com.wgblackmon.aihealthcare.domain.port.outbound.ClaimClassifierPort classifierPort,
             com.wgblackmon.aihealthcare.domain.port.outbound.FrontierClaimPort claimPort) {
