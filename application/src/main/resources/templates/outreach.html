@@ -263,11 +263,12 @@
                             <span th:if="${sortField == 'updatedAt'}" th:text="${sortDir == 'desc' ? ' ↓' : ' ↑'}"></span>
                         </a>
                     </th>
-                    <th class="px-5 py-3 text-left">Actions</th>
+                    <th class="px-5 py-3 text-left">Actions &amp; Contacts</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
-                <tr th:each="row : ${allOutreach}" class="hover:bg-gray-50 transition-colors">
+                <th:block th:each="row : ${allOutreach}">
+                <tr class="hover:bg-gray-50 transition-colors">
                     <td class="px-5 py-3 font-medium">
                         <a th:href="@{/admin/outreach/{slug}(slug=${row.slug()})}"
                            class="text-primary-700 hover:underline" th:text="${row.slug()}"></a>
@@ -300,9 +301,15 @@
                               th:text="${dateFmt.format(row.updatedAt())}"></span>
                         <span th:if="${row.updatedAt() == null}" class="text-gray-300">—</span>
                     </td>
-                    <td class="px-5 py-3">
+                    <td class="px-5 py-3 whitespace-nowrap">
                         <a th:href="@{/admin/outreach/{slug}(slug=${row.slug()})}"
-                           class="text-primary-600 hover:underline text-xs mr-3">View</a>
+                           class="text-primary-600 hover:underline text-xs mr-2">View</a>
+                        <button type="button"
+                                th:data-row-id="${row.id()}"
+                                th:data-slug="${row.slug()}"
+                                class="text-green-700 hover:text-green-900 text-xs mr-2 font-medium"
+                                title="Add contact"
+                                onclick="toggleAddContact(this.dataset.rowId, this.dataset.slug)">+ Contact</button>
                         <form th:action="@{/admin/outreach/{id}/delete(id=${row.id()})}" method="post" class="inline"
                               onsubmit="return confirm('Delete this outreach record?')">
                             <input type="hidden" name="slug" th:value="${row.slug()}"/>
@@ -310,6 +317,48 @@
                         </form>
                     </td>
                 </tr>
+                <!-- Quick-add contact row — hidden until + Contact is clicked -->
+                <tr th:id="'add-contact-' + ${row.id()}"
+                    th:data-slug="${row.slug()}"
+                    class="hidden bg-green-50 border-l-4 border-green-400">
+                    <td colspan="7" class="px-5 py-3">
+                        <div class="flex flex-wrap gap-2 items-end">
+                            <div class="flex flex-col gap-0.5">
+                                <label class="text-xs font-medium text-gray-600">Name <span class="text-red-500">*</span></label>
+                                <input type="text" th:id="'qc-name-' + ${row.id()}"
+                                       placeholder="Jane Doe"
+                                       class="border border-gray-300 rounded px-2 py-1 text-sm w-44 focus:outline-none focus:ring-1 focus:ring-green-400"/>
+                            </div>
+                            <div class="flex flex-col gap-0.5">
+                                <label class="text-xs font-medium text-gray-600">Title</label>
+                                <input type="text" th:id="'qc-title-' + ${row.id()}"
+                                       placeholder="VP of Sales"
+                                       class="border border-gray-300 rounded px-2 py-1 text-sm w-40 focus:outline-none focus:ring-1 focus:ring-green-400"/>
+                            </div>
+                            <div class="flex flex-col gap-0.5">
+                                <label class="text-xs font-medium text-gray-600">LinkedIn URL</label>
+                                <input type="url" th:id="'qc-li-' + ${row.id()}"
+                                       placeholder="https://linkedin.com/in/..."
+                                       class="border border-gray-300 rounded px-2 py-1 text-sm w-64 focus:outline-none focus:ring-1 focus:ring-green-400"/>
+                            </div>
+                            <button type="button"
+                                    th:data-row-id="${row.id()}"
+                                    class="bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-1.5 rounded transition-colors"
+                                    onclick="saveQuickContact(this.dataset.rowId)">
+                                Save
+                            </button>
+                            <button type="button"
+                                    th:data-row-id="${row.id()}"
+                                    th:data-slug="${row.slug()}"
+                                    class="text-gray-500 hover:text-gray-700 text-xs px-2 py-1.5"
+                                    onclick="toggleAddContact(this.dataset.rowId, this.dataset.slug)">
+                                Cancel
+                            </button>
+                            <span th:id="'qc-msg-' + ${row.id()}" class="text-xs font-medium"></span>
+                        </div>
+                    </td>
+                </tr>
+                </th:block>
             </tbody>
         </table>
     </div>
@@ -366,6 +415,67 @@
     window.editNotes       = editNotes;
     window.cancelNoteEdit  = cancelNoteEdit;
     window.saveNotes       = saveNotes;
+
+    // --- Quick-add contact ---
+    function toggleAddContact(rowId, slug) {
+        const row = document.getElementById('add-contact-' + rowId);
+        const hidden = row.classList.contains('hidden');
+        row.classList.toggle('hidden');
+        if (hidden) {
+            document.getElementById('qc-name-' + rowId).focus();
+        }
+    }
+
+    function saveQuickContact(rowId, slug) {
+        const nameEl  = document.getElementById('qc-name-'  + rowId);
+        const titleEl = document.getElementById('qc-title-' + rowId);
+        const liEl    = document.getElementById('qc-li-'    + rowId);
+        const msgEl   = document.getElementById('qc-msg-'   + rowId);
+
+        const name = nameEl.value.trim();
+        if (!name) { nameEl.focus(); return; }
+
+        const csrfToken  = document.getElementById('csrf-token').value;
+        const csrfHeader = document.getElementById('csrf-header').getAttribute('content');
+
+        const body = 'fullName=' + encodeURIComponent(name)
+                   + '&jobTitle=' + encodeURIComponent(titleEl.value.trim())
+                   + '&linkedinUrl=' + encodeURIComponent(liEl.value.trim());
+
+        fetch('/admin/outreach/' + encodeURIComponent(slug) + '/contacts/add-inline', {
+            method: 'POST',
+            headers: {
+                [csrfHeader]: csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: body
+        })
+        .then(function (resp) { return resp.json(); })
+        .then(function (data) {
+            if (data.ok) {
+                msgEl.textContent = '✓ ' + data.fullName + ' added';
+                msgEl.className = 'text-xs font-medium text-green-700';
+                nameEl.value = '';
+                titleEl.value = '';
+                liEl.value = '';
+                setTimeout(function () {
+                    document.getElementById('add-contact-' + rowId).classList.add('hidden');
+                    msgEl.textContent = '';
+                }, 1800);
+            } else {
+                msgEl.textContent = data.error || 'Save failed';
+                msgEl.className = 'text-xs font-medium text-red-700';
+            }
+        })
+        .catch(function () {
+            msgEl.textContent = 'Network error — try again';
+            msgEl.className = 'text-xs font-medium text-red-700';
+        });
+    }
+
+    window.toggleAddContact  = toggleAddContact;
+    window.saveQuickContact  = saveQuickContact;
 
     // --- Run pipeline ---
     function runOutreachSync() {

@@ -354,6 +354,31 @@ public class OutreachController {
         return "redirect:/admin/outreach";
     }
 
+    /** Add a contact inline from the list view — JSON response, defaults source to LINKEDIN. */
+    @PostMapping("/{slug}/contacts/add-inline")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> addContactInline(
+            @PathVariable String slug,
+            @RequestParam String fullName,
+            @RequestParam(required = false) String jobTitle,
+            @RequestParam(required = false) String linkedinUrl) {
+        log.debug("addContactInline() | slug={}, fullName={}", slug, fullName);
+        try {
+            outreachUseCase.addContact(slug, fullName.trim(), jobTitle, null, linkedinUrl,
+                    ContactSource.LINKEDIN, null);
+            Map<String, Object> result = Map.of(
+                    "ok", true,
+                    "fullName", fullName.trim(),
+                    "jobTitle", jobTitle != null ? jobTitle : "",
+                    "linkedinUrl", linkedinUrl != null ? linkedinUrl : "");
+            log.debug("addContactInline() | return=ok");
+            return ResponseEntity.ok(result);
+        } catch (Exception ex) {
+            log.warn("addContactInline() | error: {}", ex.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", ex.getMessage()));
+        }
+    }
+
     /** Add a contact to a company. */
     @PostMapping("/{slug}/contacts/add")
     public String addContact(@PathVariable String slug,
