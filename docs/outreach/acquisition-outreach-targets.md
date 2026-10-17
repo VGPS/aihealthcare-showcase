@@ -43,7 +43,7 @@
 | fullName | Brian Eastwood |
 | jobTitle | Research Analyst |
 | email | [FIND] |
-| linkedinUrl | [VERIFY — search "Brian Eastwood Chilmark Research"] |
+| linkedinUrl | https://www.linkedin.com/in/brian-eastwood-5705a2a/ (verified 2026-10-18 — "Brian Eastwood Writes, LLC," Greater Boston, UMass Boston alum, matches his Chilmark bio) |
 | source | MANUAL |
 | status | NOT_CONTACTED |
 | notes | Analyst; understands the domain deeply; better cold-intro path than going direct to John Moore as a first contact. |
