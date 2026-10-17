@@ -130,12 +130,17 @@
                     <li>• AI search across company articles</li>
                 </ul>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
                 <a href="/dashboard/companies" class="inline-block bg-primary-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-primary-700 transition-colors">
                     Company Intelligence →
                 </a>
                 <a href="/dashboard/deals" class="inline-block border border-primary-600 text-primary-600 px-4 py-2 rounded text-sm font-medium hover:bg-white transition-colors">
                     Deal Signals
+                </a>
+                <a sec:authorize="hasRole('ADMIN')"
+                   th:href="@{/admin/outreach/{slug}(slug=${company.slug()})}"
+                   class="inline-block border border-gray-400 text-gray-600 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors">
+                    Track Outreach
                 </a>
             </div>
         </div>

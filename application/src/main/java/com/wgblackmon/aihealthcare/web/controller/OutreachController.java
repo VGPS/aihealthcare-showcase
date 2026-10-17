@@ -208,6 +208,28 @@ public class OutreachController {
         return "redirect:/admin/outreach/" + slug;
     }
 
+    /** Update LinkedIn sent date and outcome for an outreach row. */
+    @PostMapping("/{id}/linkedin")
+    public String updateLinkedIn(@PathVariable Long id,
+                                 @RequestParam(required = false) String linkedinSentAt,
+                                 @RequestParam(required = false) String linkedinOutcome,
+                                 @RequestParam String slug,
+                                 RedirectAttributes flash) {
+        log.debug("updateLinkedIn() | id={}, linkedinSentAt={}, linkedinOutcome={}", id, linkedinSentAt, linkedinOutcome);
+        try {
+            Instant sentAt = (linkedinSentAt != null && !linkedinSentAt.isBlank())
+                    ? Instant.parse(linkedinSentAt + "T00:00:00Z") : null;
+            String outcome = (linkedinOutcome != null && !linkedinOutcome.isBlank()) ? linkedinOutcome : null;
+            outreachUseCase.updateLinkedIn(id, sentAt, outcome);
+            flash.addFlashAttribute("successMsg", "LinkedIn details saved");
+        } catch (Exception ex) {
+            log.warn("updateLinkedIn() | error: {}", ex.getMessage());
+            flash.addFlashAttribute("errorMsg", ex.getMessage());
+        }
+        log.debug("updateLinkedIn() | return=redirect:/admin/outreach/{}", slug);
+        return "redirect:/admin/outreach/" + slug;
+    }
+
     /** Delete an outreach record. */
     @PostMapping("/{id}/delete")
     public String deleteOutreach(@PathVariable Long id,

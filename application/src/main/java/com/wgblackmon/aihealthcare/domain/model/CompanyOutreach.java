@@ -10,19 +10,21 @@ import java.time.Instant;
  * links to a {@code CompanyProfile} but lives in a separate table so pipeline
  * upserts on company_profiles never touch outreach state.
  *
- * @param id            surrogate primary key
- * @param slug          kebab-case company slug (FK to company_profiles)
- * @param purpose       EMPLOYMENT or SUBSCRIPTION
- * @param status        current lifecycle status
- * @param contactedAt   when this outreach first moved past NOT_STARTED; nullable
- * @param notes         free-form notes; nullable
- * @param createdAt     when the record was created
- * @param updatedAt     most recent modification timestamp
+ * @param id                surrogate primary key
+ * @param slug              kebab-case company slug (FK to company_profiles)
+ * @param purpose           EMPLOYMENT or SUBSCRIPTION
+ * @param status            current lifecycle status
+ * @param contactedAt       when this outreach first moved past NOT_STARTED; nullable
+ * @param notes             free-form notes; nullable
+ * @param linkedinSentAt    when a LinkedIn connection request or message was sent; nullable
+ * @param linkedinOutcome   result of the LinkedIn touch (e.g. "connected", "no response", "declined"); nullable
+ * @param createdAt         when the record was created
+ * @param updatedAt         most recent modification timestamp
  *
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-03
- * @updated 2026-10-03
+ * @updated 2026-10-17
  */
 public record CompanyOutreach(
         Long id,
@@ -31,6 +33,8 @@ public record CompanyOutreach(
         OutreachStatus status,
         Instant contactedAt,
         String notes,
+        Instant linkedinSentAt,
+        String linkedinOutcome,
         Instant createdAt,
         Instant updatedAt
 ) {

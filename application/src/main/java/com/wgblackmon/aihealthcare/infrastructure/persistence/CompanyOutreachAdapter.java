@@ -93,6 +93,8 @@ public class CompanyOutreachAdapter implements CompanyOutreachPort {
         e.setStatus(o.status().name());
         e.setContactedAt(o.contactedAt());
         e.setNotes(o.notes());
+        e.setLinkedinSentAt(o.linkedinSentAt());
+        e.setLinkedinOutcome(o.linkedinOutcome());
         e.setCreatedAt(o.createdAt());
         e.setUpdatedAt(o.updatedAt());
         return e;
@@ -106,6 +108,8 @@ public class CompanyOutreachAdapter implements CompanyOutreachPort {
                 OutreachStatus.valueOf(e.getStatus()),
                 e.getContactedAt(),
                 e.getNotes(),
+                e.getLinkedinSentAt(),
+                e.getLinkedinOutcome(),
                 e.getCreatedAt(),
                 e.getUpdatedAt()
         );

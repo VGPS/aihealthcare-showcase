@@ -55,7 +55,7 @@ class OutreachServiceTest {
     void addOutreach_savesWithNotStartedStatus() {
         ArgumentCaptor<CompanyOutreach> cap = ArgumentCaptor.forClass(CompanyOutreach.class);
         CompanyOutreach saved = new CompanyOutreach(1L, "microsoft", OutreachPurpose.EMPLOYMENT,
-                OutreachStatus.NOT_STARTED, null, "first notes", NOW, NOW);
+                OutreachStatus.NOT_STARTED, null, "first notes", null, null, NOW, NOW);
         when(outreachPort.save(any())).thenReturn(saved);
 
         service.addOutreach("microsoft", OutreachPurpose.EMPLOYMENT, "first notes");
@@ -69,7 +69,7 @@ class OutreachServiceTest {
     @Test
     void updateOutreachStatus_firstTransitionOutOfNotStarted_setsContactedAt() {
         CompanyOutreach existing = new CompanyOutreach(1L, "acme", OutreachPurpose.SUBSCRIPTION,
-                OutreachStatus.NOT_STARTED, null, null, NOW, NOW);
+                OutreachStatus.NOT_STARTED, null, null, null, null, NOW, NOW);
         when(outreachPort.findById(1L)).thenReturn(Optional.of(existing));
         ArgumentCaptor<CompanyOutreach> cap = ArgumentCaptor.forClass(CompanyOutreach.class);
         when(outreachPort.save(any())).thenAnswer(i -> i.getArgument(0));
@@ -84,7 +84,7 @@ class OutreachServiceTest {
     @Test
     void updateOutreachStatus_alreadyHasContactedAt_doesNotOverwrite() {
         CompanyOutreach existing = new CompanyOutreach(1L, "acme", OutreachPurpose.EMPLOYMENT,
-                OutreachStatus.IN_PROGRESS, NOW, null, NOW, NOW);
+                OutreachStatus.IN_PROGRESS, NOW, null, null, null, NOW, NOW);
         when(outreachPort.findById(1L)).thenReturn(Optional.of(existing));
         ArgumentCaptor<CompanyOutreach> cap = ArgumentCaptor.forClass(CompanyOutreach.class);
         when(outreachPort.save(any())).thenAnswer(i -> i.getArgument(0));
