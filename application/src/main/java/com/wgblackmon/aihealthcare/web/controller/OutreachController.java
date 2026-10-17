@@ -24,9 +24,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 /**
  * Admin controller for the Company Outreach CRM.
@@ -48,6 +53,9 @@ public class OutreachController {
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("MMM d, yyyy HH:mm").withZone(ZoneId.of("America/Chicago"));
 
+    private static final DateTimeFormatter DATE_FMT =
+            DateTimeFormatter.ofPattern("MM/dd/yyyy").withZone(ZoneId.of("America/Chicago"));
+
     private final ManageOutreachUseCase outreachUseCase;
     private final HealthcareAiCompanyPort companyPort;
 
@@ -59,25 +67,111 @@ public class OutreachController {
         this.companyPort = companyPort;
     }
 
-    /** List all outreach records. Companies list populates the add-form combo box. */
+    /** List all outreach records. Supports sort and dir params; default updatedAt DESC. */
     @GetMapping
-    public String listOutreach(Model model) {
-        log.debug("listOutreach()");
+    public String listOutreach(
+            @RequestParam(required = false, defaultValue = "updatedAt") String sort,
+            @RequestParam(required = false, defaultValue = "desc") String dir,
+            Model model) {
+        log.debug("listOutreach() | sort={}, dir={}", sort, dir);
         List<CompanyOutreach> allOutreach = outreachUseCase.listAllOutreach();
         List<HealthcareAiCompany> companies = companyPort.findAllByOrderByName();
+
+        // In-memory sort
+        String effectiveSort = sort;
+        Comparator<CompanyOutreach> cmp;
+        switch (sort) {
+            case "slug":
+                cmp = Comparator.comparing(CompanyOutreach::slug,
+                        Comparator.nullsLast(Comparator.naturalOrder()));
+                break;
+            case "purpose":
+                cmp = Comparator.comparing((CompanyOutreach r) -> r.purpose().name());
+                break;
+            case "status":
+                cmp = Comparator.comparing((CompanyOutreach r) -> r.status().name());
+                break;
+            case "contactedAt":
+                cmp = Comparator.comparing(CompanyOutreach::contactedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder()));
+                break;
+            case "linkedinSentAt":
+                cmp = Comparator.comparing(CompanyOutreach::linkedinSentAt,
+                        Comparator.nullsLast(Comparator.naturalOrder()));
+                break;
+            case "linkedinOutcome":
+                cmp = Comparator.comparing(
+                        (CompanyOutreach r) -> r.linkedinOutcome() != null ? r.linkedinOutcome() : "");
+                break;
+            default:
+                effectiveSort = "updatedAt";
+                cmp = Comparator.comparing(CompanyOutreach::updatedAt,
+                        Comparator.nullsLast(Comparator.naturalOrder()));
+                break;
+        }
+        if ("desc".equals(dir)) {
+            cmp = cmp.reversed();
+        }
+        List<CompanyOutreach> sorted = new ArrayList<>(allOutreach);
+        sorted.sort(cmp);
+
         // Build name→id map for JS combo box lookup
         Map<String, String> companyNameToId = new LinkedHashMap<>();
         for (HealthcareAiCompany c : companies) {
             companyNameToId.put(c.name(), c.companyId());
         }
-        model.addAttribute("allOutreach", allOutreach);
+        model.addAttribute("allOutreach", sorted);
         model.addAttribute("companies", companies);
         model.addAttribute("companyNameToId", companyNameToId);
         model.addAttribute("purposes", OutreachPurpose.values());
         model.addAttribute("statuses", OutreachStatus.values());
         model.addAttribute("displayFmt", DISPLAY_FMT);
-        log.debug("listOutreach() | return=view:outreach, companies={}", companies.size());
+        model.addAttribute("dateFmt", DATE_FMT);
+        model.addAttribute("sortField", effectiveSort);
+        model.addAttribute("sortDir", dir);
+        log.debug("listOutreach() | return=view:outreach, records={}, sort={}, dir={}",
+                sorted.size(), effectiveSort, dir);
         return "outreach";
+    }
+
+    /** Exports all outreach records as a CSV file, sorted by updatedAt DESC. */
+    @GetMapping("/export.csv")
+    public ResponseEntity<byte[]> exportCsv() {
+        log.debug("exportCsv()");
+        List<CompanyOutreach> all = outreachUseCase.listAllOutreach();
+        all = new ArrayList<>(all);
+        all.sort(Comparator.comparing(CompanyOutreach::updatedAt,
+                Comparator.nullsLast(Comparator.naturalOrder())).reversed());
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("Company Slug,Purpose,Status,Contacted At,LinkedIn Sent At,LinkedIn Outcome,Notes,Last Updated\n");
+        for (CompanyOutreach row : all) {
+            csv.append(escapeCsv(row.slug())).append(",");
+            csv.append(row.purpose().name()).append(",");
+            csv.append(row.status().name()).append(",");
+            csv.append(row.contactedAt() != null ? DATE_FMT.format(row.contactedAt()) : "").append(",");
+            csv.append(row.linkedinSentAt() != null ? DATE_FMT.format(row.linkedinSentAt()) : "").append(",");
+            csv.append(escapeCsv(row.linkedinOutcome())).append(",");
+            csv.append(escapeCsv(row.notes())).append(",");
+            csv.append(row.updatedAt() != null ? DATE_FMT.format(row.updatedAt()) : "").append("\n");
+        }
+
+        byte[] bytes = csv.toString().getBytes(StandardCharsets.UTF_8);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv;charset=UTF-8"));
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"outreach.csv\"");
+        log.debug("exportCsv() | return={} rows", all.size());
+        return ResponseEntity.ok().headers(headers).body(bytes);
+    }
+
+    private static String escapeCsv(String value) {
+        if (value == null || value.isEmpty()) {
+            return "";
+        }
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
     }
 
     /**

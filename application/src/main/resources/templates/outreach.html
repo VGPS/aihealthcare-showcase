@@ -174,8 +174,13 @@
     <!-- Outreach table -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-800">All Outreach Records</h2>
-            <span class="text-sm text-gray-500" th:text="${allOutreach.size()} + ' record(s)'"></span>
+            <h2 class="text-lg font-semibold text-gray-800">All Outreach Records
+                <span class="text-sm font-normal text-gray-500 ml-2" th:text="'(' + ${allOutreach.size()} + ')'"></span>
+            </h2>
+            <a href="/admin/outreach/export.csv"
+               class="text-sm border border-gray-300 text-gray-600 px-3 py-1.5 rounded hover:bg-gray-50 transition-colors">
+                Export CSV
+            </a>
         </div>
 
         <div th:if="${allOutreach.isEmpty()}" class="p-10 text-center text-gray-400 text-sm">
@@ -185,11 +190,42 @@
         <table th:if="${!allOutreach.isEmpty()}" class="w-full text-sm">
             <thead class="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
                 <tr>
-                    <th class="px-5 py-3 text-left">Company Slug</th>
-                    <th class="px-5 py-3 text-left">Purpose</th>
-                    <th class="px-5 py-3 text-left">Status</th>
-                    <th class="px-5 py-3 text-left">Contacted At</th>
+                    <th class="px-5 py-3 text-left whitespace-nowrap">
+                        <a class="hover:text-primary-700"
+                           th:href="@{/admin/outreach(sort='slug',dir=${sortField == 'slug' ? (sortDir == 'asc' ? 'desc' : 'asc') : 'asc'})}">
+                            Company Slug
+                            <span th:if="${sortField == 'slug'}" th:text="${sortDir == 'asc' ? ' ↑' : ' ↓'}"></span>
+                        </a>
+                    </th>
+                    <th class="px-5 py-3 text-left whitespace-nowrap">
+                        <a class="hover:text-primary-700"
+                           th:href="@{/admin/outreach(sort='purpose',dir=${sortField == 'purpose' ? (sortDir == 'asc' ? 'desc' : 'asc') : 'asc'})}">
+                            Purpose
+                            <span th:if="${sortField == 'purpose'}" th:text="${sortDir == 'asc' ? ' ↑' : ' ↓'}"></span>
+                        </a>
+                    </th>
+                    <th class="px-5 py-3 text-left whitespace-nowrap">
+                        <a class="hover:text-primary-700"
+                           th:href="@{/admin/outreach(sort='status',dir=${sortField == 'status' ? (sortDir == 'asc' ? 'desc' : 'asc') : 'asc'})}">
+                            Status
+                            <span th:if="${sortField == 'status'}" th:text="${sortDir == 'asc' ? ' ↑' : ' ↓'}"></span>
+                        </a>
+                    </th>
+                    <th class="px-5 py-3 text-left whitespace-nowrap">
+                        <a class="hover:text-primary-700"
+                           th:href="@{/admin/outreach(sort='contactedAt',dir=${sortField == 'contactedAt' ? (sortDir == 'desc' ? 'asc' : 'desc') : 'desc'})}">
+                            Contacted At
+                            <span th:if="${sortField == 'contactedAt'}" th:text="${sortDir == 'desc' ? ' ↓' : ' ↑'}"></span>
+                        </a>
+                    </th>
                     <th class="px-5 py-3 text-left">Notes</th>
+                    <th class="px-5 py-3 text-left whitespace-nowrap">
+                        <a class="hover:text-primary-700"
+                           th:href="@{/admin/outreach(sort='updatedAt',dir=${sortField == 'updatedAt' ? (sortDir == 'desc' ? 'asc' : 'desc') : 'desc'})}">
+                            Last Updated
+                            <span th:if="${sortField == 'updatedAt'}" th:text="${sortDir == 'desc' ? ' ↓' : ' ↑'}"></span>
+                        </a>
+                    </th>
                     <th class="px-5 py-3 text-left">Actions</th>
                 </tr>
             </thead>
@@ -211,6 +247,11 @@
                         <span th:if="${row.contactedAt() == null}" class="text-gray-300">—</span>
                     </td>
                     <td class="px-5 py-3 text-gray-600 max-w-xs truncate" th:text="${row.notes()}"></td>
+                    <td class="px-5 py-3 text-gray-500 whitespace-nowrap">
+                        <span th:if="${row.updatedAt() != null}"
+                              th:text="${dateFmt.format(row.updatedAt())}"></span>
+                        <span th:if="${row.updatedAt() == null}" class="text-gray-300">—</span>
+                    </td>
                     <td class="px-5 py-3">
                         <a th:href="@{/admin/outreach/{slug}(slug=${row.slug()})}"
                            class="text-primary-600 hover:underline text-xs mr-3">View</a>

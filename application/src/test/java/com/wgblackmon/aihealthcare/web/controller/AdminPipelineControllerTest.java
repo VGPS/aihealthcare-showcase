@@ -10,6 +10,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCas
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PipelinePausePort;
+import com.wgblackmon.aihealthcare.domain.service.OutreachSyncService;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
@@ -91,6 +92,9 @@ class AdminPipelineControllerTest {
     @MockitoBean
     private PipelinePausePort pausePort;
 
+    @MockitoBean
+    private OutreachSyncService outreachSyncService;
+
     // --- Page rendering ---
 
     @Test
@@ -117,7 +121,7 @@ class AdminPipelineControllerTest {
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("pipelineCount", 26));
+                .andExpect(model().attribute("pipelineCount", 27));
     }
 
     @Test
@@ -401,6 +405,22 @@ class AdminPipelineControllerTest {
                 .andExpect(jsonPath("$.pipelineId").value("trend-detection"));
 
         verify(asyncRunner).runAsync(eq("trend-detection"), any(Runnable.class));
+    }
+
+    // --- Outreach sync endpoint ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void runOutreachSyncReturns202() throws Exception {
+        when(asyncRunner.runAsync(eq("outreach-sync"), any(Runnable.class)))
+                .thenReturn(accepted202("outreach-sync"));
+
+        mockMvc.perform(post("/admin/pipelines/outreach-sync/run").with(csrf()))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true))
+                .andExpect(jsonPath("$.pipelineId").value("outreach-sync"));
+
+        verify(asyncRunner).runAsync(eq("outreach-sync"), any(Runnable.class));
     }
 
     // --- Helper ---
