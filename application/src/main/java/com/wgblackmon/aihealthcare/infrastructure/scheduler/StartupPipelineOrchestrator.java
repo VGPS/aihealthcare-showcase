@@ -14,6 +14,7 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.DetectLegalTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
+import com.wgblackmon.aihealthcare.domain.port.outbound.PipelinePausePort;
 import com.wgblackmon.aihealthcare.domain.service.OutreachSyncService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PipelineRunEventPort;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.EmbeddingScheduler;
@@ -51,14 +52,26 @@ import java.time.Instant;
  *   <li>Market digest generation</li>
  * </ol>
  *
+ * <p>Safe-stop: before each step, checks the {@link PipelinePausePort} kill switch
+ * (key {@code "pipeline-cascade"}, toggled from the Pipeline Management admin page,
+ * shared with the standalone deal-detection cron). When paused, every remaining step
+ * is skipped and recorded as {@code SKIPPED} rather than run — an admin can halt a
+ * misbehaving cascade mid-run without a redeploy. There is no rollback/undo of steps
+ * that already completed: every step here is an idempotent harvest, classification,
+ * or append (never a transactional write with a meaningful compensating action), so
+ * halting before the next step is the correct unit of control, not unwinding prior
+ * ones.
+ *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-08-03
- * @updated 2026-09-15
+ * @updated 2026-10-18
  */
 @Slf4j
 @Component
 public class StartupPipelineOrchestrator {
+
+    static final String PIPELINE_CASCADE_PAUSE_KEY = "pipeline-cascade";
 
     private final WebMonitoringScheduler webMonitoringScheduler;
     private final RegulatoryHarvestScheduler regulatoryHarvestScheduler;
@@ -78,6 +91,7 @@ public class StartupPipelineOrchestrator {
     private final TrackFrontierClaimsUseCase trackFrontierClaimsUseCase;
     private final ArticleIngestionPort articleIngestionPort;
     private final OutreachSyncService outreachSyncService;
+    private final PipelinePausePort pausePort;
 
     public StartupPipelineOrchestrator(
             @Autowired(required = false) WebMonitoringScheduler webMonitoringScheduler,
@@ -97,7 +111,8 @@ public class StartupPipelineOrchestrator {
             @Autowired(required = false) ProduceMarketDigestUseCase marketDigestService,
             @Autowired(required = false) TrackFrontierClaimsUseCase trackFrontierClaimsUseCase,
             @Autowired(required = false) ArticleIngestionPort articleIngestionPort,
-            @Autowired(required = false) OutreachSyncService outreachSyncService) {
+            @Autowired(required = false) OutreachSyncService outreachSyncService,
+            @Autowired(required = false) PipelinePausePort pausePort) {
         log.debug("StartupPipelineOrchestrator() | initializing with {} available pipelines",
                 countNonNull(webMonitoringScheduler, regulatoryHarvestScheduler,
                         clinicalTrialHarvestScheduler, embeddingScheduler,
@@ -123,6 +138,7 @@ public class StartupPipelineOrchestrator {
         this.trackFrontierClaimsUseCase = trackFrontierClaimsUseCase;
         this.articleIngestionPort = articleIngestionPort;
         this.outreachSyncService = outreachSyncService;
+        this.pausePort = pausePort;
     }
 
     /**
@@ -291,6 +307,12 @@ public class StartupPipelineOrchestrator {
     }
 
     private void runStep(String name, Runnable step) {
+        if (pausePort != null && pausePort.isPaused(PIPELINE_CASCADE_PAUSE_KEY)) {
+            log.warn("runAllPipelines() | >>> {} SKIPPED — pipeline cascade paused by admin kill switch", name);
+            Instant now = Instant.now();
+            persistEvent(name, PipelineStepStatus.SKIPPED, now, now, null, null, null, null);
+            return;
+        }
         log.info("runAllPipelines() | >>> {}", name);
         Instant startedAt = Instant.now();
         try {

@@ -109,7 +109,7 @@ class AdminPipelineControllerTest {
                 .andExpect(view().name("admin-pipelines"))
                 .andExpect(model().attributeExists("pipelines", "pipelineCount", "serverTime",
                         "preFlightWarnings", "lastRunSummaries", "lastRunTimes", "lastRunStatuses",
-                        "digestPaused", "enterprisePushPaused"));
+                        "digestPaused", "enterprisePushPaused", "cascadePaused"));
     }
 
     @Test
@@ -355,6 +355,39 @@ class AdminPipelineControllerTest {
     @WithMockUser(roles = "USER")
     void setEnterprisePushPausedReturns403ForNonAdmin() throws Exception {
         mockMvc.perform(post("/admin/pipelines/enterprise-push/pause").with(csrf())
+                        .param("paused", "true"))
+                .andExpect(status().isForbidden());
+    }
+
+    // --- Pipeline cascade pause kill switch ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void setCascadePausedTrueCallsPausePort() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/cascade/pause").with(csrf())
+                        .param("paused", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pipelineKey").value("pipeline-cascade"))
+                .andExpect(jsonPath("$.paused").value(true));
+
+        verify(pausePort).setPaused("pipeline-cascade", true);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void setCascadePausedFalseCallsPausePort() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/cascade/pause").with(csrf())
+                        .param("paused", "false"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paused").value(false));
+
+        verify(pausePort).setPaused("pipeline-cascade", false);
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void setCascadePausedReturns403ForNonAdmin() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/cascade/pause").with(csrf())
                         .param("paused", "true"))
                 .andExpect(status().isForbidden());
     }

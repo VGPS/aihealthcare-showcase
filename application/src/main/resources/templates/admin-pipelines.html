@@ -619,6 +619,35 @@
             </div>
         </div>
 
+        <!-- Pipeline Cascade — Safe-Stop Kill Switch -->
+        <div class="bg-white rounded-lg shadow-sm p-5 border border-gray-200 flex flex-col"
+             th:classappend="${cascadePaused} ? 'border-l-4 border-l-red-500' : ''">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-semibold text-primary-600">Pipeline Cascade — Safe-Stop</h3>
+                <span class="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-semibold">Operator control</span>
+            </div>
+            <p class="text-sm text-gray-500 mb-3 leading-relaxed">
+                Halts every remaining step of the full post-harvest cascade (and the standalone deal-detection
+                cron) the next time a step boundary is reached — no redeploy needed. Each skipped step is
+                still recorded in Pipeline Run History as <span class="font-mono">SKIPPED</span> for the audit
+                trail. Broader than the two switches above: this covers all 16 cascade steps, not one send.
+            </p>
+            <div class="text-xs text-gray-500 mb-3 space-y-1">
+                <div>Scheduler: <span class="font-mono">StartupPipelineOrchestrator</span></div>
+            </div>
+            <div class="flex items-center gap-2 mt-auto">
+                <label class="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer">
+                    <input type="checkbox" id="cascadePauseToggle"
+                           th:checked="${cascadePaused}"
+                           onchange="toggleCascadePause(this)" />
+                    Pause pipeline cascade
+                </label>
+                <span id="cascadePauseStatus" class="text-xs"
+                      th:text="${cascadePaused} ? 'PAUSED — remaining steps will be skipped' : ''"
+                      th:classappend="${cascadePaused} ? 'text-red-600 font-semibold' : ''"></span>
+            </div>
+        </div>
+
     </div>
 
     <!-- Pipeline Run History -->
@@ -1152,6 +1181,32 @@ function toggleEnterprisePushPause(checkbox) {
             checkbox.disabled = false;
             if (data.paused) {
                 statusEl.textContent = 'PAUSED — no customer pushes will fire';
+                statusEl.className = 'text-xs text-red-600 font-semibold';
+            } else {
+                statusEl.textContent = '';
+                statusEl.className = 'text-xs';
+            }
+        })
+        .catch(function(e) {
+            checkbox.disabled = false;
+            checkbox.checked = !paused;
+            statusEl.textContent = 'Error: ' + e;
+            statusEl.className = 'text-xs text-red-600';
+        });
+}
+
+function toggleCascadePause(checkbox) {
+    var paused = checkbox.checked;
+    var statusEl = document.getElementById('cascadePauseStatus');
+    checkbox.disabled = true;
+    var headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    headers[getCsrfHeader()] = getCsrfToken();
+    fetch('/admin/pipelines/cascade/pause?paused=' + paused, { method: 'POST', headers: headers, credentials: 'same-origin' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            checkbox.disabled = false;
+            if (data.paused) {
+                statusEl.textContent = 'PAUSED — remaining steps will be skipped';
                 statusEl.className = 'text-xs text-red-600 font-semibold';
             } else {
                 statusEl.textContent = '';
