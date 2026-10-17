@@ -154,22 +154,23 @@
 
 ---
 
-### compliance-ai-tr
-- **Company:** Compliance.ai (now part of Thomson Reuters)
-- **What they do:** Regulatory intelligence platform — tracks regulatory changes across financial services and healthcare. Acquired by Thomson Reuters ~2023.
-- **Why they'd mention it:** Their healthcare regulatory product is the closest direct comp to your regulatory tracker. Now inside Thomson Reuters, a $100K acquisition is a rounding error — but a product licensing deal for your healthcare-AI-specific data feed is plausible.
+### compliance-ai-archer
+*(CORRECTION 2026-10-18 — slug was `compliance-ai-tr`; renamed because the Thomson Reuters premise below was wrong. CRM rows migrated to the new slug.)*
+- **Company:** Compliance.ai (now part of Archer)
+- **What they do:** Regulatory intelligence platform — tracks regulatory changes across financial services and healthcare. Acquired by **Archer** (GRC/risk-management software, formerly RSA Archer) on 2026-02-20 — **not Thomson Reuters**, which was a research error in the original draft of this doc.
+- **Why they'd mention it:** Their healthcare regulatory product is the closest direct comp to your regulatory tracker. A $100K acquisition is a rounding error for Archer — but a product licensing deal for your healthcare-AI-specific data feed is plausible.
 - **Confidence:** LOW (acquisition), MEDIUM (licensing)
 
 **Contacts:**
 | Field | Value |
 |-------|-------|
 | fullName | Kayvan Alikhani |
-| jobTitle | VP / GM (Thomson Reuters, ex-Compliance.ai CEO) |
+| jobTitle | Co-Founder & Chief Product/Strategy Officer, Compliance.ai; Global Head of Engineering - Emerging Solutions, Archer |
 | email | [FIND] |
-| linkedinUrl | [VERIFY — search "Kayvan Alikhani Thomson Reuters"] |
+| linkedinUrl | https://www.linkedin.com/in/kayvanalikhani/ (verified 2026-10-18) |
 | source | MANUAL |
 | status | NOT_CONTACTED |
-| notes | Led Compliance.ai before acquisition; now inside Thomson Reuters. Best path to a licensing conversation within TR; don't pitch "acquisition" — pitch "data feed partnership." |
+| notes | Led Compliance.ai before and after the Archer acquisition; now also leads Archer's new AI practice. Best path to a licensing conversation within Archer; don't pitch "acquisition" — pitch "data feed partnership." |
 
 ---
 
@@ -185,12 +186,12 @@
 | Field | Value |
 |-------|-------|
 | fullName | Bill Evans |
-| jobTitle | Managing Director / Head of Research |
+| jobTitle | Founder & General Partner, Rock Health Capital (CORRECTION 2026-10-18 — not "Head of Research"; he ran Rock Health itself as CEO & Managing Director 2016-2020 before founding the venture fund) |
 | email | [FIND] |
-| linkedinUrl | [VERIFY — search "Bill Evans Rock Health"] |
+| linkedinUrl | https://www.linkedin.com/in/wevans (verified 2026-10-18) |
 | source | MANUAL |
 | status | NOT_CONTACTED |
-| notes | Heads their market research output. Frame as "data that would augment your annual funding report" — not a sale pitch. Goal is a research license or a warm intro to a portfolio company. |
+| notes | Fund GP, not an analyst — adjust pitch accordingly. Still plausible as a research-license or portfolio-intro path given Rock Health's publishing history, but frame around investment/portfolio relevance rather than "augment your research team." |
 
 ---
 
@@ -206,7 +207,7 @@
 | fullName | Michael Greeley |
 | jobTitle | Co-Founder / General Partner |
 | email | [FIND] |
-| linkedinUrl | [VERIFY — search "Michael Greeley Flare Capital"] |
+| linkedinUrl | https://www.linkedin.com/in/michaelagreeley/ (verified 2026-10-18) |
 | source | MANUAL |
 | status | NOT_CONTACTED |
 | notes | GP; Boston-based. Don't pitch a sale — ask: "Do any of your portfolio companies track AI-healthcare regulatory events? I built a platform that does this automatically and I'm exploring options." |
