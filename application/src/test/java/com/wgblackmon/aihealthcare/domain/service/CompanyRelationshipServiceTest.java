@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-08-04
- * @updated 2026-10-07
+ * @updated 2026-10-18
  */
 @ExtendWith(MockitoExtension.class)
 class CompanyRelationshipServiceTest {
@@ -281,6 +281,36 @@ class CompanyRelationshipServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).sourceCompany()).isEqualTo("R1");
         assertThat(result.get(0).targetCompany()).isEqualTo("Humata Health");
+    }
+
+    @Test
+    void detectRelationships_sameBatchCaseVariant_dedupedWithinBatch() {
+        CompanyRelationshipService llmService =
+                new CompanyRelationshipService(articleIngestionPort, relationshipPort, classificationPort, companyPort);
+        NewsArticle firstArticle = article("a13",
+                "QC Healthcare invests in Sanguina",
+                "QC Healthcare announced a funding round in Sanguina.");
+        NewsArticle secondArticle = article("a14",
+                "Qc Healthcare Announces Strategic investment in Sanguina",
+                "Qc Healthcare Announces Strategic investment in Sanguina, an AI diagnostics firm.");
+        CompanyRelationship firstRel = new CompanyRelationship(
+                "llm-5", "QC Healthcare", "Sanguina",
+                CompanyRelationshipType.INVESTMENT, "https://example.com/a13",
+                "QC Healthcare invested in Sanguina.", 0.9, Instant.now());
+        CompanyRelationship secondRel = new CompanyRelationship(
+                "llm-6", "Qc Healthcare", "Sanguina",
+                CompanyRelationshipType.INVESTMENT, "https://example.com/a14",
+                "Qc Healthcare invested in Sanguina (syndicated duplicate, different case).", 0.6, Instant.now());
+        when(articleIngestionPort.fetchRecentArticles(30)).thenReturn(List.of(firstArticle, secondArticle));
+        when(classificationPort.classifyRelationships(anyList())).thenReturn(List.of(firstRel, secondRel));
+        when(companyPort.findAll()).thenReturn(List.of());
+        when(relationshipPort.existsBySourceAndTargetAndType(anyString(), anyString(), anyString()))
+                .thenReturn(false);
+
+        List<CompanyRelationship> result = llmService.detectRelationships();
+
+        assertThat(result).hasSize(1);
+        verify(relationshipPort).saveAll(List.of(firstRel));
     }
 
     @Test
