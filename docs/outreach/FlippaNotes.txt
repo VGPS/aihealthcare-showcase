@@ -1,0 +1,40 @@
+Flippa listings are more detailed than Acquire — they reward longer descriptions and explicit callouts of assets, metrics, and growth story. Here's a full draft built from everything we already wrote:
+
+Title: AI-Powered Healthcare Market Intelligence SaaS — 69 Data Sources, 200+ Companies, Production-Deployed
+
+Description:
+
+AIHealthcare is an automated market intelligence platform for the AI-in-healthcare sector — tracking regulatory actions, funding rounds, deal signals, company sentiment, and daily market-moving news across 69 live data sources.
+
+Built for healthcare professionals, analysts, and investors who need to stay ahead of a fast-moving space without doing the research themselves. Subscribers get daily digests, regulatory alerts, company analysis, a searchable knowledge base, and a state health AI legislation registry — all powered by six LLM providers (Claude, GPT, Gemini, Perplexity).
+
+What's included:
+
+Production AWS deployment (EC2, RDS, SES) at bigskylabs.ai
+Full Spring Boot 3 / Java 21 codebase — 3,105 automated tests, 357 test classes, hexagonal architecture
+Six LLM integrations (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock, Gemini Flash)
+69 automated ingestion sources (RSS, FDA/CMS APIs, HuggingFace, Perplexity, web scraping)
+Working Stripe subscription model ($49/mo, four access tiers)
+Enterprise SAML2 SSO, role-based access control
+Public company directory (200+ AI healthcare companies)
+State health AI legislation registry (43 enacted laws, 24 states)
+LinkedIn/Facebook social post generator
+Domain (bigskylabs.ai) + brand + all social accounts
+Full documentation (architecture docs, coding conventions, feature plans)
+Metrics:
+
+Revenue last 12 months: $36 (Stripe billing infrastructure live and verified working)
+Tests: 3,105 passing
+Data sources: 69
+Companies tracked: 200+
+Deployed and running on AWS since March 2026
+Why selling: Built as a solo side project during a career transition. Moving into a full-time engineering role and won't have bandwidth to grow it properly. No debt, no investors, no co-founders — clean handoff.
+
+Growth opportunities:
+
+Convert existing free-tier user base to paid ($49/mo)
+SEO — public pages already indexed, sitemap and JSON-LD in place
+Content marketing pipeline already built (LinkedIn, Substack, Facebook)
+Enterprise tier with SAML2 SSO already built — target analyst firms and health systems
+Feature backlog is deep and documented
+Replacement cost justification: A production platform of this scope — 40+ features, six LLM integrations, enterprise auth, automated pipelines, 3,105 tests — would cost $150K–$200K to rebuild. Asking price reflects pre-revenue status, not replacement cost.
