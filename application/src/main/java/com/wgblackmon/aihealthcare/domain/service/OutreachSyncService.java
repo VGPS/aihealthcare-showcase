@@ -12,6 +12,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.wgblackmon.aihealthcare.domain.model.OutreachPurpose.EMPLOYMENT;
+import static com.wgblackmon.aihealthcare.domain.model.OutreachPurpose.SUBSCRIPTION;
+
 /**
  * Domain service that ensures every company in the healthcare AI directory has
  * EMPLOYMENT and SUBSCRIPTION outreach rows in the CRM.
@@ -26,9 +29,12 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-10-17
- * @updated 2026-10-17
+ * @updated 2026-10-18
  */
 public class OutreachSyncService {
+
+    /** Purposes auto-synced for every directory company. ACQUISITION is manual-only. */
+    private static final List<OutreachPurpose> SYNCED_PURPOSES = List.of(EMPLOYMENT, SUBSCRIPTION);
 
     private final CompanyOutreachPort outreachPort;
     private final HealthcareAiCompanyPort companyPort;
@@ -61,7 +67,7 @@ public class OutreachSyncService {
             if (slug == null || slug.isBlank()) {
                 continue;
             }
-            for (OutreachPurpose purpose : OutreachPurpose.values()) {
+            for (OutreachPurpose purpose : SYNCED_PURPOSES) {
                 String key = slug + ":" + purpose.name();
                 if (!existingKeys.contains(key)) {
                     outreachPort.save(new CompanyOutreach(
