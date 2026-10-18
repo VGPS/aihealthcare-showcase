@@ -9,12 +9,15 @@ import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.LlmCallUsagePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PipelinePausePort;
+import com.wgblackmon.aihealthcare.domain.service.LlmUsageSummaryService;
 import com.wgblackmon.aihealthcare.domain.service.OutreachSyncService;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -95,6 +98,19 @@ class AdminPipelineControllerTest {
     @MockitoBean
     private OutreachSyncService outreachSyncService;
 
+    @MockitoBean
+    private LlmCallUsagePort llmCallUsagePort;
+
+    @MockitoBean
+    private LlmUsageSummaryService llmUsageSummaryService;
+
+    @BeforeEach
+    void setUp() {
+        when(llmCallUsagePort.findSince(any())).thenReturn(List.of());
+        when(llmUsageSummaryService.summarizeByPipeline(anyList())).thenReturn(List.of());
+        when(llmUsageSummaryService.summarizeByModel(anyList())).thenReturn(List.of());
+    }
+
     // --- Page rendering ---
 
     @Test
@@ -109,7 +125,27 @@ class AdminPipelineControllerTest {
                 .andExpect(view().name("admin-pipelines"))
                 .andExpect(model().attributeExists("pipelines", "pipelineCount", "serverTime",
                         "preFlightWarnings", "lastRunSummaries", "lastRunTimes", "lastRunStatuses",
-                        "digestPaused", "enterprisePushPaused", "cascadePaused"));
+                        "digestPaused", "enterprisePushPaused", "cascadePaused",
+                        "usageByPipeline", "usageByModel", "totalEstimatedCostUsd",
+                        "totalUsageTokens", "totalUsageCalls"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void pipelinesRendersPopulatedUsageTables() throws Exception {
+        when(healthService.preFlightCheckAll(anyList())).thenReturn(Map.of());
+        when(healthService.getAllLastRuns()).thenReturn(Map.of());
+        when(healthService.getRecentHistory(50)).thenReturn(Collections.emptyList());
+        when(llmUsageSummaryService.summarizeByPipeline(anyList())).thenReturn(
+                List.of(new com.wgblackmon.aihealthcare.domain.model.LlmUsageSummary(
+                        "legal-trends", 5, 10_000, 1_000, 11_000, 0.045)));
+        when(llmUsageSummaryService.summarizeByModel(anyList())).thenReturn(
+                List.of(new com.wgblackmon.aihealthcare.domain.model.LlmUsageSummary(
+                        "claude-sonnet-4-6", 5, 10_000, 1_000, 11_000, 0.045)));
+
+        mockMvc.perform(get("/admin/pipelines"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin-pipelines"));
     }
 
     @Test

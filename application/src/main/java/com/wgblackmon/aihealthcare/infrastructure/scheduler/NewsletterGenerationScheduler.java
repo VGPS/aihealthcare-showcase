@@ -122,6 +122,7 @@ public class NewsletterGenerationScheduler {
         LocalDate weekOf  = LocalDate.now();
         List<String> topics = newsTopicProperties.getTopics();
 
+        PipelineContext.set("newsletter-send");
         try {
             log.info("runWeeklyDraftGeneration() | Pipeline starting: runId={}, draftId={}, weekOf={}, topicCount={}",
                      runId, draftId, weekOf, topics.size());
@@ -144,6 +145,8 @@ public class NewsletterGenerationScheduler {
             }
         } catch (Exception ex) {
             log.error("runWeeklyDraftGeneration() | Pipeline failed: {}", ex.getMessage(), ex);
+        } finally {
+            PipelineContext.clear();
         }
 
         log.debug("runWeeklyDraftGeneration() | return=void");

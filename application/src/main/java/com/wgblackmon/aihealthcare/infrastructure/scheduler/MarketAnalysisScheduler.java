@@ -68,6 +68,7 @@ public class MarketAnalysisScheduler {
         log.info("runDailyDigest() | starting market digest pipeline for {}", today);
         Instant start = Instant.now();
 
+        PipelineContext.set("market-digest");
         try {
             MarketDigest digest = marketDigestService.generateDailyDigest(today);
             log.info("runDailyDigest() | digest complete — {} qualifying entries for {}",
@@ -78,6 +79,8 @@ public class MarketAnalysisScheduler {
             log.error("runDailyDigest() | pipeline failed for {}", today, e);
             healthService.recordRun("market-digest", PipelineHealthService.PipelineRunRecord.failure(
                     "market-digest", e.getMessage(), start, Instant.now()));
+        } finally {
+            PipelineContext.clear();
         }
 
         log.debug("runDailyDigest() | return=void");

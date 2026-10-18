@@ -315,6 +315,7 @@ public class StartupPipelineOrchestrator {
         }
         log.info("runAllPipelines() | >>> {}", name);
         Instant startedAt = Instant.now();
+        PipelineContext.set(toPipelineId(name));
         try {
             step.run();
             Instant completedAt = Instant.now();
@@ -332,6 +333,8 @@ public class StartupPipelineOrchestrator {
                     e.getMessage());
             persistEvent(name, PipelineStepStatus.FAILED, startedAt, completedAt,
                     e.getMessage(), errorType, errorProvider, errorDetail);
+        } finally {
+            PipelineContext.clear();
         }
     }
 
@@ -408,6 +411,7 @@ public class StartupPipelineOrchestrator {
             case "Sentiment analysis":
                 return "sentiment-analysis";
             case "Deal signal detection":
+            case "Deal signal detection (standalone)":
                 return "deal-signals";
             case "Company relationships":
                 return "company-relationships";

@@ -688,6 +688,73 @@
 
     </div>
 
+    <!-- LLM Token Usage -->
+    <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
+        <div class="border-b-2 border-gray-100 pb-3 mb-5">
+            <h2 class="font-display text-lg font-semibold text-on-surface">LLM Token Usage (Last 7 Days)</h2>
+            <p class="text-xs text-gray-500 mt-1">
+                <span th:text="${totalUsageCalls}">0</span> LLM calls &nbsp;|&nbsp;
+                <span th:text="${#numbers.formatInteger(totalUsageTokens, 0, 'COMMA')}">0</span> tokens &nbsp;|&nbsp;
+                ~$<span th:text="${#numbers.formatDecimal(totalEstimatedCostUsd, 1, 2)}">0.00</span> estimated
+                (unpriced models show as $0 — see <code class="text-xs">aihealthcare.llm-pricing</code>)
+            </p>
+        </div>
+
+        <div th:if="${#lists.isEmpty(usageByPipeline)}" class="text-center py-8 text-gray-400 text-sm">
+            No LLM usage recorded yet.
+        </div>
+
+        <div th:if="${!#lists.isEmpty(usageByPipeline)}" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="text-sm font-semibold text-gray-600 mb-2">By Pipeline — most expensive first</h3>
+                <table class="w-full text-left text-sm">
+                    <thead>
+                    <tr class="border-b-2 border-gray-300">
+                        <th class="p-2 font-semibold">Pipeline</th>
+                        <th class="p-2 font-semibold text-xs">Calls</th>
+                        <th class="p-2 font-semibold text-xs">Tokens</th>
+                        <th class="p-2 font-semibold text-xs">Est. Cost</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="summary, iterStat : ${usageByPipeline}"
+                        class="border-b border-gray-100"
+                        th:classappend="${iterStat.even} ? 'bg-gray-50/50' : ''">
+                        <td class="p-2 font-mono text-xs" th:text="${summary.key()}">legal-trends</td>
+                        <td class="p-2 text-xs text-gray-500" th:text="${summary.callCount()}">0</td>
+                        <td class="p-2 text-xs text-gray-500" th:text="${#numbers.formatInteger(summary.totalTokens(), 0, 'COMMA')}">0</td>
+                        <td class="p-2 text-xs text-gray-500">$<span th:text="${#numbers.formatDecimal(summary.estimatedCostUsd(), 1, 2)}">0.00</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-semibold text-gray-600 mb-2">By Model</h3>
+                <table class="w-full text-left text-sm">
+                    <thead>
+                    <tr class="border-b-2 border-gray-300">
+                        <th class="p-2 font-semibold">Model</th>
+                        <th class="p-2 font-semibold text-xs">Calls</th>
+                        <th class="p-2 font-semibold text-xs">Tokens</th>
+                        <th class="p-2 font-semibold text-xs">Est. Cost</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="summary, iterStat : ${usageByModel}"
+                        class="border-b border-gray-100"
+                        th:classappend="${iterStat.even} ? 'bg-gray-50/50' : ''">
+                        <td class="p-2 font-mono text-xs" th:text="${summary.key()}">claude-sonnet-4-6</td>
+                        <td class="p-2 text-xs text-gray-500" th:text="${summary.callCount()}">0</td>
+                        <td class="p-2 text-xs text-gray-500" th:text="${#numbers.formatInteger(summary.totalTokens(), 0, 'COMMA')}">0</td>
+                        <td class="p-2 text-xs text-gray-500">$<span th:text="${#numbers.formatDecimal(summary.estimatedCostUsd(), 1, 2)}">0.00</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Pipeline Run History -->
     <div class="bg-white rounded-lg shadow-sm p-6 mt-6">
         <div class="border-b-2 border-gray-100 pb-3 mb-5">

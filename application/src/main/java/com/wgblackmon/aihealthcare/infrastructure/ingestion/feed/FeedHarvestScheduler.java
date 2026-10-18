@@ -23,6 +23,7 @@ import com.wgblackmon.aihealthcare.infrastructure.config.NewsTopicProperties;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageEntity;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import com.wgblackmon.aihealthcare.infrastructure.delivery.WebhookDispatcher;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineContext;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.StartupPipelineOrchestrator;
 import jakarta.annotation.PostConstruct;
@@ -235,12 +236,15 @@ public class FeedHarvestScheduler {
      */
     private void generateTopicSummaries() {
         log.debug("generateTopicSummaries() | starting topic summary generation");
+        PipelineContext.set("topic-summaries");
         try {
             List<String> topics = newsTopicProperties.getTopics();
             topicSummaryService.generateSummaries(topics);
             log.info("generateTopicSummaries() | topic summary generation complete");
         } catch (Exception e) {
             log.warn("generateTopicSummaries() | topic summary generation failed — harvest continues", e);
+        } finally {
+            PipelineContext.clear();
         }
         log.debug("generateTopicSummaries() | return=void");
     }
@@ -259,6 +263,7 @@ public class FeedHarvestScheduler {
             log.debug("compileWikiPages() | return=void");
             return;
         }
+        PipelineContext.set("wiki-compile");
         try {
             CompilationReport report = knowledgeCompilationPort.compileNewSources(articles);
             log.info("compileWikiPages() | created={}, updated={}, contradictions={}",
@@ -266,6 +271,8 @@ public class FeedHarvestScheduler {
                     report.contradictionsFlagged().size());
         } catch (Exception e) {
             log.warn("compileWikiPages() | wiki compilation failed — harvest continues", e);
+        } finally {
+            PipelineContext.clear();
         }
         log.debug("compileWikiPages() | return=void");
     }
@@ -312,12 +319,15 @@ public class FeedHarvestScheduler {
             log.debug("analyzeWikiGaps() | return=void");
             return;
         }
+        PipelineContext.set("wiki-gap-analysis");
         try {
             List<WikiPageEntity> allPages = wikiPageRepository.findAll();
             wikiGapAnalysisService.runGapAnalysis(articles, allPages);
             log.info("analyzeWikiGaps() | gap analysis complete");
         } catch (Exception e) {
             log.warn("analyzeWikiGaps() | gap analysis failed — harvest continues", e);
+        } finally {
+            PipelineContext.clear();
         }
         log.debug("analyzeWikiGaps() | return=void");
     }

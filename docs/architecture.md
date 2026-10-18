@@ -110,6 +110,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | — | Deal Signal Staleness Fix — 30-day scan window, keyword fallback, standalone 6-hour cron | 1509+ |
 | — | Company Outreach CRM — employment/subscription outreach tracking, 1-to-many contacts, datalist combo box with live contact preview, inline Register to Directory form | 3,105 |
 | PC-1 | Spring AI 1.0.0 → 1.1.6 upgrade — groundwork for prompt caching; no adapter changes (every current prompt template is below Anthropic's cache-minimum for the model it runs on) | 3,105 |
+| PC-2 | Per-Pipeline LLM Token Usage Tracking — `CallAdvisor` + `ChatClientCustomizer` captures every Anthropic call's tokens, tagged by pipeline via a `ThreadLocal`; admin dashboard panel shows 7-day cost by pipeline and by model | 3,123 |
 
 ---
 
@@ -359,6 +360,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `deal_signals` | `DealSignalEntity` | signalId PK, signalType, companyName, dealAmount, counterpartyName, llmAnalysis |
 | `company_outreach` | `CompanyOutreachEntity` | id BIGSERIAL PK, slug, purpose, status, contactedAt, notes, unique(slug, purpose) |
 | `company_contacts` | `CompanyContactEntity` | id BIGSERIAL PK, slug FK (company slug), fullName, jobTitle, email, linkedinUrl, source, status, notes |
+| `llm_call_usage` | `LlmCallUsageEntity` | id BIGSERIAL PK, pipelineId, model, promptTokens, outputTokens, totalTokens, occurredAt |
 
 ---
 

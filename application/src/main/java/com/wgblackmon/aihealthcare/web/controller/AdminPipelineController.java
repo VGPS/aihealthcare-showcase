@@ -14,13 +14,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.PriceReactionService;
+import com.wgblackmon.aihealthcare.domain.model.LlmCallUsage;
+import com.wgblackmon.aihealthcare.domain.model.LlmUsageSummary;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.model.PipelineRunEvent;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DeliverNewsletterUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.DetectTrendsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleIngestionPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.LlmCallUsagePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PipelinePausePort;
+import com.wgblackmon.aihealthcare.domain.service.LlmUsageSummaryService;
 import com.wgblackmon.aihealthcare.domain.service.OutreachSyncService;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
@@ -31,6 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -58,10 +63,14 @@ import java.util.Map;
  * deal-detection cron) mid-run, recording each skipped step for the audit
  * trail, rather than covering a single one-shot send like the other two.
  *
+ * <p>Also renders a 7-day LLM token usage panel broken down by pipeline and by
+ * model (via {@link LlmUsageSummaryService}), so cost can be attributed to a
+ * specific scheduled pipeline rather than just observed in aggregate.
+ *
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 3.1
+ * @version 3.2
  * @since   2026-07-30
  * @updated 2026-10-18
  */
@@ -93,6 +102,8 @@ public class AdminPipelineController {
     private final ArticleIngestionPort articleIngestionPort;
     private final PipelinePausePort pausePort;
     private final OutreachSyncService outreachSyncService;
+    private final LlmCallUsagePort llmCallUsagePort;
+    private final LlmUsageSummaryService llmUsageSummaryService;
 
     public AdminPipelineController(PipelineHealthService healthService,
                                    PipelineAsyncRunner asyncRunner,
@@ -104,9 +115,11 @@ public class AdminPipelineController {
                                    TrackFrontierClaimsUseCase trackFrontierClaimsUseCase,
                                    ArticleIngestionPort articleIngestionPort,
                                    PipelinePausePort pausePort,
-                                   OutreachSyncService outreachSyncService) {
-        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}, pausePort={}, outreachSyncService={}",
-                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort, pausePort, outreachSyncService);
+                                   OutreachSyncService outreachSyncService,
+                                   LlmCallUsagePort llmCallUsagePort,
+                                   LlmUsageSummaryService llmUsageSummaryService) {
+        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}, pausePort={}, outreachSyncService={}, llmCallUsagePort={}, llmUsageSummaryService={}",
+                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort, pausePort, outreachSyncService, llmCallUsagePort, llmUsageSummaryService);
         this.healthService = healthService;
         this.asyncRunner = asyncRunner;
         this.newsletterScheduler = newsletterScheduler;
@@ -118,6 +131,8 @@ public class AdminPipelineController {
         this.articleIngestionPort = articleIngestionPort;
         this.pausePort = pausePort;
         this.outreachSyncService = outreachSyncService;
+        this.llmCallUsagePort = llmCallUsagePort;
+        this.llmUsageSummaryService = llmUsageSummaryService;
     }
 
     /**
@@ -188,8 +203,24 @@ public class AdminPipelineController {
         model.addAttribute("enterprisePushPaused", enterprisePushPaused);
         model.addAttribute("cascadePaused", cascadePaused);
 
-        log.debug("pipelines() | return=admin-pipelines, count={}, recentEvents={}, digestPaused={}, enterprisePushPaused={}, cascadePaused={}",
-                  pipelineList.size(), recentEvents.size(), digestPaused, enterprisePushPaused, cascadePaused);
+        // LLM token usage — last 7 days, broken down by pipeline and by model
+        List<LlmCallUsage> recentUsage = llmCallUsagePort.findSince(Instant.now().minus(Duration.ofDays(7)));
+        List<LlmUsageSummary> usageByPipeline = llmUsageSummaryService.summarizeByPipeline(recentUsage);
+        List<LlmUsageSummary> usageByModel = llmUsageSummaryService.summarizeByModel(recentUsage);
+        double totalEstimatedCostUsd = 0;
+        long totalTokens = 0;
+        for (LlmUsageSummary summary : usageByModel) {
+            totalEstimatedCostUsd += summary.estimatedCostUsd();
+            totalTokens += summary.totalTokens();
+        }
+        model.addAttribute("usageByPipeline", usageByPipeline);
+        model.addAttribute("usageByModel", usageByModel);
+        model.addAttribute("totalEstimatedCostUsd", totalEstimatedCostUsd);
+        model.addAttribute("totalUsageTokens", totalTokens);
+        model.addAttribute("totalUsageCalls", recentUsage.size());
+
+        log.debug("pipelines() | return=admin-pipelines, count={}, recentEvents={}, digestPaused={}, enterprisePushPaused={}, cascadePaused={}, usageCalls={}",
+                  pipelineList.size(), recentEvents.size(), digestPaused, enterprisePushPaused, cascadePaused, recentUsage.size());
         return "admin-pipelines";
     }
 

@@ -41,6 +41,9 @@ class MarketAnalysisSchedulerTest {
     @Mock
     private PriceReactionService priceReactionService;
 
+    @Mock
+    private PipelineHealthService healthService;
+
     @InjectMocks
     private MarketAnalysisScheduler scheduler;
 

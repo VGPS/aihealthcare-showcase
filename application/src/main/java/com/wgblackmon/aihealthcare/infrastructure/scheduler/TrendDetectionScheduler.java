@@ -51,6 +51,7 @@ public class TrendDetectionScheduler {
         log.debug("runWeeklyTrendDetection()");
         Instant start = Instant.now();
 
+        PipelineContext.set("trend-detection");
         try {
             TrendSnapshot snapshot = detectTrendsUseCase.detectTrends();
 
@@ -75,6 +76,8 @@ public class TrendDetectionScheduler {
             log.error("runWeeklyTrendDetection() | trend detection failed", e);
             healthService.recordRun("trend-detection", PipelineHealthService.PipelineRunRecord.failure(
                     "trend-detection", e.getMessage(), start, Instant.now()));
+        } finally {
+            PipelineContext.clear();
         }
 
         log.debug("runWeeklyTrendDetection() | return=void");

@@ -51,6 +51,10 @@ import com.wgblackmon.aihealthcare.domain.service.ReversalWatchSectionBuilder;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.PromptEvaluationService;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PipelineRunEventPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.LlmCallUsagePort;
+import com.wgblackmon.aihealthcare.domain.model.ModelPricing;
+import com.wgblackmon.aihealthcare.domain.service.LlmUsageSummaryService;
+import com.wgblackmon.aihealthcare.infrastructure.ai.TokenUsageLoggingAdvisor;
 import com.wgblackmon.aihealthcare.domain.service.ResearchOrchestratorService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchPlanningService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
@@ -143,6 +147,7 @@ import com.wgblackmon.aihealthcare.infrastructure.research.PerplexityResearchAda
 import com.wgblackmon.aihealthcare.infrastructure.ai.DocumentIngestionAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ChatClientCustomizer;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.ObjectProvider;
@@ -157,7 +162,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Spring configuration class that wires the application-layer service as a bean.
@@ -1287,6 +1294,51 @@ public class AppConfig {
             @Qualifier("anthropicChatModel") ChatModel anthropicChatModel) {
         log.debug("primaryChatModel() | anthropicChatModel={}", anthropicChatModel.getClass().getSimpleName());
         return anthropicChatModel;
+    }
+
+    /**
+     * Logs and persists token usage for every LLM call made through the
+     * default (Anthropic) {@code ChatClient.Builder}.
+     */
+    @Bean
+    public TokenUsageLoggingAdvisor tokenUsageLoggingAdvisor(LlmCallUsagePort llmCallUsagePort) {
+        log.debug("tokenUsageLoggingAdvisor() | llmCallUsagePort={}", llmCallUsagePort.getClass().getSimpleName());
+        TokenUsageLoggingAdvisor result = new TokenUsageLoggingAdvisor(llmCallUsagePort);
+        log.debug("tokenUsageLoggingAdvisor() | return={}", result.getClass().getSimpleName());
+        return result;
+    }
+
+    /**
+     * Applies {@link TokenUsageLoggingAdvisor} to every auto-configured
+     * {@code ChatClient.Builder} — Spring AI invokes every
+     * {@code ChatClientCustomizer} bean before the builder is injected into
+     * an adapter, so no per-adapter wiring is needed.
+     */
+    @Bean
+    public ChatClientCustomizer tokenUsageChatClientCustomizer(TokenUsageLoggingAdvisor tokenUsageLoggingAdvisor) {
+        log.debug("tokenUsageChatClientCustomizer() | tokenUsageLoggingAdvisor={}",
+                  tokenUsageLoggingAdvisor.getClass().getSimpleName());
+        return builder -> builder.defaultAdvisors(tokenUsageLoggingAdvisor);
+    }
+
+    /**
+     * Converts the {@code aihealthcare.llm-pricing} YAML section into an
+     * immutable pricing map and wires {@link LlmUsageSummaryService}.
+     */
+    @Bean
+    public LlmUsageSummaryService llmUsageSummaryService(LlmPricingProperties llmPricingProperties) {
+        log.debug("llmUsageSummaryService() | llmPricingProperties={}", llmPricingProperties.getClass().getSimpleName());
+
+        Map<String, ModelPricing> pricing = new HashMap<>();
+        for (Map.Entry<String, LlmPricingProperties.ModelEntry> entry : llmPricingProperties.getModels().entrySet()) {
+            LlmPricingProperties.ModelEntry value = entry.getValue();
+            pricing.put(entry.getKey(), new ModelPricing(value.getInputPerMillion(), value.getOutputPerMillion()));
+        }
+
+        LlmUsageSummaryService result = new LlmUsageSummaryService(pricing);
+        log.debug("llmUsageSummaryService() | return={} ({} priced models)",
+                  result.getClass().getSimpleName(), pricing.size());
+        return result;
     }
 
     /**
