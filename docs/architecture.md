@@ -109,6 +109,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | — | Combined LinkedIn + Facebook Social Post Generator — tier-gated, market-digest-sourced | 1509+ |
 | — | Deal Signal Staleness Fix — 30-day scan window, keyword fallback, standalone 6-hour cron | 1509+ |
 | — | Company Outreach CRM — employment/subscription outreach tracking, 1-to-many contacts, datalist combo box with live contact preview, inline Register to Directory form | 3,105 |
+| PC-1 | Spring AI 1.0.0 → 1.1.6 upgrade — groundwork for prompt caching; no adapter changes (every current prompt template is below Anthropic's cache-minimum for the model it runs on) | 3,105 |
 
 ---
 
