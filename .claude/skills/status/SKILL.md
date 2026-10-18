@@ -33,8 +33,13 @@ ssh -i "$KEY" "ec2-user@${IP}" 'sudo systemctl status aihealthcare --no-pager -l
 ### 3. API key check
 
 ```bash
-ssh -i "$KEY" "ec2-user@${IP}" 'grep -E "API_KEY|STRIPE" /opt/aihealthcare/.env | sed "s/=.\{8\}/=*****/g"'
+ssh -i "$KEY" "ec2-user@${IP}" 'grep -E "API_KEY|STRIPE" /opt/aihealthcare/.env | sed -E "s/^([A-Z_]+)=(.{4}).*/\1=\2***MASKED***/"'
 ```
+
+This shows only the variable name and the first 4 characters of each value — never paste
+raw `grep`/`cat`/`env` output of `.env` into chat without masking first; the previous
+pattern (`s/=.\{8\}/=*****/g`) only replaced the first 8 characters and left the rest of
+long keys fully exposed.
 
 Report which keys are set vs still `REPLACE_ME`.
 
