@@ -21,7 +21,7 @@ Every day our pipeline scans 30 days of AI healthcare articles through a three-s
 
 **Stage 2 — LLM classification.** Candidate articles go to an AI model that reads the full context, identifies the two companies, classifies the relationship type, and produces a confidence score and natural-language summary. If it can't find two clearly named company parties, it returns NO_RELATIONSHIP and the article is excluded. This is the quality gate.
 
-**Stage 3 — Directory canonicalization.** Extracted company names are normalized against a 627-company AI healthcare directory to resolve spelling variants — "R1 RCM" becomes "R1," "Microsoft Corporation" becomes "Microsoft." Health systems and universities that appear as partners are left as-is; they're valid participants, just not in the vendor directory.
+**Stage 3 — Directory canonicalization.** Extracted company names are normalized against a 700-company AI healthcare directory to resolve spelling variants — "R1 RCM" becomes "R1," "Microsoft Corporation" becomes "Microsoft." Health systems and universities that appear as partners are left as-is; they're valid participants, just not in the vendor directory.
 
 The result: a continuously updated relationship graph showing WHO is partnering with whom, WHO is acquiring whom, and WHERE investment is flowing — specific to the AI healthcare space, sourced from live news, with evidence articles you can trace back to.
 
@@ -32,8 +32,6 @@ Different tools for different jobs. But if AI healthcare deal flow is your job �
 The relationship graph is live at app.bigskylabs.ai
 
 #AIHealthcare #HealthTech #CompetitiveIntelligence #MarketIntelligence #StartupIntel
-
-"AI in healthcare is history being written right now. I'm building the archive."
 
 --- FIRST COMMENT (post separately for reach) ---
 
