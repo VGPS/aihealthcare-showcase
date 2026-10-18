@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.research;
 import com.wgblackmon.aihealthcare.domain.model.ResearchMode;
 import com.wgblackmon.aihealthcare.domain.model.ResearchRequest;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ConductResearchUseCase;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineContext;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -97,22 +98,27 @@ public class ResearchHarvestScheduler {
         int success = 0;
         int failed  = 0;
 
-        for (String topic : harvestProperties.getTopics()) {
-            log.info("harvestResearchTopics() | harvesting topic='{}'", topic);
-            try {
-                ResearchRequest request = new ResearchRequest(
-                        topic,
-                        ResearchMode.COMBINED,
-                        null,
-                        harvestProperties.getMaxSourcesPerTopic());
-                conductResearchUseCase.conduct(request);
-                success++;
-                log.info("harvestResearchTopics() | topic='{}' complete", topic);
-            } catch (Exception ex) {
-                failed++;
-                log.error("harvestResearchTopics() | topic='{}' failed — skipping: {}",
-                          topic, ex.getMessage());
+        PipelineContext.set("research-harvest");
+        try {
+            for (String topic : harvestProperties.getTopics()) {
+                log.info("harvestResearchTopics() | harvesting topic='{}'", topic);
+                try {
+                    ResearchRequest request = new ResearchRequest(
+                            topic,
+                            ResearchMode.COMBINED,
+                            null,
+                            harvestProperties.getMaxSourcesPerTopic());
+                    conductResearchUseCase.conduct(request);
+                    success++;
+                    log.info("harvestResearchTopics() | topic='{}' complete", topic);
+                } catch (Exception ex) {
+                    failed++;
+                    log.error("harvestResearchTopics() | topic='{}' failed — skipping: {}",
+                              topic, ex.getMessage());
+                }
             }
+        } finally {
+            PipelineContext.clear();
         }
 
         log.info("harvestResearchTopics() | harvest run complete: {} succeeded, {} failed",

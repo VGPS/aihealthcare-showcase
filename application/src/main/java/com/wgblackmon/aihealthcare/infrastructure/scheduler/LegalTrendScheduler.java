@@ -40,6 +40,7 @@ public class LegalTrendScheduler {
     public void runWeeklyLegalTrendDetection() {
         log.debug("runWeeklyLegalTrendDetection()");
 
+        PipelineContext.set("legal-trends");
         try {
             LegalTrendSnapshot snapshot = detectLegalTrendsUseCase.detectLegalTrends();
 
@@ -47,6 +48,8 @@ public class LegalTrendScheduler {
                      snapshot.risingTrends().size(), snapshot.totalKeywords());
         } catch (Exception e) {
             log.error("runWeeklyLegalTrendDetection() | legal trend detection failed", e);
+        } finally {
+            PipelineContext.clear();
         }
 
         log.debug("runWeeklyLegalTrendDetection() | return=void");
