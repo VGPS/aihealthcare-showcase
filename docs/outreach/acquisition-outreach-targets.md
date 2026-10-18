@@ -32,7 +32,7 @@
 |-------|-------|
 | fullName | John Moore |
 | jobTitle | Founder / Managing Director |
-| email | [FIND] |
+| email | john@chilmarkresearch.com (DERIVED — RocketReach confirms 100% of Chilmark emails follow first@chilmarkresearch.com; not individually verified) |
 | linkedinUrl | https://www.linkedin.com/in/jmoore2 (found via Crunchbase 2026-10-18, single-source, not independently cross-verified) |
 | source | MANUAL |
 | status | NOT_CONTACTED |
@@ -42,7 +42,7 @@
 |-------|-------|
 | fullName | Brian Eastwood |
 | jobTitle | Research Analyst |
-| email | [FIND] |
+| email | brian@chilmarkresearch.com (DERIVED — same first@chilmarkresearch.com format; not individually verified) |
 | linkedinUrl | https://www.linkedin.com/in/brian-eastwood-5705a2a/ (verified 2026-10-18 — "Brian Eastwood Writes, LLC," Greater Boston, UMass Boston alum, matches his Chilmark bio) |
 | source | MANUAL |
 | status | NOT_CONTACTED |
@@ -62,7 +62,7 @@
 |-------|-------|
 | fullName | Julien de Salaberry |
 | jobTitle | Founder & CEO |
-| email | [FIND] |
+| email | julien.desalaberry@galengrowth.com (DERIVED — 85.9% of Galen Growth emails follow first.last format; additionally confirmed by press-release staging domain julien.desalaberry@galengrowth.kinsta.cloud; high confidence) |
 | linkedinUrl | https://ch.linkedin.com/in/desalaberry (verified 2026-10-18) |
 | source | MANUAL |
 | status | NOT_CONTACTED |
@@ -81,12 +81,12 @@
 | Field | Value |
 |-------|-------|
 | fullName | Hal Andrews |
-| jobTitle | CEO |
-| email | [FIND] |
-| linkedinUrl | [VERIFY — search "Hal Andrews Trilliant Health"] |
+| jobTitle | President & CEO |
+| email | hal.andrews@trillianthealth.com (DERIVED — 93.1% of Trilliant Health emails follow first.last@trillianthealth.com; not individually verified) |
+| linkedinUrl | [VERIFY — not found via web search; search LinkedIn directly for "Hal Andrews Trilliant Health"] |
 | source | MANUAL |
 | status | NOT_CONTACTED |
-| notes | CEO; Tennessee-based. For a $100K deal he'd make the call himself, but likely needs a product/data champion first — look for a VP Product or Head of Data as a secondary contact. |
+| notes | President & CEO (confirmed title — 5x healthcare startup CEO, Nashville-based, SMU alum). Serial founder personality — direct outreach appropriate, no need for an internal champion at $100K deal size. |
 
 ---
 
@@ -101,12 +101,12 @@
 | Field | Value |
 |-------|-------|
 | fullName | Adam Gale |
-| jobTitle | CEO |
-| email | [FIND] |
-| linkedinUrl | [VERIFY — search "Adam Gale KLAS Research"] |
+| jobTitle | Co-Founder & CEO |
+| email | adam.gale@klasresearch.com (DERIVED — 72.8% of KLAS Research emails follow first.last@klasresearch.com; not individually verified) |
+| linkedinUrl | [VERIFY — not found via web search; search LinkedIn directly for "Adam Gale KLAS Research". Twitter confirmed: @AdamGale1] |
 | source | MANUAL |
 | status | NOT_CONTACTED |
-| notes | CEO; Utah-based family-owned company. Conservative culture — frame as "tool that helps your analysts" more than "replaces your process." |
+| notes | Co-Founder & CEO (confirmed title). Utah-based family-owned company, 200+ employees, ~$42M revenue. Conservative culture — frame as "tool that helps your analysts" more than "replaces your process." Twitter: @AdamGale1. |
 
 ---
 
@@ -145,12 +145,12 @@
 | Field | Value |
 |-------|-------|
 | fullName | David DeRam |
-| jobTitle | CEO (most sources) — one secondary source lists Executive Chairman; verify current title before outreach |
-| email | [FIND] |
+| jobTitle | Executive Chairman (CONFIRMED 2026-10-18 — was CEO from 2013 to July 2024; transitioned to Executive Chairman July 2024. Verify who the current CEO is before outreach.) |
+| email | david.deram@greenlight.guru (CONFIRMED — explicitly found via Growjo/ContactOut research) |
 | linkedinUrl | https://www.linkedin.com/in/davidderam/ (verified 2026-10-18) |
 | source | MANUAL |
 | status | NOT_CONTACTED |
-| notes | Founder-CEO; Indianapolis-based. More likely to propose a data partnership than an outright acquisition, but company is PE-backed (Battery Ventures) so has capital for small tuck-ins. |
+| notes | Now Executive Chairman, not CEO — find the current CEO for product/acquisition discussions, or approach David directly as chair given it's a small tuck-in. PE-backed (Battery Ventures) so capital exists for small acquisitions. |
 
 ---
 
@@ -165,12 +165,12 @@
 | Field | Value |
 |-------|-------|
 | fullName | Kayvan Alikhani |
-| jobTitle | Co-Founder & Chief Product/Strategy Officer, Compliance.ai; Global Head of Engineering - Emerging Solutions, Archer |
-| email | [FIND] |
+| jobTitle | Co-Founder & Chief Product/Strategy Officer, Compliance.ai; Chief Product & Technology Officer, Archer |
+| email | kayvan.alikhani@archerirm.com (DERIVED — RocketReach confirms email domain is @archerirm.com; format likely first.last per standard enterprise pattern; not individually verified. May also have active kayvan@compliance.ai per Wiza) |
 | linkedinUrl | https://www.linkedin.com/in/kayvanalikhani/ (verified 2026-10-18) |
 | source | MANUAL |
 | status | NOT_CONTACTED |
-| notes | Led Compliance.ai before and after the Archer acquisition; now also leads Archer's new AI practice. Best path to a licensing conversation within Archer; don't pitch "acquisition" — pitch "data feed partnership." |
+| notes | Chief Product & Technology Officer at Archer (updated title — was "Global Head of Engineering - Emerging Solutions"). Leads Archer's AI practice post-acquisition. Don't pitch acquisition — pitch "healthcare AI data feed partnership." |
 
 ---
 
@@ -187,7 +187,7 @@
 |-------|-------|
 | fullName | Bill Evans |
 | jobTitle | Founder & General Partner, Rock Health Capital (CORRECTION 2026-10-18 — not "Head of Research"; he ran Rock Health itself as CEO & Managing Director 2016-2020 before founding the venture fund) |
-| email | [FIND] |
+| email | bill@rockhealthcapital.com (CONFIRMED — found publicly via YesPress; firm website rockhealthcapital.com) |
 | linkedinUrl | https://www.linkedin.com/in/wevans (verified 2026-10-18) |
 | source | MANUAL |
 | status | NOT_CONTACTED |
@@ -206,7 +206,7 @@
 |-------|-------|
 | fullName | Michael Greeley |
 | jobTitle | Co-Founder / General Partner |
-| email | [FIND] |
+| email | michael@flarecapital.com (DERIVED — 83.9% of Flare Capital emails follow first@flarecapital.com; also confirmed via ZoomInfo as starting m***@flarecapital.com) |
 | linkedinUrl | https://www.linkedin.com/in/michaelagreeley/ (verified 2026-10-18) |
 | source | MANUAL |
 | status | NOT_CONTACTED |

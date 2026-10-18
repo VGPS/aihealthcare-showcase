@@ -54,10 +54,11 @@ This is not an idea or a prototype. It's a live, deployed application
 
 - **A growing, continuously-harvested historical archive** of AI-in-healthcare
   news articles, FDA/CMS regulatory events, state legislation, company data, and
-  deal signals — retained permanently, never deleted. This dataset cannot be
-  recreated after the fact; its value compounds with every day it isn't sold.
+  deal signals — harvested daily since early 2025, now nearly 20 months of
+  uninterrupted history. Retained permanently, never deleted. This dataset cannot
+  be recreated after the fact; its value compounds with every day it isn't sold.
 - **A production codebase** — Java 21 / Spring Boot, hexagonal (ports-and-adapters)
-  architecture, 3,000+ automated tests across 350+ test classes, CI pipeline on
+  architecture, 3,100+ automated tests across 357 test classes, CI pipeline on
   GitHub Actions.
 - **A working subscription business model already wired** — 4-tier access control
   (free/subscriber/enterprise), Stripe billing integration, usage metering, and an
@@ -87,7 +88,7 @@ a confined-filesystem security model and IP-pinned outbound HTTP guard, and a
 scheduled push-delivery system with at-least-once delivery guarantees. This is the
 kind of infrastructure that normally takes a team months to harden — it's done.
 
-**4. 14+ shipped feature verticals**, including:
+**4. 17+ shipped feature verticals**, including:
 - Regulatory alert system (FDA 510(k)/De Novo, CMS rules)
 - Custom watchlists with keyword/company/topic matching
 - Company sentiment & risk scoring (LLM-classified)
@@ -162,10 +163,12 @@ deals (partial upfront + earnout, or a transition-support retainer).
 
 ### Reason for Selling
 
-Founder-built as a historical-archive/market-intelligence project; looking for
-either a strategic buyer who can commercialize the data faster than a solo
-operator, or an operator who wants to take over active development and
-go-to-market.
+Founder-built as a solo developer over ~20 months. The platform has reached a
+point where the next 10x of value comes from distribution and sales — not more
+engineering. The right buyer brings either an existing customer base to sell
+into, complementary data assets, or the bandwidth to market aggressively. A
+solo operator running a pipeline business while also doing sales and support is
+not the optimal structure for what this has become.
 
 ---
 
