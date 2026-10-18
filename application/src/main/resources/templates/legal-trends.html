@@ -29,6 +29,17 @@
 
 <main class="max-w-7xl mx-auto px-4 py-6">
 
+    <!-- Admin: Run Pipeline -->
+    <div th:if="${isAdmin}" class="mb-4 flex items-center gap-3">
+        <form th:action="@{/dashboard/legal/trends/detect}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn-search text-sm px-4 py-2">
+                &#x25B6; Run Legal Trends Pipeline
+            </button>
+        </form>
+        <span class="text-xs text-gray-500">Runs automatically every Sunday 09:00 UTC</span>
+    </div>
+
     <p class="text-sm text-gray-500 leading-relaxed text-left mb-2">Legal trend analysis. Track emerging patterns in healthcare AI regulation, policy shifts, and enforcement actions over time.</p>
 
     <!-- Snapshot meta -->
@@ -52,6 +63,7 @@
 
     <div th:unless="${hasSnapshot}" class="py-8 text-center text-gray-500">
         <p>No legal trend data available yet. Trend detection runs automatically each week.</p>
+        <p th:if="${isAdmin}" class="mt-2 text-sm">Use the <strong>Run Legal Trends Pipeline</strong> button above to generate data now.</p>
     </div>
 
     <!-- Chart -->

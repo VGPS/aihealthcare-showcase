@@ -209,6 +209,8 @@ public class LegalTrendController {
             model.addAttribute("trendLinkedItems", Map.of());
         }
 
+        model.addAttribute("isAdmin", tierResolver.isAdmin(principal));
+
         log.debug("legalTrends() | return=legal-trends");
         return "legal-trends";
     }
