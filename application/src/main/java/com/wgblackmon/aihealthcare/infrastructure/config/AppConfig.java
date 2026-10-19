@@ -59,6 +59,7 @@ import com.wgblackmon.aihealthcare.domain.service.ResearchOrchestratorService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchPlanningService;
 import com.wgblackmon.aihealthcare.domain.service.ResearchSynthesisService;
 import com.wgblackmon.aihealthcare.domain.service.ResilientStepExecutor;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineContextTaskDecorator;
 import com.wgblackmon.aihealthcare.domain.service.TopicSummaryGenerationService;
 import com.wgblackmon.aihealthcare.domain.service.VendorAssessmentService;
 import com.wgblackmon.aihealthcare.domain.service.CompanyProfileService;
@@ -159,12 +160,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 /**
  * Spring configuration class that wires the application-layer service as a bean.
@@ -656,6 +659,7 @@ public class AppConfig {
      * @param researchRunPort         Port for persisting research run audit records.
      * @param researchExportPort      Port for exporting articles to the NotebookLM corpus.
      * @param resilientStepExecutor   Wraps retrieval/synthesis calls with bounded retry + audit logging.
+     * @param researchExecutor        Dedicated thread pool for fanning out independent retrieval branches.
      * @return The wired {@link ResearchOrchestratorService} instance.
      */
     @Bean
@@ -668,7 +672,8 @@ public class AppConfig {
             ArticleStoragePort articleStoragePort,
             ResearchRunPort researchRunPort,
             ResearchExportPort researchExportPort,
-            ResilientStepExecutor resilientStepExecutor) {
+            ResilientStepExecutor resilientStepExecutor,
+            @Qualifier("researchExecutor") Executor researchExecutor) {
 
         log.debug("researchOrchestratorService() | researchMode={}", researchModeStr);
 
@@ -694,7 +699,7 @@ public class AppConfig {
                 defaultMode, legacyGoogleAdapter, perplexityAdapter,
                 planningService, synthesisService, citationAssembler,
                 articleStoragePort, researchRunPort, researchExportPort,
-                vendorAssessmentService, resilientStepExecutor);
+                vendorAssessmentService, resilientStepExecutor, researchExecutor);
 
         log.debug("researchOrchestratorService() | return={}", result.getClass().getSimpleName());
         return result;
@@ -710,6 +715,32 @@ public class AppConfig {
     @Bean
     public ResilientStepExecutor resilientStepExecutor(PipelineRunEventPort pipelineRunEventPort) {
         return new ResilientStepExecutor(pipelineRunEventPort);
+    }
+
+    /**
+     * Dedicated thread pool for {@link ResearchOrchestratorService} to fan out its two
+     * independent retrieval branches (Perplexity sub-query retrieval and legacy-DB
+     * retrieval) concurrently instead of running them back-to-back on the calling thread.
+     *
+     * <p>Carries a {@link PipelineContextTaskDecorator} so the pipeline-id tag used by
+     * {@link TokenUsageLoggingAdvisor} for LLM token-usage attribution follows the task
+     * onto its worker thread — without it, any LLM call made from the forked branch
+     * would be silently mis-tagged as an untagged interactive call.
+     *
+     * @return thread pool executor named {@code researchExecutor}
+     */
+    @Bean(name = "researchExecutor")
+    public Executor researchExecutor() {
+        log.debug("researchExecutor() | configuring corePoolSize=2, maxPoolSize=4");
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(25);
+        executor.setThreadNamePrefix("research-");
+        executor.setTaskDecorator(new PipelineContextTaskDecorator());
+        executor.initialize();
+        log.debug("researchExecutor() | return={}", executor);
+        return executor;
     }
 
     /**

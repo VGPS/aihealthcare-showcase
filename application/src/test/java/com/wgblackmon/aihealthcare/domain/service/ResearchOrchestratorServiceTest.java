@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,6 +65,9 @@ class ResearchOrchestratorServiceTest {
         // @Autowired(required = false) pattern, events are skipped rather than
         // failing the step, so the first attempt just calls through to the step.
         ResilientStepExecutor resilientStepExecutor = new ResilientStepExecutor(null);
+        // Direct executor — runs on the calling thread so Mockito interaction
+        // verification stays deterministic without needing a real thread pool.
+        Executor researchExecutor = Runnable::run;
         orchestrator = new ResearchOrchestratorService(
                 ResearchMode.LEGACY_GOOGLE,
                 legacyAdapter,
@@ -75,7 +79,8 @@ class ResearchOrchestratorServiceTest {
                 researchRunPort,
                 researchExportPort,
                 vendorAssessmentService,
-                resilientStepExecutor);
+                resilientStepExecutor,
+                researchExecutor);
     }
 
     // -------------------------------------------------------------------------
