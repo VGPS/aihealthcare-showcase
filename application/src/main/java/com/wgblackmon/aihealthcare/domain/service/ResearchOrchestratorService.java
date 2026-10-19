@@ -26,6 +26,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 /**
  * Application-layer service that implements {@link ConductResearchUseCase} and
@@ -64,10 +68,15 @@ import java.util.UUID;
  * {@code PhaseExecutor} pattern in the url-shortener prototype's agentic SDLC
  * orchestration layer.
  *
+ * <p>In the COMBINED pipeline and {@link #compare}, Perplexity sub-query retrieval and
+ * legacy-DB retrieval depend on nothing but the query plan and run concurrently on
+ * {@code researchExecutor} rather than back-to-back — the two-branch case of the
+ * {@code DependencyGraph} independent-fan-out concept from the same prototype.
+ *
  * @author  Bill Blackmon
- * @version 2.3
+ * @version 2.4
  * @since   2026-05-04
- * @updated 2026-10-16
+ * @updated 2026-10-18
  */
 public class ResearchOrchestratorService implements ConductResearchUseCase, CompareVendorsUseCase {
 
@@ -87,6 +96,7 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
     private final ResearchExportPort        researchExportPort;
     private final VendorAssessmentService   vendorAssessmentService;
     private final ResilientStepExecutor     resilientStepExecutor;
+    private final Executor                  researchExecutor;
 
     /**
      * Constructs the orchestrator with all pipeline and persistence dependencies.
@@ -102,6 +112,7 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
      * @param researchExportPort      Port for exporting articles to the NotebookLM corpus.
      * @param vendorAssessmentService Domain service for vendor-structured AI synthesis.
      * @param resilientStepExecutor   Wraps retrieval/synthesis calls with bounded retry + audit logging.
+     * @param researchExecutor        Runs the independent Perplexity/legacy retrieval branches concurrently.
      */
     public ResearchOrchestratorService(ResearchMode defaultMode,
                                        SourceRetrievalPort legacyAdapter,
@@ -113,7 +124,8 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
                                        ResearchRunPort researchRunPort,
                                        ResearchExportPort researchExportPort,
                                        VendorAssessmentService vendorAssessmentService,
-                                       ResilientStepExecutor resilientStepExecutor) {
+                                       ResilientStepExecutor resilientStepExecutor,
+                                       Executor researchExecutor) {
         log.debug("ResearchOrchestratorService() | defaultMode={}, legacyAdapter={}, "
                   + "perplexityAdapter={}, planningService={}, synthesisService={}",
                   defaultMode,
@@ -132,6 +144,7 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
         this.researchExportPort      = researchExportPort;
         this.vendorAssessmentService = vendorAssessmentService;
         this.resilientStepExecutor   = resilientStepExecutor;
+        this.researchExecutor        = researchExecutor;
         log.debug("ResearchOrchestratorService() | return=void");
     }
 
@@ -214,22 +227,15 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
         ResearchPlan plan = planningService.plan(query, null);
         log.info("compare() | plan produced: subQueryCount={}", plan.subQueries().size());
 
-        // Perplexity retrieval
-        List<RetrievedSource> perplexitySources = new ArrayList<>();
-        for (String subQuery : plan.subQueries()) {
-            RetrievalQuery rq = new RetrievalQuery(
-                    subQuery, "PERPLEXITY",
-                    Math.max(1, request.maxSources() / plan.subQueries().size()));
-            List<RetrievedSource> batch = retrieveWithRetry(perplexityAdapter, rq,
-                    "research-retrieval-perplexity", "compare: " + subQuery);
-            log.debug("compare() | sub-query='{}' → {} Perplexity sources", subQuery, batch.size());
-            perplexitySources.addAll(batch);
-        }
-
-        // Legacy retrieval for historical depth
+        // Perplexity retrieval and legacy retrieval depend on nothing but the plan/query —
+        // run them concurrently rather than back-to-back.
         RetrievalQuery legacyQuery = new RetrievalQuery(query, "GOOGLE", maxSources);
-        List<RetrievedSource> legacySources = retrieveWithRetry(legacyAdapter, legacyQuery,
-                "research-retrieval-legacy", "compare: " + query);
+        RetrievalPair retrieved = retrieveConcurrently(
+                () -> retrievePerplexityForPlan(plan, request.maxSources(), "compare"),
+                () -> retrieveWithRetry(legacyAdapter, legacyQuery, "research-retrieval-legacy", "compare: " + query));
+        List<RetrievedSource> perplexitySources = retrieved.perplexitySources();
+        List<RetrievedSource> legacySources = retrieved.legacySources();
+        log.info("compare() | Perplexity retrieved {} total sources", perplexitySources.size());
         log.info("compare() | legacy retrieved {} sources", legacySources.size());
 
         // Filter legacy sources to only those whose title or snippet mentions the query
@@ -395,6 +401,52 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
                 () -> synthesisService.synthesize(query, plan, sources, citations));
     }
 
+    /** Retrieves Perplexity sources for every sub-query in {@code plan}, sequentially within the branch. */
+    private List<RetrievedSource> retrievePerplexityForPlan(ResearchPlan plan, int maxSources, String callSite) {
+        log.debug("retrievePerplexityForPlan() | subQueryCount={}, maxSources={}", plan.subQueries().size(), maxSources);
+
+        List<RetrievedSource> sources = new ArrayList<>();
+        for (String subQuery : plan.subQueries()) {
+            RetrievalQuery rq = new RetrievalQuery(
+                    subQuery, "PERPLEXITY", Math.max(1, maxSources / plan.subQueries().size()));
+            List<RetrievedSource> batch = retrieveWithRetry(perplexityAdapter, rq,
+                    "research-retrieval-perplexity", callSite + ": " + subQuery);
+            log.debug("retrievePerplexityForPlan() | sub-query='{}' → {} sources", subQuery, batch.size());
+            sources.addAll(batch);
+        }
+
+        log.debug("retrievePerplexityForPlan() | return={} sources", sources.size());
+        return sources;
+    }
+
+    /**
+     * Runs the Perplexity and legacy retrieval branches concurrently on
+     * {@code researchExecutor} since neither depends on the other's result — the
+     * two-branch application of the independent-fan-out concept behind the
+     * url-shortener prototype's {@code DependencyGraph}. Blocks until both complete.
+     */
+    private RetrievalPair retrieveConcurrently(Supplier<List<RetrievedSource>> perplexityStep,
+                                                Supplier<List<RetrievedSource>> legacyStep) {
+        CompletableFuture<List<RetrievedSource>> perplexityFuture =
+                CompletableFuture.supplyAsync(perplexityStep, researchExecutor);
+        CompletableFuture<List<RetrievedSource>> legacyFuture =
+                CompletableFuture.supplyAsync(legacyStep, researchExecutor);
+        try {
+            return new RetrievalPair(perplexityFuture.join(), legacyFuture.join());
+        } catch (CompletionException e) {
+            throw unwrap(e);
+        }
+    }
+
+    /** Unwraps the real cause of a CompletableFuture.join() failure so callers see the same exception type a synchronous call would have thrown. */
+    private RuntimeException unwrap(CompletionException e) {
+        Throwable cause = e.getCause();
+        return cause instanceof RuntimeException re ? re : e;
+    }
+
+    /** Pairs the two independently-retrieved source lists for {@link #retrieveConcurrently}. */
+    private record RetrievalPair(List<RetrievedSource> perplexitySources, List<RetrievedSource> legacySources) {}
+
     // -------------------------------------------------------------------------
     // Pipeline branches
     // -------------------------------------------------------------------------
@@ -503,24 +555,16 @@ public class ResearchOrchestratorService implements ConductResearchUseCase, Comp
         ResearchPlan plan = planningService.plan(request.query(), request.topicHint());
         log.info("conductCombined() | plan produced: subQueryCount={}", plan.subQueries().size());
 
-        // Step 2: Perplexity retrieval for each sub-query
-        List<RetrievedSource> perplexitySources = new ArrayList<>();
-        for (String subQuery : plan.subQueries()) {
-            RetrievalQuery rq = new RetrievalQuery(
-                    subQuery, "PERPLEXITY",
-                    Math.max(1, request.maxSources() / plan.subQueries().size()));
-            List<RetrievedSource> batch = retrieveWithRetry(perplexityAdapter, rq,
-                    "research-retrieval-perplexity", "conductCombined: " + subQuery);
-            log.debug("conductCombined() | sub-query='{}' → {} Perplexity sources", subQuery, batch.size());
-            perplexitySources.addAll(batch);
-        }
+        // Steps 2+3: Perplexity retrieval (per sub-query) and legacy-DB retrieval depend
+        // on nothing but the plan/query — run them concurrently rather than back-to-back.
+        RetrievalQuery legacyQuery = new RetrievalQuery(request.query(), "GOOGLE", request.maxSources());
+        RetrievalPair retrieved = retrieveConcurrently(
+                () -> retrievePerplexityForPlan(plan, request.maxSources(), "conductCombined"),
+                () -> retrieveWithRetry(legacyAdapter, legacyQuery,
+                        "research-retrieval-legacy", "conductCombined: " + request.query()));
+        List<RetrievedSource> perplexitySources = retrieved.perplexitySources();
+        List<RetrievedSource> legacySources = retrieved.legacySources();
         log.info("conductCombined() | Perplexity retrieved {} total sources", perplexitySources.size());
-
-        // Step 3: legacy retrieval for historical depth
-        RetrievalQuery legacyQuery = new RetrievalQuery(
-                request.query(), "GOOGLE", request.maxSources());
-        List<RetrievedSource> legacySources = retrieveWithRetry(legacyAdapter, legacyQuery,
-                "research-retrieval-legacy", "conductCombined: " + request.query());
         log.info("conductCombined() | legacy retrieved {} sources", legacySources.size());
 
         // Step 4: merge — Perplexity first (higher relevance weight)
