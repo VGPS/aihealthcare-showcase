@@ -1,0 +1,56 @@
+PLATFORM: LinkedIn Newsletter
+TYPE: Newsletter Post
+DATE: 2026-10-23
+SLUG: reversal-watch
+ANGLE: Feature deep-dive on the wiki contradiction-tracking layer ("Reversal Watch") — the archive doesn't just store claims, it notices when a new claim contradicts an old one, with both links traceable to source. Drives traffic directly to the public /wiki/contradictions page as proof, then to /pricing for conversion.
+
+--- TITLE ---
+
+My Archive Caught Itself Being Wrong. That Was the Point.
+
+--- POST BODY ---
+
+# The Record That Corrects Itself
+
+Most news trackers have one job: capture the claim. Mine has a second job almost nobody else builds for: notice when a later claim contradicts an earlier one, and keep both.
+
+That's not a bug-tracking feature. It's the actual argument for building a historical archive of AI in healthcare instead of just another headline feed.
+
+## Why This Needed to Exist
+
+Healthcare AI coverage moves fast, and "fast" and "self-correcting" are not the same thing. A company's "FDA clearance pending" from June quietly becomes "no FDA submission on file" by September, and nothing in the news cycle flags the reversal — the June article just scrolls out of view. A vendor's "zero reported adverse events" claim from a product launch gets contradicted by a safety bulletin four months later, read by a completely different audience.
+
+If you weren't watching both moments, you never see the correction. You just see two unrelated facts, months apart, with no thread connecting them.
+
+## How Reversal Watch Works
+
+Every article that enters the pipeline gets compiled into the knowledge wiki — a persistent, LLM-maintained set of pages per company, concept, and comparison. Each page tracks its own claims with full source provenance: which article, which outlet, which date, with an excerpt you can check against the original.
+
+When a new source contradicts a claim already on a page, the system doesn't quietly overwrite it. It records a contradiction: the prior claim, the new claim, and the sources backing each side. Both claims stay visible. Nothing gets memory-holed.
+
+The result is a live "Reversal Watch" feed — a running list of exactly where the AI healthcare narrative flipped, and on what evidence.
+
+## See It Yourself
+
+This isn't a claim I'm asking you to take on faith. The wiki and the contradiction feed are public, no account required:
+
+→ app.bigskylabs.ai/wiki/contradictions — every tracked reversal, with both sides sourced
+→ app.bigskylabs.ai/wiki — the underlying knowledge pages, each one carrying its own provenance trail
+
+Go look. If a page has a contradiction on it, it's shown — not buried in a changelog, not something you have to request.
+
+The wiki compiles from the same pipeline that tracks 692 companies in the directory and 58 state AI-health laws across 27 states. Reversal Watch isn't a side feature bolted onto that — it's what happens to the same evidence once you keep enough of it to compare today's claim against yesterday's.
+
+## Why I Think This Matters More Than Another Dashboard
+
+Dashboards tell you what's true right now. An archive that tracks reversals tells you how confident you should be in what's true right now — because it shows you how often "true right now" has already changed once.
+
+That's the actual value of a longitudinal record over a news feed: not more data, but a memory long enough to catch itself being wrong, and honest enough to leave the record showing it.
+
+"AI in healthcare is history being written right now. I'm building the archive."
+
+👉 app.bigskylabs.ai/pricing
+
+---
+
+*Forward this to a colleague who should be reading it. They can subscribe at the link above.*
