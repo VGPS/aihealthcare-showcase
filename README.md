@@ -12,7 +12,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **AI Newsletter Generation** | Daily automated newsletter drafts with topic-grouped sections, attributed sources, and TinyMCE WYSIWYG editing |
 | **Multi-Model AI Search** | Fan-out synthesis across Claude, GPT, Perplexity Sonar, Perplexity Deep Research, and Gemini with numbered citation references; credit-weighted model selection (Deep Research = 10 credits, Claude / GPT / Gemini = 3 credits, standard Perplexity = 1 credit) with tier-based topK caps (SUBSCRIBER = 20, ENTERPRISE = 50); Deep Research checkbox labeled ~30–60 s with violet badge; anonymous visitors see a teaser gate (locked card + free trial CTA) instead of a login redirect — enables shared links in social posts |
 | **Staged Research Pipeline** | AI-planned query decomposition, multi-source retrieval, citation assembly, and synthesized research answers |
-| **LLM-Compiled Knowledge Wiki** | AI synthesizes harvested articles into a persistent, searchable wiki with revision history and cross-references — public nav link for discovery/SEO; detail pages, Reversal Watch, Digest, and Ask are tier-gated (SUBSCRIBER/DEMO/ENTERPRISE/ADMIN get full access, FREE sees teaser + upgrade prompt) |
+| **LLM-Compiled Knowledge Wiki** | AI synthesizes harvested articles into a persistent, searchable wiki with revision history and cross-references; **hybrid keyword + semantic search** merges exact-match hits with pgvector similarity (W7) — public nav link for discovery/SEO; detail pages, Reversal Watch, Digest, and Ask are tier-gated (SUBSCRIBER/DEMO/ENTERPRISE/ADMIN get full access, FREE sees teaser + upgrade prompt) |
 | **Source Provenance Tracking** | Every wiki claim links to its original PubMed, FDA, or industry source for verifiable trust |
 | **Contradiction Detection** | Automatically flags when new evidence contradicts prior wiki claims — a "Reversal Watch" for healthcare AI |
 | **Copyright-Safe Content Retention** | Sentence-boundary excerpt truncation (500 chars COMPETITOR, 2,000 chars RSS/enriched), robots.txt compliance gate with 24h cache + domain denylist — all articles retained permanently as repository of record |
@@ -67,7 +67,7 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 21, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 107 domain model records, 119 port interfaces, and 104 controllers across 899 Java classes — framework-free domain layer enables swapping AI providers with zero business logic changes
-- Wrote **3,233 automated tests** across 378 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **3,235 automated tests** across 378 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
@@ -338,7 +338,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Security Testing | spring-security-test (@WithMockUser) | — |
 | Web Testing | MockMvc (@WebMvcTest slices) | — |
 | Persistence Testing | @DataJpaTest (H2 in-memory) | — |
-| Coverage | 3,203 tests across 376 test classes | — |
+| Coverage | 3,235 tests across 378 test classes | — |
 
 ### Infrastructure & DevOps
 | Component | Technology | Version |
@@ -635,6 +635,7 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 | HuggingFace Discovery | 05:30 daily | `aihealthcare.harvest.huggingface-cron` | Healthcare LLM model API |
 | Industry RSS | Every 4 hours | `aihealthcare.harvest.industry-rate-ms` | High-frequency industry feeds |
 | Embedding | 07:00 daily | `aihealthcare.embedding.schedule` | Vector store refresh (after harvests) |
+| Wiki Embedding | 08:15 daily | `aihealthcare.wiki.embedding-cron` | Embed wiki pages needing (re-)embedding into shared vector store (`type=wiki_page`) |
 | Trend Detection | Sunday 08:00 | `aihealthcare.trends.schedule` | Keyword frequency analysis -> TrendSnapshot |
 | Newsletter Draft | 00:00 daily | `aihealthcare.newsletter.schedule` | Generate DRAFT (review + send manually) |
 | Market Digest | 12:00 daily (noon) | `aihealthcare.market-analysis.schedule` | Perplexity news research + Claude classification + Alpaca data |
@@ -727,7 +728,7 @@ aihealthcare:
 
 ## Testing
 
-3,203 tests across 376 test classes — all pass with no live AI or network calls.
+3,235 tests across 378 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)
