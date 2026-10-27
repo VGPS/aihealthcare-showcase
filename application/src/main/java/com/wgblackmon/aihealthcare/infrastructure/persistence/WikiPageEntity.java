@@ -61,7 +61,7 @@ public class WikiPageEntity {
     @Column(nullable = false)
     private int revision = 1;
 
-    @Column(name = "last_embedded_revision", nullable = false)
+    @Column(name = "last_embedded_revision", nullable = false, columnDefinition = "integer default 0")
     private int lastEmbeddedRevision = 0;
 
     /** Required no-arg constructor for JPA. */
