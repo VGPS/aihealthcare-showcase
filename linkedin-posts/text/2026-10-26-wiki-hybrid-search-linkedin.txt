@@ -1,0 +1,32 @@
+PLATFORM: LinkedIn (personal feed + groups)
+DATE: 2026-10-26
+TOPIC: Wiki Hybrid Search — keyword + semantic
+STATUS: DRAFT
+
+---
+
+The AI Healthcare Knowledge Wiki just got smarter.
+
+Until now, searching the wiki was exact-match keyword only. Type "FDA clearance" and you got pages with those exact words. Miss a phrase? Miss the page.
+
+Starting today the wiki uses **hybrid search** — two legs running simultaneously:
+
+→ **Keyword match** — pages whose title or tags contain your exact phrase still appear first, guaranteed.
+
+→ **Semantic similarity** — remaining slots are filled by AI-powered vector search that understands *meaning*, not just words. Ask about "AI misdiagnosis liability" and you'll surface pages about FDA clearance frameworks, clinical trial evidence standards, and malpractice precedent — even if none of them use the word "liability."
+
+---
+
+Why it matters: the wiki is a synthesized knowledge base compiled from 3,100+ harvested articles across PubMed, FDA feeds, industry news, and competitor monitoring. It already tracks contradictions when new evidence reverses a prior claim — the first time I've seen that in a healthcare AI tool.
+
+Hybrid search makes that depth actually discoverable. You don't have to know the exact vocabulary the AI used when it compiled a page. Describe the concept and let the vector similarity engine do the translation.
+
+---
+
+The wiki is live and public at app.bigskylabs.ai/wiki
+
+Try it: search "hospital AI billing denial" or "ambient scribe clinical trial" and watch pages surface from FDA, CMS, and research sources that you wouldn't have found with keyword search alone.
+
+AI in healthcare is history being written right now. I'm building the archive.
+
+#AIHealthcare #HealthcareAI #KnowledgeManagement #SemanticSearch #VectorSearch #SpringAI #HealthIT #DigitalHealth

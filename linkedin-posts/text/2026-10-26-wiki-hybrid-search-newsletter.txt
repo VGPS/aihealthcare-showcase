@@ -1,0 +1,41 @@
+CONTENT TYPE: Newsletter section / subscriber email
+DATE: 2026-10-26
+TOPIC: Wiki Hybrid Search feature announcement
+STATUS: DRAFT
+
+---
+
+SUBJECT: The wiki just learned to understand what you mean, not just what you type
+
+---
+
+**New Feature: Hybrid Wiki Search**
+
+The Knowledge Wiki at bigskylabs.ai/wiki is the part of this platform I'm most proud of — an AI-compiled reference library that synthesizes thousands of harvested articles into provenance-tracked pages with full source citation. When a new study contradicts an old claim, the wiki records it. When an FDA guidance reverses prior regulatory framing, the wiki flags it.
+
+The missing piece was search. Until now it was exact-match keyword only: type "FDA clearance" and you got pages that contained those words. Nothing more.
+
+**That changed today.**
+
+Wiki search now runs two legs simultaneously:
+
+**Exact keyword match** — your phrase is searched against page titles and tags first. Guaranteed inclusion. If "ambient scribe" is in the title, it appears.
+
+**Semantic similarity** — after keyword results, AI vector search fills any remaining slots by meaning. Ask "hospital AI billing conflicts" and you'll surface pages about CMS prior authorization rules, algorithmic denial studies, and state law requirements — pages that are *about* the concept even when they use different vocabulary.
+
+The practical difference: I've been watching users hit "no results" on the wiki with perfectly valid queries because they used a synonym the compiler hadn't used. That's over.
+
+**Try it now:** app.bigskylabs.ai/wiki
+
+A few searches worth trying:
+- "AI misdiagnosis patient harm" → surfaces FDA clearance, malpractice, and clinical validation pages
+- "LLM clinical documentation" → ambient scribe, EHR integration, and trial evidence pages
+- "insurance algorithm prior authorization" → CMS policy, billing conflict, and state law pages
+
+The archive grows every day. Now you can find it.
+
+— Bill
+
+---
+
+*The Knowledge Wiki compiles from 3,100+ articles across PubMed, FDA feeds, industry news, and competitor monitoring. Hybrid search is live for all subscribers at app.bigskylabs.ai/wiki*
