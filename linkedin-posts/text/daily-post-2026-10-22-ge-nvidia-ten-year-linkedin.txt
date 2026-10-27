@@ -1,0 +1,27 @@
+PLATFORM: LinkedIn
+TYPE: Daily Post
+DATE: 2026-10-22
+SLUG: ge-nvidia-ten-year
+ANGLE: GE HealthCare + NVIDIA just detailed next steps in their 10-year AI partnership — CONFIRMED
+rank 2. In an industry where most AI is still running on 90-day pilots, a decade-long structural
+commitment between the two biggest names in healthcare imaging and AI compute is the story.
+
+--- POST BODY ---
+
+GE HealthCare and NVIDIA just detailed the next steps in their 10-year AI partnership.
+
+Ten years.
+
+In an industry where most AI deployments are still running on 90-day pilot contracts — where health systems sign one-year proof-of-concept agreements before committing to anything — two of the largest players in healthcare AI just publicly committed to a decade-long joint roadmap.
+
+GE HealthCare brings the installed base: 4 million imaging systems globally, relationships with virtually every major health system, and a century of diagnostic equipment history. NVIDIA brings the compute layer: the GPU architecture that every AI model in production actually runs on.
+
+A 10-year horizon isn't an announcement. It's a structural bet — that AI-powered medical imaging isn't a feature being added to existing equipment, it's the product being rebuilt from scratch. That the hardware-software stack is going to be redesigned, and that the two companies building it want to be locked in together while it happens.
+
+I track partnerships like this as part of a daily market digest for AI in healthcare — classified as CONFIRMED or SPECULATIVE, ranked by market impact. This one landed CONFIRMED, ranked 2 out of 5. The only things that rank higher are completed acquisitions and major regulatory actions.
+
+The 10-year timeframe is the story. The rest is a press release.
+
+I track confirmed and speculative deals like this daily at bigskylabs.ai — free to browse.
+
+"AI in healthcare is history being written right now. I'm building the archive."

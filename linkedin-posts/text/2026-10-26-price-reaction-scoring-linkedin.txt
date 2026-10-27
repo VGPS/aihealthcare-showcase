@@ -1,0 +1,32 @@
+PLATFORM: LinkedIn
+TYPE: Daily Post
+DATE: 2026-10-26
+SLUG: price-reaction-scoring
+ANGLE: Price Reaction Scoring — multi-horizon stock price tracking (1h/4h/1d/3d) after AI healthcare news events. The controversial hook: when an FDA clearance or $200M funding round doesn't move the stock, that non-reaction is a data point most people ignore but shouldn't.
+
+--- POST BODY ---
+
+An FDA clearance should move the stock. A $200M funding round should move the stock. An earnings call where management specifically called out AI revenue growth should definitely move the stock.
+
+When it doesn't, that's worth writing down.
+
+I built a system that tracks price reactions to AI healthcare news events across four time horizons: 1 hour, 4 hours, 1 day, and 3 days. Every time a market-moving event lands in my daily digest — a clearance, a funding announcement, a major partnership, an earnings report — the system logs the price at the moment of the event and checks back at each horizon.
+
+The 4-hour window is the most honest signal. Algorithmic trading has processed the headline. Initial retail sentiment has had time to form but not reverse. If a clearance announcement produces a 0.2% move in a company that has been calling that device a category-defining product for two years, the market has an opinion about those claims — and it differs from the press release.
+
+The 3-day window is where reversals show up. A move that holds for 72 hours tends to have fundamentals behind it. A move that reverses in 72 hours usually tracks back to an announcement that wasn't what it appeared to be on day one. Held moves and reversals tell different stories. The system records both.
+
+What this produces is a second source that doesn't care about the press release. It reads the same event and reports independently on whether anyone with capital at risk believed it. That's not a comprehensive signal — markets are noisy and AI healthcare is a thin-float sector. But a clearance that moves nothing, in a company whose management spent a quarter talking about that clearance, is a data point worth having on record.
+
+The price reaction log is part of the daily market digest at bigskylabs.ai — event, horizon, price delta, whether the move held.
+
+(Links in first comment.)
+
+"AI in healthcare is history being written right now. I'm building the archive."
+
+#AIHealthcare #HealthTech #MarketIntelligence #DigitalHealth
+
+--- FIRST COMMENT (post separately for reach) ---
+
+See the price reaction data (free 7-day trial, no card required): https://app.bigskylabs.ai/register
+

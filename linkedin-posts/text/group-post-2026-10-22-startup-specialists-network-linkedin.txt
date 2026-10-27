@@ -1,0 +1,34 @@
+PLATFORM: LinkedIn Group — STARTUP SPECIALISTS NETWORK GROUP
+TYPE: Group Post
+DATE: 2026-10-22
+SLUG: solo-autonomous-intelligence-platform
+ANGLE: Solo builder story — one developer + AI tools built an autonomous market intelligence
+platform that runs without daily intervention. Resonates with startup founders on the topics
+of AI-assisted development, the intelligence-as-a-product model, and what's now buildable solo.
+
+--- POST BODY ---
+
+I built an autonomous market intelligence platform. Solo. No team.
+
+Here's what it does without me touching it:
+
+→ Harvests AI-healthcare news daily from 40+ sources
+→ Classifies every headline as CONFIRMED or SPECULATIVE
+→ Tracks every FDA AI clearance and CMS rule change automatically
+→ Monitors 58 state AI-health laws for amendments and effective dates
+→ Scores sentiment across 698 companies in the directory
+→ Sends a formatted daily market digest
+
+None of that happens because I'm working. It runs on scheduled jobs and AI pipelines while I sleep.
+
+What made this possible wasn't a revolutionary idea. It was the tools. AI coding assistants cut my development time by 60-70%. Spring AI handled the LLM integration. The architecture is straightforward: harvest → classify → store → surface.
+
+The business model is just as simple: pick a vertical where intelligence is valuable but scattered, build the pipeline to aggregate and classify it, make the output readable. Healthcare AI is the vertical I picked. But the same pattern works anywhere — legal tech, climate, pharma, defense, real estate.
+
+The platform is live at bigskylabs.ai. I built it to answer one question: what does AI in healthcare actually look like when you track all of it at once, not just the headlines?
+
+The answer turns out to be a lot noisier, more speculative, and more interesting than the press releases suggest.
+
+What vertical are you building the intelligence layer for?
+
+"AI in healthcare is history being written right now. I'm building the archive."
