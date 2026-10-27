@@ -27,7 +27,7 @@ const OUT_DIR = path.join(__dirname, 'linkedin-posts', 'shots');
     await page.fill('input[name="username"]', process.env.SCREENSHOT_EMAIL || '');
     await page.fill('input[name="password"]', process.env.SCREENSHOT_PASSWORD || '');
     await page.click('button[type="submit"]');
-    await page.waitForURL(u => !u.includes('/login'), { timeout: 10000 });
+    await page.waitForURL(/\/(?!login)/, { timeout: 10000 });
     console.log('Logged in, current URL:', page.url());
 
     // --- 2. Wiki index — blank state ---
