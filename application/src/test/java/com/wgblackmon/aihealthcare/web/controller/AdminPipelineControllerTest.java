@@ -17,6 +17,7 @@ import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.WikiEmbeddingScheduler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +52,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * MockMvc tests for {@link AdminPipelineController}.
  *
  * @author  Bill Blackmon
- * @version 3.5
+ * @version 3.6
  * @since   2026-07-30
- * @updated 2026-09-08
+ * @updated 2026-10-26
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(AdminPipelineController.class)
@@ -103,6 +104,9 @@ class AdminPipelineControllerTest {
 
     @MockitoBean
     private LlmUsageSummaryService llmUsageSummaryService;
+
+    @MockitoBean
+    private WikiEmbeddingScheduler wikiEmbeddingScheduler;
 
     @BeforeEach
     void setUp() {
@@ -157,7 +161,7 @@ class AdminPipelineControllerTest {
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("pipelineCount", 27));
+                .andExpect(model().attribute("pipelineCount", 28));
     }
 
     @Test
@@ -474,6 +478,29 @@ class AdminPipelineControllerTest {
                 .andExpect(jsonPath("$.pipelineId").value("trend-detection"));
 
         verify(asyncRunner).runAsync(eq("trend-detection"), any(Runnable.class));
+    }
+
+    // --- Wiki embedding endpoint ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void runWikiEmbeddingReturns202() throws Exception {
+        when(asyncRunner.runAsync(eq("wiki-embedding"), any(Runnable.class)))
+                .thenReturn(accepted202("wiki-embedding"));
+
+        mockMvc.perform(post("/admin/pipelines/wiki-embedding/run").with(csrf()))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true))
+                .andExpect(jsonPath("$.pipelineId").value("wiki-embedding"));
+
+        verify(asyncRunner).runAsync(eq("wiki-embedding"), any(Runnable.class));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void runWikiEmbeddingReturns403ForNonAdmin() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/wiki-embedding/run").with(csrf()))
+                .andExpect(status().isForbidden());
     }
 
     // --- Outreach sync endpoint ---

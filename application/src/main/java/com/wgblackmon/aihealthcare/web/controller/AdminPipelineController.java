@@ -29,6 +29,7 @@ import com.wgblackmon.aihealthcare.domain.service.OutreachSyncService;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.WikiEmbeddingScheduler;
 
 import java.io.File;
 import java.io.IOException;
@@ -104,6 +105,7 @@ public class AdminPipelineController {
     private final OutreachSyncService outreachSyncService;
     private final LlmCallUsagePort llmCallUsagePort;
     private final LlmUsageSummaryService llmUsageSummaryService;
+    private final WikiEmbeddingScheduler wikiEmbeddingScheduler;
 
     public AdminPipelineController(PipelineHealthService healthService,
                                    PipelineAsyncRunner asyncRunner,
@@ -117,9 +119,10 @@ public class AdminPipelineController {
                                    PipelinePausePort pausePort,
                                    OutreachSyncService outreachSyncService,
                                    LlmCallUsagePort llmCallUsagePort,
-                                   LlmUsageSummaryService llmUsageSummaryService) {
-        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}, pausePort={}, outreachSyncService={}, llmCallUsagePort={}, llmUsageSummaryService={}",
-                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort, pausePort, outreachSyncService, llmCallUsagePort, llmUsageSummaryService);
+                                   LlmUsageSummaryService llmUsageSummaryService,
+                                   WikiEmbeddingScheduler wikiEmbeddingScheduler) {
+        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}, pausePort={}, outreachSyncService={}, llmCallUsagePort={}, llmUsageSummaryService={}, wikiEmbeddingScheduler={}",
+                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort, pausePort, outreachSyncService, llmCallUsagePort, llmUsageSummaryService, wikiEmbeddingScheduler);
         this.healthService = healthService;
         this.asyncRunner = asyncRunner;
         this.newsletterScheduler = newsletterScheduler;
@@ -133,6 +136,7 @@ public class AdminPipelineController {
         this.outreachSyncService = outreachSyncService;
         this.llmCallUsagePort = llmCallUsagePort;
         this.llmUsageSummaryService = llmUsageSummaryService;
+        this.wikiEmbeddingScheduler = wikiEmbeddingScheduler;
     }
 
     /**
@@ -484,6 +488,21 @@ public class AdminPipelineController {
     }
 
     /**
+     * Manually triggers wiki page embedding — the same pipeline that runs automatically
+     * at 08:15 UTC after the wiki lint. Embeds all wiki pages whose current revision has
+     * not yet been pushed to the vector store, enabling hybrid keyword + semantic search.
+     * Idempotent — already-embedded pages at their current revision are skipped.
+     *
+     * @return JSON result with page count and duration
+     */
+    @PostMapping("/wiki-embedding/run")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> runWikiEmbedding() {
+        log.debug("runWikiEmbedding()");
+        return asyncRunner.runAsync("wiki-embedding", () -> wikiEmbeddingScheduler.embedWikiPages());
+    }
+
+    /**
      * Syncs the NotebookLM corpus from EC2 to the local dev machine via SSH + SCP.
      *
      * <p>EC2 runs {@code ResearchHarvestScheduler} (06:00 &amp; 12:00 UTC daily),
@@ -665,6 +684,15 @@ public class AdminPipelineController {
                 "Embeds new articles into vector store for semantic search. Skips already-embedded articles. Requires pgvector.",
                 "Daily 07:00 UTC", "EmbeddingScheduler",
                 "/api/v1/monitoring/embeddings", "POST", false, "~10 min", "High (CPU + API)"));
+
+        list.add(new PipelineInfo("wiki-embedding", "Wiki Page Embedding",
+                "Embeds wiki pages into the shared vector store so hybrid search can find them via semantic similarity. " +
+                "Only processes pages whose current revision has not yet been embedded (revision > lastEmbeddedRevision). " +
+                "Idempotent — re-compiled pages overwrite their prior embedding in place. " +
+                "Runs automatically at 08:15 UTC (15 min after wiki lint). " +
+                "Trigger manually after a fresh wiki compilation to make new pages immediately searchable.",
+                "Daily 08:15 UTC", "WikiEmbeddingScheduler",
+                "/admin/pipelines/wiki-embedding/run", "POST", true, "~1-2 min", "High (CPU + API)"));
 
         // ── Medium LLM ───────────────────────────────────────────────────────
         list.add(new PipelineInfo("legal-trends", "Legal Trend Detection",

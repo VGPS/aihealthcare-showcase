@@ -2,12 +2,12 @@
 <!--
 /**
  * Knowledge Wiki index page — searchable grid of all compiled wiki pages with
- * type filter, keyword search, and links to related wiki features.
+ * type filter, hybrid keyword+semantic search, and links to related wiki features.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-15
- * @updated 2026-07-28
+ * @updated 2026-10-26
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -54,15 +54,28 @@
         <ol class="mt-1 ml-5 list-decimal space-y-0.5">
             <li>Articles are harvested daily from RSS feeds, competitor pages, and research APIs.</li>
             <li>An AI compilation step groups related articles and synthesizes them into wiki pages with full source provenance.</li>
-            <li>Search by keyword or filter by page type (Entity, Concept, Comparison, Overview) to find topics of interest.</li>
+            <li>Search uses <strong>hybrid matching</strong> — keyword hits are guaranteed to appear first, then semantic similarity fills any remaining slots so you find conceptually related pages even when your exact phrase isn't in the title.</li>
             <li>Each page links back to its original sources and tracks contradictions when new evidence reverses prior claims.</li>
         </ol>
+    </div>
+
+    <!-- Hybrid Search callout -->
+    <div class="bg-violet-50 border-l-4 border-violet-500 rounded-r-md p-4 mb-4 text-sm text-gray-700 leading-relaxed">
+        <strong class="text-gray-900">Hybrid Search — Keyword + Semantic</strong>
+        <p class="mt-1">
+            Type any phrase into the search box and the wiki uses <em>two search legs at once</em>:
+        </p>
+        <ul class="mt-1 ml-5 list-disc space-y-0.5">
+            <li><strong>Keyword match</strong> — pages whose title or tags contain your exact term appear first, guaranteed.</li>
+            <li><strong>Semantic match</strong> — remaining slots are filled by pages that are <em>conceptually related</em> even if the words don't match. Ask about "AI misdiagnosis liability" and you'll surface pages about FDA clearance, malpractice law, and clinical trial standards — not just pages that use the word "liability."</li>
+        </ul>
+        <p class="mt-1 text-gray-500 text-xs">Tip: broader phrases ("AI regulation patient safety") retrieve more semantically related pages than narrow exact-match terms.</p>
     </div>
 
     <!-- Filter bar -->
     <form class="bg-white rounded-lg shadow-sm px-5 py-4 mb-5 flex gap-3 items-center flex-wrap"
           method="get" th:action="@{/wiki}">
-        <input type="text" name="query" placeholder="e.g. AI Legal Liability in Healthcare"
+        <input type="text" name="query" placeholder="e.g. FDA clearance AI diagnostics — try a phrase"
                th:value="${query}"
                class="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-primary-500"/>
         <select name="pageType"
