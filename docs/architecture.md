@@ -111,6 +111,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | — | Company Outreach CRM — employment/subscription outreach tracking, 1-to-many contacts, datalist combo box with live contact preview, inline Register to Directory form | 3,105 |
 | PC-1 | Spring AI 1.0.0 → 1.1.6 upgrade — groundwork for prompt caching; no adapter changes (every current prompt template is below Anthropic's cache-minimum for the model it runs on) | 3,105 |
 | PC-2 | Per-Pipeline LLM Token Usage Tracking — `CallAdvisor` + `ChatClientCustomizer` captures every Anthropic call's tokens, tagged by pipeline via a `ThreadLocal`; admin dashboard panel shows 7-day cost by pipeline and by model | 3,123 |
+| W7 | Wiki Hybrid Search — `WikiQueryAdapter.findRelevantPages()` merges keyword/LIKE hits with a pgvector semantic-similarity leg (new `WikiEmbeddingScheduler`, shared `PgVectorStore` tagged `type=wiki_page`) for non-blank queries only; blank-query "return everything" contract (used by `WikiLintScheduler`/`WikiLintController`/`FeedHarvestScheduler`) unchanged | 3,139 |
 
 ---
 
@@ -323,7 +324,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `search_prompts` | `SearchPromptEntity` | engine, templateText, active |
 | `research_runs` | `ResearchRunEntity` | runId, query, mode, citationCount, researchedAt |
 | `topic_summaries` | `TopicSummaryEntity` | topic PK, summaryText TEXT, generatedAt; upsert by topic |
-| `wiki_pages` | `WikiPageEntity` | slug PK (natural key), pageType, tags/relatedSlugs pipe-delimited |
+| `wiki_pages` | `WikiPageEntity` | slug PK (natural key), pageType, tags/relatedSlugs pipe-delimited, lastEmbeddedRevision (W7) |
 | `wiki_source_refs` | `WikiSourceRefEntity` | pageSlug FK, articleId, provenance link |
 | `wiki_contradictions` | `WikiContradictionEntity` | pageSlug, prior/new claims, pipe-delimited sourceIds |
 | `wiki_page_revisions` | `WikiPageRevisionEntity` | pageSlug, revision, contentMarkdown CLOB |
@@ -374,6 +375,7 @@ All cron expressions are externalized to `application.yml` — no hardcoded sche
 | `ResearchHarvestScheduler` | 04:00 daily | `aihealthcare.research.harvest.cron` | COMBINED pipeline → ResearchRun records |
 | `WebMonitoringScheduler` | 05:00 daily (competitors) + 05:30 (HuggingFace) | `aihealthcare.harvest.competitor-cron`, `huggingface-cron` | Web scrape + HF discovery → DB |
 | `EmbeddingScheduler` | 07:00 daily | `aihealthcare.embedding.schedule` | Embed all articles into vector store |
+| `WikiEmbeddingScheduler` | 08:15 daily | `aihealthcare.wiki.embedding-cron` | Embed wiki pages needing (re-)embedding into shared vector store (`type=wiki_page`) |
 | `NewsletterGenerationScheduler` | 00:00 daily (midnight) | `aihealthcare.newsletter.schedule` | Ingest → generate DRAFT (no auto-send) |
 | `TrendDetectionScheduler` | Sunday 08:00 | `aihealthcare.trends.schedule` | Keyword frequency analysis → TrendSnapshot |
 | `RegulatoryHarvestScheduler` | 04:30 daily | `aihealthcare.regulatory.schedule` | FDA/CMS harvest → dedup → save → watchlist match |

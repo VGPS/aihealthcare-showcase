@@ -23,7 +23,7 @@ import java.time.Instant;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-08-23
+ * @updated 2026-10-26
  */
 @Entity
 @Table(name = "wiki_pages",
@@ -61,6 +61,9 @@ public class WikiPageEntity {
     @Column(nullable = false)
     private int revision = 1;
 
+    @Column(name = "last_embedded_revision", nullable = false)
+    private int lastEmbeddedRevision = 0;
+
     /** Required no-arg constructor for JPA. */
     public WikiPageEntity() {}
 
@@ -90,4 +93,7 @@ public class WikiPageEntity {
 
     public int getRevision() { return revision; }
     public void setRevision(int revision) { this.revision = revision; }
+
+    public int getLastEmbeddedRevision() { return lastEmbeddedRevision; }
+    public void setLastEmbeddedRevision(int lastEmbeddedRevision) { this.lastEmbeddedRevision = lastEmbeddedRevision; }
 }

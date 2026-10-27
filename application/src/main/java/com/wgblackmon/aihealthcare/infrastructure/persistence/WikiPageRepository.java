@@ -16,7 +16,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-08-23
+ * @updated 2026-10-26
  */
 public interface WikiPageRepository extends JpaRepository<WikiPageEntity, String> {
 
@@ -113,4 +113,14 @@ public interface WikiPageRepository extends JpaRepository<WikiPageEntity, String
      * @return recently updated pages
      */
     List<WikiPageEntity> findByUpdatedAtAfterAndRevisionGreaterThanOrderByUpdatedAtDesc(Instant since, int minRevision);
+
+    /**
+     * Finds wiki pages whose current revision has not yet been embedded into
+     * the vector store — either never embedded, or re-compiled since the
+     * last embedding run.
+     *
+     * @return pages needing (re-)embedding
+     */
+    @Query("SELECT w FROM WikiPageEntity w WHERE w.revision > w.lastEmbeddedRevision")
+    List<WikiPageEntity> findNeedingEmbedding();
 }

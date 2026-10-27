@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-10-26
  */
 @DataJpaTest
 class WikiPageRepositoryTest {
@@ -102,5 +102,39 @@ class WikiPageRepositoryTest {
         List<WikiPageEntity> entities = repository.findByPageType("ENTITY");
         assertThat(entities).hasSize(1);
         assertThat(entities.get(0).getSlug()).isEqualTo("fda-ai-guidance");
+    }
+
+    @Test
+    void findNeedingEmbedding_newPage_included() {
+        WikiPageEntity page = createPage("fda-ai-guidance", "FDA AI Guidance", "ENTITY", "fda");
+        // revision=1, lastEmbeddedRevision defaults to 0 — never embedded
+        repository.save(page);
+
+        List<WikiPageEntity> results = repository.findNeedingEmbedding();
+
+        assertThat(results).extracting(WikiPageEntity::getSlug).containsExactly("fda-ai-guidance");
+    }
+
+    @Test
+    void findNeedingEmbedding_alreadyEmbeddedAtCurrentRevision_excluded() {
+        WikiPageEntity page = createPage("fda-ai-guidance", "FDA AI Guidance", "ENTITY", "fda");
+        page.setLastEmbeddedRevision(1);
+        repository.save(page);
+
+        List<WikiPageEntity> results = repository.findNeedingEmbedding();
+
+        assertThat(results).isEmpty();
+    }
+
+    @Test
+    void findNeedingEmbedding_reCompiledPage_includedAgain() {
+        WikiPageEntity page = createPage("fda-ai-guidance", "FDA AI Guidance", "ENTITY", "fda");
+        page.setLastEmbeddedRevision(1);
+        page.setRevision(2);
+        repository.save(page);
+
+        List<WikiPageEntity> results = repository.findNeedingEmbedding();
+
+        assertThat(results).extracting(WikiPageEntity::getSlug).containsExactly("fda-ai-guidance");
     }
 }
