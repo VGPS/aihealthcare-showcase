@@ -39,7 +39,7 @@ This isn't a claim I'm asking you to take on faith. The wiki and the contradicti
 
 Go look. If a page has a contradiction on it, it's shown — not buried in a changelog, not something you have to request.
 
-The wiki compiles from the same pipeline that tracks 692 companies in the directory and 58 state AI-health laws across 27 states. Reversal Watch isn't a side feature bolted onto that — it's what happens to the same evidence once you keep enough of it to compare today's claim against yesterday's.
+The wiki compiles from the same pipeline that tracks 698 companies in the directory and 58 state AI-health laws across 27 states. Reversal Watch isn't a side feature bolted onto that — it's what happens to the same evidence once you keep enough of it to compare today's claim against yesterday's.
 
 ## Why I Think This Matters More Than Another Dashboard
 
