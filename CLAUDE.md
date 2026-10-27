@@ -269,7 +269,28 @@ FeedHarvestScheduler  →  RomeFeedHarvester  →  List<NewsArticle>
 ---
 
 ## Current Slice
-**Market Analysis (Phases 1–3) — COMPLETE — 260 selective tests passing**
+**W7 — Wiki Hybrid Search (Keyword + Semantic Merge) — COMPLETE — 75 selective tests passing**
+- [x] `WikiPageEntity` — added `lastEmbeddedRevision` int column (default 0) tracking which
+      revision was last pushed to the vector store
+- [x] `WikiPageRepository` — added `findNeedingEmbedding()` (`revision > lastEmbeddedRevision`)
+- [x] `WikiEmbeddingScheduler` (new, `infrastructure.scheduler`) — mirrors `EmbeddingScheduler`;
+      embeds wiki pages tagged `type=wiki_page` into the same shared `PgVectorStore` table used
+      for articles; batches of 10, idempotent (ID derived from slug), swallows failures
+- [x] `WikiQueryAdapter.findRelevantPages()` — blank query path unchanged (keyword/LIKE only, the
+      exact code path `WikiLintScheduler`/`WikiLintController`/`FeedHarvestScheduler` depend on for
+      "return everything"); non-blank query now merges keyword hits (guaranteed inclusion) with a
+      pgvector semantic-similarity leg (`filterExpression("type == 'wiki_page'")`) filling any
+      remaining slots up to `maxResults`, deduped by slug
+- [x] Config: `aihealthcare.wiki.embedding-cron` (default `0 15 8 * * *`, 15 min after wiki lint)
+- [x] No `AppConfig` change needed — `WikiQueryAdapter` is `@Component`-scanned, so Spring
+      autowires the new `ObjectProvider<VectorStore>` constructor param directly
+- [x] Tests: `WikiEmbeddingSchedulerTest` (7, new), `WikiQueryAdapterTest` (+8 hybrid-search
+      cases), `WikiPageRepositoryTest` (+3 `findNeedingEmbedding` cases); verified unchanged:
+      `WikiLintSchedulerTest`, `WikiLintControllerTest`, `WikiDeduplicationServiceTest`,
+      `WikiCompilationAdapterTest`, `WikiControllerTest`
+- [x] Plan: `.claude/plans/w7-wiki-hybrid-search.md`
+
+**Previously complete: Market Analysis (Phases 1–3) — COMPLETE — 260 selective tests passing**
 - [x] Domain: `domain.marketanalysis` package — 9 enums (`NewsCategory`, `FactClassification`, `ImpactDimension`, `ImpactDirection`, `PeerGroup`, `DisclosedPortion`, `RulemakingStage`, `Jurisdiction`, `ReactionHorizon`), 18 records (`MarketDigest`, `MarketDigestEntry`, `MarketNewsItem`, `Quote`, `AffectedCompany`, `ImpactAssessment`, `MarketImpactRank`, `GuidanceComparison`, `RegulatoryTracker`, `PrivateFundingRound`, `AnalystRatingChange`, `DealTerms`, `CorporateActionConfirmation`, `WeeklyRollup`, `RollupEntry`, `PriceReactionSnapshot`, `TrackedCompanyEntry`, `PriceBar`)
 - [x] Ports: 14 outbound ports in `domain.marketanalysis.port` — `MarketNewsResearchPort`, `MarketDataPort`, `ImpactClassifierPort`, `MarketDigestRepository`, `MarketDigestNotifier`, `EntryEmbeddingPort`, `GuidancePort`, `RegulatoryTrackerRepository`, `PrivateFundingPort`, `AnalystRatingPort`, `DealTermsPort`, `TickerWatchlistRepository`, `SecondaryNewsCheckPort`, `CorporateActionPort`, `PriceReactionPort`
 - [x] Services: `MarketDigestService` (full pipeline: research → secondary merge → classify → peer-tag → qualify → dedup → persist → notify), `PeerGroupTagger`, `GuidanceQueryService`, `WeeklyRollupService` (7-day dedup rollup), `PriceReactionService` (multi-horizon scoring: 1h/4h/1d/3d), `PriceReactionQueryService`

@@ -7,21 +7,31 @@ import com.wgblackmon.aihealthcare.domain.model.WikiPageType;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WikiQueryPort;
 import com.wgblackmon.aihealthcare.domain.service.PipeDelimitedUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * JPA-backed implementation of {@link WikiQueryPort}.
  *
  * <p>Maps wiki JPA entities to domain records for consumption by the
- * newsletter service and other domain consumers.  Phase 1 uses simple
- * LIKE queries for relevance; future phases may upgrade to pgvector
- * semantic similarity.
+ * newsletter service and other domain consumers.  A blank query runs the
+ * keyword/LIKE path only (preserved exactly, since {@code WikiLintScheduler},
+ * {@code WikiLintController}, and {@code FeedHarvestScheduler} all call
+ * {@code findRelevantPages("", N)} expecting "everything").  A non-blank
+ * query merges that keyword leg with a pgvector semantic-similarity leg
+ * (Slice W7) — keyword hits are guaranteed inclusion, with semantic hits
+ * filling any remaining slots up to {@code maxResults}, deduped by slug.
  *
  * <p>Source references are loaded from the {@code wiki_source_refs} table
  * and mapped to {@link SourceRef} domain records.  Contradictions are
@@ -32,7 +42,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-09-12
+ * @updated 2026-10-26
  */
 @Slf4j
 @Component
@@ -41,10 +51,12 @@ public class WikiQueryAdapter implements WikiQueryPort {
     private final WikiPageRepository pageRepository;
     private final WikiSourceRefRepository sourceRefRepository;
     private final WikiContradictionRepository contradictionRepository;
+    private final VectorStore vectorStore;
 
     public WikiQueryAdapter(WikiPageRepository pageRepository,
                             WikiSourceRefRepository sourceRefRepository,
-                            WikiContradictionRepository contradictionRepository) {
+                            WikiContradictionRepository contradictionRepository,
+                            ObjectProvider<VectorStore> vectorStoreProvider) {
         log.debug("WikiQueryAdapter() | pageRepository={}, sourceRefRepository={}, contradictionRepository={}",
                 pageRepository.getClass().getSimpleName(),
                 sourceRefRepository.getClass().getSimpleName(),
@@ -52,12 +64,49 @@ public class WikiQueryAdapter implements WikiQueryPort {
         this.pageRepository = pageRepository;
         this.sourceRefRepository = sourceRefRepository;
         this.contradictionRepository = contradictionRepository;
+        this.vectorStore = vectorStoreProvider.getIfAvailable();
     }
 
     @Override
     public List<WikiPage> findRelevantPages(String query, int maxResults) {
         log.debug("findRelevantPages() | query={}, maxResults={}", query, maxResults);
 
+        if (query == null || query.isBlank()) {
+            List<WikiPage> results = keywordMatches(query, maxResults);
+            log.debug("findRelevantPages() | return={} pages (blank query, keyword only)", results.size());
+            return results;
+        }
+
+        Set<String> seenSlugs = new LinkedHashSet<>();
+        List<WikiPage> results = new ArrayList<>();
+        for (WikiPage page : keywordMatches(query, maxResults)) {
+            if (seenSlugs.add(page.slug())) {
+                results.add(page);
+            }
+        }
+
+        if (results.size() < maxResults) {
+            for (WikiPage page : semanticMatches(query, maxResults)) {
+                if (results.size() >= maxResults) {
+                    break;
+                }
+                if (seenSlugs.add(page.slug())) {
+                    results.add(page);
+                }
+            }
+        }
+
+        log.debug("findRelevantPages() | return={} pages ({} keyword+semantic merged)",
+                results.size(), seenSlugs.size());
+        return results;
+    }
+
+    /**
+     * Runs the keyword/LIKE search and caps it at {@code maxResults}.
+     * This is the sole retrieval path for a blank query and the first
+     * (guaranteed-inclusion) leg of a non-blank query's hybrid search.
+     */
+    private List<WikiPage> keywordMatches(String query, int maxResults) {
         List<WikiPageEntity> entities = pageRepository.searchByKeyword(query);
         List<WikiPage> results = new ArrayList<>();
         int count = 0;
@@ -68,8 +117,49 @@ public class WikiQueryAdapter implements WikiQueryPort {
             results.add(toDomain(entity));
             count++;
         }
+        return results;
+    }
 
-        log.debug("findRelevantPages() | return={} pages", results.size());
+    /**
+     * Runs a vector-similarity search scoped to wiki-page embeddings
+     * ({@code type=wiki_page} metadata) so paraphrased queries can surface
+     * pages a substring match would miss. Returns an empty list if the
+     * vector store is unavailable or the search fails — callers already
+     * treat this leg as best-effort supplemental results.
+     */
+    private List<WikiPage> semanticMatches(String query, int maxResults) {
+        if (vectorStore == null) {
+            return List.of();
+        }
+
+        List<Document> docs;
+        try {
+            SearchRequest request = SearchRequest.builder()
+                    .query(query)
+                    .topK(maxResults)
+                    .filterExpression("type == 'wiki_page'")
+                    .build();
+            docs = vectorStore.similaritySearch(request);
+        } catch (Exception ex) {
+            log.warn("semanticMatches() | vector search failed: {}", ex.getMessage());
+            return List.of();
+        }
+
+        List<WikiPage> results = new ArrayList<>();
+        for (Document doc : docs) {
+            Object slugObj = doc.getMetadata().get("slug");
+            if (slugObj == null) {
+                log.warn("semanticMatches() | Document {} has no slug metadata, skipping", doc.getId());
+                continue;
+            }
+            Optional<WikiPageEntity> entity = pageRepository.findById(slugObj.toString());
+            if (entity.isEmpty()) {
+                log.warn("semanticMatches() | slug={} from vector store not found in DB, skipping",
+                        slugObj);
+                continue;
+            }
+            results.add(toDomain(entity.get()));
+        }
         return results;
     }
 

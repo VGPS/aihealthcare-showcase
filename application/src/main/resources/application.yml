@@ -261,6 +261,10 @@ aihealthcare:
   wiki:
     lint-cron: "0 0 8 * * *"
     staleness-threshold-days: 30
+    # WikiEmbeddingScheduler — embeds wiki pages into the shared vector store
+    # (tagged type=wiki_page) so WikiQueryAdapter can run a semantic-similarity
+    # leg alongside keyword search. Runs after compilation (08:00) + lint.
+    embedding-cron: "0 15 8 * * *"
 
   # ---------------------------------------------------------------------------
   # Document Library — browser-uploaded files are saved here before ingestion.

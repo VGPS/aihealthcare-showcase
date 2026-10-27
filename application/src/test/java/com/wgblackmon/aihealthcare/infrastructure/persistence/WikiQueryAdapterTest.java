@@ -3,15 +3,23 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 import com.wgblackmon.aihealthcare.domain.model.Contradiction;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import org.junit.jupiter.api.Test;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Integration tests for {@link WikiQueryAdapter} using the JPA slice.
@@ -22,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-10-26
  */
 @DataJpaTest
 @Import(WikiQueryAdapter.class)
@@ -39,6 +47,9 @@ class WikiQueryAdapterTest {
 
     @Autowired
     private WikiContradictionRepository contradictionRepository;
+
+    @MockBean
+    private VectorStore vectorStore;
 
     private static final Instant NOW = Instant.parse("2026-07-04T12:00:00Z");
 
@@ -86,6 +97,86 @@ class WikiQueryAdapterTest {
         List<WikiPage> results = adapter.findRelevantPages("nonexistent", 10);
 
         assertThat(results).isEmpty();
+    }
+
+    // -------------------------------------------------------------------------
+    // Slice W7 — hybrid search (keyword + semantic merge)
+    // -------------------------------------------------------------------------
+
+    @Test
+    void findRelevantPages_blankQuery_neverCallsVectorStore() {
+        pageRepository.save(createPage("fda-ai-guidance", "FDA AI Guidance", "ENTITY", "fda"));
+
+        List<WikiPage> results = adapter.findRelevantPages("", 10);
+
+        assertThat(results).hasSize(1);
+        verifyNoInteractions(vectorStore);
+    }
+
+    @Test
+    void findRelevantPages_nonBlankQuery_semanticLegFillsRemainingSlots() {
+        pageRepository.save(createPage("fda-ai-guidance", "FDA AI Guidance", "ENTITY", "fda"));
+        pageRepository.save(createPage("illinois-wopr-act", "Illinois WOPR Act", "ENTITY", "illinois|chatbot"));
+
+        Document semanticDoc = new Document("doc-1", "irrelevant body", Map.of("slug", "illinois-wopr-act"));
+        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(semanticDoc));
+
+        // "FDA" matches only the first page by keyword; the second page only
+        // surfaces via the mocked semantic leg (simulating a paraphrase match).
+        List<WikiPage> results = adapter.findRelevantPages("FDA", 10);
+
+        assertThat(results).extracting(WikiPage::slug)
+                .containsExactly("fda-ai-guidance", "illinois-wopr-act");
+    }
+
+    @Test
+    void findRelevantPages_semanticHitDuplicatesKeywordHit_notDoubleCounted() {
+        pageRepository.save(createPage("fda-ai-guidance", "FDA AI Guidance", "ENTITY", "fda"));
+
+        Document dupDoc = new Document("doc-1", "irrelevant body", Map.of("slug", "fda-ai-guidance"));
+        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(dupDoc));
+
+        List<WikiPage> results = adapter.findRelevantPages("FDA", 10);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).slug()).isEqualTo("fda-ai-guidance");
+    }
+
+    @Test
+    void findRelevantPages_keywordAlreadyFillsMaxResults_semanticLegSkipped() {
+        pageRepository.save(createPage("page-one", "AI in Healthcare", "OVERVIEW", "ai"));
+        pageRepository.save(createPage("page-two", "AI in Diagnostics", "OVERVIEW", "ai"));
+
+        List<WikiPage> results = adapter.findRelevantPages("AI", 2);
+
+        assertThat(results).hasSize(2);
+        verifyNoInteractions(vectorStore);
+    }
+
+    @Test
+    void findRelevantPages_vectorSearchThrows_fallsBackToKeywordOnlyResults() {
+        pageRepository.save(createPage("fda-ai-guidance", "FDA AI Guidance", "ENTITY", "fda"));
+
+        when(vectorStore.similaritySearch(any(SearchRequest.class)))
+                .thenThrow(new RuntimeException("embedding API unavailable"));
+
+        List<WikiPage> results = adapter.findRelevantPages("FDA", 10);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).slug()).isEqualTo("fda-ai-guidance");
+    }
+
+    @Test
+    void findRelevantPages_semanticHitWithUnknownSlug_skipped() {
+        pageRepository.save(createPage("fda-ai-guidance", "FDA AI Guidance", "ENTITY", "fda"));
+
+        Document staleDoc = new Document("doc-1", "irrelevant body", Map.of("slug", "deleted-page"));
+        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(staleDoc));
+
+        List<WikiPage> results = adapter.findRelevantPages("FDA", 10);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).slug()).isEqualTo("fda-ai-guidance");
     }
 
     @Test
