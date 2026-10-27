@@ -1,7 +1,9 @@
 PLATFORM: LinkedIn (personal feed + groups)
 DATE: 2026-10-26
 TOPIC: Wiki Hybrid Search — keyword + semantic
-STATUS: DRAFT
+STATUS: DRAFT — re-take screenshot after wiki embedding completes (~08:30 UTC Oct 27)
+SCREENSHOTS: linkedin-posts/shots/wiki-index-blank.png (shows new callout box)
+LINK: https://app.bigskylabs.ai/wiki
 
 ---
 
