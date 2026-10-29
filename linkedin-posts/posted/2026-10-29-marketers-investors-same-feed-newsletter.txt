@@ -1,0 +1,35 @@
+PLATFORM: LinkedIn Newsletter
+TYPE: Newsletter Issue
+DATE: 2026-10-29
+SLUG: marketers-investors-same-feed
+ANGLE: One pipeline, two very different readers. A marketer needs to know what's timely enough to publish this week. An investor needs to know what's true about a specific company right now, not last quarter. Walking through how the same harvested-article database answers both questions without either side knowing the other exists.
+
+--- SUBJECT LINE ---
+
+Marketers Need What's Timely. Investors Need What's True Right Now. Same Database Answers Both.
+
+--- POST BODY ---
+
+I built this as a newsletter engine. It's turned into two different tools wearing the same coat, depending on who's logged in.
+
+The common foundation is the same for everyone: a pipeline that harvests AI-healthcare news daily from PubMed, FDA/CMS feeds, industry press, and competitor pages, classifies and scores every article, and stores it with full source attribution. What happens after that split cleanly into two use cases I didn't originally design for.
+
+**The marketer's version of the problem is: what's timely?**
+
+A content calendar built a month in advance is a content calendar talking about last month. The trend detection pipeline runs weekly, scoring keyword frequency across three rolling windows — 30, 90, and 180 days — and classifying each keyword as rising, fading, or brand new. "Ambient scribe fatigue" might be flat for 90 days and then spike in the last 30 — that's a rising signal worth a post this week, not a retrospective next quarter. The historical trend archive keeps every snapshot, so you can also see which "rising" keywords six months ago turned out to be real versus noise — useful for not chasing every spike.
+
+The market digest adds a second timeliness layer specifically for anything that moved a stock price or triggered a regulatory action: ranked, fact-versus-speculation-separated entries with a price-reaction log across four horizons (1 hour, 4 hours, 1 day, 3 days). A marketer writing about "what just happened" has an auditable record of what actually happened, not just what the press release claimed. The built-in social post generator can draft a LinkedIn or Facebook post straight from a digest entry, tier-gated to subscribers.
+
+**The investor's version of the problem is: what's true about this specific company, right now?**
+
+This is where the company directory earns its keep. Every company profile carries a computed signal score built from three cross-referenced sources: article velocity over the trailing 90 days (is coverage accelerating or going quiet), the most recent detected deal signal (funding round, M&A, partnership — with LLM-extracted amount and counterparty where disclosed), and aggregated sentiment across every article mentioning that company, broken down by label and confidence, not just a single "positive/negative" badge. The directory is sortable by relevance, trending, funded, or watchlist, and exports to CSV for anyone doing their own modeling.
+
+Two features go deeper for diligence-stage work. The framework competitive analysis engine scores a company against named peers across six weighted dimensions pulled from its actual news coverage — not a self-reported pitch deck — and renders it as a radar chart with a paragraph assessment per company. The deal signal detail page cross-references a single detected deal against that company's sentiment history, competitive score, and any open regulatory events, so a Series C or acquisition rumor doesn't have to be evaluated in isolation.
+
+Neither audience sees the other's view. The marketer never touches the company directory. The investor never opens the trend page. But both are reading rows from the same harvested-article table, filtered through a different lens built for a different decision.
+
+The company directory, deal signals, and market digest are all live and free to try at app.bigskylabs.ai.
+
+"AI in healthcare is history being written right now. I'm building the archive."
+
+If this is useful, forward it to whichever colleague is closer to your version of the problem — the one planning content, or the one planning a check.
