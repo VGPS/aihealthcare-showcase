@@ -139,3 +139,37 @@ When a live call can't happen for a few days, it's fine — and arguably lower-r
 Caveats:
 - Treat this as a bridge, not a substitute — confirm a specific date for the live call so momentum doesn't die.
 - The showcase repo isn't "special NDA access" — it's the same thing anyone could find via GitHub search. Don't let it stand in for the financials/traction conversation the code alone can't show.
+
+---
+
+## NDA Auto-Reply Message (revised 2026-10-29)
+
+**Send this immediately after accepting an NDA on Acquire.com:**
+
+> Hi [Name],
+>
+> Thanks for signing — you now have full context to explore the platform on your own terms.
+>
+> A few ways to get started right now:
+>
+> - **2-minute product tour** (every dashboard, captured from a subscriber account): https://app.bigskylabs.ai/tour
+> - **Live app** — the company directory and wiki are public, no login needed: https://bigskylabs.ai
+> - **7-day free trial** (no card required) — full access to market digest, deal signals, regulatory alerts, and sentiment scoring: https://app.bigskylabs.ai/register
+>
+> The platform is built on Spring Boot / Java 21, pgvector for semantic search, and six LLM providers. There are several active inquiries at the moment.
+>
+> Happy to do a live 30-minute walkthrough — just reply here and we'll find a time.
+>
+> Bill
+
+**Why this works better than the original:**
+- Leads with self-serve — buyer can assess immediately without waiting for you
+- Product tour video gives them 2 minutes of "show don't tell" before any conversation
+- Single CTA (reply to schedule a call) vs. open-ended question that stalls
+- "Several active inquiries" is factual social proof, not pressure — it signals demand without desperation
+- Tech stack detail stays brief and accessible to non-engineers
+
+**Follow-up protocol:**
+- If no response after 5–7 days: send one manual follow-up ("Just wanted to make sure you saw my note — happy to schedule a walkthrough when timing works for you.")
+- After that: assume not interested. Don't chase further.
+- The buyer who ghosts after signing an NDA is typically a competitor doing intelligence — not a real buyer. Move on.
