@@ -1,0 +1,15 @@
+Hi [first name] — Thanks for connecting. I track the AI healthcare market daily — regulatory filings, deal signals, funding rounds — and everything accumulates. Six months of continuous ingestion means you're searching a record, not reading a snapshot.
+
+A few things that might be useful:
+
+📂 Company Directory — 350+ AI healthcare companies scored daily on article velocity, funding activity, and sentiment. Sort by trending, recently funded, or your watch list: https://app.bigskylabs.ai/directory
+
+🔬 Frontier AI Claim Tracker — public statements from Anthropic, Google, OpenAI, and Amazon rated for evidence quality. 0 out of 25 reviewed claims are fully evidence-backed: https://app.bigskylabs.ai/dashboard/claims
+
+🏛️ Regulatory Monitor — FDA 510(k) clearances, De Novo decisions, and CMS rulemaking tracked as they happen, with a searchable archive: https://app.bigskylabs.ai/dashboard/regulatory
+
+📚 Knowledge Wiki — 750+ pages compiled from primary sources with full provenance. Every claim traces to its source article — and the system flags when new reporting contradicts a prior entry: https://app.bigskylabs.ai/wiki
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+ What are you working on in the healthcare space — would love to know what's on your radar.
