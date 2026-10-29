@@ -1,0 +1,32 @@
+PLATFORM: LinkedIn
+TYPE: Daily Post
+DATE: 2026-10-29
+SLUG: marketers-investors-same-feed
+ANGLE: Two completely different readers hit the same database every morning — a marketer deciding what to publish this week, and an investor deciding what to put money into this quarter. Same pipeline, same articles, two different jobs done with it.
+
+--- POST BODY ---
+
+Two people opened my app this morning. Neither one cares about the other's job.
+
+One is a marketer at a healthcare AI vendor. She doesn't need analysis — she needs to know what's moving right now so this week's content calendar isn't talking about last month's news. She pulls up the trend page: which keywords are rising over the last 30 days versus the last 180, which topics just went from "new" to "accelerating." That's her brief, built automatically, every Sunday.
+
+The other is an investor doing diligence on a Series C healthcare AI company before a term sheet. He doesn't want a press release — he wants a real-time read: has this company shown up in a deal signal (funding round, M&A rumor, partnership) in the last 90 days? What does the sentiment trend on their coverage actually look like, article by article, not just "mostly positive"? How does their 6-dimension competitive score compare to the three companies they're being pitched against?
+
+Same underlying feed. Same harvested articles, same LLM pipeline. What changes is the lens.
+
+The marketer's lens is velocity — what's rising, what's fading, what's brand new this week. 
+The investor's lens is signal; funding events, sentiment risk flags, competitive positioning scored against named peers, all attached to a specific company slug and refreshed continuously instead of once a quarter when the 10-Q drops.
+
+Most tools pick one audience and optimize for it. This one didn't have to choose, because the hard part — turning a flood of healthcare AI news into structured, attributed, queryable data — is identical either way. The output format is just a different cut of the same table.
+
+Company signal scoring and deal alerts are live in the directory at bigskylabs.ai.
+
+(Links in first comment.)
+
+"AI in healthcare is history being written right now. I'm building the archive."
+
+#AIHealthcare #HealthTech #MarketIntelligence #InvestorRelations #ContentStrategy #DigitalHealth #HealthcareAI
+
+--- FIRST COMMENT (post separately for reach) ---
+
+Company directory with trending/funded/watchlist sort + free 7-day trial (no card required): https://app.bigskylabs.ai/register

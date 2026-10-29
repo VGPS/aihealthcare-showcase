@@ -6,8 +6,10 @@
 
 ## Current Status
 
-- Listed on Acquire.com, asking price TBD (currently set below true value — raise it)
-- 4 NDAs signed as of 2026-10-28 (day 1)
+- Listed on Acquire.com; raised asking price $12,500 → $25,000 on 2026-10-28
+- 7 NDAs signed as of 2026-10-28 (up from 4 earlier same day) — strong demand signal
+- Raising the price triggered a listing refresh and a visible jump in notice/views — not intentional, but a known marketplace mechanic (see Negotiating Notes)
+- One NDA signer has requested a live walkthrough — call will be on Zoom
 - Strategy: hold until end of year (Q4 budget cycle buyers, more competing inquiries)
 
 ---
@@ -75,6 +77,13 @@ Typical arrangements:
 1. Companies with unspent capital need to deploy before Dec 31
 2. More time = more competing inquiries = your only real leverage on price
 
+**Listing-edit visibility bump:** editing a listing (price change, description update) commonly
+re-triggers "recently updated" sorting and saved-search/watcher notifications on marketplace
+platforms generally — this isn't a special trick, just how listing sites keep content fresh in
+feeds. Confirmed on Acquire 2026-10-28 (price bump $12,500 → $25,000 → refresh → more notice).
+Worth knowing as a lever: a deliberate, well-timed edit (price, a new metric, a milestone) can be
+used intentionally later to re-surface the listing when inquiry volume slows down.
+
 ---
 
 ## Deal Process (Once Serious Buyer Emerges)
@@ -103,3 +112,30 @@ Typical arrangements:
 ## Competitive Intelligence Risk
 
 The NDA protects you legally but doesn't stop behavior. Don't share anything in early conversations you wouldn't want a competitor to know. Treat early-stage conversations as public.
+
+---
+
+## Walkthrough Guidance (live screen-share calls)
+
+Vet the person first using the LinkedIn Research Checklist above before scheduling. Then, on the call:
+
+1. **Use Zoom** for the call and screen-share demo — free tier has no time cap for 1:1 calls and supports local recording (see point 6). Use a seeded demo/subscriber login for the app itself, never your real ADMIN credentials.
+2. **Never show:** AWS console, EC2 terminal, `.env`, repo/IDE, database console. That's post-LOI/escrow territory, not walkthrough territory.
+3. **Script it** — walk through the app as a user/admin would see it (dashboards, newsletter, AI search, deal signals). Keep control of the screen so nothing unintended is exposed.
+4. **No source code or architecture deep-dive** — "Spring Boot, hexagonal architecture, 3,200+ tests, pgvector" is as far as it goes verbally.
+5. **No roadmap/unreleased features** — don't hand a possible competitor your next six months of ideas.
+6. **Record the call yourself** (with notice) for your own reference.
+7. **Financials are fair game under the NDA** — that's what it's for — but keep it aggregate, no customer PII.
+8. Keep it to 30-45 minutes with a plan going in.
+
+## Interim Self-Serve Options (when unavailable for a live walkthrough)
+
+When a live call can't happen for a few days, it's fine — and arguably lower-risk than a live screen-share — to point a serious, NDA'd buyer at the existing public self-serve assets instead of leaving them waiting:
+
+- **7-Day Free Trial** (`/register`) — self-service DEMO-tier signup. No credentials change hands; DEMO tier has no ADMIN/pipeline-trigger access (those stay URL-gated to ADMIN in `SecurityConfig`), so there's nothing for them to see beyond the intended product surface.
+- **Product Tour** (`/tour`) — pre-recorded video captured from a SUBSCRIBER-tier account (not ADMIN), already public-facing. Zero incremental exposure.
+- **Showcase repo** (`aihealthcare-showcase` on GitHub) — already public (used for recruiting/portfolio purposes too), so sending the link isn't a new disclosure. It's a maintained mirror of the private repo with sale/outreach-strategy docs stripped — see `feedback_showcase_mirror` memory for the exclusion list. **Spot-check before sending** that the exclusion list is still being honored and that `data.sql`/credentials remain absent (flagged clean as of 2026-09-02, re-verify if it's been a while).
+
+Caveats:
+- Treat this as a bridge, not a substitute — confirm a specific date for the live call so momentum doesn't die.
+- The showcase repo isn't "special NDA access" — it's the same thing anyone could find via GitHub search. Don't let it stand in for the financials/traction conversation the code alone can't show.
