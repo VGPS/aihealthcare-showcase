@@ -32,7 +32,7 @@ const path = require('path');
 try { require('dotenv').config(); } catch (_) {}
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:8080';
-const SLIDE_SECONDS = Number(process.env.SLIDE_SECONDS || 1.75);
+const SLIDE_SECONDS = Number(process.env.SLIDE_SECONDS || 6);
 const STORAGE_STATE = path.join(__dirname, '.auth', 'subscriber.json');
 const FRAMES_DIR = path.join(__dirname, 'frames');
 const OUTPUT_DIR = path.join(__dirname, 'output');
@@ -90,8 +90,21 @@ function slugify(label) {
 
 async function ensureLoggedIn(browser) {
     if (fs.existsSync(STORAGE_STATE)) {
-        console.log(`Reusing saved session: ${STORAGE_STATE}`);
-        return browser.newContext({ storageState: STORAGE_STATE, viewport: { width: 1920, height: 1080 } });
+        // Validate the saved session is still alive before trusting it.
+        // A stale session causes silent redirects to /login on every page.
+        console.log(`Validating saved session: ${STORAGE_STATE}`);
+        const ctx = await browser.newContext({ storageState: STORAGE_STATE, viewport: { width: 1920, height: 1080 } });
+        const probe = await ctx.newPage();
+        await probe.goto(`${BASE_URL}/dashboard`, { waitUntil: 'domcontentloaded' });
+        const isLoggedIn = !probe.url().includes('/login');
+        await probe.close();
+        if (isLoggedIn) {
+            console.log('Session still valid — reusing.');
+            return ctx;
+        }
+        console.log('Session expired — logging in fresh...');
+        await ctx.close();
+        fs.rmSync(STORAGE_STATE, { force: true });
     }
 
     // Deliberately NOT the admin account — this captures what a paying
@@ -137,8 +150,10 @@ async function captureFrames(context) {
             await page.waitForTimeout(1200); // let charts/Alpine/Chart.js settle
 
             const status = response ? response.status() : 0;
+            const currentUrl = page.url();
             const bodyText = await page.locator('body').innerText().catch(() => '');
             const looksBroken = status >= 400
+                || currentUrl.includes('/login')
                 || bodyText.includes('Whitelabel Error Page')
                 || bodyText.includes('There was an unexpected error');
 
