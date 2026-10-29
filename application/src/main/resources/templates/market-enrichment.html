@@ -7,7 +7,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-07
- * @updated 2026-09-07
+ * @updated 2026-10-29
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -46,6 +46,19 @@
             <div class="text-2xl font-bold text-blue-600" th:text="${totalDealTerms}">0</div>
             <div class="text-xs text-gray-500 mt-1">Deal Terms</div>
         </div>
+    </div>
+
+    <!-- Feature explanation -->
+    <div class="bg-white rounded-lg shadow-card p-5 mb-6 border-l-4 border-primary-600">
+        <h2 class="font-semibold text-gray-900 mb-1">What is Market Enrichment?</h2>
+        <p class="text-sm text-gray-600">
+            The daily market digest pipeline automatically extracts three categories of structured data from
+            AI healthcare news: <strong>regulatory trackers</strong> (rulemakings with jurisdiction, stage,
+            docket ID, and comment deadlines), <strong>private funding rounds</strong> (company, round stage,
+            amount, and lead investors), and <strong>deal terms</strong> (upfront cash, milestones, equity
+            stakes, and royalty rates from M&amp;A and partnership announcements). Each entry links back to
+            its source article in the digest.
+        </p>
     </div>
 
     <!-- Tab navigation -->
