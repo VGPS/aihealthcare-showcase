@@ -1,0 +1,73 @@
+LINKEDIN POST BODY
+===================
+
+27 new state AI-healthcare laws enacted in 2026. That's more than 2024 and 2025 combined.
+
+And there are still two months left on the calendar.
+
+I track every enacted state AI-healthcare law in a public registry — 40 laws across 26 states since 2024. The growth curve:
+
+→ 2024: 3 laws
+→ 2025: 11 laws
+→ 2026: 27 laws (so far)
+
+No federal mandate forced this. 19 states independently passed AI-healthcare legislation this year — Colorado alone passed four separate laws. The themes repeat across state lines: consumer chatbot disclosure, mental-health AI restrictions, payer utilization review limits.
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+If state law has been sitting at "watch this space" on your roadmap — it's time to move it up.
+
+👉 See the full 40-law breakdown by state, category, and effective date — updated continuously:
+https://app.bigskylabs.ai/insights/2026-10-30-state-law-vertical.html
+
+---
+
+LINKEDIN FIRST COMMENT
+=======================
+
+This data is pulled daily from BigSkyLabs AI in Healthcare — an intelligence platform tracking 318 companies across 57+ data sources.
+
+🔍 Free company directory (701 companies, no signup): https://app.bigskylabs.ai/directory
+📚 Free AI-compiled knowledge base with source provenance (no signup): https://app.bigskylabs.ai/wiki
+📈 Full legislation registry, deal signals, market digest & trend detection: https://app.bigskylabs.ai/pricing
+
+---
+
+FACEBOOK POST
+==============
+
+27 new state AI-healthcare laws enacted in 2026 — more than 2024 and 2025 combined, and there are still two months left on the calendar.
+
+I track every enacted state AI-healthcare law in a free, public registry. The growth curve is stark:
+→ 2024: 3 laws
+→ 2025: 11 laws
+→ 2026: 27 laws (and counting)
+
+19 states passed AI-healthcare legislation this year with zero federal mandate — Colorado led with four separate laws. The recurring themes: consumer chatbot disclosure, mental-health AI restrictions, and payer utilization review limits.
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+See the full breakdown: https://app.bigskylabs.ai/insights/2026-10-30-state-law-vertical.html
+Browse the free company directory (701 companies): https://app.bigskylabs.ai/directory
+Explore the free AI-compiled wiki: https://app.bigskylabs.ai/wiki
+
+---
+
+POSTING INSTRUCTIONS
+======================
+
+1. IMAGE: Attach linkedin-posts/shots/2026-10-30-state-law-vertical.png
+
+2. LINKEDIN POST BODY: Copy everything above the first "---" line.
+   - The insights page link is the ONLY link in the post body.
+   - Do NOT put any other links in the post body.
+
+3. LINKEDIN FIRST COMMENT: Post the "FIRST COMMENT" section immediately after publishing.
+   - Two links only: /directory (free) and /pricing (signup).
+   - No dashboard links — those pages require login.
+   - Wait a few minutes after publishing before pasting this (anti-spam-flag pacing).
+
+4. FACEBOOK: Use the "FACEBOOK POST" section. Same image attachment.
+
+5. This is the only group/platform post planned for today — keep to 1-2 postings in this
+   sitting per the LinkedIn pacing rule (no multi-group burst).

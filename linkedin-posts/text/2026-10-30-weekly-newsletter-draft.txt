@@ -1,0 +1,73 @@
+SUBSTACK / NEWSLETTER DRAFT — Friday Week-in-Review
+Date: October 30, 2026
+Note: Written as standalone copy only — NOT generated via the app's NewsletterGenerationScheduler
+pipeline, no harvest triggered, nothing sent. Source data limited to public endpoints
+(/legislation, /directory, /wiki/contradictions) since authenticated sources (deals, trends,
+market digest) require a login session I didn't have available today.
+
+===================================================================
+
+SUBJECT LINE OPTIONS:
+1. State AI-Healthcare Law Just Went Vertical
+2. This Week in AI Healthcare: 27 Laws, One Clear Trend
+3. The Friday Brief: Legislation Is Accelerating Faster Than the Market
+
+---
+
+BODY:
+
+This week's clearest signal isn't a funding round or a product launch — it's a chart.
+
+**State AI-healthcare legislation just went vertical.**
+
+I maintain a public registry of every enacted state AI-healthcare law — 40 laws across 26
+states since the first ones appeared in 2024. Here's the year-over-year count:
+
+  2024 → 3 laws
+  2025 → 11 laws
+  2026 → 27 laws (through October, with two months still on the clock)
+
+2026 alone has produced nearly twice as many new laws as 2024 and 2025 combined. Nineteen
+states passed something this year — Colorado led with four separate bills, Rhode Island
+passed three. There's no federal mandate driving this. These are independent legislatures,
+in different states, converging on the same handful of concerns: consumer chatbot disclosure,
+mental-health AI guardrails, and limits on AI-driven payer utilization review.
+
+If you're building, selling into, or investing in healthcare AI and "state law" is still a
+someday-item on your roadmap, this is the week to move it up. The pace isn't slowing down —
+it's compounding.
+
+**Also worth watching on the company side:**
+
+The directory now tracks 701 companies across seven sectors (drug discovery, clinical
+documentation, revenue cycle, virtual care, imaging/diagnostics, infrastructure, and other).
+A few capital-intensity data points stand out among the higher-relevance entries: Heidi
+Health (ambient scribe, Series B), EliseAI (workflow automation, Series E), and Suki
+(ambient clinical intelligence, Series D) all show substantial late-stage raises — a reminder
+that ambient documentation and workflow automation remain the best-funded corner of the
+category.
+
+**The bigger picture:**
+
+AI in healthcare is history being written right now. I'm building the archive — a registry
+of every enacted state law, a directory of 701 companies, and an AI-compiled knowledge base
+that tracks when its own sources contradict each other. Everything updates daily.
+
+---
+
+Browse the full legislation registry: https://app.bigskylabs.ai/legislation
+Browse the company directory (free, no signup): https://app.bigskylabs.ai/directory
+Explore the AI-compiled wiki (free, no signup): https://app.bigskylabs.ai/wiki
+See what's gated (market digest, trend detection, deal signals): https://app.bigskylabs.ai/pricing
+
+===================================================================
+
+NOTES FOR NEXT STEP:
+
+- This draft deliberately avoids claiming any deal/trend/market-digest data as "this week's"
+  activity, since those endpoints weren't reachable without a login session today. If you
+  want a fuller week-in-review with deal signals and market digest entries folded in, that
+  needs either (a) a logged-in pull against the live app, or (b) running this through the
+  app's own NewsletterGenerationScheduler draft at /newsletter/runs for review/edit/send.
+- The /wiki/contradictions reversal feed is gated for subscribers — worth checking there
+  directly (logged in) before next Friday in case a genuine reversal story is available.
