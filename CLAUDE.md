@@ -1205,6 +1205,23 @@ fallback, cron preview, and auto-deactivation after consecutive failures.
 
 ---
 
+## LinkedIn Group Post Convention
+
+When drafting LinkedIn posts for this project — both on Bill's own page and to Groups:
+- **Every LinkedIn post's First Comment must include the LinkedIn Newsletter subscribe link**, on
+  its own line so LinkedIn auto-linkifies it (LinkedIn doesn't support custom anchor-text links in
+  comments): `https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/`.
+  No exceptions — this applies to every future page post and every group post.
+- **Never put a link (URL) in the Post Body.** LinkedIn suppresses/deprioritizes posts containing URLs.
+- **If the post references a specific app feature or page, the link to that feature ALWAYS goes in the First Comment.** Don't rely on a generic homepage link when a more specific page exists for what the post actually describes.
+- **Pacing (anti-spam-flag discipline):** post to no more than 1–2 groups per sitting — rapid cross-posting across many groups back-to-back has triggered LinkedIn spam-detection ("Comments could not be loaded" on recent posts, 2026-10-29). Do not draft/post an 8-group burst in one sitting again. Within a sitting, wait a few minutes after publishing before pasting the First Comment — don't paste it instantly every time.
+- **The Post Body must still contain visible text pointing the reader to that link** — a line like "👉 Link in the first comment." placed near the end of the body, before the closing question/hashtags. The link lives in the comment; the *pointer to it* lives in the body. Every post that references an app feature drives traffic — don't skip this line.
+- Every draft follows the 4-part template: Post Body / First Comment / Posting Instructions / Strategy Notes.
+- Include the positioning statement verbatim somewhere in the Post Body: *"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."*
+- Saved draft files use the naming convention `<group_slug>_<option#>_<date>.txt`. Unposted drafts live in `linkedin-posts/`; once a draft is actually posted, move/save it to `linkedin-posts/posted/` with `STATUS: POSTED` and strip the Posting Instructions section.
+
+---
+
 ## What NOT to Do
 - Do not add auth/security until explicitly requested.
 - Do not modify `openapi.yaml` without confirming the change first.
