@@ -124,13 +124,27 @@ https://app.bigskylabs.ai/insights/YYYY-MM-DD-{topic-slug}.html
 Adapt the description to match the specific data sources used in that day's infographic.
 Do NOT put any other links in the post body — LinkedIn deprioritizes posts with multiple links.
 
+**REQUIRED — "Links in the first comment" pointer (every post, no exceptions):** immediately
+after the insights link, add one more pointing-hand line directing readers to the first comment,
+since that's where the newsletter subscribe link and other resource links live. This is text
+only — no URL — so it does not violate the "one link in the body" rule:
+```
+👉 Links in the first comment — including my newsletter, the free company directory, and the AI-compiled wiki.
+```
+This line was missed on the 2026-10-30 post and the user caught it — don't drop it again.
+
 ### Section 2: LINKEDIN FIRST COMMENT
 
 Post immediately after publishing. Contains:
 1. One-line intro: "This data is pulled daily from BigSkyLabs AI in Healthcare — an intelligence platform tracking 318 companies across 57+ data sources."
-2. **Free directory link** — `https://app.bigskylabs.ai/directory` (always — free, no signup)
-3. **Free wiki link** — `https://app.bigskylabs.ai/wiki` (always — free, no signup, LLM-compiled knowledge base)
-4. **Signup CTA** — `https://app.bigskylabs.ai/pricing` (always last — names the gated features)
+2. **LinkedIn Newsletter subscribe link** (REQUIRED, every post, page AND group) — a line like
+   "📰 Subscribe to my LinkedIn Newsletter — AI in Healthcare Intel:" followed by the bare URL
+   `https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/` on its own
+   line so LinkedIn auto-linkifies it (LinkedIn comments don't support custom anchor-text HTML
+   links — a bare URL on its own line is the closest to an "inline link" LinkedIn allows).
+3. **Free directory link** — `https://app.bigskylabs.ai/directory` (always — free, no signup)
+4. **Free wiki link** — `https://app.bigskylabs.ai/wiki` (always — free, no signup, LLM-compiled knowledge base)
+5. **Signup CTA** — `https://app.bigskylabs.ai/pricing` (always last — names the gated features)
 
 **NEVER link to dashboard pages** (`/dashboard/market`, `/dashboard/trends`, `/dashboard/deals`, etc.)
 in the first comment. Those pages require login — a new visitor hits a login wall. Always
@@ -157,7 +171,7 @@ POSTING INSTRUCTIONS:
    - Do NOT put any other links in the post body.
 
 3. LINKEDIN FIRST COMMENT: Post the "FIRST COMMENT" section immediately after publishing.
-   - Two links only: /directory (free) and /pricing (signup).
+   - Newsletter subscribe link is first, then /directory (free) and /pricing (signup).
    - No dashboard links — those pages require login.
 
 4. FACEBOOK: Use the "FACEBOOK POST" section. Same image attachment.
@@ -171,6 +185,7 @@ POSTING INSTRUCTIONS:
 | Destination | Where it appears | Why |
 |-------------|-----------------|-----|
 | `/insights/YYYY-MM-DD-{slug}.html` | LinkedIn post body (only link) | Public page, no login |
+| LinkedIn Newsletter (`linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377`) | First comment, every post (page + groups) | Grow newsletter subscribers |
 | `/directory` | First comment + Facebook body + CTA bottom row | Public, free, no signup |
 | `/wiki` | First comment + Facebook body + CTA card + CTA bottom row | Public, free, no signup |
 | `/pricing` | First comment + Facebook body + 3 gated CTA cards + CTA bottom row | Signup funnel |

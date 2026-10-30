@@ -20,12 +20,17 @@ If state law has been sitting at "watch this space" on your roadmap — it's tim
 👉 See the full 40-law breakdown by state, category, and effective date — updated continuously:
 https://app.bigskylabs.ai/insights/2026-10-30-state-law-vertical.html
 
+👉 Links in the first comment — including my newsletter, the free company directory, and the AI-compiled wiki.
+
 ---
 
 LINKEDIN FIRST COMMENT
 =======================
 
 This data is pulled daily from BigSkyLabs AI in Healthcare — an intelligence platform tracking 318 companies across 57+ data sources.
+
+📰 Subscribe to my LinkedIn Newsletter — AI in Healthcare Intel:
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
 
 🔍 Free company directory (701 companies, no signup): https://app.bigskylabs.ai/directory
 📚 Free AI-compiled knowledge base with source provenance (no signup): https://app.bigskylabs.ai/wiki
@@ -63,7 +68,7 @@ POSTING INSTRUCTIONS
    - Do NOT put any other links in the post body.
 
 3. LINKEDIN FIRST COMMENT: Post the "FIRST COMMENT" section immediately after publishing.
-   - Two links only: /directory (free) and /pricing (signup).
+   - Newsletter subscribe link is first, then /directory (free) and /pricing (signup).
    - No dashboard links — those pages require login.
    - Wait a few minutes after publishing before pasting this (anti-spam-flag pacing).
 
