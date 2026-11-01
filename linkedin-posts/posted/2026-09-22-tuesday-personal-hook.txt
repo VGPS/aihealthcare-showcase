@@ -1,0 +1,50 @@
+LINKEDIN POST — Tuesday, September 22, 2026
+Option 1: Personal Hook
+===========================================================================
+
+POST BODY (paste this first, no links in body)
+-----------------------------------------------
+I'm 72 years old.
+
+Earlier this year my wife passed away from cancer. Watching the healthcare system struggle
+to keep up with rapidly changing AI treatments — and seeing how fragmented the information
+was — I decided to do something about it.
+
+I applied everything I've learned in 30+ years as a full-stack Java developer and built
+BigSkyLabs.ai from scratch over 6 months.
+
+It's an AI-powered healthcare intelligence platform that tracks:
+• 459 AI healthcare companies — ranked daily by funding, news velocity, and sentiment
+• 840-page AI knowledge wiki — auto-compiled from weekly article harvests
+• State-by-state health AI legislation — 41 enacted laws across 24 states
+• Market digest — regulatory events, funding rounds, M&A activity
+
+Stack: Spring Boot, Spring AI, PostgreSQL/pgvector, Anthropic Claude, Perplexity Sonar.
+
+The job market told me I was too old.
+The technology didn't get the memo.
+
+If you work in healthcare AI — as a researcher, analyst, product leader, or investor —
+this platform was built for you.
+
+Free access available. Link in first comment.
+
+#HealthcareAI #AIInHealthcare #SpringBoot #Java #BuildingInPublic
+
+===========================================================================
+FIRST COMMENT (paste immediately after posting)
+-----------------------------------------------
+Explore the platform: https://app.bigskylabs.ai/directory
+7-day free trial — no card required: https://app.bigskylabs.ai/register
+
+===========================================================================
+POSTING INSTRUCTIONS
+-----------------------------------------------
+1. Go to LinkedIn → Start a post
+2. Paste the POST BODY above (no links)
+3. Click Post
+4. Immediately open your post, click "Add a comment"
+5. Paste the FIRST COMMENT block — this puts the links in comments, not the body
+   (LinkedIn suppresses reach on posts with outbound links in the body)
+6. Archive this file to linkedin-posts/posted/ after publishing
+   Rename: 2026-09-22-tuesday-personal-hook-POSTED.txt

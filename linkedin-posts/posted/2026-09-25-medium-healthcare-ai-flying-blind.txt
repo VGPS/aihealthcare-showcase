@@ -1,0 +1,86 @@
+=== MEDIUM POST ===
+Title: Healthcare AI Is Moving Too Fast for Anyone to Track. So I Built Something That Tries.
+Subtitle: After six months of watching analysts miss the story hiding in plain sight, I automated the entire intelligence pipeline.
+
+Tags: Artificial Intelligence · Healthcare · Health Tech · Startup · Data Science
+
+Submit to: DataDrivenInvestor (first choice), Towards AI (if declined)
+
+---
+
+There's a pattern I kept noticing in healthcare AI coverage.
+
+A major FDA 510(k) clearance would come through. A funding round would close. A state would pass a law restricting AI in prior authorization decisions. And three to five days later — sometimes a full week — the first analyst note would appear. By then, the companies that mattered had already moved.
+
+The information existed. It was public. It just wasn't being watched.
+
+I'm a software engineer, not a market analyst. But I spent enough time in the space to recognize that the intelligence problem in healthcare AI isn't a shortage of data — it's a workflow problem. The data streams exist: FDA feeds, CMS rulemaking, PubMed, SEC EDGAR filings, state WARN Act layoff notices, Perplexity's research API, dozens of industry publications. None of them talk to each other. Connecting them is a full-time job.
+
+So I built a system to do it automatically.
+
+---
+
+What the gap actually looks like
+
+Let me be specific, because vague claims about "information overload" aren't useful.
+
+Here's a typical Monday in healthcare AI right now:
+
+- The FDA issues a De Novo classification for a diagnostic imaging algorithm
+- A behavioral health startup closes a Series B that won't show up in Crunchbase for 11 days
+- California advances a bill requiring AI transparency disclosures in utilization review
+- Anthropic publishes a paper on clinical note summarization
+- A large health system quietly files a WARN Act notice affecting 400 IT workers
+
+These five things are causally related — they describe a market shifting its AI bets from administrative automation toward clinical decision support. But no single analyst is watching all five feeds simultaneously, and no existing tool connects them into one picture.
+
+Most healthcare AI newsletters cover the Anthropic paper. Almost none catch the WARN Act filing. Nobody synthesizes all five into a coherent narrative by Monday afternoon.
+
+---
+
+What I built and why it matters
+
+The platform I've been building — AI Healthcare Intelligence (https://app.bigskylabs.ai/tour) — runs a daily automated pipeline across more than 40 data sources: PubMed, FDA APIs, CMS rulemaking feeds, state legislature trackers, SEC EDGAR filings, STAT News, KFF Health News, Healthcare Dive, MedCity News, FierceHealthcare, and several others.
+
+Every morning it does what a team of junior analysts would spend eight hours doing manually:
+
+- Harvests new articles, filings, and regulatory events overnight
+- Classifies each item by category: earnings, regulatory, funding, M&A, workforce, product launch
+- Scores market impact using Claude as the classification engine
+- Flags deals above $50M, regulatory events with comment deadlines, state laws with upcoming effective dates
+- Runs sentiment analysis across tracked companies
+- Produces a ranked market digest with fact vs. speculation labels
+
+The output isn't a raw data dump. It's a structured intelligence brief.
+
+---
+
+Three things I learned building this
+
+1. The regulatory signal is the most underused.
+
+Everyone tracks funding rounds. Almost nobody systematically tracks FDA 510(k) clearances, De Novo classifications, and CMS proposed rules together. But those three data streams, combined, predict market movement in diagnostic imaging and clinical AI better than any VC deal list I've seen. A clearance that a small company quietly files in week one becomes a Bloomberg story in week six. The gap is your signal.
+
+2. State legislation is where the real operational risk is hiding.
+
+Federal AI policy moves slowly. State-level AI legislation moves fast and unpredictably. As of today, there are enacted laws in more than 20 states directly regulating AI in healthcare — covering payer utilization review, claims downcoding, provider disclosure requirements, and consumer chatbots. Most organizations with AI in their clinical or administrative stack have no systematic way to track these. The platform's legislation registry now covers 41 enacted laws across 24 states, seeded from public records and monitored weekly for amendments and effective date changes.
+
+3. LLM synthesis is only as good as your source diversity.
+
+The temptation when building AI-powered intelligence tools is to use one high-quality source and summarize it well. That produces a confident-sounding brief that misses half the picture. The signal I've found most valuable comes from routing the same event through multiple source types — academic (PubMed), regulatory (FDA/CMS APIs), industry (Healthcare Dive, STAT), and financial (SEC EDGAR) — and letting the model find the pattern across them. Any single source is a narrow aperture. The synthesis across sources is where the insight lives.
+
+---
+
+What I actually want from this
+
+The platform is live and running at app.bigskylabs.ai. There's a free tier. There's a video walkthrough at app.bigskylabs.ai/tour if you want to see what the dashboards look like before signing up.
+
+But honestly? What I want more than signups right now is the conversation.
+
+If you're working in healthcare AI — as an analyst, investor, operator, or researcher — I'd genuinely like to know what signal you're missing. What's the thing you have to manually track that you wish was automated? What's the intelligence gap that actually costs you? The platform is still being built, and the roadmap should reflect real problems.
+
+Leave a comment or reach out directly.
+
+---
+
+The source code for the platform is publicly available on GitHub. The data pipeline, Spring AI integration, and state legislation registry are all open for inspection. I'm happy to discuss the technical architecture if that's useful.

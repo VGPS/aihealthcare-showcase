@@ -1,0 +1,49 @@
+FACEBOOK POST — Tuesday, September 23, 2026
+Feature: Deal Context Enrichment — Competitor Intelligence Angle
+===========================================================================
+
+POST BODY (links OK in body on Facebook)
+-----------------------------------------------
+Healthcare AI M&A is exploding — but most of the coverage is just the headline.
+
+"$40M raise." "Strategic partnership." "Acquisition completed."
+
+What you don't see from a press release:
+→ Is their media coverage trending positive or negative right now?
+→ How do they stack up against competitors across 6 dimensions — clinical validation,
+   regulatory position, data assets, market adoption?
+→ Do they have any active FDA or CMS regulatory actions?
+
+I built a tool that cross-references all four automatically, every time a deal lands.
+
+One click from the deal feed to a full competitor picture — sentiment score, framework radar,
+regulatory exposure, and company profile, all on the same page.
+
+The mismatches are where the real analysis is. A big raise into declining coverage tells
+a very different story than the press release does.
+
+Try it free for 7 days — no card: https://app.bigskylabs.ai/register
+
+See the deal intelligence feed: https://app.bigskylabs.ai/dashboard/deals
+
+#HealthcareAI #HealthTech #CompetitiveIntelligence #AIinHealthcare #DigitalHealth
+
+===========================================================================
+SCREENSHOT / GRAPHIC
+-----------------------------------------------
+Same screenshot as LinkedIn:
+Page:    https://app.bigskylabs.ai/dashboard/deals/{signalId}
+Capture: All four cross-reference cards visible in one frame.
+         Crop tight — Facebook image previews are wider/shorter than LinkedIn.
+         Make sure the sentiment doughnut and the framework radar are both legible.
+Redact:  Account email in nav bar.
+
+===========================================================================
+POSTING INSTRUCTIONS
+-----------------------------------------------
+1. Go to Facebook → Create Post (personal profile or BigSkyLabs page — whichever
+   you have set up for the app)
+2. Paste the POST BODY above (links are fine in body on Facebook)
+3. Attach the screenshot image
+4. Post
+5. Archive this file: rename to 2026-09-23-deal-context-facebook-POSTED.txt

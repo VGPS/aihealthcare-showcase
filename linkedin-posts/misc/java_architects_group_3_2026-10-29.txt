@@ -1,0 +1,40 @@
+GROUP: Java Developers and Architects
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+I have 6 different LLM provider adapters in my codebase (Claude, GPT, Perplexity, Gemini, plus two data adapters) and a requirement that showed up late: track token usage and cost, per pipeline, across all of them, for an admin cost dashboard.
+
+The naive approach is adding usage-logging code to all 6 adapters. I didn't want to touch any of them — they're stable, tested, and the whole point of the port/adapter boundary is that adapters shouldn't need to know about concerns that live outside their one job.
+
+Instead: Spring AI's `ChatClient` supports a `CallAdvisor` that wraps every call regardless of which adapter made it. I register one advisor via a `ChatClientCustomizer` bean, and it captures prompt/output tokens on every single call, from any provider, automatically. The only thing each business-logic call site does is set a `ThreadLocal` with a pipeline tag ("sentiment-analysis", "market-digest", whatever) before calling the AI port — the advisor reads that tag and attaches it to the usage record.
+
+Zero changes to any of the 6 adapters. The cost-tracking concern lives in exactly one place, and new adapters get it for free just by being `ChatClient`-based.
+
+This is the advisor/interceptor pattern doing the job AOP usually gets reached for — no aspect weaving, no proxies to debug, just a composition point the framework already exposed.
+
+For the architects here: what's your go-to for "I need this on every call site but don't want every call site to know about it" — advisors/interceptors, AOP, or something else?
+
+#JavaDevelopers #SpringAI #SoftwareArchitecture #SpringBoot #DesignPatterns
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+The dashboard this feeds: a 7-day cost breakdown by pipeline and model, inside app.bigskylabs.ai's admin console. Happy to share the advisor implementation if useful — it's about 40 lines.
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Java Developers and Architects" → "Create a post" inside the group
+2. Paste Post Body — no image needed
+3. No links in the body
+4. Publish, then immediately paste the First Comment
+
+--- STRATEGY NOTES ---
+
+- Strong chance someone asks "why not AOP?" — the honest answer is Spring AI already gives you this composition point for free on `ChatClient`, so reaching for `@Aspect` would be solving an already-solved problem.
+- `ThreadLocal` usage will draw scrutiny from careful readers — be ready to confirm it's cleared after each call (set/clear around the port call) so it doesn't leak across requests on pooled threads.

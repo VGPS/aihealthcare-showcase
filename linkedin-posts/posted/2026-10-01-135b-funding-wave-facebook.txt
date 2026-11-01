@@ -1,0 +1,51 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === FACEBOOK POST BODY === and === FACEBOOK IMAGE ===)
+2. Go to your Facebook page or personal profile
+3. Paste the body text
+4. The URL at the bottom will generate a link preview — check it renders before publishing
+5. If OG card fails, attach linkedin-posts/shots/2026-10-01-135b-funding-wave-market.png manually
+6. Best posting window: Wednesday 8:00–10:00 AM or 12:00–2:00 PM local time
+7. After 1 hour, reply to any comment with the Engagement Follow-Up text below
+
+=== FACEBOOK POST BODY ===
+
+Three healthcare AI companies raised $1.35 billion in a single day yesterday.
+
+Angle Health: $600 million at a $2.7 billion valuation.
+Ortet: $500 million committed to a new health-focused AI lab from the ground up.
+OpenEvidence: $250 million — at a reported $15 billion valuation.
+
+That last number is the one worth sitting with.
+
+OpenEvidence is a clinical AI tool that helps physicians find and synthesize medical evidence faster. It's genuinely useful — physicians who use it tend to like it. But $15 billion puts it at roughly 30% of Epic's estimated value, and Epic handles patient records for 38% of every hospital in America. OpenEvidence has not achieved anything close to that level of market penetration.
+
+What investors are really pricing is a thesis: that AI becomes the default layer between clinicians and medical knowledge, that most clinical decision-making runs through AI interfaces within 10 years, and that whoever builds the trusted infrastructure for that wins a market worth hundreds of billions.
+
+That's a coherent bet. It may even be right. But it's a bet on a future that hasn't happened yet, priced as if it's already inevitable.
+
+Three signals worth watching from today's data:
+
+First, the money is moving fast. $1.35B in one day is not normal. When capital concentrates this quickly around a category, it usually means the window for second-movers is closing.
+
+Second, the "AI lab" model is back. Ortet's $500M commitment to a standalone health AI lab — not an acquisition, not a product extension, but a new research organization — suggests some investors believe the foundational AI work in healthcare hasn't been done yet and needs dedicated infrastructure.
+
+Third, valuations are decoupling from current revenue. A $15B valuation on a company that is still in early market penetration is a signal that the market is pricing outcomes, not run rates. That dynamic historically ends one of two ways.
+
+We track daily market signals, funding rounds, and deal flow across 602 AI healthcare companies:
+https://app.bigskylabs.ai/dashboard/market
+
+#HealthcareAI #DigitalHealth #HealthTech #AIFunding
+
+=== FACEBOOK IMAGE ===
+File: linkedin-posts/shots/2026-10-01-135b-funding-wave-market.png
+Market Digest screenshot showing today's three funding entries ranked by impact.
+Upload manually if the OG card from the URL doesn't generate a clean preview.
+
+=== LINK ===
+https://app.bigskylabs.ai/dashboard/market
+
+=== ENGAGEMENT FOLLOW-UP COMMENT ===
+Use this as your reply to early comments:
+
+"The OpenEvidence valuation is the most interesting data point here because it reveals what sophisticated investors believe the end state looks like — not a tool physicians use sometimes, but the primary interface for clinical reasoning. If that thesis is right, $15B is cheap. If it's wrong, that round marks the peak. The fact that serious money is pricing that thesis at all is the signal, regardless of whether the valuation holds."

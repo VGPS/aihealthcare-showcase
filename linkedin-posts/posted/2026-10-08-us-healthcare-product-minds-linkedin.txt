@@ -1,0 +1,30 @@
+GROUP: US Healthcare Product Minds + AI – Learn, Share, Grow
+DATE: 2026-10-08
+PLATFORM: LinkedIn (Group Post)
+
+---
+
+Most healthcare product teams are making roadmap decisions with 6-month-old competitive intelligence.
+
+By the time a competitor's new AI feature makes it into a teardown post or an analyst report, three more have shipped. A funding round has closed. An FDA clearance has landed. The window to respond has already narrowed.
+
+The three signals that matter most — and move fastest:
+
+**1. What's getting cleared.**
+FDA 510(k) clearances are public the moment they're issued. Every one names the applicant, the device, and the predicate. That's a product roadmap hiding in a regulatory database. Most product teams check it quarterly, if at all.
+
+**2. What's getting funded.**
+A $50M+ Series B in AI-assisted prior authorization isn't just news — it's a signal about where payer contracts are heading, what enterprise sales cycles look like, and which problem is now "validated enough to buy." Deal size and round stage tell you more than the press release does.
+
+**3. What the market is saying about specific companies.**
+Not analyst ratings. Not LinkedIn posts. Sentiment derived from the actual news coverage — article by article — aggregated by company. Which players are building positive narrative momentum. Which are accumulating risk signals.
+
+I built bigskylabs.ai to surface all three, daily, in one place — ranked market digests, company signal scoring, competitive framework analysis, and regulatory alerts, all updated automatically.
+
+The goal is simple: a healthcare product manager should be able to sit down Monday morning and know exactly what moved in their competitive landscape over the weekend.
+
+*AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.*
+
+👉 bigskylabs.ai
+
+For the product minds in this group: which competitive signal do you find hardest to track consistently — feature shipping, funding, or regulatory clearances?

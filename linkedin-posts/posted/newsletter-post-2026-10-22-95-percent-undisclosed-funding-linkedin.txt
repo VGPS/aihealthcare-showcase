@@ -1,0 +1,34 @@
+PLATFORM: LinkedIn Newsletter
+TYPE: Newsletter Post
+DATE: 2026-10-22
+SLUG: 95-percent-undisclosed-funding
+ANGLE: 110 funding signals logged in the last 7 days in AI healthcare. 5 have a dollar figure.
+The 95% that goes undisclosed is the actual market — and it's the part nobody's watching.
+
+--- TITLE ---
+
+110 AI-Healthcare Funding Events Last Week. 5 Have a Dollar Figure.
+
+--- POST BODY ---
+
+Last week my platform logged 110 funding-related signals in AI healthcare.
+
+Of those 110, exactly 5 disclosed an actual dollar amount.
+
+That means 95% of AI-healthcare funding activity in a given week happens with no public dollar figure attached. A company raised money. Someone announced it. Nobody said how much.
+
+This isn't unusual — non-disclosure is the norm in private markets. But the aggregate pattern is worth sitting with: if you're trying to understand the size and velocity of capital flowing into AI healthcare right now, you're working with 5% of the data. The other 95% is "a funding round was announced."
+
+The companies raising money know the amount. Their investors know. Their competitors often find out eventually through secondary sources — a regulatory filing, a 409A valuation disclosure, a Glassdoor salary spike that implies headcount growth. But the public market doesn't know in real time.
+
+What gets disclosed tends to be the largest, most strategic rounds — the ones where the company or investors want the signal value of the number. A Series C at a $2B valuation. A $350M raise from a name-brand fund. The undisclosed ones are often the seed rounds, the smaller Series As, the bridge rounds that don't have a story to tell yet — or the rounds where the company specifically doesn't want competitors to know the size of the war chest.
+
+The 5% that gets disclosed shapes what people think the market looks like. The 95% that doesn't is the actual market.
+
+I track 698 companies across AI healthcare. The funding pattern I described above is consistent week over week — last week's 110 signals at 95% non-disclosure isn't an outlier, it's the baseline. It's one of the reasons I built this platform: to see what the industry looks like when you're watching all of it at once, not just the rounds big enough to generate a press release.
+
+The question worth asking: if only the largest, most visible rounds get reported, what does the capital-flow picture you're reading actually represent?
+
+The full funding tracker and company directory are at bigskylabs.ai.
+
+"AI in healthcare is history being written right now. I'm building the archive."

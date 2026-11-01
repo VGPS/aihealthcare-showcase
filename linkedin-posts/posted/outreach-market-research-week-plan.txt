@@ -1,0 +1,282 @@
+MARKET RESEARCH OUTREACH — WEEK PLAN
+BigSkyLabs.ai | Bill Blackmon | newsletter@bigskylabs.ai
+Generated: 2026-09-22
+===========================================================================
+
+GOAL FOR THIS WEEK
+------------------
+Send LinkedIn connection requests to all 5 HIGH-confidence Market Research
+contacts. Do NOT send to Medium or Low confidence yet — work the high list
+first, see what converts, refine the message before expanding.
+
+One note per day. No more than one per day. LinkedIn notices burst activity
+and suppresses connection request delivery.
+
+Rule: One LinkedIn note + one follow-up max per person. No further contact.
+
+===========================================================================
+WHY MARKET RESEARCH IS THE BEST ICP
+===========================================================================
+
+"VP Market & Competitive Intelligence" is the exact job description of what
+BigSkyLabs.ai produces. These people:
+  • Are paid to know what's happening across the AI healthcare space
+  • Currently do this manually via news alerts, analyst reports, and Google
+  • Have budget for tools that save research hours
+  • Will recognize the platform's value immediately — no education required
+  • Are not being targeted by the typical SaaS sales playbook
+
+This is not a cold audience. This is a warm audience that doesn't know you
+exist yet.
+
+===========================================================================
+THE 5 HIGH-CONFIDENCE TARGETS — RANKED
+===========================================================================
+
+RANK 1 — Anders Steiner (SEND TODAY, SEP 22)
+  Company:  Siemens Healthineers ($21B global medtech)
+  Title:    VP Strategy - Market & Competitive Intelligence
+  LinkedIn: https://www.linkedin.com/in/anderssteiner
+  Email:    None on file — Hunter.io if no LinkedIn response by Sep 29
+  Why #1:   His title IS the platform. Senior enough to buy, technical enough
+            to understand it, at a company large enough to pay.
+
+  CONNECTION NOTE (295 chars):
+  "Hi Anders — I built a healthcare AI market intelligence platform tracking
+  459 companies, regulatory actions, deal signals, and state legislation.
+  Given your competitive intelligence role at Siemens Healthineers, thought
+  it might be worth a look. Happy to share free access. — Bill"
+
+  After sending, run:
+  node data_input/outreach_cli.js sent --name "Anders Steiner" \
+    --channel linkedin_note --template market-research-competitive-intel
+
+─────────────────────────────────────────────────────────────────────────
+
+RANK 2 — Rory Kelleher (SEND WED SEP 24)
+  Company:  NVIDIA Healthcare
+  Title:    Senior Director, Global Head of Business Development
+  LinkedIn: https://www.linkedin.com/in/rkellehernvidia
+  Email:    None on file
+  Why #2:   NVIDIA is the infrastructure layer for every AI healthcare company
+            in the platform. He tracks the entire competitive landscape as part
+            of his BD role. High reach if he shares or engages.
+
+  CONNECTION NOTE (284 chars):
+  "Hi Rory — I built a healthcare AI market intelligence platform tracking
+  459 companies, regulatory actions, deal signals, and state legislation.
+  Given NVIDIA's position across the AI healthcare stack, thought it might
+  be a useful competitive layer. Happy to share free access. — Bill"
+
+  After sending, run:
+  node data_input/outreach_cli.js sent --name "Rory Kelleher" \
+    --channel linkedin_note --template market-research-competitive-intel
+
+─────────────────────────────────────────────────────────────────────────
+
+RANK 3 — Christopher Mader (SEND THU SEP 25)
+  Company:  Flatiron Health (Roche subsidiary, oncology data)
+  Title:    Senior Director, Head of Strategy
+  LinkedIn: https://www.linkedin.com/in/christopher-mader-54621631
+  Email:    None on file
+  Why #3:   Flatiron operates at the intersection of oncology, real-world
+            data, and AI — exactly the space the platform tracks. Head of
+            Strategy owns competitive intelligence.
+
+  CONNECTION NOTE (287 chars):
+  "Hi Christopher — I built a healthcare AI market intelligence platform
+  tracking 459 companies, regulatory actions, deal signals, and state
+  legislation. Given Flatiron's position in oncology AI and real-world
+  data, thought it might be useful context. Happy to share access. — Bill"
+
+  After sending, run:
+  node data_input/outreach_cli.js sent --name "Christopher Mader" \
+    --channel linkedin_note --template market-research-competitive-intel
+
+─────────────────────────────────────────────────────────────────────────
+
+RANK 4 — Michael Palmer (SEND FRI SEP 26)
+  Company:  Augmedix (ambient AI documentation, now part of Netsmart)
+  Title:    Manager, Strategy and Analytics
+  LinkedIn: https://www.linkedin.com/in/mikecpalmer
+  Email:    None on file
+  Why #4:   Strategy + Analytics at an ambient AI company. Tracks competitive
+            clinical documentation space daily. Augmedix is in the platform.
+
+  CONNECTION NOTE (285 chars):
+  "Hi Michael — I built a healthcare AI market intelligence platform that
+  tracks deal signals, regulatory actions, and competitive scoring across
+  the clinical documentation AI space. Augmedix is in the dataset — thought
+  the competitive layer might be useful. Happy to share access. — Bill"
+
+  After sending, run:
+  node data_input/outreach_cli.js sent --name "Michael Palmer" \
+    --channel linkedin_note --template market-research-competitive-intel
+
+─────────────────────────────────────────────────────────────────────────
+
+RANK 5 — Sameer Ather (SEND MON SEP 29)
+  Company:  XpertDox (autonomous medical coding AI)
+  Title:    CEO
+  LinkedIn: No LinkedIn — Forbes Council profile only
+            https://councils.forbes.com/profile/Sameer-Ather-CEO-XpertDox/
+  Email:    None on file — Hunter.io: xpertdox.com
+  Why #5:   CEO of a healthcare AI company. Market research is part of his
+            job by necessity. Lower confidence than others, but worth a try.
+  Note:     No LinkedIn profile — skip LinkedIn, go straight to email lookup
+            via Hunter.io (domain: xpertdox.com).
+
+─────────────────────────────────────────────────────────────────────────
+
+===========================================================================
+MEDIUM-CONFIDENCE TARGETS — SEND WEEK 2 (SEP 29 ONWARD)
+===========================================================================
+
+After the HIGH list is sent, start the MEDIUM list — one per day:
+
+  1. Ian Shakil       — Commure, Chief Strategy Officer
+     https://www.linkedin.com/in/ishakil
+
+  2. John Carter      — Datavant, Chief Strategy Officer
+     https://www.linkedin.com/in/john-carter-0a9993358
+
+  3. Brian Wilson     — Abridge, Chief Commercial Officer
+     https://www.linkedin.com/in/bcwil
+
+  4. Dave Light       — insitro, VP Strategy & Corporate Development
+     https://www.linkedin.com/in/im-dlight
+
+  5. David Castro     — Aidoc, Strategic Growth Director
+     https://www.linkedin.com/in/dcastro94
+
+  6. Clara Le Cleï   — Nabla, Co-Founder US Strategy & Operations
+     https://www.linkedin.com/in/clara-le-cle%C3%AF
+
+  7. Neal Patel       — K Health, Sr Director Business Operations & Insights
+     https://www.linkedin.com/in/nealpatel112
+
+  8. Ryan Leung       — PathAI, Sr Director Head of BioPharma Product
+     https://www.linkedin.com/in/leungryan
+
+  9. Michael Schwartz — Assort Health, Head of Product Marketing
+     https://www.linkedin.com/in/michaelaaronschwartz
+
+  10. Sarah Baldry    — Wysa, Chief Marketing Officer
+      https://www.linkedin.com/in/sarah-baldry
+
+For each, use this base connection note template and personalize [COMPANY]
+and [ANGLE] (see angle guide below):
+
+  BASE TEMPLATE (adapt for each — stay under 300 chars):
+  "Hi [Name] — I built a healthcare AI market intelligence platform tracking
+  459 companies, regulatory actions, deal signals, and state legislation.
+  Given [ANGLE], thought it might be useful context. Happy to share free
+  access. — Bill"
+
+  ANGLE GUIDE:
+  Ian Shakil (Commure)    → "Commure's position across the provider workflow stack"
+  John Carter (Datavant)  → "Datavant's role in the health data ecosystem"
+  Brian Wilson (Abridge)  → "the ambient clinical AI competitive space"
+  Dave Light (insitro)    → "insitro's position in AI drug discovery"
+  David Castro (Aidoc)    → "the clinical AI imaging competitive landscape"
+  Clara Le Cleï (Nabla)  → "Nabla's expansion into the US market"
+  Neal Patel (K Health)   → "the virtual primary care competitive space"
+  Ryan Leung (PathAI)     → "PathAI's position in biopharma and diagnostics AI"
+  Michael Schwartz        → "the prior auth and payer AI competitive landscape"
+  Sarah Baldry (Wysa)     → "the mental health AI regulatory and competitive space"
+
+===========================================================================
+DAILY CADENCE — FULL SCHEDULE
+===========================================================================
+
+  Mon Sep 22  → Anders Steiner (Siemens) — SEND TODAY
+  Tue Sep 23  → Rest. Post Wednesday LinkedIn Personal Hook post.
+  Wed Sep 24  → Rory Kelleher (NVIDIA)
+  Thu Sep 25  → Christopher Mader (Flatiron Health)
+  Fri Sep 26  → Michael Palmer (Augmedix)
+  Mon Sep 29  → Sameer Ather (XpertDox) — email via Hunter.io
+              → Check: did Anders respond? (sent Sep 22 = 7 days)
+  Tue Sep 30  → Ian Shakil (Commure) — begin MEDIUM list
+  Wed Oct 1   → John Carter (Datavant)
+  Thu Oct 2   → Brian Wilson (Abridge)
+  Fri Oct 3   → Dave Light (insitro)
+  Mon Oct 6   → David Castro (Aidoc)
+              → Check: did Rory, Christopher, Michael respond?
+  ...continue through MEDIUM list, one per day...
+
+===========================================================================
+FOLLOW-UP RULES
+===========================================================================
+
+  • If they CONNECT and reply → respond same day (see reply guide in
+    outreach-anders-steiner.txt for language)
+  • If they CONNECT but don't reply after 7 days → send ONE InMail follow-up
+    (see InMail template in outreach-anders-steiner.txt, adapt for each person)
+  • If they DON'T connect after 7 days → try Hunter.io email lookup
+  • After email sent → no further follow-up if no response
+  • Maximum touches per person: 2 (LinkedIn note + one follow-up)
+  • Never send a second cold email
+
+===========================================================================
+HUNTER.IO EMAIL LOOKUP — QUICK REFERENCE
+===========================================================================
+
+Free tier: 25 lookups/month. Go to https://hunter.io
+
+Domains to try for the HIGH list (if LinkedIn doesn't connect):
+  Anders Steiner    → siemens-healthineers.com
+  Rory Kelleher     → nvidia.com
+  Christopher Mader → flatiron.com
+  Michael Palmer    → augmedix.com
+  Sameer Ather      → xpertdox.com
+
+===========================================================================
+OUTREACH CLI COMMANDS — QUICK REFERENCE
+===========================================================================
+
+Mark a LinkedIn note sent:
+  node data_input/outreach_cli.js sent \
+    --name "Full Name" \
+    --channel linkedin_note \
+    --template market-research-competitive-intel
+
+Mark a connection made:
+  node data_input/outreach_cli.js reply \
+    --name "Full Name" \
+    --outcome connected
+
+Mark a reply received:
+  node data_input/outreach_cli.js reply \
+    --name "Full Name" \
+    --outcome replied
+
+View full status:
+  node data_input/outreach_cli.js status
+
+View Market Research contacts only:
+  node data_input/outreach_cli.js list --role MARKET_RESEARCH
+
+===========================================================================
+WHAT SUCCESS LOOKS LIKE
+===========================================================================
+
+  • 5 HIGH-confidence notes sent by Sep 26 ✓
+  • 1-2 connections made (20-40% connect rate is normal)
+  • 1 reply or demo request from the full HIGH list = meaningful signal
+  • Any reply from Anders Steiner = significant win — Siemens has budget
+
+Do not measure success by connection rate. Measure it by whether anyone
+engages with the platform. One engaged analyst at a large medtech company
+is worth more than 20 accepted connections who never log in.
+
+===========================================================================
+FILES IN THIS OUTREACH CAMPAIGN
+===========================================================================
+
+  outreach-anders-steiner.txt        — full send guide for target #1
+  outreach-market-research-week-plan.txt — this file, full week plan
+  data_input/market_research_results.jsonl — raw Perplexity data, 19 contacts
+  data_input/outreach_cli.js         — CLI tracker
+  data_input/cto_outreach_messages.txt — CTO outreach messages (separate campaign)
+
+===========================================================================

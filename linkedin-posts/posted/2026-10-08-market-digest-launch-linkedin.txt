@@ -1,0 +1,90 @@
+PLATFORM: LinkedIn
+DATE: 2026-10-08
+SLUG: market-digest-launch
+ANGLE: Feature launch — automated daily fact-checking of AI healthcare market news, grounded in 30 days of live tracked data
+
+--- POST BODY ---
+
+$16.07 billion in AI healthcare funding. Tracked automatically. No spreadsheet.
+
+Here's the part that actually matters.
+
+Most AI healthcare market news arrives pre-spun — a "partnership" that's still a pending LOI, a funding number that's a target commitment rather than a closed round, a "launch" that's really a regional pilot. None of that makes the reporting dishonest. It just means a CONFIRMED deal and a SPECULATIVE rumor can show up in the same sentence without anyone flagging the difference.
+
+We built the thing that flags the difference.
+
+The Market Digest runs daily at noon UTC. It researches AI healthcare market news with Perplexity Sonar, classifies each item with Claude (CONFIRMED vs. SPECULATIVE), ranks it by market impact (1 = highest), and tags every public company with its ticker symbol and peer group before storing the result as a permanent dated record.
+
+30 days of real tracked data:
+→ 199 qualifying market-moving entries logged
+→ 118 CONFIRMED · 81 SPECULATIVE — labeled, not guessed at
+→ 51 regulatory actions · 45 funding events · 40 product launches · 36 major partnerships · 13 M&A deals
+→ 84 private funding rounds, $16.07B combined — largest: $600M Angle Health, $500M Thoreau
+→ Public companies tagged: TEM (Tempus AI), RCM (R1 RCM), NVO (Novo Nordisk), LLY (Eli Lilly), TWST (Twist Bioscience)
+
+A verified FDA 510(k) clearance and an unconfirmed funding rumor are never presented the same way. That's the point.
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+👉 Full 30-day breakdown with methodology and category stats:
+https://app.bigskylabs.ai/insights/2026-10-08-market-digest-launch.html
+
+#AIHealthcare #MarketIntelligence #HealthTech #DigitalHealth #HealthcareFinance
+
+---
+
+FIRST COMMENT (post separately, within 15 min of publishing):
+
+This data is pulled daily from BigSkyLabs AI in Healthcare — an intelligence platform tracking 318 companies across 57+ data sources, including regulatory filings, deal trackers, clinical trial feeds, and LLM-compiled news.
+
+Free resources, no signup required:
+🏢 Company Directory (318 AI healthcare companies with signal scores): https://app.bigskylabs.ai/directory
+📚 Knowledge Wiki (1,100+ LLM-compiled topics with source provenance and contradiction tracking): https://app.bigskylabs.ai/wiki
+
+Full platform access — Market Digest, Deal Signals, Trend Detection, Regulatory Alerts, Sentiment Scoring:
+→ https://app.bigskylabs.ai/pricing
+
+---
+
+SCREENSHOT GUIDANCE — what to capture at https://app.bigskylabs.ai/dashboard/market (login required):
+
+The page is titled "Market Digest" with the tagline "AI did what to whom. When, where, and why." below it.
+
+IDEAL CAPTURE: Show 3-4 entry cards near the top of the ranked list. Each card displays:
+  - A rank badge (e.g., "RANK 1", "RANK 2") — the impact ranking from 1 (highest) to 5
+  - A colored CONFIRMED (green) or SPECULATIVE (amber/yellow) classification badge
+  - A category badge: REGULATORY (purple), FUNDING (green), M_AND_A (red), MAJOR_PARTNERSHIP (yellow), PRODUCT_LAUNCH
+  - The headline text (usually 1-2 sentences)
+  - Small impact assessment chips showing the market dimensions affected
+  - Company ticker chips (e.g., "TEM", "NVO") when a public company is mentioned
+
+Above the cards: the category filter bar with colored pill buttons — All · Earnings · Regulatory · Funding · M&A · Partnership · Legal · Workforce · Product Launch
+
+The visual density of the filter bar + 3-4 ranked entry cards with their badges is the ideal screenshot. It shows both the structured classification system and the volume of data being processed.
+
+ALTERNATIVE: Use the infographic at linkedin-posts/shots/2026-10-08-market-digest-launch.png after running the Playwright screenshot command below.
+
+---
+
+PLAYWRIGHT SCREENSHOT COMMAND:
+npx playwright screenshot --viewport-size="1400,900" --full-page --wait-for-timeout=5000 "file:///C:/workspaces/SpringAIClaude/AIHealthcare/linkedin-posts/2026-10-08-market-digest-launch.html" "C:/workspaces/SpringAIClaude/AIHealthcare/linkedin-posts/shots/2026-10-08-market-digest-launch.png"
+
+---
+
+POSTING INSTRUCTIONS:
+
+1. IMAGE: Use either:
+   (a) linkedin-posts/shots/2026-10-08-market-digest-launch.png (infographic — run Playwright command above)
+   (b) A manual screenshot of https://app.bigskylabs.ai/dashboard/market showing ranked entries with CONFIRMED/SPECULATIVE badges visible
+
+2. LINKEDIN POST BODY: Copy the section above the first "---" line.
+   - The insights page link is the ONLY link in the post body.
+   - Do NOT add any other links to the post body.
+
+3. LINKEDIN FIRST COMMENT: Post the "FIRST COMMENT" section within 15 min of publishing.
+   - Links: /directory (free), /wiki (free), /pricing (signup) — in that order.
+   - NO dashboard links — /dashboard/market requires login.
+
+4. Best posting window: Tuesday or Wednesday 7:00–9:00 AM local time.
+
+5. Engage with replies in the first 2 hours for algorithm benefit.

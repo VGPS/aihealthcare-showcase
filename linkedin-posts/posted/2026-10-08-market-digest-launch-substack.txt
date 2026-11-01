@@ -1,0 +1,68 @@
+PLATFORM: Substack
+DATE: 2026-10-08
+SLUG: market-digest-launch
+TITLE: $16 billion, fact-checked: what our automated AI healthcare market tracker found
+SUBTITLE: Confirmed vs. speculative, ranked by impact, tagged by ticker — a daily digest built so hype and verified fact don't blend together
+
+--- POST BODY (Markdown) ---
+
+## Why market news needs a fact-check layer
+
+AI healthcare news moves fast, and a lot of it arrives pre-spun: a "launch" that's really a pilot, a "partnership" that's a pending LOI, a funding number that's a target commitment rather than a closed round. None of that makes the reporting dishonest — it just means a reader scanning headlines can't always tell confirmed fact from speculative framing without digging into the source.
+
+We built a pipeline that does that digging automatically, every day, for one sector: AI in healthcare.
+
+---
+
+## What the Market Digest does
+
+The Market Digest at `/dashboard/market` runs daily at noon UTC. It:
+
+1. **Researches** AI healthcare market news via Perplexity — regulatory actions, funding rounds, M&A, product launches, partnerships.
+2. **Classifies** each item with Claude: category (REGULATORY, FUNDING, M_AND_A, PRODUCT_LAUNCH, MAJOR_PARTNERSHIP, LEGAL_ACTION, WORKFORCE), fact classification (CONFIRMED vs. SPECULATIVE), and a market impact rank from 1 (highest) to 5 (lowest).
+3. **Enriches** any mentioned public company with live market data — ticker symbol, peer group — via Alpaca.
+4. **Tracks** regulatory actions longitudinally by jurisdiction and rulemaking stage, instead of reporting them once and moving on.
+5. **Persists** the result as a permanent, dated digest — not a feed that scrolls away.
+
+The CONFIRMED/SPECULATIVE split is the part that matters most. A verified FDA 510(k) clearance and an unconfirmed funding rumor are never presented the same way. If the pipeline can't verify a claim independently, it says so.
+
+---
+
+## What we've tracked so far
+
+As of today:
+
+- **199 market-moving entries** logged since the digest went live
+- **118 confirmed, 81 speculative** — roughly 59% of everything tracked has independent verification; the rest is labeled as reported-but-unconfirmed, not silently upgraded to fact
+- **Last 30 days by category:** 51 regulatory actions, 45 funding events, 40 product launches, 36 major partnerships, 13 M&A deals, plus legal and workforce items
+- **84 private funding rounds tracked, $16.07 billion combined** — the largest: a $600 million round for Angle Health, and $500 million commitments each for Ortet and Thoreau
+- Public companies are tagged by ticker and peer group when they're affected — Tempus AI (TEM), R1 RCM (RCM), Novo Nordisk (NVO), Eli Lilly (LLY), Twist Bioscience (TWST) all appear in the tracked set
+
+---
+
+## What it isn't (yet)
+
+In the interest of the same honesty the digest itself is built around: the pipeline has architecture in place for multi-horizon price-reaction scoring (how a stock moves 1h/4h/1d/3d after news breaks) and analyst rating-change tracking, but neither has live data populated yet. Those are the next two pieces to turn on. What's live today is the fact-classification, impact ranking, regulatory tracking, and funding-round tracking described above.
+
+We also noticed, pulling these numbers, that a couple of funding rounds appear to be double-logged (the same company and amount recorded twice from two separate source mentions). That's a dedup gap on the list to fix — similar to one we found and fixed in the company relationship tracker last week. The underlying classification is accurate; the row-level dedup needs tightening.
+
+---
+
+## Try it
+
+The full 30-day breakdown and methodology are at [app.bigskylabs.ai/insights/2026-10-08-market-digest-launch.html](https://app.bigskylabs.ai/insights/2026-10-08-market-digest-launch.html) — the infographic version with category stats, pipeline explanation, and links to free resources.
+
+The live digest itself is gated behind a free account at [app.bigskylabs.ai/pricing](https://app.bigskylabs.ai/pricing). Free accounts see the latest daily digest; subscriber accounts get full history, the weekly rollup, and the regulatory/funding trackers. The [company directory](https://app.bigskylabs.ai/directory) (318 companies) and [knowledge wiki](https://app.bigskylabs.ai/wiki) (1,100+ compiled topics) are public and require no signup.
+
+If you're trying to separate signal from spin in AI healthcare market news, this is built to do that work for you, automatically, every day.
+
+---
+
+*"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."*
+
+--- POSTING INSTRUCTIONS ---
+1. Use the TITLE and SUBTITLE fields above for the Substack post header
+2. Paste the body (from ## Why market news needs a fact-check layer onward) as the post content
+3. Add a screenshot of /dashboard/market as the header image
+4. Tag: AI Healthcare, Market Intelligence, Health Tech, Fintech
+5. Recommend cross-posting teaser to LinkedIn/Facebook

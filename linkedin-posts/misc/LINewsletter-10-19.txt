@@ -1,0 +1,17 @@
+Title: AI in Healthcare Intel — Week of October 19, 2026
+
+Body:
+
+FDA clearances, funding rounds, M&A signals, and regulatory alerts in AI healthcare — this week's read.
+
+Capital is moving fast. Confido Health raised $12.5M to push agentic AI into medical-group administration (scheduling, billing, prior auth). Healthleap raised $38M to expand EHR-integrated screening for underdiagnosed conditions. Iambic Therapeutics took a $150M IPO to advance AI-driven oncology drug discovery. Google committed $10M to train the next generation of clinicians on AI in patient care.
+
+The platform war widened. AWS launched Amazon Connect Health — its first purpose-built agentic AI platform for healthcare providers, automating patient verification, scheduling, documentation, and coding. That puts AWS in direct competition with Microsoft and Google for the enterprise healthcare AI stack.
+
+Governance is catching up to autonomy. The AMA published a formal framework (Oct 13) requiring agentic AI systems to earn clinical authority through evidence and keep earning it through ongoing monitoring. Separately, the Federation of State Medical Boards convened a national workgroup — AHA, AMA, Anthropic, and Elevance Health at the table — to set model guidelines for how state boards oversee autonomous clinical AI.
+
+Worth watching — a live contradiction: Blue Cross Blue Shield's analysis links AI coding tools to $942M in added healthcare spending, attributing it to systematically higher-severity coding. The billing industry's counter: that's not inflation, that's AI finally catching undercoding human coders missed for years. Same data, opposite conclusions — and it's not resolved yet.
+
+Regulatory tally this week: 10 new FDA/CMS events tracked, including a 510(k) clearance for an AI renal assessment tool and a De Novo classification for AI-assisted dental CAD/CAM. 18 policy developments tracked across ophthalmology, allergy data governance, and veteran prosthetics equity — three different clinical domains hitting the same wall: no unified AI governance infrastructure yet.
+
+AI in healthcare is history being written right now. I'm building the archive — full sourcing and daily tracking at bigskylabs.ai.

@@ -1,0 +1,38 @@
+GROUP: Tech Startup CEOs & Investors: Artificial Intelligence, Machine Learning, FinTech, SaaS, ChatGPT
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+Everyone has an opinion on which healthcare-AI news "matters." I stopped guessing and started measuring it directly: for every market-moving headline, I capture the stock price at the moment of the news and again at 1 hour, 4 hours, 1 day, and 3 days out, across every category — earnings, regulatory, funding, M&A, partnerships.
+
+The pattern that surprised me most: regulatory news moves price slower but more durably than earnings news. An FDA clearance often shows a muted 1-hour reaction but a meaningfully larger 3-day move once the market finishes digesting what it actually means for the product pipeline. Earnings beats do the opposite — sharp 1-hour pop, frequently fading by day 3 once the initial reaction gets re-priced against guidance detail.
+
+If you're building a thesis around "this category of news is the leading indicator," multi-horizon price tracking is the cheapest way to actually test that instead of assuming it.
+
+See the actual price-reaction badges on today's live digest. 👉 Link in the first comment.
+
+For the investors here: do you track price reaction by news category systematically, or is it still mostly pattern-matching from memory?
+
+#TechStartups #Investors #FinTech #SaaS #AIInvesting
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai/dashboard/market
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Tech Startup CEOs & Investors: Artificial Intelligence, Machine Learning, FinTech, SaaS, ChatGPT" → "Create a post" inside the group
+2. Paste Post Body — no image needed, no URL in the body (the "link in first comment" line is text, not a link)
+3. Publish
+4. Immediately paste the First Comment (the actual link) on your own post
+
+--- STRATEGY NOTES ---
+
+- Lead with the counterintuitive finding (regulatory news moves slower but more durably) — that's the hook for an investor audience that's seen plenty of generic "AI is moving markets" content.
+- If pressed on sample size/rigor, be honest this is directional observation from one sector's news flow, not a published quant study.

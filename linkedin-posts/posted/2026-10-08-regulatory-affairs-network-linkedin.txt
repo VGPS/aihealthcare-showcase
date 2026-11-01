@@ -1,0 +1,30 @@
+GROUP: Regulatory Affairs Network: Pharma, Medical Devices, Biotech, Healthcare, Science, QA, Events & Jobs
+DATE: 2026-10-08
+PLATFORM: LinkedIn (Group Post)
+
+---
+
+The FDA has cleared over 950 AI/ML-enabled medical devices. Most regulatory affairs teams are tracking maybe a handful of them.
+
+That gap is a competitive intelligence problem.
+
+Every 510(k) clearance names the applicant, the device classification, and the predicate. For an RA team preparing their own submission, that's a roadmap. Which predicates are FDA accepting for AI-assisted diagnostics? Which De Novo classifications are establishing new device types — and opening the door for 510(k) filers behind them? Where is FDA drawing the line on Predetermined Change Control Plans?
+
+The answers are public. They're just buried.
+
+Meanwhile the regulatory environment for AI is compounding:
+
+→ FDA's SaMD action plan continues to evolve — draft guidance → final guidance cycles that affect every AI device in development
+→ CMS coverage decisions for AI-assisted procedures are running 2-3 years behind clearances — cleared doesn't mean reimbursed
+→ 43 state laws now regulate AI in healthcare, adding a compliance layer that varies by jurisdiction and patient population
+→ CMS proposed and final rules are reshaping how AI-assisted care is coded, billed, and audited
+
+I built bigskylabs.ai to monitor all of it daily — FDA 510(k) clearances, De Novo classifications, PMA approvals, CMS rules and NCDs, and state-level AI legislation — surfaced alongside the funding and M&A signals that reveal which regulatory bets the market is actually making.
+
+For RA professionals, the value isn't just staying current. It's knowing what your competitors filed, what pathway they used, and what FDA accepted — before you write your own submission strategy.
+
+*AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.*
+
+👉 bigskylabs.ai
+
+For the RA professionals here: where are you seeing the most regulatory uncertainty with AI submissions right now — predicate selection, PCCP scope, or post-market surveillance requirements?

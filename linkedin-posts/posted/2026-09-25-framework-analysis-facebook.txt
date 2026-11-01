@@ -1,0 +1,71 @@
+FACEBOOK POST — Friday, September 25, 2026
+Feature: Framework Competitive Analysis — Competitor Intelligence Angle
+===========================================================================
+
+POST BODY (links OK in body on Facebook)
+-----------------------------------------------
+Healthcare AI is moving fast — but who's actually winning? And on what?
+
+"AWS has a head start." "Anthropic is the safety play." "OpenAI has the distribution."
+"Google has the data." These are the things people say. They're not wrong exactly,
+but they're also not measured.
+
+I built a feature that scores the four biggest healthcare AI platforms — AWS HealthLake,
+Anthropic Claude, OpenAI, and Google Health AI — across 6 specific dimensions, using
+analysis drawn from real article coverage:
+
+• Technical Maturity
+• Clinical Validation
+• Regulatory Positioning
+• Platform Strategy
+• Market Momentum
+• Developer Experience
+
+The result is a radar chart showing all four overlaid — so instead of reading a paragraph
+about each company, you can see the competitive shape in 5 seconds.
+
+Click through to any company and you get the full breakdown: dimension-by-dimension
+rationale, strengths, weaknesses, and the actual source articles that drove each score.
+
+Images below: the multi-company radar overview and a single-company detail page.
+
+Explore it here: https://app.bigskylabs.ai/dashboard/frameworks
+Free 7-day trial, no card: https://app.bigskylabs.ai/register
+
+#HealthcareAI #AIinHealthcare #HealthTech #CompetitiveIntelligence #DigitalHealth
+
+===========================================================================
+IMAGES
+-----------------------------------------------
+Attach BOTH images to the post:
+
+Image 1 — Radar chart overview (all 4 companies):
+  File: C:\workspaces\SpringAIClaude\AIHealthcare\linkedin-posts\shots\framework-overview.png
+
+Image 2 — Single-company detail breakdown:
+  File: C:\workspaces\SpringAIClaude\AIHealthcare\linkedin-posts\shots\framework-detail.png
+
+HOW TO ATTACH 2 IMAGES ON FACEBOOK:
+  Option A — Multi-select in file picker:
+  1. Click "Photo/Video" in the post composer
+  2. In the file picker, hold Ctrl and click both images at the same time
+  3. Click Open — both upload as a 2-photo album
+  4. The overview image should be first (drag to reorder if needed)
+
+  Option B — Add one at a time:
+  1. Click "Photo/Video" and select framework-overview.png
+  2. After it uploads, click "Add Photos/Videos" or the + that appears
+  3. Select framework-detail.png
+  4. Both will display as an album — overview is the cover photo
+
+  NOTE: Facebook crops portrait images in the album preview. Both screenshots
+  are landscape so they should display well without any cropping adjustments.
+
+===========================================================================
+POSTING INSTRUCTIONS
+-----------------------------------------------
+1. Go to Facebook → Create Post (personal profile or BigSkyLabs page)
+2. Paste the POST BODY above (links are fine in body on Facebook)
+3. Attach BOTH images per the instructions above
+4. Post
+5. Archive this file: rename to 2026-09-25-framework-analysis-facebook-POSTED.txt

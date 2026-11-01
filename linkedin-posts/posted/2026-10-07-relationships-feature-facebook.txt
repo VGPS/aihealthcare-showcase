@@ -1,0 +1,29 @@
+PLATFORM: Facebook
+DATE: 2026-10-07
+SLUG: relationships-feature
+ANGLE: Accessible version — what the feature does and why it matters
+
+--- POST BODY ---
+
+If you want to know which AI healthcare companies are partnering, merging, or investing in each other — the options have mostly been: pay $15,000–$60,000/year for an enterprise research database, or read industry newsletters and manually keep track yourself.
+
+We built something in between.
+
+The Company Relationship Graph at Big Sky Labs tracks partnerships, acquisitions, investments, and integrations in the AI healthcare space — automatically, daily, from live news.
+
+The way it works now (after some quality improvements this week):
+
+Articles from the last 30 days are scanned for relationship signals. Candidates go to an AI model that reads the full context and decides: are there two actual companies here, what kind of relationship is this, and how confident am I? Articles that don't meet that bar get excluded. Then company names are normalized against a 627-company directory so "R1 RCM" and "R1" don't show up as two different entities.
+
+The output is a searchable, sortable table. Click any row and you see the evidence article, the AI's summary, and a confidence percentage.
+
+It's not trying to be PitchBook. But if you want a daily view of who's doing deals in AI healthcare — sourced from the same news you're already reading — it's a lot more useful than a spreadsheet.
+
+app.bigskylabs.ai → dashboard → relationships
+
+"AI in healthcare is history being written right now. I'm building the archive."
+
+--- POSTING INSTRUCTIONS ---
+1. Post the body section above
+2. Add the screenshot image if available
+3. Link to the page in the first comment or as post link

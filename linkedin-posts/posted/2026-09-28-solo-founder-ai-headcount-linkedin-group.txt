@@ -1,0 +1,45 @@
+=== LINKEDIN GROUP POST ===
+Group: Tech Startup CEOs & Investors: AI, ML, FinTech, SaaS, ChatGPT
+Date: 2026-09-28
+
+--- POST BODY ---
+
+I'm a solo founder. No team. No budget for a research department.
+
+So I built one with AI.
+
+It now tracks 57+ sources daily — FDA clearances, funding rounds, WARN Act filings, vendor moves across the healthcare AI space. Every morning there's a ranked digest of what actually moved markets, separated from noise.
+
+Last week it flagged a $50M+ funding round and a 250-person IT outsourcing layoff at the same health system — on the same day three major AI vendors made announcements. The trade press covered the announcements. Nobody connected the dots.
+
+The intelligence gap between a well-resourced firm and a solo operator used to be unbridgeable. I'm not sure that's true anymore.
+
+What are you using AI to replace that used to require headcount?
+
+#AI #FounderLife #HealthcareAI #BuildingInPublic
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+For context: the platform is app.bigskylabs.ai — built on Spring Boot + Spring AI.
+Happy to share how the pipeline is structured if useful to anyone building something similar.
+
+--- POSTING INSTRUCTIONS ---
+
+1. Go to the group: "Tech Startup CEOs & Investors: AI, ML, FinTech, SaaS, ChatGPT"
+2. Click "Create a post" inside the group (NOT from your profile feed — group post stays in group)
+3. Paste the Post Body above
+4. Do NOT add an image — text-only posts get better organic reach in LinkedIn groups
+5. Do NOT add any links in the body — LinkedIn suppresses posts with URLs
+6. Publish
+7. Immediately paste the First Comment on your new post
+
+--- STRATEGY NOTES ---
+
+- The closing question ("What are you using AI to replace...") is the most important line.
+  It gives the 16M members a reason to reply with their own story — that engagement
+  signals LinkedIn to distribute the post further inside the group.
+- Reply to every comment within the first 2 hours. Early comment velocity is the
+  single biggest distribution signal in LinkedIn groups.
+- Do NOT respond to anyone asking to connect immediately — engage in the thread first.
+  Connection requests after a genuine exchange land much better.
+- If the group admin comments: respond first, thank them by name.

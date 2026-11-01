@@ -1,0 +1,29 @@
+GROUP: Digital Health Technology - AI in healthcare, eHealth, mHealth, healthcare innovation
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: POSTED
+
+---
+
+--- POST BODY ---
+
+Everyone tracks which AI healthcare companies are raising money and signing partnerships. Almost nobody tracks which ones are quietly accumulating negative coverage before it becomes a headline problem.
+
+I run every article mentioning a tracked company through sentiment classification — not just positive/negative, but the actual article-level rationale behind the score — then roll it up into a company-level risk profile. A company can be "hot" by funding/partnership activity and simultaneously carrying a deteriorating sentiment trend from recall concerns, regulatory scrutiny, or customer complaints showing up in trade press before it hits a formal headline.
+
+The use case isn't predicting stock moves — it's catching the "we should ask more questions before we adopt/partner with this vendor" signal a few weeks earlier than word-of-mouth would surface it.
+
+For the innovation and procurement-minded people here: do you have any systematic way of tracking vendor reputation risk, or is it still mostly relationship-network word of mouth?
+
+#DigitalHealth #HealthTech #VendorRisk #HealthcareInnovation #eHealth
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily." 👉 Link in the first comment.
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai/dashboard/risk
+
+--- STRATEGY NOTES ---
+
+- "Risk/reputation tracking" framing differentiates this from the usual hype-chasing content in this space — likely to draw genuine procurement-side engagement.
+- Risk dashboard is also tier-gated (FREE=5 companies) — disclose if pressed.

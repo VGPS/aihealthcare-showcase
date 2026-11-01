@@ -1,0 +1,35 @@
+GROUP: Digital Health Technology - AI in healthcare, eHealth, mHealth, healthcare innovation
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+Most people track AI healthcare progress through press releases and funding announcements. The more honest signal is upstream of that: what's actually enrolled in a clinical trial right now, and what phase is it in.
+
+I built a dedicated tracker for AI-specific clinical trials — pulled and kept current automatically, not a one-time snapshot. The gap between "company announced an AI diagnostic partnership" and "that diagnostic has an actual trial enrolling patients" is wider than the press cycle suggests. A lot of partnership announcements are aspirational; trial registrations are a commitment with a timeline and a regulatory paper trail attached.
+
+For anyone in digital health evaluating where a technology actually is in its maturity curve — not where the marketing says it is — trial phase is a more honest proxy than almost anything else publicly available.
+
+What's your go-to way of separating "this AI health product is real and progressing" from "this AI health product is still mostly a press release"?
+
+#DigitalHealth #ClinicalTrials #HealthTech #AIinHealthcare #HealthcareInnovation
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily." 👉 Link in the first comment.
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai/dashboard/clinical-trials
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Digital Health Technology - AI in healthcare, eHealth, mHealth, healthcare innovation" → "Create a post" inside the group
+2. Paste Post Body — no image needed, no URL in the body
+3. Publish
+4. Immediately paste the First Comment (the actual link) on your own post
+
+--- STRATEGY NOTES ---
+
+- This tracker is tier-gated in the app — don't overclaim "fully free" if a viewer presses for full access; the free tier shows a limited window, full history requires signup.

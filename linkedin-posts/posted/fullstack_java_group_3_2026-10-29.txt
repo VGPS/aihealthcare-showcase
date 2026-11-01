@@ -1,0 +1,28 @@
+GROUP: Full Stack Developer - Java technologies, UI & Microservices
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: POSTED
+
+---
+
+--- POST BODY ---
+
+Every endpoint in this app starts as a YAML edit, not a Java method. I write the OpenAPI spec first — request/response shapes, field types, required fields — then generate the DTOs from it. Controllers implement the generated delegate interface. Nobody hand-writes a DTO that's supposed to match the spec; the spec IS what generates it, so drift between "what the docs say" and "what the code actually returns" isn't physically possible without a Maven build failing.
+
+The payoff shows up specifically at the full-stack boundary: when a frontend consumer (internal UI, external API client, doesn't matter) is coded against the spec, the backend literally cannot silently return a different shape without the generated interface changing first — which is a compile error, not a runtime surprise discovered three sprints later.
+
+It's more upfront ceremony than just writing a controller method and letting the DTO shape emerge organically. For an API with real consumers, I'll take the ceremony every time over "wait, when did this field get renamed?"
+
+For the full-stack folks here: spec-first or code-first — and has drift between docs and implementation ever actually bitten you?
+
+#API #OpenAPI #SpringBoot #FullStackDeveloper #JavaDev
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily." 👉 Link in the first comment.
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai
+
+--- STRATEGY NOTES ---
+
+- Closing question is a genuine debate-starter for this audience (spec-first vs. code-first is a long-running argument in API circles) — good odds of real back-and-forth replies.

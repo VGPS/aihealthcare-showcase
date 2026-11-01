@@ -1,0 +1,179 @@
+On timing — don't post all three at once. Space them out:
+
+Post #1 — publish immediately (this is your introduction)
+Post #2 — 3-4 days later (gives subscribers time to read #1)
+Post #3 — 3-4 days after #2 (by now you have a small catalog)
+This gives Substack's algorithm three separate discovery events and gives early subscribers a reason to stay.
+
+Post #1: 
+
+Why I Built This
+
+Why I Built an AI Intelligence Platform for Healthcare — Alone with Claude Code, From Rural Texas after my wifes death from cancer.
+
+Six months ago I was reading about Cigna's (previous employer - you've been warned) AI system — the one that reportedly denied 300,000 claims in two months, 
+with physicians reviewing each denial in an average of 1.2 seconds.
+
+That wasn't a bug. That was the system working as designed.
+
+Around the same time, a major health system was marketing that its AI "predicts sepsis hours before symptoms" — while internal data showed a 67% false-positive rate. UnitedHealth's AI was denying Medicare Advantage claims at 2.2x the rate of human reviewers, with over 90% overturned on appeal.
+
+I kept noticing the same pattern: AI is moving faster than the people who need to understand it — clinicians, regulators, investors, patients. The information exists, but it's scattered across FDA filings, state legislatures, PubMed papers, press releases, and industry feeds. By the time you've assembled the picture, it's already changed.
+
+So I built the thing I wished existed.
+
+What it is
+
+An AI-powered intelligence platform that harvests from 40+ healthcare data sources every day — PubMed, FDA, CMS, industry news, competitor sites, HuggingFace model releases — and turns that firehose into scored, ranked, source-linked intelligence.
+
+Not summaries. Not chatbot answers. Structured market intelligence with provenance.
+
+Every article runs through four AI models independently — Claude, GPT, Perplexity, and Gemini. Consensus gets weight. Outliers get flagged. Every claim traces back to its original source with a harvest date and a tier label (academic, regulatory, industry, competitor). When new evidence contradicts a previous finding, the system flags it automatically.
+
+What it tracks
+
+Daily market digests ranked by financial impact — earnings, M&A, funding rounds, regulatory actions — with fact vs. speculation explicitly labeled
+FDA clearances, CMS rulemaking, and state AI healthcare legislation across 24 states
+Company sentiment over time — which companies are gaining momentum, which are showing risk signals
+Deal signals with LLM-extracted amounts, counterparties, and deal types
+A self-maintaining knowledge base that builds institutional memory — not just today's news, but how today's news relates to last month's
+How I built it
+
+Java 21. Spring Boot 3. Spring AI. Postgres with pgvector. Deployed on a single EC2 instance. No VC funding, no team, no pitch deck. Just a senior developer who got tired of watching healthcare AI accountability gaps widen while the people who should know about them were drowning in noise.
+
+The platform has 2,964 automated tests. Fourteen data pipelines. Over 4,500 articles in the corpus and growing daily.
+
+Why Substack
+
+I'm going to use this space to share what the platform finds each week — the FDA clearances that matter, the funding rounds that signal where the market is going, the state laws that most people don't know exist yet, and the contradictions between what companies claim their AI does and what the evidence shows.
+
+If you work in healthcare, invest in health tech, build AI products for clinical settings, or write the rules governing any of it — this is for you.
+
+Explore the platform:
+
+Public knowledge base (no login): https://bigskylabs.ai/wiki
+Full platform: https://bigskylabs.ai
+
+Next post: I'll walk through an actual daily market digest — what the AI found, how it ranked it, and what it means.
+
+---------------------------- 	END POST 1 ---------------------
+
+
+Post #2: Inside a Daily Market Digest
+What 4 AI Models Found in Healthcare This Morning — A Real Market Digest, Narrated
+
+Every morning at 7:00 AM Chicago time, my platform produces a market digest. It's not a newsletter written by a human scanning headlines. It's a pipeline — automated research, LLM classification, market data enrichment, and impact ranking — that produces a scored, fact-checked intelligence briefing.
+
+Here's what that actually looks like, and why it matters.
+
+How the digest gets built
+
+Step 1: Perplexity's Sonar API scans for market-moving AI healthcare news from the past 24 hours. Not keywords in RSS feeds — actual research-grade retrieval across the live web.
+
+Step 2: Claude classifies every item across five financial impact dimensions — Revenue, Earnings, Valuation, Investor Sentiment, and Future Growth — with a directional assessment (positive, negative, neutral) and a written rationale for each.
+
+Step 3: Each item gets a fact classification. CONFIRMED means it's sourced from a filing, earnings call, or official announcement. SPECULATIVE means it's analyst commentary, rumor, or forward-looking projection. In healthcare, that distinction can be the difference between a compliance event and noise.
+
+Step 4: Affected companies are tagged — public companies with ticker symbols, private companies with peer group classification (AI Scribe/Documentation, Diagnostic Imaging AI, Drug Discovery AI, Digital Therapeutics, Value-Based Care Platform). If they're publicly traded, the platform pulls real-time quote data from Alpaca and tracks price reactions at multiple horizons — 1 hour, 4 hours, 1 day, 3 days.
+
+Step 5: A qualifying bar filters out low-impact noise. Only market-moving events pass: earnings reports, regulatory actions, M&A, major partnerships, and funding rounds above $50 million. Everything else is stored but doesn't make the digest.
+
+Step 6: Items are ranked 1 through 5 by market impact. Rank #1 is the most consequential event of the day.
+
+What a typical day produces
+
+A real digest might look like this:
+
+🔴 #1 — REGULATORY / CONFIRMED "FDA clears Tempus AI companion diagnostic for solid tumors" Impact: Revenue — Positive (new reimbursable indication expands TAM); Investor Sentiment — Positive (validates clinical AI regulatory pathway) Affected: Tempus AI (TEM) — price reaction: +8.2% at 1-day horizon
+
+🟠 #2 — FUNDING / CONFIRMED "Abridge raises $150M Series B for AI medical documentation" Impact: Valuation — Positive (validates AI scribe market at scale); Future Growth — Positive (capital runway for enterprise expansion) Affected: Abridge (PRIVATE, AI_SCRIBE_DOCUMENTATION peer group) Deal terms: $150M, Series B
+
+🟡 #3 — M&A / SPECULATIVE "Epic Systems reportedly in talks to acquire clinical NLP startup" Impact: Investor Sentiment — Positive (signals consolidation in clinical AI); Valuation — Neutral (terms undisclosed) Affected: Epic Systems (PRIVATE) Classification: SPECULATIVE — sourced from unnamed industry contacts, not a filing
+
+🔵 #4 — EARNINGS / CONFIRMED "Doximity Q2 earnings beat estimates; AI engagement metrics up 40%" Impact: Revenue — Positive; Earnings — Positive Affected: Doximity (DOCS) — price reaction: +3.1% at 4-hour horizon
+
+⚪ #5 — LEGAL_ACTION / CONFIRMED "DOJ announces $172M settlement with Cigna over AI prior-authorization denials" Impact: Investor Sentiment — Negative (litigation overhang); Revenue — Negative (settlement cost + compliance remediation) Affected: Cigna (CI)
+
+What makes this different from a Google Alert
+
+Three things:
+
+Provenance. Every item links to its original source. You can verify. The platform doesn't hallucinate authority — it cites it.
+
+Classification. A Google Alert tells you something happened. This tells you whether it's confirmed or speculative, which financial dimensions it affects, which direction, and why — written by Claude after analyzing the source material.
+
+Memory. The platform doesn't forget. When the Cigna settlement appears in today's digest, the knowledge base already has the context — the original AI denial story, the congressional inquiry, the prior enforcement actions. A self-maintaining wiki tracks when new evidence contradicts previous claims, with full source provenance on both sides.
+
+The weekly rollup
+
+At the end of each week, the platform produces a deduplicated rollup — collapsing recurring stories by headline similarity (threshold: 0.93 cosine similarity on embeddings). If "Abridge Series B" appeared in three daily digests as new details emerged, the rollup shows it once with an occurrence badge. This is how you go from daily noise to weekly signal.
+
+Who this is for
+
+Health tech investors tracking deal flow and competitive positioning
+Healthcare executives monitoring regulatory shifts that affect their operations
+Digital health builders watching the FDA clearance pipeline and M&A landscape
+Policy researchers who need the full picture, not fragments
+See a live digest: https://bigskylabs.ai Explore the knowledge base: https://bigskylabs.ai/wiki
+
+Next post: 43 state laws governing AI in healthcare — mapped, sourced, and tracked for changes.
+
+Post #3: 43 Laws Governing AI in Healthcare, Mapped
+43 State Laws Governing AI in Healthcare — and Most People in the Industry Don't Know They Exist
+
+If you build, deploy, buy, or regulate AI in healthcare, here's something that should concern you: at least 24 U.S. states have already enacted laws specifically governing how AI can be used in clinical, insurance, and patient-facing settings.
+
+Not proposed. Not in committee. Enacted. Signed by governors. With enforcement mechanisms and effective dates.
+
+Most of them got almost no national press coverage.
+
+I've built a tracked, source-linked registry of all 43 laws — with key requirements, regulated parties, enforcement provisions, and primary source URLs — into my AI healthcare intelligence platform. Here's what the landscape looks like.
+
+The big categories
+
+These laws cluster into eight categories, and the pattern tells you where regulators see the most immediate risk:
+
+Payer Utilization Review — The largest cluster. States like Alabama, Arizona, Georgia, Illinois, and New York have passed laws requiring that health insurers cannot use AI as the sole basis for denying claims. Many mandate that a licensed physician — not an algorithm — must make the final adverse determination. This is a direct legislative response to the Cigna and UnitedHealth AI denial stories.
+
+Provider Disclosure & Consent — California AB 3030 (enacted 2024) requires that any patient communication generated by generative AI must carry a clear disclaimer and include instructions for reaching a human provider. Indiana and several others have followed.
+
+Consumer Chatbot Regulation — California SB 243 (enacted 2025) regulates companion chatbots with specific suicide prevention protocols and a private right of action. This is the first law I've seen that treats AI emotional support as a regulated activity.
+
+Mental Health & Psychotherapy — Multiple states now restrict or require disclosure for AI use in behavioral health settings, recognizing that the therapeutic relationship has different stakes than a billing inquiry.
+
+Comprehensive AI Acts — Colorado, Utah, and others have passed broader AI governance frameworks that include healthcare-specific provisions — disclosure requirements, algorithmic impact assessments, and regulatory sandboxes for clinical AI testing.
+
+Claims Downcoding — A smaller but growing category targeting AI systems that automatically reduce billing codes, affecting provider reimbursement.
+
+What surprised me
+
+Three things stand out after mapping all 43:
+
+1. The speed. California alone has enacted at least four AI healthcare laws in two years (AB 3030, AB 489, SB 1120, SB 243). The "Physicians Make Decisions Act" (SB 1120, 2024) specifically mandates that AI in utilization review must be based on individual clinical circumstances, not solely group datasets. That's a direct shot at population-level denial algorithms.
+
+2. The enforcement teeth. These aren't aspirational guidelines. Alabama SB 63 carries regulatory enforcement through the state insurance department. California SB 243 includes a private right of action — meaning patients can sue. Colorado's comprehensive AI act includes algorithmic impact assessments with regulatory penalties.
+
+3. The patchwork problem. If you're a national health insurer or a digital health company operating across states, you now have 24 different regulatory regimes to comply with — and the requirements conflict. One state may require physician review of all AI denials. Another may require disclosure to patients but not mandate human review. A third may have a sandbox that lets you test clinical AI with fewer constraints. There is no federal harmonization in sight.
+
+The accountability tracker
+
+The legislation registry is one layer of a broader accountability system I've built. The platform also tracks:
+
+18 major U.S. health systems with their documented AI deployments, enforcement actions, and marketing claims
+AI marketing claims vs. evidence — when a health system claims its AI "predicts sepsis hours before symptoms" but the false-positive rate is 67%, that contradiction is tracked with sources on both sides
+Federal regulatory actions — FDA 510(k) clearances, De Novo authorizations, CMS rulemaking — harvested directly from federal APIs, not press releases
+Source freshness monitoring
+
+Laws change. Effective dates approach. Amendments get signed. The platform runs a weekly source-freshness monitor that re-fetches every official URL in the registry and flags content changes. A separate Perplexity-powered discovery sweep searches for newly enacted or amended bills. New candidates require human review before being added to the registry — nothing is auto-written.
+
+Why this matters now
+
+The next 12 months will see more state AI healthcare legislation than the previous five years combined. CMS is actively proposing rules on AI in Medicare. The EU AI Act's healthcare provisions are taking effect. State attorneys general are filing enforcement actions.
+
+If your AI touches a patient, a claim, a diagnosis, or a treatment recommendation — someone, somewhere, is writing a law about it right now.
+
+Explore the registry: https://bigskylabs.ai/legislation Full platform: https://bigskylabs.ai
+
+If you work in healthcare compliance, health tech legal, or digital health policy — I'd love to hear what you're seeing in your state. What's the law that's going to catch the industry off guard?
+
+Three posts, ready to go. Publish #1 now, #2 in 3-4 days, #3 a few days after that.

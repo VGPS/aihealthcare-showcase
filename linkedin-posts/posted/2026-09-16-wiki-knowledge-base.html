@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=1400"/>
+<title>The Self-Correcting Knowledge Base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1400px;
+    background: #ffffff;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { padding: 48px 56px; }
+
+  /* ── Row 1: Header ── */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 36px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .header-left { max-width: 780px; }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .brand img {
+    width: 84px;
+    height: 84px;
+    border-radius: 10px;
+  }
+  .brand-name {
+    font-size: 27px;
+    font-weight: 700;
+    color: #64748b;
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: #94a3b8;
+    margin-bottom: 10px;
+  }
+  .header-left h1 {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #0f172a;
+    margin-bottom: 10px;
+  }
+  .header-left h1 .accent { color: #2563eb; }
+  .subtitle {
+    font-size: 18px;
+    color: #64748b;
+    line-height: 1.5;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    padding-top: 24px;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .num {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .hero-stat .num.blue { color: #2563eb; }
+  .hero-stat .num.purple { color: #7c3aed; }
+  .hero-stat .num.cyan { color: #0891b2; }
+  .hero-stat .label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: #94a3b8;
+    margin-top: 6px;
+  }
+
+  /* ── Row 2: Data Cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-top: 36px;
+  }
+  .card {
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+  .card.blue::before { background: #2563eb; }
+  .card.purple::before { background: #7c3aed; }
+  .card.cyan::before { background: #0891b2; }
+  .card.amber::before { background: #f59e0b; }
+  .card .big-num {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .card.blue .big-num { color: #2563eb; }
+  .card.purple .big-num { color: #7c3aed; }
+  .card.cyan .big-num { color: #0891b2; }
+  .card.amber .big-num { color: #f59e0b; }
+  .card .count {
+    font-size: 15px;
+    font-weight: 500;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
+  .card .card-label {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-top: 14px;
+  }
+  .card .card-desc {
+    font-size: 14px;
+    color: #64748b;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .progress-track {
+    width: 100%;
+    height: 10px;
+    background: #e2e8f0;
+    border-radius: 5px;
+    margin-top: 16px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 5px;
+  }
+  .card.blue .progress-fill { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+  .card.purple .progress-fill { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+  .card.cyan .progress-fill { background: linear-gradient(90deg, #06b6d4, #0891b2); }
+  .card.amber .progress-fill { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+
+  /* ── Row 3: Callout + Quote ── */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 36px;
+  }
+  .callout {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 12px 12px 0;
+    padding: 24px 28px;
+  }
+  .callout-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #92400e;
+    margin-bottom: 14px;
+  }
+  .reversal {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .reversal:last-of-type { margin-bottom: 0; }
+  .reversal-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
+  .reversal-label.prior { color: #dc2626; }
+  .reversal-label.new { color: #16a34a; }
+  .reversal-text {
+    font-size: 13px;
+    color: #92400e;
+    line-height: 1.5;
+  }
+  .reversal-divider {
+    text-align: center;
+    font-size: 18px;
+    color: #f59e0b;
+    margin: 6px 0;
+    font-weight: 800;
+  }
+  .quote-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 28px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .quote-mark {
+    font-size: 40px;
+    color: #cbd5e1;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .quote-text {
+    font-size: 18px;
+    font-weight: 600;
+    font-style: italic;
+    color: #334155;
+    line-height: 1.6;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 36px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+  }
+  .footer-brand {
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .footer-brand .big { color: #2563eb; }
+  .footer-brand .labs { color: #94a3b8; }
+  .footer-source {
+    font-size: 13px;
+    text-align: right;
+  }
+  .footer-source .src-name { color: #64748b; }
+  .footer-source .src-url { color: #94a3b8; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Row 1: Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="brand">
+        <img src="brand-icon.png" alt="AI in Healthcare"/>
+        <span class="brand-name">AI in Healthcare</span>
+      </div>
+      <div class="eyebrow">AI Healthcare Wiki &times; Reversal Watch</div>
+      <h1>The Self-Correcting <span class="accent">Knowledge Base</span></h1>
+      <div class="subtitle">We built an LLM-compiled wiki that tracks when its own sources contradict each other. 772 pages. 1,185 cited sources. 63 reversals detected automatically.</div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="num blue">772</div>
+        <div class="label">Wiki Pages</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num purple">63</div>
+        <div class="label">Reversals Found</div>
+      </div>
+      <div class="hero-stat">
+        <div class="num cyan">4,657</div>
+        <div class="label">Revisions</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Feature Cards — what you can DO -->
+  <div class="cards">
+    <div class="card blue">
+      <div class="big-num" style="font-size: 28px; line-height: 1.3;">Search Any Topic</div>
+      <div class="count">772 pages indexed</div>
+      <div class="card-label">Instant Research</div>
+      <div class="card-desc">Type &ldquo;ambient documentation&rdquo; or &ldquo;prior authorization AI&rdquo; &mdash; get a compiled overview with every claim linked to its original source article</div>
+      <div class="progress-track"><div class="progress-fill" style="width: 100%"></div></div>
+    </div>
+    <div class="card purple">
+      <div class="big-num" style="font-size: 28px; line-height: 1.3;">Filter by Type</div>
+      <div class="count">4 page categories</div>
+      <div class="card-label">Pick Your Lens</div>
+      <div class="card-desc">397 policy overviews &bull; 278 company profiles &bull; 85 concept explainers &bull; 12 side-by-side comparisons &mdash; filter to what fits your research</div>
+      <div class="progress-track"><div class="progress-fill" style="width: 75%"></div></div>
+    </div>
+    <div class="card cyan">
+      <div class="big-num" style="font-size: 28px; line-height: 1.3;">Trace Any Claim</div>
+      <div class="count">1,185 source references</div>
+      <div class="card-label">Full Provenance</div>
+      <div class="card-desc">Click any citation to see the original article, harvest date, and excerpt. No hallucinated references. No unsourced assertions.</div>
+      <div class="progress-track"><div class="progress-fill" style="width: 90%"></div></div>
+    </div>
+    <div class="card amber">
+      <div class="big-num" style="font-size: 28px; line-height: 1.3;">Reversal Watch</div>
+      <div class="count">63 contradictions detected</div>
+      <div class="card-label">What Changed</div>
+      <div class="card-desc">See where new evidence contradicts prior consensus. Each reversal shows the old claim, the new claim, and the sources on both sides.</div>
+      <div class="progress-track"><div class="progress-fill" style="width: 45%"></div></div>
+    </div>
+  </div>
+
+  <!-- Row 3: Reversal Example + Quote -->
+  <div class="bottom-row">
+    <div class="callout">
+      <div class="callout-title">Reversal Watch &mdash; Detected September 16, 2026</div>
+      <div class="reversal">
+        <div class="reversal-label prior">Prior Consensus</div>
+        <div class="reversal-text">AI tool adoption by clinicians is generally associated with reduced burnout through administrative burden reduction</div>
+      </div>
+      <div class="reversal-divider">&darr; contradicted by &darr;</div>
+      <div class="reversal">
+        <div class="reversal-label new">New Evidence</div>
+        <div class="reversal-text">A multiregional study finds that AI use is not directly associated with improved clinician wellbeing &mdash; perceived risk corresponds to elevated burnout</div>
+      </div>
+    </div>
+    <div class="quote-card">
+      <div class="quote-mark">&ldquo;</div>
+      <div class="quote-text">Most AI knowledge bases just accumulate. Ours tracks when the evidence changes its mind. 63 reversals detected so far &mdash; and the wiki flags them before you repeat outdated claims.</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-brand"><span class="big">BigSky</span><span class="labs">Labs</span></div>
+    <div class="footer-source">
+      <span class="src-name">AI Healthcare Wiki &times; Reversal Watch</span><br/>
+      <span class="src-url">app.bigskylabs.ai/wiki &nbsp;|&nbsp; September 16, 2026</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

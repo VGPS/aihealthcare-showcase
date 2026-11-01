@@ -1,0 +1,37 @@
+GROUP: Ai Mindshare - Artificial Intelligence, Machine Learning, ML, Data Science, Gen & Business Analyst.
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+No fancy model required for this one — just three time windows and a frequency count, and it's still one of the most useful signals in my platform.
+
+Every week, I count keyword frequency across 30-day, 90-day, and 180-day windows for every article harvested. A keyword that's proportionally far more frequent in the last 30 days than its 180-day baseline gets flagged "rising." One that's dropped off gets flagged "fading." One that didn't exist in the 180-day window at all gets flagged "new." No sentiment model, no embeddings, no LLM call — just ratios across nested windows.
+
+The reason it works better than it should: momentum (rate of change) is often a stronger signal than raw volume for "what's actually happening right now" versus "what's just been consistently discussed." A keyword at steady moderate volume for 6 months is old news even if its absolute count is high. A keyword that tripled in 30 days is the story, even at lower absolute volume.
+
+For the data science / business analyst folks here: when you're building a trend/momentum signal, do you default to multi-window frequency ratios like this, or go straight to something more model-based (time-series decomposition, anomaly detection)?
+
+#DataScience #BusinessAnalyst #TrendAnalysis #Analytics #AIMindshare
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+The live trend dashboard: app.bigskylabs.ai/dashboard/trends — rising/fading/new, recalculated weekly.
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Ai Mindshare - Artificial Intelligence, Machine Learning, ML, Data Science, Gen & Business Analyst." → "Create a post" inside the group
+2. Paste Post Body — no image needed
+3. No links in the body — LinkedIn suppresses posts with URLs
+4. Publish
+5. Immediately paste the First Comment on your own post
+
+--- STRATEGY NOTES ---
+
+- Good fit specifically for the "Business Analyst" half of this group's membership — simple, explainable methodology (no black box) tends to land well with that audience versus a deep-learning pitch.
+- If a data scientist pushes back with "why not STL decomposition / Prophet," that's a legitimate point — be ready to acknowledge multi-window ratios are a simpler, more explainable tradeoff, not a claim that it's more rigorous.

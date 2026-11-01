@@ -1,0 +1,40 @@
+GROUP: STARTUP SPECIALISTS NETWORK GROUP — Entrepreneurs Business Startups Social Digital Media AI Marketing
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+I put my solo-built app up for sale a few weeks ago. Here's what actually surprised me — not the things I expected to be hard.
+
+I expected the hard part to be the pitch. It wasn't. The hard part was realizing how much of the business lived only in my head. Buyers don't want a demo — they want to know it runs without me. That meant writing down architecture decisions I'd never documented, explaining why certain features exist, and proving the thing keeps working when I'm not the one babysitting it.
+
+The second surprise: NDAs and walkthrough requests came faster than I expected, and from more serious people than I expected. Nobody tells first-time sellers that the deal-mechanics learning curve (term sheets, diligence requests, what's normal vs. a red flag) is its own skill — separate from the skill of building the thing.
+
+If you've built something solo and you're even casually thinking about an eventual exit: start documenting now, not when a buyer asks. The documentation is worth more as insurance than as a sales tool — most of what I wrote down I should have had anyway.
+
+For founders here who've sold or tried to sell something they built alone — what's the one thing you wish someone told you before the first buyer conversation?
+
+#Bootstrapped #SoloFounder #ExitStrategy #Entrepreneurship #BuildingInPublic
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+The app in question, for context: app.bigskylabs.ai — an AI healthcare intelligence platform, one year of solo development.
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "STARTUP SPECIALISTS NETWORK GROUP Entrepreneurs Business Startups Social Digital Media AI Marketing"
+2. Click "Create a post" inside the group (NOT from your profile feed)
+3. Paste the Post Body above — text-only, no image
+4. Do NOT include any links in the body — LinkedIn suppresses posts with URLs
+5. Publish
+6. Immediately paste the First Comment on your own post
+
+--- STRATEGY NOTES ---
+
+- Keep this to the documentation/learning-curve lesson — do NOT disclose deal specifics, buyer identities, price expectations, or NDA content in replies if people ask. Redirect to "can't share specifics while it's active" if pressed.
+- This is a vulnerable/honest angle, which tends to outperform polished wins in founder groups — but it also invites "are you selling because it's failing?" questions. Have a calm answer ready (e.g., it's a deliberate transition, not distress) before posting.

@@ -1,0 +1,36 @@
+GROUP: Regulatory Affairs Network: Pharma, Medical Devices, Biotech, Healthcare, Science, QA, Events & Jobs
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+An AI finding a newly introduced state bill regulating healthcare AI is useful. An AI silently deciding that bill belongs in a compliance registry, with no one checking its work, is a liability nobody should accept.
+
+My legislation registry draws a hard line between those two things. A weekly discovery sweep surfaces candidate bills that might be new or amended AI-healthcare law. Every candidate sits in a review queue — nothing is auto-published. A human has to actually look at it, confirm it's real, confirm the categorization is right, and explicitly promote it before it ever appears in the registry that people are relying on for compliance decisions.
+
+It's a QA instinct as much as an engineering one: the failure mode you're protecting against isn't "the AI missed something" — that's recoverable, you just discover it a week late. The failure mode you're protecting against is "the AI confidently added something wrong and someone downstream trusted it." Those have very different costs, and only one of them justifies slowing down for a human checkpoint.
+
+For the QA people here: where's your own line for "automate the discovery" versus "a human must sign off before this becomes authoritative"?
+
+#RegulatoryAffairs #QA #HealthcareCompliance #AIGovernance #MedicalDevices
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily." 👉 Link in the first comment.
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai/legislation
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Regulatory Affairs Network: Pharma, Medical Devices, Biotech, Healthcare, Science, QA, Events & Jobs" → "Create a post" inside the group
+2. Paste Post Body — no image needed, no URL in the body
+3. Publish
+4. Immediately paste the First Comment (the actual link) on your own post
+
+--- STRATEGY NOTES ---
+
+- This angle speaks directly to the "QA" segment named in this group's title — lead replies toward QA/validation process comparisons, not just regulatory content.
+- If asked "what's your review SLA" — be honest it's a solo-founder weekly cadence, not an enterprise QA team's throughput; don't imply more process maturity than exists.

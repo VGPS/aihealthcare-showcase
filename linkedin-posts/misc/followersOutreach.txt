@@ -1,0 +1,63 @@
+Subject line (if InMail): Something I've been building — would love your take
+
+Message:
+
+Hi [Name] — I've been heads-down for the past year building something I wanted to share with you.
+
+It's an AI healthcare market intelligence platform called AI in Healthcare (by BigSkyLabs). It tracks:
+
+259 AI healthcare companies across 7 sectors — with signal scoring for trending, funding, and acquisition status
+53 enacted U.S. state laws regulating AI in healthcare (27 enacted in 2026 alone)
+Deal signals, competitive frameworks, sentiment analysis, and keyword trends
+All from public data — 40+ daily RSS feeds, FDA/CMS APIs, state legislative records, and multi-model AI synthesis.
+
+The company directory and legislation registry are free to browse — no login required:
+
+app.bigskylabs.ai/directory
+
+----------------------- CONNECT ------------------------------
+
+Hi! I built an AI-powered healthcare intelligence platform — regulatory alerts, market analysis, and trend detection.
+
+Check it out: https://bigskylabs.ai 
+
+Would love to connect!
+
+----------------------- END CONNECT ------------------------------
+
+------------------------ Java -----------------------------------
+
+I've been building a full-stack AI-powered healthcare intelligence platform using Java 21, Spring Boot 3, and Spring AI 1.0 — and I wanted to share the architecture with this group.
+
+The stack:
+
+Java 21 records for every domain model — zero Lombok DTOs
+Strict hexagonal (ports-and-adapters) architecture — the domain module has zero Spring imports
+Spring AI ChatClient adapters for Claude, GPT, Perplexity, and Gemini — swappable via port interfaces
+pgvector for RAG-powered semantic search and embedding dedup
+Constructor injection only, spec-driven development from OpenAPI, Thymeleaf SSR
+What it does:
+
+Harvests AI healthcare news from 40+ RSS/API/web sources on scheduled crons
+LLM-powered multi-model synthesis, sentiment analysis, and competitive framework scoring
+Market digest pipeline: Perplexity research → Claude classification → Alpaca market data
+Enterprise data export with async job execution, HMAC-signed downloads, and push delivery schedules
+SAML2 SSO, Stripe billing, and a self-maintaining LLM wiki with contradiction tracking
+Architecture highlights:
+
+14 scheduled pipelines orchestrated through a single StartupPipelineOrchestrator with isolated try-catch per step
+Every outbound dependency (AI, persistence, email, market data) is a port interface in the domain — adapters are pluggable
+2,964 unit tests, no mocks of AI in CI — AI smoke tests isolated behind @Profile("ai-integration")
+Single-module Maven build deployed to EC2 via systemd
+The domain layer reads like plain Java — no annotations, no framework magic. Infrastructure adapters handle all the Spring AI wiring, JPA mapping, and HTTP client work. If you swap Claude for a local LLM tomorrow, you touch one adapter class.
+
+Live at: https://bigskylabs.ai/wiki (public knowledge base — no login required)
+
+---------------------------
+
+
+
+
+-------------------------
+
+Happy to discuss the architecture decisions, tradeoffs, or anything Spring AI-related in the comments.

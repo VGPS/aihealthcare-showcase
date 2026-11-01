@@ -1,0 +1,61 @@
+=== LINKEDIN GROUP POST ===
+Group: Full Stack Developer - Java technologies, UI & Microservices
+Date: 2026-09-30
+
+--- POST BODY ---
+
+Just joined — intro post feels more honest than lurking.
+
+I'm a solo Java engineer building a full-stack AI healthcare intelligence platform.
+Spring Boot 3, Spring AI, Thymeleaf, pgvector. Hexagonal architecture end to end.
+No team — I own every layer.
+
+A few things I've learned building production Spring AI code that you don't see in
+tutorials:
+
+→ The agent loop is genuinely different from prompt chaining. Claude decides what
+  to fetch at runtime. You define the @Tool methods. The model handles the sequence.
+
+→ Hexagonal architecture made swapping AI providers trivially easy. One outbound port.
+  Adapters for Claude, GPT-4o, Gemini, Perplexity. Zero domain changes.
+
+→ Ports-and-adapters isn't just architecture theory. It's what lets you mock every
+  AI call in tests and still run 2,900+ unit tests in under 10 minutes.
+
+It tracks FDA clearances, funding rounds, vendor moves, and regulatory filings —
+across 57+ sources, daily, with source attribution and an audit trail.
+
+What are you building with Spring Boot + AI right now?
+
+#SpringBoot #SpringAI #JavaDev #HexagonalArchitecture #HealthcareAI
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+The platform: app.bigskylabs.ai
+
+Built on Spring Boot 3 / Spring AI with a hexagonal (ports-and-adapters) architecture.
+Every AI provider is an outbound port adapter — same interface, swappable without domain
+changes. 2,900+ tests, all mocked at the port boundary.
+
+Happy to share architecture details or swap notes on Spring AI in production.
+
+--- POSTING INSTRUCTIONS ---
+
+1. Go to the group: "Full Stack Developer - Java technologies, UI & Microservices"
+2. Click "Create a post" inside the group (NOT from your profile feed)
+3. Paste the Post Body above — no image needed for intro posts
+4. Do NOT include any links in the body — LinkedIn suppresses posts with URLs
+5. Publish
+6. Immediately paste the First Comment on your own post
+
+--- STRATEGY NOTES ---
+
+- The closing question ("What are you building with Spring Boot + AI?") is the
+  most important line. Java devs love talking about their stack — it gives members
+  a reason to reply with their own projects.
+- This group skews technical. Specifics (Spring AI, @Tool, pgvector, hexagonal)
+  will land better than broad claims. Lead with architecture, not the product.
+- Reply to every comment in the first 2 hours — early velocity is the distribution signal.
+- If someone asks about the hexagonal architecture setup: share a code snippet in the
+  reply, not a link. Keeps the conversation in the thread.
+- Don't pitch the product in replies. Let the first comment do that work.

@@ -1,0 +1,86 @@
+LINKEDIN NEWSLETTER: AI in Healthcare Intel
+ISSUE: #001
+DATE: 2026-10-08
+SUBJECT LINE: The Three Signals — A Framework for Reading the AI Healthcare Market
+
+---
+
+# Welcome to AI in Healthcare Intel
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+That's the premise behind bigskylabs.ai — and it's the premise behind this newsletter.
+
+Every week I'll surface the signals that matter from the daily noise: regulatory clearances, capital movements, and narrative shifts. Not a news recap. A pattern read.
+
+This first issue introduces the framework I use. Every future issue applies it.
+
+---
+
+## The Three Signals
+
+After tracking AI healthcare daily for the past year, three signals consistently predict where the market is heading — 60 to 90 days before the mainstream press catches up.
+
+**Signal 1: Regulatory Clearance Velocity**
+
+The FDA's 510(k) database is one of the most underread competitive intelligence sources in health tech. Every clearance names the applicant, the device type, and the predicate. Taken individually, a clearance is a press release. Taken in sequence, it's a roadmap.
+
+When a company clears its second or third AI device in 18 months, it has solved the hardest problem in regulated health tech: navigating FDA at pace. That's not a growth-stage company anymore — that's an acquisition target. Epic, Oracle Health, and Optum are reading this database. Most everyone else isn't.
+
+*What to watch this week:* FDA De Novo classifications for AI-assisted clinical decision support. De Novo establishes a new device type — every 510(k) that follows cites it as predicate. The company that earns a De Novo doesn't just get cleared. It sets the category standard.
+
+---
+
+**Signal 2: Funding Round Clustering**
+
+Capital in AI healthcare doesn't spread evenly across the market. It clusters around validated categories — and the cluster itself is the signal.
+
+The pattern repeats: one company raises a large Series B in a specific AI healthcare category, institutional investors update their thesis, and two or three more deals close in the same space within 90 days. By deal number three, the category is no longer a bet — it's a consensus.
+
+Right now the clustering is visible in AI ambient documentation (scribes), AI-assisted prior authorization, and AI-powered revenue cycle management. Each cluster has a lead deal that telegraphed the direction 6 months before the follow-ons landed.
+
+*What to watch this week:* Series B closings in the $40–80M range. That's the validation range — too large to be exploratory, too small to be exit-stage. It marks the category transition from "emerging" to "established."
+
+---
+
+**Signal 3: Narrative Momentum Shift**
+
+Before a company's valuation moves, its news coverage does.
+
+Sentiment tracking across trade press — MedCity News, STAT, Health Affairs, FierceHealthcare — reveals which companies are building positive narrative momentum and which are accumulating risk signals. The correlation between a sustained positive sentiment trajectory (8–12 weeks) and a subsequent funding announcement or partnership deal is strong enough to treat as a leading indicator.
+
+The inverse is equally predictive. A company whose coverage shifts from product-focused to personnel-focused — departures, restructuring, "strategic review" language — is signaling before it discloses.
+
+*What to watch this week:* Coverage tone shifts at companies that raised 18–24 months ago. That's the window where Series A companies are either building toward a Series B narrative or quietly pivoting. The coverage tells you which before the filing does.
+
+---
+
+## What This Newsletter Covers Every Week
+
+Each issue delivers:
+
+→ **Clearance Watch** — notable FDA 510(k), De Novo, and PMA activity in AI healthcare
+→ **Capital Signals** — funding rounds, M&A deals, and what the terms reveal
+→ **Narrative Tracker** — sentiment shifts and what they're predicting
+→ **Regulatory Alerts** — CMS rules, ONC guidance, and state legislation that changes the compliance landscape
+→ **The Week's Record** — one entry from the archive that puts current events in longitudinal context
+
+This is not a summarization service. Every issue is an interpretation — what these signals mean together, not just individually.
+
+---
+
+## About This Newsletter
+
+I'm Bill Blackmon. I built bigskylabs.ai — a daily AI healthcare market intelligence platform that automatically harvests regulatory filings, tracks funding and deal signals, monitors company sentiment, and compiles everything into a searchable archive.
+
+The newsletter is the human layer on top of the machine: the pattern read, the historical context, the "so what."
+
+If you're building in health tech, investing in AI healthcare, navigating the regulatory landscape, or just trying to understand where this market is heading — this is the weekly briefing I wish had existed when I started tracking it.
+
+*AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.*
+
+👉 app.bigskylabs.ai/pricing
+
+---
+
+*Forward this to a colleague who should be reading it. They can subscribe at the link above.*

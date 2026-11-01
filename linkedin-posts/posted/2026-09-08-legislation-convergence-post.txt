@@ -1,0 +1,31 @@
+LINKEDIN POST — Tuesday, September 8, 2026
+Type: Legislation / Deal Flow Tuesday pivot
+Image: Screenshot of legislation-convergence.html (1080x1350, dark background)
+Link placement: First comment
+
+=== POST TEXT ===
+
+24 states have enacted 41 laws regulating AI in healthcare since 2024.
+
+What's notable isn't the volume — it's the convergence.
+
+92% require human review of AI decisions.
+75% mandate disclosure when AI is used.
+58% explicitly ban autonomous AI claim denials.
+
+9 states enacted all three — independently. No model legislation. No coordinated effort. Alabama, California, Colorado, Georgia, Iowa, Nebraska, Texas, Utah, and Washington arrived at the same answer on their own.
+
+These aren't conflicting approaches. They're converging on the same three requirements: human review required, disclosure mandatory, no autonomous denial decisions.
+
+If you're building AI for healthcare insurance, clinical workflows, or patient-facing chatbots — your compliance clock is already running. 10 of these laws take effect between now and January 2027.
+
+The states that haven't legislated yet aren't behind. They're watching these 24 go first.
+
+=== FIRST COMMENT ===
+
+Full registry with source links, effective dates, and enforcement details — no login required: https://app.bigskylabs.ai/legislation
+
+=== NOTES ===
+- Screenshot the HTML infographic at 1080x1350 (set browser to 1080px wide, full page screenshot)
+- Chrome DevTools: Ctrl+Shift+I → toggle device toolbar → set to 1080px wide → capture full size screenshot
+- Post the image, then immediately drop the first comment with the link

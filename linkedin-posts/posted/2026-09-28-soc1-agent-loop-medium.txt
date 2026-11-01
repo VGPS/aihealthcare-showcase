@@ -1,0 +1,183 @@
+=== MEDIUM POST ===
+Title: What "Agent" Actually Means in a Production Spring Boot App
+Subtitle: I replaced 80 lines of Java string formatting with a Spring AI @Tool adapter. Here's exactly what changed — and what I watched in the logs.
+
+Tags: Artificial Intelligence · Java · Spring Boot · Healthcare · Software Development
+
+Submit to: DataDrivenInvestor (first choice), Towards AI (if declined after 5 days), Better Programming (third choice)
+
+---
+
+I've been building healthcare AI intelligence software for most of this year. Daily pipelines tracking FDA clearances, WARN Act layoff filings, funding rounds, vendor announcements. 57+ sources. Most of the AI calls in the app are what I'd call static: pre-load data, format a prompt, call the model, parse the response.
+
+This weekend I rebuilt one feature to be agentic. The results surprised me — not because the output was dramatically better, but because watching it run in the DEBUG logs made the concept of "agent" suddenly concrete in a way that reading about it never had.
+
+---
+
+The feature
+
+The app has a page at `/dashboard/social` that drafts LinkedIn and Facebook posts from the day's market digest. The original version was straightforward Java:
+
+```java
+String entries = formatEntries(digestUseCase.findLatest());
+String prompt = systemPrompt + "\n\nHere is today's digest:\n" + entries;
+String response = chatClient.prompt().user(prompt).call().content();
+```
+
+Pre-load the data, format it, hand it to Claude. Totally reasonable. Works fine. Predictable.
+
+The agent version delegates the data-fetching decision to Claude:
+
+```java
+String response = chatClient.prompt()
+    .system(systemPrompt)
+    .user("Today is " + date + ". Use your tools to get the market digest "
+          + "entries and draft LinkedIn and Facebook posts.")
+    .tools(this)
+    .call()
+    .content();
+```
+
+Two `@Tool`-annotated methods on the same adapter class give Claude access to the database:
+
+```java
+@Tool(description = "Get ranked market digest entries for a date (format: yyyy-MM-dd). "
+        + "Returns headline, category, rank, fact classification, summary, and companies.")
+public String getDigestEntries(String date) { ... }
+
+@Tool(description = "Get up to 5 recent article titles and snippets mentioning a company name. "
+        + "Use this when you want more context about a company before writing about it.")
+public String getCompanyArticles(String companyName) { ... }
+```
+
+That's the entire mechanical change. The `.tools(this)` call tells Spring AI to register all `@Tool` methods, and the framework handles the loop automatically.
+
+---
+
+What I watched in the DEBUG logs
+
+With `org.springframework.ai: DEBUG` in `application.yml`, the tool call sequence is fully visible. Here's what a real run looks like:
+
+```
+SocialPostAgentAdapter : draft() | date=2026-09-28
+SocialPostAgentAdapter : getDigestEntries() | date=2026-09-28
+SocialPostAgentAdapter : getDigestEntries() | return=4521 chars, 8 entries
+SocialPostAgentAdapter : getCompanyArticles() | companyName=Epic Systems
+SocialPostAgentAdapter : getCompanyArticles() | return=612 chars for company=Epic Systems
+SocialPostAgentAdapter : parseResponse() | date=2026-09-28
+SocialPostAgentAdapter : draft() | return=SocialPostDraft[...]
+```
+
+Claude fetched the digest. Decided on its own that it wanted more context on Epic Systems. Fetched that. Then wrote the posts.
+
+The decision to drill into Epic Systems wasn't in my code. I didn't pre-determine which company to look up. Claude saw the digest, saw that Epic Systems appeared in the rank-1 entry, and decided additional context would improve the post it was about to write.
+
+That is the agent pattern: the model making decisions about what information to gather, not just what text to generate.
+
+---
+
+The system prompt is where the hard work lives
+
+The tool mechanism itself is simple. The system prompt is not.
+
+You need to tell Claude: what role it's playing, what output format to produce (exactly, labeled), what to prioritize when selecting entries, and how to handle edge cases like an empty or stale digest.
+
+I used a labeled-section format:
+
+```
+LINKEDIN_BODY:
+[body text]
+
+LINKEDIN_COMMENT:
+[first comment text]
+
+FACEBOOK_BODY:
+[body text]
+
+FACEBOOK_COMMENT:
+[comment text]
+
+ENTRIES_SELECTED:
+[comma-separated headline list]
+
+RATIONALE:
+[why these entries were chosen]
+```
+
+This lets me write a simple `extractSection(text, startLabel, endLabel)` helper — find the label, extract to the next label or end of string, trim. No JSON parsing, no regex, no `BeanOutputConverter`. For string-section output, labeled text is more robust than structured JSON because Claude occasionally adds explanatory prose before a JSON block, which breaks the parser.
+
+---
+
+Testing the adapter without touching ChatClient
+
+The adapter has two constructors: one for Spring (public, `@Autowired`), one package-private for unit tests:
+
+```java
+@Autowired
+public SocialPostAgentAdapter(ChatClient.Builder chatClientBuilder,
+                               ProduceMarketDigestUseCase digestUseCase,
+                               NewsArticleRepository articleRepository,
+                               PromptLoaderService promptLoaderService) {
+    this.chatClient = chatClientBuilder.build();
+    // ...
+}
+
+// Package-private: for unit tests only — avoids ChatClient.Builder and PromptLoaderService
+SocialPostAgentAdapter(ProduceMarketDigestUseCase digestUseCase,
+                       NewsArticleRepository articleRepository) {
+    this.chatClient = null;
+    this.systemPrompt = "";
+    // ...
+}
+```
+
+The tool methods and `parseResponse` are testable without any ChatClient. 6 tests, pure Mockito — no Spring context, no AI calls, no network. Verify the parser handles missing sections, null response, and the getDigestEntries fallback-to-latest logic all without mocking the model.
+
+One gotcha: if you have two constructors, Spring 6+ doesn't know which one to wire. Add `@Autowired` to the primary constructor explicitly or the app will fail to start with "No default constructor found."
+
+---
+
+What changed in the mental model
+
+The static version had me making an architectural decision: what data does Claude need? I pre-answered that question in Java.
+
+The agent version delegates that question to Claude at runtime. When I add a new tool — say, `getRegulatoryEvents(String company)` — Claude can start calling it immediately. The system prompt gets one new line describing when to use it. The Java outer loop doesn't change at all.
+
+That composability is the real payoff of the agent pattern. Not that the output is dramatically better today, but that the system becomes easier to extend: add a tool, update the prompt, the loop handles itself.
+
+---
+
+The app
+
+The healthcare AI intelligence platform this runs on is live at app.bigskylabs.ai. It tracks FDA 510(k) clearances, CMS rules, WARN Act layoff filings, funding rounds, and vendor moves across 57+ sources daily, and produces a market digest ranked by impact.
+
+The agent-drafted posts pull from that digest. When you click "Generate Agent Draft," you're watching Claude decide in real time which entries from that day's feed are worth writing about — and which companies it wants to know more about before it writes.
+
+If you're building with Spring AI and want to see more of the hexagonal adapter patterns in this codebase, ask in the comments.
+
+=== IMAGE ===
+Cover image file: 2026-09-28-soc1-agent-loop.png
+Location: linkedin-posts/shots/2026-09-28-soc1-agent-loop.png
+Dimensions: 1201x630 (agent loop diagram — see the generated graphic)
+
+=== MEDIUM POSTING INSTRUCTIONS ===
+
+1. Go to medium.com → Write a story
+2. Paste the title: "What "Agent" Actually Means in a Production Spring Boot App"
+3. Paste the subtitle: "I replaced 80 lines of Java string formatting with a Spring AI @Tool adapter. Here's exactly what changed — and what I watched in the logs."
+4. Paste the full post body above
+5. Restore code fences: Medium strips triple-backtick fences on paste — re-add them around the code blocks after pasting
+6. Add the cover image: 2026-09-28-soc1-agent-loop.png
+7. Add tags (use all 5):
+      Artificial Intelligence
+      Java
+      Spring Boot
+      Healthcare
+      Software Development
+8. Before publishing: toggle "Metered paywall" to OFF — paywalled posts are not indexed by Google
+9. Before clicking Publish: click "Add to publication" → "DataDrivenInvestor" → Submit
+
+AFTER PUBLISHING:
+10. Post the link on LinkedIn as a follow-up comment on today's post or as a new short post:
+    "Just published the full technical walkthrough on Medium — Spring AI @Tool in a production hexagonal app, with the debug log sequence and the test pattern. [link]"
+11. Reply to every comment within 24 hours — early engagement velocity is a strong distribution signal on Medium.

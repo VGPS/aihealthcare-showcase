@@ -1,0 +1,28 @@
+GROUP: Ai Mindshare - Artificial Intelligence, Machine Learning, ML, Data Science, Gen & Business Analyst.
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: POSTED
+
+---
+
+--- POST BODY ---
+
+Most RAG/search demos quietly assume the retrieved context is always relevant to the query. It isn't. When it's not, an LLM will still cheerfully synthesize an answer from irrelevant source material — confidently, fluently, and wrong.
+
+The fix that actually worked, after trying several prompt-engineering tricks that didn't: give the model explicit permission to return nothing. The prompt now says, in effect, "if none of the provided sources are actually relevant to the query, return NO_MATCH instead of forcing an answer." That one instruction cut down synthesized-from-irrelevant-context answers more than any amount of "be careful and accurate" framing ever did.
+
+The lesson generalizes past RAG: most LLM reliability problems aren't solved by asking the model to try harder. They're solved by giving it an explicit, structured way to say "I don't have enough to answer this" instead of forcing a response shape that has no room for that outcome.
+
+For the GenAI practitioners here: what's the most effective "permission to abstain" pattern you've used — explicit sentinel values like this, confidence scoring, something else?
+
+#GenerativeAI #LLM #RAG #DataScience #AIMindshare
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+The search this runs in: app.bigskylabs.ai/research/ai-search — try a query outside the healthcare domain and watch it correctly return no match instead of guessing.
+
+--- STRATEGY NOTES ---
+
+- This is a genuinely useful, broadly-applicable GenAI engineering tip — likely to get real technical engagement, not just reach. Reply substantively if ML/RAG practitioners share their own abstention patterns.

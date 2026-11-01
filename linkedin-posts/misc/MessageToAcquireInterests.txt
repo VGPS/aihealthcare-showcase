@@ -1,0 +1,11 @@
+Hi [Name],
+
+Thanks for your interest — while we get a live call on the calendar, here are a few resources to get you oriented:
+
+7-Day Free Trial: https://app.bigskylabs.ai/register — explore the live platform yourself (dashboards, newsletter, AI search, deal signals, and more).
+Product Walkthrough (video): https://app.bigskylabs.ai/tour
+Code Showcase: https://github.com/VGPS/aihealthcare-showcase — architecture and feature set for a technical look under the hood.
+
+I'm unavailable for a live call until Monday, November 3rd — happy to set up time that day or shortly after. We'll do the call over Zoom, and I'll send a link once we pick a time.
+
+Best, Bill

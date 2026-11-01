@@ -1,0 +1,86 @@
+PLATFORM: Substack
+DATE: 2026-10-07
+SLUG: relationships-feature
+TITLE: What a $50/month tool can tell you about AI healthcare deal flow
+SUBTITLE: How automated relationship extraction compares to enterprise alternatives — and where it honestly falls short
+
+--- POST BODY (Markdown) ---
+
+## The market intelligence gap
+
+PitchBook charges between $30,000 and $60,000 per year, depending on your license tier. CB Insights healthcare tech coverage starts around $15,000. A Bloomberg Terminal runs $25,000. If you want comprehensive, curated data on who is partnering with, acquiring, or investing in whom across the AI healthcare space — that has historically been the price of admission.
+
+These are real tools built by real teams. The data quality is high. But the pricing model means that unless you work at a hedge fund, a large health system, or a well-funded research firm, you've been doing this work manually: reading newsletters, maintaining spreadsheets, and hoping you don't miss the deal that matters.
+
+We built something in between. This post is about what it does, how it works, and where it honestly falls short.
+
+---
+
+## What the Company Relationship Graph does
+
+Big Sky Labs AI Healthcare has a feature at `/dashboard/relationships` that tracks company partnerships, acquisitions, investments, and integrations — specific to the AI healthcare industry — updated continuously from live news.
+
+The pipeline runs daily and works in three stages:
+
+**Stage 1 — Keyword pre-filter.** 29 relationship phrases across four categories scan the last 30 days of articles. Patterns like "partners with," "acquires," "invests in," and "integrates with" identify articles likely to contain a relationship signal. This stage is fast and cheap — nothing is recorded yet, it just builds a candidate list.
+
+**Stage 2 — LLM classification.** This is where the quality work happens. Candidate articles are sent to an AI model that reads the full article context and returns: the two company names, the relationship type, a confidence score (0–100%), and a one-sentence summary. Critically, if the model can't identify two clearly named company parties, it returns `NO_RELATIONSHIP` and the article is excluded. This is the gate that keeps "Microsoft," "2025," and "Agreement" out of the company list.
+
+**Stage 3 — Directory canonicalization.** Extracted names are normalized against a 627-company AI healthcare directory. "R1 RCM" becomes "R1." "Microsoft Corporation" becomes "Microsoft." Health systems and universities that appear as relationship partners are left unchanged — they're valid participants, they're just not AI vendors and shouldn't be in the vendor directory.
+
+The result is a searchable, sortable table with evidence links. Click any row and you see the source article, the AI's summary, and a visual confidence bar.
+
+---
+
+## How it compares to enterprise alternatives
+
+The honest comparison:
+
+**PitchBook / Crunchbase:** Excellent for funding rounds with dollar amounts, investor names, and cap table data. 2–7 day editorial lag. Coverage is global but skews heavily toward funding events — clinical partnerships and vendor integrations are often missing or sparse. Not AI-healthcare-specific. $30K–$60K/year.
+
+**CB Insights:** Strong AI industry tracking, good healthcare tech coverage. Editorial bottleneck means depth varies by company. No real-time extraction — their relationship data is what their team chose to track. $15K–$30K/year.
+
+**Definitive Healthcare:** Excellent for healthcare organization data — bed counts, system affiliations, physician networks. Not built for AI vendor deal flow. $20K+/year.
+
+**Bloomberg Terminal:** Relationship data is sparse and opportunistic. Excellent for everything else. $25K/year.
+
+**LinkedIn:** Tells you who knows whom at the people level. Does not track commercial partnerships or vendor integrations systematically.
+
+What Big Sky Labs offers instead: continuous extraction from the same news corpus these analysts are reading, same-day availability, AI-healthcare-specific focus, and evidence links so you can verify every relationship against the original source.
+
+What it doesn't offer: global coverage beyond what's in our news feeds, dollar amounts on private deals (extraction from article text when available, but often not disclosed), deep cap table or ownership data, or the decades of curated historical records that enterprise databases have built.
+
+It is, as one user put it, "a really useful second screen when you're reading the morning briefing."
+
+---
+
+## What we fixed this week
+
+Before the quality work described above, the relationship table had accumulated 116 rows. Some were real. Some were phrases like "2025," "Agreement," and "Re" — junk extracted from article titles by the earlier keyword-only pipeline that had no LLM quality gate.
+
+After the three-stage pipeline went live, a retroactive cleanup pass re-processed all 116 rows. Result: 116 → 58 relationships. Roughly half were noise.
+
+The cleanup also surfaced a second bug: the dedup check that prevents the same relationship from being stored twice was case-sensitive. Syndicated articles with slightly different capitalization had been accumulating 15–20 copies of the same row. That's documented and on the fix list.
+
+The data is cleaner. It's not perfect — no automated system is. But confidence scores and evidence links mean you can evaluate each relationship yourself rather than trusting the pipeline blindly.
+
+---
+
+## Try it
+
+The relationship graph is live at [app.bigskylabs.ai](https://app.bigskylabs.ai) → Dashboard → Relationships.
+
+Sort by confidence descending to see the highest-quality rows first. Use the company filter to follow a specific vendor's deal activity. Click any row to expand the evidence article.
+
+If you're tracking AI healthcare deal flow and spending 30 minutes a week on this manually — it might save you most of that time.
+
+---
+
+*"AI in healthcare is history being written right now. I'm building the archive."*
+
+--- POSTING INSTRUCTIONS ---
+1. Use the TITLE and SUBTITLE fields above for the Substack post header
+2. Paste the body (from ## The market intelligence gap onward) as the post content
+3. Add the screenshot from linkedin-posts/shots/<date>-relationships-feature.png as the header image
+4. Tag: AI Healthcare, Market Intelligence, Health Tech, Competitive Analysis
+5. Recommend cross-posting teaser to LinkedIn/Facebook

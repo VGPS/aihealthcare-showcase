@@ -1,0 +1,68 @@
+LINKEDIN POST — Friday, September 25, 2026
+Feature: Framework Competitive Analysis — Competitor Intelligence Angle
+===========================================================================
+
+POST BODY (paste this first, no links in body)
+-----------------------------------------------
+Most "competitive analysis" in healthcare AI is someone's opinion dressed up in a slide deck.
+
+I wanted something grounded in actual coverage.
+
+So I built a system that:
+
+→ Tracks every article mentioning AWS HealthLake, Anthropic Claude for Healthcare,
+   OpenAI health products, and Google Health AI
+→ Feeds them into a structured LLM analysis across 6 dimensions
+→ Scores each company 1–10 on Technical Maturity, Clinical Validation, Regulatory
+   Positioning, Platform Strategy, Market Momentum, and Developer Experience
+→ Renders it as a radar chart so the shape of each competitor's strengths
+   (and gaps) is visible at a glance
+
+The radar chart is the part I keep coming back to. When you see all four overlaid,
+the differentiation is immediate — not which company has the biggest marketing budget,
+but where each one actually has depth vs. where the coverage is thin.
+
+Every score links to the source articles that drove it.
+
+Two screenshots below — the multi-company overview and a single-company detail breakdown.
+
+#HealthcareAI #CompetitiveIntelligence #AIinHealthcare #HealthTech #MarketResearch
+
+===========================================================================
+FIRST COMMENT (paste immediately after posting)
+-----------------------------------------------
+Live demo — no login required to view: https://app.bigskylabs.ai/dashboard/frameworks
+7-day free trial, no card: https://app.bigskylabs.ai/register
+
+===========================================================================
+IMAGES
+-----------------------------------------------
+Attach BOTH images in this order:
+
+Image 1 — Radar chart overview (all 4 companies):
+  File: C:\workspaces\SpringAIClaude\AIHealthcare\linkedin-posts\shots\framework-overview.png
+
+Image 2 — Single-company detail breakdown:
+  File: C:\workspaces\SpringAIClaude\AIHealthcare\linkedin-posts\shots\framework-detail.png
+
+HOW TO ATTACH 2 IMAGES ON LINKEDIN:
+  1. In the post composer, click the photo/image icon (bottom toolbar)
+  2. Select framework-overview.png from the file picker
+  3. After it uploads, look for "Add photos" or the + icon that appears alongside it
+  4. Select framework-detail.png
+  5. Both will appear in a 2-image grid in the post preview
+  — OR —
+  In the file picker, hold Ctrl and click both files at the same time to select both
+  in one step, then click Open.
+
+===========================================================================
+POSTING INSTRUCTIONS
+-----------------------------------------------
+1. Go to LinkedIn → Start a post
+2. Paste the POST BODY above (no links — LinkedIn suppresses reach on body links)
+3. Attach BOTH images per the instructions above (overview first, detail second)
+4. Click Post
+5. Immediately open your post, click "Add a comment"
+6. Paste the FIRST COMMENT block
+7. Archive this file to linkedin-posts/posted/ after publishing
+   Rename: 2026-09-25-framework-analysis-linkedin-POSTED.txt

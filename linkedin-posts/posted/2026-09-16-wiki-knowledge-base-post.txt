@@ -1,0 +1,80 @@
+We built a free AI healthcare knowledge base you can search right now — no signup required.
+
+Here's what you can do with it:
+
+Search any topic — type "ambient documentation" or "prior authorization AI" and get a compiled overview with every claim linked to its source article, harvest date, and excerpt.
+
+Filter by page type — 397 policy overviews, 278 company/product profiles, 85 concept explainers, 12 side-by-side comparisons. Pick the lens that fits your research.
+
+Check the Reversal Watch — we track when new evidence contradicts prior consensus. 63 reversals detected so far. Example from today: the prior view was that AI adoption reduces clinician burnout. A new multiregional study says that's not true — perceived AI risk actually corresponds to elevated burnout.
+
+Trace any claim to its source — every wiki page shows a provenance table. Click any citation to see the original article. No hallucinated references. No unsourced assertions.
+
+See how knowledge evolved — 4,657 revisions tracked. Watch how a topic's wiki page changed as new articles were published.
+
+772 pages compiled from 57+ sources. Updated daily. Completely free.
+
+👉 Go try it — search a topic, browse the reversals, click a source link. No login, no paywall:
+https://app.bigskylabs.ai/insights/2026-09-16-wiki-knowledge-base.html
+
+#HealthcareAI #AIinHealthcare #HealthTech #KnowledgeManagement #ClinicalAI
+
+---
+
+FIRST COMMENT (LinkedIn):
+
+This is one feature inside BigSkyLabs AI in Healthcare — an intelligence platform tracking 318 companies across 57+ data sources.
+
+Browse the full AI Healthcare Wiki now: https://app.bigskylabs.ai/wiki
+
+See all 63 Reversals (where new evidence contradicts old): https://app.bigskylabs.ai/wiki/contradictions
+
+Browse all 318 AI healthcare companies free: https://app.bigskylabs.ai/directory
+
+Sign up free for Market Digest, Trend Detection, Deal Signals, and more: https://app.bigskylabs.ai/pricing
+
+#HealthcareAI #AIinHealthcare #HealthTech #DigitalHealth #ClinicalAI
+
+---
+
+FACEBOOK POST (same image):
+
+We built a free AI healthcare knowledge base you can search right now.
+
+Here's what you can do:
+- Search any topic and get a compiled overview with every claim linked to its source
+- Filter 772 pages by type: policy overviews, company profiles, concept explainers, comparisons
+- Check the Reversal Watch — 63 places where new evidence contradicts what the data said before
+- Trace any claim to its original article, harvest date, and excerpt
+- See 4,657 revisions showing how knowledge evolved over time
+
+Today's reversal: prior consensus said AI adoption reduces clinician burnout. New multiregional study says that's not true.
+
+Completely free. No signup. No login wall.
+
+Browse the wiki: https://app.bigskylabs.ai/wiki
+See all 63 reversals: https://app.bigskylabs.ai/wiki/contradictions
+Browse 318 AI healthcare companies: https://app.bigskylabs.ai/directory
+
+👉 Full infographic: https://app.bigskylabs.ai/insights/2026-09-16-wiki-knowledge-base.html
+
+#HealthcareAI #AIinHealthcare #HealthTech #DigitalHealth #KnowledgeManagement #ClinicalAI
+
+---
+
+POSTING INSTRUCTIONS:
+
+1. IMAGE: Attach linkedin-posts/shots/2026-09-16-wiki-knowledge-base.png
+
+2. LINKEDIN POST BODY: Copy everything above the first "---" line.
+   - The insights page link is the ONLY link in the post body.
+   - Do NOT put any other links in the post body.
+
+3. LINKEDIN FIRST COMMENT: Post the "FIRST COMMENT" section immediately after publishing.
+   - Four links: /wiki, /wiki/contradictions, /directory (all free), and /pricing (signup).
+   - No dashboard links — those pages require login.
+
+4. FACEBOOK: Use the "FACEBOOK POST" section. Same image attachment.
+
+5. This is a NEW post — not a replacement of yesterday's EHR AI Race post.
+   Yesterday's post can stay up. This is a separate topic.

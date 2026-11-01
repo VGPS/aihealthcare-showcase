@@ -1,0 +1,29 @@
+GROUP: Healthcare-IT/ EHR/ HIS
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: POSTED
+
+---
+
+--- POST BODY ---
+
+Every article my platform has ever harvested is still there. None of it gets purged, archived-and-forgotten, or quietly dropped after some retention window expires. It's a repository-of-record by design — the same philosophy behind why most of you can't just delete a patient record because it's old.
+
+The hard part wasn't the "never delete" rule — that's easy. It was doing it while staying legally clean on copyright: full-text scraping and permanent storage of someone else's article is a real exposure. The fix was a hard excerpt cap (a few hundred characters, cut at a sentence boundary, never mid-thought) plus honoring robots.txt before any page gets touched at all. You keep the fact and the provenance link forever; you don't keep the publisher's full article forever.
+
+That's a pattern Health IT teams deal with constantly in a different shape — how do you retain what you're legally and operationally required to keep, without over-retaining what creates risk instead of value?
+
+Curious how your teams draw that line on non-clinical data (vendor correspondence, audit logs, external content feeds) where the retention rules are less obviously spelled out than they are for PHI.
+
+#HealthIT #DataGovernance #RecordsManagement #EHR #HIS
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+Full platform, nothing ever purged: app.bigskylabs.ai.
+
+--- STRATEGY NOTES ---
+
+- This draws a deliberate parallel to medical-record retention without claiming to be one — be ready to clarify "this is market intelligence data, not PHI" if someone conflates the two.
+- Likely gets real engagement from records-management-minded IT people — a good group for a genuine back-and-forth rather than a broadcast post.

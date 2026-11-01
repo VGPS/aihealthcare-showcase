@@ -1,0 +1,37 @@
+GROUP: Healthcare-IT/ EHR/ HIS
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+"FDA cleared AI" shows up on a lot of vendor one-pagers right now. A meaningful share of ambient scribe and clinical documentation tools making that claim were never actually submitted for 510(k) or De Novo review — because large parts of that category don't meet the device definition that triggers FDA review in the first place. The claim isn't always false, but it's often doing more work than it should in a sales deck.
+
+I track every actual FDA 510(k) clearance, De Novo classification, and CMS rule change for AI-in-healthcare daily, cross-referenced against the companies making them. The gap between "what's claimed" and "what's actually on file with FDA" shows up more often than you'd expect — not usually outright fraud, more often marketing language that's gotten ahead of the regulatory status.
+
+For IT teams running vendor selection: a five-minute regulatory-status check before the RFP stage catches this early, before it becomes a procurement or liability headache six months into implementation.
+
+For the Health IT folks here: is checking actual clearance status (vs. taking vendor marketing at face value) already part of your vendor vetting process, or is it still mostly trust-the-sales-deck?
+
+#HealthIT #EHR #HIS #HealthcareCompliance #VendorManagement
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+The regulatory tracker, free to search: app.bigskylabs.ai/dashboard/regulatory — filterable by FDA/CMS, updated daily.
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Healthcare-IT/ EHR/ HIS" → "Create a post" inside the group
+2. Paste Post Body — no image needed
+3. No links in the body — LinkedIn suppresses posts with URLs
+4. Publish
+5. Immediately paste the First Comment on your own post
+
+--- STRATEGY NOTES ---
+
+- Lead with the procurement pain point, not the tech — this audience vets vendors for a living and will engage with "here's a blind spot in your process" faster than an architecture pitch.
+- If someone asks "does this replace due diligence counsel" — be clear it doesn't; it's a first-pass screening signal, not a legal clearance determination.

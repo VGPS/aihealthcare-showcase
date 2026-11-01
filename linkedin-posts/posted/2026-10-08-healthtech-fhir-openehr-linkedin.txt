@@ -1,0 +1,31 @@
+GROUP: Healthcare & HealthTECH: Innovation Lowcode & AI in Healthcare (OpenEHR/FHIR)
+DATE: 2026-10-08
+PLATFORM: LinkedIn (Group Post)
+
+---
+
+Every FHIR implementation sits on top of a regulatory layer that most teams aren't tracking in real time.
+
+And right now, that layer is moving faster than any changelog.
+
+In the past 12 months alone:
+→ FDA cleared 100+ new AI/ML-enabled medical devices via 510(k) and De Novo pathways
+→ CMS issued proposed and final rules reshaping reimbursement for AI-assisted care
+→ ONC's interoperability mandates continue expanding the USCDI data set that FHIR R4/R5 implementations depend on
+→ 43 state laws regulating AI in healthcare are now enacted across 24 states — adding a compliance layer on top of every federal mandate
+
+For teams building on FHIR and OpenEHR, these aren't abstract policy questions. They're dependencies.
+
+A CMS NCD changes what your value-based care platform can bill for.
+An FDA guidance update changes what your clinical decision support tool needs to disclose.
+A state AI transparency law changes what your ambient scribe must tell the patient.
+
+I built bigskylabs.ai to track exactly this — daily monitoring of FDA 510(k) clearances, De Novo classifications, PMA approvals, CMS proposed and final rules, NCDs, and state-level AI legislation, all surfaced alongside the market intelligence (funding rounds, acquisitions, clinical trial results) that gives them context.
+
+The goal: anyone building AI-powered health tech — on FHIR, on OpenEHR, or anywhere in the stack — should be able to answer "what changed this week that affects what I'm building?" in under two minutes.
+
+*AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.*
+
+👉 bigskylabs.ai
+
+For those of you building on FHIR or OpenEHR: which regulatory signals are hardest to track consistently — FDA guidance, CMS rules, or state legislation?

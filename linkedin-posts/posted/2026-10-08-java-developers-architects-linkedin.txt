@@ -1,0 +1,37 @@
+GROUP: Java Developers and Architects
+DATE: 2026-10-08
+PLATFORM: LinkedIn (Group Post)
+
+---
+
+50 vertical slices into a production Spring Boot app. The domain module still has zero Spring imports.
+
+That's the discipline hexagonal architecture demands — and the thing that makes AI-assisted development actually sustainable at scale.
+
+Here's what the architecture looks like in practice:
+
+**Java 21 records for everything immutable.**
+Every domain model, every DTO, every result type is a record. No classes with getters and setters. The domain package alone has 60+ records — `NewsArticle`, `MarketDigestEntry`, `RegulatoryEvent`, `WikiPage`, `DataJob`. Compact constructors handle validation. Clean, testable, zero boilerplate.
+
+**Domain module enforced by Maven module boundaries.**
+`domain` depends only on the JDK. No Spring, no Lombok, no JPA. The Maven module boundary makes violations a compile error, not a code review catch. Port interfaces live in `domain.port.outbound`. Adapters live in `infrastructure.*`. Controllers in `web` call `application` services only.
+
+**Spring AI via the adapter pattern.**
+Six AI providers (Anthropic, OpenAI, Perplexity, Gemini, Alpaca, HuggingFace) are each a separate `@Component` adapter implementing a port interface. Swapping providers or adding a new one touches nothing outside `infrastructure.ai`. The domain service never knows which model ran.
+
+**3,105 tests — zero live AI calls in CI.**
+Domain services are pure unit tests. Web layer uses `@WebMvcTest` with mock ports. Persistence uses `@DataJpaTest` against a real Postgres test database. AI smoke tests are `@Profile("ai-integration")` only — never run in CI. The test pyramid holds even when the app is full of LLM calls.
+
+**Constructor injection only.**
+No `@Autowired` field injection anywhere in the codebase. Enforced by a custom `arch-guard` agent that runs grep-based checks across the repo and fails the review if it finds violations.
+
+**OpenAPI-spec-driven.**
+The spec is written first. DTOs are generated. Controllers implement generated delegate interfaces. The spec is the contract — never the reverse.
+
+The result: a codebase where the 50th slice is as clean as the first, and a new developer (human or AI) can navigate it without archaeology.
+
+*AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.*
+
+👉 bigskylabs.ai
+
+For the architects in this group: how are you enforcing hexagonal architecture boundaries in your Spring Boot projects — Maven modules, ArchUnit, or something else?

@@ -1,0 +1,29 @@
+GROUP: Regulatory Affairs Network: Pharma, Medical Devices, Biotech, Healthcare, Science, QA, Events & Jobs
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: POSTED
+
+---
+
+--- POST BODY ---
+
+"FDA is working on AI guidance" tells an RA team almost nothing actionable. Where that guidance actually sits — discussion paper, open comment period, draft guidance, final guidance, or active enforcement — is the difference between "watch and wait" and "this changes our submission strategy next quarter."
+
+I track regulatory items through an explicit lifecycle stage, not just a binary tracked/not-tracked flag, across jurisdictions — U.S. FDA, EU AI Act, UK MHRA, individual U.S. states. A docket in comment period and a docket already in final guidance both show up in a news search; only one of them should be changing what you're filing this quarter.
+
+The jurisdictions compound the complexity in a way that's easy to underweight if your team is primarily FDA-focused: an EU AI Act provision moving into enforcement can affect a submission strategy for a device that's also seeking FDA clearance, even if nothing changed on the U.S. side that week.
+
+For the RA professionals here: how granular is your internal tracking on rulemaking stage — do you distinguish draft vs. final guidance in your own monitoring, or is "guidance exists" treated as one bucket?
+
+#RegulatoryAffairs #FDA #MedicalDevices #Biotech #HealthcareCompliance
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily." 👉 Link in the first comment.
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai/dashboard/market
+
+--- STRATEGY NOTES ---
+
+- Lead with the "discussion paper vs. final guidance" distinction — it's the single most credibility-establishing detail for an RA-literate audience; vague "we track regulations" framing would read as amateur to this group.
+- If someone asks about EU AI Act coverage depth, be honest it's lighter than FDA coverage currently — don't overclaim parity across jurisdictions.

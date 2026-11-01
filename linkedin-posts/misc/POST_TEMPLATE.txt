@@ -1,0 +1,65 @@
+================================================================================
+LINKEDIN POST TEMPLATE — AIHealthcare / bigskylabs.ai
+================================================================================
+
+POSTING INSTRUCTIONS:
+1. Attach brand image:
+      C:\workspaces\SpringAIClaude\AIHealthcare\linkedin-posts\brand-icon.png
+2. Paste POST body into LinkedIn (no outbound links in body — suppresses reach)
+3. Publish, then immediately paste FIRST COMMENT as the first comment
+4. Four hashtags max — already included below
+
+================================================================================
+
+POST:
+
+AI Did What To Who Lately
+
+[BODY — lead with the most controversial or surprising fact. Four claims max.
+Each claim gets one line. Each claim gets inline attribution: (Source, Date)
+State that source links are in the first comment after the claims.]
+
+(Full source links for each story in the first comment.)
+
+---
+
+[ARGUMENT — 3 to 5 short punchy lines. No hedging. Name the tension directly.
+Use the arrow format for competing positions:]
+
+[Party] says: [position.]
+[Party] says: [position.]
+[Party] says: [position.]
+[Party] says: [position.]
+
+[ONE closing gut-punch line.]
+
+[ONE closing question or declaration that earns the footer.]
+
+---
+
+AI in healthcare is history being written right now. I'm building the archive.
+
+bigskylabs.ai
+
+#AIHealthcare #[Topic1] #[Topic2] #[Topic3]
+
+================================================================================
+
+FIRST COMMENT (sources):
+NOTE: LinkedIn comments are capped at ~1,250 characters. Only include a direct
+URL if it is short and clean (e.g. Becker's, Reuters, direct publisher URLs).
+For Google News or other long redirect URLs, use Search: instead.
+
+1. [Claim summary] — [Publication, Date]
+   [Short direct URL]   OR   Search: "[Article headline]"
+
+2. [Claim summary] — [Publication, Date]
+   [Short direct URL]   OR   Search: "[Article headline]"
+
+3. [Claim summary] — [Publication, Date]
+   [Short direct URL]   OR   Search: "[Article headline]"
+
+4. [Claim summary] — [Publication, Date]
+   [Short direct URL]   OR   Search: "[Article headline]"
+
+================================================================================
