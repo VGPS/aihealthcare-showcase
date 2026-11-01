@@ -156,6 +156,8 @@ Caveats:
 > - **Live app** — the company directory and wiki are public, no login needed: https://bigskylabs.ai
 > - **7-day free trial** (no card required) — full access to market digest, deal signals, regulatory alerts, and sentiment scoring: https://app.bigskylabs.ai/register
 >
+> The platform also includes an Enterprise data layer — async job-based exports, per-customer cron delivery schedules, and remote HTTPS data connectors. That tier is best walked through live rather than self-served.
+>
 > The platform is built on Spring Boot / Java 21, pgvector for semantic search, and six LLM providers. There are several active inquiries at the moment.
 >
 > Happy to do a live 30-minute walkthrough — just reply here and we'll find a time.
