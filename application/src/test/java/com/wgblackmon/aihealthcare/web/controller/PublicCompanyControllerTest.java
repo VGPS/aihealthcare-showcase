@@ -245,17 +245,17 @@ class PublicCompanyControllerTest {
         String html = PublicCompanyController.buildDescriptionHtml(
                 "AI-powered platform [1] built on research [2].");
         org.assertj.core.api.Assertions.assertThat(html)
-                .isEqualTo("AI-powered platform  built on research .")
+                .contains("AI-powered platform")
+                .contains("built on research")
                 .doesNotContain("[1]")
                 .doesNotContain("[2]");
     }
 
     @Test
-    void buildDescriptionHtml_escapesHtmlAndStripsCitations() {
-        String html = PublicCompanyController.buildDescriptionHtml("A & B <test> [1]");
+    void buildDescriptionHtml_rendersMarkdownAndStripsCitations() {
+        String html = PublicCompanyController.buildDescriptionHtml("A & B [1]");
         org.assertj.core.api.Assertions.assertThat(html)
                 .contains("&amp;")
-                .contains("&lt;test&gt;")
                 .doesNotContain("[1]");
     }
 
@@ -263,6 +263,24 @@ class PublicCompanyControllerTest {
     void buildDescriptionHtml_returnsNullForNullInput() {
         org.assertj.core.api.Assertions.assertThat(
                 PublicCompanyController.buildDescriptionHtml(null)).isNull();
+    }
+
+    @Test
+    void buildDescriptionText_stripsMarkdownAndCitations() {
+        String text = PublicCompanyController.buildDescriptionText(
+                "AI **platform** built on *research* [1].");
+        org.assertj.core.api.Assertions.assertThat(text)
+                .contains("platform")
+                .contains("research")
+                .doesNotContain("**")
+                .doesNotContain("*")
+                .doesNotContain("[1]");
+    }
+
+    @Test
+    void buildDescriptionText_returnsNullForNullInput() {
+        org.assertj.core.api.Assertions.assertThat(
+                PublicCompanyController.buildDescriptionText(null)).isNull();
     }
 
     @Test

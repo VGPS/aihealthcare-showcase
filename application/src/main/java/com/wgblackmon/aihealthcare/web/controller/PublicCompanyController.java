@@ -26,6 +26,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
+
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -57,7 +62,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-08-26
- * @updated 2026-09-11
+ * @updated 2026-11-01
  */
 @Slf4j
 @Controller
@@ -65,6 +70,9 @@ import java.util.Optional;
 public class PublicCompanyController {
 
     private static final int RELATED_LIMIT = 5;
+
+    private static final Parser MARKDOWN_PARSER = Parser.builder().build();
+    private static final HtmlRenderer MARKDOWN_RENDERER = HtmlRenderer.builder().build();
 
     private final BrowseCompaniesUseCase browseCompaniesUseCase;
     private final SubscriberPort subscriberPort;
@@ -143,8 +151,10 @@ public class PublicCompanyController {
         List<HealthcareAiCompany> companies = applySortAndFilter(filtered, signals, effectiveSort);
 
         Map<String, String> slugs = new HashMap<>();
+        Map<String, String> descriptionTexts = new HashMap<>();
         for (HealthcareAiCompany c : all) {
             slugs.put(c.companyId(), toSlug(c.name()));
+            descriptionTexts.put(c.companyId(), buildDescriptionText(c.description()));
         }
 
         List<String> sectors = new ArrayList<>();
@@ -168,6 +178,7 @@ public class PublicCompanyController {
         model.addAttribute("companies", companies);
         model.addAttribute("signals", signals);
         model.addAttribute("slugs", slugs);
+        model.addAttribute("descriptionTexts", descriptionTexts);
         model.addAttribute("sectors", sectors);
         model.addAttribute("selectedSector", sector);
         model.addAttribute("selectedSort", effectiveSort);
@@ -378,14 +389,25 @@ public class PublicCompanyController {
         return SlugUtils.toSlug(name);
     }
 
-    /** Strips Perplexity [N] citation markers from description text. */
+    /** Renders description markdown to sanitized HTML for the detail page. Strips [N] citation markers. */
     static String buildDescriptionHtml(String description) {
         if (description == null || description.isBlank()) return null;
-        String escaped = description
-                .replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;");
-        return escaped.replaceAll("\\[\\d+\\]", "");
+        String withoutCitations = description.replaceAll("\\[\\d+\\]", "");
+        String rawHtml = MARKDOWN_RENDERER.render(MARKDOWN_PARSER.parse(withoutCitations));
+        return Jsoup.clean(rawHtml, Safelist.relaxed());
+    }
+
+    /** Strips markdown syntax for plain-text snippets shown on the directory listing card. */
+    static String buildDescriptionText(String description) {
+        if (description == null || description.isBlank()) return null;
+        return description
+                .replaceAll("\\[\\d+\\]", "")
+                .replaceAll("\\*\\*(.+?)\\*\\*", "$1")
+                .replaceAll("\\*(.+?)\\*", "$1")
+                .replaceAll("\\[(.+?)\\]\\(.+?\\)", "$1")
+                .replaceAll("(?m)^#+\\s+", "")
+                .replaceAll("(?m)^[-*]\\s+", "")
+                .trim();
     }
 
     private static String escapeCsv(String s) {
