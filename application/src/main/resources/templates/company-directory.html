@@ -208,9 +208,9 @@
                     </span>
                 </div>
 
-                <p th:if="${company.description() != null and !company.description().isEmpty()}"
+                <p th:if="${descriptionTexts[company.companyId()] != null}"
                    class="text-xs text-on-surface-variant leading-relaxed line-clamp-3"
-                   th:text="${#strings.abbreviate(company.description(), 160)}">Description</p>
+                   th:text="${#strings.abbreviate(descriptionTexts[company.companyId()], 160)}">Description</p>
             </div>
 
             <div class="px-4 pb-3 pt-2 border-t border-outline-variant flex items-center justify-between">

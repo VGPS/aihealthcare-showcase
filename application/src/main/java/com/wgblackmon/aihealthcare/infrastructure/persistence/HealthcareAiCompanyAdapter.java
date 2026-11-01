@@ -25,7 +25,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-08-02
- * @updated 2026-09-12
+ * @updated 2026-11-01
  */
 @Slf4j
 @Component
@@ -103,8 +103,10 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
     @Override
     public Optional<HealthcareAiCompany> findBySlug(String slug) {
         log.debug("findBySlug() | slug={}", slug);
-        // Try the stored slug column first (fast path)
-        Optional<HealthcareAiCompany> result = repository.findBySlug(slug).map(this::toDomain);
+        // Try the stored slug column first (fast path); skip unvalidated entries
+        Optional<HealthcareAiCompany> result = repository.findBySlug(slug)
+                .map(this::toDomain)
+                .filter(HealthcareAiCompany::validated);
         if (result.isPresent()) {
             log.debug("findBySlug() | return=found (slug column)");
             return result;
@@ -112,6 +114,7 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
         // Fall back: scan all companies matching by name-derived slug.
         // Handles rows inserted before the slug column existed (slug IS NULL).
         for (HealthcareAiCompanyEntity entity : repository.findAll()) {
+            if (!entity.isValidated()) continue;
             if (slug.equals(computeSlug(entity.getName()))) {
                 // Opportunistically backfill the slug column so next lookup is fast
                 entity.setSlug(slug);
@@ -139,7 +142,7 @@ public class HealthcareAiCompanyAdapter implements HealthcareAiCompanyPort {
     @Override
     public List<HealthcareAiCompany> findAllByOrderByName() {
         log.debug("findAllByOrderByName() |");
-        List<HealthcareAiCompanyEntity> entities = repository.findAllByOrderByNameAsc();
+        List<HealthcareAiCompanyEntity> entities = repository.findAllByValidatedTrueOrderByNameAsc();
         List<HealthcareAiCompany> result = new ArrayList<>();
         for (HealthcareAiCompanyEntity entity : entities) {
             result.add(toDomain(entity));

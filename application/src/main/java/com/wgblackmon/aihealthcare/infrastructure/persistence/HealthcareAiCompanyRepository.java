@@ -14,7 +14,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.1
  * @since   2026-08-02
- * @updated 2026-08-26
+ * @updated 2026-11-01
  */
 public interface HealthcareAiCompanyRepository
         extends JpaRepository<HealthcareAiCompanyEntity, String> {
@@ -32,6 +32,8 @@ public interface HealthcareAiCompanyRepository
     List<HealthcareAiCompanyEntity> findAllByOrderByDiscoveredAtDesc();
 
     List<HealthcareAiCompanyEntity> findAllByOrderByNameAsc();
+
+    List<HealthcareAiCompanyEntity> findAllByValidatedTrueOrderByNameAsc();
 
     List<HealthcareAiCompanyEntity> findTop5ByOrderByDiscoveredAtDesc();
 }
