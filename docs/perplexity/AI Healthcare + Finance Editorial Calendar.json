@@ -1,0 +1,1243 @@
+AI Healthcare + Finance Editorial Calendar (JSON)
+{
+  "schema_version": "1.0",
+  "dataset": "ai-healthcare-finance-editorial-calendar",
+  "generated_at": "2026-10-01",
+  "owner_context": "AI in Healthcare application",
+  "calendar_window": {
+    "start": "2026-10-01",
+    "end": "2026-12-29",
+    "cadence": "2 items per week",
+    "item_count": 26
+  },
+  "validation_policy": {
+    "volume_data_available_in_run": false,
+    "reason": "Google Trends returned HTTP 429 in the research browser and no first-party Search Console or keyword-planner connector was available.",
+    "important_rule": "Do not invent monthly search volume. Store null until first-party or clearly labeled directional data is available.",
+    "time_sensitive_override": "P0 regulatory, safety, and annual-deadline items do not wait for volume validation; verify their primary sources instead.",
+    "evergreen_gate": "P2 evergreen items require first-party volume or Search Console validation before becoming locked priorities."
+  },
+  "priority_model": {
+    "P0": "Publish or research now because the item is tied to a current rule, safety event, annual deadline, or near-term regulatory change.",
+    "P1": "High strategic value with current or repeatable demand; validate volume and product fit before promoting to cornerstone content.",
+    "P2": "Evergreen foundation; validate search demand before committing production capacity, unless bundled into a higher-priority guide."
+  },
+  "items": [
+    {
+      "id": "editorial-2026-01",
+      "slug": "texas-traiga-healthcare-ai-disclosure",
+      "title": "Texas TRAIGA and healthcare AI: what the patient disclosure rule means",
+      "hook": "If a healthcare service uses AI, what must the patient be told—and by when?",
+      "theme": "healthcare-governance",
+      "audiences": [
+        "healthcare-compliance",
+        "providers",
+        "healthcare-product"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "M",
+      "format": "explainer",
+      "publish_window": {
+        "start": "2026-10-05",
+        "end": "2026-10-09",
+        "preferred_date": "2026-10-06"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "texas healthcare AI disclosure",
+          "Texas TRAIGA healthcare AI",
+          "AI disclosure patient Texas"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Recheck the statute and run Search Console matching-query review; do not downgrade solely because volume is unavailable."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.texasattorneygeneral.gov/consumer-protection/file-consumer-complaint/consumer-ai-rights",
+          "label": "Texas Attorney General Consumer AI Rights",
+          "source_type": "government"
+        },
+        {
+          "url": "https://capitol.texas.gov/tlodocs/89R/analysis/html/HB00149S.htm",
+          "label": "Texas Legislature HB 149 analysis",
+          "source_type": "legislature"
+        }
+      ],
+      "cta": "Download the disclosure review checklist",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-02",
+      "slug": "fake-ai-trading-bot-scam-checklist",
+      "title": "The fake AI-trading bot playbook: five checks before sending money",
+      "hook": "A polished dashboard and the word AI are not evidence of a real investment strategy.",
+      "theme": "finance-protection",
+      "audiences": [
+        "retail-investors",
+        "families"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "S",
+      "format": "scam_checklist",
+      "publish_window": {
+        "start": "2026-10-05",
+        "end": "2026-10-09",
+        "preferred_date": "2026-10-08"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "AI trading bot scam",
+          "fake AI investment platform",
+          "AI investment scam"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Use enforcement-event monitoring plus first-party query data when available."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.sec.gov/newsroom/press-releases/2026-95-sec-charges-multiple-entities-fraud-schemes-totaling-least-15-million-used-whatsapp-other-platforms",
+          "label": "SEC September 2026 enforcement action",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Save and share the verification checklist",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-03",
+      "slug": "eu-ai-act-healthcare-timeline-2026",
+      "title": "EU AI Act healthcare timeline: what applies now, what moved, and what to verify",
+      "hook": "The dangerous mistake is treating an old compliance deadline as current.",
+      "theme": "healthcare-governance",
+      "audiences": [
+        "eu-healthcare-vendors",
+        "health-system-leaders"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "L",
+      "format": "timeline",
+      "publish_window": {
+        "start": "2026-10-12",
+        "end": "2026-10-16",
+        "preferred_date": "2026-10-13"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "EU AI Act healthcare 2026",
+          "AI Act medical device deadline",
+          "AI Act healthcare compliance"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Recheck official EU materials and record the timeline source before publication."
+      },
+      "primary_sources": [
+        {
+          "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+          "label": "European Commission AI Act framework",
+          "source_type": "government"
+        },
+        {
+          "url": "https://www.healthseed.vc/insights/vital-signs-ai-healthcare-august-2026",
+          "label": "HealthSeed August 2026 AI Act timeline update",
+          "source_type": "industry_analysis"
+        }
+      ],
+      "cta": "Subscribe to deadline-change updates",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-04",
+      "slug": "2026-401k-ira-limits-paycheck",
+      "title": "2026 401(k) and IRA limits: turn the new numbers into a paycheck decision",
+      "hook": "A higher annual limit only helps if the contribution rate changes in the next payroll cycle.",
+      "theme": "finance-rules",
+      "audiences": [
+        "employees",
+        "benefits-teams",
+        "young-professionals"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "S",
+      "format": "calculator_explainer",
+      "publish_window": {
+        "start": "2026-10-12",
+        "end": "2026-10-16",
+        "preferred_date": "2026-10-15"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "2026 401k contribution limit",
+          "2026 IRA contribution limit",
+          "401k limit 2026 paycheck"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Run Search Console and keyword-planner validation; annual-limit timing is itself a publish priority."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500",
+          "label": "IRS 2026 retirement contribution limits",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Use the contribution-rate worksheet",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-05",
+      "slug": "fda-pccp-ai-medical-device",
+      "title": "FDA PCCP explained: how an AI medical device can plan for future model changes",
+      "hook": "The model update is not the whole story; the regulator wants the change plan, validation method, and impact assessment.",
+      "theme": "healthcare-governance",
+      "audiences": [
+        "medical-device-product",
+        "regulatory",
+        "engineering"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "M",
+      "format": "technical_explainer",
+      "publish_window": {
+        "start": "2026-10-19",
+        "end": "2026-10-23",
+        "preferred_date": "2026-10-20"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "FDA PCCP AI device",
+          "predetermined change control plan AI",
+          "AI medical device model update"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Recheck FDA guidance status and validate query demand before expanding the article."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/marketing-submission-recommendations-predetermined-change-control-plan-artificial-intelligence",
+          "label": "FDA AI PCCP guidance",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Download a PCCP scoping template",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-06",
+      "slug": "credit-score-five-levers",
+      "title": "Credit score improvement without folklore: the five levers that actually matter",
+      "hook": "Stop chasing secret hacks; start with the parts of the credit file you can control.",
+      "theme": "evergreen-finance",
+      "audiences": [
+        "credit-building-beginners"
+      ],
+      "demand_signal": "evergreen",
+      "priority_tier": "P2",
+      "effort": "S",
+      "format": "evergreen_explainer",
+      "publish_window": {
+        "start": "2026-10-19",
+        "end": "2026-10-23",
+        "preferred_date": "2026-10-22"
+      },
+      "search_validation": {
+        "status": "directional_external_unverified",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "how to improve credit score",
+          "credit utilization ratio",
+          "dispute credit report"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": true,
+        "next_action": "Validate with Search Console, Google Trends, or Keyword Planner before locking the evergreen priority; third-party directional estimates are not authoritative."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.usa.gov/credit-score",
+          "label": "USA.gov credit-score guidance",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Print the 30-day credit cleanup plan",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-07",
+      "slug": "ambient-ai-scribes-adoption-value",
+      "title": "Ambient AI scribes: adoption is not the same as value",
+      "hook": "If the note gets faster but review work, consent concerns, or inequity increase, the business case is incomplete.",
+      "theme": "healthcare-operations",
+      "audiences": [
+        "clinicians",
+        "cmios",
+        "practice-managers"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "L",
+      "format": "evidence_brief",
+      "publish_window": {
+        "start": "2026-10-26",
+        "end": "2026-10-30",
+        "preferred_date": "2026-10-27"
+      },
+      "search_validation": {
+        "status": "serp_and_evidence_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "ambient AI scribe",
+          "ambient clinical documentation",
+          "AI medical scribe ROI"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Validate demand with search analytics; retain priority because adoption evidence and implementation questions are current."
+      },
+      "primary_sources": [
+        {
+          "url": "https://sph.emory.edu/news/new-study-finds-nearly-two-thirds-us-hospitals-using-epic-have-adopted-ambient-ai-disparities",
+          "label": "Emory ambient AI adoption study",
+          "source_type": "university"
+        }
+      ],
+      "cta": "Use the workflow-and-trust scorecard",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-08",
+      "slug": "student-loan-repayment-july-2026",
+      "title": "Student-loan repayment after July 1, 2026: a borrower’s first 30-minute review",
+      "hook": "Before choosing a new payment plan, identify which loans, dates, and rules actually apply to you.",
+      "theme": "finance-rules",
+      "audiences": [
+        "student-loan-borrowers",
+        "parents"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "M",
+      "format": "decision_tree",
+      "publish_window": {
+        "start": "2026-10-26",
+        "end": "2026-10-30",
+        "preferred_date": "2026-10-29"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "student loan repayment 2026",
+          "RISE student loan repayment plan",
+          "RAP student loans"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Recheck official borrower tools and current rule status immediately before publishing."
+      },
+      "primary_sources": [
+        {
+          "url": "https://library.nclc.org/article/major-july-changes-federal-student-loan-repayment",
+          "label": "National Consumer Law Center 2026 student-loan analysis",
+          "source_type": "nonprofit_analysis"
+        },
+        {
+          "url": "https://www.consumerfinance.gov/consumer-tools/student-loans/",
+          "label": "CFPB student-loan tools",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Complete the loan-inventory worksheet",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-09",
+      "slug": "prior-authorization-2026-clocks",
+      "title": "Prior authorization in 2026: where the 72-hour and seven-day clocks fit",
+      "hook": "Faster decisions are useful only when the request is complete, the reason is visible, and the patient is not lost in the handoff.",
+      "theme": "healthcare-operations",
+      "audiences": [
+        "payers",
+        "providers",
+        "revenue-cycle"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "M",
+      "format": "process_map",
+      "publish_window": {
+        "start": "2026-11-02",
+        "end": "2026-11-06",
+        "preferred_date": "2026-11-03"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "prior authorization 72 hours 2026",
+          "CMS prior authorization 7 days",
+          "prior authorization AI 2026"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Use CMS page updates and Search Console query data to refine the title and examples."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.cms.gov/newsroom/blog/moving-prior-authorization-21st-century",
+          "label": "CMS prior-authorization guidance",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Map one current prior-authorization workflow",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-10",
+      "slug": "roth-401k-traditional-401k-ira",
+      "title": "Roth 401(k), traditional 401(k), or IRA: a decision tree for ordinary households",
+      "hook": "The best account is usually the one that matches tax timing, employer match, access needs, and behavior.",
+      "theme": "evergreen-finance",
+      "audiences": [
+        "employees",
+        "young-professionals"
+      ],
+      "demand_signal": "evergreen",
+      "priority_tier": "P2",
+      "effort": "M",
+      "format": "decision_tree",
+      "publish_window": {
+        "start": "2026-11-02",
+        "end": "2026-11-06",
+        "preferred_date": "2026-11-05"
+      },
+      "search_validation": {
+        "status": "pending_first_party",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "Roth IRA vs 401k",
+          "traditional 401k vs Roth 401k",
+          "best retirement account order"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": true,
+        "next_action": "Run US search-volume validation and use Search Console impressions/clicks after publication."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.investor.gov/additional-resources/retirement-toolkit/employer-sponsored-plans/traditional-and-roth-401k-plans",
+          "label": "Investor.gov traditional and Roth 401(k) guidance",
+          "source_type": "government"
+        },
+        {
+          "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-accounts/tax-advantaged-accounts/retirement-savings/individual-retirement-accounts-iras",
+          "label": "Investor.gov IRA guidance",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Run the account-choice flow",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-11",
+      "slug": "hipaa-ai-safety-controls",
+      "title": "HIPAA-compliant is not an AI safety strategy: seven controls to inspect",
+      "hook": "A BAA and access control matter, but they do not prove that a clinical workflow is safe, accurate, or fit for purpose.",
+      "theme": "healthcare-governance",
+      "audiences": [
+        "security",
+        "privacy",
+        "platform-engineering"
+      ],
+      "demand_signal": "steady",
+      "priority_tier": "P1",
+      "effort": "L",
+      "format": "architecture_explainer",
+      "publish_window": {
+        "start": "2026-11-09",
+        "end": "2026-11-13",
+        "preferred_date": "2026-11-10"
+      },
+      "search_validation": {
+        "status": "serp_and_evidence_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "HIPAA compliant generative AI",
+          "HIPAA AI security controls",
+          "healthcare AI privacy"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Validate with first-party site analytics; keep as P1 if audience engagement confirms demand."
+      },
+      "primary_sources": [
+        {
+          "url": "https://aws.amazon.com/blogs/industries/building-a-hipaa-ready-generative-ai-architecture-for-healthcare-on-aws/",
+          "label": "AWS HIPAA-ready generative AI architecture",
+          "source_type": "industry_technical"
+        }
+      ],
+      "cta": "Download the control-matrix starter",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-12",
+      "slug": "cfpb-1033-rule-stay-consumer-impact",
+      "title": "Open banking after the CFPB rule stay: what consumers should and should not assume",
+      "hook": "A stayed compliance date is not the same thing as a consumer right disappearing.",
+      "theme": "finance-rules",
+      "audiences": [
+        "fintech-users",
+        "consumer-advocates"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "M",
+      "format": "status_explainer",
+      "publish_window": {
+        "start": "2026-11-09",
+        "end": "2026-11-13",
+        "preferred_date": "2026-11-12"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "CFPB 1033 rule 2026",
+          "open banking rule stay",
+          "personal financial data rights"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Recheck court and CFPB status; record the source date and avoid evergreen wording."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.consumerfinance.gov/compliance/compliance-resources/other-applicable-requirements/personal-financial-data-rights/",
+          "label": "CFPB personal financial data rights",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Subscribe to rule-status changes",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-13",
+      "slug": "ai-prior-authorization-human-accountability",
+      "title": "AI in prior authorization: what automation can assist with—and what humans must own",
+      "hook": "Automation can organize evidence; it should not quietly become the accountable medical-necessity decision-maker.",
+      "theme": "healthcare-operations",
+      "audiences": [
+        "payers",
+        "clinicians",
+        "patient-advocates"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "M",
+      "format": "myth_reality",
+      "publish_window": {
+        "start": "2026-11-16",
+        "end": "2026-11-20",
+        "preferred_date": "2026-11-17"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "AI prior authorization human review",
+          "AI medical necessity denial",
+          "prior authorization automation healthcare"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Update from CMS and MACPAC-related materials; validate query language with Search Console."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.cms.gov/newsroom/blog/moving-prior-authorization-21st-century",
+          "label": "CMS prior-authorization guidance",
+          "source_type": "government"
+        },
+        {
+          "url": "https://www.aha.org/news/headline/2026-05-12-macpac-calls-increased-transparency-ai-supported-prior-authorization",
+          "label": "AHA summary of MACPAC AI prior-authorization recommendations",
+          "source_type": "industry_summary"
+        }
+      ],
+      "cta": "Download the human-review control list",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-14",
+      "slug": "hsa-three-tax-advantages",
+      "title": "HSA explained: the three tax advantages and the mistakes that erase them",
+      "hook": "An HSA is more than a spending account, but only if eligibility, receipts, and investment choices line up.",
+      "theme": "evergreen-finance",
+      "audiences": [
+        "families",
+        "employees-high-deductible-plans"
+      ],
+      "demand_signal": "evergreen",
+      "priority_tier": "P2",
+      "effort": "S",
+      "format": "plain_language_explainer",
+      "publish_window": {
+        "start": "2026-11-16",
+        "end": "2026-11-20",
+        "preferred_date": "2026-11-19"
+      },
+      "search_validation": {
+        "status": "pending_first_party",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "HSA explained",
+          "HSA triple tax advantage",
+          "how does an HSA work"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": true,
+        "next_action": "Validate with first-party search data before final evergreen prioritization."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.opm.gov/healthcare-insurance/pshb/health-savings-accounts/",
+          "label": "OPM HSA explanation",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Use the HSA setup checklist",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-15",
+      "slug": "total-cost-ai-healthcare-pilot",
+      "title": "The total cost of an AI healthcare pilot: license price is the smallest line item",
+      "hook": "Count integration, training, review time, monitoring, exception handling, and change management before claiming ROI.",
+      "theme": "healthcare-economics",
+      "audiences": [
+        "cfos",
+        "cios",
+        "procurement",
+        "operators"
+      ],
+      "demand_signal": "steady",
+      "priority_tier": "P1",
+      "effort": "L",
+      "format": "cost_model",
+      "publish_window": {
+        "start": "2026-11-23",
+        "end": "2026-11-27",
+        "preferred_date": "2026-11-24"
+      },
+      "search_validation": {
+        "status": "serp_and_evidence_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "healthcare AI ROI",
+          "AI healthcare implementation cost",
+          "AI pilot total cost healthcare"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Use product analytics and Search Console to decide whether to promote to P0."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/marketing-submission-recommendations-predetermined-change-control-plan-artificial-intelligence",
+          "label": "FDA AI PCCP guidance",
+          "source_type": "government"
+        },
+        {
+          "url": "https://sph.emory.edu/news/new-study-finds-nearly-two-thirds-us-hospitals-using-epic-have-adopted-ambient-ai-disparities",
+          "label": "Emory ambient AI adoption study",
+          "source_type": "university"
+        }
+      ],
+      "cta": "Use the pilot cost model",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-16",
+      "slug": "ai-healthcare-billing-explanation",
+      "title": "When healthcare billing meets AI: five questions before trusting an automated explanation",
+      "hook": "An AI-generated explanation can clarify a bill, but it should never replace the underlying statement, insurer explanation, or appeal process.",
+      "theme": "ai-health-finances",
+      "audiences": [
+        "patients",
+        "caregivers",
+        "revenue-cycle-teams"
+      ],
+      "demand_signal": "steady",
+      "priority_tier": "P1",
+      "effort": "M",
+      "format": "consumer_checklist",
+      "publish_window": {
+        "start": "2026-11-23",
+        "end": "2026-11-27",
+        "preferred_date": "2026-11-26"
+      },
+      "search_validation": {
+        "status": "pending_first_party",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "AI medical billing",
+          "how to understand medical bill",
+          "dispute medical bill"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": true,
+        "next_action": "Validate topic against Search Console and CMS patient-rights queries before building a full canonical page."
+      },
+      "primary_sources": [],
+      "cta": "Download the bill-audit worksheet",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-17",
+      "slug": "colorado-hb26-1139-healthcare-ai",
+      "title": "Colorado HB26-1139: what the 2027 utilization-review requirements imply for AI teams",
+      "hook": "A utilization-review model must be tied to the individual’s clinical circumstances, not only a population pattern.",
+      "theme": "healthcare-governance",
+      "audiences": [
+        "payers",
+        "utilization-review-leaders",
+        "policymakers"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "M",
+      "format": "legislative_explainer",
+      "publish_window": {
+        "start": "2026-11-30",
+        "end": "2026-12-04",
+        "preferred_date": "2026-12-01"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "Colorado AI healthcare law 2027",
+          "AI utilization review Colorado",
+          "HB26-1139 AI healthcare"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Recheck bill status and effective dates; search-volume validation is secondary to the legislative timeline."
+      },
+      "primary_sources": [
+        {
+          "url": "https://leg.colorado.gov/bills/HB26-1139",
+          "label": "Colorado HB26-1139",
+          "source_type": "legislature"
+        }
+      ],
+      "cta": "Create a 2027 readiness backlog",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-18",
+      "slug": "emergency-fund-liquidity-yield",
+      "title": "Emergency funds when savings rates move: choose liquidity first, then yield",
+      "hook": "The best emergency fund is available when needed, protected from market loss, and large enough for the household’s actual risks.",
+      "theme": "evergreen-finance",
+      "audiences": [
+        "emergency-fund-beginners"
+      ],
+      "demand_signal": "evergreen",
+      "priority_tier": "P2",
+      "effort": "S",
+      "format": "scenario_checklist",
+      "publish_window": {
+        "start": "2026-11-30",
+        "end": "2026-12-04",
+        "preferred_date": "2026-12-03"
+      },
+      "search_validation": {
+        "status": "pending_first_party",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "emergency fund how much",
+          "where to keep emergency fund",
+          "high yield savings emergency fund"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": true,
+        "next_action": "Validate volume and seasonality before publishing; update rates immediately before release."
+      },
+      "primary_sources": [],
+      "cta": "Compare one-, three-, and six-month scenarios",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-19",
+      "slug": "clinical-ai-validation-beyond-accuracy",
+      "title": "Clinical AI validation: accuracy is one metric, not the finish line",
+      "hook": "A model can be accurate in a test set and still fail in the handoff, the alert burden, or the patient population that matters.",
+      "theme": "healthcare-governance",
+      "audiences": [
+        "clinical-ai-builders",
+        "researchers",
+        "safety-leaders"
+      ],
+      "demand_signal": "steady",
+      "priority_tier": "P1",
+      "effort": "L",
+      "format": "evaluation_framework",
+      "publish_window": {
+        "start": "2026-12-07",
+        "end": "2026-12-11",
+        "preferred_date": "2026-12-08"
+      },
+      "search_validation": {
+        "status": "serp_and_evidence_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "clinical AI validation",
+          "AI healthcare model evaluation",
+          "AI clinical workflow safety"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Validate with site-search data and search-console queries; preserve because it supports the product’s evidence-first positioning."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.fda.gov/medical-devices/digital-health-center-excellence/artificial-intelligence-enabled-medical-devices",
+          "label": "FDA AI-enabled medical-device overview",
+          "source_type": "government"
+        },
+        {
+          "url": "https://sph.emory.edu/news/new-study-finds-nearly-two-thirds-us-hospitals-using-epic-have-adopted-ambient-ai-disparities",
+          "label": "Emory ambient AI adoption study",
+          "source_type": "university"
+        }
+      ],
+      "cta": "Use the clinical-AI evaluation canvas",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-20",
+      "slug": "bnpl-2026-debt-stack",
+      "title": "Buy now, pay later in 2026: what the rule changes mean for the debt stack",
+      "hook": "Four small installments can still become one large cash-flow problem.",
+      "theme": "finance-protection",
+      "audiences": [
+        "bnpl-users",
+        "parents",
+        "consumer-advocates"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "M",
+      "format": "scenario_explainer",
+      "publish_window": {
+        "start": "2026-12-07",
+        "end": "2026-12-11",
+        "preferred_date": "2026-12-10"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "buy now pay later 2026",
+          "BNPL consumer protection",
+          "BNPL debt stacking"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Recheck CFPB status and any new federal or state action before publication."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.consumerfinance.gov/compliance/compliance-resources/consumer-cards-resources/buy-now-pay-later-bnpl-products/",
+          "label": "CFPB BNPL resources",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Run the payment-stack inventory",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-21",
+      "slug": "ai-healthcare-value-case-renewal",
+      "title": "From AI pilot to value case: the evidence a renewal decision should require",
+      "hook": "Renewal should follow measured outcomes, full costs, and known failure modes—not enthusiasm at launch.",
+      "theme": "healthcare-economics",
+      "audiences": [
+        "executives",
+        "product-owners",
+        "ai-governance"
+      ],
+      "demand_signal": "steady",
+      "priority_tier": "P1",
+      "effort": "L",
+      "format": "operating_template",
+      "publish_window": {
+        "start": "2026-12-14",
+        "end": "2026-12-18",
+        "preferred_date": "2026-12-15"
+      },
+      "search_validation": {
+        "status": "serp_and_evidence_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "healthcare AI business case",
+          "AI healthcare ROI framework",
+          "AI pilot renewal criteria"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Use product-led demand and Search Console performance to determine whether to make this a cornerstone page."
+      },
+      "primary_sources": [],
+      "cta": "Download the value-case template",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-22",
+      "slug": "ai-search-health-insurance-scams",
+      "title": "AI search and health-insurance scams: how to verify before clicking or paying",
+      "hook": "A sponsored result, a familiar logo, and a convincing voice are not proof that an insurance offer is real.",
+      "theme": "finance-protection",
+      "audiences": [
+        "medicare",
+        "marketplace-shoppers",
+        "online-shoppers"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "S",
+      "format": "scam_safety_guide",
+      "publish_window": {
+        "start": "2026-12-14",
+        "end": "2026-12-18",
+        "preferred_date": "2026-12-17"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "health insurance scam search results",
+          "AI impersonation scam insurance",
+          "Medicare scam 2026"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Refresh from FTC alerts and evaluate search performance during open-enrollment periods."
+      },
+      "primary_sources": [
+        {
+          "url": "https://consumer.ftc.gov/scams",
+          "label": "FTC consumer scam guidance",
+          "source_type": "government"
+        },
+        {
+          "url": "https://www.ftc.gov/news-events/news/press-releases/2026/09/ftc-seeks-public-comment-whether-update-rule-impersonation-government-businesses-address-platforms",
+          "label": "FTC September 2026 impersonation-scam rulemaking notice",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Share the three-step verification card",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-23",
+      "slug": "employer-match-vesting",
+      "title": "Employer match and vesting: the retirement money people accidentally leave behind",
+      "hook": "A match is not fully yours until the plan’s vesting rules say it is.",
+      "theme": "evergreen-finance",
+      "audiences": [
+        "job-changers",
+        "young-professionals"
+      ],
+      "demand_signal": "evergreen",
+      "priority_tier": "P2",
+      "effort": "S",
+      "format": "benefits_explainer",
+      "publish_window": {
+        "start": "2026-12-21",
+        "end": "2026-12-25",
+        "preferred_date": "2026-12-22"
+      },
+      "search_validation": {
+        "status": "pending_first_party",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "401k vesting explained",
+          "employer match vesting",
+          "what happens to 401k when changing jobs"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": true,
+        "next_action": "Validate evergreen demand before publishing or bundle into the year-end retirement guide."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.irs.gov/retirement-plans/issue-snapshot-vesting-schedules-for-matching-contributions",
+          "label": "IRS vesting-schedule guidance",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Download the benefits-transition checklist",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-24",
+      "slug": "safe-ai-personal-finance",
+      "title": "How to use AI for personal finance without outsourcing judgment",
+      "hook": "Use AI to organize questions and scenarios; never use it as the sole authority for a tax, investment, medical, or debt decision.",
+      "theme": "ai-health-finances",
+      "audiences": [
+        "general-readers",
+        "early-adopters"
+      ],
+      "demand_signal": "steady",
+      "priority_tier": "P1",
+      "effort": "M",
+      "format": "safe_use_guide",
+      "publish_window": {
+        "start": "2026-12-21",
+        "end": "2026-12-25",
+        "preferred_date": "2026-12-24"
+      },
+      "search_validation": {
+        "status": "serp_and_evidence_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "AI personal finance",
+          "ChatGPT personal finance safety",
+          "AI investment advice risks"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Validate against site search and query data; keep source links and disclaimer requirements."
+      },
+      "primary_sources": [],
+      "cta": "Use the prompt-and-verification template",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-25",
+      "slug": "2026-household-money-health-checklist",
+      "title": "The 2026 household money-and-health checklist",
+      "hook": "Before the calendar turns, review benefits, retirement contributions, student loans, medical bills, and scam exposure in one sitting.",
+      "theme": "ai-health-finances",
+      "audiences": [
+        "households",
+        "caregivers",
+        "newsletter-readers"
+      ],
+      "demand_signal": "hot",
+      "priority_tier": "P0",
+      "effort": "M",
+      "format": "year_end_checklist",
+      "publish_window": {
+        "start": "2026-12-28",
+        "end": "2026-12-29",
+        "preferred_date": "2026-12-28"
+      },
+      "search_validation": {
+        "status": "event_plus_serp_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "year end financial checklist 2026",
+          "2026 money checklist",
+          "healthcare financial checklist"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Publish based on annual timing; validate exact query variants and update all rate-sensitive content."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.irs.gov/newsroom/401k-limit-increases-to-24500-for-2026-ira-limit-increases-to-7500",
+          "label": "IRS 2026 retirement contribution limits",
+          "source_type": "government"
+        },
+        {
+          "url": "https://www.consumerfinance.gov/consumer-tools/student-loans/",
+          "label": "CFPB student-loan tools",
+          "source_type": "government"
+        },
+        {
+          "url": "https://consumer.ftc.gov/scams",
+          "label": "FTC consumer scam guidance",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Download the printable checklist",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    },
+    {
+      "id": "editorial-2026-26",
+      "slug": "healthcare-ai-pilot-postmortem-2026",
+      "title": "2026 healthcare AI pilot postmortem: what should enter the 2027 backlog?",
+      "hook": "A useful postmortem records not only wins, but the evidence gaps, hidden costs, and decisions that should stop.",
+      "theme": "healthcare-economics",
+      "audiences": [
+        "ai-product-teams",
+        "operators",
+        "claude-code-reviewer"
+      ],
+      "demand_signal": "steady",
+      "priority_tier": "P1",
+      "effort": "L",
+      "format": "synthesis_backlog_template",
+      "publish_window": {
+        "start": "2026-12-28",
+        "end": "2026-12-29",
+        "preferred_date": "2026-12-29"
+      },
+      "search_validation": {
+        "status": "serp_and_evidence_proxy",
+        "validated": false,
+        "source_type": "serp_cluster_proxy",
+        "estimated_monthly_searches": null,
+        "query_candidates": [
+          "healthcare AI pilot lessons",
+          "AI healthcare implementation postmortem",
+          "2027 healthcare AI strategy"
+        ],
+        "last_checked": "2026-10-01",
+        "required_before_publish": false,
+        "next_action": "Use internal product data and Search Console performance to set the 2027 follow-on priority."
+      },
+      "primary_sources": [
+        {
+          "url": "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/marketing-submission-recommendations-predetermined-change-control-plan-artificial-intelligence",
+          "label": "FDA AI PCCP guidance",
+          "source_type": "government"
+        },
+        {
+          "url": "https://www.cms.gov/newsroom/blog/moving-prior-authorization-21st-century",
+          "label": "CMS prior-authorization guidance",
+          "source_type": "government"
+        }
+      ],
+      "cta": "Create a prioritized 2027 backlog",
+      "status": "planned",
+      "canonical": true,
+      "last_verified": "2026-10-01"
+    }
+  ]
+}

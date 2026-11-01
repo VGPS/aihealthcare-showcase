@@ -1,0 +1,7 @@
+Standard reply (most incoming connections — warm but not a pitch):
+
+Thanks for connecting, [Name]! I'm Bill — I built AIHealthcare, a platform that tracks AI-in-healthcare as a running historical record: daily market digests, FDA/CMS regulatory monitoring, 58 state AI-health laws, company sentiment scoring, and a directory of 682 AI-health companies. It's live at bigskylabs.ai if you'd like to explore — happy to chat if it's relevant to your work.
+
+Buyer-forward reply (use when their profile clearly fits — VC, corp dev, health-data exec):
+
+Thanks for connecting, [Name]! I'm Bill — I built AIHealthcare, a platform automating AI-in-healthcare intelligence: daily market digests, regulatory tracking (FDA, CMS, 58 state laws), sentiment scoring, and a 682-company directory. It's live at bigskylabs.ai. I'm currently exploring acquisition or licensing conversations — would be glad to walk you through it if there's a fit on your end.
