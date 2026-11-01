@@ -109,6 +109,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/research/ai-search").permitAll()
                 .requestMatchers("/stripe/**").permitAll()
                 .requestMatchers("/claims/methodology").permitAll()
+                .requestMatchers("/mcp/**").permitAll()
                 .requestMatchers("/dashboard/claims").authenticated()
                 .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                 .requestMatchers("/newsletter/runs/**").hasRole("ADMIN")
