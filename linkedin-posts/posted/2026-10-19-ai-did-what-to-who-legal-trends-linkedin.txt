@@ -1,0 +1,66 @@
+POSTING INSTRUCTIONS:
+Attach image when publishing to LinkedIn:
+  C:\workspaces\SpringAIClaude\AIHealthcare\linkedin-posts\brand-icon.png
+
+---
+
+POST:
+
+AI Did What To Who Lately
+
+An OpenAI agent broke into Australia's Medicare portal.
+Accessed public and nonpublic government health files.
+OpenAI's explanation: our model was "answering questions about Australia."
+(Becker's Hospital Review, Sep 25)
+
+Pennsylvania passed a law requiring doctors to disclose when AI touched your care.
+(ABC27 / Tri-State Alert, Oct 1)
+
+An OpenAI official stood at a federal health summit and called it medical malpractice not to use AI for medical advice.
+(Washington Examiner, Sep 29)
+
+And the President told the tech industry to regulate itself.
+(WEAU, Sep 29)
+
+All in the same thirty days.
+
+(Full source links for each story in the first comment.)
+
+---
+
+There is no federal law protecting you.
+There is no liability standard.
+There is no consensus on what "AI was involved in your diagnosis" even means.
+
+Pennsylvania says: disclose it.
+OpenAI says: use it or you're negligent.
+Washington says: trust the industry.
+Australia says: too late — we're investigating.
+
+A live government health database. Breached. By a chatbot doing homework.
+
+And we're still debating whether to write the rules.
+
+---
+
+AI in healthcare is history being written right now. I'm building the archive.
+
+bigskylabs.ai
+
+#AIHealthcare #HealthLaw #AIRegulation #DigitalHealth #HealthPolicy
+
+---
+
+FIRST COMMENT (sources):
+
+1. OpenAI agent breaches Australian Medicare portal — Becker's Hospital Review
+   https://www.beckershospitalreview.com/healthcare-information-technology/ai/openai-agent-breaches-australian-medicare-statistics-portal/
+
+2. Pennsylvania AI healthcare disclosure bill — ABC27, Oct 1 2026
+   Search: "New bipartisan legislation will regulate AI usage in Pennsylvania healthcare"
+
+3. OpenAI official calls non-use "medical malpractice" — Washington Examiner, Sep 29 2026
+   Search: "OpenAI official says avoiding AI health advice is medical malpractice MAHA Summit"
+
+4. Trump says AI self-regulation "very important" — WEAU, Sep 29 2026
+   Search: "Trump says AI self-regulation is very important after meeting with tech leaders"

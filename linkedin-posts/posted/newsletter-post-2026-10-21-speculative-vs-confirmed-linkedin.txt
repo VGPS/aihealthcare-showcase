@@ -1,0 +1,29 @@
+PLATFORM: LinkedIn Newsletter
+TYPE: Newsletter Post
+DATE: 2026-10-21
+SLUG: speculative-vs-confirmed
+ANGLE: Meta-narrative on today's Market Digest — all 3 top headlines (EliseAI raise, Oracle/AstraZeneca partnership, OpenAI/Orchestra Bio acquisition) are tagged SPECULATIVE, illustrating the platform's fact-vs-rumor classification in action
+
+--- TITLE ---
+
+Three Big AI-Healthcare Headlines Hit Today. My System Flagged All Three as Unconfirmed.
+
+--- POST BODY ---
+
+Three stories moved through the AI-healthcare news cycle today:
+
+- EliseAI reportedly raising $350M at a $4B valuation
+- Oracle and AstraZeneca reportedly exploring AI and real-world data for clinical trials
+- OpenAI reportedly acquiring a company called Orchestra Bio
+
+Every one of them is getting covered like settled fact. In my system, every one of them is tagged SPECULATIVE, not CONFIRMED.
+
+That's not a knock on the reporting — it's a distinction that gets lost the moment a story starts getting reshared. CONFIRMED means the deal shows up in a second independent source, a regulatory filing, or an on-record company statement. SPECULATIVE means it's still running on one outlet's sourcing, no matter how many places have since repeated it.
+
+I built that classification into the pipeline on purpose. AI-healthcare news moves fast enough, and the incentive to publish first is strong enough, that "reportedly" quietly disappears by the third republish. A $350M raise reads like a done deal. An "exploring AI" partnership reads like a signed one. None of that is malicious — it's just what happens to information at speed, and it's exactly the kind of drift a historical record needs to resist.
+
+I track this across a growing base: 682 companies in the directory, 58 state AI-health laws, and a daily digest that cross-checks every headline against a second source before it gets labeled either way. Today, the three biggest stories all landed on the SPECULATIVE side of that line. That tells you something too — where the industry's attention is pointed before anyone's actually confirmed anything.
+
+If EliseAI's raise closes, if Oracle and AstraZeneca sign something, if OpenAI's acquisition goes through — the record will show it moved from SPECULATIVE to CONFIRMED, with the date it happened. That's the whole point of keeping one.
+
+"AI in healthcare is history being written right now. I'm building the archive."

@@ -1,0 +1,158 @@
+MEDIUM ARTICLE — September 22, 2026
+Title: I Built an AI Healthcare Intelligence Platform in 6 Months. Here's What I Learned.
+===========================================================================
+
+TAGS (Medium uses tags, not hashtags — add these in the Tags field before publishing):
+  Artificial Intelligence
+  Healthcare Technology
+  Spring Boot
+  Java
+  Software Development
+
+SUGGESTED PUBLICATION: Toward Data Science, Better Programming, or self-publish
+
+IMAGES — insert in order at the markers below (files in linkedin-posts/shots/):
+  [IMAGE 1] medium-01-directory-hero.png  — top of article, hero image
+  [IMAGE 2] medium-02-directory-cards.png — after "459 companies" paragraph
+  [IMAGE 3] medium-03-wiki-index.png      — after "Knowledge Wiki" section
+  [IMAGE 4] medium-04-legislation-map.png — after "Legislation Tracker" section
+
+===========================================================================
+ARTICLE TEXT
+===========================================================================
+
+I Built an AI Healthcare Intelligence Platform in 6 Months. Here's What I Learned.
+
+My wife died from cancer earlier this year.
+
+During those months in hospitals and clinics, I watched doctors and staff struggle to
+keep pace with a wave of AI tools entering healthcare — new treatments, new diagnostic
+software, shifting regulations — while the information about all of it was scattered
+across dozens of sources. Nobody had a clear picture. Not the clinicians. Not the
+administrators. Not the patients.
+
+I'm a 72-year-old full-stack Java developer. The job market has made clear it doesn't
+want me anymore. But grief has a way of clarifying priorities, and I decided to apply
+everything I've learned over 30 years to build something that mattered.
+
+Six months later, BigSkyLabs.ai is live.
+
+[IMAGE 1 — directory-hero.png]
+
+--- What It Does ---
+
+BigSkyLabs.ai is an AI-powered healthcare intelligence platform. It automatically
+harvests articles from academic, regulatory, and industry sources every day, processes
+them with large language models, and surfaces structured intelligence across four
+major features.
+
+--- The Company Directory ---
+
+The platform tracks 459 AI healthcare companies, ranked daily by a live relevance
+score calculated from three signals: article velocity (how often a company appears
+in recent news), funding activity (M&A and investment deal signals), and sentiment
+(positive vs. negative press tone).
+
+Every morning, the pipeline re-scores all companies automatically. Analysts can sort
+by trending activity, recent funding, or sentiment risk — and export the full dataset
+to CSV.
+
+[IMAGE 2 — directory-cards.png]
+
+--- The Knowledge Wiki ---
+
+This was the part I underestimated. After six months of daily article harvesting,
+the platform has auto-compiled an 840-page wiki covering AI healthcare companies,
+concepts, regulations, and clinical applications.
+
+Each page carries source provenance — you can trace every claim back to the original
+article. The wiki also tracks contradictions: when a new article reverses a prior
+claim, the system flags it automatically.
+
+This is not static documentation. It updates itself.
+
+[IMAGE 3 — wiki-index.png]
+
+--- The Legislation Tracker ---
+
+Health AI regulation is accelerating. As of today, 41 laws across 24 U.S. states
+have been enacted governing AI in healthcare — covering everything from prior
+authorization algorithms to AI disclosure requirements for clinical tools to
+mental health chatbot restrictions.
+
+The platform seeds from a 43-record researched dataset and runs a weekly Perplexity
+Search discovery sweep for newly enacted or amended bills. A source-freshness monitor
+re-fetches official bill URLs weekly and flags content changes for human review.
+
+[IMAGE 4 — legislation-map.png]
+
+--- The Technical Stack ---
+
+I built this on what I know best, extended with what the moment required:
+
+- Spring Boot 3 / Java 21 — hexagonal architecture, ports and adapters
+- Spring AI — ChatClient abstraction over Anthropic Claude and OpenAI
+- PostgreSQL 16 + pgvector — article storage, vector embeddings, semantic search
+- Perplexity Sonar API — live web research for market news and legislation discovery
+- Alpaca Markets API — real-time market data for publicly traded healthcare AI companies
+- Thymeleaf — server-rendered UI (no React, no microservices, one JVM)
+- AWS EC2 + SES — self-hosted, cost-efficient for the current scale
+
+The entire pipeline — harvest, summarize, classify, embed, score, notify — runs on
+a $50/month EC2 instance. The LLM costs are the dominant variable expense.
+
+--- What I Got Wrong ---
+
+I underestimated how much the data quality problem would dominate the engineering
+problem. Getting LLMs to produce reliable structured output at scale — consistent
+JSON schemas, no hallucinated company names, deterministic sentiment labels — took
+more iteration than any single feature.
+
+I also underestimated the copyright surface area. An article ingestion pipeline
+that stores full body text creates legal exposure. I built an excerpt truncation
+layer mid-project — capping RSS bodies at 2,000 characters and web-scraped content
+at 500, with robots.txt compliance for every domain. Retrofitting safety into an
+existing pipeline is harder than building it in from the start.
+
+--- What Surprised Me ---
+
+The legislation tracker became the most-visited public page almost immediately.
+Healthcare compliance teams need this data and there's no good free source for it.
+
+The wiki's contradiction detection — flagging when new articles reverse prior claims
+— turned out to be more valuable than I anticipated. The FDA changes guidance.
+CMS reverses reimbursement decisions. Clinical trial results contradict earlier
+findings. Having a system that notices these reversals automatically is genuinely useful.
+
+--- What's Next ---
+
+The platform is live at app.bigskylabs.ai with a free tier and a $49/month
+subscriber plan. I'm focused on growing the user base and reaching healthcare
+market research teams who need this kind of structured intelligence.
+
+If you work in healthcare AI — as a researcher, analyst, investor, or product
+leader — I'd welcome your feedback.
+
+And if you're a senior developer who's been told you're past your expiration date:
+the technology doesn't agree. Build something.
+
+---
+
+Bill Blackmon is the founder of BigSkyLabs.ai and a full-stack Java/Spring developer
+with 30+ years of experience. He can be reached at newsletter@bigskylabs.ai.
+
+===========================================================================
+MEDIUM POSTING CHECKLIST
+===========================================================================
+□ Create new story at medium.com
+□ Paste article text above
+□ Insert 4 images at the [IMAGE N] markers (drag from linkedin-posts/shots/)
+□ Remove the [IMAGE N] placeholder text after inserting images
+□ Set title: "I Built an AI Healthcare Intelligence Platform in 6 Months. Here's What I Learned."
+□ Add subtitle (optional): "On grief, Java, and building something that matters."
+□ Add tags: Artificial Intelligence, Healthcare Technology, Spring Boot, Java, Software Development
+□ Preview — confirm images render and text flows correctly
+□ Publish
+□ Submit for curation (button appears after publish — select most relevant tag)
+□ Archive this file to linkedin-posts/posted/ after publishing
+□ Share the Medium link on LinkedIn as a new post (different from the Tuesday personal hook post)

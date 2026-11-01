@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>Agent Loop Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px;
+    height: 630px;
+    background: #0d1117;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 60px;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .header h1 {
+    color: #e6edf3;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    margin-bottom: 6px;
+  }
+  .header p {
+    color: #7d8590;
+    font-size: 13px;
+  }
+
+  .loop {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .box {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 18px 20px;
+    min-width: 154px;
+    text-align: center;
+    position: relative;
+  }
+  .box .icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .box .label {
+    color: #e6edf3;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .box .sub {
+    color: #7d8590;
+    font-size: 11px;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .box.claude {
+    border-color: #58a6ff;
+    background: #0d1f35;
+    min-width: 180px;
+  }
+  .box.claude .label { color: #58a6ff; }
+
+  .box.tool {
+    border-color: #3fb950;
+    background: #0d1f1a;
+  }
+  .box.tool .label { color: #3fb950; }
+
+  .box.output {
+    border-color: #d29922;
+    background: #1f1a0d;
+  }
+  .box.output .label { color: #d29922; }
+
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 0 10px;
+    min-width: 90px;
+  }
+  .arrow .call {
+    color: #58a6ff;
+    font-size: 10px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .arrow .line {
+    width: 100%;
+    height: 1px;
+    background: #30363d;
+    position: relative;
+  }
+  .arrow .line::after {
+    content: '›';
+    position: absolute;
+    right: -4px;
+    top: -9px;
+    color: #58a6ff;
+    font-size: 18px;
+  }
+  .arrow .result {
+    color: #3fb950;
+    font-size: 10px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .arrow.back .line::after {
+    content: '‹';
+    left: -4px;
+    right: auto;
+    color: #3fb950;
+  }
+
+  .log-row {
+    margin-top: 28px;
+    width: 100%;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .log-line {
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    display: flex;
+    gap: 8px;
+  }
+  .log-ts { color: #484f58; }
+  .log-class { color: #7d8590; }
+  .log-sep { color: #30363d; }
+  .log-method { color: #58a6ff; }
+  .log-msg { color: #e6edf3; }
+  .log-val { color: #3fb950; }
+
+  .footer {
+    margin-top: 20px;
+    text-align: center;
+    color: #484f58;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+  }
+  .footer span {
+    color: #58a6ff;
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>The Spring AI Agent Loop</h1>
+    <p>Claude decides what data to fetch — the framework executes it</p>
+  </div>
+
+  <div class="loop">
+    <!-- Request box -->
+    <div class="box">
+      <div class="icon">📋</div>
+      <div class="label">Request</div>
+      <div class="sub">Draft posts from<br>today's digest</div>
+    </div>
+
+    <!-- Arrow: request → Claude -->
+    <div class="arrow">
+      <div class="call">user prompt</div>
+      <div class="line"></div>
+    </div>
+
+    <!-- Claude box -->
+    <div class="box claude">
+      <div class="icon">🤖</div>
+      <div class="label">Claude</div>
+      <div class="sub">Reasons about<br>what data it needs</div>
+    </div>
+
+    <!-- Arrow: Claude → tools -->
+    <div class="arrow">
+      <div class="call">@Tool call</div>
+      <div class="line"></div>
+      <div class="result">data returned</div>
+    </div>
+
+    <!-- Tools box -->
+    <div class="box tool">
+      <div class="icon">🔧</div>
+      <div class="label">Your Tools</div>
+      <div class="sub">getDigestEntries()<br>getCompanyArticles()</div>
+    </div>
+
+    <!-- Arrow: tools → output -->
+    <div class="arrow">
+      <div class="call">loop until done</div>
+      <div class="line"></div>
+    </div>
+
+    <!-- Output box -->
+    <div class="box output">
+      <div class="icon">✍️</div>
+      <div class="label">Output</div>
+      <div class="sub">LINKEDIN_BODY:<br>FACEBOOK_BODY:</div>
+    </div>
+  </div>
+
+  <div class="log-row">
+    <div class="log-line">
+      <span class="log-ts">15:33</span>
+      <span class="log-class">SocialPostAgentAdapter</span>
+      <span class="log-sep">:</span>
+      <span class="log-method">getDigestEntries()</span>
+      <span class="log-sep">|</span>
+      <span class="log-msg">return=</span><span class="log-val">4521 chars, 8 entries</span>
+    </div>
+    <div class="log-line">
+      <span class="log-ts">15:33</span>
+      <span class="log-class">SocialPostAgentAdapter</span>
+      <span class="log-sep">:</span>
+      <span class="log-method">getCompanyArticles()</span>
+      <span class="log-sep">|</span>
+      <span class="log-msg">companyName=</span><span class="log-val">Epic Systems</span>
+      <span class="log-msg" style="margin-left:8px">← Claude decided this, not me</span>
+    </div>
+    <div class="log-line">
+      <span class="log-ts">15:33</span>
+      <span class="log-class">SocialPostAgentAdapter</span>
+      <span class="log-sep">:</span>
+      <span class="log-method">draft()</span>
+      <span class="log-sep">|</span>
+      <span class="log-msg">return=</span><span class="log-val">SocialPostDraft[linkedinBody=I watched Claude decide...]</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    Built with <span>Spring AI @Tool</span> · app.bigskylabs.ai · #SpringAI #HealthcareAI #BuildingInPublic
+  </div>
+
+</body>
+</html>

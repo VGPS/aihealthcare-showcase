@@ -1,0 +1,36 @@
+GROUP: US Healthcare Product Minds + AI – Learn, Share, Grow
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+Most competitive decks for healthcare product teams are a feature-comparison table someone updates manually, every few months, right before a QBR. By the time it ships, two rows are already stale.
+
+I replaced that with an LLM-scored framework: every tracked competitor gets scored across 6 fixed dimensions (pulled from their actual recent news coverage, not a sales page) — automatically, continuously, with a written rationale behind each score, not just a number. The scores move as the news does. A company that just had a rough regulatory quarter sees that reflected before the next board meeting references outdated positioning.
+
+The part that actually changed how I use it: a static comparison table answers "who's ahead right now." A continuously-rescored one answers "who's gaining or losing ground" — which is the question product teams actually need answered for roadmap timing.
+
+For the PMs here: how often does your competitive framework actually get refreshed in practice — truly continuous, or realistically just before planning cycles?
+
+#ProductManagement #HealthTech #CompetitiveIntelligence #AIinHealthcare #ProductStrategy
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily." 👉 Link in the first comment.
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai/dashboard/frameworks
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "US Healthcare Product Minds + AI – Learn, Share, Grow" → "Create a post" inside the group
+2. Paste Post Body — no image needed, no URL in the body
+3. Publish
+4. Immediately paste the First Comment (the actual link) on your own post
+
+--- STRATEGY NOTES ---
+
+- "Continuous vs. QBR-cycle refresh" framing is the hook most likely to get real PM engagement — most will recognize the stale-deck problem immediately.
+- Framework coverage is config-driven (a fixed company list) — if asked "is my competitor on there," be ready to say coverage can be requested/expanded, don't imply universal coverage.

@@ -1,0 +1,28 @@
+GROUP: Tech Startup CEOs & Investors: Artificial Intelligence, Machine Learning, FinTech, SaaS, ChatGPT
+DATE: 2026-10-08
+PLATFORM: LinkedIn (Group Post)
+
+---
+
+Every AI healthcare acquisition in the last two years was preceded by the same three signals. Most investors didn't see them until the press release.
+
+The signals:
+
+**1. Regulatory clearance velocity.**
+When a company clears its second or third FDA 510(k) in 18 months, it has solved the hardest problem in health tech: navigating the regulatory pathway at scale. That's an acquisition target, not a growth-stage company. Epic, Oracle Health, and Optum know this. They're watching the FDA database. Are you?
+
+**2. Funding round clustering.**
+Capital in AI healthcare doesn't spread evenly — it clusters. When the first AI scribe company raises $100M, three more close within 90 days. The cluster identifies the category the market has decided to back. Being in the second or third deal of a cluster is a better risk profile than being first.
+
+**3. Narrative momentum shift.**
+Before a company's valuation moves, its news coverage does. Positive sentiment trajectory across trade press, combined with enterprise partnership announcements, is a 6-month leading indicator — consistently.
+
+I built bigskylabs.ai to track all three, automatically, every day — FDA clearances, $50M+ funding rounds, M&A deal signals, company sentiment scoring, and the weekly rollup of what actually moved in AI healthcare.
+
+The information is public. The edge is aggregation and timing.
+
+*AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.*
+
+👉 bigskylabs.ai
+
+For the investors in this group: which of these three signals do you weight most heavily in an AI healthcare investment thesis?

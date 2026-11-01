@@ -1,0 +1,49 @@
+# I watched Claude decide what to ask for
+
+*September 28, 2026*
+
+---
+
+I've been building an AI healthcare intelligence platform for most of this year — daily pipelines tracking FDA clearances, funding rounds, WARN Act layoff filings, vendor announcements. 57+ sources, 318 companies, one digest every morning.
+
+Everything until this weekend was what I'd call static AI: pre-load the data, hand it to the model, get output. The prompt is fixed. The data is fixed. You get a predictable result.
+
+This weekend I rebuilt one feature to be agentic. The same feature — draft LinkedIn and Facebook posts from the market digest — now works completely differently. And watching it run in the DEBUG logs made the concept of "agent" concrete in a way that reading about it never quite had.
+
+---
+
+**Before (static):**
+Java code fetches the digest, formats it as a string, sends the whole thing to Claude. Claude writes posts. Done. Reliable. Rigid.
+
+**After (agent):**
+Claude receives the request. Decides it wants to fetch the market digest. Calls `getDigestEntries("2026-09-28")`. Gets 8 ranked entries. Decides it wants more context on one company. Calls `getCompanyArticles("Epic Systems")`. Gets 5 recent headlines. Now it has what it needs. Writes the posts.
+
+The key difference: **Claude is deciding what information to gather.** Not me. Not my Java code. Claude, at runtime, based on the question it was asked.
+
+That seems like a subtle distinction until you've watched the tool calls fire in sequence in a debug log. Then it's obvious — this is a fundamentally different architecture, not just a different prompt.
+
+---
+
+The Spring AI pattern that makes it work is `@Tool`. You annotate Java methods as tools, pass `this` to `.tools()` in the ChatClient call, and the framework handles all the scaffolding. Claude sees the method descriptions, decides which ones to call and when, and Spring AI executes them.
+
+The hard part isn't the mechanism. It's the system prompt. You have to tell Claude what to produce, in what exact format, with enough structure that you can parse it back out. I used a labeled-section format (`LINKEDIN_BODY:`, `FACEBOOK_BODY:`, `RATIONALE:`) and a simple `extractSection()` helper — more robust than trying to parse JSON from model output, where Claude occasionally adds explanatory prose before the block and breaks the parser.
+
+---
+
+What changed in how I think about the feature:
+
+In the static version, I made an architectural decision: *what data does Claude need?* I answered that question in Java code before the call.
+
+In the agent version, that question is delegated to Claude at runtime. When I add a new tool — say, `getRegulatoryEvents(String company)` — Claude can start calling it immediately. The system prompt gets one new line describing when to use it. The outer loop code doesn't change at all.
+
+That composability is what makes the added complexity of writing a structured system prompt worth it.
+
+---
+
+The app this runs on tracks daily AI healthcare market intelligence at [app.bigskylabs.ai](https://app.bigskylabs.ai). If you want to see what the agent produces when it runs against real market data — the ranked digest entries, the company articles it pulls, the post it writes — that's where the output lands.
+
+*— Bill*
+
+---
+
+*Published by [Big Sky Labs](https://app.bigskylabs.ai). We track 57+ sources and 318 companies daily. Subscribe to get the full intelligence feed delivered to your inbox.*

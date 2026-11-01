@@ -1,0 +1,32 @@
+PLATFORM: LinkedIn Newsletter
+TYPE: Newsletter Issue
+DATE: 2026-10-26
+SLUG: sentiment-risk-scores-uncomfortable
+ANGLE: Sentiment & Risk Scoring — the system doesn't rank AI healthcare companies by what they claim; it ranks them by what news coverage actually says. Companies with the most aggressive healthcare AI positioning sometimes carry the highest negative-sentiment concentrations. The controversial hook: LLM-classified news as a risk proxy beats vendor marketing as a signal.
+
+--- SUBJECT LINE ---
+
+My Database Rates AI Healthcare Companies by How the News Covers Them. Some Rankings Are Uncomfortable.
+
+--- POST BODY ---
+
+I built a system that reads every article in my database and assigns each AI healthcare company a sentiment score. Not a score based on press releases. Not based on what they told an analyst on an earnings call. Based on what journalists, researchers, and regulatory filings say about them — classified at the article level, aggregated to a company score.
+
+Each article gets a label: POSITIVE, NEGATIVE, MIXED, or NEUTRAL. The classification comes with a confidence score and a rationale. The company score rolls all of them up: percentage positive, percentage negative, percentage mixed, and a risk summary that flags patterns — the same concern appearing across multiple independent sources, gaps between what a company claims and what third parties report, regulatory mentions that skew negative consistently.
+
+Some of the results are not what I expected.
+
+Companies that have been loudest about their healthcare AI momentum have some of the highest negative-sentiment concentrations in my database. The coverage isn't hostile — most of it is accurate reporting of friction points appearing repeatedly: clinical workflow integration challenges, gaps between benchmark performance and real-world deployment, regulatory questions that keep surfacing without resolution.
+
+The recurrence is the signal. One negative article is noise. The same concern appearing across eight independent sources over four months is a pattern. The system catches the pattern whether or not the company's communications team does.
+
+The other thing the system does — which turns out to matter — is separate sentiment at the article level before aggregating. A company with 90 POSITIVE articles and 10 NEGATIVE articles has a different risk profile than a company with 50 MIXED articles, even if the raw positive percentage is similar. The distribution tells a different story than the mean. A single persistent negative thread in an otherwise positive corpus is a flag. The aggregate score alone misses it.
+
+This is the kind of signal that doesn't show up in a vendor demo. It doesn't show up in a category report written by a firm that consults for the vendors it covers. It shows up when you read what gets published about a company across enough sources, consistently enough, over long enough.
+
+The full sentiment dashboard is at app.bigskylabs.ai — company-by-company scores, the article-level breakdown behind each one, and the risk summary for any company where negative patterns cross a threshold. The scores update every time new coverage lands.
+
+"AI in healthcare is history being written right now. I'm building the archive."
+
+If this is useful, forward it to a colleague who evaluates AI healthcare vendors. The scores are the kind of due-diligence input that's very hard to produce manually at scale.
+

@@ -1,0 +1,69 @@
+PLATFORM: LinkedIn
+DATE: 2026-10-09
+SLUG: developer-tools-vendor-compare
+ANGLE: Developer capability comparison — four major AI healthcare vendors
+
+--- POST BODY ---
+
+I compared developer tools across the four biggest AI healthcare vendors. Here's the honest breakdown.
+
+**Amazon Health (AWS)**
+Purpose-built and HIPAA-eligible out of the box — the compliance burden is Amazon's problem, not yours. Agentic architecture for multi-step clinical workflows, native EHR integration. Most credible starting point if you need to ship a HIPAA-covered app fast.
+
+The catch: product focus is entirely administrative — scheduling, documentation, coding. No broader SDK or model marketplace. You're buying a managed solution. If your roadmap includes clinical decision support, Amazon hasn't shown that story yet.
+
+**OpenAI for Healthcare**
+Dual-track approach — ChatGPT Health for consumers, enterprise API for builders — gives OpenAI the widest surface area of the four. Real hospital partner validation means use cases are grounded. The ecosystem advantage is real: more tutorials, more integrations, faster ramp to prototype.
+
+The gap: developer tooling details are thin for a suite this prominent. Fine-tuning endpoints for clinical use cases, structured output schemas for EHR data — none of it surfaces clearly. Consumer and enterprise lines also create positioning complexity for developers choosing an entry point.
+
+**Google for Health**
+Med-PaLM 2 underpins MedLM — foundation models fine-tuned for healthcare — and it's the strongest research pedigree of the four. The $10M clinician AI training investment signals ecosystem-building, not just model releases. Medical imaging foundations (chest X-ray, dermatology) are a genuine differentiator no other vendor matches.
+
+The problem: MedLM is described as available to customers "exploring applications" — that's a waitlist, not a developer tool. The research lead doesn't yet translate to builder momentum.
+
+**Claude for Healthcare (Anthropic)**
+Newest entrant, positioned as complementary rather than standalone — honest framing for where it sits. What that undersells: a 200K token context window is a practical superpower for clinical document work. Discharge summaries, prior auth packets, full encounter histories — feed the whole thing. No chunking required.
+
+The limitation: healthcare-specific API tooling is thin and there's no fine-tuning pathway. You own the infrastructure around the model.
+
+---
+
+My read:
+
+No single vendor wins. Amazon owns the compliance layer. Google owns the research credibility. OpenAI owns the ecosystem. Anthropic owns the context window.
+
+The production healthcare apps gaining traction are stitching at least two of these together — usually Amazon for HIPAA infrastructure and either Claude or GPT-4o for reasoning. The biggest gap across all four: none of them have a clear developer SDK story for clinical decision support. That's the next battleground.
+
+AI in healthcare is history being written right now. I'm building the archive.
+
+#AIHealthcare #HealthTech #DeveloperTools #HealthcareAI #CompetitiveIntelligence
+
+--- FIRST COMMENT (post separately, within 15 min of publishing) ---
+
+Full vendor comparison — four healthcare AI platforms across developer capability, compliance posture, and clinical focus:
+https://app.bigskylabs.ai/research/vendors?vendors=OpenAI+Healthcare&vendors=Anthropic+Healthcare&vendors=Amazon+Connect+Health&vendors=Google+Healthcare&query=please+compare+developer+tools+for+each+vendor&scoring=DOC_FREQUENCY
+
+7-day free trial, no card: https://app.bigskylabs.ai/register
+
+--- SCREENSHOT ---
+
+Run the Playwright script to capture the vendor comparison results page:
+
+  E2E_ADMIN_PASSWORD=yourpassword node linkedin-posts/vendor-compare-devtools-screenshot.js
+
+Output: linkedin-posts/shots/2026-10-09-developer-tools-vendor-compare.png
+
+The script logs in, navigates to the pre-filled developer tools comparison URL,
+waits for all four vendor cards to render, then captures a 1440x1100 viewport
+screenshot showing the form header + full 2x2 vendor card grid.
+
+--- POSTING INSTRUCTIONS ---
+
+1. Run the Playwright script above to generate the screenshot.
+2. Paste the POST BODY above as the main LinkedIn post (no links in the body).
+3. Attach the screenshot: linkedin-posts/shots/2026-10-09-developer-tools-vendor-compare.png
+4. Click Post.
+5. Within 15 min, add the FIRST COMMENT on your own post.
+6. Engage with replies in the first 2 hours for algorithm benefit.
+7. Archive this file to linkedin-posts/posted/ after publishing.

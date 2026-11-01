@@ -1,0 +1,47 @@
+GROUP: Java Developers and Architects
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+Every morning, my app runs a 14-step cascade after harvesting new articles: regulatory event matching, sentiment scoring, framework analysis, trend detection, deal signal detection, wiki compilation, embedding, market digest generation, and more — each one calling an LLM at least once.
+
+Early on, one bad call (an LLM timeout during sentiment analysis) took the entire morning run down with it. Nothing after that step executed. Nobody got a newsletter that day.
+
+The fix wasn't retries or circuit breakers — it was accepting that steps 6 through 14 have zero reason to know step 5 failed. So the orchestrator wraps every single step in its own try-catch, logs the failure, and moves to the next step regardless:
+
+```java
+for (PipelineStep step : steps) {
+    try {
+        step.run();
+    } catch (Exception e) {
+        log.error("Pipeline step {} failed, continuing", step.name(), e);
+    }
+}
+```
+
+It looks almost too simple to be "architecture." But the alternative — a single try-catch around the whole cascade, or worse, no isolation at all — means one flaky external API call decides whether your subscribers get content that day. Fourteen independent failure domains beat one shared one, every time, for a pipeline where steps don't actually depend on each other's success.
+
+For the architects here: where's the line for you between "this needs a real resilience pattern (circuit breaker, bulkhead)" and "this just needs a try-catch at the right scope"?
+
+#JavaDevelopers #SoftwareArchitecture #SpringBoot #Resilience #SystemDesign
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+This orchestrates the pipeline behind app.bigskylabs.ai — regulatory tracking, sentiment analysis, and market intelligence for AI healthcare news, rebuilt daily. Happy to share the full step list if anyone wants to see how far "just isolate each step" scales.
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Java Developers and Architects" → "Create a post" inside the group (not your profile feed)
+2. Paste Post Body — no image needed
+3. No links in the body (LinkedIn suppresses posts with URLs)
+4. Publish, then immediately paste the First Comment
+
+--- STRATEGY NOTES ---
+
+- Someone will say "that's not resilience, that's just try-catch" — agree with it rather than defend the label; the point is scope discipline, not a fancy pattern name. That's honest and lands better than overselling it.

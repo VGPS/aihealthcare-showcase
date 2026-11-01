@@ -1,0 +1,36 @@
+GROUP: Regulatory Affairs Network: Pharma, Medical Devices, Biotech, Healthcare, Science, QA, Events & Jobs
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+State agencies don't always issue a press release when they amend a law. Sometimes the only evidence is that the official statute page's text changed.
+
+Every official source URL in my legislation registry gets re-fetched weekly and SHA-256 hashed. If the hash changes, that's flagged as a content change requiring review — independent of whether any news outlet covered it. It's a crude mechanism (it can't tell you *what* changed, just *that* something did), but it catches the category of change that's easiest to miss: a quiet amendment to an existing statute, versus a brand-new bill that at least generates some press coverage on introduction.
+
+For compliance-tracking purposes, "a law I thought I understood just changed and nobody told me" is a worse failure mode than "a new law exists that I haven't reviewed yet" — the second one you know you have a gap; the first one you don't know you have a gap until it costs you.
+
+For the regulatory and compliance folks here: how much of your own source monitoring is press-driven versus direct source re-checks like this?
+
+#RegulatoryAffairs #HealthcareCompliance #ComplianceMonitoring #MedicalDevices #Biotech
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily." 👉 Link in the first comment.
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai/legislation
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Regulatory Affairs Network: Pharma, Medical Devices, Biotech, Healthcare, Science, QA, Events & Jobs" → "Create a post" inside the group
+2. Paste Post Body — no image needed, no URL in the body
+3. Publish
+4. Immediately paste the First Comment (the actual link) on your own post
+
+--- STRATEGY NOTES ---
+
+- This is the most "compliance-practitioner" angle of the three and likely the best technical-credibility fit for this specific group.
+- Someone may ask what happens when a hash change is detected — be ready to say it flags for manual review, it doesn't auto-update the registry entry (consistent with Option 2's human-review discipline).

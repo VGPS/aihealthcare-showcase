@@ -1,0 +1,95 @@
+
+"AI did what to whom. When, where, and why." - Happy Friday!
+
+A Florida pastor nearly died following ChatGPT health advice. His lawsuit could rewrite AI liability law.
+
+This week:
+
+1. 🚨**[LEGAL] Pastor Nearly Died Following ChatGPT Health Advice — Lawsuit Could Rewrite AI Liability Law** — Startup Fortune
+2. ⚠️**[LEGAL] Are Doctors Liable When AI Makes a Mistake? Malpractice Experts Weigh In** — Healthcare Brew
+3. ⚠️**[LEGAL] AI Misdiagnoses Raise New Liability Questions for Health Systems** — Healthcare IT News
+4. ⚠️**[POLICY] Almost Half of FDA-Approved AI Devices Lack Clinical Validation Data** — News-Medical
+5. ⚠️**[POLICY] FDA Asked to Let Some AI Devices on the Market Without Review** — STAT
+6. ⚠️**[POLICY] AI Prescribing Medications in Utah: A Flawed Regulatory Playbook** — Penn LDI
+7. ⚠️**[POLICY] California Moves to Ban AI Chatbots in Mental Health Treatment** — Canadian Lawyer
+8. ✅**[MARKETPLACE] Tempus AI Strikes $1.5B Deal to Buy Personalis** — MedCity News
+9. ✅**[MARKETPLACE] Qualtrics Acquires Press Ganey for $6.75 Billion** — PR Newswire
+10. ✅**[MARKETPLACE] Commure Banks $70M Funding Round, Hits $7B Valuation** — Fierce Healthcare
+11. ✅**Anthropic Plans Healthcare Push Before IPO** — PYMNTS.com
+12. ✅**Amazon Launches Suite of Healthcare AI Agents** — Healthcare Dive
+13. ✅**AI Outperforms Doctors in Harvard Trial of Emergency Triage Diagnoses** — The Guardian
+14. 🚨**Qilin Ransomware Racks Up 168 Healthcare Victims** — Becker's Hospital Review
+15. 🚨**AI Sparks Mass Layoffs at Utah Healthcare Company** — ABC4 Utah
+
+AI is being deployed faster than guardrails can keep up.
+
+👉 See the full infographic with source links and trend data:
+https://app.bigskylabs.ai/insights/2026-09-17-ai-healthcare-weekly-roundup.html
+
+Follow for daily AI healthcare intelligence.
+
+#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #HealthcareLaw #MedicalInnovation
+
+---
+
+FACEBOOK POST (same image):
+
+"AI did what to whom. When, where, and why." - Happy Friday!
+
+A Florida pastor nearly died following ChatGPT health advice. His lawsuit could rewrite AI liability law.
+
+This week — lawsuits, billion-dollar deals, ransomware attacks, and state bans:
+
+🚨 **Pastor's ChatGPT lawsuit could rewrite AI liability** — Startup Fortune
+https://news.google.com/rss/articles/CBMi1gFBVV95cUxPaEE5Tkd0aW91d25KUThKTkgtZnhBdnJ1Y0ZLN0syYnZ6dE96RzdiM25oclVVVi1pR3JxNzUwcHh1bjdXcDVLR2h6Q1Rld3plSTRQWmZrbUFNRUJnQVVacXRwUE1UMlZDb21mNzVxZ1dibnFjNUNGTWV1ZDYyWU1XazhPc1FfUU9aVHJhRjdsSER5aFJTYkllcnlmX0FxYVBIcXNyWC1ERGZwcGtpc2dMdXF5ZURWdXhNbE9MUW5rQk1fZGNCcWJ6X3V5X2ZKSEg5YWgwdlhB?oc=5
+
+⚠️ **Half of FDA-approved AI devices lack clinical validation** — News-Medical
+https://news.google.com/rss/articles/CBMiwgFBVV95cUxNYjVFbGNqdmF1SFF6UndWTDBNQXNZbkw3MUZWSUVkOEZvOHZBQ2RIUXZQbWZOWklVc2RXeTNaVlBzM0hjeUp5WTI4c2V0c3BWdEc1VWQ2WkxGZ3dYeWFBY1BHRXM0YWI5aDBpMFV3WHhZaVE1MWhsTktDdDhsMzV6SUp4QUpQUlp4MFJrOWdDbGRQV3BBczRNYW1aNjFIN0VrTFpEck5kMnlwWVVRaFh1bGhlUGZsLUZfU2NEZ2xYN3Npdw?oc=5
+
+✅ **Tempus AI buys Personalis for $1.5B** — MedCity News
+https://medcitynews.com/2026/07/tempus-ai-personalis-acquisition-cancer-mrd-diagnostics-detection-tem-psnl/
+
+✅ **Qualtrics acquires Press Ganey for $6.75B** — PR Newswire
+https://news.google.com/rss/articles/CBMiiANBVV95cUxOSzF5T0FBVFUyeVdhUEVlcjhpaVpZeDhPdlVpYzNCSmZ4UFhfdFQ5UVhGWjNUakdOQXhIcFowRTZmR0ZLOUEyaFlGcVAtZXVCdjUzMTFnSHV0UHl2ZWhZTUNKOVNhRXdvV2FNYXpsZ1ZXc0Z5YkJLSjFOZXRWVUVEdXlQUDJnV25ZYkc5UVMz
+
+⚠️ **FDA asked to let AI devices skip review** — STAT
+https://news.google.com/rss/articles/CBMimwFBVV95cUxPTFdLb0J0eG5vWE1GZjJZUTNVRVRfN0tlMy1vMDE0eUZJZGhSSzNjcXJJbGFFNTJ4d0x6U25zZTNZV0pMODVGNEwzYXlsWS1JeG9PUEJjWHVJeTIyTXFKTTRnR21Mam5pZU5WUWR1UV9ROU95WVVkamNNekQtbE9xZHNJb1JMR3hhX2VtcS1QcjNTQk5uMGlnZ2VRcw?oc=5
+
+✅ **AI beats doctors in Harvard ER triage trial** — The Guardian
+https://news.google.com/rss/articles/CBMivAFBVV95cUxOOUpTYUFZS1BYS0NqUlVDeVVrcWFsbVhSaDJWUks3eFlfZW13NTdDMTQwb2JEeWg4VmVOckhuQzRJZ29TMW5CNlg0Mlk0WG1QdE9UUF9fZWQzcnNiVHlTMHdpa0dVZmpZTDJUZVkyZjlZOEt2VXBxSzVGelhTakFTN0RWRzljOHBqS3NESlBjTUFBWDJGbkwyTzczQXE4aGQtTnlQd2d1VDZZTlp4RW9aOHhmOThZeE53WmJzMA?oc=5
+
+🚨 **168 hospitals hit by Qilin ransomware** — Becker's Hospital Review
+https://www.beckershospitalreview.com/healthcare-information-technology/cybersecurity/qilin-ransomware-racks-up-168-healthcare-victims/
+
+⚠️ **California moves to ban AI chatbots in mental health** — Canadian Lawyer
+https://news.google.com/rss/articles/CBMi8AFBVV95cUxPcTJxV3pmZjBHV1NwUnMyMzZCMHJkYXl3OUc2MWJDUGxwNzB2MzhPdzVQaUwxVENYQmJMbFdtWkY1My0yaEhidXhYcnFyRnhiVHpSeGVTaDZaUW15aEI3VFZLcTVjbkNydUNCSnZiMXBEVmMwRElqak5iTElOVEVaYk1pd0stNXQ1OHhQNHRmX1BHU0hCTzFlMExRaHFmWnpjVW00QnFodG95ay1mWEdzNEFMRTdMbFoyTVp5OGdLUHBoRlJTbFJnQTBnNkU0aDU3TnNjeTZJRnU5enhTVTQ0bWJXT2xuazZqMWVwZUtpLXQ?oc=5
+
+✅ **Anthropic plans healthcare push before IPO** — PYMNTS.com
+https://news.google.com/rss/articles/CBMivAFBVV95cUxOVW5sZ3JzRllRNExqSi1Rcm1kLWxlaElNbl9lSWo5SVJ5RDl3SGFmaVduNmhxdlB3dWxjX3ZoS2lLNzVsbXZTdGN2OGhWemlQVHN1Y0J6Z2NDXzJ3R2Z6cVVuZFJfblgweXk5V1lka0dRMEp2OWJjQUZvSkhSWU05SFlXcWxvV1BSZWRPOFlPRHNXR1JkUWFER25ndjN0Tk5pSmhBWEo1N3FqeWd3QTlDLUdxdnQ2bXY1bEVCQQ?oc=5
+
+🚨 **AI sparks mass layoffs at Utah healthcare company** — ABC4 Utah
+https://news.google.com/rss/articles/CBMikAFBVV95cUxNWEd0bG1peFFnb1RJdXUtVnhsVDJHYTFDdDZ5UWRPcEI0ejZ0azBlc0Z5OW52eTQ5NXRaWTVROTFEM2tVM0F2Vm5lcGRzMnNFcmFHOUM3NWs5akhXMUtNN2ljTWxkTzg4Nkp5ZFJaTlg1X09oYlpTc3JrTjg1UXNHand2cFNSODZ6TEVoOUJ6WWXSAZYBQVVfe
+
+Browse 318 AI healthcare companies: https://app.bigskylabs.ai/directory
+Search the AI Healthcare Wiki: https://app.bigskylabs.ai/wiki
+Full intelligence platform: https://app.bigskylabs.ai/pricing
+
+#HealthcareAI #AIinHealthcare #DigitalHealth #HealthTech #HealthcareLaw #BigSkyLabs
+
+---
+
+POSTING INSTRUCTIONS:
+
+1. IMAGE: Attach linkedin-posts/shots/2026-09-17-ai-healthcare-weekly-roundup.png
+
+2. LINKEDIN POST BODY: Copy everything above the first "---" line.
+   - All 15 headlines are in the post body — no first comment needed.
+   - Bold formatting (**text**) renders on LinkedIn.
+
+3. NO FIRST COMMENT NEEDED — all content is in the post body.
+
+4. FACEBOOK: Use the "FACEBOOK POST" section. Links are included directly in the body.
+
+5. This is a NEW post — does not replace Tuesday's wiki knowledge base post.
+
+6. SCHEDULE: Post today, Friday September 17, 2026.

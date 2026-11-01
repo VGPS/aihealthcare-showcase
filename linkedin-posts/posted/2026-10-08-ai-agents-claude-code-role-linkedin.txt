@@ -1,0 +1,46 @@
+GROUP: AI Agents [Moderated] — Claude Code, Codex, Cursor, Grok Bot, OpenClaw, Hermes, MCP, x402, Moltgate
+DATE: 2026-10-08
+PLATFORM: LinkedIn (Group Post)
+
+---
+
+I've been building a production Spring Boot app almost entirely with Claude Code for the past year. Here's what that actually looks like at scale.
+
+The numbers:
+→ 3,105 tests across 357 test classes
+→ 50+ vertical slices, each a shippable unit
+→ 14 scheduled jobs, all externalized to YAML
+→ 6 AI provider integrations (Anthropic, OpenAI, Perplexity, Gemini, Alpaca, HuggingFace)
+→ 23 custom skills, 3 custom agents built into the project
+→ Deployed to AWS EC2, running live at bigskylabs.ai
+
+What made this work at this scale wasn't prompting. It was **project infrastructure.**
+
+**CLAUDE.md as a project constitution.**
+A 600-line project memory file that every session inherits — architecture rules, coding conventions, domain model inventory, slice history, what NOT to do. Claude Code reads it at the start of every conversation. It's why the 50th slice follows the same hexagonal architecture patterns as the first.
+
+**Custom agents for architectural discipline.**
+`arch-guard` — runs 7 grep-based checks: no Spring imports in the domain module, no @Autowired field injection, no persistence classes leaking into web controllers. Catches drift before it compounds.
+`cross-app-port-sync` — verifies that every port interface in one app has exactly one implementing adapter, and no orphaned ports. Runs across two repos simultaneously.
+
+**Custom skills as repeatable workflows.**
+`/new-slice` → triggers a full vertical-slice plan with domain records, ports, service, adapter, controller, and test checklist.
+`/ship-slice` → commit, push to both repos (private + public showcase mirror), deploy JAR to EC2, restart, verify.
+`/goremote` → full deploy pipeline in one command.
+`/goWeekendupdate` → pulls market data, generates the weekly intelligence roundup, drafts LinkedIn + Substack + Facebook posts, deploys, archives.
+
+**Memory across sessions.**
+Decisions made 6 months ago — why we chose JPA over Flyway, why we skipped Bedrock for direct Anthropic API, why the domain module has zero Spring imports — are persisted in a structured memory system. Claude Code doesn't re-litigate closed decisions.
+
+**The slice discipline.**
+Every feature is a vertical slice: domain record → port interface → service → adapter → controller → tests → OpenAPI spec update. Claude Code proposes the plan, I approve it, it executes it. Green tests before the next slice starts. No orphan code.
+
+The meta detail: Claude Code wrote this post. It also drafted the architecture docs, the content calendar, the anti-slop linting pipeline, and the 43-record state health AI legislation seed dataset.
+
+It's not a coding assistant. It's a collaborator with a project memory.
+
+*AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.*
+
+👉 bigskylabs.ai
+
+What's your workflow for maintaining architectural consistency across long-running AI-assisted projects?

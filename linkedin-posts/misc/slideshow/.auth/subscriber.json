@@ -1,0 +1,35 @@
+{
+  "cookies": [
+    {
+      "name": "_ga",
+      "value": "GA1.1.1484838030.1793295269",
+      "domain": ".bigskylabs.ai",
+      "path": "/",
+      "expires": 1827855270.263929,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "JSESSIONID",
+      "value": "82FA620CBA8E80E0939C04BDC7D5A290",
+      "domain": "app.bigskylabs.ai",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_ZDBXNCKJ54",
+      "value": "GS2.1.s1793295269$o1$g1$t1793295270$j59$l0$h0",
+      "domain": ".bigskylabs.ai",
+      "path": "/",
+      "expires": 1827855270.311302,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

@@ -1,0 +1,36 @@
+GROUP: Full Stack Developer - Java technologies, UI & Microservices
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+I have live-updating tables in this app — schedule status, pipeline run state — and no React, no Vue, no client-side state management anywhere. It's server-rendered Thymeleaf with htmx swapping in HTML fragments on a poll interval.
+
+The admin console's schedule table doesn't re-render the whole page to show updated status — a GET request returns a fragment template, htmx swaps just that chunk of the DOM, done. No JSON serialization layer purely for the frontend, no separate build pipeline, no hydration bugs. The server already has the Thymeleaf templating engine for every other page; htmx just lets you target a small part of it without a full page load.
+
+This obviously doesn't scale to every kind of UI — a genuinely complex client-side interaction model still wants a real frontend framework. But for "this table needs to update periodically without a full reload," it's a fraction of the complexity of standing up a separate SPA just for that one screen.
+
+For the full-stack devs here: what's your actual threshold for reaching for a SPA framework versus staying server-rendered with something like htmx or Turbo?
+
+#FullStackDeveloper #SpringBoot #Thymeleaf #htmx #JavaDev
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily." 👉 Link in the first comment.
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Full Stack Developer - Java technologies, UI & Microservices" → "Create a post" inside the group
+2. Paste Post Body — no image needed, no URL in the body
+3. Publish
+4. Immediately paste the First Comment (the actual link) on your own post
+
+--- STRATEGY NOTES ---
+
+- The specific htmx-powered screen (admin console) is tier-gated/internal, so the first comment links the general app rather than that exact screen — note this if someone asks to see it directly.
+- "UI" is literally in this group's name — this is probably the strongest fit of the three for pure engagement.

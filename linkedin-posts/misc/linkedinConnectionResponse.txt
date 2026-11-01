@@ -1,0 +1,7 @@
+Thanks for connecting! I built an AI healthcare intelligence platform that tracks 365 companies across 57+ daily data sources — regulatory filings, deal signals, trend detection, and an LLM-compiled knowledge wiki.
+
+Two free resources you can explore right now:
+
+📂 Company Directory — 365 AI healthcare companies with daily signal scoring: https://app.bigskylabs.ai/directory
+
+📚 Knowledge Wiki — 772 pages compiled from primary sources with full provenance tracking: https://app.bigskylabs.ai/wiki

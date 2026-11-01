@@ -1,0 +1,40 @@
+GROUP: STARTUP SPECIALISTS NETWORK GROUP — Entrepreneurs Business Startups Social Digital Media AI Marketing
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+Nobody warns you about this before you ship an AI feature: every user action can cost you money, and if you don't meter it, your margin disappears one API call at a time.
+
+My app calls 6 different LLM providers depending on the feature — search synthesis, sentiment scoring, deal classification, social post generation. Early on I let every tier use all of them freely. The bill told me that was a mistake within a month.
+
+What fixed it wasn't cutting features — it was tier-gating usage at the port level: free users get a capped number of AI-backed actions per day, paid tiers get more, and the heaviest pipelines (multi-model synthesis) are gated harder than the cheap ones (single-model classification). The product didn't get worse. The economics just stopped being invisible.
+
+The lesson for anyone building an AI feature into a product: price the AI call before you price the subscription. If you don't know your cost-per-active-user on the AI line item, you don't actually know if you have a business yet — you have a demo with a credit card attached.
+
+What's your approach been to metering AI costs without it feeling punitive to users?
+
+#StartupLife #AIProducts #SaaS #Bootstrapped #UnitEconomics
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+Built solo at app.bigskylabs.ai — happy to compare notes on tier design if you're wrestling with the same problem.
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "STARTUP SPECIALISTS NETWORK GROUP Entrepreneurs Business Startups Social Digital Media AI Marketing"
+2. Click "Create a post" inside the group (NOT from your profile feed)
+3. Paste the Post Body above — text-only, no image
+4. Do NOT include any links in the body — LinkedIn suppresses posts with URLs
+5. Publish
+6. Immediately paste the First Comment on your own post
+
+--- STRATEGY NOTES ---
+
+- General-startup angle (per the standing note on this group) — healthcare is incidental color, not the point.
+- Likely resonates with anyone shipping ChatGPT-wrapper-style products right now — that's most of this group's current build wave.

@@ -1,0 +1,29 @@
+PLATFORM: LinkedIn
+TYPE: Daily Post
+DATE: 2026-10-23
+SLUG: framework-scoring
+ANGLE: Framework Competitive Analysis feature — the same 6-dimension LLM rubric applied uniformly to Anthropic, OpenAI, Google, and AWS as healthcare AI platforms. The hook is methodological consistency (same yardstick, every company, every time) rather than company count.
+
+--- POST BODY ---
+
+Anthropic, OpenAI, Google, and AWS are all pitching themselves as healthcare AI platforms right now. Every one of them picks its own highlight reel to prove it.
+
+So I stopped reading highlight reels and built a scorecard that doesn't know which company it's grading.
+
+Six dimensions, same rubric, every time: technical maturity, clinical validation, regulatory positioning, platform strategy, market momentum, and developer experience. Each one scored 1–10 against the actual source articles — not vendor marketing, not my opinion. If a dimension has no evidence behind it for a given company, the score says so instead of guessing.
+
+That's the part that matters. A vendor comparison you read in a press release always flatters the vendor who wrote it. A rubric applied the same way to four competitors, pulling from the same evidence pool, can't play favorites — it just scores what's actually documented.
+
+The output is a radar chart per company and a paragraph assessment that names gaps as directly as strengths. If a platform's regulatory story is thin, the scorecard says thin. If a platform's clinical validation is strong, it says strong. Same standard, both directions.
+
+This is the kind of comparison a health system's AI vendor committee pays a consulting firm to produce once a quarter. Mine updates every time new coverage lands.
+
+(Links in first comment.)
+
+"AI in healthcare is history being written right now. I'm building the archive."
+
+#AIHealthcare #HealthTech #CompetitiveIntelligence #DigitalHealth
+
+--- FIRST COMMENT (post separately for reach) ---
+
+See the scorecards (free 7-day trial, no card required): https://app.bigskylabs.ai/register

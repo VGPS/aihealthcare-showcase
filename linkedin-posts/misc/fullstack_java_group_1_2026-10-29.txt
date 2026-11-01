@@ -1,0 +1,35 @@
+GROUP: Full Stack Developer - Java technologies, UI & Microservices
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+Everyone assumes a system with 6 AI providers, 14+ independent pipelines, and dozens of domain concerns must be microservices under the hood. It's a single Maven module.
+
+What actually gives you the "swap this piece without touching anything else" benefit people reach for microservices to get isn't network boundaries — it's interface boundaries. Every external dependency (each AI provider, the database, every HTTP source) sits behind a port interface in the domain layer; adapters implementing those ports live in infrastructure. Swapping an AI provider or adding a new data source touches one adapter and zero domain code — same practical benefit as a microservice boundary, without the deploy complexity, network latency, or distributed-tracing tax that comes with actually splitting it into separate services.
+
+For a solo developer, that tradeoff isn't close. Microservices earn their complexity when you have multiple teams needing independent deploy cadences. One person doesn't have that problem — they have the opposite problem: more moving parts to operate solo.
+
+For the full-stack folks here: where's your line for "this actually needs to be a separate service" versus "this just needs a clean interface boundary"?
+
+#Microservices #SpringBoot #JavaDev #SoftwareArchitecture #FullStackDeveloper
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily." 👉 Link in the first comment.
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Full Stack Developer - Java technologies, UI & Microservices" → "Create a post" inside the group
+2. Paste Post Body — no image needed, no URL in the body
+3. Publish
+4. Immediately paste the First Comment (the actual link) on your own post
+
+--- STRATEGY NOTES ---
+
+- Directly engages the "Microservices" half of this group's name with a contrarian but defensible take — expect some pushback from microservices purists; the "solo dev, not a multi-team org" framing is the strongest defense if challenged.

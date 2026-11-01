@@ -1,0 +1,66 @@
+=== LINKEDIN POST BODY ===
+I watched Claude decide what to fetch before writing this post.
+
+Not me. Claude. Autonomously.
+
+Here's what actually happened in the DEBUG log:
+
+→ Claude received: "Draft LinkedIn and Facebook posts from today's market digest."
+→ Claude called: getDigestEntries("2026-09-28") → 8 ranked entries returned
+→ Claude called: getCompanyArticles("Epic Systems") → 5 recent headlines
+→ Claude wrote: LINKEDIN_BODY: ... FACEBOOK_BODY: ... RATIONALE: ...
+
+The old version of this feature was 80 lines of Java deciding exactly what data to pre-load. The agent version is a system prompt, two @Tool methods, and a parser.
+
+The difference isn't code volume. It's who decides what to fetch.
+
+Old version: me, in Java, before the call.
+New version: Claude, at runtime, based on the question.
+
+That shift is what "agent" actually means in practice. Not a chatbot. A system that determines its own information-gathering path.
+
+Built with Spring AI @Tool on a Spring Boot app tracking 57+ healthcare AI sources daily.
+
+#SpringAI #AI #HealthcareAI #JavaDev #BuildingInPublic
+
+=== LINKEDIN FIRST COMMENT (paste immediately after posting) ===
+The full agent loop diagram and adapter code are in the AIHealthcare repo.
+
+The app it runs on — AI Healthcare Intelligence — tracks FDA clearances, funding rounds, WARN Act filings, and vendor moves across 57+ sources daily: app.bigskylabs.ai
+
+If you're building with Spring AI and want to see how @Tool wires into a production hexagonal architecture, happy to share more specifics.
+
+#SpringAI #HealthcareAI #BuildingInPublic #JavaDev
+
+=== FACEBOOK POST ===
+I spent part of the weekend teaching Claude to use tools — and it was one of those moments where a technology concept stops being theoretical.
+
+What I built: a feature where Claude autonomously decides which data to pull from the database before drafting social posts. Not me picking which queries to run. Claude, at runtime, deciding it needs the market digest → fetching it → deciding it wants more context on a specific company → fetching that too → then writing.
+
+The moment it clicked: watching it in the DEBUG logs. You can see Claude request a tool call, see the data come back, see it reason, call another tool, and then produce the output. That sequence IS the agent loop.
+
+Before: 80 lines of Java deciding exactly what to pre-load.
+After: a system prompt and two database tools. Claude handles the rest.
+
+This runs inside a Spring Boot app tracking 57+ healthcare AI sources daily. If you want to see what it produces when it runs against real market data: app.bigskylabs.ai
+
+#AIHealthcare #SpringAI #BuildingInPublic
+
+=== IMAGE ===
+File: linkedin-posts/shots/2026-09-28-soc1-agent-loop.png
+Use as the LinkedIn post image and the Facebook post image.
+
+=== POSTING INSTRUCTIONS ===
+
+LINKEDIN:
+1. Copy the Post Body above
+2. Go to linkedin.com → Start a post
+3. Paste the body text
+4. Add 2026-09-28-soc1-agent-loop.png as the post image
+5. Publish (do NOT add links in the body — kills reach 40-60%)
+6. Immediately paste the First Comment on your new post
+
+FACEBOOK:
+1. Copy the Facebook Post above
+2. Post to your Facebook page/group
+3. Add 2026-09-28-soc1-agent-loop.png as the post image

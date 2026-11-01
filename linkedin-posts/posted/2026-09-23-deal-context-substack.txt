@@ -1,0 +1,120 @@
+SUBSTACK POST — Tuesday, September 23, 2026
+Title: Signal vs. Noise in Healthcare AI M&A
+Subtitle: The press release tells you what happened. Four lenses tell you what it means.
+===========================================================================
+
+ARTICLE BODY
+-----------------------------------------------
+
+# Signal vs. Noise in Healthcare AI M&A
+
+Healthcare AI M&A is running hot. Funding rounds, strategic partnerships, acquisitions —
+there's a new announcement every week, and most of them come packaged as press releases
+written by someone who was paid to make them sound significant.
+
+The result is a lot of confident-sounding noise.
+
+"$40M Series B to accelerate commercial expansion." Fine. Is the company actually winning
+or is this a bridge round dressed up as a milestone? The press release cannot tell you.
+The context around the company can.
+
+---
+
+## The four things a deal doesn't tell you
+
+When a deal lands in the news, four relevant data points are almost never in the same place:
+
+**1. How coverage has been trending.**
+Not the announcement itself — the longer arc. Is media sentiment on this company improving
+or eroding? A raise that lands into declining coverage is a different situation than one
+that arrives at the peak of a positive cycle. Sentiment moves before price, and often before
+anyone admits what's happening.
+
+**2. How they score against competitors across the dimensions that matter.**
+"Leader in healthcare AI" is meaningless. Leader on clinical validation? On regulatory
+position? On data assets? On market adoption? Those are separable, and a company can be
+genuinely strong on two of six and thin on the rest. The composite score hides the shape.
+The shape is the whole story.
+
+**3. Their regulatory exposure.**
+Any active FDA or CMS activity touching this company or their device category belongs
+in the same view as the deal. A partnership announcement alongside an open 510(k) action
+is a different investment thesis than a clean regulatory record.
+
+**4. Their recent article velocity.**
+Has coverage been climbing since the last raise, or have they gone quiet? A company that
+raised 18 months ago and hasn't appeared in substantive coverage since is telling you
+something that no press release will carry.
+
+---
+
+## What I built
+
+The [Deal Signal feed on BigSkyLabs.ai](https://app.bigskylabs.ai/dashboard/deals) detects
+deals from harvested articles — funding, M&A, partnerships — and extracts structured fields
+from the coverage: deal type, amount, counterparty, and a confidence score on the extraction.
+
+But the feature I find myself using most is the detail page behind each signal.
+
+Click through a deal and you get all four data points above, cross-referenced automatically:
+
+- A **sentiment doughnut** for the company, with per-article rationale you can read
+- A **framework radar chart** — six competitive dimensions scored by AI from coverage
+- **Regulatory events** touching the company or their category
+- The **company profile** with discovery date, article velocity, and recent coverage
+
+The interesting cases are always the mismatches. A large raise into a declining sentiment
+score. A quiet round at a company with the strongest framework scores in their peer group.
+A deal that looks routine until you see an open regulatory action in the same device category.
+
+None of those are visible from the announcement itself.
+
+---
+
+## Why this matters for market research
+
+The teams who get the most out of this feature aren't primarily tracking investments to make.
+They're tracking a competitive landscape to understand.
+
+When your market changes — a new entrant raises a meaningful round, a partner announces
+a competitor integration, an acquisition reshapes a vendor category — you want to know
+within hours, not weeks. And you want the full picture, not a quote from the company's
+PR team.
+
+The deal feed updates daily. The cross-reference is automatic. The mismatches surface
+on their own.
+
+---
+
+## Try it
+
+Deal signals and full context: [app.bigskylabs.ai/dashboard/deals](https://app.bigskylabs.ai/dashboard/deals)
+
+7-day free trial, no card required: [app.bigskylabs.ai/register](https://app.bigskylabs.ai/register)
+
+If you work in healthcare market research, competitive intelligence, or investment analysis —
+this is what the platform was built for.
+
+---
+
+*BigSkyLabs.ai is an AI-powered healthcare intelligence platform built on Spring Boot,
+Spring AI, PostgreSQL/pgvector, Anthropic Claude, and Perplexity Sonar. Built by
+Bill Blackmon.*
+
+===========================================================================
+POSTING INSTRUCTIONS
+-----------------------------------------------
+Platform: https://billblackmon1.substack.com (Substack dashboard → New Post)
+
+1. Title:    Signal vs. Noise in Healthcare AI M&A
+2. Subtitle: The press release tells you what happened. Four lenses tell you what it means.
+3. Body:     Paste everything between the dashed lines above
+4. Image:    Use the same deal detail screenshot from the LinkedIn post
+             (all four cross-reference cards visible in one frame)
+             Set as the cover image for the Substack post
+5. Tags:     healthcare-ai, competitive-intelligence, market-research, healthtech
+6. Send to:  All subscribers (Free + Paid)
+7. Publish and copy the post URL
+8. Drop the URL in the LinkedIn first comment within 2 hours of publishing
+
+Archive this file: rename to 2026-09-23-deal-context-substack-POSTED.txt

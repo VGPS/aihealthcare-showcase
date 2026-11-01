@@ -1,0 +1,17 @@
+PLATFORM: LinkedIn
+TYPE: Daily Post
+DATE: 2026-10-21
+SLUG: regulatory-convergence
+ANGLE: Quantified pattern — 8 state AI-healthcare laws from 7 different states all take effect on the same date (Jan 1, 2027), surfaced only by watching the full 58-law registry at once
+
+--- POST BODY ---
+
+Seven states. Eight different AI-healthcare bills. One shared effective date.
+
+On January 1, 2027, laws from Colorado, Georgia, Oregon, Rhode Island, Washington, Utah, and New York all take effect within days of each other — covering AI companion chatbots, insurers leaning on AI for coverage decisions, and preauthorization rules.
+
+These legislatures didn't coordinate. They just arrived at the same conclusion in the same quarter, which is its own kind of signal.
+
+I maintain a standing registry of all 58 state AI-healthcare laws (53 enacted) across 27 jurisdictions. Patterns like this only show up when you're watching every state at once, not following one news cycle at a time.
+
+"AI in healthcare is history being written right now. I'm building the archive."

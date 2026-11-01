@@ -1,0 +1,60 @@
+=== POSTING INSTRUCTIONS ===
+
+1. Copy the Post Body below (everything between === LINKEDIN POST BODY === and === IMAGE ===)
+2. Go to linkedin.com → Start a post
+3. Paste the body text
+4. DO NOT add any URL to the post body — it kills organic reach 40-60%
+5. Screenshot needed: run the Playwright script first →
+   node linkedin-posts/135b-funding-wave-screenshot.js <email> <password>
+   This captures the Market Digest page showing today's funding headlines.
+   Save as: linkedin-posts/shots/2026-10-01-135b-funding-wave-market.png
+6. Attach that screenshot as the post image
+7. Publish the post
+8. Immediately paste the First Comment as the very first comment
+9. Best posting window: Wednesday 7:30–9:00 AM or 12:00–1:00 PM local time
+10. Engagement tip: VCs and health system strategy teams respond strongly to valuation data —
+    engage replies that question the $15B OpenEvidence valuation specifically
+
+=== LINKEDIN POST BODY ===
+
+$1.35 billion. One day. Three healthcare AI companies.
+
+Yesterday's market digest from our pipeline:
+
+→ Angle Health: $600M raise at a $2.7 billion valuation
+→ Ortet: $500 million committed to a new health-focused AI lab
+→ OpenEvidence: $250M at a reported $15 billion valuation
+
+Let that last number land.
+
+$15 billion for a clinical AI company. That's not a Series C valuation. That's a bet that AI becomes the default interface between physicians and medical knowledge — and that one company captures the majority of that market.
+
+For context: Epic Systems, which processes 38% of all U.S. hospital patient records, is privately held but estimated at roughly $50 billion. OpenEvidence is pricing itself at 30% of the most dominant EHR platform in the country — before it has achieved anything close to equivalent distribution.
+
+That's either the most prescient bet in digital health history, or a valuation that only makes sense at the top of a cycle.
+
+What the funding wave tells us about the market right now:
+
+1. The "AI will replace search for clinical decision-making" thesis is attracting serious capital
+2. Investors are pricing for winner-take-most outcomes, not diversified ecosystems
+3. The window for underfunded incumbents to compete is compressing fast
+
+We track deal signals, funding rounds, and market-moving news across 602 AI healthcare companies daily. Today was not a typical day.
+
+#HealthcareAI #DigitalHealth #HealthTech #VentureCapital #AIinHealthcare
+
+=== IMAGE ===
+File: linkedin-posts/shots/2026-10-01-135b-funding-wave-market.png
+Market Digest screenshot showing today's three funding headlines with impact rankings.
+Grounds the post in platform data and shows the intelligence product in action.
+
+=== LINK (first comment only — not in post body) ===
+https://app.bigskylabs.ai/dashboard/market
+
+=== LINKEDIN FIRST COMMENT (paste immediately after publishing) ===
+Today's full market digest with all three deal entries ranked by impact — including the Ortet and OpenEvidence details:
+https://app.bigskylabs.ai/dashboard/market
+
+What's your read on the $15B OpenEvidence valuation? Justified disruption premium or cycle-peak pricing?
+
+#HealthcareAI #DigitalHealth #HealthTech #VentureCapital #AIinHealthcare

@@ -1,0 +1,35 @@
+GROUP: US Healthcare Product Minds + AI – Learn, Share, Grow
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+Every healthcare product team keeps some version of an ecosystem map — who's partnered with whom, who acquired whom, who's investing in whom. Almost everyone I've talked to maintains it by hand, which means it's always a little behind and always someone's unglamorous side project.
+
+Mine updates itself. An AI pipeline reads daily healthcare news and extracts partnership, acquisition, and investment relationships between companies automatically, with every extracted relationship traceable back to the specific article it came from — no silent "trust the graph" step. New edges appear the same day the news does, not whenever someone remembers to update a slide.
+
+The traceability matters more than the automation, honestly. An auto-generated graph nobody can audit is just a fancier way to be confidently wrong. One where every connection links back to its source article is something you can actually defend in a roadmap review.
+
+For the product folks here: is ecosystem/partnership mapping something your team tracks formally, or does it live mostly in people's heads until someone needs it for a specific deck?
+
+#ProductManagement #HealthTech #CompetitiveIntelligence #Ecosystem #AIinHealthcare
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily." 👉 Link in the first comment.
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai/dashboard/relationships
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "US Healthcare Product Minds + AI – Learn, Share, Grow" → "Create a post" inside the group
+2. Paste Post Body — no image needed, no URL in the body
+3. Publish
+4. Immediately paste the First Comment (the actual link) on your own post
+
+--- STRATEGY NOTES ---
+
+- "Traceable back to source article" is the credibility line — lead with it if anyone questions whether an AI-extracted relationship graph can be trusted.

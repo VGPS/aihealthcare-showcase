@@ -1,0 +1,72 @@
+LINKEDIN POST — Tuesday, September 23, 2026
+Feature: Deal Context Enrichment — Competitor Intelligence Angle
+===========================================================================
+
+POST BODY (paste this first — no links in body)
+-----------------------------------------------
+When a competitor closes a deal, most people read the headline and move on.
+
+"$40M Series B. AI-powered clinical documentation. Existing investors participated."
+
+That tells you almost nothing about whether the company is compounding or cornered.
+The context is what changes the reading — and it's usually filed in four different places.
+
+So I built a cross-reference that assembles it automatically.
+
+Open any deal signal and you see:
+• Their sentiment picture — how coverage has been trending across POSITIVE / NEGATIVE / MIXED,
+  with per-article rationale so you can read the reasoning, not just the score
+• Their competitive framework — scored across six dimensions (clinical validation, regulatory
+  position, market adoption, technical depth, data assets, partnerships) and rendered as a
+  radar chart so the shape reads in five seconds
+• Regulatory exposure — any active FDA or CMS activity that touches them
+• Company profile — discovery date, article velocity, sector, recent coverage
+
+The interesting cases are the mismatches.
+
+A large raise into declining sentiment. A quiet round at a company with unusually strong
+framework scores. A deal that looks routine until you notice they have an open FDA action
+in the same category.
+
+None of those are visible from the deal feed alone.
+
+One event. Four lenses. The mismatches are where the analysis lives.
+
+Link in the first comment. 7-day free trial, no card.
+
+#HealthcareAI #CompetitiveIntelligence #HealthTech #DueDiligence #MarketIntelligence
+
+===========================================================================
+FIRST COMMENT (paste immediately after posting)
+-----------------------------------------------
+Deal signals with full context: https://app.bigskylabs.ai/dashboard/deals
+7-day free trial — no card required: https://app.bigskylabs.ai/register
+Pricing and tiers: https://app.bigskylabs.ai/pricing
+
+===========================================================================
+SCREENSHOT / GRAPHIC
+-----------------------------------------------
+Page:    https://app.bigskylabs.ai/dashboard/deals/{signalId}
+Setup:   Pick a deal on a company that has BOTH sentiment data AND framework scores.
+         Abridge, Nuance, Cohere Health, or any large tracked company works well.
+Capture: All four cross-reference cards in one frame:
+         - Sentiment doughnut (top-left)
+         - Framework radar (top-right)
+         - Regulatory events (bottom-left)
+         - Company profile (bottom-right)
+         The point is that they are TOGETHER on the same page. That's the feature.
+Redact:  Your account email in the nav bar. Nothing else sensitive on this page.
+Alt text: BigSkyLabs deal detail page showing sentiment, framework, regulatory,
+          and company profile cross-reference cards for one deal signal.
+
+===========================================================================
+POSTING INSTRUCTIONS
+-----------------------------------------------
+1. Go to LinkedIn → Start a post
+2. Paste the POST BODY above (no links)
+3. Attach the screenshot as an image (drag onto the post before publishing)
+4. Click Post
+5. Immediately open your post → Add a comment
+6. Paste the FIRST COMMENT block above
+7. Archive this file: rename to 2026-09-23-deal-context-competitors-POSTED.txt
+   and move to linkedin-posts/posted/

@@ -1,0 +1,36 @@
+GROUP: Digital Health Technology - AI in healthcare, eHealth, mHealth, healthcare innovation
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+A 600+ company directory is useless if it's just an alphabetical list. The question anyone evaluating a vendor or partner actually has is: is this company gaining momentum right now, or just loud?
+
+I built a signal score instead of a static listing: article velocity over 90 days, whether they've closed a funding round recently, and a sentiment penalty if recent coverage has turned negative. Companies get flagged 🔥 trending, 💰 recently funded, or ⚠ on the watch list based on actual signal, not self-reported marketing copy. You can sort the whole directory by relevance, trending, funded, or watchlist instead of scrolling an unordered list hoping to recognize a name.
+
+The part that mattered most in practice: the ⚠ watchlist flag (declining sentiment + stalled activity) turned out to be just as useful as the 🔥 trending flag. Knowing who's cooling off is as actionable as knowing who's heating up, especially before a partnership or procurement decision.
+
+For the digital health folks here: when you're vetting a vendor or potential partner, what's your actual signal for "this company has real momentum" versus "this company has a good pitch deck"?
+
+#DigitalHealth #eHealth #HealthTech #HealthcareInnovation #DueDiligence
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily." 👉 Link in the first comment.
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai/directory
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Digital Health Technology - AI in healthcare, eHealth, mHealth, healthcare innovation" → "Create a post" inside the group
+2. Paste Post Body — no image needed, no URL in the body
+3. Publish
+4. Immediately paste the First Comment (the actual link) on your own post
+
+--- STRATEGY NOTES ---
+
+- Practical/practitioner framing fits this group's "innovator not just researcher" skew — lead with the vetting use case, not the scoring mechanics.
+- If someone asks if this replaces real diligence — be clear it's a screening signal, same caveat as the Tech Startup CEOs posts.

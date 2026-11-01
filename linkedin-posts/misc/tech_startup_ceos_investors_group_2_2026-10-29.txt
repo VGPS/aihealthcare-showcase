@@ -1,0 +1,37 @@
+GROUP: Tech Startup CEOs & Investors: Artificial Intelligence, Machine Learning, FinTech, SaaS, ChatGPT
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+Comparable-deal analysis in healthcare M&A is usually manual: read the press release, dig for the 8-K if it's public, guess at the split between upfront cash and milestone payments if it's private. I automated the first pass of that.
+
+An LLM reads every deal headline and summary my platform harvests and pulls out structured terms where they're disclosed: upfront cash, milestone payments, equity stake percentage, royalty percentage, and — critically — flags which portion of the deal was actually disclosed versus which portion is being estimated or omitted. Most deal announcements disclose less than people assume; knowing exactly what wasn't disclosed is as useful as knowing what was.
+
+This doesn't replace reading the actual filing before you commit capital. What it does is let you screen 50 deals in the time it used to take to read 5, so you know which ones are worth the deep read.
+
+See the extracted deal terms on a live example. 👉 Link in the first comment.
+
+For the CEOs and investors here: how much of your comp-deal benchmarking is still manual versus automated at this point?
+
+#MandA #TechStartups #Investors #FinTech #DealFlow
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+app.bigskylabs.ai/dashboard/market
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Tech Startup CEOs & Investors: Artificial Intelligence, Machine Learning, FinTech, SaaS, ChatGPT" → "Create a post" inside the group
+2. Paste Post Body — no image needed, no URL in the body
+3. Publish
+4. Immediately paste the First Comment (the actual link) on your own post
+
+--- STRATEGY NOTES ---
+
+- Be precise that this is a screening tool, not a diligence substitute — this audience will push back hard if the framing implies it replaces reading the actual deal documents.

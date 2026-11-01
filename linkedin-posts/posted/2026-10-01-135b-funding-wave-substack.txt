@@ -1,0 +1,110 @@
+=== SUBSTACK POSTING INSTRUCTIONS ===
+
+1. Log in to Substack → New Post
+2. Title: "$1.35 Billion in Healthcare AI. One Day."
+3. Subtitle: "Angle Health, Ortet, and OpenEvidence just raised more capital in 24 hours
+   than most sectors see in a quarter. Here's what the money is actually betting on."
+4. Paste the body below (from the opening paragraph through the footer)
+5. Cover image: linkedin-posts/shots/2026-10-01-135b-funding-wave-market.png
+6. Section: "Market Intelligence" or "Analysis"
+7. Audience: All subscribers (free + paid)
+8. Send as email: YES
+9. Best send time: Wednesday 7:00 AM local time
+10. After publishing: share the post URL as a follow-up comment on today's LinkedIn post
+
+=== ENGAGEMENT FOLLOW-UP ===
+If a subscriber asks whether the OpenEvidence valuation reflects genuine traction or
+cycle-peak pricing, use this:
+
+"Both can be true simultaneously. OpenEvidence has genuine physician adoption and strong
+NPS among users — the product works. But a $15B valuation embeds a market-size assumption
+that requires them to become infrastructure for a large fraction of clinical decision-making
+globally, not just a well-adopted tool for some physicians. The distance between 'physicians
+who've tried it like it' and 'infrastructure for global clinical reasoning' is where the
+valuation risk lives. That gap is real — but so is the direction of travel."
+
+---
+
+# $1.35 Billion in Healthcare AI. One Day.
+
+### October 1, 2026
+
+---
+
+Three healthcare AI companies. Twenty-four hours. $1.35 billion.
+
+Yesterday's market signals from our daily intelligence pipeline:
+
+- **Angle Health** raised $600 million at a $2.7 billion valuation
+- **Ortet** committed $500 million to launch a new health-focused AI research lab
+- **OpenEvidence** raised $250 million — at a reported $15 billion valuation
+
+On a day when most of the country is focused on other things, that amount of capital moved into a single sector in a single day.
+
+This deserves more than a headline. Let's break down what each of these bets actually represents.
+
+---
+
+## Angle Health: The payer-side AI thesis at scale
+
+Angle Health's $600M raise at a $2.7B valuation is the most straightforward of the three in terms of what it's betting on. Payer-side AI — tools that help health insurance companies manage utilization review, prior authorization, member engagement, and risk stratification — is one of the cleaner business models in health tech because the payer's incentive to reduce administrative cost is highly legible.
+
+Prior authorization AI, in particular, has attracted a wave of capital because the regulatory environment is tightening: CMS and several states have begun mandating faster PA turnaround times. Companies that automate PA review for payers sit in a position where regulatory pressure creates demand rather than constraining it.
+
+$2.7B puts Angle Health in the range where an IPO or strategic acquisition becomes the natural next chapter. The question for this category — which has several well-capitalized players now — is whether it consolidates through M&A or whether multiple companies sustain independent scale.
+
+---
+
+## Ortet: The "we need new infrastructure" bet
+
+The $500M Ortet commitment is the most structurally interesting move of the three.
+
+Ortet is not acquiring an existing company. It's not extending a product line. It's building a new health-focused AI research lab from scratch — a standalone organization with the mandate to do foundational AI work specifically for healthcare applications.
+
+This structure echoes what DeepMind represented for Google: a bet that the foundational AI work for a specific domain hadn't been done adequately, and that doing it properly required a dedicated organization rather than a product team inside a larger company.
+
+The implicit claim is that existing AI infrastructure — general-purpose LLMs, medical adaptations of those models, clinical NLP tools developed over the last decade — is not sufficient for what healthcare AI will need to do. That's a contestable position. But when $500M supports it, the contestation becomes interesting.
+
+---
+
+## OpenEvidence: The $15 billion thesis
+
+This is the valuation that stops the conversation.
+
+OpenEvidence is a clinical decision support tool. Physicians ask it clinical questions, and it synthesizes the medical evidence to provide sourced, grounded answers. It's well-regarded by clinicians who use it — physician-facing AI with strong user satisfaction scores is genuinely rare and genuinely valuable.
+
+$15 billion puts it at approximately 30% of Epic Systems' estimated valuation. Epic processes patient records for 38% of U.S. hospitals and has achieved a level of institutional lock-in that took decades to build. OpenEvidence is much earlier in its market penetration by any measure.
+
+What investors are pricing at $15B is not OpenEvidence's current revenue or even its current growth rate. They're pricing a specific thesis about how medical knowledge works in the future:
+
+**The thesis**: AI becomes the primary interface between clinicians and medical knowledge. Not a search tool. Not an assistant. The default cognitive infrastructure for clinical reasoning. The company that builds the trusted, accurate, physician-adopted version of that wins a market that is very large and very durable.
+
+That thesis could be right. The direction of travel — AI increasingly augmenting clinical information-processing — is observable and probably irreversible. The question is whether OpenEvidence specifically achieves the scale and institutional trust required to be that infrastructure, and whether the category produces one dominant player or several.
+
+$15B as a valuation requires the first-mover advantage to be very durable and the category to be very winner-take-most. Both are contestable assumptions.
+
+But the size of the bet is itself a signal. When this level of capital concentrates around a single thesis in a single day, the window for underfunded alternatives to compete in the same space compresses materially.
+
+---
+
+## What today tells us about where healthcare AI is
+
+Three patterns visible in today's single-day data:
+
+**Capital is pricing for endpoints, not milestones.** $15B for OpenEvidence, $2.7B for Angle Health — these are not valuations that reflect current run rates. They reflect beliefs about what the end state of the category looks like and what share of that end state each company is likely to capture. That's a different kind of investment calculus than traditional growth equity.
+
+**The "AI lab" model signals a belief that foundational work remains unfinished.** Ortet's structure — not an acquisition, a new lab — implies that investors believe the best healthcare AI hasn't been built yet and needs purpose-built infrastructure to exist. That's an optimistic bet on the category's future, and a challenging one for companies that have already shipped products: if foundational capabilities are still emerging, today's products may have shorter shelf lives than their current adoption suggests.
+
+**The window for underfunded competitors is closing.** $1.35B in one day doesn't go to a hundred companies — it goes to three. As capital concentrates, the companies that received it gain compounding advantages: hiring, data acquisition, distribution partnerships, brand. The competitive landscape 18 months from now will look different from today's, and probably harder for new entrants.
+
+---
+
+## The intelligence view
+
+We track daily market signals, deal flow, funding rounds, and regulatory events across 602 AI healthcare companies. Today's three funding rounds were flagged in this morning's market digest before most industry coverage had picked them up.
+
+**[app.bigskylabs.ai/dashboard/market](https://app.bigskylabs.ai/dashboard/market)** — today's full digest with all three entries ranked by market impact.
+
+---
+
+*Big Sky Labs covers deal signals, regulatory events, competitive intelligence, and market analysis for the AI healthcare sector. [Subscribe](https://app.bigskylabs.ai) for the full daily intelligence feed.*

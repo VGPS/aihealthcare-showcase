@@ -1,0 +1,68 @@
+=== MEDIUM POSTING INSTRUCTIONS ===
+Date: 2026-09-25
+Post: Healthcare AI Is Moving Too Fast for Anyone to Track. So I Built Something That Tries.
+
+--- BEFORE YOU POST ---
+
+1. Delete your two existing dead-view Medium stories (they can't be revived).
+   Go to your story → click the "..." menu → Move to trash.
+
+2. Make sure you are enrolled in the Medium Partner Program
+   (Settings → Partner Program). Required for curator distribution.
+
+--- PUBLISHING STEPS ---
+
+1. Go to medium.com → Write a story
+2. Paste the title: "Healthcare AI Is Moving Too Fast for Anyone to Track. So I Built Something That Tries."
+3. Paste the subtitle: "After six months of watching analysts miss the story hiding in plain sight, I automated the entire intelligence pipeline."
+4. Paste the full post body from: 2026-09-25-medium-healthcare-ai-flying-blind.txt
+5. Add the cover image: 2026-09-25-medium-tour-og.png (1920x1080 dashboard screenshot)
+6. Add the section dividers (Medium renders "---" as a visual divider — keep them)
+7. Add tags (MUST use all 5):
+      Artificial Intelligence
+      Healthcare
+      Health Tech
+      Startup
+      Data Science
+
+--- SET TO PUBLIC (CRITICAL) ---
+
+8. Before publishing: click "Publish" → toggle "Metered paywall" to OFF (free/public).
+   Posts behind the paywall are NOT indexed by Google and get zero external traffic.
+
+--- SUBMIT TO PUBLICATION ---
+
+9. Before clicking Publish: click "Add to publication" → search "DataDrivenInvestor"
+   → click "Submit to publication"
+   Wait for acceptance (usually 1-3 days). They will notify you by email.
+
+   If DataDrivenInvestor declines after 5 days, submit to "Towards AI" instead.
+
+--- AFTER PUBLISHING ---
+
+10. Post the link on LinkedIn immediately after it goes live.
+    Frame: "Just published on Medium — the intelligence gap costing healthcare analysts
+    time and money every week. What signal are YOU missing? [link]"
+    → This drives early engagement, which tells Medium's algorithm to distribute it.
+
+11. Post the link in 2-3 relevant LinkedIn groups where you have existing presence.
+
+12. Reply to EVERY comment within the first 24 hours — early comment velocity
+    is a strong distribution signal on Medium.
+
+--- IMAGE ---
+
+Cover image file: 2026-09-25-medium-tour-og.png
+Location: linkedin-posts/shots/2026-09-25-medium-tour-og.png
+Dimensions: 1920x1080 (dashboard screenshot — shows the platform in action)
+
+--- WHY THIS POST WILL PERFORM BETTER ---
+
+- Leads with a problem readers recognize, not a product pitch
+- Contains specific data points (41 laws, 24 states, 40+ sources, $50M threshold)
+  that signal credibility to curators
+- Ends with a question that drives comments
+- Tour link appears naturally in context, not as a shout-out
+- Free/public setting means Google indexes it → long-tail search traffic over time
+- DataDrivenInvestor audience = analysts, investors, fintech/healthtech builders
+  (exact match for this platform's target customer)

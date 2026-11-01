@@ -1,0 +1,35 @@
+{
+  "cookies": [
+    {
+      "name": "_ga",
+      "value": "GA1.1.1335121043.1790336038",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1824896039.239769,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "JSESSIONID",
+      "value": "DA8562D2E27931B29D0EC7FC2283402A",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_ZDBXNCKJ54",
+      "value": "GS2.1.s1790336038$o1$g1$t1790336039$j59$l0$h0",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1824896039.317456,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

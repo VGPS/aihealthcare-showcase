@@ -1,0 +1,37 @@
+GROUP: Healthcare-IT/ EHR/ HIS
+DATE: 2026-10-29
+PLATFORM: LinkedIn (Group Post)
+STATUS: DRAFT — not yet posted
+
+---
+
+--- POST BODY ---
+
+If an EHR note or an HIS record showed up with no author, no timestamp, and no source, it'd get rejected before it ever reached a chart. Most AI healthcare news and analysis gets published with exactly that level of traceability — a claim, no citation, no way to check if it's still true six months later.
+
+I built the opposite on purpose: every claim in my platform's compiled knowledge base links back to the specific article, source, and date it came from. And when a new article contradicts something previously stated — a reversed FDA decision, a walked-back funding claim — the system flags it as a tracked contradiction instead of silently overwriting the old claim. Nothing gets deleted. The system of record keeps both versions, timestamped, so you can see exactly when and why something changed.
+
+It's a small thing, but it's the same instinct that makes a good audit trail valuable in any record system: the value isn't just knowing what's true now, it's knowing what changed and when.
+
+For the governance-minded people in this group: how do you evaluate the trustworthiness of an external data source before it influences a decision inside your systems?
+
+#HealthIT #DataGovernance #EHR #HIS #HealthcareCompliance
+
+"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."
+
+--- FIRST COMMENT (paste immediately after posting) ---
+
+The contradiction feed, public: app.bigskylabs.ai/wiki/contradictions — every tracked reversal, sourced both ways.
+
+--- POSTING INSTRUCTIONS ---
+
+1. Group: "Healthcare-IT/ EHR/ HIS" → "Create a post" inside the group
+2. Paste Post Body — no image needed
+3. No links in the body — LinkedIn suppresses posts with URLs
+4. Publish
+5. Immediately paste the First Comment on your own post
+
+--- STRATEGY NOTES ---
+
+- "Audit trail" framing should land naturally with this audience — they live in systems where traceability is a regulatory requirement, not a nice-to-have.
+- Don't overclaim equivalence to clinical audit logging (HIPAA/accounting-of-disclosures) if someone presses the comparison — this is market-intelligence provenance, not a clinical compliance system.
