@@ -48,6 +48,11 @@ build/
 ### IntelliJ run configs (may contain env vars with secrets) ###
 .idea/runConfigurations/
 .idea/dataSources.xml
+.idea/db-forest-config.xml
+.idea/sqldialects.xml
+
+### Claude Code workflow scratch worktrees ###
+.claude/worktrees/
 
 ### k6 load test output (local only) ###
 logs/k6/
