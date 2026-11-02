@@ -33,6 +33,14 @@ See @docs/CONVENTIONS.md for all coding rules (logging, loops, records, class he
 - Transform tasks into verifiable goals (e.g. "write a test that reproduces the bug, then fix it").
 - For multi-step tasks, state a brief plan with verification checks per step.
 
+### Session Cost Discipline
+- **One task per session.** Unrelated work goes in a new session after `/clear`.
+- **Two failed attempts = stop.** After two fix attempts that don't work, pause and state: what is known for certain vs. what is being guessed. Do not iterate a third time without a new hypothesis.
+- **No unfiltered large output.** Never pipe full log files or `mvn dependency:tree` into context. Grep for the relevant signal first (e.g. `grep ERROR app.log | tail -20`).
+- **One rebuild per hypothesis.** Don't rebuild the app to verify the same theory twice.
+- **State the task upfront.** If the user hasn't written "The task is X. Done when Y," ask before starting exploratory work.
+- **Earn the next step.** Don't read a file, run a command, or spawn a subagent unless the result will directly inform the next action. No speculative exploration.
+
 ---
 
 ## Module Structure
