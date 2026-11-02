@@ -493,6 +493,7 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
 
         String headline        = "[Headline unavailable]";
         String summary         = "[Summary unavailable]";
+        String whyItMatters    = null;
         String sectionTypeRaw  = null;
 
         for (String line : response.split("\n")) {
@@ -501,6 +502,8 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
                 headline = trimmed.substring("HEADLINE:".length()).trim();
             } else if (trimmed.startsWith("SUMMARY:")) {
                 summary = trimmed.substring("SUMMARY:".length()).trim();
+            } else if (trimmed.startsWith("WHY_IT_MATTERS:")) {
+                whyItMatters = trimmed.substring("WHY_IT_MATTERS:".length()).trim();
             } else if (trimmed.startsWith("SECTION_TYPE:")) {
                 sectionTypeRaw = trimmed.substring("SECTION_TYPE:".length()).trim();
             }
@@ -509,6 +512,10 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
         if (headline.equals("[Headline unavailable]") || summary.equals("[Summary unavailable]")) {
             log.warn("parseSection() | LLM response missing HEADLINE or SUMMARY for sectionId={}; "
                      + "using fallback values. Raw response: {}", sectionId, response);
+        }
+
+        if (whyItMatters != null && !whyItMatters.isBlank()) {
+            summary = summary + "\nWHY_IT_MATTERS:" + whyItMatters;
         }
 
         SectionType sectionType = resolveSectionType(sectionTypeRaw, sectionId);
