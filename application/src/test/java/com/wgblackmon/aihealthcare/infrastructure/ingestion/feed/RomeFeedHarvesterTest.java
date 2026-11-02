@@ -180,6 +180,8 @@ class RomeFeedHarvesterTest {
     @DisplayName("FeedHarvestScheduler constructs successfully with both ports")
     void feedHarvestScheduler_constructionWithBothPorts_doesNotThrow() {
         FeedHarvestScheduler scheduler = new FeedHarvestScheduler(harvester, mockArticleStoragePort, mockTopicSummaryService, mockNewsTopicProperties, null, null, null, null, null, null, null, null, null, null, null, null, mock(com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService.class));
+        // (12 optional null params unchanged in count: DetectDealSignalsUseCase slot
+        // was replaced by CompilationReportPort in the constructor, same arity)
 
         assertThat(scheduler).isNotNull();
     }
