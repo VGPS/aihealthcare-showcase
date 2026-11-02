@@ -142,7 +142,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf
                 .ignoringRequestMatchers("/api/**", "/monitoring/**", "/admin/pipelines/**",
                                         "/stripe/**", "/swagger-ui/**", "/v3/api-docs/**",
-                                        "/d/**", "/login/saml2/**")
+                                        "/d/**", "/login/saml2/**", "/mcp/**")
             );
 
         SecurityFilterChain result = http.build();
