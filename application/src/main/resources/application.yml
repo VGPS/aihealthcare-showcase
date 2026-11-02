@@ -419,6 +419,7 @@ aihealthcare:
         - "Healthcare IT Offshoring and Outsourcing"
         - "AI Healthcare Government Policy"
         - "AI Healthcare Legal"
+        - "Corporate AI & Healthcare Law"
         - "OpenAI Healthcare"
         - "Anthropic Healthcare"
         - "Amazon Connect Health"
@@ -450,6 +451,7 @@ aihealthcare:
       - "Healthcare IT Offshoring India Patient Data"
       - "AI Healthcare Government Policy"
       - "AI Healthcare Legal"
+      - "Corporate AI & Healthcare Law"
       - "OpenAI Healthcare"
       - "Anthropic Healthcare"
       - "Amazon Connect Health"
@@ -1186,6 +1188,47 @@ aihealthcare:
         tier: LEGAL
         base-weight: 0.85
         max-items: 20
+      # -----------------------------------------------------------------
+      # Corporate AI & Healthcare Law — the 3-way intersection of corporate
+      # AI vendor integrations (Epic MCP, Oracle Health AI, Nuance/DAX),
+      # health system AI adoption decisions, and the legal/regulatory
+      # responses that follow. Captures events before legislation catches up.
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Google News EHR AI Integration Regulation
+        topic: Corporate AI & Healthcare Law
+        url: https://news.google.com/rss/search?q=EHR+AI+integration+regulation+liability+OR+Epic+MCP+OR+Oracle+health+AI&hl=en-US&gl=US&ceid=US:en
+        tier: LEGAL
+        base-weight: 0.9
+        max-items: 20
+      - topic-id: 1
+        name: Google News Healthcare AI Vendor Liability
+        topic: Corporate AI & Healthcare Law
+        url: https://news.google.com/rss/search?q=healthcare+AI+vendor+liability+OR+AI+clinical+decision+support+lawsuit+OR+AI+EMR+liability&hl=en-US&gl=US&ceid=US:en
+        tier: LEGAL
+        base-weight: 0.9
+        max-items: 20
+      - topic-id: 1
+        name: Google News Health System AI Corporate Deals
+        topic: Corporate AI & Healthcare Law
+        url: https://news.google.com/rss/search?q=health+system+AI+corporate+deal+OR+hospital+AI+contract+OR+EHR+AI+partnership+regulation&hl=en-US&gl=US&ceid=US:en
+        tier: LEGAL
+        base-weight: 0.85
+        max-items: 20
+      - topic-id: 1
+        name: Google News AI FHIR Interoperability Legal
+        topic: Corporate AI & Healthcare Law
+        url: https://news.google.com/rss/search?q=AI+FHIR+interoperability+legal+OR+health+data+API+liability+OR+MCP+healthcare+regulation&hl=en-US&gl=US&ceid=US:en
+        tier: LEGAL
+        base-weight: 0.9
+        max-items: 15
+      - topic-id: 1
+        name: Manatt Health AI Policy Tracker
+        topic: Corporate AI & Healthcare Law
+        url: https://www.manatt.com/insights/newsletters/health-highlights/manatt-health-health-ai-policy-tracker
+        tier: LEGAL
+        base-weight: 0.95
+        max-items: 15
       # -----------------------------------------------------------------
       # Health Data Utilities — health data interoperability, FHIR, HL7,
       # data exchange, claims data, health information exchanges (HIEs),
