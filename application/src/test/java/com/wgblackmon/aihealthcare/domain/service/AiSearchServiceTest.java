@@ -74,7 +74,7 @@ class AiSearchServiceTest {
     }
 
     @Test
-    void search_withResults_returnsSynthesesFromAllPorts() {
+    void search_withExplicitAllModelNames_returnsSynthesesFromAllPorts() {
         NewsArticle a1 = sampleArticle("a1", "AI in Radiology");
         NewsArticle a2 = sampleArticle("a2", "ML in Pathology");
         when(vectorSearch.findSimilar(eq("AI diagnostics"), eq(10))).thenReturn(List.of(a1, a2));
@@ -90,7 +90,7 @@ class AiSearchServiceTest {
         when(gptPort.synthesize(eq("AI diagnostics"), eq(List.of(a1, a2)))).thenReturn(gptSynthesis);
         when(perplexityPort.synthesize(eq("AI diagnostics"), eq(List.of(a1, a2)))).thenReturn(perplexitySynthesis);
 
-        AiSearchResult result = service.search("AI diagnostics", 10);
+        AiSearchResult result = service.search("AI diagnostics", 10, List.of("Claude", "GPT", "Perplexity"));
 
         assertThat(result.query()).isEqualTo("AI diagnostics");
         assertThat(result.articles()).hasSize(2);
@@ -148,7 +148,7 @@ class AiSearchServiceTest {
         when(gptPort.synthesize(eq("surgery AI"), eq(List.of(a1)))).thenThrow(new RuntimeException("API error"));
         when(perplexityPort.synthesize(eq("surgery AI"), eq(List.of(a1)))).thenReturn(perplexitySynthesis);
 
-        AiSearchResult result = service.search("surgery AI", 5);
+        AiSearchResult result = service.search("surgery AI", 5, List.of("Claude", "GPT", "Perplexity"));
 
         assertThat(result.articles()).hasSize(1);
         assertThat(result.syntheses()).hasSize(3);
@@ -170,7 +170,8 @@ class AiSearchServiceTest {
         when(gptPort.synthesize(eq("Grelin Health business model"), eq(List.of(a1)))).thenReturn(null);
         when(perplexityPort.synthesize(eq("Grelin Health business model"), eq(List.of(a1)))).thenReturn(null);
 
-        AiSearchResult result = service.search("Grelin Health business model", 10);
+        AiSearchResult result = service.search("Grelin Health business model", 10,
+                List.of("Claude", "GPT", "Perplexity"));
 
         assertThat(result.syntheses()).hasSize(1);
         assertThat(result.syntheses().get(0).modelName()).isEqualTo("Claude");
@@ -196,43 +197,73 @@ class AiSearchServiceTest {
     }
 
     @Test
-    void search_withNullModelNames_usesAllModels() {
+    void search_withNullModelNames_defaultsToClaudeOnly() {
         NewsArticle a1 = sampleArticle("a1", "AI in Oncology");
         when(vectorSearch.findSimilar(eq("oncology"), eq(10))).thenReturn(List.of(a1));
 
         AiSearchSynthesis claudeSynthesis = new AiSearchSynthesis(
                 "Claude", "Claude summary", List.of("Finding"), Instant.now());
-        AiSearchSynthesis gptSynthesis = new AiSearchSynthesis(
-                "GPT", "GPT summary", List.of("Finding"), Instant.now());
-        AiSearchSynthesis perplexitySynthesis = new AiSearchSynthesis(
-                "Perplexity", "Perplexity summary", List.of("Finding"), Instant.now());
         when(claudePort.synthesize(eq("oncology"), eq(List.of(a1)))).thenReturn(claudeSynthesis);
-        when(gptPort.synthesize(eq("oncology"), eq(List.of(a1)))).thenReturn(gptSynthesis);
-        when(perplexityPort.synthesize(eq("oncology"), eq(List.of(a1)))).thenReturn(perplexitySynthesis);
 
         AiSearchResult result = service.search("oncology", 10, null);
 
-        assertThat(result.syntheses()).hasSize(3);
+        assertThat(result.syntheses()).hasSize(1);
+        assertThat(result.syntheses().get(0).modelName()).isEqualTo("Claude");
+        verify(gptPort, never()).synthesize(anyString(), anyList());
+        verify(perplexityPort, never()).synthesize(anyString(), anyList());
     }
 
     @Test
-    void search_withEmptyModelNames_usesAllModels() {
+    void search_withEmptyModelNames_defaultsToClaudeOnly() {
         NewsArticle a1 = sampleArticle("a1", "AI in Neurology");
         when(vectorSearch.findSimilar(eq("neurology"), eq(10))).thenReturn(List.of(a1));
 
         AiSearchSynthesis claudeSynthesis = new AiSearchSynthesis(
                 "Claude", "Claude summary", List.of("Finding"), Instant.now());
+        when(claudePort.synthesize(eq("neurology"), eq(List.of(a1)))).thenReturn(claudeSynthesis);
+
+        AiSearchResult result = service.search("neurology", 10, List.of());
+
+        assertThat(result.syntheses()).hasSize(1);
+        assertThat(result.syntheses().get(0).modelName()).isEqualTo("Claude");
+        verify(gptPort, never()).synthesize(anyString(), anyList());
+        verify(perplexityPort, never()).synthesize(anyString(), anyList());
+    }
+
+    @Test
+    void search_twoArgOverload_defaultsToClaudeOnly() {
+        NewsArticle a1 = sampleArticle("a1", "AI in Endocrinology");
+        when(vectorSearch.findSimilar(eq("endocrinology"), eq(10))).thenReturn(List.of(a1));
+
+        AiSearchSynthesis claudeSynthesis = new AiSearchSynthesis(
+                "Claude", "Claude summary", List.of("Finding"), Instant.now());
+        when(claudePort.synthesize(eq("endocrinology"), eq(List.of(a1)))).thenReturn(claudeSynthesis);
+
+        AiSearchResult result = service.search("endocrinology", 10);
+
+        assertThat(result.syntheses()).hasSize(1);
+        assertThat(result.syntheses().get(0).modelName()).isEqualTo("Claude");
+        verify(gptPort, never()).synthesize(anyString(), anyList());
+        verify(perplexityPort, never()).synthesize(anyString(), anyList());
+    }
+
+    @Test
+    void search_whenClaudeUnavailable_fallsBackToAllAvailableModels() {
+        when(claudePort.isAvailable()).thenReturn(false);
+        NewsArticle a1 = sampleArticle("a1", "AI in Nephrology");
+        when(vectorSearch.findSimilar(eq("nephrology"), eq(10))).thenReturn(List.of(a1));
+
         AiSearchSynthesis gptSynthesis = new AiSearchSynthesis(
                 "GPT", "GPT summary", List.of("Finding"), Instant.now());
         AiSearchSynthesis perplexitySynthesis = new AiSearchSynthesis(
                 "Perplexity", "Perplexity summary", List.of("Finding"), Instant.now());
-        when(claudePort.synthesize(eq("neurology"), eq(List.of(a1)))).thenReturn(claudeSynthesis);
-        when(gptPort.synthesize(eq("neurology"), eq(List.of(a1)))).thenReturn(gptSynthesis);
-        when(perplexityPort.synthesize(eq("neurology"), eq(List.of(a1)))).thenReturn(perplexitySynthesis);
+        when(gptPort.synthesize(eq("nephrology"), eq(List.of(a1)))).thenReturn(gptSynthesis);
+        when(perplexityPort.synthesize(eq("nephrology"), eq(List.of(a1)))).thenReturn(perplexitySynthesis);
 
-        AiSearchResult result = service.search("neurology", 10, List.of());
+        AiSearchResult result = service.search("nephrology", 10, null);
 
-        assertThat(result.syntheses()).hasSize(3);
+        assertThat(result.syntheses()).hasSize(2);
+        verify(claudePort, never()).synthesize(anyString(), anyList());
     }
 
     @Test

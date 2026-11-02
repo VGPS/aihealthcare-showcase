@@ -130,6 +130,66 @@ class TopicSummaryGenerationServiceTest {
     }
 
     // -------------------------------------------------------------------------
+    // Freshness gate — skip when no new articles since last summary
+    // -------------------------------------------------------------------------
+
+    @Test
+    void generateSummaries_skipsTopicWithNoArticlesNewerThanLastSummary() {
+        Instant lastSummaryAt = Instant.now().minusSeconds(3600);
+        List<NewsArticle> articles = List.of(
+                sampleArticleWithPublishedAt("Article 1", lastSummaryAt.minusSeconds(600)),
+                sampleArticleWithPublishedAt("Article 2", lastSummaryAt.minusSeconds(300)));
+        when(ingestionPort.fetchAllByTopic("Stale Topic")).thenReturn(articles);
+        when(summaryPort.findByTopic("Stale Topic")).thenReturn(java.util.Optional.of(
+                new TopicSummary("Stale Topic", "Old summary.", lastSummaryAt, "anti-slop-v1", 80)));
+
+        service.generateSummaries(List.of("Stale Topic"));
+
+        verify(aiPort, never()).generateTopicSummary(anyString(), anyList());
+        verify(summaryPort, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void generateSummaries_regeneratesWhenArticlePublishedAfterLastSummary() {
+        Instant lastSummaryAt = Instant.now().minusSeconds(3600);
+        List<NewsArticle> articles = List.of(
+                sampleArticleWithPublishedAt("Article 1", lastSummaryAt.minusSeconds(600)),
+                sampleArticleWithPublishedAt("Article 2", lastSummaryAt.plusSeconds(60)));
+        when(ingestionPort.fetchAllByTopic("Fresh Topic")).thenReturn(articles);
+        when(summaryPort.findByTopic("Fresh Topic")).thenReturn(java.util.Optional.of(
+                new TopicSummary("Fresh Topic", "Old summary.", lastSummaryAt, "anti-slop-v1", 80)));
+        when(aiPort.generateTopicSummary(eq("Fresh Topic"), eq(articles)))
+                .thenReturn(new TopicSummaryResult(
+                        "Updated summary text. Second sentence. Third sentence.",
+                        "anti-slop-v1", 90));
+
+        service.generateSummaries(List.of("Fresh Topic"));
+
+        verify(aiPort).generateTopicSummary(eq("Fresh Topic"), eq(articles));
+        verify(summaryPort).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void generateSummaries_regeneratesWhenFreshnessCannotBeDetermined() {
+        Instant lastSummaryAt = Instant.now().minusSeconds(3600);
+        List<NewsArticle> articles = List.of(
+                sampleArticleWithPublishedAt("Article 1", null),
+                sampleArticleWithPublishedAt("Article 2", null));
+        when(ingestionPort.fetchAllByTopic("Undated Topic")).thenReturn(articles);
+        when(summaryPort.findByTopic("Undated Topic")).thenReturn(java.util.Optional.of(
+                new TopicSummary("Undated Topic", "Old summary.", lastSummaryAt, "anti-slop-v1", 80)));
+        when(aiPort.generateTopicSummary(eq("Undated Topic"), eq(articles)))
+                .thenReturn(new TopicSummaryResult(
+                        "Updated summary text. Second sentence. Third sentence.",
+                        "anti-slop-v1", 90));
+
+        service.generateSummaries(List.of("Undated Topic"));
+
+        verify(aiPort).generateTopicSummary(eq("Undated Topic"), eq(articles));
+        verify(summaryPort).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    // -------------------------------------------------------------------------
     // Edge case — empty topic list
     // -------------------------------------------------------------------------
 
@@ -147,6 +207,10 @@ class TopicSummaryGenerationServiceTest {
     // -------------------------------------------------------------------------
 
     private NewsArticle sampleArticle(String title) {
+        return sampleArticleWithPublishedAt(title, Instant.now());
+    }
+
+    private NewsArticle sampleArticleWithPublishedAt(String title, Instant publishedAt) {
         return new NewsArticle(
                 "id-" + title.hashCode(),
                 title,
@@ -158,7 +222,7 @@ class TopicSummaryGenerationServiceTest {
                 "Test Source",
                 "INDUSTRY",
                 0.7,
-                Instant.now()
+                publishedAt
         );
     }
 }
