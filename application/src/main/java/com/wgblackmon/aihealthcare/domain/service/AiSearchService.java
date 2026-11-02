@@ -18,21 +18,29 @@ import java.util.UUID;
  * Domain service implementing AI-enhanced search with multi-model LLM synthesis.
  *
  * <p>Retrieves semantically similar articles from the vector store via
- * {@link ArticleSearchPort}, then fans out to each registered
- * {@link AiSearchPort} adapter to produce parallel AI syntheses from
- * different models (e.g. Claude and GPT).
+ * {@link ArticleSearchPort}, then synthesizes via one or more registered
+ * {@link AiSearchPort} adapters (e.g. Claude, GPT, Perplexity, Gemini).
+ *
+ * <p>Cost discipline (see {@code CLAUDE.md} "Production LLM Cost
+ * Discipline"): when the caller doesn't specify {@code modelNames}, the
+ * search defaults to the single {@value #DEFAULT_MODEL_NAME} model rather
+ * than fanning out to every available provider — multi-model comparison is
+ * opt-in via an explicit {@code modelNames} list. Falls back to all
+ * available models only if the default model is unavailable.
  *
  * <p>This class has no Spring annotations — it is wired as a bean in
  * {@link com.wgblackmon.aihealthcare.infrastructure.config.AppConfig}.
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-06-02
- * @updated 2026-09-11
+ * @updated 2026-11-02
  */
 public class AiSearchService implements ConductAiSearchUseCase {
 
     private static final DomainLogger log = new DomainLogger(AiSearchService.class);
+
+    private static final String DEFAULT_MODEL_NAME = "Claude";
 
     private final ArticleSearchPort vectorSearch;
     private final List<AiSearchPort> aiSearchPorts;
@@ -83,12 +91,22 @@ public class AiSearchService implements ConductAiSearchUseCase {
             return result;
         }
 
-        // Filter ports by requested model names (null/empty = all available models)
+        // Filter ports by requested model names (null/empty = default to Claude-only;
+        // fall back to all available models only if Claude itself is unavailable).
         List<AiSearchPort> selectedPorts = new ArrayList<>();
         if (modelNames == null || modelNames.isEmpty()) {
             for (AiSearchPort port : aiSearchPorts) {
-                if (port.isAvailable()) {
+                if (port.isAvailable() && DEFAULT_MODEL_NAME.equalsIgnoreCase(port.modelName())) {
                     selectedPorts.add(port);
+                }
+            }
+            if (selectedPorts.isEmpty()) {
+                log.warn("search() | default model '{}' unavailable — falling back to all available models",
+                         DEFAULT_MODEL_NAME);
+                for (AiSearchPort port : aiSearchPorts) {
+                    if (port.isAvailable()) {
+                        selectedPorts.add(port);
+                    }
                 }
             }
         } else {
