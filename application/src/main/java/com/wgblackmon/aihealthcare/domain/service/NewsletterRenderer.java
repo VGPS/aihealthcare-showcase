@@ -199,9 +199,24 @@ public class NewsletterRenderer {
             } else {
                 // Resolve this section's articles in order (matches [1],[2]... the LLM received)
                 List<NewsArticle> sectionArticles = resolveSectionArticles(section, articleMap);
+                String rawSummary = section.summary();
+                int witIdx = rawSummary.indexOf("\nWHY_IT_MATTERS:");
+                String displaySummary = witIdx >= 0 ? rawSummary.substring(0, witIdx) : rawSummary;
+                String whyItMatters  = witIdx >= 0 ? rawSummary.substring(witIdx + "\nWHY_IT_MATTERS:".length()).trim() : null;
+
                 html.append("<p style=\"margin: 0; font-size: 14px; line-height: 1.7; color: #444;\">")
-                    .append(linkCitationsHtml(section.summary(), sectionArticles))
+                    .append(linkCitationsHtml(displaySummary, sectionArticles))
                     .append("</p>");
+
+                if (whyItMatters != null && !whyItMatters.isBlank()) {
+                    html.append("<div style=\"margin-top: 12px; padding: 10px 14px; background-color: #fffbf0; ")
+                        .append("border-left: 3px solid #e6a817; border-radius: 0 4px 4px 0;\">")
+                        .append("<span style=\"font-size: 11px; font-weight: bold; color: #b8860b; ")
+                        .append("text-transform: uppercase; letter-spacing: 0.7px;\">Why it matters</span>")
+                        .append("<p style=\"margin: 4px 0 0; font-size: 13px; line-height: 1.65; color: #555; font-style: italic;\">")
+                        .append(escapeHtml(whyItMatters))
+                        .append("</p></div>");
+                }
             }
 
             html
@@ -356,7 +371,15 @@ public class NewsletterRenderer {
                 }
                 text.append("\n");
             } else {
-                text.append(section.summary()).append("\n\n");
+                String rawSummary = section.summary();
+                int witIdx = rawSummary.indexOf("\nWHY_IT_MATTERS:");
+                String displaySummary = witIdx >= 0 ? rawSummary.substring(0, witIdx) : rawSummary;
+                String whyItMatters  = witIdx >= 0 ? rawSummary.substring(witIdx + "\nWHY_IT_MATTERS:".length()).trim() : null;
+                text.append(displaySummary).append("\n");
+                if (whyItMatters != null && !whyItMatters.isBlank()) {
+                    text.append("\nWhy it matters: ").append(whyItMatters).append("\n");
+                }
+                text.append("\n");
             }
         }
 

@@ -20,4 +20,5 @@ Also classify this section using EXACTLY one of these types:
 Respond in EXACTLY this format (do not add any other text):
 HEADLINE: <≤ 10 words; active voice; one clause only — no stacked noun phrases, no "and" linking two separate topics. Good: "Cleveland Clinic Links AI Scribes to Clinician Retention". Bad: "Conditional Public Trust and Persistent Bias Risks Demand Urgent Governance">
 SUMMARY: <2-4 sentences expanding on the headline. When citing a specific finding or claim from one of the articles, include its bracket number as an inline citation, e.g. "A JAMA study [2] found..." or "Per [1], the FDA cleared...". Use only article numbers that appear in the article list above.>
+WHY_IT_MATTERS: <2-3 sentences of editorial perspective written in first person, as a healthcare AI analyst who follows this space daily. Explain specifically why this development matters for healthcare AI professionals, investors, or clinicians — not just that it "is important," but what it signals, what trend it fits or breaks, or what action it implies. Be direct and opinionated.>
 SECTION_TYPE: <one value from the list above>
