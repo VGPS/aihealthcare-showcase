@@ -125,9 +125,9 @@ logging:
   file:
     name: logs/aihealthcare.log
   level:
-    com.wgblackmon: DEBUG
-    org.springframework.web: INFO
-    org.springframework.ai: DEBUG
+    com.wgblackmon: INFO
+    org.springframework.web: WARN
+    org.springframework.ai: WARN
 
 # -----------------------------------------------------------------------------
 # springdoc — Swagger UI for self-service API documentation.
