@@ -7,9 +7,9 @@ import com.wgblackmon.aihealthcare.domain.model.WatchlistItem;
 import com.wgblackmon.aihealthcare.domain.model.WatchlistMatch;
 import com.wgblackmon.aihealthcare.domain.model.WebhookEventType;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
-import com.wgblackmon.aihealthcare.domain.port.inbound.DetectDealSignalsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleHarvestingPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ArticleStoragePort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.CompilationReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.KnowledgeCompilationPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.LintReportPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.WatchlistMatchPort;
@@ -56,10 +56,22 @@ import java.util.List;
  * use this to scope AI summarization and vector embeddings to the correct
  * {@link com.wgblackmon.aihealthcare.domain.model.Topic}.
  *
+ * <p><b>Cost discipline (see {@code CLAUDE.md} "Production LLM Cost
+ * Discipline"):</b> AI post-processing (topic summaries, wiki compilation,
+ * wiki gap analysis) only runs on {@link #harvestDailyFeeds()} — once per
+ * day, across every harvested tier — never on the 4-hour
+ * {@link #harvestIndustryFeeds()} tick, which stays limited to cheap,
+ * non-AI work (article storage, watchlist matching). Wiki compilation is
+ * additionally freshness-gated: it is skipped entirely when no article in
+ * the batch was published after the most recent {@code CompilationReport}.
+ * Deal-signal detection is handled exclusively by the standalone cron in
+ * {@link StartupPipelineOrchestrator#runDealDetectionCron()} — it is not
+ * duplicated here.
+ *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-10
- * @updated 2026-10-05
+ * @updated 2026-11-02
  */
 @Slf4j
 @Component
@@ -80,7 +92,7 @@ public class FeedHarvestScheduler {
     private final WebhookDispatcher webhookDispatcher;
     private final WikiGapAnalysisService wikiGapAnalysisService;
     private final WikiPageRepository wikiPageRepository;
-    private final DetectDealSignalsUseCase detectDealSignalsUseCase;
+    private final CompilationReportPort compilationReportPort;
     private final PipelineHealthService healthService;
 
     @Value("${aihealthcare.startup.harvest-enabled:false}")
@@ -101,7 +113,7 @@ public class FeedHarvestScheduler {
                                 @Autowired(required = false) WebhookDispatcher webhookDispatcher,
                                 @Autowired(required = false) WikiGapAnalysisService wikiGapAnalysisService,
                                 @Autowired(required = false) WikiPageRepository wikiPageRepository,
-                                @Autowired(required = false) DetectDealSignalsUseCase detectDealSignalsUseCase,
+                                @Autowired(required = false) CompilationReportPort compilationReportPort,
                                 PipelineHealthService healthService) {
         log.debug("FeedHarvestScheduler() | harvestingPort={}, articleStoragePort={}, topicSummaryService={}, newsTopicProperties={}, knowledgeCompilationPort={}",
                   harvestingPort.getClass().getSimpleName(),
@@ -124,7 +136,7 @@ public class FeedHarvestScheduler {
         this.webhookDispatcher = webhookDispatcher;
         this.wikiGapAnalysisService = wikiGapAnalysisService;
         this.wikiPageRepository = wikiPageRepository;
-        this.detectDealSignalsUseCase = detectDealSignalsUseCase;
+        this.compilationReportPort = compilationReportPort;
         this.healthService = healthService;
     }
 
@@ -158,6 +170,12 @@ public class FeedHarvestScheduler {
     /**
      * Daily harvest for ACADEMIC and REGULATORY tier feeds.
      * Cron configured via {@code aihealthcare.harvest.daily-cron} (default: 04:00 UTC).
+     *
+     * <p>This is the only scheduled entry point that runs AI post-processing
+     * (topic summaries, wiki compilation, wiki gap analysis) — wiki
+     * compilation and gap analysis run against the full harvested set
+     * ({@code all}), covering INDUSTRY-tier articles too, not just the
+     * ACADEMIC/REGULATORY subset this method stores.
      */
     @Scheduled(cron = "${aihealthcare.harvest.daily-cron}", zone = "UTC")
     public void harvestDailyFeeds() {
@@ -177,9 +195,12 @@ public class FeedHarvestScheduler {
             log.info("harvestDailyFeeds() | {} ACADEMIC/REGULATORY articles harvested", dailyArticles.size());
             routeForProcessing(dailyArticles);
             generateTopicSummaries();
-            compileWikiPages(dailyArticles);
+            // Wiki compilation/gap analysis run here on the full harvested set (all tiers,
+            // not just ACADEMIC/REGULATORY) — this is the single daily AI post-processing
+            // pass; the 4-hour harvestIndustryFeeds() tick stays AI-free (see class javadoc).
+            compileWikiPages(all);
             lintWikiPages();
-            analyzeWikiGaps(dailyArticles);
+            analyzeWikiGaps(all);
             matchWatchlistItems(dailyArticles);
             if (pipelineOrchestrator != null) {
                 pipelineOrchestrator.runAllPipelines();
@@ -197,6 +218,11 @@ public class FeedHarvestScheduler {
     /**
      * High-frequency harvest for INDUSTRY tier feeds.
      * Rate configured via {@code aihealthcare.harvest.industry-rate-ms} (default: 4h / 14400000 ms).
+     *
+     * <p>Deliberately AI-free — article storage, wiki lint (rule-based, no
+     * LLM call), and watchlist matching only. Topic summaries, wiki
+     * compilation/gap analysis, and deal-signal detection run elsewhere
+     * (see class javadoc) so this tick doesn't multiply LLM spend 6x/day.
      */
     @Scheduled(fixedRateString = "${aihealthcare.harvest.industry-rate-ms}")
     public void harvestIndustryFeeds() {
@@ -214,12 +240,14 @@ public class FeedHarvestScheduler {
 
             log.info("harvestIndustryFeeds() | {} INDUSTRY articles harvested", industryArticles.size());
             routeForProcessing(industryArticles);
-            generateTopicSummaries();
-            compileWikiPages(industryArticles);
+            // AI post-processing (topic summaries, wiki compile, wiki gap analysis) is
+            // intentionally NOT run on this 4-hour tick — it runs once/day from
+            // harvestDailyFeeds() instead (see class javadoc, "Production LLM Cost
+            // Discipline" in CLAUDE.md). This tick stays limited to cheap, non-AI work.
+            // Deal-signal detection is handled by the standalone cron in
+            // StartupPipelineOrchestrator#runDealDetectionCron(), not duplicated here.
             lintWikiPages();
-            analyzeWikiGaps(industryArticles);
             matchWatchlistItems(industryArticles);
-            runDealDetection();
             healthService.recordRun("rss-feeds", PipelineHealthService.PipelineRunRecord.success(
                     "rss-feeds", industryArticles.size(), start, Instant.now()));
         } catch (Exception e) {
@@ -254,6 +282,12 @@ public class FeedHarvestScheduler {
      * Failures are caught so the harvest pipeline is never interrupted.
      * No-ops gracefully if the compilation port is not configured.
      *
+     * <p>Freshness-gated (cost discipline): skipped entirely when no article
+     * in {@code articles} was published after the most recent
+     * {@code CompilationReport}'s {@code runCompletedAt}. If no article
+     * carries a known {@code publishedAt}, or no prior report exists,
+     * compilation proceeds — erring toward staying current.
+     *
      * @param articles articles to compile into the wiki knowledge base
      */
     private void compileWikiPages(List<NewsArticle> articles) {
@@ -262,6 +296,18 @@ public class FeedHarvestScheduler {
             log.debug("compileWikiPages() | knowledgeCompilationPort is null — skipping");
             log.debug("compileWikiPages() | return=void");
             return;
+        }
+        if (compilationReportPort != null) {
+            List<CompilationReport> priorReports = compilationReportPort.findAll();
+            if (!priorReports.isEmpty()) {
+                Instant lastRunCompletedAt = priorReports.get(0).runCompletedAt();
+                if (!hasArticlesNewerThan(articles, lastRunCompletedAt)) {
+                    log.debug("compileWikiPages() | no articles published since last compile at {} — skipping",
+                            lastRunCompletedAt);
+                    log.debug("compileWikiPages() | return=void");
+                    return;
+                }
+            }
         }
         PipelineContext.set("wiki-compile");
         try {
@@ -275,6 +321,30 @@ public class FeedHarvestScheduler {
             PipelineContext.clear();
         }
         log.debug("compileWikiPages() | return=void");
+    }
+
+    /**
+     * Returns {@code true} when at least one article was published after
+     * {@code since}, or when freshness cannot be determined because no
+     * article carries a non-null {@code publishedAt} (safe default: assume
+     * fresh rather than silently suppress AI post-processing forever).
+     *
+     * @param articles candidate articles
+     * @param since    timestamp to compare against (e.g. last compile run)
+     */
+    private boolean hasArticlesNewerThan(List<NewsArticle> articles, Instant since) {
+        boolean anyDated = false;
+        for (NewsArticle article : articles) {
+            Instant publishedAt = article.publishedAt();
+            if (publishedAt == null) {
+                continue;
+            }
+            anyDated = true;
+            if (publishedAt.isAfter(since)) {
+                return true;
+            }
+        }
+        return !anyDated;
     }
 
     /**
@@ -398,27 +468,6 @@ public class FeedHarvestScheduler {
             log.warn("notifyWatchlistMatches() | webhook dispatch failed: {}", e.getMessage());
         }
         log.debug("notifyWatchlistMatches() | return=void");
-    }
-
-    /**
-     * Runs deal signal detection against recently harvested articles.
-     * No-ops gracefully if the deal detection use case is not configured.
-     * Failures are caught so the harvest pipeline is never interrupted.
-     */
-    private void runDealDetection() {
-        log.debug("runDealDetection() | starting deal signal detection");
-        if (detectDealSignalsUseCase == null) {
-            log.debug("runDealDetection() | detectDealSignalsUseCase not configured — skipping");
-            log.debug("runDealDetection() | return=void");
-            return;
-        }
-        try {
-            var signals = detectDealSignalsUseCase.detectSignals();
-            log.info("runDealDetection() | {} new deal signals detected", signals.size());
-        } catch (Exception e) {
-            log.warn("runDealDetection() | deal detection failed — harvest continues", e);
-        }
-        log.debug("runDealDetection() | return=void");
     }
 
     /**
