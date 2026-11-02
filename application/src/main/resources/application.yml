@@ -1156,6 +1156,18 @@ aihealthcare:
         base-weight: 0.7
         max-items: 25
       # -----------------------------------------------------------------
+      # Digital Health Net (digitalhealth.net)
+      # Direct RSS is Cloudflare-blocked from server IPs; routed via
+      # Google News RSS which is reliably accessible from EC2.
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Digital Health Net
+        topic: Digital Health Net
+        url: https://news.google.com/rss/search?q=site:digitalhealth.net+AI+healthcare&hl=en-US&gl=US&ceid=US:en
+        tier: INDUSTRY
+        base-weight: 0.75
+        max-items: 20
+      # -----------------------------------------------------------------
       # AI Healthcare Legal — liability, malpractice, IP, compliance law
       # Broadened queries (Sep 2026) — narrow queries returned only stale
       # results from Google News, causing zero fresh articles for 30+ days.
