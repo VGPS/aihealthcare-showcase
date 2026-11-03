@@ -670,7 +670,7 @@ All schedules are configurable via `application.yml` — no hardcoded cron expre
 
 ### Subscription Tiers
 
-| Feature | Demo (7-day trial) | Free | Subscriber ($49/mo) | Enterprise |
+| Feature | Demo (7-day trial) | Free | Subscriber ($19/mo) | Enterprise |
 |---------|------|------|---------------------|------------|
 | Newsletter content | Full newsletter | Digest summary | Full newsletter | Full newsletter |
 | Article archive | Unlimited | 7 days | Unlimited | Unlimited |
