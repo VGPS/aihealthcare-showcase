@@ -1304,6 +1304,7 @@ When drafting LinkedIn posts for this project — both on Bill's own page and to
 - Every draft follows the 4-part template: Post Body / First Comment / Posting Instructions / Strategy Notes.
 - Include the positioning statement verbatim somewhere in the Post Body: *"AI in healthcare is history being written right now. I'm building the archive. Everything updates daily."*
 - Saved draft files use the naming convention `<group_slug>_<option#>_<date>.txt`. Unposted drafts live in `linkedin-posts/`; once a draft is actually posted, move/save it to `linkedin-posts/posted/` with `STATUS: POSTED` and strip the Posting Instructions section.
+- **Every generated Post and Newsletter option must include a "Data Provenance" note (which app pipeline the claim came from) and a "Group Relevance" note, plus a matching First Comment with the app link and the standing LinkedIn Newsletter subscribe link.** No exceptions — applies to every option in every batch, LinkedIn feed posts and LinkedIn Newsletter/long-form articles alike. (Added 2026-11-06.)
 
 ---
 
