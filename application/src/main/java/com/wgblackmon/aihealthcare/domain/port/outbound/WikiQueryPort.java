@@ -23,7 +23,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-07-04
+ * @updated 2026-11-07
  */
 public interface WikiQueryPort {
 
@@ -44,6 +44,14 @@ public interface WikiQueryPort {
      * @return the wiki page, or {@code null} if no page exists with that slug
      */
     WikiPage getPage(String slug);
+
+    /**
+     * Removes cross-reference slugs that no longer exist from every wiki page's
+     * {@code relatedSlugs} list. No LLM calls are made.
+     *
+     * @return two-element array: {@code [pagesFixed, totalRefsRemoved]}
+     */
+    int[] repairBrokenRefs();
 
     /**
      * Retrieve contradictions detected since the given timestamp,

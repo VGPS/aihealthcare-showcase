@@ -63,14 +63,14 @@ An automated AI-powered newsletter, research, and competitive intelligence platf
 | **Pipeline Kill Switches** | Operator-controlled pause toggles for the two schedulers that build and auto-send AI-generated content to real subscribers/customers without a human review step: digest delivery (`DigestDeliveryScheduler`) and enterprise data push (`EnterpriseDataPushScheduler`). Pause state is stored in a `pipeline_pauses` JPA table (keyed by pipeline identifier; absent row = not paused), toggled via checkboxes on the Admin Pipeline page with AJAX fetch calls to `POST /admin/pipelines/digest/pause` and `POST /admin/pipelines/enterprise-push/pause`. When paused, the scheduler logs a single INFO line and exits without sending — no restart or redeploy required. |
 | **MCP Server (Model Context Protocol)** | Exposes 6 read-only intelligence tools via an HTTP/SSE MCP server (`GET /mcp/sse`, `POST /mcp/messages`) so any MCP-compatible AI agent or IDE can query AIHealthcare data without a browser: `search_legislation` (U.S. state + federal health-AI laws, filterable by state code and category), `search_companies` (AI healthcare company directory), `search_wiki` (hybrid keyword + semantic search over the LLM-compiled knowledge base), `get_market_digest` (daily ranked market digest with fact/speculation classification), `get_regulatory_events` (FDA 510(k)/De Novo and CMS rules), and `get_ai_trends` (30/90/180-day keyword momentum). All tools are unauthenticated and read-only; the MCP servlet runs outside DispatcherServlet via `ServletRegistrationBean` at `/mcp/*`. |
 | **Production LLM Cost Discipline** | Four freshness gates and cadence rules cut API spend by ~50%: topic summaries and wiki compilation skip when no new article is newer than the last run; AI post-processing runs once daily (not on every 4-hour industry tick); duplicate deal-detection cron removed; AI Search defaults to Claude-only instead of fanning out to all 5 providers. Rules tracked in `CLAUDE.md` with implemented / candidate status and dates. |
-| **3,233 Automated Tests** | Comprehensive test suite across 378 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
+| **3,236 Automated Tests** | Comprehensive test suite across 378 test classes spanning domain, web, persistence, and infrastructure layers — no live AI calls |
 
 ### Resume / LinkedIn Feature Bullets
 
 **Platform & Architecture**
 - Designed and built a full-stack AI intelligence platform using **Spring Boot 3.4.5, Java 21, Spring AI 1.0.0**, and **hexagonal architecture** (ports-and-adapters) with 107 domain model records, 119 port interfaces, and 104 controllers across 899 Java classes — framework-free domain layer enables swapping AI providers with zero business logic changes
 - Implemented a **Model Context Protocol (MCP) server** exposing 6 read-only intelligence tools (`search_legislation`, `search_companies`, `search_wiki`, `get_market_digest`, `get_regulatory_events`, `get_ai_trends`) via HTTP/SSE transport — enabling any MCP-compatible AI agent or IDE to query the platform's data without a browser session
-- Wrote **3,235 automated tests** across 378 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
+- Wrote **3,236 automated tests** across 378 test classes (JUnit 5, AssertJ, Mockito, MockMvc, @DataJpaTest) achieving comprehensive coverage across domain, web, persistence, and infrastructure layers with no live AI calls in CI
 
 **Multi-Model AI Integration**
 - Integrated **5 LLM providers** (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock) via Spring AI ChatClient and RestClient adapters, with fan-out multi-model search returning synthesized answers with numbered `[N]` citation references
@@ -341,7 +341,7 @@ POST /api/v1/research  (or ResearchHarvestScheduler daily at 04:00 UTC)
 | Security Testing | spring-security-test (@WithMockUser) | — |
 | Web Testing | MockMvc (@WebMvcTest slices) | — |
 | Persistence Testing | @DataJpaTest (H2 in-memory) | — |
-| Coverage | 3,235 tests across 378 test classes | — |
+| Coverage | 3,236 tests across 378 test classes | — |
 
 ### Infrastructure & DevOps
 | Component | Technology | Version |
@@ -731,7 +731,7 @@ aihealthcare:
 
 ## Testing
 
-3,235 tests across 378 test classes — all pass with no live AI or network calls.
+3,236 tests across 378 test classes — all pass with no live AI or network calls.
 
 ```bash
 # Run all unit tests (no AI calls, uses H2 in-memory DB for @DataJpaTest)

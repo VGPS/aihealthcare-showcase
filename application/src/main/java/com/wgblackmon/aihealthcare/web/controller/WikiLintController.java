@@ -28,7 +28,7 @@ import java.util.Map;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-05
- * @updated 2026-09-08
+ * @updated 2026-11-07
  */
 @Slf4j
 @RestController
@@ -73,6 +73,26 @@ public class WikiLintController {
             LintReport report = lintService.lint(allPages, stalenessThresholdDays);
             lintReportPort.save(report);
         });
+    }
+
+    /**
+     * Strips non-existent slugs from every wiki page's relatedSlugs list.
+     * Pure DB operation — no LLM calls, no API charges.
+     *
+     * @return pagesFixed and refsRemoved counts
+     */
+    @PostMapping("/monitoring/wiki/repair-broken-refs")
+    public ResponseEntity<Map<String, Object>> repairBrokenRefs() {
+        log.debug("repairBrokenRefs() | (no args)");
+
+        int[] result = wikiQueryPort.repairBrokenRefs();
+        Map<String, Object> response = Map.of(
+                "pagesFixed", result[0],
+                "refsRemoved", result[1]
+        );
+
+        log.debug("repairBrokenRefs() | return={}", response);
+        return ResponseEntity.ok(response);
     }
 
     /**

@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-10-26
+ * @updated 2026-11-07
  */
 @DataJpaTest
 @Import(WikiQueryAdapter.class)
@@ -235,5 +235,47 @@ class WikiQueryAdapterTest {
         List<Contradiction> results = adapter.recentContradictions(future);
 
         assertThat(results).isEmpty();
+    }
+
+    // -------------------------------------------------------------------------
+    // repairBrokenRefs
+    // -------------------------------------------------------------------------
+
+    @Test
+    void repairBrokenRefs_removesNonExistentSlugs() {
+        WikiPageEntity real = createPage("real-page", "Real Page", "ENTITY", "");
+        real.setRelatedSlugs("real-page|ghost-slug");
+        pageRepository.save(real);
+
+        int[] result = adapter.repairBrokenRefs();
+
+        assertThat(result[0]).isEqualTo(1);   // 1 page fixed
+        assertThat(result[1]).isEqualTo(1);   // 1 ref removed
+        WikiPageEntity updated = pageRepository.findById("real-page").orElseThrow();
+        assertThat(updated.getRelatedSlugs()).doesNotContain("ghost-slug");
+    }
+
+    @Test
+    void repairBrokenRefs_allRefsValid_noPagesFixed() {
+        WikiPageEntity a = createPage("page-a", "Page A", "ENTITY", "");
+        WikiPageEntity b = createPage("page-b", "Page B", "ENTITY", "");
+        a.setRelatedSlugs("page-b");
+        pageRepository.save(a);
+        pageRepository.save(b);
+
+        int[] result = adapter.repairBrokenRefs();
+
+        assertThat(result[0]).isZero();
+        assertThat(result[1]).isZero();
+    }
+
+    @Test
+    void repairBrokenRefs_emptyRelatedSlugs_noPagesFixed() {
+        pageRepository.save(createPage("lonely-page", "Lonely Page", "OVERVIEW", ""));
+
+        int[] result = adapter.repairBrokenRefs();
+
+        assertThat(result[0]).isZero();
+        assertThat(result[1]).isZero();
     }
 }
