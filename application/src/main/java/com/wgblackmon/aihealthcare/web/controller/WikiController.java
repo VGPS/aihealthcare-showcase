@@ -196,8 +196,9 @@ public class WikiController {
         model.addAttribute("totalPageCount", totalPageCount);
         model.addAttribute("hasPrev", page > 0);
         model.addAttribute("hasNext", page < totalPageCount - 1);
+        model.addAttribute("canonicalUrl", baseUrl + "/wiki");
         model.addAttribute("pageDescription",
-                "AI Healthcare Knowledge Base — " + totalCount + " wiki pages compiled from healthcare AI news sources with full provenance.");
+                "AI Healthcare Knowledge Base — " + totalCount + " pages on FDA approvals, hospital AI deployments, clinical trials, and policy. Compiled daily from live news with full source provenance.");
 
         log.debug("wikiIndex() | return=wiki-index (showing={}, totalCount={}, page={})", pages.size(), totalCount, page);
         return "wiki-index";

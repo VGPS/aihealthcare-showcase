@@ -29,6 +29,7 @@ import com.wgblackmon.aihealthcare.domain.service.OutreachSyncService;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
+import com.wgblackmon.aihealthcare.infrastructure.delivery.OkfBundleExporterAdapter;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.WikiEmbeddingScheduler;
 
 import java.io.File;
@@ -106,6 +107,7 @@ public class AdminPipelineController {
     private final LlmCallUsagePort llmCallUsagePort;
     private final LlmUsageSummaryService llmUsageSummaryService;
     private final WikiEmbeddingScheduler wikiEmbeddingScheduler;
+    private final OkfBundleExporterAdapter okfBundleExporter;
 
     public AdminPipelineController(PipelineHealthService healthService,
                                    PipelineAsyncRunner asyncRunner,
@@ -120,9 +122,10 @@ public class AdminPipelineController {
                                    OutreachSyncService outreachSyncService,
                                    LlmCallUsagePort llmCallUsagePort,
                                    LlmUsageSummaryService llmUsageSummaryService,
-                                   WikiEmbeddingScheduler wikiEmbeddingScheduler) {
-        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}, pausePort={}, outreachSyncService={}, llmCallUsagePort={}, llmUsageSummaryService={}, wikiEmbeddingScheduler={}",
-                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort, pausePort, outreachSyncService, llmCallUsagePort, llmUsageSummaryService, wikiEmbeddingScheduler);
+                                   WikiEmbeddingScheduler wikiEmbeddingScheduler,
+                                   OkfBundleExporterAdapter okfBundleExporter) {
+        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}, pausePort={}, outreachSyncService={}, llmCallUsagePort={}, llmUsageSummaryService={}, wikiEmbeddingScheduler={}, okfBundleExporter={}",
+                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort, pausePort, outreachSyncService, llmCallUsagePort, llmUsageSummaryService, wikiEmbeddingScheduler, okfBundleExporter);
         this.healthService = healthService;
         this.asyncRunner = asyncRunner;
         this.newsletterScheduler = newsletterScheduler;
@@ -137,6 +140,7 @@ public class AdminPipelineController {
         this.llmCallUsagePort = llmCallUsagePort;
         this.llmUsageSummaryService = llmUsageSummaryService;
         this.wikiEmbeddingScheduler = wikiEmbeddingScheduler;
+        this.okfBundleExporter = okfBundleExporter;
     }
 
     /**
@@ -503,6 +507,27 @@ public class AdminPipelineController {
     }
 
     /**
+     * Exports the wiki knowledge base as an OKF v0.2 bundle — a directory of markdown
+     * files with YAML frontmatter consumable by Obsidian, MkDocs, Hugo, raw git diff, etc.
+     *
+     * <p>No LLM calls — pure serialization of existing wiki pages and contradictions from
+     * the database. The bundle is written to the path configured by
+     * {@code aihealthcare.wiki.okf-export-dir} (default: {@code ~/wiki-bundle}).
+     *
+     * @return JSON result with page count, contradiction count, and bundle directory
+     */
+    @PostMapping("/wiki-okf/export")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> exportWikiOkfBundle() {
+        log.debug("exportWikiOkfBundle()");
+        return asyncRunner.runAsync("wiki-okf-export", () -> {
+            var result = okfBundleExporter.exportBundle();
+            log.info("exportWikiOkfBundle() | exported {} pages, {} contradictions to {}",
+                    result.pageCount(), result.contradictionCount(), result.bundleDir());
+        });
+    }
+
+    /**
      * Syncs the NotebookLM corpus from EC2 to the local dev machine via SSH + SCP.
      *
      * <p>EC2 runs {@code ResearchHarvestScheduler} (06:00 &amp; 12:00 UTC daily),
@@ -693,6 +718,15 @@ public class AdminPipelineController {
                 "Trigger manually after a fresh wiki compilation to make new pages immediately searchable.",
                 "Daily 08:15 UTC", "WikiEmbeddingScheduler",
                 "/admin/pipelines/wiki-embedding/run", "POST", true, "~1-2 min", "High (CPU + API)"));
+
+        list.add(new PipelineInfo("wiki-okf-export", "Wiki OKF Bundle Export",
+                "Exports all wiki pages and contradictions as an OKF v0.2 bundle — markdown files with YAML frontmatter " +
+                "(type, title, description, tags, generated, sources, status). Zero LLM cost — pure serialization of existing " +
+                "DB data. Output written to ~/wiki-bundle/ (configurable via aihealthcare.wiki.okf-export-dir). " +
+                "Bundle is consumable by Obsidian, MkDocs, Hugo, or any markdown tool. " +
+                "Includes index.md files at root and each type subdirectory for progressive disclosure.",
+                "Manual only", "OkfBundleExporterAdapter",
+                "/admin/pipelines/wiki-okf/export", "POST", true, "~2 sec", "Minimal"));
 
         // ── Medium LLM ───────────────────────────────────────────────────────
         list.add(new PipelineInfo("legal-trends", "Legal Trend Detection",
