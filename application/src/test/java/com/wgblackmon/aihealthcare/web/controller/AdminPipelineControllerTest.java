@@ -17,6 +17,7 @@ import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
+import com.wgblackmon.aihealthcare.infrastructure.delivery.OkfBundleExporterAdapter;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.WikiEmbeddingScheduler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -108,6 +109,9 @@ class AdminPipelineControllerTest {
     @MockitoBean
     private WikiEmbeddingScheduler wikiEmbeddingScheduler;
 
+    @MockitoBean
+    private OkfBundleExporterAdapter okfBundleExporter;
+
     @BeforeEach
     void setUp() {
         when(llmCallUsagePort.findSince(any())).thenReturn(List.of());
@@ -161,7 +165,7 @@ class AdminPipelineControllerTest {
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("pipelineCount", 28));
+                .andExpect(model().attribute("pipelineCount", 29));
     }
 
     @Test
