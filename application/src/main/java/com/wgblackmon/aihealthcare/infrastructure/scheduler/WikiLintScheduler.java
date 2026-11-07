@@ -25,7 +25,7 @@ import java.util.List;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-05
- * @updated 2026-07-05
+ * @updated 2026-11-07
  */
 @Slf4j
 @Component
@@ -64,6 +64,12 @@ public class WikiLintScheduler {
 
             LintReport report = lintService.lint(allPages, stalenessThresholdDays);
             lintReportPort.save(report);
+
+            if (!report.brokenRefs().isEmpty()) {
+                int[] repaired = wikiQueryPort.repairBrokenRefs();
+                log.info("runScheduledLint() | auto-repaired broken refs — pagesFixed={}, refsRemoved={}",
+                        repaired[0], repaired[1]);
+            }
 
             int totalIssues = report.orphanedSlugs().size()
                     + report.brokenRefs().size()

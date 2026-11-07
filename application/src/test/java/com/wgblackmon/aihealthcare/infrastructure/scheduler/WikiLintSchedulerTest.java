@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-05
- * @updated 2026-07-05
+ * @updated 2026-11-07
  */
 class WikiLintSchedulerTest {
 
@@ -85,6 +85,35 @@ class WikiLintSchedulerTest {
         scheduler.runScheduledLint();
 
         verify(lintReportPort, never()).save(any());
+    }
+
+    @Test
+    void runScheduledLint_brokenRefsFound_callsRepair() {
+        when(wikiQueryPort.findRelevantPages("", 10000)).thenReturn(List.of());
+        when(wikiQueryPort.repairBrokenRefs()).thenReturn(new int[]{3, 7});
+
+        LintReport report = new LintReport(
+                Instant.now(), Instant.now(), 0,
+                List.of(), List.of("ghost-slug"), List.of(), List.of(), List.of());
+        when(lintService.lint(anyList(), eq(30))).thenReturn(report);
+
+        scheduler.runScheduledLint();
+
+        verify(wikiQueryPort).repairBrokenRefs();
+    }
+
+    @Test
+    void runScheduledLint_noBrokenRefs_repairSkipped() {
+        when(wikiQueryPort.findRelevantPages("", 10000)).thenReturn(List.of());
+
+        LintReport report = new LintReport(
+                Instant.now(), Instant.now(), 0,
+                List.of(), List.of(), List.of(), List.of(), List.of());
+        when(lintService.lint(anyList(), eq(30))).thenReturn(report);
+
+        scheduler.runScheduledLint();
+
+        verify(wikiQueryPort, never()).repairBrokenRefs();
     }
 
     @Test
