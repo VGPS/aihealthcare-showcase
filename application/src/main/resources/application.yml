@@ -265,6 +265,10 @@ aihealthcare:
     # (tagged type=wiki_page) so WikiQueryAdapter can run a semantic-similarity
     # leg alongside keyword search. Runs after compilation (08:00) + lint.
     embedding-cron: "0 15 8 * * *"
+    # OkfBundleExporterAdapter — output directory for the OKF wiki bundle export.
+    # The bundle is a directory of markdown files with YAML frontmatter consumable
+    # by Obsidian, MkDocs, Hugo, etc. Override in application-aws.yml for EC2.
+    okf-export-dir: ${user.home}/wiki-bundle
 
   # ---------------------------------------------------------------------------
   # Document Library — browser-uploaded files are saved here before ingestion.
@@ -519,6 +523,18 @@ aihealthcare:
         tier: INDUSTRY
         base-weight: 0.7
         max-items: 20
+        keywords:
+          - artificial intelligence
+          - AI
+          - machine learning
+          - digital health
+      - topic-id: 1
+        name: Healthcare Dive Health IT
+        topic: General AI Healthcare News
+        url: https://www.healthcaredive.com/topic/health-it/
+        tier: COMPETITOR
+        base-weight: 0.7
+        max-items: 15
         keywords:
           - artificial intelligence
           - AI
