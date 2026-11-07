@@ -14,6 +14,7 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.StateLawRepository
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageIndexView;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -79,24 +80,28 @@ public class PublicCompanyController {
     private final TierResolver tierResolver;
     private final WikiPageRepository wikiPageRepository;
     private final StateLawRepository stateLawRepository;
+    private final String baseUrl;
 
     public PublicCompanyController(BrowseCompaniesUseCase browseCompaniesUseCase,
                                     SubscriberPort subscriberPort,
                                     TierResolver tierResolver,
                                     WikiPageRepository wikiPageRepository,
-                                    StateLawRepository stateLawRepository) {
+                                    StateLawRepository stateLawRepository,
+                                    @Value("${aihealthcare.base-url}") String baseUrl) {
         log.debug("PublicCompanyController() | browseCompaniesUseCase={}, subscriberPort={}, tierResolver={}, "
-                + "wikiPageRepository={}, stateLawRepository={}",
+                + "wikiPageRepository={}, stateLawRepository={}, baseUrl={}",
                   browseCompaniesUseCase.getClass().getSimpleName(),
                   subscriberPort.getClass().getSimpleName(),
                   tierResolver.getClass().getSimpleName(),
                   wikiPageRepository.getClass().getSimpleName(),
-                  stateLawRepository.getClass().getSimpleName());
+                  stateLawRepository.getClass().getSimpleName(),
+                  baseUrl);
         this.browseCompaniesUseCase = browseCompaniesUseCase;
         this.subscriberPort = subscriberPort;
         this.tierResolver = tierResolver;
         this.wikiPageRepository = wikiPageRepository;
         this.stateLawRepository = stateLawRepository;
+        this.baseUrl = baseUrl;
     }
 
     /**
@@ -190,8 +195,9 @@ public class PublicCompanyController {
         model.addAttribute("canAdvancedSort", canAdvancedSort);
         model.addAttribute("canExport", canExport);
         model.addAttribute("upgradeRequired", upgradeRequired);
+        model.addAttribute("canonicalUrl", baseUrl + "/directory");
         model.addAttribute("pageDescription",
-                "Browse " + all.size() + " AI healthcare companies with signal scoring, acquisition tracking, and sector classification.");
+                "Track " + all.size() + " AI healthcare companies — funding signals, acquisition deals, sentiment scoring, and sector classification. Updated daily from live news.");
 
         log.debug("directory() | return=company-directory, shown={}, total={}", companies.size(), all.size());
         return "company-directory";

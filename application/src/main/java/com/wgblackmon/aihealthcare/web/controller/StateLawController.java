@@ -11,6 +11,7 @@ import com.wgblackmon.aihealthcare.infrastructure.persistence.HealthcareAiCompan
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageIndexView;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.WikiPageRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -60,20 +61,24 @@ public class StateLawController {
     private final TierResolver tierResolver;
     private final WikiPageRepository wikiPageRepository;
     private final HealthcareAiCompanyRepository companyRepository;
+    private final String baseUrl;
 
     public StateLawController(ManageStateLawsUseCase legislationUseCase,
                               TierResolver tierResolver,
                               WikiPageRepository wikiPageRepository,
-                              HealthcareAiCompanyRepository companyRepository) {
-        log.debug("StateLawController() | legislationUseCase={}, tierResolver={}, wikiPageRepository={}, companyRepository={}",
+                              HealthcareAiCompanyRepository companyRepository,
+                              @Value("${aihealthcare.base-url}") String baseUrl) {
+        log.debug("StateLawController() | legislationUseCase={}, tierResolver={}, wikiPageRepository={}, companyRepository={}, baseUrl={}",
                   legislationUseCase.getClass().getSimpleName(),
                   tierResolver.getClass().getSimpleName(),
                   wikiPageRepository.getClass().getSimpleName(),
-                  companyRepository.getClass().getSimpleName());
+                  companyRepository.getClass().getSimpleName(),
+                  baseUrl);
         this.legislationUseCase = legislationUseCase;
         this.tierResolver = tierResolver;
         this.wikiPageRepository = wikiPageRepository;
         this.companyRepository = companyRepository;
+        this.baseUrl = baseUrl;
     }
 
     /**
@@ -139,8 +144,9 @@ public class StateLawController {
         model.addAttribute("categories", LawCategory.values());
         model.addAttribute("statuses", LawStatus.values());
         model.addAttribute("formattedDates", formattedDates);
+        model.addAttribute("canonicalUrl", baseUrl + "/legislation");
         model.addAttribute("pageDescription",
-                "U.S. state AI healthcare legislation registry — " + totalLaws + " laws across " + stateCount + " states, filterable by state, category, and status.");
+                "Complete U.S. state AI healthcare legislation registry — " + totalLaws + " enacted laws across " + stateCount + " states. Covers payer utilization review, provider disclosure, FDA rules, and CMS regulations. Filter by state, category, and status.");
 
         log.debug("index() | return=legislation-index, totalLaws={}", totalLaws);
         return "legislation-index";
