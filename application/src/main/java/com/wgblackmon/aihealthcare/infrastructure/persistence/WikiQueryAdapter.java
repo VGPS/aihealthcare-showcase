@@ -13,13 +13,17 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * JPA-backed implementation of {@link WikiQueryPort}.
@@ -42,7 +46,7 @@ import java.util.Set;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-07-04
- * @updated 2026-10-26
+ * @updated 2026-11-07
  */
 @Slf4j
 @Component
@@ -176,6 +180,33 @@ public class WikiQueryAdapter implements WikiQueryPort {
         WikiPage result = toDomain(found.get());
         log.debug("getPage() | return={}", result.slug());
         return result;
+    }
+
+    @Override
+    @Transactional
+    public int[] repairBrokenRefs() {
+        log.debug("repairBrokenRefs() | (no args)");
+
+        Set<String> validSlugs = new HashSet<>(pageRepository.findAllSlugs());
+        int pagesFixed = 0;
+        int refsRemoved = 0;
+
+        for (WikiPageEntity page : pageRepository.findAll()) {
+            List<String> existing = PipeDelimitedUtils.split(page.getRelatedSlugs());
+            List<String> valid = existing.stream()
+                    .filter(validSlugs::contains)
+                    .collect(Collectors.toList());
+            int removed = existing.size() - valid.size();
+            if (removed > 0) {
+                page.setRelatedSlugs(PipeDelimitedUtils.join(valid));
+                pageRepository.save(page);
+                pagesFixed++;
+                refsRemoved += removed;
+            }
+        }
+
+        log.debug("repairBrokenRefs() | return=[pagesFixed={}, refsRemoved={}]", pagesFixed, refsRemoved);
+        return new int[]{pagesFixed, refsRemoved};
     }
 
     @Override

@@ -123,4 +123,8 @@ public interface WikiPageRepository extends JpaRepository<WikiPageEntity, String
      */
     @Query("SELECT w FROM WikiPageEntity w WHERE w.revision > w.lastEmbeddedRevision")
     List<WikiPageEntity> findNeedingEmbedding();
+
+    /** All page slugs (primary keys only — avoids loading full entities). */
+    @Query("SELECT w.slug FROM WikiPageEntity w")
+    List<String> findAllSlugs();
 }
