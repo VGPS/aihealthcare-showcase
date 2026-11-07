@@ -1286,7 +1286,7 @@ aihealthcare:
       - topic-id: 1
         name: PubMed Health Data Utilities
         topic: Health Data Utilities
-        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=health+data+utility+interoperability+FHIR&format=rss
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1JKSd2KF3MGzV5nX8wFDj3YhpW9aa7VU48hYeSeUQX73ttSoj0/?limit=15&utm_campaign=pubmed-2&fc=20261107113444
         tier: ACADEMIC
         base-weight: 0.85
         max-items: 15
@@ -1304,7 +1304,7 @@ aihealthcare:
       - topic-id: 1
         name: PubMed Ambient Clinical Documentation
         topic: Ambient Clinical Documentation
-        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=ambient+clinical+documentation+artificial+intelligence&format=rss
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1nikJOfn1NV3yAf-Q6oFAumTf7WayZLxUdUIgcK5dkSU7jBQa6/?limit=15&utm_campaign=pubmed-2&fc=20261107113449
         tier: ACADEMIC
         base-weight: 0.85
         max-items: 15
@@ -1329,7 +1329,7 @@ aihealthcare:
       - topic-id: 1
         name: PubMed Clinical RAG
         topic: Clinical GenAI and RAG
-        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=retrieval+augmented+generation+clinical+healthcare&format=rss
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1NMSEswN1p7Rf7WHWGpoGJ9uARnT9w_99MEkYcsuuehIj4osvu/?limit=15&utm_campaign=pubmed-2&fc=20261107113454
         tier: ACADEMIC
         base-weight: 0.85
         max-items: 15
@@ -1354,7 +1354,7 @@ aihealthcare:
       - topic-id: 1
         name: PubMed AI Healthcare Safety
         topic: AI Governance and Safety
-        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=artificial+intelligence+healthcare+safety+governance+evaluation&format=rss
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1VePQbT36PBrW-WPnf6ixfmQYscvLLTEeCnmZa3LHUxMPKmsJd/?limit=15&utm_campaign=pubmed-2&fc=20261107113459
         tier: ACADEMIC
         base-weight: 0.85
         max-items: 15
@@ -1379,7 +1379,7 @@ aihealthcare:
       - topic-id: 1
         name: PubMed AI Healthcare Admin Automation
         topic: AI Agents for Administrative Workflows
-        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/?term=artificial+intelligence+healthcare+administrative+automation&format=rss
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1xUFNDUH9Gg6D9fHR8IjoxbzjY1I8-68RJ6b90roOMcO_7NQfx/?limit=15&utm_campaign=pubmed-2&fc=20261107113505
         tier: ACADEMIC
         base-weight: 0.85
         max-items: 15
@@ -1389,6 +1389,17 @@ aihealthcare:
         url: https://news.google.com/rss/search?q=AI+prior+authorization+medical+coding+billing+scheduling+healthcare&hl=en-US&gl=US&ceid=US:en
         tier: INDUSTRY
         base-weight: 0.65
+        max-items: 20
+      # -----------------------------------------------------------------
+      # JAMA — AI articles in Journal of the American Medical Association
+      # Search: artificial intelligence[Title/Abstract] AND JAMA[Journal]
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: PubMed JAMA AI Articles
+        topic: Clinical AI Research
+        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/18u2ElPhizfwHolgnA_9xZmhLaYjKW8460G8wWqiLnILiRXw-E/?limit=20&utm_campaign=pubmed-2&fc=20261107113511
+        tier: ACADEMIC
+        base-weight: 0.9
         max-items: 20
       # -----------------------------------------------------------------
       # HuggingFace model discovery
