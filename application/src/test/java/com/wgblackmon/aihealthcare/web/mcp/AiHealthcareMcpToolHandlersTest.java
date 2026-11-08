@@ -2,6 +2,7 @@ package com.wgblackmon.aihealthcare.web.mcp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wgblackmon.aihealthcare.domain.marketanalysis.port.ProduceMarketDigestUseCase;
+import com.wgblackmon.aihealthcare.domain.model.LawCategory;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryBody;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEvent;
 import com.wgblackmon.aihealthcare.domain.model.RegulatoryEventType;
@@ -24,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,7 +48,7 @@ import static org.mockito.Mockito.when;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-11-01
- * @updated 2026-11-01
+ * @updated 2026-11-08
  */
 @ExtendWith(MockitoExtension.class)
 class AiHealthcareMcpToolHandlersTest {
@@ -94,6 +96,14 @@ class AiHealthcareMcpToolHandlersTest {
         var result = handlers.searchLegislation(req(Map.of("stateCode", "CA")));
         assertSuccess(result);
         verify(stateLawsUseCase).getByState(StateCode.CA);
+    }
+
+    @Test
+    void searchLegislation_withCategory_callsGetByCategory() {
+        when(stateLawsUseCase.getByCategory(LawCategory.COMPREHENSIVE_AI_ACT)).thenReturn(List.of());
+        var result = handlers.searchLegislation(req(Map.of("category", "COMPREHENSIVE_AI_ACT")));
+        assertSuccess(result);
+        verify(stateLawsUseCase).getByCategory(LawCategory.COMPREHENSIVE_AI_ACT);
     }
 
     @Test
@@ -161,6 +171,15 @@ class AiHealthcareMcpToolHandlersTest {
         verify(marketDigestUseCase).findLatest();
     }
 
+    @Test
+    void getMarketDigest_withDate_callsFindByDate() {
+        String dateStr = "2026-11-01";
+        when(marketDigestUseCase.findByDate(LocalDate.parse(dateStr))).thenReturn(Optional.empty());
+        var result = handlers.getMarketDigest(req(Map.of("date", dateStr)));
+        assertSuccess(result);
+        verify(marketDigestUseCase).findByDate(LocalDate.parse(dateStr));
+    }
+
     // -------------------------------------------------------------------------
     // get_regulatory_events
     // -------------------------------------------------------------------------
@@ -179,6 +198,14 @@ class AiHealthcareMcpToolHandlersTest {
         var result = handlers.getRegulatoryEvents(req(Map.of("regulatoryBody", "FDA")));
         assertSuccess(result);
         verify(regulatoryUseCase).getEventsByBody(RegulatoryBody.FDA, 20);
+    }
+
+    @Test
+    void getRegulatoryEvents_withEventType_callsGetByEventType() {
+        when(regulatoryUseCase.getEventsByType(RegulatoryEventType.FDA_510K_CLEARANCE, 20)).thenReturn(List.of());
+        var result = handlers.getRegulatoryEvents(req(Map.of("eventType", "FDA_510K_CLEARANCE")));
+        assertSuccess(result);
+        verify(regulatoryUseCase).getEventsByType(RegulatoryEventType.FDA_510K_CLEARANCE, 20);
     }
 
     // -------------------------------------------------------------------------
