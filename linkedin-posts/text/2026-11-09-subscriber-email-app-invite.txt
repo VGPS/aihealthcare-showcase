@@ -1,0 +1,105 @@
+TYPE: Email to LinkedIn Newsletter subscribers — drive to app.bigskylabs.ai
+DATE: 2026-11-09
+AUDIENCE: Existing "AI in Healthcare Intelligence" LinkedIn Newsletter subscribers
+GOAL: Convert newsletter readers into registered app users; surface the three most
+      accessible public features (Wiki, Legislation Registry, Company Directory) as
+      entry points, then invite registration for the full experience.
+STATUS: DRAFT — review before sending via your email platform
+SEND METHOD: Use your newsletter platform (LinkedIn Newsletter reply, MailHog/SES,
+      or direct email to subscriber list — adapt subject line format to platform)
+
+======================================================================
+SUBJECT: The newsletter now has an app behind it — here's what's inside
+======================================================================
+
+---
+
+You've been reading the AI in Healthcare Intelligence newsletter. I wanted to let you
+know that the analysis behind every edition is live and searchable at
+https://app.bigskylabs.ai — and three parts of it are open to anyone right now,
+no account required.
+
+**The Knowledge Wiki**
+
+Every article the pipeline harvests goes into a living encyclopedia that the app
+compiles and updates daily. Right now it holds hundreds of pages on companies,
+clinical topics, regulatory bodies, and emerging technologies — each one with full
+source provenance so you can trace a claim back to the original article.
+
+The three wiki pages behind this week's patient-trust-gap newsletter edition, for
+instance, are here:
+
+https://app.bigskylabs.ai/wiki/americans-open-ai-healthcare-human-final-decisions
+https://app.bigskylabs.ai/wiki/americans-reject-ai-medical-coverage-decisions
+https://app.bigskylabs.ai/wiki/americans-ai-healthcare-skepticism-survey
+
+The full wiki index (searchable by topic) is at:
+https://app.bigskylabs.ai/wiki
+
+**The State AI-Healthcare Legislation Registry**
+
+58 state laws (53 enacted, 5 pending) across 27 jurisdictions, each sourced to its
+official state text, with a weekly freshness check and an upcoming-effective-dates
+view. If you read last Friday's "eight laws, one day" edition, the data behind it is
+here, updated continuously:
+
+https://app.bigskylabs.ai/legislation
+https://app.bigskylabs.ai/legislation/upcoming
+
+**The Company Directory**
+
+A live directory of AI-in-healthcare companies — each profile links back to the
+articles the pipeline harvested about them, with deal signals, funding data, and
+sentiment scores visible for registered users.
+
+https://app.bigskylabs.ai/directory
+
+---
+
+**To get the full picture — register for a free account**
+
+The three pages above are public. The rest of the app — daily market digest, deal
+signal tracking, trend analysis, regulatory alert feed, competitive framework
+analysis — is behind a free registration.
+
+Register here (no credit card, instant access):
+https://app.bigskylabs.ai/register
+
+A paid subscriber tier ($19/month) unlocks the full archive, watchlists, and AI
+search across the full article database. But the free account gets you considerably
+more than the newsletter alone.
+
+---
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+— Bill Blackmon
+AI in Healthcare Intelligence
+https://app.bigskylabs.ai
+newsletter@bigskylabs.ai
+
+---
+
+P.S. If you found the newsletter useful, the best thing you can do is share it —
+the LinkedIn Newsletter subscribe link is:
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+======================================================================
+SENDING NOTES
+======================================================================
+- Send as plain text or lightly formatted HTML — heavy design templates undercut
+  the direct, personal tone this voice is built on.
+- The three wiki URLs in the opening are this week's specific content; swap them
+  for whatever the most recent newsletter edition sourced if sending on a later date.
+- "No credit card, instant access" is accurate for the DEMO/FREE tier — confirm
+  the registration flow is live and working at app.bigskylabs.ai/register before
+  sending.
+- Subject line alternative (if platform shows open rates and you want to A/B test):
+  "What the app behind the newsletter actually contains"
+- Do NOT include wgblackmonall@gmail.com anywhere — reply-to and footer contact
+  is newsletter@bigskylabs.ai only.
+
+======================================================================
+WORD COUNT: ~380 words (intentionally short — this is a CTA email, not an edition)
+======================================================================

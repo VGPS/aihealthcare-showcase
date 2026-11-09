@@ -638,7 +638,7 @@ progressively more data access.
 | FREE_PENDING | Newly registered, email not yet verified |
 | FREE | Verified free user |
 | DEMO | Time-limited full access trial |
-| SUBSCRIBER | Paid subscriber ($49/mo via Stripe) |
+| SUBSCRIBER | Paid subscriber ($19/mo via Stripe) |
 | ENTERPRISE | Enterprise customer with data export + push capabilities |
 
 ADMIN is a role, not a tier — an ADMIN user can be any tier level.

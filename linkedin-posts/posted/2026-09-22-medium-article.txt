@@ -126,7 +126,7 @@ findings. Having a system that notices these reversals automatically is genuinel
 
 --- What's Next ---
 
-The platform is live at app.bigskylabs.ai with a free tier and a $49/month
+The platform is live at app.bigskylabs.ai with a free tier and a $19/month
 subscriber plan. I'm focused on growing the user base and reaching healthcare
 market research teams who need this kind of structured intelligence.
 

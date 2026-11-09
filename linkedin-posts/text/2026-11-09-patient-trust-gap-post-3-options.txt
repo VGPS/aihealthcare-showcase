@@ -1,0 +1,188 @@
+TOPIC: LinkedIn short feed post — the patient trust gap in AI healthcare: three independent
+        surveys/analyses, one week apart, converge on the same verdict (AI assist, not decide)
+DATE: 2026-11-09 (Sunday)
+SOURCE: AIHealthcare Knowledge Wiki — three compiled pages, each citing public survey/analysis
+        sources, fetched 2026-11-09:
+        - /wiki/americans-ai-healthcare-skepticism-survey (compiled Nov 7, 2026 04:15 UTC)
+        - /wiki/americans-open-ai-healthcare-human-final-decisions (Rev 5, Oct 31, 2026 09:41 UTC;
+          cites Pew Research Center + WBFF polling, 3 sources, reaffirmed again in an Aug 2026
+          update with "no significant shift")
+        - /wiki/americans-reject-ai-medical-coverage-decisions (Rev 10, Nov 1, 2026 01:41 UTC;
+          cites Bloomberg analysis, 2 sources)
+STATUS: DRAFT — not yet posted — pick ONE option, not all three
+DATA PROVENANCE: Pulled from the AIHealthcare Knowledge Wiki — an LLM-compiled layer that reads
+        articles already harvested by the daily RSS/research pipeline and writes encyclopedia-
+        style pages with source provenance. No new LLM/AI API call was made to produce this
+        draft — the wiki pages were already compiled and sitting in the database from the normal
+        daily pipeline; this draft was hand-written from their public preview text via three
+        read-only page fetches. No API/LLM charges incurred.
+GROUP RELEVANCE: Broad audience — healthcare policy, health IT/digital health, AI ethics/
+        governance, and patient-advocacy groups. The "AI assist, not decide" framing is accessible
+        to non-technical readers, which makes it a stronger general-feed post than a Group-only one.
+
+================================================================================
+OPTION 1 — Hook: "Three sources, one week, same verdict" (broadest audience, mirrors the
+                 successful "eight laws, one day" convergence framing from Nov 7)
+================================================================================
+
+POST BODY:
+---
+Three different groups studied the same question this fall, with no coordination between them. All three landed on the exact same answer.
+
+Pew Research Center and WBFF polling (reaffirmed again in August, "no significant shift"), a Bloomberg analysis of coverage-decision attitudes, and a separate skepticism survey all converged within one week of each other on this: Americans are fine with AI in healthcare — right up until it stops assisting and starts deciding.
+
+The pattern holds across all three: people support AI as a diagnostic tool or decision-support layer, as long as a physician keeps final authority. They want to be told when AI touched their care. And they reject, specifically, AI making autonomous calls on two things — medical diagnoses and insurance coverage. Not "AI in healthcare, period." Just those two decision points, consistently, across every poll that asked.
+
+That's a much more precise signal than the usual "public distrusts AI" headline. It's not blanket rejection. It's a boundary — assist, don't decide — that's held steady since at least August, through three independently-run studies, with zero convergence toward acceptance of autonomous AI medical or coverage decisions.
+
+For anyone building or deploying healthcare AI, that boundary isn't an obstacle to design around. It's the actual shape of the market you're building for.
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+👉 Link in the first comment.
+
+#AIinHealthcare #DigitalHealth #HealthTech #PatientTrust #AIEthics #HealthcarePolicy
+---
+
+FIRST COMMENT:
+The full source breakdown — survey by survey, with provenance — lives in the knowledge wiki here:
+https://app.bigskylabs.ai/wiki/americans-ai-healthcare-skepticism-survey
+
+Follow the AI in Healthcare Intelligence newsletter for weekly analysis:
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+---
+
+POSTING INSTRUCTIONS:
+- Best for: general LinkedIn feed, Sunday posting, broadest audience (no prior-knowledge
+  requirement — don't need to know the regulatory backdrop to follow this)
+- Works well solo — no second group post needed today
+- Wait 10–15 minutes after publishing before pasting First Comment
+
+---
+
+STRATEGY NOTES:
+- The "three sources, no coordination, same answer" structural device is deliberately reused from
+  the Nov 7 "eight laws, one day" post — it worked once this week, and the underlying data
+  genuinely supports it again here (this isn't forcing the frame onto thin data)
+- "No significant shift" (August reaffirmation) is the strongest single fact in the post — it
+  rules out the obvious objection that this is one noisy poll
+- Leans into a correction of a common misconception ("Americans hate AI in healthcare") rather
+  than confirming it — nuance performs well as a comment-bait angle without being combative
+
+DATA PROVENANCE: see header above — three wiki pages, read-only fetch, no LLM call.
+
+GROUP RELEVANCE: see header above.
+
+
+================================================================================
+OPTION 2 — Hook: coverage-decision denials (sharper, more provocative — healthcare finance /
+                 payer / patient-advocacy audience)
+================================================================================
+
+POST BODY:
+---
+Ask Americans if they're okay with AI in healthcare, and most will say yes. Ask them if they're okay with an algorithm deciding whether their insurance claim gets covered, and the answer flips completely.
+
+A Bloomberg analysis of public opinion research, published this month, found Americans overwhelmingly reject AI making autonomous decisions about medical treatment or insurance coverage — even while they're fine with AI helping gather clinical information or assist a diagnosis. Separate polling from Pew Research and WBFF, running since at least this spring and reaffirmed again in August with "no significant shift," found the identical pattern: conditional support for AI as a tool, hard rejection of AI as the final word on coverage.
+
+That distinction — AI assisting a human decision vs. AI making the decision — is exactly the line several states have started writing into law. Georgia's SB 444, for one, prohibits insurance coverage decisions made "based solely on artificial intelligence." The public sentiment and the emerging legislation aren't coincidentally aligned; the legislation is a direct response to the sentiment.
+
+If your product touches claims review, utilization management, or coverage determinations, this isn't an abstract preference poll. It's the specific boundary the public — and now several state legislatures — have drawn around where AI is and isn't allowed to have the last word.
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+👉 Link in the first comment.
+
+#HealthInsurance #AIinHealthcare #HealthcarePolicy #DigitalHealth #PriorAuthorization #HealthTech
+---
+
+FIRST COMMENT:
+Full source details on the coverage-decision rejection finding:
+https://app.bigskylabs.ai/wiki/americans-reject-ai-medical-coverage-decisions
+
+Follow the AI in Healthcare Intelligence newsletter for weekly analysis:
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+---
+
+POSTING INSTRUCTIONS:
+- Best for: a payer/health-insurance-adjacent or healthcare-finance Group, or patient-advocacy
+  Group, rather than the general feed — the claims-denial angle is sharper and more opinionated
+- If posting to a Group today, this is the one — pairs well as the day's single Group post (stay
+  within the 1–2 groups/sitting pacing rule)
+- Wait 10–15 minutes after publishing before pasting First Comment
+
+---
+
+STRATEGY NOTES:
+- Explicitly cross-references the Nov 7 state-law post (Georgia SB 444) as supporting evidence
+  without re-covering it as the primary topic — this is "public sentiment explains why the law
+  exists," a different angle than the Nov 7 "eight laws, one day" piece
+- The ask-two-questions framing (general AI vs. coverage-decision AI) is a stronger hook than a
+  flat statistic — it mirrors the actual survey finding, which is the point
+- Slightly more pointed/provocative than Option 1; appropriate for a single Group post, not the
+  default feed choice
+
+DATA PROVENANCE: see header above.
+
+GROUP RELEVANCE: health insurance, healthcare finance, prior-authorization/utilization-review,
+patient-advocacy groups specifically — narrower and more opinionated fit than Option 1.
+
+
+================================================================================
+OPTION 3 — Hook: "assist, don't decide" as a design principle (builder/product audience)
+================================================================================
+
+POST BODY:
+---
+If you're building AI for healthcare and you're not sure where to draw the line on autonomy, the public already drew it for you. Three separate studies, run independently, found the identical boundary.
+
+Pew Research and WBFF polling — reaffirmed in August with no measurable shift — found Americans support AI as a diagnostic or decision-support tool, as long as a physician keeps final authority and patients are told when AI touched their care. A Bloomberg analysis found the same split specifically for insurance coverage: fine with AI gathering information, firmly against AI making the autonomous call. A third skepticism survey landed on the same conclusion again, independently, within the same week.
+
+None of these three studies cite each other. They're not converging because of groupthink — they're converging because they're measuring the same real boundary from different angles and getting the same answer every time.
+
+For product teams, that's not a vague "build trustworthy AI" platitude. It's a specific, testable design requirement: a human stays the decision-maker of record, the AI's involvement is disclosed, and the system is architected so "AI assisted" is true and "AI decided" never is. Products built the other way around aren't just facing a PR risk — they're building against a documented, stable public preference with three independent data points behind it.
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+👉 Link in the first comment.
+
+#ProductDesign #AIinHealthcare #ResponsibleAI #HealthTech #DigitalHealth #BuildInPublic
+---
+
+FIRST COMMENT:
+Full breakdown of all three converging studies, with sources:
+https://app.bigskylabs.ai/wiki/americans-open-ai-healthcare-human-final-decisions
+
+Follow the AI in Healthcare Intelligence newsletter for weekly analysis:
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+---
+
+POSTING INSTRUCTIONS:
+- Best for: product/builder/AI-governance audience — healthtech product groups, responsible-AI
+  groups, startup/indie-hacker crossover groups
+- Good alternate to Option 1 if targeting a more technical/builder feed rather than the general
+  policy-interested audience
+- Wait 10–15 minutes after publishing before pasting First Comment
+
+---
+
+STRATEGY NOTES:
+- Reframes the same underlying data as a design principle rather than a policy or market
+  observation — differentiates it from Options 1 and 2 enough to reuse later in the week if
+  engagement on the first posting is strong
+- "Three independent data points" is used as the credibility anchor instead of any single
+  statistic, which keeps the claim defensible without citing a number that could be misread
+
+DATA PROVENANCE: see header above.
+
+GROUP RELEVANCE: product/builder, responsible-AI, and health-tech-startup groups specifically.
+
+
+================================================================================
+RECOMMENDED DEFAULT: Option 1, for the general feed today. If also posting to one Group (within
+the 1–2/sitting pacing limit), use Option 2 there — it's the sharper, more opinionated angle and
+different enough from Option 1 to not read as the same post recycled.
+================================================================================

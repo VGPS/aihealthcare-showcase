@@ -69,10 +69,10 @@ Usage data is written by `UsageMeteringService.recordAiSearchQuery()` and `Usage
 ### `/pricing` — Pricing and Upgrade CTA
 
 **What it shows:**
-A two-column tier comparison table: FREE (forever) vs. SUBSCRIBER ($49/month). Each column lists feature bullets with check/X marks. A "Get Started" button for FREE is hidden (users are already on the free tier if they reach this page authenticated). The SUBSCRIBER "Upgrade" button calls `POST /api/v1/stripe/checkout` to create a Stripe Checkout Session and redirects the browser to the resulting Stripe-hosted checkout URL.
+A two-column tier comparison table: FREE (forever) vs. SUBSCRIBER ($19/month). Each column lists feature bullets with check/X marks. A "Get Started" button for FREE is hidden (users are already on the free tier if they reach this page authenticated). The SUBSCRIBER "Upgrade" button calls `POST /api/v1/stripe/checkout` to create a Stripe Checkout Session and redirects the browser to the resulting Stripe-hosted checkout URL.
 
 **Data source:**
-Static — no database reads. Tier features listed in the template are hardcoded. The pricing amount ($49/month) matches the `PRICE_ID` environment variable configured in the Stripe dashboard.
+Static — no database reads. Tier features listed in the template are hardcoded. The pricing amount ($19/month) matches the `PRICE_ID` environment variable configured in the Stripe dashboard.
 
 **Access / tier gating:**
 Public, no authentication required. The Stripe checkout endpoint (`POST /api/v1/stripe/checkout`) requires authentication and will redirect to `/login` if called unauthenticated.
