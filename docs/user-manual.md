@@ -66,7 +66,7 @@
 | **PUBLIC** | No account needed | Company Directory index, Legislation index, Wiki index, Pricing, Privacy, Tour |
 | **FREE** | Default after DEMO expires | Dashboard, News, limited archives, top-5 subset of gated pages |
 | **DEMO** | Self-registration at `/register` | Full access for 7 days; degrades to FREE at expiry |
-| **SUBSCRIBER** | Stripe checkout ($49/mo) | Full access to all content and research pages |
+| **SUBSCRIBER** | Stripe checkout ($19/mo) | Full access to all content and research pages |
 | **ENTERPRISE** | Admin-assigned or SAML SSO | SUBSCRIBER + Data Console + Intelligence Console |
 | **ADMIN** | Admin-assigned | Everything, all limits removed, admin pages unlocked |
 
@@ -737,7 +737,7 @@ Each channel entry shows the last-triggered timestamp. Use the **Test** button t
 | **Access** | Public (no login required) |
 | **Data refreshes** | Static (tier pricing is configured in Stripe) |
 
-Side-by-side comparison of FREE and SUBSCRIBER tiers with feature checkmarks. The **Upgrade** button initiates Stripe Checkout ($49/month). On successful payment, Stripe calls the application webhook and upgrades your account — this typically takes a few seconds after checkout completes.
+Side-by-side comparison of FREE and SUBSCRIBER tiers with feature checkmarks. The **Upgrade** button initiates Stripe Checkout ($19/month). On successful payment, Stripe calls the application webhook and upgrades your account — this typically takes a few seconds after checkout completes.
 
 > **Spec reference:** `docs/specs/account.md`
 

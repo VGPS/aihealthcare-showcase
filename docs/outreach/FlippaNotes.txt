@@ -14,7 +14,7 @@ Production AWS deployment (EC2, RDS, SES) at bigskylabs.ai
 Full Spring Boot 3 / Java 21 codebase — 3,105 automated tests, 357 test classes, hexagonal architecture
 Six LLM integrations (Anthropic Claude, OpenAI GPT, Google Gemini, Perplexity Sonar, AWS Bedrock, Gemini Flash)
 69 automated ingestion sources (RSS, FDA/CMS APIs, HuggingFace, Perplexity, web scraping)
-Working Stripe subscription model ($49/mo, four access tiers)
+Working Stripe subscription model ($19/mo, four access tiers)
 Enterprise SAML2 SSO, role-based access control
 Public company directory (200+ AI healthcare companies)
 State health AI legislation registry (43 enacted laws, 24 states)
@@ -32,7 +32,7 @@ Why selling: Built as a solo side project during a career transition. Moving int
 
 Growth opportunities:
 
-Convert existing free-tier user base to paid ($49/mo)
+Convert existing free-tier user base to paid ($19/mo)
 SEO — public pages already indexed, sitemap and JSON-LD in place
 Content marketing pipeline already built (LinkedIn, Substack, Facebook)
 Enterprise tier with SAML2 SSO already built — target analyst firms and health systems

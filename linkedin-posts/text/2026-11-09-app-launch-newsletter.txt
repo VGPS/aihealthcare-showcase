@@ -1,0 +1,85 @@
+TOPIC: LinkedIn Newsletter (long-form) — the app behind the newsletter: wiki, legislation
+        registry, company directory now live and publicly searchable at app.bigskylabs.ai
+DATE: 2026-11-09 (Sunday)
+SOURCE: app.bigskylabs.ai public pages — no LLM/API call, no charges
+STATUS: DRAFT — not yet posted
+DATA PROVENANCE: Content pulled from three public app pages (no auth required):
+        app.bigskylabs.ai/wiki, /legislation, /directory. No pipeline or AI call invoked.
+GROUP RELEVANCE: General "AI in Healthcare Intelligence" subscriber base — introduces the app
+        as the living data layer behind every newsletter edition.
+
+======================================================================
+SUBJECT: The newsletter now has an app behind it — here's what's inside
+======================================================================
+
+---
+
+The analysis behind every edition of this newsletter is live and searchable at app.bigskylabs.ai — and three parts of it are open to anyone right now, no account required.
+
+
+**The Knowledge Wiki**
+
+Every article the pipeline harvests goes into a living encyclopedia compiled and updated daily — hundreds of pages on companies, clinical topics, regulatory bodies, and emerging technologies, each with full source provenance so you can trace a claim back to the original article.
+
+The three wiki pages behind this week's patient-trust-gap edition are a good entry point:
+
+- Americans Open to AI: Human Final Decisions
+  app.bigskylabs.ai/wiki/americans-open-ai-healthcare-human-final-decisions
+
+- Americans Reject AI Medical Coverage Decisions
+  app.bigskylabs.ai/wiki/americans-reject-ai-medical-coverage-decisions
+
+- Americans: AI Healthcare Skepticism Survey
+  app.bigskylabs.ai/wiki/americans-ai-healthcare-skepticism-survey
+
+Full wiki index, searchable by topic: app.bigskylabs.ai/wiki
+
+
+**The State AI-Healthcare Legislation Registry**
+
+58 state laws (53 enacted, 5 pending) across 27 jurisdictions — each sourced to its official state text, with a weekly freshness check and an upcoming-effective-dates view. The data behind last Friday's "eight laws, one day" edition lives here, updated continuously.
+
+app.bigskylabs.ai/legislation
+app.bigskylabs.ai/legislation/upcoming — laws effective in the next 90 days
+
+
+**The Company Directory**
+
+A live directory of AI-in-healthcare companies — each profile links to harvested articles, deal signals, funding data, and sentiment scores. Public at app.bigskylabs.ai/directory; registered users see the full signal layer.
+
+
+**Get the full picture — register free**
+
+The three pages above are public. The rest of the app — daily market digest, deal signal tracking, trend analysis, regulatory alert feed, competitive framework analysis — is behind a free registration at app.bigskylabs.ai/register. No credit card required.
+
+A paid tier ($19/month) unlocks the full archive, watchlists, and AI search across the complete article database — but the free account gets you considerably more than the newsletter alone.
+
+---
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+— Bill Blackmon
+AI in Healthcare Intelligence
+app.bigskylabs.ai
+
+---
+
+SOURCES:
+- app.bigskylabs.ai/wiki
+- app.bigskylabs.ai/legislation
+- app.bigskylabs.ai/directory
+
+======================================================================
+POSTING INSTRUCTIONS
+======================================================================
+1. Paste into the LinkedIn Newsletter composer — bold the four section headings manually
+   using LinkedIn's editor toolbar.
+2. Convert the three wiki URLs under "The Knowledge Wiki" into clickable hyperlinks
+   using LinkedIn's link tool — use the label text as the anchor text, not the raw URL.
+3. Do the same for all other app.bigskylabs.ai URLs in the body.
+4. The LinkedIn Newsletter subscribe link goes in the footer of the published edition:
+   https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+======================================================================
+WORD COUNT: ~380 words
+======================================================================
