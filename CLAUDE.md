@@ -124,15 +124,13 @@ mvn test -Dspring.profiles.active=ai-integration
 
 ## Git and CI Discipline
 
-- **NEVER commit directly to `master`.** Always create a feature branch first.
-- **Branch naming:** `feat/<short-name>`, `fix/<short-name>`, `slice/<slice-id>`, `chore/<short-name>`, `docs/<short-name>`
+- **Commit directly to `master`** — no feature branches required (solo developer).
 - **One feature per commit.** If a change does two things, make two commits.
 - **Commit message format:** imperative subject under 72 chars. Body only when the "why" isn't obvious.
-- **Git remote is `AIHealthcare_Origin`, NOT `origin`.** Push with: `git push AIHealthcare_Origin <branch>`. The `showcase` remote is a different repository — always push to both.
-- **`master` is protected.** Work reaches it only through a pull request whose "Compile + Unit Tests" check is green.
+- **Git remote is `AIHealthcare_Origin`, NOT `origin`.** Push with: `git push AIHealthcare_Origin master`. The `showcase` remote is a different repository — always push to both: `git push showcase master`.
 - **Before pushing, run:** `mvn -Pci verify`
 - **Never commit** `.env`, `*.key`, `*.pem`, dump files, or logs.
-- **CI workflow:** `.github/workflows/ci.yml` — triggers on PRs to `master` and pushes to `master`. Runs with `-Pci` profile (skips Tailwind), pgvector Postgres service container, Java 21 Temurin.
+- **CI workflow:** `.github/workflows/ci.yml` — triggers on pushes to `master`. Runs with `-Pci` profile (skips Tailwind), pgvector Postgres service container, Java 21 Temurin.
 
 ---
 
