@@ -48,7 +48,7 @@ See @docs/CONVENTIONS.md for all coding rules (logging, loops, records, class he
 > Governs the **deployed app's own** API spend (Anthropic/Perplexity/Gemini/Alpaca), not Claude Code sessions.
 > Initiative started 2026-11-02, targeting a 50% cut vs. October baseline.
 
-See @docs/llm-cost-discipline.md for implemented rules, candidates, and verification approach.
+See `docs/llm-cost-discipline.md` for implemented rules, candidates, and verification approach.
 
 ---
 
@@ -78,7 +78,7 @@ AIHealthcare/
 
 ## Core Domain Types
 
-See @docs/domain-model.md for the full domain type table, `NewsArticle` field inventory, wiki records, and feed YAML shape.
+See `docs/domain-model.md` for the full domain type table, `NewsArticle` field inventory, wiki records, and feed YAML shape.
 
 Key types to know without looking up:
 - `NewsArticle` — harvested article, 11 fields, in `domain.model`
@@ -157,7 +157,7 @@ and takes 30+ minutes. Run only tests relevant to the changed code.
 
 ## Current Slice — W7 (Wiki Hybrid Search) — COMPLETE
 
-See @docs/slice-history.md for the full W7 checklist and all previously completed slices.
+See `docs/slice-history.md` for the full W7 checklist and all previously completed slices.
 
 **W7 summary:** `WikiQueryAdapter.findRelevantPages()` now merges keyword/LIKE hits with a
 pgvector semantic-similarity leg for non-blank queries. `WikiEmbeddingScheduler` (new) embeds
@@ -168,7 +168,7 @@ wiki pages into the shared `PgVectorStore` (tagged `type=wiki_page`). Blank-quer
 
 ## Feature Module Specs
 
-See @docs/feature-specs.md for detailed architectural specs on:
+See `docs/feature-specs.md` for detailed architectural specs on:
 - **Market Analysis** — daily digest, qualifying bar, Alpaca/Perplexity adapters, 3-phase build order
 - **State Health-AI Legislation Registry** — seed data, weekly monitor, candidate review workflow
 - **Enterprise Data PULL (ED-1)** — async jobs, `ConfinedFileStore`, `RemoteEndpointGuard`, 6 security invariants
