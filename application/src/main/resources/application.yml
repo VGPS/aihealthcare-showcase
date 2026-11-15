@@ -286,6 +286,19 @@ aihealthcare:
     schedule: "0 0 */6 * * *"
 
   # ---------------------------------------------------------------------------
+  # LT-1 Liability Classification — daily LLM scan of LEGAL-tier articles.
+  # Runs at 06:45 UTC (after FeedHarvestScheduler at 04:00 and before EmbeddingScheduler at 07:00).
+  # classification-model: use Haiku for cost efficiency (fastest + cheapest).
+  # max-articles-per-run: cap per execution to bound token spend.
+  # lookback-days: how far back to scan for unprocessed articles.
+  # ---------------------------------------------------------------------------
+  liability:
+    classification-cron: "0 45 6 * * *"
+    classification-model: "claude-haiku-4-5-20251001"
+    lookback-days: 7
+    max-articles-per-run: 20
+
+  # ---------------------------------------------------------------------------
   # Market Analysis — weekly AI-healthcare market digest pipeline.
   # Changed from daily to weekly (Saturday 07:00 America/Chicago) to reduce
   # Perplexity + Claude API spend while no paying subscribers are active.

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('AI Healthcare Liability Registry')}"></head>
+<body class="bg-surface text-on-surface">
+
+<nav th:replace="~{fragments/nav :: nav('liability')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-8">
+
+    <div class="mb-6">
+        <h1 class="text-2xl font-semibold">AI Healthcare Liability Registry</h1>
+        <p class="text-sm text-on-surface-muted mt-1">
+            A longitudinal record of lawsuits, FDA enforcement actions, wrongful-death claims,
+            and regulatory sanctions where AI systems are named in healthcare harm.
+            Updated as new cases emerge.
+            <span class="font-medium" th:text="'(' + ${totalCount} + ' incidents on record)'"></span>
+        </p>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-2 mb-6">
+        <a th:href="@{/liability}"
+           th:classappend="${activeType == null and activeStatus == null} ? ' bg-primary-600 text-white' : ' bg-white border border-border text-on-surface hover:bg-gray-50'"
+           class="text-xs px-3 py-1 rounded-full font-medium">All</a>
+        <a th:each="t : ${incidentTypes}"
+           th:href="@{/liability(type=${t})}"
+           th:text="${t}"
+           th:classappend="${activeType == t.name()} ? ' bg-primary-600 text-white' : ' bg-white border border-border text-on-surface hover:bg-gray-50'"
+           class="text-xs px-3 py-1 rounded-full font-medium"></a>
+    </div>
+
+    <!-- Empty state -->
+    <div th:if="${incidents.empty}" class="text-sm text-on-surface-muted py-12 text-center">
+        No incidents match the current filter.
+    </div>
+
+    <!-- Incidents table -->
+    <div th:unless="${incidents.empty}" class="space-y-3">
+        <div th:each="incident : ${incidents}"
+             class="bg-white dark:bg-surface-raised border border-border rounded-lg p-4 hover:border-primary-300 transition-colors">
+
+            <div class="flex flex-wrap items-start justify-between gap-2">
+                <div class="flex-1 min-w-0">
+                    <!-- Title — linked to source if available -->
+                    <a th:if="${incident.sourceUrl}"
+                       th:href="${incident.sourceUrl}" target="_blank" rel="noopener"
+                       class="font-medium text-sm text-primary-700 hover:underline"
+                       th:text="${incident.title}"></a>
+                    <span th:unless="${incident.sourceUrl}"
+                          class="font-medium text-sm"
+                          th:text="${incident.title}"></span>
+
+                    <!-- Badges -->
+                    <div class="mt-1 flex flex-wrap gap-1">
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800"
+                              th:text="${incident.incidentType}"></span>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-800"
+                              th:text="${incident.harmType}"></span>
+                        <span th:switch="${incident.status.name()}">
+                            <span th:case="'ACTIVE'"
+                                  class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700"
+                                  th:text="${incident.status}"></span>
+                            <span th:case="'SETTLED'"
+                                  class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700"
+                                  th:text="${incident.status}"></span>
+                            <span th:case="'DECIDED'"
+                                  class="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700"
+                                  th:text="${incident.status}"></span>
+                            <span th:case="*"
+                                  class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700"
+                                  th:text="${incident.status}"></span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Filing date -->
+                <div th:if="${incident.filingDate}"
+                     class="text-xs text-on-surface-muted whitespace-nowrap"
+                     th:text="${incident.filingDate}"></div>
+            </div>
+
+            <!-- Detail row -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-0.5 text-xs text-on-surface-muted mt-2">
+                <span th:if="${incident.defendant}">
+                    <strong>Defendant:</strong>
+                    <span th:text="${incident.defendant}"></span>
+                </span>
+                <span th:if="${incident.plaintiff}">
+                    <strong>Plaintiff:</strong>
+                    <span th:text="${incident.plaintiff}"></span>
+                </span>
+                <span th:if="${incident.court}">
+                    <strong>Court:</strong>
+                    <span th:text="${incident.court}"></span>
+                </span>
+                <span th:if="${incident.caseNumber}">
+                    <strong>Case #:</strong>
+                    <span th:text="${incident.caseNumber}"></span>
+                </span>
+                <span th:if="${incident.legalTheory}">
+                    <strong>Theory:</strong>
+                    <span th:text="${incident.legalTheory}"></span>
+                </span>
+                <span th:if="${incident.outcome}">
+                    <strong>Outcome:</strong>
+                    <span th:text="${incident.outcome}"></span>
+                </span>
+            </div>
+
+            <!-- Notes -->
+            <div th:if="${incident.notes != null and !#strings.startsWith(incident.notes, 'Auto-proposed')}"
+                 class="text-xs text-on-surface-muted border-l-2 border-border pl-2 mt-2 italic"
+                 th:text="${incident.notes}"></div>
+
+        </div>
+    </div>
+
+    <!-- Footer note -->
+    <p class="text-xs text-on-surface-muted mt-8 border-t border-border pt-4">
+        AI in healthcare is history being written right now. This registry is part of the archive.
+        Sources are linked directly from each incident title.
+        <a href="/register" class="text-primary-600 hover:underline ml-1">Get the weekly digest →</a>
+    </p>
+
+</main>
+</body>
+</html>

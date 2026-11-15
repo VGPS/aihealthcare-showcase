@@ -76,6 +76,7 @@ class LiabilityTrackerControllerTest {
     @Test
     void get_list_returns200AndModelAttributes() throws Exception {
         when(port.findAll()).thenReturn(List.of(sampleIncident()));
+        when(port.findByStatus(any())).thenReturn(List.of());
         when(port.findRelatedArticles(anyString(), anyInt())).thenReturn(List.of());
 
         mockMvc.perform(get("/admin/liability"))
@@ -145,6 +146,42 @@ class LiabilityTrackerControllerTest {
                .andExpect(flash().attributeExists("successMsg"));
 
         verify(port).deleteById("test-id-001");
+    }
+
+    @Test
+    void post_approve_redirectsAndChangesStatusToFiled() throws Exception {
+        LiabilityIncident pending = new LiabilityIncident(
+                "pending-001", IncidentType.LAWSUIT, HarmType.DELAYED_CARE,
+                IncidentStatus.PENDING_REVIEW, "Proposed incident",
+                null, "VendorCo", null, null, null,
+                null, null, null, "https://example.com", null,
+                Instant.now(), Instant.now());
+        when(port.findById("pending-001")).thenReturn(pending);
+
+        mockMvc.perform(post("/admin/liability/pending-001/approve").with(csrf()))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/admin/liability"))
+               .andExpect(flash().attributeExists("successMsg"));
+
+        verify(port).save(any(LiabilityIncident.class));
+    }
+
+    @Test
+    void post_reject_redirectsAndDeletesProposal() throws Exception {
+        LiabilityIncident pending = new LiabilityIncident(
+                "pending-002", IncidentType.FDA_FLAG, HarmType.AUTONOMOUS_DEVICE,
+                IncidentStatus.PENDING_REVIEW, "Proposed FDA flag",
+                null, "MedDevCo", null, null, null,
+                null, null, null, null, null,
+                Instant.now(), Instant.now());
+        when(port.findById("pending-002")).thenReturn(pending);
+
+        mockMvc.perform(post("/admin/liability/pending-002/reject").with(csrf()))
+               .andExpect(status().is3xxRedirection())
+               .andExpect(redirectedUrl("/admin/liability"))
+               .andExpect(flash().attributeExists("successMsg"));
+
+        verify(port).deleteById("pending-002");
     }
 
     @Test

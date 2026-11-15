@@ -37,9 +37,9 @@ import java.util.UUID;
  * via {@link LiabilityIncidentPort#findRelatedArticles} at zero LLM cost.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-11-16
- * @updated 2026-11-16
+ * @updated 2026-11-15
  */
 @Slf4j
 @Controller
@@ -56,12 +56,15 @@ public class LiabilityTrackerController {
     }
 
     /**
-     * List all incidents with inline add form and related-article links per row.
+     * List all incidents, split into pending-review queue and published registry.
      */
     @GetMapping
     public String list(Model model) {
         log.debug("list()");
-        List<LiabilityIncident> incidents = port.findAll();
+        List<LiabilityIncident> pending   = port.findByStatus(IncidentStatus.PENDING_REVIEW);
+        List<LiabilityIncident> incidents = port.findAll().stream()
+                .filter(i -> i.status() != IncidentStatus.PENDING_REVIEW)
+                .collect(java.util.stream.Collectors.toList());
 
         Map<String, List<NewsArticle>> relatedByIncident = new LinkedHashMap<>();
         for (LiabilityIncident incident : incidents) {
@@ -70,12 +73,13 @@ public class LiabilityTrackerController {
             relatedByIncident.put(incident.incidentId(), related);
         }
 
+        model.addAttribute("pending",            pending);
         model.addAttribute("incidents",          incidents);
         model.addAttribute("relatedByIncident",  relatedByIncident);
         model.addAttribute("incidentTypes",      IncidentType.values());
         model.addAttribute("harmTypes",          HarmType.values());
         model.addAttribute("statuses",           IncidentStatus.values());
-        log.debug("list() | return=liability-admin, incidents={}", incidents.size());
+        log.debug("list() | return=liability-admin, incidents={}, pending={}", incidents.size(), pending.size());
         return "liability-admin";
     }
 
@@ -223,6 +227,51 @@ public class LiabilityTrackerController {
         port.deleteById(incidentId);
         redirectAttributes.addFlashAttribute("successMsg", "Incident deleted.");
         log.debug("delete() | return=redirect:/admin/liability");
+        return "redirect:/admin/liability";
+    }
+
+    /**
+     * Approve a PENDING_REVIEW incident — changes status to FILED and publishes it.
+     */
+    @PostMapping("/{incidentId}/approve")
+    public String approve(@PathVariable String incidentId, RedirectAttributes redirectAttributes) {
+        log.debug("approve() | incidentId={}", incidentId);
+        LiabilityIncident incident = port.findById(incidentId);
+        if (incident == null || incident.status() != IncidentStatus.PENDING_REVIEW) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Incident not found or not pending review.");
+            log.debug("approve() | return=redirect (not found or wrong status)");
+            return "redirect:/admin/liability";
+        }
+        LiabilityIncident approved = new LiabilityIncident(
+                incident.incidentId(), incident.incidentType(), incident.harmType(),
+                IncidentStatus.FILED,
+                incident.title(), incident.plaintiff(), incident.defendant(),
+                incident.legalTheory(), incident.court(), incident.caseNumber(),
+                incident.harmDate(), incident.filingDate(), incident.outcome(),
+                incident.sourceUrl(), incident.notes(),
+                incident.createdAt(), Instant.now()
+        );
+        port.save(approved);
+        redirectAttributes.addFlashAttribute("successMsg", "Incident approved: " + incident.title());
+        log.debug("approve() | return=redirect:/admin/liability");
+        return "redirect:/admin/liability";
+    }
+
+    /**
+     * Reject a PENDING_REVIEW incident — deletes it permanently.
+     */
+    @PostMapping("/{incidentId}/reject")
+    public String reject(@PathVariable String incidentId, RedirectAttributes redirectAttributes) {
+        log.debug("reject() | incidentId={}", incidentId);
+        LiabilityIncident incident = port.findById(incidentId);
+        if (incident == null || incident.status() != IncidentStatus.PENDING_REVIEW) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Incident not found or not pending review.");
+            log.debug("reject() | return=redirect (not found or wrong status)");
+            return "redirect:/admin/liability";
+        }
+        port.deleteById(incidentId);
+        redirectAttributes.addFlashAttribute("successMsg", "Incident rejected and removed.");
+        log.debug("reject() | return=redirect:/admin/liability");
         return "redirect:/admin/liability";
     }
 

@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
  * existing harvested articles by defendant keyword — zero LLM cost.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-11-16
- * @updated 2026-11-16
+ * @updated 2026-11-15
  */
 @Slf4j
 @Component
@@ -85,6 +85,26 @@ public class LiabilityIncidentAdapter implements LiabilityIncidentPort {
         log.debug("deleteById() | incidentId={}", incidentId);
         repository.deleteById(incidentId);
         log.debug("deleteById() | return=void");
+    }
+
+    @Override
+    public List<LiabilityIncident> findByStatus(IncidentStatus status) {
+        log.debug("findByStatus() | status={}", status);
+        List<LiabilityIncident> result = repository
+                .findAllByStatusOrderByCreatedAtDesc(status.name())
+                .stream()
+                .map(this::toDomain)
+                .collect(Collectors.toList());
+        log.debug("findByStatus() | return={}", result.size());
+        return result;
+    }
+
+    @Override
+    public boolean existsBySourceUrl(String sourceUrl) {
+        log.debug("existsBySourceUrl() | sourceUrl={}", sourceUrl);
+        boolean result = repository.existsBySourceUrl(sourceUrl);
+        log.debug("existsBySourceUrl() | return={}", result);
+        return result;
     }
 
     @Override

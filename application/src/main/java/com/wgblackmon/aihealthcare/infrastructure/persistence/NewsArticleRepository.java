@@ -100,6 +100,8 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticleEntity, 
      */
     List<NewsArticleEntity> findByTitleContainingIgnoreCase(String keyword);
 
+    List<NewsArticleEntity> findBySourceTierAndCreatedAtAfter(String sourceTier, java.time.Instant cutoff);
+
     /**
      * Finds real news articles mentioning a company name in the title,
      * excluding synthetic discovery entries (topic = 'New AI Healthcare Companies').

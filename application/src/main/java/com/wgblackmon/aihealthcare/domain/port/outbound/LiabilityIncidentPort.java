@@ -1,5 +1,6 @@
 package com.wgblackmon.aihealthcare.domain.port.outbound;
 
+import com.wgblackmon.aihealthcare.domain.model.IncidentStatus;
 import com.wgblackmon.aihealthcare.domain.model.LiabilityIncident;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 
@@ -39,4 +40,10 @@ public interface LiabilityIncidentPort {
      * incident without any LLM call.
      */
     List<NewsArticle> findRelatedArticles(String keyword, int limit);
+
+    /** Return all incidents with the given status, newest first. */
+    List<LiabilityIncident> findByStatus(IncidentStatus status);
+
+    /** True if any incident record already has the given sourceUrl. Used by the classifier to skip already-processed articles. */
+    boolean existsBySourceUrl(String sourceUrl);
 }

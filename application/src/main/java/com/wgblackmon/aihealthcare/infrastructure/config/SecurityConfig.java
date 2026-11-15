@@ -105,6 +105,7 @@ public class SecurityConfig {
                 .requestMatchers("/dashboard/weekly-roundup").permitAll()
                 .requestMatchers("/wiki", "/wiki/**").permitAll()
                 .requestMatchers("/legislation", "/legislation/**").permitAll()
+                .requestMatchers("/liability", "/liability/**").permitAll()
                 .requestMatchers("/trends", "/trends/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/research/ai-search").permitAll()
                 .requestMatchers("/stripe/**").permitAll()

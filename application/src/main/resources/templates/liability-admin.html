@@ -24,6 +24,74 @@
          class="bg-red-50 border-l-4 border-red-500 text-red-800 text-sm p-3 mb-4 rounded"
          th:text="${errorMsg}"></div>
 
+    <!-- Pending Review Queue (Phase 4) -->
+    <section th:if="${not #lists.isEmpty(pending)}"
+             class="bg-amber-50 dark:bg-surface-raised border border-amber-300 rounded-lg p-6 mb-8">
+        <h2 class="text-lg font-medium text-amber-800 mb-1">Pending Review
+            <span class="text-sm font-normal"
+                  th:text="'(' + ${pending.size()} + ' proposed by classifier)'"></span>
+        </h2>
+        <p class="text-xs text-amber-700 mb-4">
+            These incidents were proposed by the LLM classifier. Review each one and approve (publishes as FILED)
+            or reject (deletes permanently).
+        </p>
+        <div class="space-y-3">
+            <div th:each="incident : ${pending}"
+                 class="bg-white border border-amber-200 rounded p-4">
+                <div class="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                        <span class="font-medium text-sm" th:text="${incident.title}"></span>
+                        <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800"
+                              th:text="${incident.incidentType}"></span>
+                        <span class="ml-1 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-800"
+                              th:text="${incident.harmType}"></span>
+                    </div>
+                    <div class="flex gap-2">
+                        <form th:action="@{/admin/liability/{id}/approve(id=${incident.incidentId})}"
+                              method="post" class="inline">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit"
+                                    class="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">
+                                Approve
+                            </button>
+                        </form>
+                        <form th:action="@{/admin/liability/{id}/reject(id=${incident.incidentId})}"
+                              method="post" class="inline"
+                              onsubmit="return confirm('Reject and delete this proposal?')">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit"
+                                    class="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded">
+                                Reject
+                            </button>
+                        </form>
+                        <a th:href="@{/admin/liability/{id}/edit(id=${incident.incidentId})}"
+                           class="text-xs text-primary-600 hover:underline self-center">Edit</a>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-xs text-on-surface-muted mt-2">
+                    <span th:if="${incident.defendant}"><strong>Defendant:</strong>
+                        <span th:text="${incident.defendant}"></span></span>
+                    <span th:if="${incident.plaintiff}"><strong>Plaintiff:</strong>
+                        <span th:text="${incident.plaintiff}"></span></span>
+                    <span th:if="${incident.legalTheory}"><strong>Theory:</strong>
+                        <span th:text="${incident.legalTheory}"></span></span>
+                    <span th:if="${incident.court}"><strong>Court:</strong>
+                        <span th:text="${incident.court}"></span></span>
+                    <span th:if="${incident.filingDate}"><strong>Filed:</strong>
+                        <span th:text="${incident.filingDate}"></span></span>
+                </div>
+                <div th:if="${incident.sourceUrl}" class="text-xs mt-1">
+                    <a th:href="${incident.sourceUrl}" target="_blank" rel="noopener"
+                       class="text-primary-600 hover:underline truncate block max-w-xl"
+                       th:text="${incident.sourceUrl}"></a>
+                </div>
+                <div th:if="${incident.notes}"
+                     class="text-xs text-amber-700 mt-1 italic"
+                     th:text="${incident.notes}"></div>
+            </div>
+        </div>
+    </section>
+
     <!-- Add Incident Form -->
     <section class="bg-white dark:bg-surface-raised border border-border rounded-lg p-6 mb-8">
         <h2 class="text-lg font-medium mb-4">Add Incident</h2>

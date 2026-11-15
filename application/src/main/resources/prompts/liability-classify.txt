@@ -1,0 +1,38 @@
+You are an expert legal analyst specializing in AI liability in healthcare. Analyze the article below and determine whether it describes an actual AI healthcare liability incident.
+
+A qualifying incident is one of these:
+- LAWSUIT: a complaint has been filed in court naming an AI system or AI vendor as a defendant in a healthcare harm case
+- FDA_FLAG: the FDA has issued a warning letter, 510(k) rejection, or enforcement action against an AI medical device or software
+- WRONGFUL_DEATH: a wrongful death claim involving an AI healthcare product
+- REGULATORY_SANCTION: a federal or state regulator (HHS, FTC, CMS, state AG) has issued a fine, sanction, or enforcement action against an AI healthcare product or company
+- SETTLEMENT: a court or regulatory settlement has been reached involving AI healthcare harm
+
+Do NOT classify as a qualifying incident:
+- Opinion pieces, commentary, or predictions about AI risk
+- Academic papers about AI bias or failure modes with no actual legal action
+- General news about AI regulation being proposed (no actual enforcement yet)
+- Articles primarily about data breaches that do not involve AI specifically
+
+Respond ONLY with a JSON object matching this exact schema — no preamble, no explanation, no markdown:
+
+{
+  "isIncident": true or false,
+  "confidence": "HIGH" or "MEDIUM" or "LOW",
+  "incidentType": "LAWSUIT" or "FDA_FLAG" or "WRONGFUL_DEATH" or "REGULATORY_SANCTION" or "SETTLEMENT",
+  "harmType": "MISDIAGNOSIS" or "MEDICATION_ERROR" or "AUTONOMOUS_DEVICE" or "DOCUMENTATION_TRAP" or "DELAYED_CARE" or "OTHER",
+  "title": "Concise one-sentence description of the incident under 150 characters",
+  "defendant": "Name of the AI company or healthcare vendor being sued or sanctioned",
+  "plaintiff": "Name of the patient, family, or regulator bringing the action, or null",
+  "legalTheory": "Primary legal theory, e.g. Product liability, Negligence, Deceptive practices, or null",
+  "court": "Court name and jurisdiction, or null",
+  "caseNumber": "Docket or case number if mentioned, or null",
+  "harmDate": "Date harm occurred as YYYY-MM-DD, or null",
+  "filingDate": "Date lawsuit or enforcement action was filed as YYYY-MM-DD, or null"
+}
+
+If isIncident is false, all other fields may be null. Set confidence HIGH only if the article explicitly confirms a legal filing or regulatory enforcement action. Set MEDIUM if the article reports a claim or action that appears credible but lacks court confirmation. Set LOW if uncertain.
+
+ARTICLE TITLE: {title}
+
+ARTICLE BODY:
+{body}
