@@ -1659,6 +1659,61 @@ aihealthcare:
           - liability
           - malpractice
           - patient
+      # -----------------------------------------------------------------
+      # LT-1 extended feeds (added 2026-11-15) — FDA, HHS OCR, FTC, Reuters
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: FDA Warning Letters AI Medical Devices
+        topic: AI Healthcare Legal
+        url: https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/warning-letters-rss-feed
+        tier: LEGAL
+        base-weight: 0.9
+        max-items: 15
+        keywords:
+          - software
+          - artificial intelligence
+          - algorithm
+          - diagnostic
+          - clinical decision
+      - topic-id: 1
+        name: HHS OCR HIPAA Enforcement News
+        topic: AI Healthcare Legal
+        url: https://news.google.com/rss/search?q=HHS+OCR+HIPAA+enforcement+AI+OR+algorithm+OR+software+healthcare&hl=en-US&gl=US&ceid=US:en
+        tier: LEGAL
+        base-weight: 0.85
+        max-items: 15
+        keywords:
+          - HHS
+          - OCR
+          - HIPAA
+          - enforcement
+          - AI
+      - topic-id: 1
+        name: FTC Health Tech Enforcement
+        topic: AI Healthcare Legal
+        url: https://www.ftc.gov/feeds/press-releases.xml
+        tier: LEGAL
+        base-weight: 0.9
+        max-items: 15
+        keywords:
+          - health
+          - healthcare
+          - AI
+          - algorithm
+          - medical
+      - topic-id: 1
+        name: Reuters Health AI Legal
+        topic: AI Healthcare Legal
+        url: https://news.google.com/rss/search?q=reuters+AI+healthcare+lawsuit+OR+liability+OR+FDA+OR+FTC&hl=en-US&gl=US&ceid=US:en
+        tier: LEGAL
+        base-weight: 0.85
+        max-items: 15
+        keywords:
+          - lawsuit
+          - liability
+          - FDA
+          - FTC
+          - AI
       # REMOVED Sep 2026: 14 COMPETITOR-tier static policy pages
       # (AMA, KFF, NCSL, EFF, etc.) — these are reference pages, not news
       # feeds. They produced garbage articles (e.g. single-word titles like
