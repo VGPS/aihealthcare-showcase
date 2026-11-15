@@ -112,6 +112,7 @@ api  ──▶  web   (generated DTOs imported here only)
 | PC-1 | Spring AI 1.0.0 → 1.1.6 upgrade — groundwork for prompt caching; no adapter changes (every current prompt template is below Anthropic's cache-minimum for the model it runs on) | 3,105 |
 | PC-2 | Per-Pipeline LLM Token Usage Tracking — `CallAdvisor` + `ChatClientCustomizer` captures every Anthropic call's tokens, tagged by pipeline via a `ThreadLocal`; admin dashboard panel shows 7-day cost by pipeline and by model | 3,123 |
 | W7 | Wiki Hybrid Search — `WikiQueryAdapter.findRelevantPages()` merges keyword/LIKE hits with a pgvector semantic-similarity leg (new `WikiEmbeddingScheduler`, shared `PgVectorStore` tagged `type=wiki_page`) for non-blank queries only; blank-query "return everything" contract (used by `WikiLintScheduler`/`WikiLintController`/`FeedHarvestScheduler`) unchanged | 3,139 |
+| LT-1 | AI Liability Incident Tracker — `LiabilityIncident` domain record, `LiabilityIncidentPort`, JPA adapter, admin CRUD (`/admin/liability`) with pending-review queue, public registry (`/liability`) with `IncidentType`/`HarmType`/`IncidentStatus` filter pills + filing-date sort, `LiabilityClassificationAdapter` (LLM auto-propose from harvested articles), 4 extended LEGAL-tier RSS feeds, 13 selective tests | 3,139+ |
 
 ---
 
@@ -257,6 +258,8 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /dashboard/trends/history/{epochMillis}` | `TrendHistoryController` | `trend-history-detail.html` — snapshot detail |
 | `GET /legislation` | `StateLawController` | `legislation-index.html` — searchable state law registry |
 | `GET /legislation/{id}` | `StateLawController` | `legislation-detail.html` — law detail with sources |
+| `GET /liability` | `LiabilityController` | `liability-public.html` — public AI liability incident registry with type/harm/status filter pills + filing-date sort |
+| `GET /admin/liability` | `LiabilityTrackerController` | `liability-admin.html` — admin CRUD: add/edit/delete incidents, approve/reject LLM proposals |
 | `GET /admin/sso` | `SsoAdminController` | `sso-providers.html` — SSO IdP list with status badges |
 | `GET /admin/sso/new` | `SsoAdminController` | `sso-provider-form.html` — create new IdP configuration |
 | `GET /admin/sso/{id}/edit` | `SsoAdminController` | `sso-provider-form.html` — edit IdP configuration |

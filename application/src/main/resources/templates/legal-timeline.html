@@ -56,7 +56,7 @@
     <!-- Filter controls -->
     <div class="bg-white rounded-lg shadow-sm px-5 py-4 mb-6 flex flex-wrap gap-4 items-center justify-between">
         <!-- Category tabs -->
-        <div class="flex gap-3 text-sm">
+        <div class="flex gap-3 text-sm flex-wrap items-center">
             <a th:href="@{/dashboard/legal(days=${days})}"
                th:classappend="${filter == null} ? ' font-bold underline' : ''"
                class="text-gray-700 hover:text-primary-600">All</a>
@@ -69,6 +69,8 @@
             <a th:href="@{/dashboard/legal(filter='policy', days=${days})}"
                th:classappend="${filter == 'policy'} ? ' font-bold underline' : ''"
                class="text-amber-700 hover:text-amber-900">Policy</a>
+            <span class="text-gray-300">|</span>
+            <a th:href="@{/liability}" class="text-red-700 hover:text-red-900 font-medium">Liability Registry &#8594;</a>
         </div>
 
         <!-- Days dropdown -->
