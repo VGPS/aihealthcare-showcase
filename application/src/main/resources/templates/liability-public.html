@@ -18,15 +18,57 @@
     </div>
 
     <!-- Filters -->
-    <div class="flex flex-wrap gap-2 mb-6">
-        <a th:href="@{/liability}"
-           th:classappend="${activeType == null and activeStatus == null} ? ' bg-primary-600 text-white' : ' bg-white border border-border text-on-surface hover:bg-gray-50'"
-           class="text-xs px-3 py-1 rounded-full font-medium">All</a>
-        <a th:each="t : ${incidentTypes}"
-           th:href="@{/liability(type=${t})}"
-           th:text="${t}"
-           th:classappend="${activeType == t.name()} ? ' bg-primary-600 text-white' : ' bg-white border border-border text-on-surface hover:bg-gray-50'"
-           class="text-xs px-3 py-1 rounded-full font-medium"></a>
+    <div class="space-y-2 mb-6">
+
+        <!-- Incident Type -->
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-medium text-on-surface-muted w-20 shrink-0">Type:</span>
+            <a th:href="@{/liability(harmType=${activeHarmType},status=${activeStatus},sort=${sort})}"
+               th:classappend="${activeType == null} ? ' bg-primary-600 text-white' : ' bg-white border border-border text-on-surface hover:bg-gray-50'"
+               class="text-xs px-3 py-1 rounded-full font-medium">All</a>
+            <a th:each="t : ${incidentTypes}"
+               th:href="@{/liability(type=${t.name()},harmType=${activeHarmType},status=${activeStatus},sort=${sort})}"
+               th:text="${t.displayName()}"
+               th:classappend="${activeType == t.name()} ? ' bg-primary-600 text-white' : ' bg-white border border-border text-on-surface hover:bg-gray-50'"
+               class="text-xs px-3 py-1 rounded-full font-medium"></a>
+        </div>
+
+        <!-- Harm Type -->
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-medium text-on-surface-muted w-20 shrink-0">Harm:</span>
+            <a th:href="@{/liability(type=${activeType},status=${activeStatus},sort=${sort})}"
+               th:classappend="${activeHarmType == null} ? ' bg-orange-500 text-white' : ' bg-white border border-border text-on-surface hover:bg-gray-50'"
+               class="text-xs px-3 py-1 rounded-full font-medium">All</a>
+            <a th:each="h : ${harmTypes}"
+               th:href="@{/liability(type=${activeType},harmType=${h.name()},status=${activeStatus},sort=${sort})}"
+               th:text="${h.displayName()}"
+               th:classappend="${activeHarmType == h.name()} ? ' bg-orange-500 text-white' : ' bg-white border border-border text-on-surface hover:bg-gray-50'"
+               class="text-xs px-3 py-1 rounded-full font-medium"></a>
+        </div>
+
+        <!-- Status -->
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-medium text-on-surface-muted w-20 shrink-0">Status:</span>
+            <a th:href="@{/liability(type=${activeType},harmType=${activeHarmType},sort=${sort})}"
+               th:classappend="${activeStatus == null} ? ' bg-gray-700 text-white' : ' bg-white border border-border text-on-surface hover:bg-gray-50'"
+               class="text-xs px-3 py-1 rounded-full font-medium">All</a>
+            <a th:each="s : ${statuses}"
+               th:href="@{/liability(type=${activeType},harmType=${activeHarmType},status=${s.name()},sort=${sort})}"
+               th:text="${s.displayName()}"
+               th:classappend="${activeStatus == s.name()} ? ' bg-gray-700 text-white' : ' bg-white border border-border text-on-surface hover:bg-gray-50'"
+               class="text-xs px-3 py-1 rounded-full font-medium"></a>
+        </div>
+    </div>
+
+    <!-- Sort control -->
+    <div class="flex items-center gap-3 mb-4 text-xs text-on-surface-muted border-b border-border pb-3">
+        <span class="font-medium">Sort by filing date:</span>
+        <a th:href="@{/liability(type=${activeType},harmType=${activeHarmType},status=${activeStatus},sort='dateDesc')}"
+           th:classappend="${sort == 'dateDesc'} ? ' text-primary-700 font-semibold' : ' hover:text-primary-600'"
+           class="flex items-center gap-0.5">Newest first ↓</a>
+        <a th:href="@{/liability(type=${activeType},harmType=${activeHarmType},status=${activeStatus},sort='dateAsc')}"
+           th:classappend="${sort == 'dateAsc'} ? ' text-primary-700 font-semibold' : ' hover:text-primary-600'"
+           class="flex items-center gap-0.5">Oldest first ↑</a>
     </div>
 
     <!-- Empty state -->
@@ -34,14 +76,14 @@
         No incidents match the current filter.
     </div>
 
-    <!-- Incidents table -->
+    <!-- Incidents list -->
     <div th:unless="${incidents.empty}" class="space-y-3">
         <div th:each="incident : ${incidents}"
              class="bg-white dark:bg-surface-raised border border-border rounded-lg p-4 hover:border-primary-300 transition-colors">
 
             <div class="flex flex-wrap items-start justify-between gap-2">
                 <div class="flex-1 min-w-0">
-                    <!-- Title — linked to source if available -->
+                    <!-- Title -->
                     <a th:if="${incident.sourceUrl}"
                        th:href="${incident.sourceUrl}" target="_blank" rel="noopener"
                        class="font-medium text-sm text-primary-700 hover:underline"
@@ -53,30 +95,32 @@
                     <!-- Badges -->
                     <div class="mt-1 flex flex-wrap gap-1">
                         <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800"
-                              th:text="${incident.incidentType}"></span>
+                              th:text="${incident.incidentType.displayName()}"></span>
                         <span class="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-800"
-                              th:text="${incident.harmType}"></span>
+                              th:text="${incident.harmType.displayName()}"></span>
                         <span th:switch="${incident.status.name()}">
                             <span th:case="'ACTIVE'"
                                   class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700"
-                                  th:text="${incident.status}"></span>
+                                  th:text="${incident.status.displayName()}"></span>
                             <span th:case="'SETTLED'"
                                   class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700"
-                                  th:text="${incident.status}"></span>
+                                  th:text="${incident.status.displayName()}"></span>
                             <span th:case="'DECIDED'"
                                   class="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700"
-                                  th:text="${incident.status}"></span>
+                                  th:text="${incident.status.displayName()}"></span>
                             <span th:case="*"
                                   class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700"
-                                  th:text="${incident.status}"></span>
+                                  th:text="${incident.status.displayName()}"></span>
                         </span>
                     </div>
                 </div>
 
-                <!-- Filing date -->
-                <div th:if="${incident.filingDate}"
-                     class="text-xs text-on-surface-muted whitespace-nowrap"
-                     th:text="${incident.filingDate}"></div>
+                <!-- Filing date column -->
+                <div class="text-right shrink-0 min-w-[80px]">
+                    <div class="text-xs font-medium text-on-surface-muted">Filed</div>
+                    <div class="text-xs text-on-surface"
+                         th:text="${incident.filingDate != null} ? ${incident.filingDate} : '—'"></div>
+                </div>
             </div>
 
             <!-- Detail row -->

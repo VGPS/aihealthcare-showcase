@@ -42,9 +42,9 @@
                     <div>
                         <span class="font-medium text-sm" th:text="${incident.title}"></span>
                         <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800"
-                              th:text="${incident.incidentType}"></span>
+                              th:text="${incident.incidentType.displayName()}"></span>
                         <span class="ml-1 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-800"
-                              th:text="${incident.harmType}"></span>
+                              th:text="${incident.harmType.displayName()}"></span>
                     </div>
                     <div class="flex gap-2">
                         <form th:action="@{/admin/liability/{id}/approve(id=${incident.incidentId})}"
@@ -239,11 +239,11 @@
                     <div>
                         <span class="font-medium text-sm" th:text="${incident.title}"></span>
                         <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800"
-                              th:text="${incident.incidentType}"></span>
+                              th:text="${incident.incidentType.displayName()}"></span>
                         <span class="ml-1 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-800"
-                              th:text="${incident.harmType}"></span>
+                              th:text="${incident.harmType.displayName()}"></span>
                         <span class="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700"
-                              th:text="${incident.status}"></span>
+                              th:text="${incident.status.displayName()}"></span>
                     </div>
                     <div class="flex gap-2">
                         <a th:href="@{/admin/liability/{id}/edit(id=${incident.incidentId})}"

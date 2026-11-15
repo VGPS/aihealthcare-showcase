@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * from the public view.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-11-15
  * @updated 2026-11-15
  */
@@ -67,7 +67,9 @@ class LiabilityControllerTest {
                .andExpect(model().attributeExists("incidents"))
                .andExpect(model().attributeExists("totalCount"))
                .andExpect(model().attributeExists("incidentTypes"))
-               .andExpect(model().attributeExists("statuses"));
+               .andExpect(model().attributeExists("harmTypes"))
+               .andExpect(model().attributeExists("statuses"))
+               .andExpect(model().attribute("sort", "dateDesc"));
     }
 
     @Test

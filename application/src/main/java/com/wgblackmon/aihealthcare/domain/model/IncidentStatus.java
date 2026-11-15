@@ -16,10 +16,20 @@ package com.wgblackmon.aihealthcare.domain.model;
  * @updated 2026-11-15
  */
 public enum IncidentStatus {
-    PENDING_REVIEW,
-    FILED,
-    ACTIVE,
-    SETTLED,
-    DISMISSED,
-    DECIDED
+    PENDING_REVIEW("Pending Review"),
+    FILED("Filed"),
+    ACTIVE("Active"),
+    SETTLED("Settled"),
+    DISMISSED("Dismissed"),
+    DECIDED("Decided");
+
+    private final String displayName;
+
+    IncidentStatus(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String displayName() {
+        return displayName;
+    }
 }

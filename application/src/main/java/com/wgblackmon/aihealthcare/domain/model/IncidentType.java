@@ -9,14 +9,24 @@ package com.wgblackmon.aihealthcare.domain.model;
  * state boards, or other regulatory bodies. SETTLEMENT records resolved cases.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-11-16
- * @updated 2026-11-16
+ * @updated 2026-11-15
  */
 public enum IncidentType {
-    LAWSUIT,
-    FDA_FLAG,
-    WRONGFUL_DEATH,
-    REGULATORY_SANCTION,
-    SETTLEMENT
+    LAWSUIT("Lawsuit"),
+    FDA_FLAG("FDA Flag"),
+    WRONGFUL_DEATH("Wrongful Death"),
+    REGULATORY_SANCTION("Regulatory Sanction"),
+    SETTLEMENT("Settlement");
+
+    private final String displayName;
+
+    IncidentType(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String displayName() {
+        return displayName;
+    }
 }

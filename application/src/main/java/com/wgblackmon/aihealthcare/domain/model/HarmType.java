@@ -12,15 +12,25 @@ package com.wgblackmon.aihealthcare.domain.model;
  * OTHER is a catch-all for incidents that do not fit the above categories.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-11-16
- * @updated 2026-11-16
+ * @updated 2026-11-15
  */
 public enum HarmType {
-    MISDIAGNOSIS,
-    MEDICATION_ERROR,
-    AUTONOMOUS_DEVICE,
-    DOCUMENTATION_TRAP,
-    DELAYED_CARE,
-    OTHER
+    MISDIAGNOSIS("Misdiagnosis"),
+    MEDICATION_ERROR("Medication Error"),
+    AUTONOMOUS_DEVICE("Autonomous Device"),
+    DOCUMENTATION_TRAP("Documentation Trap"),
+    DELAYED_CARE("Delayed Care"),
+    OTHER("Other");
+
+    private final String displayName;
+
+    HarmType(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String displayName() {
+        return displayName;
+    }
 }
