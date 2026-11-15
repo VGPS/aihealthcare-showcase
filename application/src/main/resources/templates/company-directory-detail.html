@@ -10,7 +10,7 @@
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-08-26
- * @updated 2026-08-26
+ * @updated 2026-11-15
  */
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
@@ -144,6 +144,43 @@
                 </a>
             </div>
         </div>
+    </div>
+
+    <!-- Signal Intelligence Panel -->
+    <div th:if="${sentiment != null}" class="bg-white rounded-lg border border-outline-variant shadow-sm p-5 mb-6">
+        <h3 class="font-display font-semibold text-base text-on-surface mb-3">Market Intelligence Signals</h3>
+        <div class="flex flex-wrap items-start gap-6 mb-3">
+            <div>
+                <span class="text-xs text-on-surface-variant block mb-1">Market Sentiment</span>
+                <span th:class="${'inline-block px-3 py-1 rounded-full text-sm font-semibold ' +
+                    (sentiment.overallSentiment().name() == 'POSITIVE' ? 'bg-green-100 text-green-800' :
+                    sentiment.overallSentiment().name() == 'NEGATIVE' ? 'bg-red-100 text-red-800' :
+                    sentiment.overallSentiment().name() == 'MIXED' ? 'bg-amber-100 text-amber-800' :
+                    'bg-gray-100 text-gray-700')}"
+                      th:text="${sentiment.overallSentiment().name()}">NEUTRAL</span>
+            </div>
+            <div class="flex-1" style="min-width:160px">
+                <span class="text-xs text-on-surface-variant block mb-1">Sentiment Score
+                    (<span th:text="${#numbers.formatDecimal(sentiment.sentimentScore(), 1, 2)}">0.00</span>)
+                </span>
+                <div class="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="absolute left-0 top-0 h-full rounded-full"
+                         th:style="${'width:' + sentimentScorePercent + '%;background-color:' +
+                         (sentiment.overallSentiment().name() == 'POSITIVE' ? '#16a34a' :
+                         sentiment.overallSentiment().name() == 'NEGATIVE' ? '#dc2626' : '#d97706')}"></div>
+                </div>
+            </div>
+            <div>
+                <span class="text-xs text-on-surface-variant block mb-1">Articles Tracked</span>
+                <span class="text-sm font-semibold text-on-surface" th:text="${sentiment.totalArticles()}">0</span>
+            </div>
+        </div>
+        <p th:if="${sentiment.riskSummary() != null and !sentiment.riskSummary().isEmpty()}"
+           class="text-sm text-on-surface leading-relaxed border-t border-outline-variant pt-3"
+           th:text="${#strings.abbreviate(sentiment.riskSummary(), 400)}">Risk summary</p>
+        <p th:if="${sentimentAnalyzedDate != null}" class="text-xs text-on-surface-variant mt-2">
+            Analysis updated: <span th:text="${sentimentAnalyzedDate}">date</span>
+        </p>
     </div>
 
     <!-- Related content (T9 internal linking) -->

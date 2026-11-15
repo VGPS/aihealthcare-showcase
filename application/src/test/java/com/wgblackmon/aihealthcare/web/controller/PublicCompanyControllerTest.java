@@ -6,6 +6,7 @@ import com.wgblackmon.aihealthcare.domain.model.Subscriber;
 import com.wgblackmon.aihealthcare.domain.model.SubscriptionTier;
 import com.wgblackmon.aihealthcare.domain.port.inbound.BrowseCompaniesUseCase;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ApiKeyPort;
+import com.wgblackmon.aihealthcare.domain.port.outbound.CompanySentimentPort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.SubscriberPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.SecurityConfig;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.StateLawRepository;
@@ -61,6 +62,9 @@ class PublicCompanyControllerTest {
 
     @MockitoBean
     private StateLawRepository stateLawRepository;
+
+    @MockitoBean
+    private CompanySentimentPort companySentimentPort;
 
     @Test
     void directory_returnsOkWithCompanies() throws Exception {

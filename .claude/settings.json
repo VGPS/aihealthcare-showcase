@@ -8,6 +8,7 @@
       "Bash(ls *)",
       "Bash(find *)",
       "Bash(grep *)",
+      "Bash(rm -rf .claude/worktrees/*)",
       "Write",
       "Edit",
       "Read"
@@ -36,7 +37,28 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'rm -rf|DROP TABLE|truncate'; then echo 'Blocked: destructive command detected' && exit 2; fi"
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'rm -rf|DROP TABLE|truncate'; then if echo \"$CLAUDE_TOOL_INPUT\" | grep -q '\\.claude/worktrees/'; then exit 0; fi; echo 'Blocked: destructive command detected' && exit 2; fi"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git status --short"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 120,
+            "command": "cd C:/workspaces/SpringAIClaude/AIHealthcare && JAVA_FILES=$( { git diff HEAD --name-only 2>/dev/null; git diff HEAD~1 HEAD --name-only 2>/dev/null; } | grep '\\.java$' | sed 's|.*/||;s|\\.java$||' | sort -u ) && [ -z \"$JAVA_FILES\" ] && exit 0; TEST_LIST=''; for cls in $JAVA_FILES; do TFILE=$(find . -path '*/src/test*' -name \"${cls}Test.java\" -not -path '*/target/*' 2>/dev/null | head -1); [ -n \"$TFILE\" ] && TEST_LIST=\"${TEST_LIST}${cls}Test,\"; done; TEST_LIST=\"${TEST_LIST%,}\"; [ -z \"$TEST_LIST\" ] && exit 0; echo \"[stop-hook] Selective tests: $TEST_LIST\"; mvn test -Dtest=\"$TEST_LIST\" --no-transfer-progress 2>&1 | tail -40; [ \"${PIPESTATUS[0]}\" -eq 0 ] && exit 0 || exit 2"
           }
         ]
       }

@@ -32,7 +32,12 @@ import org.commonmark.renderer.html.HtmlRenderer;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 
+import com.wgblackmon.aihealthcare.domain.model.CompanySentiment;
+import com.wgblackmon.aihealthcare.domain.port.outbound.CompanySentimentPort;
+
 import java.security.Principal;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -63,7 +68,7 @@ import java.util.Optional;
  * @author  Bill Blackmon
  * @version 1.2
  * @since   2026-08-26
- * @updated 2026-11-01
+ * @updated 2026-11-15
  */
 @Slf4j
 @Controller
@@ -80,6 +85,7 @@ public class PublicCompanyController {
     private final TierResolver tierResolver;
     private final WikiPageRepository wikiPageRepository;
     private final StateLawRepository stateLawRepository;
+    private final CompanySentimentPort companySentimentPort;
     private final String baseUrl;
 
     public PublicCompanyController(BrowseCompaniesUseCase browseCompaniesUseCase,
@@ -87,20 +93,23 @@ public class PublicCompanyController {
                                     TierResolver tierResolver,
                                     WikiPageRepository wikiPageRepository,
                                     StateLawRepository stateLawRepository,
+                                    CompanySentimentPort companySentimentPort,
                                     @Value("${aihealthcare.base-url}") String baseUrl) {
         log.debug("PublicCompanyController() | browseCompaniesUseCase={}, subscriberPort={}, tierResolver={}, "
-                + "wikiPageRepository={}, stateLawRepository={}, baseUrl={}",
+                + "wikiPageRepository={}, stateLawRepository={}, companySentimentPort={}, baseUrl={}",
                   browseCompaniesUseCase.getClass().getSimpleName(),
                   subscriberPort.getClass().getSimpleName(),
                   tierResolver.getClass().getSimpleName(),
                   wikiPageRepository.getClass().getSimpleName(),
                   stateLawRepository.getClass().getSimpleName(),
+                  companySentimentPort.getClass().getSimpleName(),
                   baseUrl);
         this.browseCompaniesUseCase = browseCompaniesUseCase;
         this.subscriberPort = subscriberPort;
         this.tierResolver = tierResolver;
         this.wikiPageRepository = wikiPageRepository;
         this.stateLawRepository = stateLawRepository;
+        this.companySentimentPort = companySentimentPort;
         this.baseUrl = baseUrl;
     }
 
@@ -271,6 +280,16 @@ public class PublicCompanyController {
         if (relatedWikiPages.size() > RELATED_LIMIT) {
             relatedWikiPages = relatedWikiPages.subList(0, RELATED_LIMIT);
         }
+
+        Optional<CompanySentiment> sentimentOpt = companySentimentPort.findBySlug(slug);
+        if (sentimentOpt.isPresent()) {
+            CompanySentiment s = sentimentOpt.get();
+            model.addAttribute("sentiment", s);
+            model.addAttribute("sentimentScorePercent", (int) Math.round((s.sentimentScore() + 1) * 50));
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneId.of("UTC"));
+            model.addAttribute("sentimentAnalyzedDate", fmt.format(s.analyzedAt()));
+        }
+        log.debug("detail() | sentiment present={}", sentimentOpt.isPresent());
 
         model.addAttribute("company", c);
         model.addAttribute("slug", slug);
