@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('AI Liability Case Tracker')}"></head>
+<body class="bg-surface text-on-surface">
+
+<nav th:replace="~{fragments/nav :: nav('admin-liability')}"></nav>
+
+<main class="max-w-7xl mx-auto px-4 py-8">
+
+    <div class="mb-6">
+        <h1 class="text-2xl font-semibold text-on-surface">AI Liability Case Tracker</h1>
+        <p class="text-sm text-on-surface-muted mt-1">
+            Structured record of lawsuits, FDA flags, wrongful-death cases, and regulatory sanctions
+            involving AI healthcare products. Seed cases manually; related articles are auto-linked by defendant name.
+        </p>
+    </div>
+
+    <!-- Flash messages -->
+    <div th:if="${successMsg}"
+         class="bg-green-50 border-l-4 border-green-500 text-green-800 text-sm p-3 mb-4 rounded"
+         th:text="${successMsg}"></div>
+    <div th:if="${errorMsg}"
+         class="bg-red-50 border-l-4 border-red-500 text-red-800 text-sm p-3 mb-4 rounded"
+         th:text="${errorMsg}"></div>
+
+    <!-- Add Incident Form -->
+    <section class="bg-white dark:bg-surface-raised border border-border rounded-lg p-6 mb-8">
+        <h2 class="text-lg font-medium mb-4">Add Incident</h2>
+        <form th:action="@{/admin/liability/add}" method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <!-- Title -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1">Title <span class="text-red-500">*</span></label>
+                <input type="text" name="title" required maxlength="500"
+                       placeholder="Short description of the incident"
+                       class="w-full border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"/>
+            </div>
+
+            <!-- Incident Type -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Incident Type <span class="text-red-500">*</span></label>
+                <select name="incidentType" required class="w-full border border-border rounded px-3 py-2 text-sm">
+                    <option th:each="t : ${incidentTypes}" th:value="${t}" th:text="${t}"></option>
+                </select>
+            </div>
+
+            <!-- Harm Type -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Harm Type <span class="text-red-500">*</span></label>
+                <select name="harmType" required class="w-full border border-border rounded px-3 py-2 text-sm">
+                    <option th:each="h : ${harmTypes}" th:value="${h}" th:text="${h}"></option>
+                </select>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Status <span class="text-red-500">*</span></label>
+                <select name="status" required class="w-full border border-border rounded px-3 py-2 text-sm">
+                    <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option>
+                </select>
+            </div>
+
+            <!-- Defendant -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Defendant <span class="text-red-500">*</span>
+                    <span class="text-xs text-on-surface-muted font-normal">(used for article linking)</span>
+                </label>
+                <input type="text" name="defendant" required maxlength="500"
+                       placeholder="Company or vendor name"
+                       class="w-full border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"/>
+            </div>
+
+            <!-- Plaintiff -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Plaintiff</label>
+                <input type="text" name="plaintiff" maxlength="500"
+                       placeholder="Patient, family, or regulator"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Legal Theory -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Legal Theory</label>
+                <input type="text" name="legalTheory" maxlength="200"
+                       placeholder="e.g. Product liability, Malpractice"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Court -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Court</label>
+                <input type="text" name="court" maxlength="200"
+                       placeholder="e.g. San Francisco County Superior Court"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Case Number -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Case Number</label>
+                <input type="text" name="caseNumber" maxlength="100"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Harm Date -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Harm Date</label>
+                <input type="date" name="harmDate"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Filing Date -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Filing Date</label>
+                <input type="date" name="filingDate"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Source URL -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1">Source URL</label>
+                <input type="url" name="sourceUrl" maxlength="2000"
+                       placeholder="Primary news or court source"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Outcome -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1">Outcome</label>
+                <input type="text" name="outcome" maxlength="1000"
+                       placeholder="Leave blank if unresolved"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Notes -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1">Notes</label>
+                <textarea name="notes" rows="3"
+                          placeholder="Archival context — why this incident matters, key quotes, links"
+                          class="w-full border border-border rounded px-3 py-2 text-sm"></textarea>
+            </div>
+
+            <div class="md:col-span-2">
+                <button type="submit"
+                        class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium px-5 py-2 rounded">
+                    Add Incident
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Incidents Table -->
+    <section>
+        <h2 class="text-lg font-medium mb-3">
+            All Incidents
+            <span class="text-sm font-normal text-on-surface-muted"
+                  th:text="'(' + ${incidents.size()} + ')'"></span>
+        </h2>
+
+        <div th:if="${incidents.empty}" class="text-sm text-on-surface-muted">
+            No incidents recorded yet. Use the form above to seed the first case.
+        </div>
+
+        <div th:unless="${incidents.empty}" class="space-y-4">
+            <div th:each="incident : ${incidents}"
+                 class="bg-white dark:bg-surface-raised border border-border rounded-lg p-4">
+
+                <!-- Header row -->
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+                    <div>
+                        <span class="font-medium text-sm" th:text="${incident.title}"></span>
+                        <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800"
+                              th:text="${incident.incidentType}"></span>
+                        <span class="ml-1 text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-800"
+                              th:text="${incident.harmType}"></span>
+                        <span class="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700"
+                              th:text="${incident.status}"></span>
+                    </div>
+                    <div class="flex gap-2">
+                        <a th:href="@{/admin/liability/{id}/edit(id=${incident.incidentId})}"
+                           class="text-xs text-primary-600 hover:underline">Edit</a>
+                        <form th:action="@{/admin/liability/{id}/delete(id=${incident.incidentId})}"
+                              method="post" class="inline"
+                              onsubmit="return confirm('Delete this incident?')">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit" class="text-xs text-red-600 hover:underline">Delete</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Detail row -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-xs text-on-surface-muted mb-2">
+                    <span><strong>Defendant:</strong>
+                        <span th:text="${incident.defendant}"></span></span>
+                    <span th:if="${incident.plaintiff}"><strong>Plaintiff:</strong>
+                        <span th:text="${incident.plaintiff}"></span></span>
+                    <span th:if="${incident.court}"><strong>Court:</strong>
+                        <span th:text="${incident.court}"></span></span>
+                    <span th:if="${incident.caseNumber}"><strong>Case #:</strong>
+                        <span th:text="${incident.caseNumber}"></span></span>
+                    <span th:if="${incident.legalTheory}"><strong>Theory:</strong>
+                        <span th:text="${incident.legalTheory}"></span></span>
+                    <span th:if="${incident.filingDate}"><strong>Filed:</strong>
+                        <span th:text="${incident.filingDate}"></span></span>
+                    <span th:if="${incident.harmDate}"><strong>Harm date:</strong>
+                        <span th:text="${incident.harmDate}"></span></span>
+                </div>
+
+                <!-- Notes -->
+                <div th:if="${incident.notes}"
+                     class="text-xs text-on-surface-muted border-l-2 border-border pl-2 mb-2 italic"
+                     th:text="${incident.notes}"></div>
+
+                <!-- Source URL -->
+                <div th:if="${incident.sourceUrl}" class="text-xs mb-2">
+                    <a th:href="${incident.sourceUrl}" target="_blank" rel="noopener"
+                       class="text-primary-600 hover:underline truncate block max-w-xl"
+                       th:text="${incident.sourceUrl}"></a>
+                </div>
+
+                <!-- Related Articles (Phase 2) -->
+                <div th:with="related=${relatedByIncident[incident.incidentId]}"
+                     th:if="${related != null and !related.empty}">
+                    <p class="text-xs font-medium text-on-surface-muted mb-1">
+                        Related harvested articles:
+                    </p>
+                    <ul class="space-y-0.5">
+                        <li th:each="article : ${related}" class="text-xs">
+                            <a th:href="${article.url()}" target="_blank" rel="noopener"
+                               class="text-primary-600 hover:underline"
+                               th:text="${article.title()}"></a>
+                            <span class="text-on-surface-muted ml-1"
+                                  th:text="'— ' + ${article.sourceName()}"></span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</main>
+</body>
+</html>

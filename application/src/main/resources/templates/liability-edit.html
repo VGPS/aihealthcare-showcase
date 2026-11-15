@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head('Edit Liability Incident')}"></head>
+<body class="bg-surface text-on-surface">
+
+<nav th:replace="~{fragments/nav :: nav('admin-liability')}"></nav>
+
+<main class="max-w-4xl mx-auto px-4 py-8">
+
+    <div class="mb-6 flex items-center gap-3">
+        <a th:href="@{/admin/liability}" class="text-sm text-primary-600 hover:underline">← Back to Tracker</a>
+        <h1 class="text-2xl font-semibold text-on-surface">Edit Incident</h1>
+    </div>
+
+    <div class="bg-white dark:bg-surface-raised border border-border rounded-lg p-6">
+        <form th:action="@{/admin/liability/{id}/update(id=${incident.incidentId()})}"
+              method="post" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <!-- Title -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1">Title <span class="text-red-500">*</span></label>
+                <input type="text" name="title" required maxlength="500"
+                       th:value="${incident.title()}"
+                       class="w-full border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"/>
+            </div>
+
+            <!-- Incident Type -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Incident Type <span class="text-red-500">*</span></label>
+                <select name="incidentType" required class="w-full border border-border rounded px-3 py-2 text-sm">
+                    <option th:each="t : ${incidentTypes}" th:value="${t}" th:text="${t}"
+                            th:selected="${t == incident.incidentType()}"></option>
+                </select>
+            </div>
+
+            <!-- Harm Type -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Harm Type <span class="text-red-500">*</span></label>
+                <select name="harmType" required class="w-full border border-border rounded px-3 py-2 text-sm">
+                    <option th:each="h : ${harmTypes}" th:value="${h}" th:text="${h}"
+                            th:selected="${h == incident.harmType()}"></option>
+                </select>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Status <span class="text-red-500">*</span></label>
+                <select name="status" required class="w-full border border-border rounded px-3 py-2 text-sm">
+                    <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"
+                            th:selected="${s == incident.status()}"></option>
+                </select>
+            </div>
+
+            <!-- Defendant -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Defendant <span class="text-red-500">*</span></label>
+                <input type="text" name="defendant" required maxlength="500"
+                       th:value="${incident.defendant()}"
+                       class="w-full border border-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"/>
+            </div>
+
+            <!-- Plaintiff -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Plaintiff</label>
+                <input type="text" name="plaintiff" maxlength="500"
+                       th:value="${incident.plaintiff()}"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Legal Theory -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Legal Theory</label>
+                <input type="text" name="legalTheory" maxlength="200"
+                       th:value="${incident.legalTheory()}"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Court -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Court</label>
+                <input type="text" name="court" maxlength="200"
+                       th:value="${incident.court()}"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Case Number -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Case Number</label>
+                <input type="text" name="caseNumber" maxlength="100"
+                       th:value="${incident.caseNumber()}"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Harm Date -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Harm Date</label>
+                <input type="date" name="harmDate"
+                       th:value="${incident.harmDate()}"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Filing Date -->
+            <div>
+                <label class="block text-sm font-medium mb-1">Filing Date</label>
+                <input type="date" name="filingDate"
+                       th:value="${incident.filingDate()}"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Source URL -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1">Source URL</label>
+                <input type="url" name="sourceUrl" maxlength="2000"
+                       th:value="${incident.sourceUrl()}"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Outcome -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1">Outcome</label>
+                <input type="text" name="outcome" maxlength="1000"
+                       th:value="${incident.outcome()}"
+                       class="w-full border border-border rounded px-3 py-2 text-sm"/>
+            </div>
+
+            <!-- Notes -->
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-1">Notes</label>
+                <textarea name="notes" rows="4"
+                          class="w-full border border-border rounded px-3 py-2 text-sm"
+                          th:text="${incident.notes()}"></textarea>
+            </div>
+
+            <div class="md:col-span-2 flex gap-3">
+                <button type="submit"
+                        class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium px-5 py-2 rounded">
+                    Save Changes
+                </button>
+                <a th:href="@{/admin/liability}"
+                   class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-5 py-2 rounded">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+</main>
+</body>
+</html>

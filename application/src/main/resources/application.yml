@@ -1626,6 +1626,39 @@ aihealthcare:
         tier: LEGAL
         base-weight: 0.85
         max-items: 15
+      # -----------------------------------------------------------------
+      # LT-1 AI Liability Case Tracker feeds (added 2026-11-16, zero API cost)
+      # Google News RSS surfaces current AI healthcare lawsuits and FDA actions.
+      # CourtListener RSS surfaces federal court opinions on AI medical liability.
+      # -----------------------------------------------------------------
+      - topic-id: 1
+        name: Google News AI Healthcare Liability
+        topic: AI Healthcare Legal
+        url: https://news.google.com/rss/search?q=AI+healthcare+lawsuit+liability+malpractice&hl=en-US&gl=US&ceid=US:en
+        tier: LEGAL
+        base-weight: 0.85
+        max-items: 20
+        keywords:
+          - lawsuit
+          - liability
+          - malpractice
+          - wrongful death
+          - FDA
+          - patient harm
+          - AI diagnosis
+      - topic-id: 1
+        name: CourtListener AI Healthcare Opinions
+        topic: AI Healthcare Legal
+        url: https://www.courtlistener.com/feed/search/?q=artificial+intelligence+healthcare+liability&type=o&order_by=score+desc
+        tier: LEGAL
+        base-weight: 0.9
+        max-items: 15
+        keywords:
+          - artificial intelligence
+          - healthcare
+          - liability
+          - malpractice
+          - patient
       # REMOVED Sep 2026: 14 COMPETITOR-tier static policy pages
       # (AMA, KFF, NCSL, EFF, etc.) — these are reference pages, not news
       # feeds. They produced garbage articles (e.g. single-word titles like

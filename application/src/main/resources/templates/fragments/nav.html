@@ -195,7 +195,7 @@
          sec:authorize="hasRole('ADMIN')">
         <button @click="open = !open" class="nav-link nav-group-btn"
                 title="Platform operations — pipelines, outreach CRM, users, newsletter, SSO"
-                th:classappend="${activePage == 'admin-outreach' || activePage == 'admin-pipelines' || activePage == 'admin' || activePage == 'newsletter' || activePage == 'admin-documents' || activePage == 'admin-wiki-gaps' || activePage == 'admin-sso'} ? ' active'">
+                th:classappend="${activePage == 'admin-outreach' || activePage == 'admin-pipelines' || activePage == 'admin' || activePage == 'newsletter' || activePage == 'admin-documents' || activePage == 'admin-wiki-gaps' || activePage == 'admin-sso' || activePage == 'admin-liability'} ? ' active'">
             Admin ▾
         </button>
         <div x-show="open" x-cloak class="nav-dropdown nav-dropdown-right">
@@ -213,6 +213,8 @@
                th:classappend="${activePage == 'admin-wiki-gaps'} ? ' active'">Wiki Gaps</a>
             <a th:href="@{/admin/sso}" title="Configure enterprise SAML2 identity providers"
                th:classappend="${activePage == 'admin-sso'} ? ' active'">SSO Providers</a>
+            <a th:href="@{/admin/liability}" title="AI liability case tracker — lawsuits, FDA flags, wrongful death cases"
+               th:classappend="${activePage == 'admin-liability'} ? ' active'">Liability Tracker</a>
         </div>
     </div>
 

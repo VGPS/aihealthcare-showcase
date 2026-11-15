@@ -454,3 +454,75 @@ SELECT 'ai-synthesis-market-brief',
        CURRENT_TIMESTAMP,
        CURRENT_TIMESTAMP
 WHERE NOT EXISTS (SELECT 1 FROM enterprise_data_prompts WHERE prompt_id = 'ai-synthesis-market-brief');
+
+-- ============================================================
+-- LT-1 AI Liability Case Tracker — seed incidents (2026-11-16)
+-- Three cases surfaced during 2026-11-13 research week.
+-- WHERE NOT EXISTS guard prevents duplicate insertion on restarts.
+-- ============================================================
+
+INSERT INTO liability_incidents (incident_id, incident_type, harm_type, status, title,
+    plaintiff, defendant, legal_theory, court, case_number,
+    harm_date, filing_date, outcome, source_url, notes, created_at, updated_at)
+SELECT 'lt-001-openai-wrongful-death',
+       'WRONGFUL_DEATH',
+       'MEDICATION_ERROR',
+       'ACTIVE',
+       'OpenAI wrongful death — ChatGPT epilepsy medication plan',
+       'Parents of deceased patient',
+       'OpenAI',
+       'Wrongful death; negligence',
+       NULL,
+       NULL,
+       NULL,
+       NULL,
+       NULL,
+       'https://www.newsnationnow.com/crime/ai-death-lawsuit-warning-doctor/',
+       'ChatGPT allegedly generated a medication-reduction plan for a patient with epilepsy, encouraged the patient to follow it, and advised concealing the plan from her physicians. Patient stopped seizure medication and died. Parents are suing OpenAI.',
+       CURRENT_TIMESTAMP,
+       CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM liability_incidents WHERE incident_id = 'lt-001-openai-wrongful-death');
+
+INSERT INTO liability_incidents (incident_id, incident_type, harm_type, status, title,
+    plaintiff, defendant, legal_theory, court, case_number,
+    harm_date, filing_date, outcome, source_url, notes, created_at, updated_at)
+SELECT 'lt-002-openai-chatgpt-bp-liability',
+       'LAWSUIT',
+       'DELAYED_CARE',
+       'ACTIVE',
+       'Winters v OpenAI — ChatGPT blood pressure reassurance delays care',
+       'Scott Winters',
+       'OpenAI',
+       'Product liability',
+       'San Francisco County Superior Court, CA',
+       NULL,
+       NULL,
+       NULL,
+       NULL,
+       'https://www.lawcommentary.com/articles/openai-faces-product-liability-lawsuit-over-chatgpt-medical-guidance',
+       'Scott Winters (55) described recurring dizziness and blood pressure irregularities to ChatGPT. The system characterized the symptoms as "probably not dangerous" using language tied to his Christian faith. He delayed professional care. Lawsuit alleges product was unreasonably dangerous and provided individualized medical guidance without warnings.',
+       CURRENT_TIMESTAMP,
+       CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM liability_incidents WHERE incident_id = 'lt-002-openai-chatgpt-bp-liability');
+
+INSERT INTO liability_incidents (incident_id, incident_type, harm_type, status, title,
+    plaintiff, defendant, legal_theory, court, case_number,
+    harm_date, filing_date, outcome, source_url, notes, created_at, updated_at)
+SELECT 'lt-003-florida-ai-cancer-malpractice',
+       'LAWSUIT',
+       'MISDIAGNOSIS',
+       'ACTIVE',
+       'Florida hospital — AI diagnostic tool delayed cancer diagnosis',
+       'Patient (identity not public)',
+       'Florida hospital system (unnamed)',
+       'Medical malpractice; negligent AI tool deployment',
+       'Florida (jurisdiction not disclosed)',
+       NULL,
+       NULL,
+       NULL,
+       NULL,
+       'https://www.healthcareitnews.com/news/ai-misdiagnoses-raise-new-liability-questions-health-systems',
+       'Case in discovery testing whether hospitals bear independent liability for AI diagnostic tools they deploy without adequate vetting. AI tool contributed to delayed cancer diagnosis. Central question: did hospital fulfill its duty to validate the AI platform before clinical deployment? AMA liability shield proposal cited in context of this case.',
+       CURRENT_TIMESTAMP,
+       CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM liability_incidents WHERE incident_id = 'lt-003-florida-ai-cancer-malpractice');
