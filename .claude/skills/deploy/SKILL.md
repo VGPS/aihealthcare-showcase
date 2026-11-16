@@ -12,10 +12,15 @@ Build, upload, restart, and verify the app on EC2. Stop on any failure.
 ```
 IP="100.61.13.237"
 KEY="C:/workspaces/SpringAIClaude/N_VaKeyPair.pem"
-JAR="target/ai-healthcare-1.1.0-SNAPSHOT.jar"
 AWS_YML="application/src/main/resources/application-aws.yml"
 REMOTE_DIR="/opt/aihealthcare"
 ```
+
+Note: `JAR` is intentionally not listed here — see step 2. The artifact name tracks
+`<version>` in `pom.xml` (`ai-healthcare-<version>.jar`), which changes on every
+version bump (e.g. 1.1.0-SNAPSHOT &rarr; 1.2.0 on 2026-11-15). A hardcoded path goes
+stale silently: the build step reports success but repackages nothing, and you
+deploy an old jar without any error.
 
 ## Steps — execute in order
 
@@ -34,6 +39,18 @@ set -a && source .env && set +a && mvn package -DskipTests -q 2>&1 | tail -5
 ```
 
 If `mvn clean` fails due to file lock, use `mvn package -DskipTests` (without clean).
+
+Then resolve the jar that was just built — do not hardcode a version string:
+
+```bash
+JAR=$(ls -t target/*.jar | grep -v -- '-sources.jar' | grep -v '.jar.original' | head -1)
+```
+
+This picks the most-recently-built jar in `target/`, skipping sources/backup jars,
+regardless of what the current version is. Sanity-check it before uploading — if the
+build was a no-op (no source changes since the last local build), the "most recent"
+jar may still be correct, but confirm its timestamp is recent enough to include the
+changes you intend to deploy.
 
 ### 3. Upload JAR + config + static page
 
