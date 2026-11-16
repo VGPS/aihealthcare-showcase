@@ -1,0 +1,219 @@
+STANDARD OPERATING PROCEDURE
+AI in Healthcare (bigskylabs.ai)
+Prepared by: Bill Blackmon
+Date: November 14, 2026
+
+================================================================
+OVERVIEW
+================================================================
+
+AI in Healthcare is a Spring Boot application deployed on AWS that
+automatically harvests, summarizes, and publishes AI healthcare news
+intelligence. The vast majority of daily operations are fully automated
+via scheduled pipelines. Human involvement is limited to reviewing
+AI-generated newsletter drafts and publishing LinkedIn content.
+
+The application is accessible at: https://app.bigskylabs.ai
+Admin panel: https://app.bigskylabs.ai/admin
+Pipeline management: https://app.bigskylabs.ai/admin/pipelines
+
+================================================================
+INFRASTRUCTURE
+================================================================
+
+Component         Provider         Notes
+-----------       ----------       --------------------------------
+Application       AWS EC2          Amazon Corretto 21 (Java), always-on
+Database          AWS RDS          PostgreSQL with pgvector extension
+Email Delivery    AWS SES          Newsletter + transactional emails
+Domain/DNS        AWS Route 53     bigskylabs.ai
+Payments          Stripe           Subscriber billing at $19/month
+SSL               AWS ACM          Auto-renews
+
+API Keys required (all stored in .env on EC2):
+  - Anthropic (Claude AI — article summarization, wiki compilation,
+    market digest classification)
+  - Perplexity (live news research, deal signal sourcing)
+  - Alpaca (market data for public company quotes)
+  - Stripe (publishable key + secret key + webhook secret)
+  - Google Gemini (optional, AI search comparison feature)
+  - OpenAI (optional, AI search comparison feature)
+
+================================================================
+DAILY AUTOMATED PIPELINE (NO HUMAN ACTION REQUIRED)
+================================================================
+
+All pipelines run on Spring @Scheduled cron jobs on the EC2 instance.
+The application must be running for these to fire. Under normal
+conditions the app runs 24/7 with no intervention.
+
+Time (UTC)   Pipeline
+----------   ---------------------------------------------------------
+04:00        RSS Feed Harvest
+             - Pulls from ~110 configured RSS feeds (academic,
+               regulatory, industry tiers)
+             - Deduplicates by URL, stores to database
+             - Triggers: topic summary generation, wiki compilation,
+               wiki gap analysis, deal signal detection
+
+04:30        Regulatory Harvest
+             - Fetches FDA 510(k), FDA De Novo, CMS Federal Register
+             - Deduplicates by reference number
+             - Runs watchlist matching, sends alerts if matches found
+
+05:00        Competitor Web Monitoring
+             - Scrapes ~45 configured competitor and research pages
+             - SHA-256 change detection (only stores changed pages)
+
+05:30        HuggingFace Model Discovery
+             - Discovers new healthcare AI models from HuggingFace API
+
+07:00        Article Embedding
+             - Embeds all un-embedded articles into vector store
+               (pgvector) for semantic search
+
+08:15        Wiki Page Embedding
+             - Embeds updated wiki pages into vector store
+
+12:00 noon   Market Digest
+             - Calls Perplexity for today's AI healthcare market news
+             - Classifies entries with Claude (earnings, regulatory,
+               funding, M&A, partnerships)
+             - Fetches Alpaca market quotes for mentioned companies
+             - Sends email digest to subscribers
+
+Every 4h     Industry Feed Harvest
+             - Supplemental industry-tier RSS harvest between daily runs
+
+Every 6h     Deal Signal Detection
+             - Scans recent articles for M&A, funding, partnership
+               keywords; LLM-confirms candidates
+
+00:00        Newsletter Draft Generation
+             - Generates a full HTML newsletter draft from the day's
+               articles; saves as DRAFT (not auto-sent)
+
+Weekly       Trend Detection (Sunday 08:00 UTC)
+             - Keyword frequency analysis across 30/90/180-day windows
+             - Produces rising/fading/new trend snapshot
+
+Weekly       Legislation Monitor (Monday 10:30 + 11:00 UTC)
+             - Checks source URLs for state health AI law changes
+             - Runs Perplexity discovery sweep for newly enacted bills
+
+================================================================
+WEEKLY HUMAN TASKS (estimated 30-60 minutes/week)
+================================================================
+
+1. REVIEW AND SEND THE NEWSLETTER DRAFT
+   - Navigate to: https://app.bigskylabs.ai/newsletter/runs
+   - Open the most recent DRAFT run
+   - Edit in the built-in TinyMCE WYSIWYG editor if desired
+   - Click "Send" to deliver to all active subscribers via SES
+   - Frequency: once per week (or more if desired)
+
+2. REVIEW INTELLIGENCE DASHBOARD FOR LINKEDIN CONTENT
+   - Market Digest: https://app.bigskylabs.ai/dashboard/market
+   - Deal Signals: https://app.bigskylabs.ai/dashboard/deals
+   - Regulatory Alerts: https://app.bigskylabs.ai/dashboard/regulatory
+   - Trend Detection: https://app.bigskylabs.ai/dashboard/trends
+   - Use the Social Post generator: https://app.bigskylabs.ai/dashboard/social
+     to draft LinkedIn/Facebook posts from today's market digest data
+
+3. OPTIONAL: REVIEW WIKI CONTRADICTIONS
+   - Navigate to: https://app.bigskylabs.ai/wiki/contradictions
+   - Notable claim reversals surfaced here can anchor strong posts
+
+================================================================
+MONTHLY TASKS
+================================================================
+
+1. CHECK API SPEND
+   - Anthropic console: console.anthropic.com (target: under $300/month)
+   - Perplexity: perplexity.ai billing dashboard
+   - AWS: Cost Explorer for EC2 + RDS + SES charges
+
+2. REVIEW SUBSCRIBER COUNT AND CHURN
+   - Admin panel: https://app.bigskylabs.ai/admin
+   - Stripe dashboard for payment activity
+
+3. CONTENT SOURCE MAINTENANCE (as needed, not recurring)
+   - Add or remove RSS feed sources via application.yml config file
+   - Competitor web pages monitored via the same config
+   - No code changes required — YAML config only
+
+================================================================
+MONITORING AND TROUBLESHOOTING
+================================================================
+
+PIPELINE FAILURES
+  - Admin pipeline page shows last-run status per pipeline
+  - Each pipeline step is wrapped in try/catch; one failure does not
+    stop subsequent steps
+  - Application logs at: /var/log/aihealthcare/application.log on EC2
+
+APPLICATION DOWN
+  - SSH to EC2 instance
+  - Check: sudo systemctl status aihealthcare
+  - Restart: sudo systemctl restart aihealthcare
+  - View logs: sudo journalctl -u aihealthcare -n 100
+
+EMAIL NOT DELIVERING
+  - Check AWS SES dashboard for bounce/complaint rates
+  - SES is currently in production mode (sandbox lifted)
+  - Delivery failures are logged per-recipient, not full-batch
+
+NEWSLETTER DRAFT IS EMPTY OR POOR QUALITY
+  - Check that daily harvest ran (admin/pipelines page)
+  - If Anthropic API key is at spend limit, drafts will fail silently
+    — check console.anthropic.com for monthly spend cap status
+
+================================================================
+ADDING CONTENT SOURCES
+================================================================
+
+RSS Feeds: Edit application.yml under aihealthcare.feeds.sources
+  - Fields: topic-id, name, url, tier (ACADEMIC/REGULATORY/INDUSTRY),
+    base-weight (0.0-1.0), max-items
+
+Competitor Web Pages: Same config file, tier: COMPETITOR
+
+No code changes required. Restart the application after editing.
+
+================================================================
+SUBSCRIBER MANAGEMENT
+================================================================
+
+  - New subscribers register at: https://app.bigskylabs.ai/register
+  - Stripe handles billing at $19/month
+  - Admin can manually change user tier (FREE/SUBSCRIBER/DEMO/ADMIN)
+    at: https://app.bigskylabs.ai/admin
+  - Unsubscribe is self-service from the subscriber profile page
+
+================================================================
+DEPLOYMENT (for code changes)
+================================================================
+
+1. Build: mvn -Pci verify  (runs all 3,100+ tests)
+2. Package: mvn -Pci package -DskipTests
+3. Upload JAR to EC2 via SCP
+4. sudo systemctl restart aihealthcare
+5. Verify at https://app.bigskylabs.ai/dashboard
+
+Full deployment script is at: deploy/setup-ec2.sh
+Environment variables are in: /opt/aihealthcare/.env on EC2
+
+================================================================
+TIME COMMITMENT ESTIMATE
+================================================================
+
+Day-to-day operations:  0 hours (fully automated)
+Weekly newsletter send: 15-30 minutes
+Weekly LinkedIn review: 15-30 minutes
+Monthly billing check:  15 minutes
+Occasional maintenance: 1-2 hours/month (source config updates,
+                        minor code tweaks if desired)
+
+A buyer with no development background can operate this application
+with no code changes indefinitely. A part-time developer can extend
+it, add content sources, or build new features.

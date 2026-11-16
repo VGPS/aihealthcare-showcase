@@ -1,0 +1,29 @@
+ACQUIRE.COM LISTING FIELD — DESCRIPTION
+"How would you describe your startup?"
+
+AI in Healthcare (bigskylabs.ai) is a Spring Boot SaaS that turns scattered
+healthcare-AI news, FDA/CMS regulatory filings, state legislation, and company
+signals into one sourced, LLM-classified intelligence feed — built so a market
+research analyst never has to manually track 100+ sources by hand.
+
+Every output traces back to a dated source article, and news is explicitly
+labeled CONFIRMED vs. SPECULATIVE. A public AI Liability Incident Tracker logs
+AI-healthcare lawsuits, FDA flags, and regulatory sanctions, with an LLM
+auto-classifier and a human review queue behind it — a level of depth and
+provenance that general healthcare-news aggregators like Definitive Healthcare,
+CB Insights, and Fierce Healthcare don't go to. The platform even exposes an
+agent-ready MCP server, so external AI tools can query the data directly.
+
+Under the hood: Java 21, Spring Boot, Spring AI across four LLM providers
+(Claude, GPT, Perplexity, Gemini), Postgres + pgvector, 3,200+ automated tests,
+and 15+ self-operating pipelines running 24/7 on AWS with no daily human
+intervention required.
+
+I built this solo, motivated by watching healthcare workers struggle to
+understand what AI tools actually do and where they fail. The product,
+infrastructure, and data moat are done — three-plus years of compounding
+article history, regulatory tracking, and wiki provenance that a new entrant
+can't shortcut. What's missing is distribution: the business is pre-revenue
+not because the product doesn't work, but because I haven't had the bandwidth
+to run both the engineering and the sales motion. That's the opportunity for
+the next owner.

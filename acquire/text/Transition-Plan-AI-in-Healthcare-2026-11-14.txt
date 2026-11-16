@@ -1,0 +1,182 @@
+TRANSITION PLAN
+AI in Healthcare (bigskylabs.ai)
+Prepared by: Bill Blackmon
+Date: November 14, 2026
+
+================================================================
+OVERVIEW
+================================================================
+
+This document describes what is included in the acquisition, how the
+handover will work step by step, and what support I will provide to the
+new owner after close. My goal is a clean, complete transfer with no
+loose ends and no dependency on me beyond an agreed support window.
+
+================================================================
+WHAT IS INCLUDED IN THE ACQUISITION
+================================================================
+
+SOURCE CODE
+  - Full GitHub private repository (all history, branches, documentation)
+  - Transfer method: repository ownership transferred to buyer's GitHub
+    account, or new repo created from full export — buyer's preference
+  - 3,100+ automated tests included; build and deploy scripts included
+  - In-repository documentation covers architecture, conventions,
+    every feature slice, and deployment procedures
+
+INFRASTRUCTURE (AWS)
+  - EC2 instance (running application)
+  - RDS PostgreSQL database (all subscriber data, all harvested articles,
+    all AI-generated intelligence content — 3+ years of pipeline history)
+  - SES email configuration (verified domain, production sending access)
+  - Route 53 DNS for bigskylabs.ai
+  - ACM SSL certificate
+  - Transfer method: AWS account transfer or resource migration to
+    buyer's AWS account — to be agreed at close
+
+DOMAIN
+  - bigskylabs.ai domain registration
+  - Transfer to buyer's registrar of choice
+
+PAYMENTS
+  - Stripe account with active subscriber billing configuration
+  - Product/price objects, webhook configuration, subscriber payment history
+  - Transfer method: Stripe account transfer to buyer's email, or
+    new Stripe account with subscriber migration — buyer's preference
+
+API CREDENTIALS
+  - Anthropic API key (or buyer creates new key; I provide prompt
+    templates and configuration)
+  - Perplexity API key (same)
+  - Alpaca API key (free tier — buyer creates new account easily)
+  - All API keys documented with their purpose and cost profile
+
+CONTENT ASSETS
+  - LinkedIn Newsletter (AI in Healthcare Intel, 7,514,083+ subscriber base)
+    — newsletter ownership transfer via LinkedIn Creator Studio
+  - All generated LinkedIn/Facebook post drafts and templates
+  - All generated newsletter drafts (HTML + plain text)
+
+SUBSCRIBER LIST
+  - All active subscriber email addresses and account records
+  - Stripe billing records
+  - Transfer via database (included in RDS transfer above) plus
+    a clean CSV export at close for buyer's records
+
+================================================================
+WHAT IS NOT INCLUDED
+================================================================
+
+  - My personal LinkedIn profile or social following
+  - Any client relationships or consulting arrangements
+  - Commitments beyond the support window described below
+
+================================================================
+TRANSITION TIMELINE
+================================================================
+
+Week 1 (immediately after close)
+  - AWS resource transfer or migration initiated
+  - GitHub repository transferred
+  - Domain transferred to buyer's registrar
+  - Stripe account transfer initiated
+  - LinkedIn newsletter creator transfer initiated
+  - .env file and all credentials delivered securely (1Password share
+    or equivalent — never by email)
+  - Introductory walkthrough call (see Support section below)
+
+Week 2
+  - Buyer confirms all systems operational under their account
+  - I remain on standby for questions
+  - Any pipeline or deployment issues resolved together
+
+Week 3-4 (and through 30-day window)
+  - Buyer operates independently; I answer questions as they arise
+  - Final knowledge transfer call if needed
+
+================================================================
+SUPPORT I WILL PROVIDE AFTER CLOSE
+================================================================
+
+DURATION: 30 days from date of close
+
+WALKTHROUGH CALL (included, scheduled at close)
+  A single video call covering:
+  1. Architecture overview — how the pipelines connect
+  2. Deployment procedure (build, package, deploy to EC2)
+  3. Configuration management (how to add/remove content sources)
+  4. Admin panel walkthrough (user management, pipeline triggers)
+  5. Newsletter workflow (review draft → edit → send)
+  6. LinkedIn content workflow (social post generator → publish)
+  7. Monitoring and troubleshooting common issues
+  8. API key management and cost optimization
+
+EMAIL SUPPORT (30 days)
+  - Response within 24 hours on business days
+  - Covers: operational questions, troubleshooting, configuration help
+  - Does NOT cover: new feature development, custom modifications
+
+ADDITIONAL SUPPORT (optional, billable beyond 30 days)
+  - Available at an agreed hourly rate if the buyer wants extended
+    technical support or feature development
+  - To be negotiated separately at or after close
+
+================================================================
+WHAT A BUYER NEEDS TO OPERATE THIS SUCCESSFULLY
+================================================================
+
+MINIMUM REQUIREMENTS (zero development skill needed)
+  - AWS account (or willingness to pay for existing account resources)
+  - Stripe account
+  - LinkedIn account for newsletter publishing
+  - Budget for API costs (~$200-400/month depending on pipeline usage)
+
+OPTIONAL (for feature development or customization)
+  - Java/Spring Boot developer (part-time is sufficient)
+  - The codebase is well-documented and follows standard Spring Boot
+    patterns; any experienced Java developer can pick it up
+
+WHAT RUNS WITHOUT ANY HUMAN ACTION
+  - All 15 scheduled pipelines (article harvest, market digest,
+    regulatory monitoring, deal signals, trend detection, etc.)
+  - Subscriber billing (Stripe handles renewals automatically)
+  - Email delivery (SES handles newsletter sends after manual trigger)
+  - SSL certificate renewal (AWS ACM handles automatically)
+
+================================================================
+RISKS AND MITIGATIONS
+================================================================
+
+SINGLE-INSTANCE DEPLOYMENT
+  Risk: EC2 instance failure takes the app down
+  Mitigation: RDS database is separate and survives an instance failure;
+  relaunching a new EC2 instance and deploying the JAR restores the app
+  in under an hour. The deploy script is included and documented.
+
+API COST VARIABILITY
+  Risk: Pipeline API costs can spike if misconfigured
+  Mitigation: Pipeline frequency controls are in application.yml;
+  Anthropic console has monthly spend caps; cost optimization rules
+  are documented in CLAUDE.md. Current spend is ~$200-400/month.
+
+CONTENT QUALITY DEPENDENCY
+  Risk: AI-generated content quality depends on upstream API providers
+  Mitigation: The pipeline uses multiple providers (Anthropic, Perplexity,
+  Alpaca); if one fails, others continue. Prompts are version-controlled
+  and tunable via text files — no code changes needed.
+
+SUBSCRIBER EMAIL DELIVERABILITY
+  Risk: SES bounce/complaint rates affect deliverability
+  Mitigation: SES is in production mode with verified domain. The
+  unsubscribe workflow is self-service. Current deliverability is clean.
+
+================================================================
+QUESTIONS
+================================================================
+
+I am happy to provide additional detail on any aspect of the transition.
+Please direct questions to: wgblackmonall@gmail.com
+
+Bill Blackmon
+Founder, BigSkyLabs / AI in Healthcare
+bigskylabs.ai
