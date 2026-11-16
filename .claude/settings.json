@@ -46,12 +46,13 @@
         ]
       }
     ],
-    "PostCompact": [
+    "SessionStart": [
       {
+        "matcher": "compact",
         "hooks": [
           {
             "type": "command",
-            "command": "git status --short"
+            "command": "cd C:/workspaces/SpringAIClaude/AIHealthcare && echo '[session-start:compact] last commit:' && git log -1 --oneline && echo '[session-start:compact] working tree:' && git status --short"
           }
         ]
       }
