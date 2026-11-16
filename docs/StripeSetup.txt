@@ -1,0 +1,54 @@
+Steps to Go Live with Stripe
+1. Activate your account
+Go to https://dashboard.stripe.com/account/onboarding — fill in business details, bank account, identity verification.
+
+2. Get live API keys
+Go to https://dashboard.stripe.com/apikeys — toggle Test mode OFF, then copy:
+
+pk_live_* (publishable key)
+REDACTED_STRIPE_PUBLISHABLE_KEY
+
+sk_live_* (secret key)
+REDACTED_STRIPE_SECRET_KEY_ROTATED_2026_11_16
+
+
+3. Create a live Price
+Go to https://dashboard.stripe.com/products (in live mode) — create a $19/month recurring price. Copy the price_* ID.
+
+4. Create a live Webhook
+Go to https://dashboard.stripe.com/webhooks (in live mode) — add endpoint:
+Destination ID
+REDACTED_STRIPE_WEBHOOK_DESTINATION_ID
+Name
+vibrant-spark
+Endpoint URL
+https://bigskylabs.ai/aihealthcare/api/v1/stripe/webhook
+
+URL: 
+https://app.bigskylabs.ai/api/v1/stripe/webhook
+
+Regarding your Stripe webhook setup — the events and signing secret configuration happen in the Stripe Dashboard under Developers 
+> Webhooks, not in the app. 
+You'd add the endpoint URL https://app.bigskylabs.ai/api/v1/stripe/webhook, select those 3 events, and copy the whsec_* secret into your .env as STRIPE_WEBHOOK_SECRET.
+Events: checkout.session.completed, customer.subscription.updated, customer.subscription.deleted
+Copy the whsec_* signing secret.
+
+
+5. Give me the 4 values
+Once you have these:
+
+sk_live_*
+pk_live_*
+price_*
+whsec_*
+
+
+
+
+routing 
+REDACTED_BANK_ROUTING_NUMBER
+
+acct:
+REDACTED_BANK_ACCOUNT_NUMBER
+
+william blackmon

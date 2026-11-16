@@ -54,8 +54,17 @@ build/
 ### Claude Code workflow scratch worktrees ###
 .claude/worktrees/
 
-### k6 load test output (local only) ###
-logs/k6/
+### Node / npm (playwright + slideshow tooling) ###
+node_modules/
+
+### Runtime logs (local only) ###
+logs/
+
+### NotebookLM sync cache (admin-tool-managed, EC2 is the source of truth) ###
+NotebookLMDirectory/
+
+### Non-project material pending Bill's own re-org (2026-11-16) ###
+non-project/
 
 ### Stale docs removed from repo ###
 SESSION_LOG.md
