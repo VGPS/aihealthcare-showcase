@@ -26,6 +26,7 @@ import com.wgblackmon.aihealthcare.domain.port.outbound.LlmCallUsagePort;
 import com.wgblackmon.aihealthcare.domain.port.outbound.PipelinePausePort;
 import com.wgblackmon.aihealthcare.domain.service.LlmUsageSummaryService;
 import com.wgblackmon.aihealthcare.domain.service.OutreachSyncService;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.LiabilityClassificationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGenerationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
@@ -72,9 +73,9 @@ import java.util.Map;
  * <p>Restricted to ADMIN role via SecurityConfig ({@code /admin/**}).
  *
  * @author  Bill Blackmon
- * @version 3.2
+ * @version 3.3
  * @since   2026-07-30
- * @updated 2026-10-18
+ * @updated 2026-11-16
  */
 @Slf4j
 @Controller
@@ -108,6 +109,7 @@ public class AdminPipelineController {
     private final LlmUsageSummaryService llmUsageSummaryService;
     private final WikiEmbeddingScheduler wikiEmbeddingScheduler;
     private final OkfBundleExporterAdapter okfBundleExporter;
+    private final LiabilityClassificationScheduler liabilityClassificationScheduler;
 
     public AdminPipelineController(PipelineHealthService healthService,
                                    PipelineAsyncRunner asyncRunner,
@@ -123,9 +125,10 @@ public class AdminPipelineController {
                                    LlmCallUsagePort llmCallUsagePort,
                                    LlmUsageSummaryService llmUsageSummaryService,
                                    WikiEmbeddingScheduler wikiEmbeddingScheduler,
-                                   OkfBundleExporterAdapter okfBundleExporter) {
-        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}, pausePort={}, outreachSyncService={}, llmCallUsagePort={}, llmUsageSummaryService={}, wikiEmbeddingScheduler={}, okfBundleExporter={}",
-                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort, pausePort, outreachSyncService, llmCallUsagePort, llmUsageSummaryService, wikiEmbeddingScheduler, okfBundleExporter);
+                                   OkfBundleExporterAdapter okfBundleExporter,
+                                   LiabilityClassificationScheduler liabilityClassificationScheduler) {
+        log.debug("AdminPipelineController() | healthService={}, asyncRunner={}, newsletterScheduler={}, marketDigestService={}, deliverUseCase={}, priceReactionService={}, detectTrendsUseCase={}, trackFrontierClaimsUseCase={}, articleIngestionPort={}, pausePort={}, outreachSyncService={}, llmCallUsagePort={}, llmUsageSummaryService={}, wikiEmbeddingScheduler={}, okfBundleExporter={}, liabilityClassificationScheduler={}",
+                  healthService, asyncRunner, newsletterScheduler, marketDigestService, deliverUseCase, priceReactionService, detectTrendsUseCase, trackFrontierClaimsUseCase, articleIngestionPort, pausePort, outreachSyncService, llmCallUsagePort, llmUsageSummaryService, wikiEmbeddingScheduler, okfBundleExporter, liabilityClassificationScheduler);
         this.healthService = healthService;
         this.asyncRunner = asyncRunner;
         this.newsletterScheduler = newsletterScheduler;
@@ -141,6 +144,7 @@ public class AdminPipelineController {
         this.llmUsageSummaryService = llmUsageSummaryService;
         this.wikiEmbeddingScheduler = wikiEmbeddingScheduler;
         this.okfBundleExporter = okfBundleExporter;
+        this.liabilityClassificationScheduler = liabilityClassificationScheduler;
     }
 
     /**
@@ -507,6 +511,24 @@ public class AdminPipelineController {
     }
 
     /**
+     * Manually triggers the liability incident classification scan — the same pipeline
+     * that runs automatically at 06:45 UTC daily. Scans LEGAL-tier articles harvested
+     * within {@code aihealthcare.liability.lookback-days} (default 7) for candidate
+     * incidents, skips URLs already in the registry, and proposes new
+     * {@code PENDING_REVIEW} incidents via LLM classification for admin approval
+     * at {@code /admin/liability}. Idempotent — re-running does not duplicate
+     * incidents already proposed from the same source URL.
+     *
+     * @return JSON acknowledgement; the scan runs in the background
+     */
+    @PostMapping("/liability/classify")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> runLiabilityClassification() {
+        log.debug("runLiabilityClassification()");
+        return asyncRunner.runAsync("liability-classify", liabilityClassificationScheduler::scanAndPropose);
+    }
+
+    /**
      * Exports the wiki knowledge base as an OKF v0.2 bundle — a directory of markdown
      * files with YAML frontmatter consumable by Obsidian, MkDocs, Hugo, raw git diff, etc.
      *
@@ -733,6 +755,15 @@ public class AdminPipelineController {
                 "Detects trends in legal, policy, and regulatory articles via LLM-based topic extraction.",
                 "Weekly Sunday 09:00 UTC", "LegalTrendScheduler",
                 "/dashboard/legal/trends/detect", "POST", true, "~1 min", "Medium (LLM)"));
+
+        list.add(new PipelineInfo("liability-classify", "Liability Incident Classification",
+                "Scans LEGAL-tier articles harvested in the last 7 days (aihealthcare.liability.lookback-days), " +
+                "skips URLs already in the registry, and sends the rest to Claude Haiku to propose new liability " +
+                "incidents. Proposals are saved as PENDING_REVIEW for admin approval at /admin/liability — nothing " +
+                "publishes to the public registry without review. Capped at aihealthcare.liability.max-articles-per-run " +
+                "(default 20) per execution. Idempotent — already-classified source URLs are skipped.",
+                "Daily 06:45 UTC", "LiabilityClassificationScheduler",
+                "/admin/pipelines/liability/classify", "POST", true, "~30 sec", "Medium (LLM)"));
 
         list.add(new PipelineInfo("research-harvest", "Research Harvest (Perplexity)",
                 "Runs the COMBINED research pipeline (Perplexity + Google) for all configured topics. Persists new articles to DB.",

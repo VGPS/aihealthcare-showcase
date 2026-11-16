@@ -29,9 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * tracking stores the last execution result per pipeline in memory.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-07-30
- * @updated 2026-08-23
+ * @updated 2026-11-16
  */
 @Slf4j
 @Service
@@ -133,6 +133,12 @@ public class PipelineHealthService {
             case "wiki-gap-analysis":
                 if (!isAnthropicKeyReady()) {
                     warnings.add("ANTHROPIC_API_KEY not configured — gap analysis will fail");
+                }
+                break;
+
+            case "liability-classify":
+                if (!isAnthropicKeyReady()) {
+                    warnings.add("ANTHROPIC_API_KEY not configured — incident classification will fail");
                 }
                 break;
 
@@ -471,6 +477,9 @@ public class PipelineHealthService {
                 return "Will keyword-scan the last 7 days of articles for deal signals, confirm and enrich matches via Claude, and persist new signals";
             case "wiki-gap-analysis":
                 return "Will analyze recent articles against wiki pages to identify coverage gaps via LLM";
+            case "liability-classify":
+                return "Will scan LEGAL-tier articles harvested in the lookback window and propose new liability "
+                        + "incidents via LLM classification, saved as PENDING_REVIEW for admin approval";
             default:
                 return "Ready to execute";
         }

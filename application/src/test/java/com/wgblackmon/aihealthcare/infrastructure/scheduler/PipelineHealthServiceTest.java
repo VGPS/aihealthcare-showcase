@@ -136,6 +136,19 @@ class PipelineHealthServiceTest {
     }
 
     @Test
+    void preFlightCheck_liabilityClassifyWarnsWithoutAnthropicKey() {
+        List<String> warnings = serviceNoKeys.preFlightCheck("liability-classify");
+        assertThat(warnings).hasSize(1);
+        assertThat(warnings.get(0)).contains("ANTHROPIC_API_KEY");
+    }
+
+    @Test
+    void preFlightCheck_liabilityClassifyNoWarningsWhenKeyPresent() {
+        List<String> warnings = serviceWithAnthropicKey.preFlightCheck("liability-classify");
+        assertThat(warnings).isEmpty();
+    }
+
+    @Test
     void preFlightCheckAll_returnsResultsForAllPipelines() {
         Map<String, List<String>> results = serviceNoKeys.preFlightCheckAll(
                 List.of("rss-feeds", "competitor", "wiki-compile"));

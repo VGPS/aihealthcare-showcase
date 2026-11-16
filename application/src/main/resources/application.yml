@@ -1198,34 +1198,40 @@ aihealthcare:
         max-items: 20
       # -----------------------------------------------------------------
       # AI Healthcare Legal — liability, malpractice, IP, compliance law
-      # Broadened queries (Sep 2026) — narrow queries returned only stale
-      # results from Google News, causing zero fresh articles for 30+ days.
+      # Broadened queries (Sep 2026) did not fix staleness — Google News RSS
+      # search ranks by RELEVANCE, not recency, so broadening the query just
+      # pulls in more old matches alongside the few fresh ones. Verified
+      # 2026-11-16: an unqualified query returned pubDates back to 2021;
+      # adding "+when:30d" to the query string (Google's native News search
+      # time-range qualifier) restricts results to the trailing 30 days,
+      # matching aihealthcare.articles.max-age-days. Applied to every
+      # news.google.com/rss/search URL in this LEGAL tier block below.
       # -----------------------------------------------------------------
       - topic-id: 1
         name: Google News AI Healthcare Regulation
         topic: AI Healthcare Legal
-        url: https://news.google.com/rss/search?q=AI+healthcare+regulation+OR+legislation+OR+compliance&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=AI+healthcare+regulation+OR+legislation+OR+compliance+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.9
         max-items: 20
       - topic-id: 1
         name: Google News AI Health Law
         topic: AI Healthcare Legal
-        url: https://news.google.com/rss/search?q=%22artificial+intelligence%22+health+law+OR+regulation+OR+FDA&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=%22artificial+intelligence%22+health+law+OR+regulation+OR+FDA+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.9
         max-items: 20
       - topic-id: 1
         name: Google News AI Medical Liability
         topic: AI Healthcare Legal
-        url: https://news.google.com/rss/search?q=%22artificial+intelligence%22+medical+liability+OR+lawsuit+OR+malpractice&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=%22artificial+intelligence%22+medical+liability+OR+lawsuit+OR+malpractice+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.85
         max-items: 20
       - topic-id: 1
         name: Google News AI Healthcare Policy
         topic: AI Healthcare Legal
-        url: https://news.google.com/rss/search?q=AI+healthcare+law+policy+OR+state+legislation&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=AI+healthcare+law+policy+OR+state+legislation+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.85
         max-items: 20
@@ -1238,28 +1244,28 @@ aihealthcare:
       - topic-id: 1
         name: Google News EHR AI Integration Regulation
         topic: Corporate AI & Healthcare Law
-        url: https://news.google.com/rss/search?q=EHR+AI+integration+regulation+liability+OR+Epic+MCP+OR+Oracle+health+AI&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=EHR+AI+integration+regulation+liability+OR+Epic+MCP+OR+Oracle+health+AI+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.9
         max-items: 20
       - topic-id: 1
         name: Google News Healthcare AI Vendor Liability
         topic: Corporate AI & Healthcare Law
-        url: https://news.google.com/rss/search?q=healthcare+AI+vendor+liability+OR+AI+clinical+decision+support+lawsuit+OR+AI+EMR+liability&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=healthcare+AI+vendor+liability+OR+AI+clinical+decision+support+lawsuit+OR+AI+EMR+liability+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.9
         max-items: 20
       - topic-id: 1
         name: Google News Health System AI Corporate Deals
         topic: Corporate AI & Healthcare Law
-        url: https://news.google.com/rss/search?q=health+system+AI+corporate+deal+OR+hospital+AI+contract+OR+EHR+AI+partnership+regulation&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=health+system+AI+corporate+deal+OR+hospital+AI+contract+OR+EHR+AI+partnership+regulation+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.85
         max-items: 20
       - topic-id: 1
         name: Google News AI FHIR Interoperability Legal
         topic: Corporate AI & Healthcare Law
-        url: https://news.google.com/rss/search?q=AI+FHIR+interoperability+legal+OR+health+data+API+liability+OR+MCP+healthcare+regulation&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=AI+FHIR+interoperability+legal+OR+health+data+API+liability+OR+MCP+healthcare+regulation+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.9
         max-items: 15
@@ -1647,7 +1653,7 @@ aihealthcare:
       - topic-id: 1
         name: Google News AI Healthcare Liability
         topic: AI Healthcare Legal
-        url: https://news.google.com/rss/search?q=AI+healthcare+lawsuit+liability+malpractice&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=AI+healthcare+lawsuit+liability+malpractice+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.85
         max-items: 20
@@ -1691,7 +1697,7 @@ aihealthcare:
       - topic-id: 1
         name: HHS OCR HIPAA Enforcement News
         topic: AI Healthcare Legal
-        url: https://news.google.com/rss/search?q=HHS+OCR+HIPAA+enforcement+AI+OR+algorithm+OR+software+healthcare&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=HHS+OCR+HIPAA+enforcement+AI+OR+algorithm+OR+software+healthcare+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.85
         max-items: 15
@@ -1717,7 +1723,7 @@ aihealthcare:
       - topic-id: 1
         name: Reuters Health AI Legal
         topic: AI Healthcare Legal
-        url: https://news.google.com/rss/search?q=reuters+AI+healthcare+lawsuit+OR+liability+OR+FDA+OR+FTC&hl=en-US&gl=US&ceid=US:en
+        url: https://news.google.com/rss/search?q=reuters+AI+healthcare+lawsuit+OR+liability+OR+FDA+OR+FTC+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.85
         max-items: 15

@@ -18,6 +18,7 @@ import com.wgblackmon.aihealthcare.infrastructure.scheduler.NewsletterGeneration
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineAsyncRunner;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.PipelineHealthService;
 import com.wgblackmon.aihealthcare.infrastructure.delivery.OkfBundleExporterAdapter;
+import com.wgblackmon.aihealthcare.infrastructure.scheduler.LiabilityClassificationScheduler;
 import com.wgblackmon.aihealthcare.infrastructure.scheduler.WikiEmbeddingScheduler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -112,6 +113,9 @@ class AdminPipelineControllerTest {
     @MockitoBean
     private OkfBundleExporterAdapter okfBundleExporter;
 
+    @MockitoBean
+    private LiabilityClassificationScheduler liabilityClassificationScheduler;
+
     @BeforeEach
     void setUp() {
         when(llmCallUsagePort.findSince(any())).thenReturn(List.of());
@@ -165,7 +169,7 @@ class AdminPipelineControllerTest {
 
         mockMvc.perform(get("/admin/pipelines"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("pipelineCount", 29));
+                .andExpect(model().attribute("pipelineCount", 30));
     }
 
     @Test
@@ -504,6 +508,29 @@ class AdminPipelineControllerTest {
     @WithMockUser(roles = "USER")
     void runWikiEmbeddingReturns403ForNonAdmin() throws Exception {
         mockMvc.perform(post("/admin/pipelines/wiki-embedding/run").with(csrf()))
+                .andExpect(status().isForbidden());
+    }
+
+    // --- Liability classification endpoint ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void runLiabilityClassificationReturns202() throws Exception {
+        when(asyncRunner.runAsync(eq("liability-classify"), any(Runnable.class)))
+                .thenReturn(accepted202("liability-classify"));
+
+        mockMvc.perform(post("/admin/pipelines/liability/classify").with(csrf()))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.started").value(true))
+                .andExpect(jsonPath("$.pipelineId").value("liability-classify"));
+
+        verify(asyncRunner).runAsync(eq("liability-classify"), any(Runnable.class));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void runLiabilityClassificationReturns403ForNonAdmin() throws Exception {
+        mockMvc.perform(post("/admin/pipelines/liability/classify").with(csrf()))
                 .andExpect(status().isForbidden());
     }
 
