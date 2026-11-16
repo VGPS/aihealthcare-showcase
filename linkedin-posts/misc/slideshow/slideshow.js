@@ -1,30 +1,43 @@
 /**
- * Walks every top-level nav menu page as the admin user, screenshots each
- * one, and (if ffmpeg is installed) stitches the screenshots into an MP4
- * slideshow. Output lives alongside other marketing/social assets in
- * linkedin-posts/.
+ * Walks every top-level nav menu page as a SUBSCRIBER-tier demo account,
+ * screenshots each one, and (if ffmpeg is installed) stitches the
+ * screenshots into an MP4 slideshow. Output lives alongside other
+ * marketing/social assets in linkedin-posts/, and gets copied manually into
+ * application/src/main/resources/static/videos/app-walkthrough.mp4 — the
+ * file actually served by the public /tour page — after a successful run.
  *
- * Reuses the login flow from e2e/admin.setup.js but keeps its own saved
- * session (.auth/admin.json under this folder) so it's fully self-contained
- * and doesn't depend on the e2e/ test suite.
+ * Deliberately NOT the admin account — this captures what a paying
+ * SUBSCRIBER sees, since the resulting video is meant for prospects. Keeps
+ * its own saved Playwright session (.auth/subscriber.json under this
+ * folder) so it's fully self-contained and doesn't depend on the e2e/ test
+ * suite. That session file is gitignored (linkedin-posts/misc/slideshow/.auth/
+ * in .gitignore) — it holds a live cookie for whatever BASE_URL it was last
+ * run against, so it must never be committed. It's a disposable local cache:
+ * delete it any time and the script re-logs-in and regenerates it.
  *
  * Page list is hand-maintained from templates/fragments/nav.html — update
  * both together when the nav changes.
  *
  * Usage (run from repo root):
  *   npx playwright install chromium   (one-time, if not already installed)
- *   node linkedin-posts/slideshow/slideshow.js                            # localhost:8080
- *   BASE_URL=https://app.bigskylabs.ai node linkedin-posts/slideshow/slideshow.js
- *   SLIDE_SECONDS=4 node linkedin-posts/slideshow/slideshow.js            # slower pacing
+ *   node linkedin-posts/misc/slideshow/slideshow.js                            # localhost:8080
+ *   BASE_URL=https://app.bigskylabs.ai node linkedin-posts/misc/slideshow/slideshow.js
+ *   SLIDE_SECONDS=4 node linkedin-posts/misc/slideshow/slideshow.js            # slower pacing
  *
- * Requires E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD in .env.
+ * Requires SLIDESHOW_EMAIL / SLIDESHOW_PASSWORD in .env (falls back to
+ * SLIDESHOW_EMAIL=showcase-subscriber@bigskylabs.ai if unset).
  * ffmpeg is optional — if it's not on PATH, screenshots are still produced
  * and the script prints the ffmpeg command to run manually later.
  *
  * @author  Bill Blackmon
  * @since   2026-09-25
  * @updated 2026-11-16 — synced PAGES against nav.html (added Claim Tracker,
- *          Claims Methodology, Liability Registry, Post Drafts)
+ *          Claims Methodology, Liability Registry, Post Drafts); fixed stale
+ *          doc comment (wrong path, wrong account/env vars); fixed the
+ *          .gitignore entry for .auth/ which had the wrong path (missing
+ *          "misc/") and had never actually been excluding anything —
+ *          untracked .auth/admin.json, .auth/subscriber.json, and
+ *          frames/concat-list.txt from git as a result
  */
 const { chromium } = require('playwright');
 const { execFileSync } = require('child_process');
