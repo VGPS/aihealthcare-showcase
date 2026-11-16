@@ -127,7 +127,8 @@ mvn test -Dspring.profiles.active=ai-integration
 - **Commit directly to `master`** — no feature branches required (solo developer).
 - **One feature per commit.** If a change does two things, make two commits.
 - **Commit message format:** imperative subject under 72 chars. Body only when the "why" isn't obvious.
-- **Git remote is `AIHealthcare_Origin`, NOT `origin`.** Push with: `git push AIHealthcare_Origin master`. The `showcase` remote is a different repository — always push to both: `git push showcase master`.
+- **Git remote is `AIHealthcare_Origin`, NOT `origin`.** Push with: `git push AIHealthcare_Origin master`.
+- **Never push directly to the `showcase` remote.** It's a public mirror that strips sale/outreach-strategy files before publishing. Run `bash scripts/sync-showcase.sh` instead — it fetches, resets, strips, and pushes atomically. A `PreToolUse` hook in `.claude/settings.json` blocks any other command touching `showcase` + push/`--force`. (A direct `git push showcase master` leaked `docs/Acquire_notes.md` into the public repo on 2026-11-16 — see `feedback_showcase_mirror` memory for the incident history.)
 - **Before pushing, run:** `mvn -Pci verify`
 - **Never commit** `.env`, `*.key`, `*.pem`, dump files, or logs.
 - **CI workflow:** `.github/workflows/ci.yml` — triggers on pushes to `master`. Runs with `-Pci` profile (skips Tailwind), pgvector Postgres service container, Java 21 Temurin.

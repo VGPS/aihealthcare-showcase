@@ -38,6 +38,10 @@
           {
             "type": "command",
             "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'rm -rf|DROP TABLE|truncate'; then if echo \"$CLAUDE_TOOL_INPUT\" | grep -q '\\.claude/worktrees/'; then exit 0; fi; echo 'Blocked: destructive command detected' && exit 2; fi"
+          },
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qi 'sync-showcase\\.sh'; then exit 0; fi; if echo \"$CLAUDE_TOOL_INPUT\" | grep -qi 'showcase' && echo \"$CLAUDE_TOOL_INPUT\" | grep -qiE 'push|--force'; then echo 'Blocked: direct push/force touching the showcase repo. Run scripts/sync-showcase.sh instead -- it strips sale-sensitive files before pushing. See feedback_showcase_mirror memory for why.' && exit 2; fi"
           }
         ]
       }
