@@ -23,6 +23,8 @@
  *
  * @author  Bill Blackmon
  * @since   2026-09-25
+ * @updated 2026-11-16 — synced PAGES against nav.html (added Claim Tracker,
+ *          Claims Methodology, Liability Registry, Post Drafts)
  */
 const { chromium } = require('playwright');
 const { execFileSync } = require('child_process');
@@ -42,6 +44,8 @@ const OUTPUT_FILE = path.join(OUTPUT_DIR, 'app-walkthrough.mp4');
 const PAGES = [
     { group: 'Dashboard', label: 'Dashboard', path: '/dashboard' },
 
+    { group: 'Content', label: 'Claim Tracker', path: '/dashboard/claims' },
+    { group: 'Content', label: 'Claims Methodology', path: '/claims/methodology' },
     { group: 'Content', label: 'Deal Signals', path: '/dashboard/deals' },
     { group: 'Content', label: 'Market Digest', path: '/dashboard/market' },
     { group: 'Content', label: 'Market Enrichment', path: '/dashboard/market/enrichment' },
@@ -61,6 +65,7 @@ const PAGES = [
     { group: 'Legal', label: 'Legal Trends', path: '/dashboard/legal/trends' },
     { group: 'Legal', label: 'Regulatory', path: '/dashboard/regulatory' },
     { group: 'Legal', label: 'Legislation', path: '/legislation' },
+    { group: 'Legal', label: 'Liability Registry', path: '/liability' },
 
     { group: 'Reference', label: 'Clinical Trials', path: '/dashboard/clinical-trials' },
     { group: 'Reference', label: 'Companies', path: '/dashboard/companies' },
@@ -70,6 +75,7 @@ const PAGES = [
     { group: 'Reference', label: 'Wiki', path: '/wiki' },
 
     { group: 'Account', label: 'Social Posts', path: '/dashboard/social' },
+    { group: 'Account', label: 'Post Drafts', path: '/dashboard/social/drafts' },
     { group: 'Account', label: 'Weekly Roundup', path: '/dashboard/weekly-roundup' },
     { group: 'Account', label: 'About', path: '/about' },
     { group: 'Account', label: 'Notes', path: '/notes' },
