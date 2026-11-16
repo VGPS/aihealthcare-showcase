@@ -79,3 +79,10 @@ e2e/test-results/
 linkedin-posts/misc/slideshow/.auth/
 linkedin-posts/misc/slideshow/frames/concat-list.txt
 playwright-report/
+
+### Local-only Claude Code notes (personal, never shared) ###
+CLAUDE.local.md
+
+### Sale negotiation strategy -- never for buyer/showcase visibility (2026-11-16) ###
+docs/Acquire_notes.md
+acquire/
