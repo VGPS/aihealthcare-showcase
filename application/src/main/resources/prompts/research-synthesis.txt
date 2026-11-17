@@ -9,7 +9,13 @@ Original question: {query}
 Source documents:
 {sources}
 
-Instructions:
+Before writing your response, work through these steps:
+1. Identify the 2-3 most important themes the sources collectively address
+2. Note which sources directly answer the question vs. which are tangential
+3. Identify any direct contradictions between sources
+4. Determine if the sources are sufficient to answer the question fully
+
+Then write your response:
 - Write 2-3 thematic sections, each with a clear descriptive heading
 - Use inline citation markers such as [1], [2] to reference the numbered sources
 - If multiple sources support a point, cite them all: [1][3]
