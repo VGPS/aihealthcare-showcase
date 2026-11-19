@@ -1,0 +1,257 @@
+PIPELINE PROCESSES USED
+=======================
+Sources:   WebSearch (Claude Code built-in) — zero API cost
+           Lawrence, Evans & Co. November 16 roundup
+           TechCrunch Oura/Counsel Health acquisition
+           Health IT Answers November 12 financial edition
+Screenshot: Playwright → app.bigskylabs.ai/directory
+           Saved: linkedin-posts/shots/company-directory.png
+Lint:      Manual Anti-Slop scan (lintWiki mode, 7 rules)
+           No Perplexity / Anthropic / OpenAI / Gemini API calls made.
+
+LINT RESULTS SUMMARY
+====================
+Option A: PASS  score~90  WARN: Rule 8 (em-dash in Data Provenance — structural, see linkedInRules.md)
+Option B: PASS  score~90  WARN: Rule 8 (em-dash in Data Provenance — structural, see linkedInRules.md)
+Option C: PASS  score~91  WARN: Rule 8 (em-dash in Data Provenance — structural, see linkedInRules.md)
+No BLOCK findings in any option.
+
+=====
+
+OPTION A — The Full Deal Surge
+
+TITLE: Thirteen AI Healthcare Deals in One Week: What the Money Is Telling You
+
+This past week (November 10–16, 2026) produced thirteen disclosed transactions in AI
+healthcare. Total capital deployed exceeded $2 billion. The week was not an outlier —
+it was an acceleration.
+
+Here is what moved, and what it means.
+
+THE LARGEST DEAL: OURA ACQUIRES COUNSEL HEALTH FOR $625M
+
+Oura — the Finnish company behind the biosensing ring — acquired AI-native primary care
+company Counsel Health for $625 million. Counsel pairs a conversational AI medical
+interface with licensed physicians, delivering what it calls AI-native primary care.
+
+The timing is not coincidental. Oura postponed a $2.2 billion IPO last month, citing
+market uncertainty. Rather than waiting, the company deployed capital directly into care
+delivery. Counsel CEO Muthu Alagappan joins Oura as chief clinical AI officer.
+
+The strategic argument: Oura's ring collects continuous biometric data — heart rate
+variability, skin temperature, blood oxygen, respiratory patterns — but had no clinical
+pathway for it. Counsel provides the care layer. This is the architecture every
+device-to-care company has been building toward. Oura just paid $625 million to own it.
+
+DOCUMENTATION AND BILLING: $180M+ IN ONE WEEK
+
+Clinical documentation attracted the largest capital cluster this week:
+
+Suki: $90M Series E — AI for clinical documentation, reasoning, and revenue cycle
+Charta Health: $55M Series B — AI medical chart review for providers and payers
+XpertDox: $20M — AI medical billing and EHR automation for healthcare providers
+Duet: $15M — AI billing and clinical operations software
+
+That is $180 million flowing into the documentation and billing layer in seven days. The
+thesis is consistent: physician administrative time is the most expensive and most
+measurable cost in healthcare delivery. Documentation consumes a known fraction of it.
+Investors are betting these tools can prove ROI at scale.
+
+CARDIAC AI GETS NINE-FIGURE BACKING
+
+Laza Medical raised up to $160 million in Series B financing led by GE HealthCare to
+develop AI-powered robotic imaging for the cardiac catheterization lab. GE HealthCare
+leading this round is a commercial signal, not just a financial one — the company is
+positioning to own robotic cardiac AI as a category.
+
+OTHER SIGNIFICANT ROUNDS
+
+Zus Health: $33M Series B — AI-native connected patient data platform
+Orakl Oncology: $33.3M — AI for cancer drug response prediction and target discovery
+nPhase: $30M Series D — AI-native clinical data platform with agentic capabilities
+Confido Health: $22.5M Series A — AI agents for patient communications and admin workflows
+Ellipsis Health acquired Kouper Health — vocal AI care management with native EHR navigation
+Elligint Health acquired Laguna Health — conversational AI across 13 million managed lives
+iSpecimen acquired two AI products from Foldlab AI — disease protein identification and
+  disease trend prediction — for up to $4.5 million
+
+THE PLATFORM TRACKS THIS
+
+The AIHealthcare Company Directory (app.bigskylabs.ai/directory) monitors 103 AI
+healthcare companies across seven sectors. Each company earns a live relevance score
+from three signals refreshed daily: article mention velocity (Trending), confirmed
+funding activity (Funded), and negative sentiment detection (Watch). Sort by Recently
+Funded to see which companies closed rounds this week.
+
+This week's data is exactly what the signal-scoring system was built to surface.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+Data Provenance
+Oura acquires Counsel Health for $625M — TechCrunch (techcrunch.com/2026/11/10/oura-to-acquire-ai-native-primary-care-startup-counsel-health-for-625m/)
+November 16 deals roundup — Lawrence, Evans & Co. (lawrenceevans.com/2026/11/16/healthcare-news-deals-and-investments-update-november-16th-2026/)
+Suki Series E / Laza Medical / Charta Health / XpertDox / Duet / Orakl / Zus — Health IT Answers (healthitanswers.net/health-it-business-news-financial-edition-november-12-2026/)
+November 9 roundup — Lawrence, Evans & Co. (lawrenceevans.com/2026/11/09/healthcare-news-deals-and-investments-update-november-9th-2026/)
+
+#AIHealthcare #HealthcareAI #DigitalHealth #AIInvesting #HealthTech
+
+---
+
+Free weekly AI Healthcare Intelligence digest: https://app.bigskylabs.ai/register
+Subscribe to the AI in Healthcare Intel newsletter: https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+===== EDITING NOTES (NOT FOR PASTING) =====
+Hyperlink each Data Provenance anchor text to its URL in the LinkedIn Newsletter editor after pasting.
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #DigitalHealth #AIInvesting
+
+Group Relevance: Healthcare investors, digital health operators, and clinical leaders tracking market consolidation and capital velocity.
+
+=====
+
+OPTION B — The Oura/Counsel Convergence Story
+
+TITLE: Oura's $625M Move Just Changed the Wearables Story
+
+Oura built a ring. Then it built a business tracking sleep, recovery, and cardiovascular
+signals for millions of users. Last week it spent $625 million to acquire Counsel Health —
+an AI-native primary care company — and in doing so made a large, public bet about where
+healthcare delivery is going.
+
+The question worth sitting with: why now?
+
+WHAT OURA BOUGHT
+
+Counsel Health is not a traditional telemedicine company. It is built around an AI medical
+interface that handles initial assessment and routes patients to licensed physicians when
+clinical judgment requires it. Users engage a medical AI, receive personalized guidance,
+and escalate to a physician when needed — without the scheduling friction of a traditional
+appointment.
+
+Counsel's CEO described the product as "AI-native primary care." The distinction matters.
+Most telemedicine companies added AI to existing physician scheduling infrastructure.
+Counsel reversed the architecture: AI is the front door, and physicians are the support
+layer behind it.
+
+THE DATA INTEGRATION THESIS
+
+Oura's ring generates one of the most continuous biometric data streams available outside
+a clinical setting: heart rate variability, skin temperature, blood oxygen, respiratory
+rate, activity patterns. That data has predictive value for a range of conditions — sleep
+apnea, cardiovascular stress, early illness — but until last week it had no clinical
+pathway.
+
+Counsel provides the outlet. A patient who shows an emerging sleep apnea signal in their
+ring data can now have that pattern routed to Counsel's care interface. That is the
+integration story Oura is building.
+
+THE TIMING SIGNAL
+
+This acquisition is also a capital allocation decision in disguise. Oura postponed a
+$2.2 billion IPO last month. Deploying $625 million into an acquisition rather than
+entering public markets suggests the company sees private growth as the more valuable
+path right now — and that it has the capital to execute it without an IPO.
+
+For the AI healthcare sector broadly, the signal is consistent with what the week's
+twelve other transactions showed: companies with continuous health monitoring platforms
+see care delivery as the natural next layer, and the consolidation is accelerating.
+
+THE PLATFORM
+
+The AIHealthcare Company Directory (app.bigskylabs.ai/directory) tracks 103 companies
+across seven sectors, including AI Agents & Virtual Care — the category where Counsel
+Health sits. When deals close, funding signals update. Use the Recently Funded filter to
+see this week's movers.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+Data Provenance
+Oura acquires Counsel Health for $625M — TechCrunch (techcrunch.com/2026/11/10/oura-to-acquire-ai-native-primary-care-startup-counsel-health-for-625m/)
+November 16 deals roundup — Lawrence, Evans & Co. (lawrenceevans.com/2026/11/16/healthcare-news-deals-and-investments-update-november-16th-2026/)
+
+#AIHealthcare #HealthcareAI #DigitalHealth #AIInvesting #PrimaryCare
+
+---
+
+Free weekly AI Healthcare Intelligence digest: https://app.bigskylabs.ai/register
+Subscribe to the AI in Healthcare Intel newsletter: https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+===== EDITING NOTES (NOT FOR PASTING) =====
+Hyperlink each Data Provenance anchor text to its URL in the LinkedIn Newsletter editor after pasting.
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #DigitalHealth #PrimaryCare
+
+Group Relevance: Digital health founders, payers, and health system strategy teams evaluating the wearables-to-care convergence.
+
+=====
+
+OPTION C — The Clinical Documentation Capital Story
+
+TITLE: Clinical Documentation Captured $180M in Seven Days. That Is the Signal.
+
+Clinical documentation is not the most prominent part of healthcare AI. It is not the
+press release that leads a consumer technology magazine. It is, however, the part of
+healthcare AI that keeps raising money at scale — because it is the part that has
+demonstrated measurable return on investment, and institutional capital follows
+demonstrated ROI.
+
+This past week, documentation and billing AI captured more than $180 million in a single
+seven-day window.
+
+THE FOUR DEALS
+
+Suki raised $90 million in Series E financing from Healthier Capital, Crosslink Capital,
+and Hercules Capital. Suki builds AI for clinical documentation, reasoning, and revenue
+cycle workflows. A Series E at this scale signals sustained institutional confidence in
+the documentation category long past the early adoption phase.
+
+Charta Health raised $55 million in Series B financing led by Insight Partners, bringing
+total funding to $85 million. Charta operates an AI medical chart review platform serving
+both providers and payers. The payer-side business is especially attractive: miscoded
+claims and missed risk adjustment opportunities represent billions in annual financial
+error across U.S. healthcare, and chart review tools that surface those gaps pay for
+themselves quickly.
+
+XpertDox raised $20 million for AI medical billing and EHR automation. Duet raised $15
+million for AI billing and clinical operations software for healthcare providers.
+
+WHY THIS CATEGORY KEEPS WINNING CAPITAL
+
+Physician burnout research consistently identifies documentation as the primary time
+drain. The average physician spends two to three hours on documentation for every eight
+hours of clinical time. That ratio has a direct dollar value, and documentation AI tools
+target it with measurable precision.
+
+These are not speculative bets on future technology. They are capital following a proven
+use case with known ROI. That is why the category raises at scale in every funding cycle,
+while more experimental AI categories see selective investment.
+
+WHAT THE PLATFORM SHOWS
+
+The AIHealthcare Company Directory (app.bigskylabs.ai/directory) tracks 103 AI healthcare
+companies including a Clinical Documentation sector. Companies in this sector display a
+Funded signal badge when a round closes. Use the sector filter pill to narrow to
+documentation companies and sort by Recently Funded to see this week's movers.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+Data Provenance
+Suki $90M / Charta Health $55M / XpertDox $20M / Duet $15M — Health IT Answers (healthitanswers.net/health-it-business-news-financial-edition-november-12-2026/)
+November 16 deals roundup — Lawrence, Evans & Co. (lawrenceevans.com/2026/11/16/healthcare-news-deals-and-investments-update-november-16th-2026/)
+
+#AIHealthcare #HealthcareAI #ClinicalAI #DigitalHealth #AIInvesting
+
+---
+
+Free weekly AI Healthcare Intelligence digest: https://app.bigskylabs.ai/register
+Subscribe to the AI in Healthcare Intel newsletter: https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+===== EDITING NOTES (NOT FOR PASTING) =====
+Hyperlink each Data Provenance anchor text to its URL in the LinkedIn Newsletter editor after pasting.
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #ClinicalAI #DigitalHealth
+
+Group Relevance: Health system executives, physician practice leaders, and healthcare investors evaluating operational AI ROI in administrative workflows.

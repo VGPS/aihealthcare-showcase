@@ -1,0 +1,98 @@
+PIPELINE: WebSearch (zero API cost) — sourced from NBC News, CBS News, Al Jazeera,
+Outlook India, opentools.ai, TechRadar, LatinTimes, Forbes, TrueUp layoff tracker,
+Challenger Gray & Christmas, Stanford AI Index 2026, Harvard 62M-worker study (Nov 2026)
+
+LINT RESULTS (SlopLinter lintWiki mode — 7 rules; checked manually against the rule
+definitions in SlopLinter.java, not run through a compiled build):
+  LinkedIn Post: PASS — score 100 | BLOCK: 0 | WARN: 0
+  Facebook Post: PASS — score 100 | BLOCK: 0 | WARN: 0
+
+NOTE ON SCOPE: This is a personal-opinion piece, not AI-Healthcare brand content.
+No positioning statement, no app/newsletter subscribe links — the topic (bank/airline/
+government outages correlated with AI-driven developer layoffs) is general tech/labor
+commentary, outside the AI-in-Healthcare editorial scope, per explicit instruction.
+
+IMPORTANT — on the central claim: no outage below has a confirmed AI-caused root cause.
+Chase cited an on-premise hardware bug (not cyber); United and the FAA cited a system
+outage and a malfunctioning router hitting legacy air traffic control infrastructure;
+Microsoft has not published a root cause. The post is deliberately framed as "this raises
+the question" / "this is the staffing backdrop," not "AI broke these systems" — that
+stronger claim isn't supported by any official source found.
+
+==================================================
+LINKEDIN POST
+==================================================
+
+===== POST BODY =====
+This week: Microsoft's email system went down for close to 48 hours. The FAA grounded every flight in the country for nearly five hours. United's departure system failed mid-dispatch, stranding pilots without weight and balance numbers. Chase, Bank of America, Wells Fargo, US Bank, Truist, and Capital One all had a multi-hour outage that delayed Zelle payments nationwide.
+
+Four unrelated companies. Four different official explanations — a hardware bug, a malfunctioning router, an aging air traffic control system, and, for Microsoft, no public root cause yet. None of them name AI.
+
+A Homeland Security official asked the AI question publicly anyway.
+
+Here's what's true independent of that answer: U.S. tech companies have laid off more than 206,000 workers in 2026. Employers now cite AI in roughly 1 in 4 of those layoffs, versus 1 in 20 last year. Junior developer hiring has fallen for 33 straight months. A Harvard study of 62 million workers found junior developer headcount drops 9 to 10% within six quarters of a company adopting generative AI.
+
+The entry-level engineer who used to learn a system by maintaining it next to a senior engineer isn't getting hired as often anymore. The senior engineers who remain are covering more systems, with fewer people who've touched them before.
+
+That doesn't prove AI caused any of this week's outages. It means every one of them happened inside organizations carrying less human redundancy than they had two years ago.
+
+I don't know what broke Monday. I don't think the companies fully know yet either. I'd watch how many of the post-mortems mention a recent reorg before they mention a root cause.
+
+👉 Sources in the first comment.
+
+#TechLayoffs #SoftwareEngineering #AI #Infrastructure #Outage
+
+===== FIRST COMMENT =====
+https://outlookindia.com/international/us-technology-outages-november-2026-markwayne-mullin-ai-theory-faa-ground-stop-microsoft-outage-jpmorgan-chase-united-airlines
+
+https://opentools.ai/news/microsoft-365-outage-ai-layoffs-scrutiny
+
+===== POSTING INSTRUCTIONS =====
+Post to 1–2 groups per sitting. Wait 5–10 minutes before pasting First Comment.
+Best fit: engineering-leadership, SRE/DevOps, and tech-workforce groups — not AI Healthcare
+groups, this is off-topic for that audience.
+
+===== STRATEGY NOTES =====
+Data Provenance:
+Outage cluster overview + DHS official's AI theory — Outlook India (https://outlookindia.com/international/us-technology-outages-november-2026-markwayne-mullin-ai-theory-faa-ground-stop-microsoft-outage-jpmorgan-chase-united-airlines)
+Bank outage, cause, Zelle delays — Al Jazeera (https://www.aljazeera.com/news/2026/11/17/us-bank-outage-what-caused-chase-problems-and-zelle-payment-delays)
+United Airlines outage detail — CBS News (https://www.cbsnews.com/news/united-airlines-system-outage-departing-flights/)
+Microsoft 365 outage tied to AI-layoffs scrutiny — opentools.ai (https://opentools.ai/news/microsoft-365-outage-ai-layoffs-scrutiny)
+2026 layoff totals + AI-attribution share — TechRadar (https://techradar.com/pro/nearly-80-000-tech-workers-have-already-lost-their-jobs-in-2026-and-ai-impact-means-more-could-be-to-come)
+Junior developer employment decline — Forbes (https://www.forbes.com/sites/josipamajic/2026/08/09/coding-jobs-vanish-for-juniors-as-ai-reshapes-career-path/)
+
+Group Relevance: Engineering leaders, SREs, and tech-workforce analysts tracking whether
+thinner engineering teams are a reliability risk, not just a cost story.
+
+Viral potential: HIGH — real, current-week events plus a concrete, checkable staffing
+argument; invites engineers to compare notes on actual incident reviews.
+
+==================================================
+FACEBOOK PERSONAL POST
+==================================================
+
+===== POST BODY =====
+Four major outages this week. Microsoft's email was down for close to two days. The FAA grounded every flight in the country. United's system failed mid-dispatch. Six banks had a multi-hour outage that broke Zelle.
+
+None of the official explanations mention AI. A hardware bug. A bad router. An old air traffic control system. That's it, officially.
+
+But here's the thing I can't stop thinking about: U.S. tech companies have cut more than 200,000 jobs this year, and employers are now blaming AI for roughly 1 in 4 of those cuts — up from 1 in 20 last year. Junior developer hiring has been falling for almost three years straight. The entry-level engineer who used to learn a system by maintaining it next to a senior engineer just isn't getting hired as often anymore.
+
+So when four big outages happen in one week, inside companies that have spent two years thinning out the people who know their systems best, "AI did it" isn't the question I'd ask.
+
+The question I'd ask: who still remembers how this thing works when it breaks at 2am? And is that number getting smaller every quarter?
+
+If you're inside one of this week's incident reviews, I'd genuinely like to hear what the root-cause write-up says.
+
+===== POSTING INSTRUCTIONS =====
+Personal feed, no group posting mechanics apply. No link in the body — if you want to
+share a source, drop it as your own first comment the way you would on LinkedIn.
+
+===== STRATEGY NOTES =====
+Data Provenance: same sources as the LinkedIn post above.
+
+Group Relevance: Personal network — friends/colleagues in tech plus anyone who hit one
+of these outages as a customer this week (bank app, flight, Outlook).
+
+Viral potential: MEDIUM-HIGH — ends on a direct question, which reads naturally as a
+comment prompt on Facebook.

@@ -1,0 +1,152 @@
+PIPELINE: WebSearch (zero API cost) + app pipeline (Market Digest, same-day PubMed feed) —
+sourced from Federal Register, FDA.gov, Citeline Medtech Insight, Crisis Magazine, Boing Boing,
+PubMed, NEJM AI, MedCity News, TechTarget (Nov 2026)
+
+LINT RESULTS (SlopLinter lintWiki mode — 7 rules, verified via standalone compile of the
+actual SlopLinter.java against this exact saved file content, not estimated):
+  Option A: PASS — score 80 | BLOCK: 0 | WARN: 2 (3 comma triplets; 9 em-dashes, mostly
+            structural in Data Provenance — accepted)
+  Option B: PASS — score 92 | BLOCK: 0 | WARN: 1 (6 em-dashes, structural in Data
+            Provenance — accepted)
+  Option C: PASS — score 86 | BLOCK: 0 | WARN: 2 (3 comma triplets; 6 em-dashes, structural
+            in Data Provenance — accepted)
+
+Pick ONE option per publishing cycle. Max 1 newsletter per day. Each option is under 8,000 characters.
+
+=================================================================
+OPTION A — "They Renamed It Super Intelligence. The Headlines Underneath Didn't Change."
+(Angle: FDA's EO 14434 rebrand as the spine, two real AI-harm stories as the payload)
+=================================================================
+
+As of November 16, the FDA does not use the term "artificial intelligence" anymore. Officially, it uses "Super Intelligence," or "SI."
+
+The change comes from Executive Order 14434, "Inaugurating the Era of Super Intelligence," signed September 29. The order tells every executive department and agency to stop saying "artificial intelligence" and "AI" in official communications, websites, reports, and policy documents, and use "Super Intelligence" and "SI" instead. It created a new Super Intelligence Force to oversee the policy. The FDA's implementation notice took effect November 16: new public-facing documents use "SI," and existing documents get the new term at their next scheduled revision.
+
+Nothing about what the tools do changed. The FDA still clears devices by intended use and function, not by capability branding. A sponsor can still call its own product "AI" in a submission. The rename is a federal-communications style rule, not a new regulatory standard.
+
+The reaction has not been subtle. One opinion piece called it "the definition of Orwellian." Hosts on The View mocked the announcement on air. Commentators compared it to the 2001 push to rename French fries "Freedom Fries." During a nationwide FAA ground stop last week, when a reporter asked whether the agency's AI tool was behind the outage, an official corrected the term to "SI" live, mid-crisis, drawing criticism that officials were policing language instead of explaining the actual failure.
+
+There's a substantive concern buried under the mockery. FDA regulatory clearance has always been about intended use, not a capability claim. A manufacturer that starts calling a narrow, locked diagnostic tool "super intelligent" may be making exactly the kind of overstated capability claim the FDA and FTC already treat as deceptive labeling. Agencies have until November 28 to send Congress proposed statutory language defining "Super Intelligence," because an executive order can't rewrite laws that already say "artificial intelligence." That deadline, not the social media jokes, is the real test of whether the rename survives contact with the law.
+
+While the paperwork changes, the clinical reality hasn't waited for the new name to catch up.
+
+A case report published this month in the Danish medical journal Ugeskrift for Laeger describes a two-year-old boy admitted to a pediatric emergency department for suspected epilepsy. Over a five-day hospitalization, his mother reported two seizures a day, witnessed only by her, and submitted three videos to substantiate them. Clinical findings were normal. The footage didn't hold up. Confronted, the mother admitted she had generated the seizure videos using generative AI. Doctors documented it as Medical Child Abuse, the current clinical term for what used to be called Munchausen syndrome by proxy. Most published research on AI and child abuse runs in the opposite direction: using machine learning to flag abuse risk in medical records. This case is one of the first documented instances of the reverse. A caregiver used generative AI to manufacture the evidence a hospital uses to decide whether to believe her.
+
+Separately, a study published this month in NEJM AI compared AI-recommended care plans against what treating physicians actually ordered across 200 real outpatient and emergency visits. Twenty-four AI systems were tested. The result: AI-recommended care averaged $314 per visit, versus $97 for physician-ordered care. That's 3.2 times more, driven mainly by extra diagnostic testing and specialist referrals the physician hadn't ordered. The four AI systems built specifically for medicine were not more efficient than general-purpose ones; they ran 2.7 to 3.5 times physician cost. Prompting the systems to be "cost-aware" brought the multiple down to 2.5. Prompting them to be "parsimonious" got it to 1.4. None of the systems, left on default behavior, matched physician-level efficiency.
+
+None of that changed when the federal government changed the name on the door.
+
+A rename doesn't catch a fabricated seizure video. It doesn't lower a $314 bill back to $97. Whatever healthcare AI becomes next, the agencies regulating it, the clinicians deploying it, and the courts eventually adjudicating it will still be working from the same track record, just filed under a new word.
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+#AIHealthcare #AIRegulation #HealthPolicy #PatientSafety #HealthcareAI
+
+---
+
+Free weekly AI Healthcare Intelligence digest: https://app.bigskylabs.ai/register
+
+LinkedIn Newsletter: https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+===== DATA PROVENANCE =====
+Executive Order 14434, "Inaugurating the Era of Super Intelligence" — Federal Register (https://www.federalregister.gov/documents/2026/10/02/2026-20321/inaugurating-the-era-of-super-intelligence)
+FDA's Use of "Super Intelligence" and "SI" Under Executive Order 14434 — FDA.gov (https://www.fda.gov/science-research/fda-and-super-intelligence/fdas-use-super-intelligence-and-si-under-executive-order-14434)
+"Era Of Super Intelligence" Comes To FDA Documents — Citeline Medtech Insight (https://insights.citeline.com/medtech-insight/policy-and-regulation/us-fda/era-of-super-intelligence-comes-to-fda-documents-sponsors-can-still-say-ai-XZ6HKNFVQ5AVHIGPRBHK2YMJCA/)
+Orwellian rename criticism — Crisis Magazine (https://crisismagazine.com/opinion/no-its-not-super-intelligence)
+FAA ground stop "SI" correction — Boing Boing (https://boingboing.net/2026/11/13/faa-nationwide-ground-stop-mullin-si.html)
+AI-manipulated medical records in a medical child abuse case — PubMed (https://pubmed.ncbi.nlm.nih.gov/43036141)
+Comparative cost of AI-recommended vs. physician-recommended care — NEJM AI (https://ai.nejm.org/doi/abs/10.1056/AIoa2600537)
+AI care recommendations cost 3x more than physician plans — MedCity News (https://medcitynews.com/2026/11/is-ai-really-saving-hospitals-money-a-new-study-raises-questions-about-the-cost-of-ai-driven-care/)
+
+===== EDITING NOTES (NOT FOR PASTING) =====
+Hyperlink each Data Provenance anchor text to its URL in the LinkedIn Newsletter editor after pasting.
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #AIRegulation #HealthPolicy
+
+Group Relevance: Healthcare policy professionals, regulatory affairs leaders, and health system executives tracking FDA terminology changes and the underlying AI accountability gaps they don't resolve.
+
+
+=================================================================
+OPTION B — "When AI Fakes the Evidence: A Child Abuse Case Rewrites What Doctors Have to Watch For"
+(Angle: Danish Medical Child Abuse case leads; SI rename and cost study as supporting context)
+=================================================================
+
+A two-year-old boy spent five days in a Danish pediatric emergency department under suspicion of epilepsy. His mother reported two seizures daily, witnessed only by her, and submitted three videos to prove it. Clinical testing came back normal. The footage looked wrong. When clinicians pressed, she admitted she had generated the seizure videos using generative AI.
+
+The case, published this month in the Danish medical journal Ugeskrift for Laeger, is documented as Medical Child Abuse, the current clinical term for what used to be called Munchausen syndrome by proxy, where a caregiver fabricates or induces a child's illness. What makes this case different from decades of MCA literature is the method. Most published research on AI and child abuse runs in the opposite direction: natural language processing screening electronic health records for abuse risk, machine learning flagging suspicious patterns in emergency department visits. This case documents the reverse. A caregiver used the same category of technology to manufacture the evidence a hospital uses to decide whether to believe a parent at all.
+
+Pediatricians have always had to weigh a parent's account against clinical findings. What they haven't had to weigh, until now, is whether the video evidence a parent hands them was ever real. Generative video tools that can fabricate a convincing seizure can fabricate a rash, a limp, a breathing pattern just as easily. The skill that caught this case wasn't a new AI detection tool. It was a clinician noticing that the clinical picture and the video didn't match, and refusing to let the video win.
+
+This is landing at a strange moment for AI in healthcare generally. The federal government ordered every agency, including the FDA, to stop saying "artificial intelligence" and start saying "Super Intelligence" as of this month, under Executive Order 14434. The rename changes federal communications style. It does not touch what any of these tools can actually do, for good or for harm. A name upgrade doesn't make a fabricated video easier to catch, and it doesn't make a real one less dangerous.
+
+It's a strange moment for AI's cost story too. A study published this month in NEJM AI found that AI-recommended care across 200 real patient visits cost 3.2 times what physicians actually ordered: $314 per visit versus $97. The tools tested weren't reckless by design. They simply defaulted to ordering more. The pattern across all three stories this month is the same. The technology does exactly what it's built to do, and what it's built to do isn't automatically aligned with what clinicians, patients, or parents need it to do. Catching that gap, in a courtroom, a hospital bill, or a pediatric ward, still falls to a human paying close attention.
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+#AIHealthcare #PatientSafety #AILiability #ChildSafety #HealthcareAI
+
+---
+
+Free weekly AI Healthcare Intelligence digest: https://app.bigskylabs.ai/register
+
+LinkedIn Newsletter: https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+===== DATA PROVENANCE =====
+AI-manipulated medical records in a medical child abuse case — PubMed (https://pubmed.ncbi.nlm.nih.gov/43036141)
+Executive Order 14434, "Inaugurating the Era of Super Intelligence" — Federal Register (https://www.federalregister.gov/documents/2026/10/02/2026-20321/inaugurating-the-era-of-super-intelligence)
+FDA's Use of "Super Intelligence" and "SI" Under Executive Order 14434 — FDA.gov (https://www.fda.gov/science-research/fda-and-super-intelligence/fdas-use-super-intelligence-and-si-under-executive-order-14434)
+Comparative cost of AI-recommended vs. physician-recommended care — NEJM AI (https://ai.nejm.org/doi/abs/10.1056/AIoa2600537)
+AI care recommendations cost 3x more than physician plans — MedCity News (https://medcitynews.com/2026/11/is-ai-really-saving-hospitals-money-a-new-study-raises-questions-about-the-cost-of-ai-driven-care/)
+
+===== EDITING NOTES (NOT FOR PASTING) =====
+Hyperlink each Data Provenance anchor text to its URL in the LinkedIn Newsletter editor after pasting.
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #PatientSafety #AILiability
+
+Group Relevance: Pediatric clinicians, patient safety officers, and child welfare professionals tracking how generative AI changes evidence evaluation in suspected abuse cases.
+
+
+=================================================================
+OPTION C — "The $314 Question: What Healthcare AI's Cost Study Reveals About the 'Super Intelligence' Rebrand"
+(Angle: NEJM AI cost study leads; SI rename and child-abuse case as the broader credibility problem)
+=================================================================
+
+A study published this month in NEJM AI put a number on a question healthcare executives have been avoiding: does AI actually save money in clinical care, or does it just sound like it should?
+
+Researchers at Technion fed 200 real outpatient and emergency department visits to 24 AI systems and compared each one's recommended care plan to what the treating physician actually ordered. Both sets of orders were priced at 2026 Medicare rates. The result: AI-recommended care averaged $314 per visit. Physician-ordered care averaged $97. That's 3.2 times more, with a 95% confidence interval of $177 to $257 in added cost, and the gap was statistically significant.
+
+The driver wasn't exotic treatments. It was ordinary over-testing. Physicians' plans included about $71 per visit in diagnostic testing. The AI systems averaged $176. AI systems also recommended specialist referrals and prescriptions two to five times more often than physicians did.
+
+The four AI systems built specifically for medical use weren't more disciplined than general-purpose models. They ran 2.7 to 3.5 times physician cost, no better, and in some cases worse, than systems with no medical specialization at all. The researchers tried to correct for it. Prompting a system to be "cost-aware" brought its multiple down to 2.5 times physician cost. Prompting it to be "parsimonious" got it to 1.4 times. Left on default behavior, every system over-ordered relative to the physician in the room.
+
+The study's authors were careful to note that these are AI suggestions, not binding care plans, and that final decisions should stay with clinicians. That caveat matters. It also doesn't change what the default behavior of these systems costs a health system that deploys them without deliberately engineering restraint into the prompt.
+
+This result landed the same month the federal government ordered every agency, including the FDA, to retire the term "artificial intelligence" in official communications and use "Super Intelligence" instead, under Executive Order 14434. Whatever the branding, the FDA still clears devices based on intended use and function, not on a capability name. The NEJM study is a reminder of why that distinction matters. The technology underneath the new name is the same technology that, left to its own defaults, orders $314 worth of care where a physician would have ordered $97.
+
+It's also the same category of technology documented this month in a Danish case report where a caregiver used generative AI to fabricate seizure videos in a case of medical child abuse. Different failure mode, same underlying lesson: these systems do exactly what they're built to do, which is not the same as doing what a patient, a budget, or a child protection case actually needs.
+
+A rename doesn't change a cost curve. Engineering the prompt, the oversight, and the incentive structure around these tools might. That work hasn't happened yet, under any name.
+
+AI in healthcare is history being written right now. I'm building the archive. Everything updates daily.
+
+#AIHealthcare #HealthcareCosts #DigitalHealth #MedTech #HealthcareAI
+
+---
+
+Free weekly AI Healthcare Intelligence digest: https://app.bigskylabs.ai/register
+
+LinkedIn Newsletter: https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+===== DATA PROVENANCE =====
+Comparative cost of AI-recommended vs. physician-recommended care — NEJM AI (https://ai.nejm.org/doi/abs/10.1056/AIoa2600537)
+AI care recommendations cost 3x more than physician plans — MedCity News (https://medcitynews.com/2026/11/is-ai-really-saving-hospitals-money-a-new-study-raises-questions-about-the-cost-of-ai-driven-care/)
+AI's recommendations cost 3x more than physician care plans — TechTarget (https://www.techtarget.com/healthtechanalytics/news/366652874/AIs-recommendations-cost-3x-more-than-physician-care-plans)
+Executive Order 14434, "Inaugurating the Era of Super Intelligence" — Federal Register (https://www.federalregister.gov/documents/2026/10/02/2026-20321/inaugurating-the-era-of-super-intelligence)
+AI-manipulated medical records in a medical child abuse case — PubMed (https://pubmed.ncbi.nlm.nih.gov/43036141)
+
+===== EDITING NOTES (NOT FOR PASTING) =====
+Hyperlink each Data Provenance anchor text to its URL in the LinkedIn Newsletter editor after pasting.
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #HealthcareCosts #MedTech
+
+Group Relevance: Hospital CFOs, health system finance leaders, and digital health investors evaluating AI ROI claims against measured cost data.
