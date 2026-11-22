@@ -40,7 +40,7 @@ const TEXT_DIR  = path.resolve(__dirname, '../linkedin-posts/text');
     console.log(`  ${totalCountText.trim()}`);
 
     const shot1 = path.join(SHOTS_DIR, `${TODAY}-company-directory-overview.png`);
-    await page.screenshot({ path: shot1, fullPage: true });
+    await page.screenshot({ path: shot1 }); // viewport only — fullPage produces a 5000px+ tall strip unsuitable for LinkedIn
     console.log(`  Saved -> ${path.basename(shot1)}\n`);
 
     // ── Step 2: Filter to one sector via the real pill link ──────────────────
