@@ -1,0 +1,408 @@
+PIPELINE SOURCES USED:
+- App: Company Directory — 103 companies (app.bigskylabs.ai/directory)
+- App: Medical Imaging & Diagnostics sector — 27 companies
+- App: Company profile — Better Medicine (app.bigskylabs.ai/directory/better-medicine)
+- Screenshots: 2026-11-22-company-directory-overview.png, sector-filter.png, profile.png
+No API tokens used. All content from live app data and captured screenshots.
+
+LINT RESULTS SUMMARY:
+Option A: PASS (score 92) — zero BLOCK, zero WARN
+Option B: PASS (score 90) — zero BLOCK, zero WARN
+Option C: PASS (score 91) — zero BLOCK, zero WARN
+
+==================================================
+OPTION A — "103 AI Healthcare Companies, Ranked by What the News Says"
+==================================================
+
+===== NEWSLETTER BODY =====
+
+The AIHealthcare Company Directory is a live database of 103 AI healthcare companies
+ranked by signal, not by sponsorship. It updates every night from the same nightly
+pipeline that powers the app's research, deal alerts, and regulatory monitoring. No
+vendor pays to be listed. No company has editorial control over its description or score.
+
+This article describes how the directory works, what it tracks, and what a subscriber
+sees beyond the public layer.
+
+[Image: 2026-11-22-company-directory-overview.png — Full directory view, 103 companies,
+Relevance sort, signal badges visible across the grid]
+
+---
+
+HOW COMPANIES ENTER THE DIRECTORY
+
+The discovery pipeline runs nightly. It harvests articles from over 110 RSS feeds
+covering academic research, regulatory filings, clinical reporting, industry news, and
+financial coverage. When a company name appears frequently enough across those sources,
+the pipeline flags it as a candidate.
+
+A separate AI step writes the company description — a synthesis of what the news record
+says about what the company builds, who they serve, where they operate, and what claims
+they have made publicly. The description updates when new information contradicts prior
+content. No human curator decides which companies appear; the news record decides.
+
+---
+
+THE THREE SIGNALS THAT DRIVE THE RANKING
+
+Every company earns a relevance score from three live signals:
+
+🔥 Trending — article mention velocity over 90 days. Each mention adds 3 points, up to
+a maximum of 30 points. A company with ten or more mentions in 90 days holds the top
+Trending position in that sort.
+
+💰 Funded — a confirmed funding event detected in the latest classification cycle adds
+20 points. The Recently Funded sort shows companies that closed rounds in the current
+detection window.
+
+⚠ Watch — negative sentiment detected in recent articles subtracts 15 points. The
+Watch List sort surfaces companies with accumulated negative news: regulatory flags,
+acquisition failures, clinical incident reporting, public criticism.
+
+The signals stack. A company that is trending, recently funded, and carrying clean
+sentiment holds the top position on Relevance. A company that drew regulatory scrutiny
+drops regardless of article volume.
+
+---
+
+WHAT THE PUBLIC LAYER SHOWS
+
+Any visitor can browse the full 103-company list without an account. The directory opens
+on the Relevance sort by default.
+
+Seven sector filter pills let you cut the directory by specialty:
+— Medical Imaging & Diagnostics (27 companies)
+— Clinical Documentation
+— Drug Discovery
+— Revenue Cycle Management
+— AI Agents & Virtual Care
+— Data & Infrastructure
+— Other Healthcare AI
+
+[Image: 2026-11-22-company-directory-sector-filter.png — Medical Imaging & Diagnostics
+sector filter active, 27 companies in view with signal badges and funding stage tags]
+
+Each company card shows the name, sector category, funding stage, a three-line
+description, location, founding year, and signal badges. The card footer links to the
+company's full profile.
+
+A profile page adds the website, headquarters, total funding amount, and a section
+showing which state and federal laws are relevant to the company's category — sourced
+from the same legislation tracker that monitors FDA 510(k) clearances, state AI bills,
+and CMS rulemaking activity.
+
+---
+
+THE SUBSCRIBER INTELLIGENCE PANEL
+
+Alongside the public profile, subscribers see a second panel that provides four
+additional data points specific to that company:
+
+Deal signal alerts — M&A activity, partnership announcements, and investment events
+linked directly to that company, drawn from the same deal classification pipeline that
+powers the broader deal signals feed.
+
+Sentiment and risk scoring — a numerical score derived from the LLM-classified article
+sentiment pipeline, with the most recent scoring run visible. A company with
+consistently negative article sentiment shows a lower score even if its article volume
+is high.
+
+Competitive framework analysis — a six-dimension assessment showing where this company
+sits relative to others in its category across capability, clinical evidence, regulatory
+posture, market position, funding runway, and team.
+
+Regulatory event monitoring — FDA 510(k) filings, De Novo decisions, CMS rulemakings,
+and state law changes that directly apply to the company's category and location.
+
+[Image: 2026-11-22-company-directory-profile.png — Better Medicine company profile,
+public data visible in left column, Subscriber Intelligence upsell panel visible]
+
+The public layer is the signal. The subscriber layer is the context that turns a signal
+into a decision.
+
+---
+
+WHY NO LOGIN IS REQUIRED
+
+The directory is free to browse because the signal layer is the product. Making it free
+means analysts, researchers, journalists, and health system buyers can use it without a
+commitment. That increases the directory's utility as a reference — which is the point.
+
+The subscriber layer adds the context that turns a signal into a decision. Deal alerts,
+sentiment scoring, and regulatory monitoring require the data pipelines that run
+continuously. That is what the subscription supports.
+
+---
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+Browse the full directory (no login required):
+https://app.bigskylabs.ai/directory
+
+Free weekly AI Healthcare Intelligence digest:
+https://app.bigskylabs.ai/register
+
+Data Provenance:
+AIHealthcare Company Directory — https://app.bigskylabs.ai/directory
+Medical Imaging & Diagnostics sector — https://app.bigskylabs.ai/directory?sector=Medical+Imaging+%26+Diagnostics
+Better Medicine profile — https://app.bigskylabs.ai/directory/better-medicine
+
+===== EDITING NOTES (not for paste) =====
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #HealthcareAI #DigitalHealth
+
+Group Relevance: Health system buyers evaluating AI vendors, digital health investors
+building shortlists, and clinical informatics professionals who want a news-driven
+ranking rather than a paid vendor directory. Option A performs best in professional
+groups where members are doing active vendor evaluation or competitive intelligence work.
+
+Image placement guidance: Use the overview screenshot as the article header image.
+The sector-filter and profile screenshots can be embedded inline at the positions marked.
+
+==================================================
+OPTION B — "What 27 AI Medical Imaging Companies Show Us About the Field"
+==================================================
+
+===== NEWSLETTER BODY =====
+
+The AIHealthcare Company Directory tracks 27 companies in the Medical Imaging &
+Diagnostics sector. That number is worth pausing on.
+
+Medical imaging is where AI in healthcare got its first real regulatory traction. The
+FDA cleared its first AI-based medical imaging device in 2018 — IDx-DR, a retinal
+imaging tool for diabetic retinopathy screening. In the years since, over 950 AI-enabled
+medical devices have received FDA clearance, and imaging tools account for the majority.
+
+27 companies being tracked in this one sector in 2026 is not a coincidence. It reflects
+where the regulatory template is most established, where clinical validation pathways
+are best understood, and — by extension — where it has been safest to raise capital and
+deploy in clinical settings.
+
+[Image: 2026-11-22-company-directory-sector-filter.png — Medical Imaging & Diagnostics
+sector filter, 27 companies with signal badges and funding stage tags]
+
+---
+
+WHAT THE 27 COMPANIES BUILD
+
+The Medical Imaging & Diagnostics cluster covers several distinct sub-specialties:
+
+Radiology workflow automation — AI that processes CT scans, MRI studies, and X-rays to
+flag abnormalities before a radiologist reads. These tools are typically positioned as
+read prioritization or worklist optimization, not autonomous diagnosis. The FDA has
+cleared several for specific imaging indications.
+
+Oncology imaging — Platforms focused on cancer detection and staging from medical
+images. Breast cancer, lung cancer, and colorectal cancer screening tools account for
+the majority of companies in this sub-category.
+
+Pathology AI — A smaller but highly funded cluster building tools for digital pathology:
+AI that analyzes whole-slide images from biopsies for cancer presence, grading, and
+biomarker detection.
+
+Ophthalmology and retinal imaging — Tools for diabetic retinopathy screening, glaucoma
+detection, and age-related macular degeneration risk stratification. This sub-specialty
+has the most regulatory clarity — retinal AI tools cleared by the FDA are in routine
+clinical use at scale.
+
+Dermatology screening — Consumer-facing and clinical tools for skin lesion analysis.
+This cluster has the most regulatory complexity due to questions about scope of practice
+when tools are deployed without direct physician oversight.
+
+---
+
+HOW THE DIRECTORY TRACKS THEM
+
+Each of the 27 companies earns a live relevance score from three signals that update
+nightly:
+
+🔥 Trending — article velocity over 90 days (+3 pts per mention, max 30)
+💰 Funded — a confirmed funding event detected in the latest scan (+20 pts)
+⚠ Watch — negative sentiment in recent articles (-15 pts)
+
+[Image: 2026-11-22-company-directory-overview.png — Full directory grid showing signal
+badges across all 103 companies; Medical Imaging companies visible in upper rows]
+
+The Watch signal matters in imaging AI specifically. Several companies in this sector
+have been subject to published systematic reviews questioning performance on
+underrepresented patient populations. That criticism lives in the academic article
+record. The pipeline finds it.
+
+---
+
+WHY IMAGING AI IS A LEADING INDICATOR
+
+Watching the 27 companies in this sector over time is not just watching the imaging AI
+market. It is watching the FDA regulatory template develop.
+
+How the FDA has regulated imaging AI — what it requires for clinical validation studies,
+what labeling it demands, how it handles software modifications post-clearance — sets
+the precedent for how it will regulate AI clinical decision support, AI documentation
+tools, and AI drug discovery platforms.
+
+The imaging AI market is ahead of the rest of AI healthcare by approximately six to
+eight years of regulatory experience. The lessons from that experience are what every
+other AI healthcare category will eventually work through.
+
+---
+
+HOW TO USE THE DIRECTORY
+
+The directory is fully public — no login required:
+https://app.bigskylabs.ai/directory
+
+Filter to Medical Imaging & Diagnostics:
+https://app.bigskylabs.ai/directory?sector=Medical+Imaging+%26+Diagnostics
+
+Subscribers see deal alerts, sentiment scores, competitive framework analysis, and
+regulatory event monitoring for every company in the directory.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+Free weekly AI Healthcare Intelligence digest:
+https://app.bigskylabs.ai/register
+
+Data Provenance:
+Medical Imaging & Diagnostics sector — https://app.bigskylabs.ai/directory?sector=Medical+Imaging+%26+Diagnostics
+AIHealthcare Company Directory — https://app.bigskylabs.ai/directory
+FDA AI/ML-enabled device clearances context — FDA Digital Health Center of Excellence (public record)
+
+===== EDITING NOTES (not for paste) =====
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #MedicalImaging #HealthcareAI
+
+Group Relevance: Radiologists, clinical informaticists, health system imaging directors,
+and medical device professionals tracking AI regulatory precedent. Option B performs
+best in clinical and imaging-specific professional groups where members have direct
+experience with radiology AI or FDA clearance pathways.
+
+Image placement guidance: Use the sector-filter screenshot as the article header image.
+Embed the overview screenshot inline at the signal tracking section.
+
+==================================================
+OPTION C — "Why I Let the News Record Do the Curation"
+==================================================
+
+===== NEWSLETTER BODY =====
+
+Most vendor directories have a curation problem. Someone decides who gets listed,
+in what order, and with what description. That someone is either a paid analyst or
+the vendor itself.
+
+The AIHealthcare Company Directory does not work that way.
+
+No company has applied to be in the directory. No vendor has paid for placement. No
+human curator has ranked the results. 103 AI healthcare companies appear in this
+directory because the news record — the daily flow of academic papers, regulatory
+filings, deal announcements, and clinical reporting — put them there.
+
+[Image: 2026-11-22-company-directory-overview.png — Full 103-company directory grid,
+default Relevance sort, signal badges visible]
+
+---
+
+HOW THE CURATION WORKS WITHOUT A CURATOR
+
+The discovery pipeline runs every night. It harvests articles from over 110 RSS feeds
+covering the full range of AI healthcare coverage: academic research, FDA regulatory
+filings, industry news, financial reporting, and clinical literature.
+
+When a company name appears often enough across those sources, the pipeline identifies
+it as a candidate and adds a record to the directory. When a company closes a funding
+round, that event is detected by the deal classification pipeline and reflected in the
+score within 24 hours. When a company draws criticism in a published systematic review,
+the sentiment pipeline finds it and the score reflects that too.
+
+The company description is written by an AI summarization step that synthesizes what
+the public record says: what the company builds, who it serves, where it operates, and
+what it has claimed publicly. The description updates when new information contradicts
+prior content.
+
+Three signals drive the ranking:
+
+🔥 Trending — article velocity over 90 days (up to +30 pts)
+💰 Funded — confirmed deal detected in latest cycle (+20 pts)
+⚠ Watch — negative sentiment from recent articles (-15 pts)
+
+---
+
+WHAT THIS APPROACH GETS RIGHT
+
+The pipeline does not distinguish between a company with a good PR budget and one
+operating quietly but appearing frequently in clinical and regulatory literature. It
+treats every mention in the news record equally, weighted only by recency and sentiment.
+
+That means a company doing rigorous published clinical validation — without press
+releases — appears in the directory ranked appropriately. A company with heavy
+marketing presence but limited clinical evidence does not get a sponsored lift.
+
+It also means bad news is tracked. When a company draws a negative CMS coverage
+determination, a critical academic review, or a regulatory flag — the Watch signal
+fires and the score drops. That does not happen in a directory where vendors control
+their own listings.
+
+[Image: 2026-11-22-company-directory-sector-filter.png — Medical Imaging & Diagnostics
+sector filtered to 27 companies, ranked by Relevance]
+
+---
+
+WHAT SUBSCRIBERS SEE BEYOND THE PUBLIC LAYER
+
+The public directory — 103 companies, sector filters, signal badges, company profiles —
+requires no login and no subscription.
+
+Subscribers see a second layer alongside every public profile:
+
+— Deal signal alerts specific to that company
+— Sentiment and risk scores with historical trend
+— Competitive framework analysis (six dimensions vs. others in the same category)
+— Regulatory event monitoring for FDA and state-level laws applicable to that company
+
+[Image: 2026-11-22-company-directory-profile.png — Better Medicine profile page with
+Subscriber Intelligence panel visible at right]
+
+The public layer tells you which companies are worth watching. The subscriber layer
+tells you why.
+
+---
+
+THE GOAL IS A DIRECTORY THAT DOES NOT GO STALE
+
+Manually curated directories go stale. Vendors change, merge, pivot, or fold —
+and the curator does not always notice.
+
+A directory driven by the news record updates itself. When a company stops appearing
+in the article record, its Trending score decays. When it closes or gets acquired,
+the event appears in the deal signal pipeline. When it pivots into a new category,
+the pipeline recategorizes it.
+
+The goal is a directory that reflects the current state of AI healthcare, not the
+state it was in when someone last got around to updating a spreadsheet.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+Browse the directory (no login required):
+https://app.bigskylabs.ai/directory
+
+Free weekly AI Healthcare Intelligence digest:
+https://app.bigskylabs.ai/register
+
+Data Provenance:
+AIHealthcare Company Directory — https://app.bigskylabs.ai/directory
+Better Medicine profile — https://app.bigskylabs.ai/directory/better-medicine
+Medical Imaging & Diagnostics — https://app.bigskylabs.ai/directory?sector=Medical+Imaging+%26+Diagnostics
+
+===== EDITING NOTES (not for paste) =====
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #HealthcareAI #DigitalHealth
+
+Group Relevance: Health system buyers and analysts who have been burned by stale or
+vendor-influenced directories, and digital health investors who want a signal-driven
+shortlist. Option C performs best where the audience is skeptical of paid vendor
+intelligence and responds to the "no PR budget lift" framing.
+
+Image placement guidance: Use the overview screenshot as the article header image.
+Embed sector-filter and profile screenshots at the inline positions marked.

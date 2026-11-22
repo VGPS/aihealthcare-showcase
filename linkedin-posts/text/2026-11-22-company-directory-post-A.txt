@@ -1,0 +1,54 @@
+===== POST BODY =====
+
+103 AI healthcare companies. No login. Updated every night.
+
+Each company in the directory earns a live relevance score from three signals that
+refresh with the nightly pipeline:
+
+🔥 Trending — article mention velocity over 90 days. Each mention adds 3 points,
+up to a maximum of 30. Ten mentions in 90 days puts a company at the top of the
+Trending sort.
+
+💰 Funded — a confirmed funding event detected in the latest classification scan
+adds 20 points. The Recently Funded sort shows what closed in the current cycle.
+
+⚠ Watch — negative sentiment detected in recent articles subtracts 15 points.
+The Watch List surfaces companies with negative news accumulation: regulatory flags,
+deal failures, public criticism.
+
+The signals can stack. A company that is trending, recently funded, and carrying
+clean sentiment holds the top position on Relevance. One that drew regulatory scrutiny
+drops regardless of article volume.
+
+Seven sectors are tracked: Medical Imaging & Diagnostics, Clinical Documentation,
+Drug Discovery, Revenue Cycle Management, AI Agents & Virtual Care, Data &
+Infrastructure, and Other. Right now there are 27 companies in Medical Imaging alone.
+
+Each profile shows the AI-generated description, founding year, headquarters, total
+funding, and the state laws relevant to that company's category. No manual curation.
+No sponsored placements.
+
+Fully public. No account required.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+👉 Link in the first comment.
+
+Which of the three signals would you check first?
+
+#AIHealthcare #HealthcareAI #DigitalHealth #CompanyIntelligence
+
+===== FIRST COMMENT =====
+
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+https://app.bigskylabs.ai/register
+
+===== POSTING INSTRUCTIONS =====
+
+Post to 1–2 groups per sitting. Wait 5–10 minutes before First Comment.
+Strong fit for digital health, health informatics, and healthcare investor groups.
+The signal scoring breakdown gives people a concrete framework — good for engagement.
+
+Image: use 2026-11-22-company-directory-overview.png

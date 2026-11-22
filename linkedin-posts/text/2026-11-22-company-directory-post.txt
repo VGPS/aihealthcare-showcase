@@ -1,0 +1,214 @@
+PIPELINE SOURCES USED:
+- App: Company Directory — 103 companies, live signal scores (app.bigskylabs.ai/directory)
+- App: Medical Imaging & Diagnostics sector filter (27 companies)
+- App: Company profile — Better Medicine (app.bigskylabs.ai/directory/better-medicine)
+- Screenshots: 2026-11-22-company-directory-overview.png, sector-filter.png, profile.png
+No API tokens used. All content from live app data and captured screenshots.
+
+LINT RESULTS SUMMARY:
+Option A: PASS (score 91) — zero BLOCK, zero WARN
+Option B: PASS (score 93) — zero BLOCK, zero WARN
+Option C: PASS (score 90) — zero BLOCK, zero WARN
+
+==================================================
+OPTION A — "Three Signals. One Score. 103 Companies."
+==================================================
+
+===== POST BODY =====
+
+103 AI healthcare companies. No login. Updated every night.
+
+Each company in the directory earns a live relevance score from three signals that
+refresh with the nightly pipeline:
+
+🔥 Trending — article mention velocity over 90 days. Each mention adds 3 points,
+up to a maximum of 30. Ten mentions in 90 days puts a company at the top of the
+Trending sort.
+
+💰 Funded — a confirmed funding event detected in the latest classification scan
+adds 20 points. The Recently Funded sort shows what closed in the current cycle.
+
+⚠ Watch — negative sentiment detected in recent articles subtracts 15 points.
+The Watch List surfaces companies with negative news accumulation: regulatory flags,
+deal failures, public criticism.
+
+The signals can stack. A company that is trending, recently funded, and carrying
+clean sentiment holds the top position on Relevance. One that drew regulatory scrutiny
+drops regardless of article volume.
+
+Seven sectors are tracked: Medical Imaging & Diagnostics, Clinical Documentation,
+Drug Discovery, Revenue Cycle Management, AI Agents & Virtual Care, Data &
+Infrastructure, and Other. Right now there are 27 companies in Medical Imaging alone.
+
+Each profile shows the AI-generated description, founding year, headquarters, total
+funding, and the state laws relevant to that company's category. No manual curation.
+No sponsored placements.
+
+Fully public. No account required.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+👉 Link in the first comment.
+
+Which of the three signals would you check first?
+
+#AIHealthcare #HealthcareAI #DigitalHealth #CompanyIntelligence
+
+===== FIRST COMMENT =====
+
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+https://app.bigskylabs.ai/register
+
+===== POSTING INSTRUCTIONS =====
+
+Post to 1–2 groups per sitting. Wait 5–10 minutes before First Comment.
+Strong fit for digital health, health informatics, and healthcare investor groups.
+The signal scoring breakdown gives people a concrete framework — good for engagement.
+
+===== STRATEGY NOTES =====
+
+Data Provenance:
+Company Directory — live at app.bigskylabs.ai/directory (103 companies, nightly pipeline)
+Medical Imaging & Diagnostics — 27 companies tracked, sector pill filter
+Screenshot reference: 2026-11-22-company-directory-overview.png
+
+Group Relevance: Digital health investors, health system buyers evaluating AI vendors,
+and analysts building shortlists who want an objective, news-driven ranking rather
+than a sponsored vendor list.
+
+Viral potential: Medium-high. The numbered signal rules (3 pts/mention, max 30; +20
+funded; -15 watch) make it concrete and quotable. The "no sponsored placements" framing
+sets it apart from paid vendor intelligence products.
+
+==================================================
+OPTION B — "27 AI Companies in Medical Imaging Right Now"
+==================================================
+
+===== POST BODY =====
+
+27 AI companies are building medical imaging tools right now.
+
+That is not a prediction. That is the current count in the AIHealthcare Company
+Directory for the Medical Imaging & Diagnostics sector — one sector, one filter click,
+no login required.
+
+The list covers:
+— Radiology workflow AI for CT, MRI, and X-ray reads
+— Cancer detection platforms for oncology imaging
+— Pathology AI for digital slide analysis
+— Ophthalmology tools for diabetic retinopathy and glaucoma screening
+— Dermatology screening for skin lesion classification
+
+Each company earns a live score from three daily signals: article velocity, confirmed
+funding events, and sentiment from the news record. The ranking reflects what has
+actually been reported — not what vendors want you to see.
+
+The Medical Imaging & Diagnostics sector is the most crowded in the directory. It is
+also where AI healthcare regulation has the most established precedent. How the FDA
+has cleared imaging AI over the past eight years sets the template for how it will
+regulate every AI tool that follows.
+
+27 companies in one specialty is not a footnote. It is the front edge of that template.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+👉 Link in the first comment.
+
+Which imaging sub-specialty do you think AI will solve with the most confidence first?
+
+#AIHealthcare #MedicalImaging #HealthcareAI #AIinRadiology
+
+===== FIRST COMMENT =====
+
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+https://app.bigskylabs.ai/register
+
+===== POSTING INSTRUCTIONS =====
+
+Post to 1–2 groups per sitting. Wait 5–10 minutes before First Comment.
+Strongest fit for radiology, clinical informatics, and medical imaging professional
+groups. The FDA regulatory angle lands well in device and regulatory affairs communities.
+
+===== STRATEGY NOTES =====
+
+Data Provenance:
+Medical Imaging & Diagnostics sector — 27 companies, AIHealthcare Company Directory
+Screenshot reference: 2026-11-22-company-directory-sector-filter.png
+
+Group Relevance: Radiologists, clinical informaticists, medical device professionals,
+and FDA regulatory affairs practitioners tracking AI clearance precedent across
+imaging modalities.
+
+Viral potential: High. The concrete sector count + the FDA template framing gives
+clinicians and device professionals a reason to share it. The question at the end
+invites debate without requiring any technical knowledge to answer.
+
+==================================================
+OPTION C — "Public Layer: Signals. Subscriber Layer: Context."
+==================================================
+
+===== POST BODY =====
+
+The AIHealthcare Company Directory is two products stacked on top of each other.
+
+The public layer is fully free — no account, no paywall. It shows 103 AI healthcare
+companies ranked by live signals from the news record: article velocity, confirmed
+funding events, and sentiment from recent articles. Any visitor can filter by sector,
+sort by signal, and view a company's profile with its AI-generated description,
+founding year, headquarters, total funding, and relevant state laws.
+
+The subscriber layer sits alongside the same profile. It shows four things the
+public layer does not:
+
+— Deal signal alerts specific to that company (M&A, partnerships, investment events)
+— Sentiment and risk scoring with the most recent numerical score from the
+  LLM classification pipeline
+— Competitive framework analysis across six dimensions: capability, clinical evidence,
+  regulatory posture, market position, funding runway, and team
+— Regulatory event monitoring — FDA 510(k) filings, De Novo decisions, CMS rulemakings,
+  and state laws that directly apply to that company's category
+
+The public layer is the signal. The subscriber layer is the context that lets you
+act on it.
+
+Both update every night from the same nightly pipeline.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+👉 Link in the first comment.
+
+Which of the four subscriber signals would matter most to you?
+
+#AIHealthcare #HealthcareAI #DigitalHealth #AIVendors
+
+===== FIRST COMMENT =====
+
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+https://app.bigskylabs.ai/register
+
+===== POSTING INSTRUCTIONS =====
+
+Post to 1–2 groups per sitting. Wait 5–10 minutes before First Comment.
+Strong fit for health system buyers and digital health investors evaluating vendor
+intelligence subscriptions. The "two products stacked" framing makes the value
+proposition concrete without being a sales pitch.
+
+===== STRATEGY NOTES =====
+
+Data Provenance:
+Company Directory subscriber intelligence panel — Better Medicine profile
+Screenshot reference: 2026-11-22-company-directory-profile.png
+
+Group Relevance: Health system procurement leads, digital health investors doing
+vendor due diligence, and clinical informatics professionals tracking AI regulatory
+exposure for vendors in their portfolio.
+
+Viral potential: Medium. The four-part Subscriber Intelligence breakdown is
+quotable and sets clear expectations. Works best in professional groups where
+members are actively evaluating AI vendors and want a shortlist tool.
