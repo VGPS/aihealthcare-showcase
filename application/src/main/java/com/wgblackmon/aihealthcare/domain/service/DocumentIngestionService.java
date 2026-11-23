@@ -33,13 +33,16 @@ import java.util.UUID;
  * a {@code @Bean} so the application layer remains framework-free.
  *
  * @author  Bill Blackmon
- * @version 1.2
+ * @version 1.3
  * @since   2026-04-27
  * @updated 2026-11-23
  */
 public class DocumentIngestionService implements IngestDocumentsUseCase {
 
     private static final DomainLogger log = new DomainLogger(DocumentIngestionService.class);
+
+    public static final int PARAGRAPH_MAX_CHUNK = 800;
+    public static final int PARAGRAPH_OVERLAP   = 150;
 
     private final List<FileParserPort> parsers;
     private final DocumentVectorPort   vectorPort;
@@ -263,18 +266,14 @@ public class DocumentIngestionService implements IngestDocumentsUseCase {
      * Paragraph-aware chunking with 150-char overlap for single-file uploads.
      *
      * <p>Algorithm: split on double-newline → split any paragraph that itself
-     * exceeds MAX_CHUNK via whitespace boundaries (same logic as
-     * {@link #buildChunks}) → aggregate pieces into the current chunk (up to
-     * 800 chars) → emit chunk → prepend 150-char tail as overlap prefix for
-     * the next chunk.
+     * exceeds {@link #PARAGRAPH_MAX_CHUNK} via whitespace boundaries (same logic as
+     * {@link #buildChunks}) → aggregate pieces into the current chunk → emit chunk
+     * → prepend {@link #PARAGRAPH_OVERLAP}-char tail as overlap prefix for the next.
      */
     List<DocumentChunk> buildParagraphChunks(List<String> blocks,
                                              String sourceFile,
                                              String sourceLabel) {
         log.debug("buildParagraphChunks() | sourceFile={}, blocks={}", sourceFile, blocks.size());
-
-        final int MAX_CHUNK   = 800;
-        final int OVERLAP_LEN = 150;
 
         List<String> paragraphs = new ArrayList<>();
         for (String block : blocks) {
@@ -293,16 +292,16 @@ public class DocumentIngestionService implements IngestDocumentsUseCase {
         StringBuilder current = new StringBuilder();
 
         for (String para : paragraphs) {
-            for (String piece : splitAtBoundary(para, MAX_CHUNK)) {
+            for (String piece : splitAtBoundary(para, PARAGRAPH_MAX_CHUNK)) {
                 if (current.length() == 0 && !overlap.isBlank()) {
                     current.append(overlap).append(" ");
                 }
-                if (current.length() + piece.length() > MAX_CHUNK && current.length() > 0) {
+                if (current.length() + piece.length() > PARAGRAPH_MAX_CHUNK && current.length() > 0) {
                     String content = current.toString().trim();
                     if (!content.isBlank()) {
                         chunks.add(new DocumentChunk(
                                 UUID.randomUUID().toString(), sourceFile, chunkIndex++, content, sourceLabel));
-                        int overlapStart = Math.max(0, content.length() - OVERLAP_LEN);
+                        int overlapStart = Math.max(0, content.length() - PARAGRAPH_OVERLAP);
                         overlap = content.substring(overlapStart);
                     }
                     current = new StringBuilder();

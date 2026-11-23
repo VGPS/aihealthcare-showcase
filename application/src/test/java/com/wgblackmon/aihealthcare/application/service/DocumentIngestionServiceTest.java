@@ -301,15 +301,17 @@ class DocumentIngestionServiceTest {
         ArgumentCaptor<List<DocumentChunk>> captor = ArgumentCaptor.forClass(List.class);
         verify(vectorPort).store(captor.capture());
         // Before fix: stored as a single ~2000-char blob.
-        // After fix: split into pieces <= MAX_CHUNK (800), so the largest stored chunk is
-        // bounded by MAX_CHUNK + OVERLAP_LEN + separators ~= 955 chars — well below 2000.
+        // After fix: split into pieces <= PARAGRAPH_MAX_CHUNK, so the largest stored chunk
+        // is bounded by PARAGRAPH_MAX_CHUNK + PARAGRAPH_OVERLAP + separators — well below 2000.
+        int maxExpected = DocumentIngestionService.PARAGRAPH_MAX_CHUNK
+                        + DocumentIngestionService.PARAGRAPH_OVERLAP + 10;
         assertThat(captor.getValue().size())
                 .as("Oversized paragraph must be split into multiple chunks")
                 .isGreaterThan(1);
         for (DocumentChunk chunk : captor.getValue()) {
             assertThat(chunk.content().length())
                     .as("No chunk should approach the original 2000-char length")
-                    .isLessThan(1000);
+                    .isLessThan(maxExpected);
         }
     }
 }
