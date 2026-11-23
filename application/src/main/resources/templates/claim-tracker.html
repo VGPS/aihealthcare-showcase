@@ -329,8 +329,8 @@
                     </td>
                 </tr>
 
-                <!-- Empty state -->
-                <tr th:if="${#lists.isEmpty(claims)}">
+                <!-- Empty state — admin only (non-admins just see an empty table) -->
+                <tr th:if="${#lists.isEmpty(claims)}" sec:authorize="hasRole('ADMIN')">
                     <td colspan="7" class="px-3 py-10 text-center text-sm text-gray-400">
                         No claims match the current filter. Run the
                         <a href="/admin/pipelines" class="underline text-primary-600">Frontier Claim Detection</a>
