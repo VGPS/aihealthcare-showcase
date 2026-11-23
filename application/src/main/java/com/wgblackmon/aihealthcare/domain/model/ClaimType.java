@@ -8,9 +8,9 @@ package com.wgblackmon.aihealthcare.domain.model;
  * AI companies routinely make public assertions about their products.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-10-05
- * @updated 2026-10-05
+ * @updated 2026-11-23
  */
 public enum ClaimType {
 
@@ -30,5 +30,11 @@ public enum ClaimType {
     REGULATORY_CLAIM,
 
     /** Claims about partnerships, integrations, or enterprise deployments. */
-    PARTNERSHIP_CLAIM
+    PARTNERSHIP_CLAIM,
+
+    /** Claims about specific patient outcomes — mortality, readmission, accuracy rates, or clinical trial results. */
+    OUTCOME_CLAIM,
+
+    /** Claims about cost savings, ROI, or financial impact of deploying the product. */
+    COST_CLAIM
 }

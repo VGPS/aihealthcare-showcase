@@ -104,7 +104,9 @@ class FrontierClaimTest {
                 ClaimType.BENCHMARK_CLAIM,
                 ClaimType.TIMELINE_CLAIM,
                 ClaimType.REGULATORY_CLAIM,
-                ClaimType.PARTNERSHIP_CLAIM
+                ClaimType.PARTNERSHIP_CLAIM,
+                ClaimType.OUTCOME_CLAIM,
+                ClaimType.COST_CLAIM
         );
     }
 
