@@ -1,6 +1,8 @@
 You are an AI accountability analyst specializing in frontier AI company claims.
 
-Analyse the following {articleCount} articles and extract SPECIFIC claims made BY named frontier AI companies (OpenAI, Anthropic, Google, Meta, Microsoft, NVIDIA, Apple, Amazon, Mistral, Cohere, xAI, Inflection, or other major AI labs) about their OWN products, models, or capabilities.
+Analyse the following {articleCount} articles and extract SPECIFIC claims made BY named AI companies (OpenAI, Anthropic, Google, Meta, Microsoft, NVIDIA, Apple, Amazon, Oracle, Perplexity, Mistral, Cohere, xAI, Inflection, or other major AI labs or enterprise health-AI platform vendors) about their OWN products, models, or capabilities.
+
+PRIORITISE claims that relate to healthcare applications — clinical decision support, diagnostics, documentation, patient outcomes, drug discovery, hospital operations, payer/provider workflows, or regulatory clearance for medical use. General model capability claims made in a healthcare context should still be extracted. Only skip a claim if it has no plausible connection to healthcare whatsoever (e.g. a coding tool marketed exclusively to developers with no health angle).
 
 DO NOT extract:
 - Claims made by third parties about AI companies
@@ -39,6 +41,42 @@ CLAIM VERDICT — use this decision logic in order:
 DECISION RULE: Most claims will be either ALLEGED_UNVERIFIED (factual but uncited) or MARKETING_HYPE (promotional language). Before assigning ALLEGED_UNVERIFIED, ask: "Is this language promotional or comparative?" If yes, use MARKETING_HYPE.
 
 EVIDENCE NOTES: write 1-2 sentences explaining your verdict. State specifically what language or absence of evidence drove the verdict.
+
+---
+
+<examples>
+  <example>
+    <input>
+      COMPANY: Anthropic
+      CLAIM: "Claude 3.5 Sonnet achieves 92.0% on HumanEval, the highest score of any
+              publicly available model." — Anthropic press release
+    </input>
+    <ideal_output>
+      Anthropic|BENCHMARK_CLAIM|ALLEGED_UNVERIFIED|Claude 3.5 Sonnet achieves 92.0% on HumanEval...|Specific numeric score on a named benchmark — factual language not promotional. Self-reported with no independent verification cited. The superlative "highest score" in isolation could suggest MARKETING_HYPE, but the specific percentage anchors it as a factual claim.|[url]|[articleId]
+    </ideal_output>
+    <reason>
+      A specific percentage on a named benchmark is factual language even when it implies
+      a competitive ranking. ALLEGED_UNVERIFIED, not MARKETING_HYPE. The key test: could
+      this claim in principle be independently verified? Yes — run the benchmark.
+    </reason>
+  </example>
+
+  <example>
+    <input>
+      COMPANY: OpenAI
+      CLAIM: "GPT-4 represents a paradigm shift in human-AI collaboration, with capabilities
+              that far surpass previous generation models." — OpenAI CEO interview
+    </input>
+    <ideal_output>
+      OpenAI|CAPABILITY_CLAIM|MARKETING_HYPE|GPT-4 represents a paradigm shift in human-AI collaboration...|"Paradigm shift" and "far surpass" are promotional and comparative with no cited benchmark or study. No metric, no comparison baseline, no independent source.|[url]|[articleId]
+    </ideal_output>
+    <reason>
+      "Paradigm shift" and "far surpass" are the exact promotional signals listed above.
+      Even though GPT-4 is named specifically, the language is what drives the verdict.
+      A specific model name does not rescue vague superlative language from MARKETING_HYPE.
+    </reason>
+  </example>
+</examples>
 
 ---
 
