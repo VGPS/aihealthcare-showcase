@@ -40,16 +40,17 @@ import java.util.UUID;
  * subsequent runs can still succeed.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-10-26
- * @updated 2026-10-26
+ * @updated 2026-11-23
  */
 @Slf4j
 @Component
 public class WikiEmbeddingScheduler {
 
-    private static final int BATCH_SIZE = 10;
-    private static final long BATCH_DELAY_MS = 5000;
+    private static final int  BATCH_SIZE            = 10;
+    private static final long BATCH_DELAY_MS         = 5000;
+    private static final int  MAX_EMBED_CONTENT_CHARS = 1500;
 
     private final WikiPageRepository repository;
     private final VectorStore vectorStore;
@@ -166,7 +167,8 @@ public class WikiEmbeddingScheduler {
             if (sb.length() > 0) {
                 sb.append(" ");
             }
-            sb.append(entity.getContentMarkdown());
+            String markdown = entity.getContentMarkdown();
+            sb.append(markdown.substring(0, Math.min(markdown.length(), MAX_EMBED_CONTENT_CHARS)));
         }
         String result = sb.length() > 0 ? sb.toString() : entity.getSlug();
         log.debug("buildContent() | return={} chars", result.length());

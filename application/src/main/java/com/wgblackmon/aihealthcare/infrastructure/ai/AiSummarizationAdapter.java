@@ -73,9 +73,9 @@ import java.util.stream.Collectors;
  * LLM happen only in smoke tests annotated with {@code @ActiveProfiles("ai-integration")}.
  *
  * @author  Bill Blackmon
- * @version 2.1
+ * @version 2.2
  * @since   2026-04-04
- * @updated 2026-09-29
+ * @updated 2026-11-23
  */
 @Slf4j
 @Component
@@ -309,7 +309,10 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
             if (article.author() != null && !article.author().isBlank()) {
                 articlesBlock.append("    By:    ").append(article.author()).append("\n");
             }
-            articlesBlock.append("    Body:  ").append(article.bodyText()).append("\n\n");
+            String body = article.bodyText() != null && !article.bodyText().isBlank()
+                    ? article.bodyText().substring(0, Math.min(article.bodyText().length(), MAX_BODY_CHARS))
+                    : article.title();
+            articlesBlock.append("    Body:  ").append(body).append("\n\n");
             index++;
         }
 
@@ -342,7 +345,10 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
             if (article.author() != null && !article.author().isBlank()) {
                 articlesBlock.append("    By:    ").append(article.author()).append("\n");
             }
-            articlesBlock.append("    Body:  ").append(article.bodyText()).append("\n\n");
+            String body = article.bodyText() != null && !article.bodyText().isBlank()
+                    ? article.bodyText().substring(0, Math.min(article.bodyText().length(), MAX_BODY_CHARS))
+                    : article.title();
+            articlesBlock.append("    Body:  ").append(body).append("\n\n");
             index++;
         }
 
@@ -379,7 +385,10 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
             if (article.author() != null && !article.author().isBlank()) {
                 articlesBlock.append("    By:    ").append(article.author()).append("\n");
             }
-            articlesBlock.append("    Body:  ").append(article.bodyText()).append("\n\n");
+            String body = article.bodyText() != null && !article.bodyText().isBlank()
+                    ? article.bodyText().substring(0, Math.min(article.bodyText().length(), MAX_BODY_CHARS))
+                    : article.title();
+            articlesBlock.append("    Body:  ").append(body).append("\n\n");
             index++;
         }
 
@@ -393,7 +402,10 @@ public class AiSummarizationAdapter implements AiSummarizationPort {
                 if (ctx.author() != null && !ctx.author().isBlank()) {
                     contextBlock.append("    By:    ").append(ctx.author()).append("\n");
                 }
-                contextBlock.append("    Body:  ").append(ctx.bodyText()).append("\n\n");
+                String ctxBody = ctx.bodyText() != null && !ctx.bodyText().isBlank()
+                        ? ctx.bodyText().substring(0, Math.min(ctx.bodyText().length(), MAX_BODY_CHARS))
+                        : ctx.title();
+                contextBlock.append("    Body:  ").append(ctxBody).append("\n\n");
                 ctxIndex++;
             }
         }

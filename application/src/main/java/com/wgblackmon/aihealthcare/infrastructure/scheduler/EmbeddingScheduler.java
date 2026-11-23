@@ -38,16 +38,17 @@ import java.util.UUID;
  * configured.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-11
- * @updated 2026-08-07
+ * @updated 2026-11-23
  */
 @Slf4j
 @Component
 public class EmbeddingScheduler {
 
-    private static final int BATCH_SIZE = 10;
-    private static final long BATCH_DELAY_MS = 5000;
+    private static final int  BATCH_SIZE            = 10;
+    private static final long BATCH_DELAY_MS         = 5000;
+    private static final int  MAX_EMBED_CONTENT_CHARS = 1500;
 
     private final NewsArticleRepository repository;
     private final VectorStore           vectorStore;
@@ -166,7 +167,8 @@ public class EmbeddingScheduler {
             if (sb.length() > 0) {
                 sb.append(" ");
             }
-            sb.append(entity.getBodyText());
+            String body = entity.getBodyText();
+            sb.append(body.substring(0, Math.min(body.length(), MAX_EMBED_CONTENT_CHARS)));
         }
         String result = sb.length() > 0 ? sb.toString() : entity.getArticleId();
         log.debug("buildContent() | return={} chars", result.length());
