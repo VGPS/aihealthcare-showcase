@@ -247,15 +247,33 @@
                     <!-- Claim text + expandable evidence notes -->
                     <td class="px-3 py-3 max-w-sm">
                         <p class="text-gray-900 leading-snug line-clamp-2 text-xs" th:text="${claim.claimText()}">Claim text</p>
-                        <div th:if="${claim.evidenceNotes() != null}" x-data="{ open: false }">
+                        <div th:if="${claim.evidenceNotes() != null}"
+                             th:attr="data-notes=${claim.evidenceNotes()}"
+                             x-data="claimNotes()">
                             <button @click="open = !open"
                                     class="text-xs text-gray-400 hover:text-gray-600 underline mt-1">
                                 <span x-show="!open">Notes ▸</span>
                                 <span x-show="open" x-cloak>Notes ▴</span>
                             </button>
-                            <p x-show="open" x-cloak
-                               class="mt-1 text-xs text-gray-600 italic leading-snug"
-                               th:text="${claim.evidenceNotes()}"></p>
+                            <div x-show="open" x-cloak class="mt-2 space-y-1.5">
+                                <!-- Severity + deployment context badges -->
+                                <div class="flex flex-wrap gap-1">
+                                    <span x-show="p.sev && p.sev !== 'N/A'"
+                                          :class="sevBg()"
+                                          class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide"
+                                          x-text="p.sev"></span>
+                                    <span x-show="p.ctx && p.ctx !== 'N/A'"
+                                          class="inline-block bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wide"
+                                          x-text="p.ctx"></span>
+                                </div>
+                                <!-- Triggering phrase (MARKETING_HYPE only) -->
+                                <p x-show="p.trig"
+                                   class="text-[11px] text-orange-700 font-medium leading-snug">
+                                    &#8220;<span x-text="p.trig"></span>&#8221;
+                                </p>
+                                <!-- Analyst rationale -->
+                                <p class="text-xs text-gray-600 italic leading-snug" x-text="p.body"></p>
+                            </div>
                         </div>
                     </td>
 
@@ -303,6 +321,31 @@
 </main>
 
 <script>
+function claimNotes() {
+    return {
+        open: false,
+        get p() {
+            const raw = this.$el.dataset.notes || '';
+            const m = raw.match(/\[SEVERITY:([^\]]+)\]\s*\[CONTEXT:([^\]]+)\]\s*(?:\[TRIGGER:([^\]]+)\]\s*)?([\s\S]*)/);
+            if (!m) return { sev: null, ctx: null, trig: null, body: raw };
+            let trig = (m[3] || '').trim();
+            if (trig.length > 1 && trig.charAt(0) === trig.charAt(trig.length - 1) &&
+                    (trig.charAt(0) === '\'' || trig.charCodeAt(0) === 34)) {
+                trig = trig.slice(1, -1);
+            }
+            if (trig === 'N/A') trig = '';
+            return { sev: m[1].trim(), ctx: m[2].trim(), trig: trig, body: m[4].trim() };
+        },
+        sevBg() {
+            const s = this.p.sev || '';
+            if (s === 'SEVERE')   return 'bg-red-100 text-red-800';
+            if (s === 'MODERATE') return 'bg-amber-100 text-amber-800';
+            if (s === 'MILD')     return 'bg-gray-200 text-gray-700';
+            return '';
+        }
+    };
+}
+
 function exportText() {
     var table = document.querySelector('table');
     if (!table) return;

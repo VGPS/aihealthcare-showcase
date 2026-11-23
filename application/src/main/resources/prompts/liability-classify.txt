@@ -32,6 +32,53 @@ Respond ONLY with a JSON object matching this exact schema — no preamble, no e
 
 If isIncident is false, all other fields may be null. Set confidence HIGH only if the article explicitly confirms a legal filing or regulatory enforcement action. Set MEDIUM if the article reports a claim or action that appears credible but lacks court confirmation. Set LOW if uncertain.
 
+<examples>
+  <example label="QUALIFYING — lawsuit with docket number">
+    <input>
+      TITLE: Patient Family Sues Nuance After DAX Scribe Missed Allergy Warning
+      BODY: A federal lawsuit filed Monday in the Northern District of Illinois names
+      Microsoft-owned Nuance Communications as defendant, alleging DAX Copilot failed to
+      flag a known penicillin allergy in a discharge note, contributing to the patient's
+      death. The complaint, case no. 1:25-cv-04421, seeks $8.2M in damages.
+    </input>
+    <ideal_output>
+      { "isIncident": true, "confidence": "HIGH", "incidentType": "LAWSUIT",
+        "harmType": "DOCUMENTATION_TRAP", "title": "Patient family sues Nuance over DAX
+        Copilot allergy documentation failure", "defendant": "Nuance Communications",
+        "plaintiff": "Patient family (unnamed)", "legalTheory": "Negligence",
+        "court": "Northern District of Illinois", "caseNumber": "1:25-cv-04421",
+        "harmDate": null, "filingDate": null }
+    </ideal_output>
+    <reason>
+      Explicit court filing with docket number, named defendant, specific harm, dollar
+      amount. All qualifying signals present — confidence is HIGH, not MEDIUM.
+      "Filed Monday" = confirmed filing, not a prediction or allegation without action.
+    </reason>
+  </example>
+
+  <example label="NOT QUALIFYING — opinion piece that sounds like an incident">
+    <input>
+      TITLE: AI Scribes Are a Liability Waiting to Happen
+      BODY: Legal experts warn that the rapid adoption of AI documentation tools in
+      hospitals creates serious malpractice exposure. "We are one missed allergy away
+      from a landmark case," said one healthcare attorney. No cases have been filed yet,
+      but the legal community is watching closely.
+    </input>
+    <ideal_output>
+      { "isIncident": false, "confidence": "HIGH", "incidentType": null,
+        "harmType": null, "title": null, "defendant": null, "plaintiff": null,
+        "legalTheory": null, "court": null, "caseNumber": null,
+        "harmDate": null, "filingDate": null }
+    </ideal_output>
+    <reason>
+      "No cases have been filed yet" — this is predictive commentary, not a filing.
+      The alarming headline is the trap: it reads like a liability story but describes
+      only hypothetical risk. Reject per the "opinion pieces or predictions" exclusion.
+      Confidence is HIGH because the article itself states no action has occurred.
+    </reason>
+  </example>
+</examples>
+
 ARTICLE TITLE: {title}
 
 ARTICLE BODY:

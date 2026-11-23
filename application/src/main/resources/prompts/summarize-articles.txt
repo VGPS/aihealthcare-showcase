@@ -18,7 +18,34 @@ Also classify this section using EXACTLY one of these types:
   TOOL_PICK          - A notable tool, dataset, or open-source library
 
 Respond in EXACTLY this format (do not add any other text):
-HEADLINE: <≤ 10 words; active voice; one clause only — no stacked noun phrases, no "and" linking two separate topics. Good: "Cleveland Clinic Links AI Scribes to Clinician Retention". Bad: "Conditional Public Trust and Persistent Bias Risks Demand Urgent Governance">
+HEADLINE: <≤ 10 words; active voice; one clause only — no stacked noun phrases, no "and" linking two separate topics>
 SUMMARY: <2-4 sentences expanding on the headline. When citing a specific finding or claim from one of the articles, include its bracket number as an inline citation, e.g. "A JAMA study [2] found..." or "Per [1], the FDA cleared...". Use only article numbers that appear in the article list above.>
 WHY_IT_MATTERS: <2-3 sentences of editorial perspective written in first person, as a healthcare AI analyst who follows this space daily. Explain specifically why this development matters for healthcare AI professionals, investors, or clinicians — not just that it "is important," but what it signals, what trend it fits or breaks, or what action it implies. Be direct and opinionated.>
 SECTION_TYPE: <one value from the list above>
+
+<example>
+  <ideal_output>
+HEADLINE: Cleveland Clinic Links AI Scribes to Clinician Retention
+SUMMARY: A Cleveland Clinic study [1] of 420 physicians found that departments using
+AI documentation tools reported 18% lower voluntary turnover over 12 months. The effect
+was strongest among hospitalists and primary care physicians, who cited reduced
+after-hours charting as the primary factor [1].
+WHY_IT_MATTERS: Retention data is what separates a pilot from a business case. Health
+systems have been buying AI scribes on faith that they reduce burnout — this is the
+first large study to tie that directly to turnover numbers. CFOs can now run an ROI
+calculation, which means procurement cycles will accelerate.
+SECTION_TYPE: WHAT_SHIPPED
+  </ideal_output>
+  <reason>
+    Single clause headline, active voice, one specific actor and finding. The SUMMARY
+    cites [1] inline rather than asserting the finding without attribution. WHY_IT_MATTERS
+    is opinionated and specific — it explains what the data unlocks, not just that
+    the study "is important."
+  </reason>
+  <bad_headline>Conditional Public Trust and Persistent Bias Risks Demand Urgent Governance</bad_headline>
+  <reason_bad>
+    Two separate topics joined by "and," passive construction ("demand" is not attributed
+    to an actor), no specific finding or company. This is the stacked-noun-phrase pattern
+    to avoid — it describes an editorial theme, not a news event.
+  </reason_bad>
+</example>

@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * @author  Bill Blackmon
  * @version 1.0
  * @since   2026-09-26
- * @updated 2026-09-26
+ * @updated 2026-11-20
  */
 @Slf4j
 @Component
@@ -192,6 +192,13 @@ public class SocialPostAgentAdapter implements SocialPostDraftPort {
         String facebookComment = extractSection(response, "FACEBOOK_COMMENT", "ENTRIES_SELECTED");
         String entriesRaw      = extractSection(response, "ENTRIES_SELECTED", "RATIONALE");
         String rationale       = extractSection(response, "RATIONALE",        null);
+
+        if (linkedinBody.isBlank()) {
+            log.warn("parseResponse() | LINKEDIN_BODY section missing or empty — agent may have drifted from output format, hit token limit, or skipped section. raw response length={}", response.length());
+        }
+        if (facebookBody.isBlank()) {
+            log.warn("parseResponse() | FACEBOOK_BODY section missing or empty — agent may have drifted from output format, hit token limit, or skipped section. raw response length={}", response.length());
+        }
 
         List<String> entriesSelected = new ArrayList<>();
         if (entriesRaw != null && !entriesRaw.isBlank()) {
