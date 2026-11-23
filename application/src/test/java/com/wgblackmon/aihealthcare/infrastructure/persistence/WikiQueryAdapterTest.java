@@ -3,6 +3,7 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 import com.wgblackmon.aihealthcare.domain.model.Contradiction;
 import com.wgblackmon.aihealthcare.domain.model.WikiPage;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -18,6 +19,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -28,9 +30,9 @@ import static org.mockito.Mockito.when;
  * retrieval through the full adapter → repository → H2 path.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-04
- * @updated 2026-11-07
+ * @updated 2026-11-23
  */
 @DataJpaTest
 @Import(WikiQueryAdapter.class)
@@ -267,6 +269,20 @@ class WikiQueryAdapterTest {
 
         assertThat(result[0]).isZero();
         assertThat(result[1]).isZero();
+    }
+
+    @Test
+    void findRelevantPages_semanticRequest_includesSimilarityThreshold() {
+        pageRepository.save(createPage("fda-ai-guidance", "FDA AI Guidance", "ENTITY", "fda"));
+        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of());
+
+        adapter.findRelevantPages("FDA", 10);
+
+        ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+        verify(vectorStore).similaritySearch(captor.capture());
+        assertThat(captor.getValue().getSimilarityThreshold())
+                .as("Semantic leg must filter irrelevant wiki pages via threshold > 0")
+                .isGreaterThan(0.0);
     }
 
     @Test

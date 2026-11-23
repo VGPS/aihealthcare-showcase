@@ -33,18 +33,29 @@ import java.util.Map;
  * silently disabled document ingestion even when pgvector was fully configured.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-27
- * @updated 2026-08-25
+ * @updated 2026-11-23
  */
 @Slf4j
 public class DocumentIngestionAdapter implements DocumentVectorPort {
 
+    private static final int  BATCH_SIZE    = 10;
+    private static final long BATCH_DELAY_MS = 5_000;
+
     private final VectorStore vectorStore;
+    private final long        batchDelayMs;
 
     public DocumentIngestionAdapter(VectorStore vectorStore) {
-        log.debug("DocumentIngestionAdapter() | vectorStore={}", vectorStore.getClass().getSimpleName());
-        this.vectorStore = vectorStore;
+        this(vectorStore, BATCH_DELAY_MS);
+    }
+
+    /** Package-private constructor for tests — allows injecting a zero delay. */
+    DocumentIngestionAdapter(VectorStore vectorStore, long batchDelayMs) {
+        log.debug("DocumentIngestionAdapter() | vectorStore={}, batchDelayMs={}",
+                  vectorStore.getClass().getSimpleName(), batchDelayMs);
+        this.vectorStore  = vectorStore;
+        this.batchDelayMs = batchDelayMs;
     }
 
     @Override
@@ -57,12 +68,32 @@ public class DocumentIngestionAdapter implements DocumentVectorPort {
             metadata.put("sourceFile",  chunk.sourceFile());
             metadata.put("chunkIndex",  chunk.chunkIndex());
             metadata.put("sourceLabel", chunk.sourceLabel());
-
             documents.add(new Document(chunk.chunkId(), chunk.content(), metadata));
         }
 
-        vectorStore.add(documents);
-        log.info("store() | Embedded and stored {} document chunks", documents.size());
+        int stored = 0;
+        for (int i = 0; i < documents.size(); i += BATCH_SIZE) {
+            int end = Math.min(i + BATCH_SIZE, documents.size());
+            List<Document> batch = documents.subList(i, end);
+            try {
+                vectorStore.add(batch);
+                stored += batch.size();
+                log.info("store() | Embedded batch {}-{} of {} chunks", i + 1, end, documents.size());
+            } catch (Exception ex) {
+                log.error("store() | Batch {}-{} failed: {}", i + 1, end, ex.getMessage());
+            }
+            if (end < documents.size()) {
+                try {
+                    Thread.sleep(batchDelayMs);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    log.warn("store() | interrupted during batch delay");
+                    break;
+                }
+            }
+        }
+
+        log.info("store() | Embedded and stored {} of {} document chunks", stored, documents.size());
         log.debug("store() | return=void");
     }
 }

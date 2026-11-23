@@ -11,6 +11,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -44,9 +45,9 @@ import java.util.stream.Collectors;
  * full article is not joined).
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-07-04
- * @updated 2026-11-07
+ * @updated 2026-11-23
  */
 @Slf4j
 @Component
@@ -56,19 +57,23 @@ public class WikiQueryAdapter implements WikiQueryPort {
     private final WikiSourceRefRepository sourceRefRepository;
     private final WikiContradictionRepository contradictionRepository;
     private final VectorStore vectorStore;
+    private final double      similarityThreshold;
 
     public WikiQueryAdapter(WikiPageRepository pageRepository,
                             WikiSourceRefRepository sourceRefRepository,
                             WikiContradictionRepository contradictionRepository,
-                            ObjectProvider<VectorStore> vectorStoreProvider) {
-        log.debug("WikiQueryAdapter() | pageRepository={}, sourceRefRepository={}, contradictionRepository={}",
+                            ObjectProvider<VectorStore> vectorStoreProvider,
+                            @Value("${aihealthcare.search.similarity-threshold:0.7}") double similarityThreshold) {
+        log.debug("WikiQueryAdapter() | pageRepository={}, sourceRefRepository={}, contradictionRepository={}, similarityThreshold={}",
                 pageRepository.getClass().getSimpleName(),
                 sourceRefRepository.getClass().getSimpleName(),
-                contradictionRepository.getClass().getSimpleName());
+                contradictionRepository.getClass().getSimpleName(),
+                similarityThreshold);
         this.pageRepository = pageRepository;
         this.sourceRefRepository = sourceRefRepository;
         this.contradictionRepository = contradictionRepository;
         this.vectorStore = vectorStoreProvider.getIfAvailable();
+        this.similarityThreshold = similarityThreshold;
     }
 
     @Override
@@ -141,6 +146,7 @@ public class WikiQueryAdapter implements WikiQueryPort {
             SearchRequest request = SearchRequest.builder()
                     .query(query)
                     .topK(maxResults)
+                    .similarityThreshold(similarityThreshold)
                     .filterExpression("type == 'wiki_page'")
                     .build();
             docs = vectorStore.similaritySearch(request);
