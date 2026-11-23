@@ -11,15 +11,17 @@ import java.time.LocalDate;
 /**
  * JPA entity backing the {@code frontier_claims} table.
  *
- * <p>Enum values ({@code claimType}, {@code verdict}) are stored as their
- * {@code name()} string.  Nullable fields ({@code claimDate}, {@code sourceUrl},
- * {@code sourceTitle}, {@code evidenceNotes}, {@code articleId},
- * {@code lastReviewedAt}) are mapped with {@code nullable = true}.
+ * <p>Enum values ({@code claimType}, {@code verdict}, {@code hypeSeverity},
+ * {@code deploymentContext}) are stored as their {@code name()} string.
+ * Nullable fields ({@code claimDate}, {@code sourceUrl}, {@code sourceTitle},
+ * {@code evidenceNotes}, {@code hypeSeverity}, {@code triggeringPhrase},
+ * {@code deploymentContext}, {@code articleId}, {@code lastReviewedAt}) are
+ * mapped with {@code nullable = true}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-10-05
- * @updated 2026-10-05
+ * @updated 2026-11-24
  */
 @Entity
 @Table(name = "frontier_claims")
@@ -52,6 +54,15 @@ public class FrontierClaimEntity {
 
     @Column(name = "evidence_notes", nullable = true, columnDefinition = "TEXT")
     private String evidenceNotes;
+
+    @Column(name = "hype_severity", nullable = true)
+    private String hypeSeverity;
+
+    @Column(name = "triggering_phrase", nullable = true, columnDefinition = "TEXT")
+    private String triggeringPhrase;
+
+    @Column(name = "deployment_context", nullable = true)
+    private String deploymentContext;
 
     @Column(name = "article_id", nullable = true)
     private String articleId;
@@ -90,6 +101,15 @@ public class FrontierClaimEntity {
 
     public String getEvidenceNotes() { return evidenceNotes; }
     public void setEvidenceNotes(String evidenceNotes) { this.evidenceNotes = evidenceNotes; }
+
+    public String getHypeSeverity() { return hypeSeverity; }
+    public void setHypeSeverity(String hypeSeverity) { this.hypeSeverity = hypeSeverity; }
+
+    public String getTriggeringPhrase() { return triggeringPhrase; }
+    public void setTriggeringPhrase(String triggeringPhrase) { this.triggeringPhrase = triggeringPhrase; }
+
+    public String getDeploymentContext() { return deploymentContext; }
+    public void setDeploymentContext(String deploymentContext) { this.deploymentContext = deploymentContext; }
 
     public String getArticleId() { return articleId; }
     public void setArticleId(String articleId) { this.articleId = articleId; }

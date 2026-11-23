@@ -2,7 +2,9 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.ClaimType;
 import com.wgblackmon.aihealthcare.domain.model.ClaimVerdict;
+import com.wgblackmon.aihealthcare.domain.model.DeploymentContext;
 import com.wgblackmon.aihealthcare.domain.model.FrontierClaim;
+import com.wgblackmon.aihealthcare.domain.model.HypeSeverity;
 import com.wgblackmon.aihealthcare.domain.port.outbound.FrontierClaimPort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,13 +18,13 @@ import java.util.stream.Collectors;
  * JPA adapter implementing {@link FrontierClaimPort}.
  *
  * <p>Delegates all persistence operations to {@link FrontierClaimRepository}.
- * Enum fields ({@code claimType}, {@code verdict}) are stored and retrieved
- * as their {@code name()} string.
+ * Enum fields ({@code claimType}, {@code verdict}, {@code hypeSeverity},
+ * {@code deploymentContext}) are stored and retrieved as their {@code name()} string.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-10-05
- * @updated 2026-10-05
+ * @updated 2026-11-24
  */
 @Slf4j
 @Component
@@ -114,6 +116,9 @@ public class FrontierClaimAdapter implements FrontierClaimPort {
         e.setClaimType(claim.claimType().name());
         e.setVerdict(claim.verdict().name());
         e.setEvidenceNotes(claim.evidenceNotes());
+        e.setHypeSeverity(claim.hypeSeverity() != null ? claim.hypeSeverity().name() : null);
+        e.setTriggeringPhrase(claim.triggeringPhrase());
+        e.setDeploymentContext(claim.deploymentContext() != null ? claim.deploymentContext().name() : null);
         e.setArticleId(claim.articleId());
         e.setDetectedAt(claim.detectedAt());
         e.setLastReviewedAt(claim.lastReviewedAt());
@@ -131,6 +136,9 @@ public class FrontierClaimAdapter implements FrontierClaimPort {
                 ClaimType.valueOf(e.getClaimType()),
                 ClaimVerdict.valueOf(e.getVerdict()),
                 e.getEvidenceNotes(),
+                e.getHypeSeverity() != null ? HypeSeverity.valueOf(e.getHypeSeverity()) : null,
+                e.getTriggeringPhrase(),
+                e.getDeploymentContext() != null ? DeploymentContext.valueOf(e.getDeploymentContext()) : null,
                 e.getArticleId(),
                 e.getDetectedAt(),
                 e.getLastReviewedAt()

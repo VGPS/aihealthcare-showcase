@@ -2,7 +2,9 @@ package com.wgblackmon.aihealthcare.infrastructure.ai;
 
 import com.wgblackmon.aihealthcare.domain.model.ClaimType;
 import com.wgblackmon.aihealthcare.domain.model.ClaimVerdict;
+import com.wgblackmon.aihealthcare.domain.model.DeploymentContext;
 import com.wgblackmon.aihealthcare.domain.model.FrontierClaim;
+import com.wgblackmon.aihealthcare.domain.model.HypeSeverity;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
 import org.junit.jupiter.api.BeforeEach;
@@ -213,7 +215,73 @@ class ClaimClassifierAdapterTest {
 
     private FrontierClaim buildClaim(String id, String company, ClaimVerdict verdict, String text) {
         return new FrontierClaim(id, company, text, null, null, null,
-                ClaimType.CAPABILITY_CLAIM, verdict, null, null, Instant.now(), null);
+                ClaimType.CAPABILITY_CLAIM, verdict, null, null, null, null, null, Instant.now(), null);
+    }
+
+    // --- parseEvidenceNotes tests ---
+
+    @Test
+    void parseEvidenceNotes_fullStructuredPrefix_extractsAllFields() {
+        String raw = "[SEVERITY:SEVERE] [CONTEXT:CLINICAL] [TRIGGER:\"detects sepsis 6 hours earlier\"] Specific clinical outcome claim with no peer-reviewed trial.";
+        ClaimClassifierAdapter.ParsedNotes parsed = adapter.parseEvidenceNotes(raw);
+
+        assertThat(parsed.severity()).isEqualTo(HypeSeverity.SEVERE);
+        assertThat(parsed.context()).isEqualTo(DeploymentContext.CLINICAL);
+        assertThat(parsed.triggerPhrase()).isEqualTo("detects sepsis 6 hours earlier");
+        assertThat(parsed.rationale()).isEqualTo("Specific clinical outcome claim with no peer-reviewed trial.");
+    }
+
+    @Test
+    void parseEvidenceNotes_naValues_returnNull() {
+        String raw = "[SEVERITY:N/A] [CONTEXT:GENERAL] [TRIGGER:N/A] Self-reported benchmark, no independent verification.";
+        ClaimClassifierAdapter.ParsedNotes parsed = adapter.parseEvidenceNotes(raw);
+
+        assertThat(parsed.severity()).isNull();
+        assertThat(parsed.triggerPhrase()).isNull();
+        assertThat(parsed.context()).isEqualTo(DeploymentContext.GENERAL);
+        assertThat(parsed.rationale()).isEqualTo("Self-reported benchmark, no independent verification.");
+    }
+
+    @Test
+    void parseEvidenceNotes_noPrefix_returnsRawAsRationale() {
+        String raw = "Plain rationale with no structured prefix.";
+        ClaimClassifierAdapter.ParsedNotes parsed = adapter.parseEvidenceNotes(raw);
+
+        assertThat(parsed.severity()).isNull();
+        assertThat(parsed.context()).isNull();
+        assertThat(parsed.triggerPhrase()).isNull();
+        assertThat(parsed.rationale()).isEqualTo(raw);
+    }
+
+    @Test
+    void parseEvidenceNotes_unknownSeverity_returnsNull() {
+        String raw = "[SEVERITY:EXTREME] [CONTEXT:OPERATIONAL] [TRIGGER:\"phrase\"] Rationale.";
+        ClaimClassifierAdapter.ParsedNotes parsed = adapter.parseEvidenceNotes(raw);
+
+        assertThat(parsed.severity()).isNull();
+        assertThat(parsed.context()).isEqualTo(DeploymentContext.OPERATIONAL);
+        assertThat(parsed.triggerPhrase()).isEqualTo("phrase");
+    }
+
+    @Test
+    void parseEvidenceNotes_nullInput_returnsEmptyRecord() {
+        ClaimClassifierAdapter.ParsedNotes parsed = adapter.parseEvidenceNotes(null);
+
+        assertThat(parsed.severity()).isNull();
+        assertThat(parsed.context()).isNull();
+        assertThat(parsed.triggerPhrase()).isNull();
+        assertThat(parsed.rationale()).isNull();
+    }
+
+    @Test
+    void parseEvidenceNotes_missingTrigger_handledGracefully() {
+        String raw = "[SEVERITY:MODERATE] [CONTEXT:OPERATIONAL] Reduces admin burden by 50%, no cited study.";
+        ClaimClassifierAdapter.ParsedNotes parsed = adapter.parseEvidenceNotes(raw);
+
+        assertThat(parsed.severity()).isEqualTo(HypeSeverity.MODERATE);
+        assertThat(parsed.context()).isEqualTo(DeploymentContext.OPERATIONAL);
+        assertThat(parsed.triggerPhrase()).isNull();
+        assertThat(parsed.rationale()).isEqualTo("Reduces admin burden by 50%, no cited study.");
     }
 
     private NewsArticle buildArticle(String id) {

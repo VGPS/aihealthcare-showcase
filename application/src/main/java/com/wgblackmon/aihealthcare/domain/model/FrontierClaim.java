@@ -11,16 +11,22 @@ import java.time.LocalDate;
  * <p>Each claim carries a {@link ClaimType} identifying its subject domain,
  * a {@link ClaimVerdict} rating the quality of the evidence behind it, and
  * an optional {@code evidenceNotes} field holding the LLM's one- to two-sentence
- * rationale for the verdict. Claims link back to their source article via
- * {@code articleId} and {@code sourceUrl}.
+ * rationale for the verdict (clean text only — no structured prefix).
+ *
+ * <p>MARKETING_HYPE claims additionally carry {@code hypeSeverity} (MILD/MODERATE/SEVERE),
+ * {@code triggeringPhrase} (the exact quoted phrase that drove the verdict), and
+ * {@code deploymentContext} (CLINICAL/OPERATIONAL/RESEARCH/GENERAL).  These are null
+ * for all other verdict types.
+ *
+ * <p>Claims link back to their source article via {@code articleId} and {@code sourceUrl}.
  *
  * <p>This record does not carry any Spring or Lombok dependencies — it is a
  * pure JDK type and safe to use anywhere in the hexagonal architecture.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-10-05
- * @updated 2026-10-05
+ * @updated 2026-11-24
  */
 public record FrontierClaim(
         String claimId,
@@ -32,6 +38,9 @@ public record FrontierClaim(
         ClaimType claimType,
         ClaimVerdict verdict,
         String evidenceNotes,
+        HypeSeverity hypeSeverity,
+        String triggeringPhrase,
+        DeploymentContext deploymentContext,
         String articleId,
         Instant detectedAt,
         Instant lastReviewedAt

@@ -2,7 +2,9 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.ClaimType;
 import com.wgblackmon.aihealthcare.domain.model.ClaimVerdict;
+import com.wgblackmon.aihealthcare.domain.model.DeploymentContext;
 import com.wgblackmon.aihealthcare.domain.model.FrontierClaim;
+import com.wgblackmon.aihealthcare.domain.model.HypeSeverity;
 import com.wgblackmon.aihealthcare.domain.model.SocialPlatform;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageSavedPostsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCase;
@@ -92,15 +94,17 @@ public class ClaimTrackerController {
             @RequestParam(required = false) String company,
             @RequestParam(required = false) String verdict,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String severity,
+            @RequestParam(required = false) String context,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String dir,
             Principal principal,
             Model model) {
 
-        log.debug("claimTracker() | company={}, verdict={}, type={}, sort={}, dir={}",
-                  company, verdict, type, sort, dir);
+        log.debug("claimTracker() | company={}, verdict={}, type={}, severity={}, context={}, sort={}, dir={}",
+                  company, verdict, type, severity, context, sort, dir);
 
-        List<FrontierClaim> claims = fetchFiltered(company, verdict, type);
+        List<FrontierClaim> claims = fetchFiltered(company, verdict, type, severity, context);
         claims = applySort(claims, sort, dir);
 
         boolean fullAccess = tierResolver.hasFullAccess(principal);
@@ -138,6 +142,10 @@ public class ClaimTrackerController {
         model.addAttribute("filterCompany", company);
         model.addAttribute("filterVerdict", verdict);
         model.addAttribute("filterType", type);
+        model.addAttribute("filterSeverity", severity);
+        model.addAttribute("filterContext", context);
+        model.addAttribute("hypeSeverities", Arrays.asList(HypeSeverity.values()));
+        model.addAttribute("deploymentContexts", Arrays.asList(DeploymentContext.values()));
         model.addAttribute("sortField", effectiveSort);
         model.addAttribute("sortDir", effectiveDir);
         model.addAttribute("fullAccess", fullAccess);
@@ -233,7 +241,8 @@ public class ClaimTrackerController {
         return ResponseEntity.ok().headers(headers).body(bytes);
     }
 
-    private List<FrontierClaim> fetchFiltered(String company, String verdict, String type) {
+    private List<FrontierClaim> fetchFiltered(String company, String verdict, String type,
+                                               String severity, String context) {
         List<FrontierClaim> results;
         if (company != null && !company.isBlank()) {
             results = claimsUseCase.getByCompany(company);
@@ -252,9 +261,26 @@ public class ClaimTrackerController {
         } else {
             results = claimsUseCase.getAll();
         }
-        return results.stream()
+        results = results.stream()
                 .filter(c -> !c.company().toLowerCase().startsWith("no_qualifying"))
                 .collect(Collectors.toList());
+        if (severity != null && !severity.isBlank()) {
+            try {
+                HypeSeverity sev = HypeSeverity.valueOf(severity.toUpperCase());
+                results = results.stream().filter(c -> sev.equals(c.hypeSeverity())).collect(Collectors.toList());
+            } catch (IllegalArgumentException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown severity: " + severity);
+            }
+        }
+        if (context != null && !context.isBlank()) {
+            try {
+                DeploymentContext ctx = DeploymentContext.valueOf(context.toUpperCase());
+                results = results.stream().filter(c -> ctx.equals(c.deploymentContext())).collect(Collectors.toList());
+            } catch (IllegalArgumentException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown context: " + context);
+            }
+        }
+        return results;
     }
 
     private List<FrontierClaim> applySort(List<FrontierClaim> claims, String sort, String dir) {

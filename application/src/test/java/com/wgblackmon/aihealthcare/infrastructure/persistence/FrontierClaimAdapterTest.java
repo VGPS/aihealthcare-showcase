@@ -2,7 +2,9 @@ package com.wgblackmon.aihealthcare.infrastructure.persistence;
 
 import com.wgblackmon.aihealthcare.domain.model.ClaimType;
 import com.wgblackmon.aihealthcare.domain.model.ClaimVerdict;
+import com.wgblackmon.aihealthcare.domain.model.DeploymentContext;
 import com.wgblackmon.aihealthcare.domain.model.FrontierClaim;
+import com.wgblackmon.aihealthcare.domain.model.HypeSeverity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -72,7 +74,7 @@ class FrontierClaimAdapterTest {
                 UUID.randomUUID().toString(), "Meta", "Llama leads.",
                 null, null, null,
                 ClaimType.BENCHMARK_CLAIM, ClaimVerdict.ALLEGED_UNVERIFIED,
-                null, null, NOW, null);
+                null, null, null, null, null, NOW, null);
         adapter.save(claim);
 
         Optional<FrontierClaim> found = adapter.findById(claim.claimId());
@@ -99,12 +101,44 @@ class FrontierClaimAdapterTest {
         assertThat(result).isEmpty();
     }
 
+    @Test
+    void hypeSeverityAndContext_roundTrip() {
+        FrontierClaim claim = new FrontierClaim(
+                UUID.randomUUID().toString(), "Oracle", "Oracle AI detects sepsis earlier.",
+                null, "https://oracle.com", "Oracle Health",
+                ClaimType.OUTCOME_CLAIM, ClaimVerdict.MARKETING_HYPE,
+                "No peer-reviewed trial cited.",
+                HypeSeverity.SEVERE, "detects sepsis 6 hours earlier", DeploymentContext.CLINICAL,
+                "art-99", NOW, null);
+        adapter.save(claim);
+
+        Optional<FrontierClaim> found = adapter.findById(claim.claimId());
+        assertThat(found).isPresent();
+        assertThat(found.get().hypeSeverity()).isEqualTo(HypeSeverity.SEVERE);
+        assertThat(found.get().triggeringPhrase()).isEqualTo("detects sepsis 6 hours earlier");
+        assertThat(found.get().deploymentContext()).isEqualTo(DeploymentContext.CLINICAL);
+        assertThat(found.get().evidenceNotes()).isEqualTo("No peer-reviewed trial cited.");
+    }
+
+    @Test
+    void nullHypeSeverity_roundTripsAsNull() {
+        FrontierClaim claim = buildClaim("Anthropic", "Claude leads benchmarks.",
+                ClaimType.BENCHMARK_CLAIM, ClaimVerdict.ALLEGED_UNVERIFIED);
+        adapter.save(claim);
+
+        Optional<FrontierClaim> found = adapter.findById(claim.claimId());
+        assertThat(found).isPresent();
+        assertThat(found.get().hypeSeverity()).isNull();
+        assertThat(found.get().triggeringPhrase()).isNull();
+        assertThat(found.get().deploymentContext()).isNull();
+    }
+
     private FrontierClaim buildClaim(String company, String text,
                                       ClaimType type, ClaimVerdict verdict) {
         return new FrontierClaim(
                 UUID.randomUUID().toString(), company, text,
                 LocalDate.of(2026, 10, 1), "https://example.com", "Example",
                 type, verdict,
-                "Evidence rationale.", "art-1", NOW, null);
+                "Evidence rationale.", null, null, null, "art-1", NOW, null);
     }
 }

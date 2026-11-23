@@ -103,6 +103,6 @@ class ClaimTrackerRestControllerTest {
         return new FrontierClaim(id, company, "Claim text here.",
                 null, "https://example.com", "Source",
                 ClaimType.CAPABILITY_CLAIM, ClaimVerdict.MARKETING_HYPE,
-                "No evidence cited.", "art-1", NOW, null);
+                "No evidence cited.", null, null, null, "art-1", NOW, null);
     }
 }

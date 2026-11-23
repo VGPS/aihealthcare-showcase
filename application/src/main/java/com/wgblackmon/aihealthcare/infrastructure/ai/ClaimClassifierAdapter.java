@@ -2,7 +2,9 @@ package com.wgblackmon.aihealthcare.infrastructure.ai;
 
 import com.wgblackmon.aihealthcare.domain.model.ClaimType;
 import com.wgblackmon.aihealthcare.domain.model.ClaimVerdict;
+import com.wgblackmon.aihealthcare.domain.model.DeploymentContext;
 import com.wgblackmon.aihealthcare.domain.model.FrontierClaim;
+import com.wgblackmon.aihealthcare.domain.model.HypeSeverity;
 import com.wgblackmon.aihealthcare.domain.model.NewsArticle;
 import com.wgblackmon.aihealthcare.domain.port.outbound.ClaimClassifierPort;
 import com.wgblackmon.aihealthcare.infrastructure.config.PromptLoaderService;
@@ -16,6 +18,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * LLM-powered adapter implementing {@link ClaimClassifierPort}.
@@ -43,6 +47,17 @@ import java.util.UUID;
 public class ClaimClassifierAdapter implements ClaimClassifierPort {
 
     static final int BATCH_SIZE = 10;
+
+    private static final Pattern EVIDENCE_PREFIX = Pattern.compile(
+            "\\[SEVERITY:([^\\]]+)\\]\\s*\\[CONTEXT:([^\\]]+)\\]\\s*(?:\\[TRIGGER:([^\\]]+)\\]\\s*)?(.*)",
+            Pattern.DOTALL);
+
+    record ParsedNotes(
+            HypeSeverity severity,
+            DeploymentContext context,
+            String triggerPhrase,
+            String rationale
+    ) {}
 
     private final ChatClient chatClient;
     private final PromptLoaderService promptLoaderService;
@@ -149,6 +164,7 @@ public class ClaimClassifierAdapter implements ClaimClassifierPort {
                 updated.add(new FrontierClaim(c.claimId(), c.company(), c.claimText(),
                         c.claimDate(), c.sourceUrl(), c.sourceTitle(),
                         c.claimType(), ClaimVerdict.CONTRADICTED, note,
+                        c.hypeSeverity(), c.triggeringPhrase(), c.deploymentContext(),
                         c.articleId(), c.detectedAt(), c.lastReviewedAt()));
             } else {
                 updated.add(c);
@@ -235,7 +251,7 @@ public class ClaimClassifierAdapter implements ClaimClassifierPort {
                 ClaimType claimType = parseClaimType(parts[1].trim());
                 ClaimVerdict verdict = parseVerdict(parts[2].trim());
                 String claimText = parts[3].trim();
-                String evidenceNotes = parts.length > 4 ? parts[4].trim() : null;
+                String rawNotes = parts.length > 4 ? parts[4].trim() : null;
                 String sourceUrl = parts.length > 5 && !parts[5].trim().isEmpty() ? parts[5].trim() : null;
                 String articleId = parts.length > 6 && !parts[6].trim().isEmpty() ? parts[6].trim() : null;
 
@@ -243,6 +259,8 @@ public class ClaimClassifierAdapter implements ClaimClassifierPort {
                     log.warn("parseResponse() | skipping line with blank company or claimText");
                     continue;
                 }
+
+                ParsedNotes parsed = parseEvidenceNotes(rawNotes);
 
                 FrontierClaim claim = new FrontierClaim(
                         UUID.randomUUID().toString(),
@@ -253,7 +271,10 @@ public class ClaimClassifierAdapter implements ClaimClassifierPort {
                         null,
                         claimType,
                         verdict,
-                        evidenceNotes,
+                        parsed.rationale(),
+                        parsed.severity(),
+                        parsed.triggerPhrase(),
+                        parsed.context(),
                         articleId,
                         now,
                         null
@@ -285,6 +306,57 @@ public class ClaimClassifierAdapter implements ClaimClassifierPort {
             log.warn("parseVerdict() | unknown verdict '{}', defaulting to ALLEGED_UNVERIFIED", raw);
             return ClaimVerdict.ALLEGED_UNVERIFIED;
         }
+    }
+
+    ParsedNotes parseEvidenceNotes(String raw) {
+        log.debug("parseEvidenceNotes() | raw={}", raw);
+        if (raw == null || raw.isBlank()) {
+            log.debug("parseEvidenceNotes() | return=empty");
+            return new ParsedNotes(null, null, null, raw);
+        }
+        Matcher m = EVIDENCE_PREFIX.matcher(raw);
+        if (!m.matches()) {
+            log.debug("parseEvidenceNotes() | no structured prefix, returning raw as rationale");
+            return new ParsedNotes(null, null, null, raw);
+        }
+        HypeSeverity severity = parseHypeSeverity(m.group(1));
+        DeploymentContext context = parseDeploymentContext(m.group(2));
+        String triggerPhrase = cleanTriggerPhrase(m.group(3));
+        String rationale = m.group(4) == null ? null : m.group(4).trim();
+        if (rationale != null && rationale.isBlank()) rationale = null;
+        ParsedNotes result = new ParsedNotes(severity, context, triggerPhrase, rationale);
+        log.debug("parseEvidenceNotes() | return={}", result);
+        return result;
+    }
+
+    private HypeSeverity parseHypeSeverity(String raw) {
+        if (raw == null) return null;
+        try {
+            return HypeSeverity.valueOf(raw.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.debug("parseHypeSeverity() | unknown value '{}', returning null", raw);
+            return null;
+        }
+    }
+
+    private DeploymentContext parseDeploymentContext(String raw) {
+        if (raw == null) return null;
+        try {
+            return DeploymentContext.valueOf(raw.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            log.debug("parseDeploymentContext() | unknown value '{}', returning null", raw);
+            return null;
+        }
+    }
+
+    private String cleanTriggerPhrase(String raw) {
+        if (raw == null) return null;
+        String t = raw.trim();
+        if (t.isEmpty() || "N/A".equalsIgnoreCase(t)) return null;
+        if (t.length() > 1 && t.charAt(0) == '"' && t.charAt(t.length() - 1) == '"') {
+            t = t.substring(1, t.length() - 1).trim();
+        }
+        return t.isEmpty() ? null : t;
     }
 
     private String toTitleCase(String s) {

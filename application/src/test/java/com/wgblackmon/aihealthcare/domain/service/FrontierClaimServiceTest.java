@@ -154,6 +154,6 @@ class FrontierClaimServiceTest {
                 id, company, text,
                 null, "https://example.com", "Example",
                 ClaimType.CAPABILITY_CLAIM, ClaimVerdict.MARKETING_HYPE,
-                "No evidence.", "art-1", NOW, null);
+                "No evidence.", null, null, null, "art-1", NOW, null);
     }
 }

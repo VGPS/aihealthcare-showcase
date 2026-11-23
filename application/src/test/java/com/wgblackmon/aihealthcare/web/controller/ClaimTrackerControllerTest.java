@@ -2,7 +2,9 @@ package com.wgblackmon.aihealthcare.web.controller;
 
 import com.wgblackmon.aihealthcare.domain.model.ClaimType;
 import com.wgblackmon.aihealthcare.domain.model.ClaimVerdict;
+import com.wgblackmon.aihealthcare.domain.model.DeploymentContext;
 import com.wgblackmon.aihealthcare.domain.model.FrontierClaim;
+import com.wgblackmon.aihealthcare.domain.model.HypeSeverity;
 import com.wgblackmon.aihealthcare.domain.port.inbound.ManageSavedPostsUseCase;
 import com.wgblackmon.aihealthcare.domain.port.inbound.TrackFrontierClaimsUseCase;
 import com.wgblackmon.aihealthcare.infrastructure.persistence.NewsArticleRepository;
@@ -235,9 +237,53 @@ class ClaimTrackerControllerTest {
                 .andExpect(model().attribute("sortableVerdict", true));
     }
 
+    @Test
+    @WithMockUser
+    void claimTracker_severityFilter_returnsSevereOnly() throws Exception {
+        FrontierClaim severe = new FrontierClaim("id-s", "Oracle", "Detects sepsis early.",
+                null, "https://oracle.com", "Oracle",
+                ClaimType.OUTCOME_CLAIM, ClaimVerdict.MARKETING_HYPE,
+                "No trial cited.", HypeSeverity.SEVERE, "detects sepsis", DeploymentContext.CLINICAL,
+                "art-s", NOW, null);
+        FrontierClaim mild = new FrontierClaim("id-m", "OpenAI", "Industry leading AI.",
+                null, "https://openai.com", "OpenAI",
+                ClaimType.CAPABILITY_CLAIM, ClaimVerdict.MARKETING_HYPE,
+                "Generic positioning.", HypeSeverity.MILD, null, DeploymentContext.GENERAL,
+                "art-m", NOW, null);
+        when(claimsUseCase.getAll()).thenReturn(List.of(severe, mild));
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
+
+        mockMvc.perform(get("/dashboard/claims").param("severity", "SEVERE"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("claims", hasSize(1)))
+                .andExpect(model().attribute("filterSeverity", "SEVERE"));
+    }
+
+    @Test
+    @WithMockUser
+    void claimTracker_contextFilter_returnsClinicalOnly() throws Exception {
+        FrontierClaim clinical = new FrontierClaim("id-c", "Microsoft", "DAX reduces burnout.",
+                null, "https://microsoft.com", "Microsoft",
+                ClaimType.COST_CLAIM, ClaimVerdict.MARKETING_HYPE,
+                "No study cited.", HypeSeverity.MODERATE, "reduces burnout by 70%", DeploymentContext.CLINICAL,
+                "art-c", NOW, null);
+        FrontierClaim general = new FrontierClaim("id-g", "Google", "Gemini is best.",
+                null, "https://google.com", "Google",
+                ClaimType.CAPABILITY_CLAIM, ClaimVerdict.MARKETING_HYPE,
+                "Generic.", HypeSeverity.MILD, null, DeploymentContext.GENERAL,
+                "art-g", NOW, null);
+        when(claimsUseCase.getAll()).thenReturn(List.of(clinical, general));
+        when(tierResolver.hasFullAccess(any())).thenReturn(true);
+
+        mockMvc.perform(get("/dashboard/claims").param("context", "CLINICAL"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("claims", hasSize(1)))
+                .andExpect(model().attribute("filterContext", "CLINICAL"));
+    }
+
     private FrontierClaim buildClaim(String id, String company, String text, ClaimVerdict verdict) {
         return new FrontierClaim(id, company, text, null, "https://example.com", "Source",
-                ClaimType.CAPABILITY_CLAIM, verdict, "Notes.", "art-1", NOW, null);
+                ClaimType.CAPABILITY_CLAIM, verdict, "Notes.", null, null, null, "art-1", NOW, null);
     }
 
     private List<FrontierClaim> buildManyClaims(int count) {
