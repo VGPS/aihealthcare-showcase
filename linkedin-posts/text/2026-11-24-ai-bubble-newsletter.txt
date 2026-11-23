@@ -1,0 +1,330 @@
+PIPELINE SOURCES USED:
+- WebSearch: STAT News — "The market shouldn't decide which medical AI technologies survive" (2026-11-23)
+- WebSearch: University of Plymouth — PRECISE-AGZ bladder cancer detection, IEEE Trans. Biomedical Engineering
+- WebSearch: Ant Group — LingSante-3.1-flash 560B medical MoE, MIT license (2026-11-22)
+- WebSearch: Healthcare Digital — Healthcare AI Bubble: 2026 Risks
+No API tokens used.
+
+LINT RESULTS SUMMARY:
+Option A: PASS (score 91) — zero BLOCK, one WARN (Rule 8 em-dash, accepted per Data Provenance format)
+Option B: PASS (score 93) — zero BLOCK, one WARN (Rule 8 em-dash, accepted per Data Provenance format)
+Option C: PASS (score 90) — zero BLOCK, one WARN (Rule 8 em-dash, accepted per Data Provenance format)
+
+==================================================
+OPTION A — "When the AI Company Folds, What Happens to the Hospital?"
+==================================================
+
+===== NEWSLETTER BODY =====
+
+Title: When the AI Company Folds, What Happens to the Hospital That Deployed It?
+
+STAT News published a warning this morning that belongs in front of every health
+system leadership team evaluating AI tools in late 2026.
+
+The question it raised: if the AI bubble bursts and takes some medical AI companies
+down with it, what happens to the hospitals that have already deployed those companies'
+tools?
+
+The answer is not theoretical. It is a sequencing problem built into how clinical AI
+procurement currently works.
+
+THE SEQUENCING PROBLEM
+
+A health system that decides to evaluate a clinical AI tool today is typically looking
+at a 12-to-18-month assessment cycle. Clinical validation takes time: comparison against
+existing workflows, outcome measurement, staff training, integration testing, governance
+review.
+
+That evaluation is not complete when the deployment begins. It is complete when the
+deployment has run long enough to generate meaningful outcome data.
+
+Financial markets do not wait for health systems to finish their evaluations.
+
+If a medical AI company loses funding during that window, the hospital faces a specific
+set of problems: the tool goes dark, the institutional knowledge built around the
+deployment is stranded, and the clinical question that started the evaluation — does
+this tool benefit patients? — goes unanswered. The hospital does not get a refund on
+the 18 months it spent.
+
+THE NUMBERS BEHIND THE CONCERN
+
+The scale of the exposure is not speculative. Several data points from 2026 define it:
+
+— 95% of enterprise generative AI pilots in healthcare have not delivered measurable
+  financial returns
+— Life Science AI's share of venture capital fell from 61% in 2024 to 18% by July 2026
+  as investors rotated toward companies with demonstrated evidence
+— A significant portion of 2024's funding wave went to "wrapper" startups — thin
+  interfaces built on top of foundational models with no proprietary data or clinical
+  evidence — that are now burning remaining cash toward a funding cliff
+
+The EU AI Act's requirements for high-risk AI systems — which include most clinical AI
+and medical device software — became fully enforceable in August 2026. Compliance costs
+that large organizations can absorb represent company-ending overhead for a wrapper
+startup that raised $8 million in 2023 on demo traction and has not yet reached clinical
+deployment at scale.
+
+WHAT STAT NEWS CALLED FOR
+
+The piece did not argue that medical AI is overhyped. It argued that financial markets
+are the wrong mechanism for deciding which clinical AI tools are worth preserving.
+
+The recommendation was for health systems and payers to establish independent evaluation
+infrastructure — a pathway to assess which tools actually work, separate from whether
+the companies developing them are winning the investment cycle.
+
+That is a reasonable ask. It is also a genuinely difficult institutional challenge.
+Health systems are not set up to maintain clinical AI tools when the vendors who built
+them are gone.
+
+WHAT THIS MEANS FOR VENDOR SELECTION RIGHT NOW
+
+For procurement teams evaluating AI tools in late 2026, the STAT News framing adds a
+column to the scorecard that most vendor assessments do not yet include: financial runway.
+
+Not just "does this tool work?" but "will this company still support it in 24 months?"
+
+The AIHealthcare Company Directory tracks three signals for every company in the
+database: article velocity (Trending), confirmed funding events (Funded), and negative
+sentiment accumulation (Watch). The Watch signal — which flags companies with regulatory
+scrutiny, deal failures, or negative press accumulation — now carries direct procurement
+relevance. A company appearing on the Watch list is not necessarily failing. But it is a
+signal that warrants a due diligence conversation about financial runway before a
+deployment contract is signed.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+Browse the AI Healthcare Company Directory (no login required):
+https://app.bigskylabs.ai/directory
+
+Data Provenance:
+STAT News — The market shouldn't decide which medical AI technologies survive
+  (https://www.statnews.com/2026/11/23/ai-bubble-medical-artificial-intelligence-health/)
+Healthcare Digital — Healthcare AI Bubble Bursting: 2026 Risks
+  (https://www.healthcare.digital/single-post/healthcare-ai-bubble-bursting-2026-risks)
+
+#AIHealthcare #HealthcareAI #DigitalHealth #AIBubble #PatientSafety
+
+---
+
+https://app.bigskylabs.ai/register
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+===== EDITING NOTES (NOT FOR PASTING) =====
+Hyperlink each Data Provenance anchor text to its URL in the LinkedIn Newsletter
+editor after pasting.
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #HealthcareAI #AIBubble
+
+Group Relevance: Health system CIOs, CMIOs, and digital health procurement leads
+who are mid-evaluation on AI tool deployments and have not yet factored vendor
+financial stability into their assessment frameworks.
+
+==================================================
+OPTION B — "What 70,000 Medical Records Taught an AI About Bladder Cancer"
+==================================================
+
+===== NEWSLETTER BODY =====
+
+Title: What 70,000 Medical Records Taught an AI About Bladder Cancer
+
+Researchers at the University of Plymouth published a study this week in IEEE
+Transactions on Biomedical Engineering. The result: an AI model that detects bladder
+cancer up to five years before clinical diagnosis, using routine electronic health
+records.
+
+This is not an imaging AI. It does not require a new device or a new test order.
+It runs against data already sitting in existing EHR systems — the same records every
+health system is already maintaining.
+
+That distinction is what makes this finding worth examining carefully.
+
+HOW PRECISE-AGZ WORKS
+
+The researchers analyzed health records from nearly 70,000 patients collected between
+1995 and 2020. Their model, PRECISE-AGZ, evaluated 48,261 potential health indicators:
+smoking and exercise habits, medication histories, comorbidities, clinical activities,
+lab values, and other routine data points recorded in the course of normal care.
+
+Using swarm intelligence optimization, the model identified 38 features that, in
+combination, signal elevated bladder cancer risk years before diagnosis. These 38
+features are not exotic — they are the kind of data points that appear in ordinary
+clinical encounters, recorded for other purposes, never previously combined in a way
+that predicted cancer risk.
+
+Final accuracy: 91%. Detection rate for positive cases: 85%.
+
+THE REFERRAL FINDING
+
+Beyond the headline accuracy numbers, the study produced a clinically meaningful
+nuance with direct implications for referral patterns.
+
+Blood in urine is currently the standard primary trigger for bladder cancer
+investigation. When a patient presents with hematuria, referral for cystoscopy
+typically follows.
+
+PRECISE-AGZ found that blood in urine, when it appeared alongside benign prostate
+enlargement in male patients, was actually associated with lower bladder cancer risk.
+If that finding holds in prospective validation, it suggests that a large segment of
+the male population currently receiving urgent cystoscopy referrals following hematuria
+detection could be more precisely stratified — reducing unnecessary procedures and
+concentrating resources on higher-risk cases.
+
+This is the kind of finding that does not come from imaging AI or biomarker research.
+It comes from pattern recognition across decades of routine clinical data.
+
+THE EHR AS CLINICAL INTELLIGENCE
+
+Bladder cancer kills 220,000 people globally each year. Many cases are caught late
+because early symptoms — blood in urine, frequent urination — overlap with more common
+benign conditions and do not trigger urgent evaluation. Stage 1 five-year survival
+exceeds 90%. Stage 4 drops below 15%.
+
+A tool that moves detection five years earlier, using existing data, has real
+life-year value. It also does not require a new clinical workflow. It runs as a
+background process against records already being maintained.
+
+The EHR has long been criticized as a system designed for billing rather than care.
+Research like PRECISE-AGZ suggests it may also be one of the most valuable clinical
+intelligence datasets in medicine — if health systems have the AI infrastructure to
+use it.
+
+PRECISE-AGZ is a research model. The path from a published IEEE paper to clinical
+deployment is long: prospective validation, regulatory review, EHR integration, workflow
+adoption, outcome monitoring. But the architecture is repeatable. The same approach
+applies to other cancers, other chronic conditions — any disease where early indicators
+appear in routine clinical data years before the diagnosis.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+Data Provenance:
+PRECISE-AGZ study — University of Plymouth, early bladder cancer detection
+  (https://www.sciencedaily.com/releases/2026/11/261120075604.htm)
+Mirage News coverage — AI Detects Bladder Cancer 5 Years Pre-Diagnosis
+  (https://www.miragenews.com/ai-detects-bladder-cancer-5-years-pre-diagnosis-1732732/)
+Published in — IEEE Transactions on Biomedical Engineering
+
+#AIHealthcare #CancerDetection #HealthcareAI #EHR #PatientSafety
+
+---
+
+https://app.bigskylabs.ai/register
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+===== EDITING NOTES (NOT FOR PASTING) =====
+Hyperlink each Data Provenance anchor text to its URL in the LinkedIn Newsletter
+editor after pasting.
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #CancerDetection #HealthcareAI
+
+Group Relevance: Oncologists, clinical informaticists, CMOs, and health system leaders
+evaluating EHR-based AI screening tools and tracking early detection evidence in
+published literature.
+
+==================================================
+OPTION C — "This Weekend's Two AI Healthcare Stories, Read Together"
+==================================================
+
+===== NEWSLETTER BODY =====
+
+Title: This Weekend's Two AI Healthcare Stories, Read Together, Tell One Story
+
+On Saturday, Ant Group open-sourced a 560-billion-parameter medical AI model under
+an MIT license.
+
+On Sunday, STAT News published a warning that financial markets will decide which
+medical AI technologies survive before hospitals have established whether those
+technologies benefit patients.
+
+These two stories describe the same structural problem from opposite ends.
+
+WHAT STAT NEWS NAMED
+
+If a medical AI company loses funding before a hospital finishes evaluating its tool,
+the hospital loses the tool, the data, and the deployment investment — before the
+clinical question that started the evaluation was ever settled.
+
+The numbers from 2026 define the exposure:
+
+— 95% of enterprise generative AI pilots in healthcare have not delivered measurable
+  financial returns
+— Life Science AI's share of venture capital fell from 61% in 2024 to 18% by July 2026
+— A significant portion of 2024's funding wave went to "wrapper" startups with no
+  proprietary data moat, now burning cash toward a funding cliff
+— The EU AI Act's high-risk AI requirements became fully enforceable in August 2026,
+  adding compliance costs most wrapper startups cannot absorb
+
+STAT News asked: who decides which medical AI technologies deserve to survive? Its
+answer: not the financial markets. The financial markets make decisions on a timeline
+that does not match the clinical evaluation cycle. The market closes a funding round
+in a quarter. A clinical evaluation takes 18 months.
+
+WHAT THE ANT GROUP RELEASE CHANGES
+
+A model under an MIT license does not go dark when its developer loses funding.
+
+LingSante-3.1-flash is a Mixture-of-Experts model: 560 billion parameters, 25 billion
+active per token, 1-million-token context window. Published to Hugging Face on
+November 22. The team reports benchmark scores of 65.72 on HealthBench Professional
+and 72.22 on HLE-with-tools, claiming superiority over GPT-6 Astra, Claude Opus 5.5,
+and Gemini 4 Argon. Benchmark claims require independent replication. The MIT license
+is a structural fact regardless of where the numbers settle.
+
+An MIT-licensed medical model can be downloaded, hosted locally, fine-tuned on
+proprietary clinical data, and deployed in a health system's own infrastructure. If
+the company stops supporting it tomorrow, the weights still exist. The deployment
+continues.
+
+That is a materially different risk profile from deploying an API-dependent tool built
+by a venture-funded startup on a runway that may not reach the end of the clinical
+evaluation cycle.
+
+THE GAP OPEN-SOURCE DOES NOT CLOSE
+
+Open-source models shift the dependency from a company to a community. That is a real
+improvement. But it introduces different requirements: the health system needs
+infrastructure to host and serve a 560B model, expertise to validate its outputs for
+clinical use, and a regulatory pathway under the EU AI Act or FDA software-as-medical-
+device framework.
+
+For most health systems, those represent a larger capability gap than purchasing API
+access from a funded vendor.
+
+The honest framing: open-source medical AI solves the survival problem — the tool
+persists — but does not replace the validation and governance problem STAT News
+identified. The market remains the wrong mechanism for deciding which tools deserve to
+exist. Open-source does not substitute for independent clinical evaluation; it removes
+one of the structural barriers to conducting it.
+
+Both stories warrant attention this week. Read together, they describe a moment in AI
+healthcare where the question is no longer "does this tool work?" but "can we ensure
+it keeps working, and who is responsible when it does not?"
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+Data Provenance:
+STAT News — The market shouldn't decide which medical AI technologies survive
+  (https://www.statnews.com/2026/11/23/ai-bubble-medical-artificial-intelligence-health/)
+Ant Group LingSante-3.1-flash open-source release — AI Weekly
+  (https://aiweekly.co/alerts/ant-open-sources-lingsante-31-flash-a-560b-medical-moe)
+EU AI Act high-risk AI enforcement — effective August 2, 2026 (public record)
+
+#AIHealthcare #HealthcareAI #OpenSourceAI #AIBubble #DigitalHealth
+
+---
+
+https://app.bigskylabs.ai/register
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+===== EDITING NOTES (NOT FOR PASTING) =====
+Hyperlink each Data Provenance anchor text to its URL in the LinkedIn Newsletter
+editor after pasting.
+
+Structured hashtag field (enter at publish time, max 3): #AIHealthcare #HealthcareAI #AIBubble
+
+Group Relevance: Health system CIOs and digital health strategy leads tracking both
+the investment landscape and the emerging open-source medical AI ecosystem — most
+useful for audiences engaged with both the business and technology sides of AI adoption.

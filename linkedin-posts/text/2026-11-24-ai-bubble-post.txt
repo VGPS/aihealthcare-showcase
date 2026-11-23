@@ -1,0 +1,205 @@
+PIPELINE SOURCES USED:
+- WebSearch: STAT News — "The market shouldn't decide which medical AI technologies survive" (2026-11-23)
+- WebSearch: University of Plymouth — PRECISE-AGZ bladder cancer detection, IEEE Trans. Biomedical Engineering
+- WebSearch: Ant Group — LingSante-3.1-flash 560B medical MoE, Hugging Face MIT license (2026-11-22)
+- WebSearch: Healthcare Digital — Healthcare AI Bubble Bursting: 2026 Risks
+No API tokens used.
+
+LINT RESULTS SUMMARY:
+Option A: PASS (score 92) — zero BLOCK, zero WARN
+Option B: PASS (score 94) — zero BLOCK, zero WARN
+Option C: PASS (score 91) — zero BLOCK, zero WARN
+
+==================================================
+OPTION A — "The Market Will Decide Before the Hospital Finishes Evaluating"
+==================================================
+
+===== POST BODY =====
+
+The market will decide which medical AI tools survive before hospitals finish
+evaluating whether they work.
+
+STAT News published that warning this morning. The concern is a sequencing problem:
+a health system spends 12 to 18 months assessing a clinical AI tool. The company
+loses funding before the evaluation completes. The hospital loses the tool, the data,
+and the deployment investment — before the clinical question was ever settled.
+
+The numbers make it concrete:
+
+— 95% of enterprise generative AI pilots in healthcare have not delivered
+  measurable financial returns
+— Life Science AI dropped from 61% of venture capital in 2024 to 18% by July 2026
+— A significant portion of 2024's funding wave went to "wrapper" companies with
+  no proprietary data moat, now burning cash toward a 2026 funding cliff
+— The EU AI Act's high-risk AI requirements became fully enforceable in August 2026,
+  adding compliance costs most wrapper startups cannot absorb
+
+The archive tracks which AI healthcare companies are trending, recently funded, and
+accumulating negative sentiment signals. That data reads differently when the question
+is not just "is this tool promising?" but "will this company still exist when the
+deployment is complete?"
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+👉 Link in the first comment.
+
+Has your health system started factoring vendor financial stability into AI
+procurement decisions?
+
+#AIHealthcare #HealthcareAI #DigitalHealth #AIBubble
+
+===== FIRST COMMENT =====
+
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+https://app.bigskylabs.ai/register
+
+===== POSTING INSTRUCTIONS =====
+
+Post to 1–2 groups per sitting. Wait 5–10 minutes before First Comment.
+Strong fit for health system executive, digital health investor, and health IT
+strategy groups. The procurement question at the end drives replies from CIOs and
+CMIOs who are mid-evaluation on vendor contracts.
+
+===== STRATEGY NOTES =====
+
+Data Provenance:
+STAT News AI bubble piece — https://www.statnews.com/2026/11/23/ai-bubble-medical-artificial-intelligence-health/
+Healthcare Digital 2026 risks — https://www.healthcare.digital/single-post/healthcare-ai-bubble-bursting-2026-risks
+
+Group Relevance: Health system CIOs, digital health procurement leads, and clinical
+informatics directors mid-evaluation on AI vendor contracts.
+
+Viral potential: High. The sequencing problem framing ("market decides before hospital
+finishes evaluating") is concrete and unsettling without naming any company. The
+engagement question draws out direct experience rather than opinion, which generates
+higher-quality replies.
+
+==================================================
+OPTION B — "91% Accuracy. 70,000 Records. Bladder Cancer Found 5 Years Early."
+==================================================
+
+===== POST BODY =====
+
+An AI model analyzed the medical records of nearly 70,000 patients and detected
+bladder cancer up to five years before diagnosis.
+
+The model — PRECISE-AGZ, University of Plymouth — analyzed electronic health records
+collected between 1995 and 2020. It sifted through 48,261 potential health indicators
+to identify 38 features that signal bladder cancer risk. Final accuracy: 91%.
+
+This is not a new imaging device. This is not a novel biomarker that requires a
+separate test order. PRECISE-AGZ runs against data already sitting in existing EHR
+systems — medication histories, comorbidities, clinical activities, lifestyle
+indicators.
+
+The model also uncovered a nuance with real referral implications: blood in urine,
+the standard primary trigger for bladder cancer investigation, was associated with
+lower cancer risk when it appeared alongside benign prostate enlargement in men.
+That finding could reduce unnecessary referrals for a large patient population.
+
+Bladder cancer kills 220,000 people globally each year. Many cases are caught late
+because early symptoms overlap with more common conditions. Stage 1 survival rates
+exceed 90%. Stage 4 drops below 15%.
+
+This was published in IEEE Transactions on Biomedical Engineering. This is not a demo.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+👉 Link in the first comment.
+
+If this model ran against your health system's EHR data today, what would it find?
+
+#AIHealthcare #CancerDetection #HealthcareAI #EHR
+
+===== FIRST COMMENT =====
+
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+https://app.bigskylabs.ai/register
+
+===== POSTING INSTRUCTIONS =====
+
+Post to 1–2 groups per sitting. Wait 5–10 minutes before First Comment.
+Strongest fit for oncology, clinical informatics, and health system leadership groups.
+The EHR angle lands well in informatics communities — it reframes existing data as
+underutilized clinical intelligence.
+
+===== STRATEGY NOTES =====
+
+Data Provenance:
+PRECISE-AGZ bladder cancer study — University of Plymouth (https://www.sciencedaily.com/releases/2026/11/261120075604.htm)
+Mirage News coverage — https://www.miragenews.com/ai-detects-bladder-cancer-5-years-pre-diagnosis-1732732/
+
+Group Relevance: Oncologists, clinical informaticists, CMOs, and health system leaders
+evaluating EHR-based AI screening tools and tracking early detection evidence.
+
+Viral potential: High. The numbers are specific and verifiable (91%, 70,000, 5 years,
+38 features). The ending question is personal and open-ended enough to draw replies
+from both clinicians and health IT professionals.
+
+==================================================
+OPTION C — "Ant Group Just Open-Sourced a 560B Medical AI Model"
+==================================================
+
+===== POST BODY =====
+
+This weekend, Ant Group open-sourced a 560-billion-parameter medical AI model.
+
+LingSante-3.1-flash is a Mixture-of-Experts model: 25 billion active parameters per
+token, 1-million-token context window, published to Hugging Face under MIT license on
+November 22.
+
+The team reports benchmark scores of 65.72 on HealthBench Professional and 72.22 on
+HLE-with-tools, claiming it outscores GPT-6 Astra, Claude Opus 5.5, and Gemini 4 Argon
+on those tests. Benchmark claims require independent replication. The MIT license is a
+fact regardless of where the numbers settle.
+
+MIT-licensed means: no API bill per inference. No company whose funding status
+determines whether the model is available next year. No vendor contract to renegotiate
+if a health system wants to extend a deployment.
+
+Earlier today, STAT News warned that financial markets will decide which medical AI
+technologies survive before hospitals finish evaluating whether they work. An open-source
+560B medical model is one structural answer to that problem — the weights persist even
+if the company does not.
+
+This is a weekend that belongs in the record.
+
+AI in healthcare is history being written right now. I'm building the archive.
+Everything updates daily.
+
+👉 Link in the first comment.
+
+Does an MIT-licensed 560B medical model change how you think about proprietary
+clinical AI?
+
+#AIHealthcare #OpenSourceAI #HealthcareAI #MedicalAI
+
+===== FIRST COMMENT =====
+
+https://www.linkedin.com/newsletters/ai-in-healthcare-intel-7514083468184805377/
+
+https://app.bigskylabs.ai/register
+
+===== POSTING INSTRUCTIONS =====
+
+Post to 1–2 groups per sitting. Wait 5–10 minutes before First Comment.
+Strong fit for health IT, AI research, and digital health strategy groups. The
+open-source angle generates engagement from both advocates (excited) and skeptics
+(hosting/validation cost concerns) — both sides reply.
+
+===== STRATEGY NOTES =====
+
+Data Provenance:
+Ant Group LingSante-3.1-flash release — AI Weekly (https://aiweekly.co/alerts/ant-open-sources-lingsante-31-flash-a-560b-medical-moe)
+STAT News bubble context — https://www.statnews.com/2026/11/23/ai-bubble-medical-artificial-intelligence-health/
+
+Group Relevance: Health IT architects, digital health investors, and AI strategy leads
+evaluating build-vs-buy decisions for clinical AI infrastructure.
+
+Viral potential: Medium-high. The juxtaposition with the STAT News bubble story
+(open-source as structural hedge) gives it an angle beyond "big model released."
+The benchmark controversy drives replies from the technically engaged.
