@@ -24,9 +24,9 @@ import java.util.List;
  * {@code PDDocument.load()} from the 2.x API.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-27
- * @updated 2026-04-27
+ * @updated 2026-11-23
  */
 @Slf4j
 @Component
@@ -50,6 +50,7 @@ public class PdfParser implements FileParserPort {
             log.debug("parse() | pageCount={}", pageCount);
 
             PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setSortByPosition(true);
             for (int page = 1; page <= pageCount; page++) {
                 stripper.setStartPage(page);
                 stripper.setEndPage(page);

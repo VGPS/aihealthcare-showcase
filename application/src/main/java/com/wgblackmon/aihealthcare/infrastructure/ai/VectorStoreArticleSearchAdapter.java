@@ -9,6 +9,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -34,9 +35,9 @@ import java.util.Optional;
  * database are silently skipped and logged at {@code WARN} level.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-11
- * @updated 2026-06-02
+ * @updated 2026-11-23
  */
 @Slf4j
 @Component
@@ -44,14 +45,18 @@ public class VectorStoreArticleSearchAdapter implements ArticleSearchPort {
 
     private final VectorStore            vectorStore;
     private final NewsArticleRepository  repository;
+    private final double                 similarityThreshold;
 
     public VectorStoreArticleSearchAdapter(ObjectProvider<VectorStore> vectorStoreProvider,
-                                           NewsArticleRepository repository) {
-        this.vectorStore = vectorStoreProvider.getIfAvailable();
-        this.repository  = repository;
-        log.debug("VectorStoreArticleSearchAdapter() | vectorStore={}, repository={}",
+                                           NewsArticleRepository repository,
+                                           @Value("${aihealthcare.search.similarity-threshold:0.7}") double similarityThreshold) {
+        this.vectorStore          = vectorStoreProvider.getIfAvailable();
+        this.repository           = repository;
+        this.similarityThreshold  = similarityThreshold;
+        log.debug("VectorStoreArticleSearchAdapter() | vectorStore={}, repository={}, similarityThreshold={}",
                   vectorStore != null ? vectorStore.getClass().getSimpleName() : "NULL (not configured)",
-                  repository.getClass().getSimpleName());
+                  repository.getClass().getSimpleName(),
+                  similarityThreshold);
     }
 
     @Override
@@ -66,7 +71,11 @@ public class VectorStoreArticleSearchAdapter implements ArticleSearchPort {
 
         List<Document> docs;
         try {
-            SearchRequest request = SearchRequest.builder().query(query).topK(topK).build();
+            SearchRequest request = SearchRequest.builder()
+                    .query(query)
+                    .topK(topK)
+                    .similarityThreshold(similarityThreshold)
+                    .build();
             docs = vectorStore.similaritySearch(request);
         } catch (Exception ex) {
             log.warn("findSimilar() | Vector search failed (vector store may be empty or API key invalid): {}",

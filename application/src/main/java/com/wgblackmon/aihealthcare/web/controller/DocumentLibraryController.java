@@ -32,9 +32,10 @@ import java.util.UUID;
 
 /**
  * ADMIN-only Thymeleaf controller for the Document Library — a browser-based
- * upload interface that accepts PDF, DOCX, and TXT files, ingests them into
+ * upload interface that accepts DOCX, TXT, and MD files, ingests them into
  * the vector store with paragraph-aware chunking, and compiles them into the
- * public wiki knowledge base.
+ * public wiki knowledge base. PDF upload is intentionally disabled until the
+ * PDF pipeline earns production trust.
  *
  * <p>Exposes two endpoints:
  * <ul>
@@ -48,16 +49,16 @@ import java.util.UUID;
  * rule already present in {@code SecurityConfig}.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-25
- * @updated 2026-08-25
+ * @updated 2026-11-23
  */
 @Slf4j
 @Controller
 @RequestMapping("/admin/documents")
 public class DocumentLibraryController {
 
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("pdf", "docx", "txt", "md");
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("docx", "txt", "md");
     private static final long MAX_BYTES = 50L * 1024 * 1024; // 50 MB
     private static final DateTimeFormatter DISPLAY_FMT =
             DateTimeFormatter.ofPattern("MM/dd HH:mm").withZone(ZoneId.of("America/Chicago"));
@@ -158,7 +159,7 @@ public class DocumentLibraryController {
         if (!ALLOWED_EXTENSIONS.contains(ext)) {
             log.warn("upload() | rejected: unsupported extension={}", ext);
             redirectAttrs.addAttribute("error",
-                    "Unsupported file type '" + ext + "'. Allowed: pdf, docx, txt, md.");
+                    "Unsupported file type '" + ext + "'. Allowed: docx, txt, md.");
             return "redirect:/admin/documents";
         }
 

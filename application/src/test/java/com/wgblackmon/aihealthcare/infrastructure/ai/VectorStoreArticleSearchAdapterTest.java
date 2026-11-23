@@ -35,9 +35,9 @@ import static org.mockito.Mockito.when;
  * Mockito mocks.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-04-13
- * @updated 2026-04-13
+ * @updated 2026-11-23
  */
 @ExtendWith(MockitoExtension.class)
 class VectorStoreArticleSearchAdapterTest {
@@ -78,7 +78,7 @@ class VectorStoreArticleSearchAdapterTest {
             @Override public VectorStore getIfAvailable()     { return vectorStore; }
             @Override public VectorStore getIfUnique()        { return vectorStore; }
         };
-        adapter = new VectorStoreArticleSearchAdapter(provider, repository);
+        adapter = new VectorStoreArticleSearchAdapter(provider, repository, 0.7);
     }
 
     // -------------------------------------------------------------------------
@@ -182,5 +182,18 @@ class VectorStoreArticleSearchAdapterTest {
         List<NewsArticle> result = adapter.findSimilar("query", 5);
 
         assertThat(result.get(0).title()).isEqualTo("Test Article a-001");
+    }
+
+    @Test
+    void findSimilar_includesSimilarityThresholdInRequest() {
+        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of());
+
+        adapter.findSimilar("any query", 5);
+
+        ArgumentCaptor<SearchRequest> captor = ArgumentCaptor.forClass(SearchRequest.class);
+        verify(vectorStore).similaritySearch(captor.capture());
+        assertThat(captor.getValue().getSimilarityThreshold())
+                .as("Similarity threshold must be > 0 to filter irrelevant results")
+                .isGreaterThan(0.0);
     }
 }

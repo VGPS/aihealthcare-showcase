@@ -42,14 +42,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * MockMvc tests for {@link DocumentLibraryController}.
  *
- * <p>Covers GET library listing, POST upload happy path, POST invalid extension,
- * POST oversized file guard, POST missing source label, POST missing topic,
- * redirect after success, unauthenticated access redirect, and admin-only access.
+ * <p>Covers GET library listing, POST upload happy path (txt/docx/md), POST PDF
+ * rejection (disabled extension), POST invalid extension, POST oversized file guard,
+ * POST missing source label, POST missing topic, redirect after success,
+ * unauthenticated access redirect, and admin-only access.
  *
  * @author  Bill Blackmon
- * @version 1.0
+ * @version 1.1
  * @since   2026-08-25
- * @updated 2026-08-25
+ * @updated 2026-11-23
  */
 @Import(SecurityConfig.class)
 @WebMvcTest(DocumentLibraryController.class)
@@ -108,12 +109,29 @@ class DocumentLibraryControllerTest {
     }
 
     @Test
-    @DisplayName("POST upload with valid PDF redirects to list with success message")
+    @DisplayName("POST upload with valid TXT redirects to list with success message")
     @WithMockUser(roles = "ADMIN")
-    void postUpload_validPdf_redirectsWithSuccess() throws Exception {
+    void postUpload_validTxt_redirectsWithSuccess() throws Exception {
         DocumentRecord rec = sampleRecord();
         when(uploadService.uploadAndIngest(any(), anyString(), anyString(), anyString())).thenReturn(rec);
 
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "study.txt", MediaType.TEXT_PLAIN_VALUE,
+                "Plain text content".getBytes());
+
+        mockMvc.perform(multipart("/admin/documents/upload")
+                        .file(file)
+                        .param("sourceLabel", "Dr Smith — 2026 Study")
+                        .param("topic", "AI Healthcare Legal")
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/admin/documents?message=*"));
+    }
+
+    @Test
+    @DisplayName("POST upload with PDF extension is rejected (PDF pipeline disabled)")
+    @WithMockUser(roles = "ADMIN")
+    void postUpload_pdfExtension_redirectsWithError() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "study.pdf", MediaType.APPLICATION_PDF_VALUE,
                 "PDF content".getBytes());
@@ -124,7 +142,7 @@ class DocumentLibraryControllerTest {
                         .param("topic", "AI Healthcare Legal")
                         .with(csrf()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/admin/documents?message=*"));
+                .andExpect(redirectedUrlPattern("/admin/documents?error=*"));
     }
 
     @Test

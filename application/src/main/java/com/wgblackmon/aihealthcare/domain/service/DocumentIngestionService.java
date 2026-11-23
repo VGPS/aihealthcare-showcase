@@ -33,9 +33,9 @@ import java.util.UUID;
  * a {@code @Bean} so the application layer remains framework-free.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-04-27
- * @updated 2026-09-11
+ * @updated 2026-11-23
  */
 public class DocumentIngestionService implements IngestDocumentsUseCase {
 
@@ -262,9 +262,11 @@ public class DocumentIngestionService implements IngestDocumentsUseCase {
     /**
      * Paragraph-aware chunking with 150-char overlap for single-file uploads.
      *
-     * <p>Algorithm: split on double-newline → aggregate short paragraphs into
-     * the current chunk (up to 800 chars) → emit chunk → prepend 150-char tail
-     * of the emitted chunk as the overlap prefix for the next chunk.
+     * <p>Algorithm: split on double-newline → split any paragraph that itself
+     * exceeds MAX_CHUNK via whitespace boundaries (same logic as
+     * {@link #buildChunks}) → aggregate pieces into the current chunk (up to
+     * 800 chars) → emit chunk → prepend 150-char tail as overlap prefix for
+     * the next chunk.
      */
     List<DocumentChunk> buildParagraphChunks(List<String> blocks,
                                              String sourceFile,
@@ -291,21 +293,23 @@ public class DocumentIngestionService implements IngestDocumentsUseCase {
         StringBuilder current = new StringBuilder();
 
         for (String para : paragraphs) {
-            if (current.length() == 0 && !overlap.isBlank()) {
-                current.append(overlap).append(" ");
-            }
-            if (current.length() + para.length() > MAX_CHUNK && current.length() > 0) {
-                String content = current.toString().trim();
-                if (!content.isBlank()) {
-                    chunks.add(new DocumentChunk(
-                            UUID.randomUUID().toString(), sourceFile, chunkIndex++, content, sourceLabel));
-                    int overlapStart = Math.max(0, content.length() - OVERLAP_LEN);
-                    overlap = content.substring(overlapStart);
+            for (String piece : splitAtBoundary(para, MAX_CHUNK)) {
+                if (current.length() == 0 && !overlap.isBlank()) {
+                    current.append(overlap).append(" ");
                 }
-                current = new StringBuilder();
-                current.append(overlap).append(" ");
+                if (current.length() + piece.length() > MAX_CHUNK && current.length() > 0) {
+                    String content = current.toString().trim();
+                    if (!content.isBlank()) {
+                        chunks.add(new DocumentChunk(
+                                UUID.randomUUID().toString(), sourceFile, chunkIndex++, content, sourceLabel));
+                        int overlapStart = Math.max(0, content.length() - OVERLAP_LEN);
+                        overlap = content.substring(overlapStart);
+                    }
+                    current = new StringBuilder();
+                    current.append(overlap).append(" ");
+                }
+                current.append(piece).append("\n\n");
             }
-            current.append(para).append("\n\n");
         }
 
         String remainder = current.toString().trim();
@@ -316,5 +320,36 @@ public class DocumentIngestionService implements IngestDocumentsUseCase {
 
         log.debug("buildParagraphChunks() | return={} chunks", chunks.size());
         return chunks;
+    }
+
+    /**
+     * Splits {@code text} into pieces each no longer than {@code maxLen} chars,
+     * breaking at whitespace boundaries where possible.  Returns a single-element
+     * list when {@code text.length() <= maxLen}.
+     */
+    private List<String> splitAtBoundary(String text, int maxLen) {
+        if (text.length() <= maxLen) {
+            return List.of(text);
+        }
+        List<String> pieces = new ArrayList<>();
+        int start = 0;
+        while (start < text.length()) {
+            int end = Math.min(start + maxLen, text.length());
+            if (end < text.length()) {
+                int lastSpace = text.lastIndexOf(' ', end);
+                if (lastSpace > start) {
+                    end = lastSpace;
+                }
+            }
+            String piece = text.substring(start, end).trim();
+            if (!piece.isBlank()) {
+                pieces.add(piece);
+            }
+            start = end;
+            while (start < text.length() && text.charAt(start) == ' ') {
+                start++;
+            }
+        }
+        return pieces;
     }
 }

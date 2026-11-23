@@ -35,9 +35,9 @@ import static org.mockito.Mockito.when;
  * avoid actual PDF/DOCX parsing or vector store calls.
  *
  * @author  Bill Blackmon
- * @version 1.1
+ * @version 1.2
  * @since   2026-04-27
- * @updated 2026-08-25
+ * @updated 2026-11-23
  */
 @ExtendWith(MockitoExtension.class)
 class DocumentIngestionServiceTest {
@@ -284,5 +284,32 @@ class DocumentIngestionServiceTest {
         DocumentIngestionResult result = service.ingestFile(file, "Big Doc");
 
         assertThat(result.chunksEmbedded()).isGreaterThan(1);
+    }
+
+    @Test
+    @DisplayName("buildParagraphChunks() splits an oversized single paragraph — no chunk retains the full original text")
+    void buildParagraphChunks_oversizedSingleParagraph_splitsBelowOriginalLength() throws IOException {
+        Path file = Files.createFile(tempDir.resolve("dense.txt"));
+        when(parserPort.supports(any(Path.class))).thenReturn(true);
+        // ~2000 chars with no double-newlines — single paragraph exceeding the 800-char MAX_CHUNK
+        String longParagraph = "word ".repeat(400).trim();
+        when(parserPort.parse(any(Path.class))).thenReturn(List.of(longParagraph));
+
+        service.ingestFile(file, "Dense Label");
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<DocumentChunk>> captor = ArgumentCaptor.forClass(List.class);
+        verify(vectorPort).store(captor.capture());
+        // Before fix: stored as a single ~2000-char blob.
+        // After fix: split into pieces <= MAX_CHUNK (800), so the largest stored chunk is
+        // bounded by MAX_CHUNK + OVERLAP_LEN + separators ~= 955 chars — well below 2000.
+        assertThat(captor.getValue().size())
+                .as("Oversized paragraph must be split into multiple chunks")
+                .isGreaterThan(1);
+        for (DocumentChunk chunk : captor.getValue()) {
+            assertThat(chunk.content().length())
+                    .as("No chunk should approach the original 2000-char length")
+                    .isLessThan(1000);
+        }
     }
 }
