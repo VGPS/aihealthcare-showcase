@@ -1,6 +1,6 @@
 # AIHealthcare — Architecture Reference
 
-> Last updated: 2026-09-15 | Reflects SSO-1, Market Analysis, Enterprise Data, Social Posts
+> Last updated: 2026-11-23 | Reflects CT-2, LT-1, SSO-1, Market Analysis, Enterprise Data, Social Posts
 
 ## Design Philosophy
 Spec-Driven Development + Hexagonal Architecture. The OpenAPI spec is the single source of
@@ -113,6 +113,8 @@ api  ──▶  web   (generated DTOs imported here only)
 | PC-2 | Per-Pipeline LLM Token Usage Tracking — `CallAdvisor` + `ChatClientCustomizer` captures every Anthropic call's tokens, tagged by pipeline via a `ThreadLocal`; admin dashboard panel shows 7-day cost by pipeline and by model | 3,123 |
 | W7 | Wiki Hybrid Search — `WikiQueryAdapter.findRelevantPages()` merges keyword/LIKE hits with a pgvector semantic-similarity leg (new `WikiEmbeddingScheduler`, shared `PgVectorStore` tagged `type=wiki_page`) for non-blank queries only; blank-query "return everything" contract (used by `WikiLintScheduler`/`WikiLintController`/`FeedHarvestScheduler`) unchanged | 3,139 |
 | LT-1 | AI Liability Incident Tracker — `LiabilityIncident` domain record, `LiabilityIncidentPort`, JPA adapter, admin CRUD (`/admin/liability`) with pending-review queue, public registry (`/liability`) with `IncidentType`/`HarmType`/`IncidentStatus` filter pills + filing-date sort, `LiabilityClassificationAdapter` (LLM auto-propose from harvested articles), 4 extended LEGAL-tier RSS feeds, 13 selective tests | 3,139+ |
+| CT-1 | Frontier AI Claim Tracker — `FrontierClaim` domain record, `ClaimType` (8 values) + `ClaimVerdict` (5 values) enums, `ClaimClassifierAdapter` (batch LLM extraction + contradiction detection), `FrontierClaimAdapter` JPA, admin CRUD + public `/dashboard/claims` page with verdict/company/type filter dropdowns, sortable columns, expandable evidence notes, tier-gated CSV export, Generate Post action, sentinel-company filtering; `ClaimTrackerRestController` at `/api/v1/claims`; public `/claims/methodology` page with live stats + verdict definitions; Playwright e2e screenshot automation; 43 selective tests | 3,460 |
+| CT-2 | Frontier Claim structured hype fields — `HypeSeverity` enum (MILD/MODERATE/SEVERE) + `DeploymentContext` enum (CLINICAL/OPERATIONAL/RESEARCH/GENERAL) added as first-class DB columns (`hype_severity`, `triggering_phrase`, `deployment_context`) on `frontier_claims`; `ClaimClassifierAdapter.parseEvidenceNotes()` extracts `[SEVERITY:x][CONTEXT:x][TRIGGER:x]` prefix from LLM output; claim-tracker UI replaced Alpine.js parser with direct Thymeleaf rendering + added Severity/Context filter dropdowns; severity sub-badge in Verdict cell; 16 new tests | 3,476 |
 
 ---
 
@@ -158,6 +160,7 @@ Spring AI `ChatClient` is wrapped by AI adapters, all in `infrastructure.ai`:
 | `GeminiAiSearchAdapter` | `AiSearchPort` | Google Gemini synthesis via RestClient |
 | `WikiCompilationAdapter` | `KnowledgeCompilationPort` | LLM wiki compilation — articles → pages/contradictions |
 | `DealClassificationAdapter` | `DealClassificationPort` | LLM deal classification — batch articles → confirmed DealSignals with extracted fields |
+| `ClaimClassifierAdapter` | `ClaimClassifierPort` | LLM claim extraction + contradiction detection — batch articles → `FrontierClaim` records with `ClaimType`/`ClaimVerdict`/`HypeSeverity`/`DeploymentContext`; `parseEvidenceNotes()` extracts structured prefix from LLM output |
 
 Unit tests inject mock ports — no real AI calls outside `@Profile("ai-integration")`.
 
@@ -173,6 +176,8 @@ Prompt templates (`application/src/main/resources/prompts/`):
 - `ai-search-synthesis.txt` — multi-model AI search synthesis with `[N]` citations
 - `wiki-compile.txt` — structured wiki compilation (PAGE/CONTRADICTION/WARNING sections)
 - `deal-classification.txt` — batch deal classification (TYPE/AMOUNT/COMPANY/COUNTERPARTY/CONFIDENCE/SUMMARY/ANALYSIS)
+- `claim-classifier.txt` — batch claim extraction (COMPANY/TYPE/VERDICT/CLAIM_TEXT/EVIDENCE_NOTES with structured `[SEVERITY:x][CONTEXT:x][TRIGGER:x]` prefix)
+- `claim-contradiction.txt` — contradiction detection between new and prior claim sets
 
 ---
 
@@ -270,6 +275,8 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `GET /profile` | `ProfileController` | `profile.html` — subscriber self-service |
 | `GET /register` | `RegistrationController` | `register.html` — self-registration for DEMO users |
 | `GET /privacy` | `PrivacyController` | `privacy.html` — privacy policy |
+| `GET /dashboard/claims` | `ClaimTrackerController` | `claim-tracker.html` — frontier AI claim registry with verdict/company/type/severity/context filters, sortable columns, expandable evidence notes; tier-gated CSV export; ADMIN-only Generate Post + empty-state message |
+| `GET /claims/methodology` | `ClaimTrackerController` | `claims-methodology.html` — public methodology page: live verdict/type counts, company count, latest MARKETING_HYPE callout, verdict definitions, trajectory narrative; no login required |
 
 ---
 
@@ -309,6 +316,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | GET/GET/POST | `/api/v1/sentiment`, `/api/v1/sentiment/{slug}`, `/api/v1/sentiment/analyze` | `SentimentRestController` |
 | GET/GET/POST | `/api/v1/frameworks`, `/api/v1/frameworks/{slug}`, `/api/v1/frameworks/analyze` | `FrameworkRestController` |
 | GET/POST/POST/POST/POST/POST/POST | `/admin/outreach/contacts-json`, `/admin/outreach/add`, `/admin/outreach/{id}/status`, `/admin/outreach/{id}/notes`, `/admin/outreach/{id}/delete`, `/admin/outreach/{slug}/contacts/add`, `/admin/outreach/{slug}/register-company` | `OutreachController` |
+| GET/GET/GET/POST | `/api/v1/claims`, `/api/v1/claims/{claimId}`, `/api/v1/claims/export` (CSV), `/api/v1/claims/detect` | `ClaimTrackerRestController` |
 
 ---
 
@@ -365,6 +373,7 @@ and persisting results so the DB is pre-warmed for subsequent queries.
 | `company_outreach` | `CompanyOutreachEntity` | id BIGSERIAL PK, slug, purpose, status, contactedAt, notes, unique(slug, purpose) |
 | `company_contacts` | `CompanyContactEntity` | id BIGSERIAL PK, slug FK (company slug), fullName, jobTitle, email, linkedinUrl, source, status, notes |
 | `llm_call_usage` | `LlmCallUsageEntity` | id BIGSERIAL PK, pipelineId, model, promptTokens, outputTokens, totalTokens, occurredAt |
+| `frontier_claims` | `FrontierClaimEntity` | claimId VARCHAR PK, company, claimText TEXT, claimDate, sourceUrl, sourceTitle, claimType, verdict, evidenceNotes TEXT, hype_severity (nullable), triggering_phrase TEXT (nullable), deployment_context (nullable), articleId, detectedAt, lastReviewedAt; deduped by company+text hash |
 
 ---
 
