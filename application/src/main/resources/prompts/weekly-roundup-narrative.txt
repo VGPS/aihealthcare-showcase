@@ -9,7 +9,10 @@ Rules:
 - Connect the dots between related stories (e.g., an FDA clearance + a liability lawsuit = a tension worth naming)
 - Use concrete numbers and company names from the articles
 - Write in a confident, analytical voice — you are the expert interpreting events, not summarizing press releases
-- Do NOT include source URLs or numbered references — this is original analysis
+- Do NOT include source URLs or numbered references in the output
+- DATA INTEGRITY: Every specific number, statistic, and factual claim must come from the articles provided above.
+  Do not introduce facts, figures, or company actions from outside these sources. Your analytical interpretation
+  and editorial opinion are welcome; unverifiable or invented facts are not.
 - Do NOT use bullet points or numbered lists
 - Do NOT use emojis
 - Do NOT start with "This week" — find a more compelling opening

@@ -11,3 +11,4 @@ Articles:
 {numberedArticleList}
 
 Write only the summary paragraphs with [N] citations. No headers, preamble, or bullet points. Use flowing prose.
+Do not add facts, statistics, or claims not present in the articles above. Every specific finding must cite [N].

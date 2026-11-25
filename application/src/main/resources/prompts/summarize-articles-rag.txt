@@ -27,5 +27,5 @@ Also classify this section using EXACTLY one of these types:
 
 Respond in EXACTLY this format (do not add any other text):
 HEADLINE: <one punchy sentence summarising the key development>
-SUMMARY: <2-4 sentences expanding on the headline, citing specific findings where available>
+SUMMARY: <2-4 sentences expanding on the headline. Cite specific findings with [N] inline markers referencing the article numbers above. Do not add statistics, company actions, or factual claims not present in the articles provided.>
 SECTION_TYPE: <one value from the list above>

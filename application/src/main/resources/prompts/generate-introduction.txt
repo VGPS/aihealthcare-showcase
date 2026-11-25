@@ -7,3 +7,4 @@ This week's newsletter covers {sectionCount} topic(s):
 
 Write a 2-3 sentence introductory paragraph that welcomes the reader and previews these topics.
 Do not use bullet points. Do not repeat the headlines verbatim. Output the paragraph only — no label, no extra text.
+Do not introduce specific statistics, study findings, or company actions not mentioned in the section topics above.
