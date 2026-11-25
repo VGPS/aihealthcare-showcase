@@ -86,3 +86,10 @@ CLAUDE.local.md
 ### Sale negotiation strategy -- never for buyer/showcase visibility (2026-11-16) ###
 docs/Acquire_notes.md
 acquire/
+
+### Local-only scratch files ###
+app.log
+app_start.log
+docs/gov-1-governance-cross-reference.md
+data_input/agentArchitecture.JPG
+data_input/lydiaHallieLecture.txt
