@@ -488,33 +488,12 @@ aihealthcare:
       # 'name' identifies the individual feed source in logs and metrics.
       # -----------------------------------------------------------------
       - topic-id: 1
-        name: PubMed AI Healthcare
-        topic: General AI Healthcare News
-        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1iCIuphPfzMUfIkqJ3mOSNQlFJKYJb1xPnBx7XEBOQ1haHy2hW/?limit=20&utm_campaign=pubmed-2&fc=20220101000000
-        tier: ACADEMIC
-        base-weight: 0.9
-        max-items: 20
-      - topic-id: 1
-        name: PubMed Machine Learning Clinical
-        topic: General AI Healthcare News
-        url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1MiuHQ7HGxZ0iqhHwJbLHqaGzKfhEKPFWiPmwM-HadPVdsBX3j/?limit=15&utm_campaign=pubmed-2&fc=20220101000000
-        tier: ACADEMIC
-        base-weight: 0.9
-        max-items: 15
-      - topic-id: 1
         name: PubMed Generative AI MeSH
         topic: General AI Healthcare News
         url: https://pubmed.ncbi.nlm.nih.gov/rss/search/1VWjLaVyNn71oZEHNDVvefLFuAUg8p8v_hRNsnL3B6ZlYRUMYA/?limit=15&utm_campaign=pubmed-2&fc=20260705205933
         tier: ACADEMIC
         base-weight: 0.9
         max-items: 15
-      - topic-id: 1
-        name: Healthcare IT News
-        topic: General AI Healthcare News
-        url: https://www.healthcareitnews.com/feed
-        tier: INDUSTRY
-        base-weight: 0.7
-        max-items: 20
       - topic-id: 1
         name: MIT Technology Review AI
         topic: General AI Healthcare News
@@ -553,13 +532,6 @@ aihealthcare:
           - AI
           - machine learning
           - digital health
-      - topic-id: 1
-        name: HealthExec AI
-        topic: General AI Healthcare News
-        url: https://healthexec.com/topics/artificial-intelligence
-        tier: INDUSTRY
-        base-weight: 0.7
-        max-items: 20
       - topic-id: 1
         name: Grelin Health Blog
         topic: General AI Healthcare News
@@ -753,44 +725,22 @@ aihealthcare:
           - jobs cut
           - IT workers
           - data overseas
-      - topic-id: 1
-        name: SEC EDGAR Tech Mahindra
-        topic: Healthcare IT Offshoring India Patient Data
-        url: https://efts.sec.gov/LATEST/search-index?q=%22Tech+Mahindra%22+%22healthcare%22&dateRange=custom&startdt=2026-01-01&forms=10-K,10-Q,8-K&rss=true
-        tier: REGULATORY
-        base-weight: 0.9
-        max-items: 10
-      - topic-id: 1
-        name: SEC EDGAR Cognizant Healthcare
-        topic: Healthcare IT Offshoring India Patient Data
-        url: https://efts.sec.gov/LATEST/search-index?q=%22Cognizant%22+%22healthcare%22+%22outsourcing%22&dateRange=custom&startdt=2026-01-01&forms=10-K,10-Q,8-K&rss=true
-        tier: REGULATORY
-        base-weight: 0.9
-        max-items: 10
-      - topic-id: 1
-        name: SEC EDGAR Infosys Healthcare
-        topic: Healthcare IT Offshoring India Patient Data
-        url: https://efts.sec.gov/LATEST/search-index?q=%22Infosys%22+%22healthcare%22&dateRange=custom&startdt=2026-01-01&forms=10-K,10-Q,8-K&rss=true
-        tier: REGULATORY
-        base-weight: 0.9
-        max-items: 10
-      - topic-id: 1
-        name: SEC EDGAR Wipro Healthcare
-        topic: Healthcare IT Offshoring India Patient Data
-        url: https://efts.sec.gov/LATEST/search-index?q=%22Wipro%22+%22healthcare%22&dateRange=custom&startdt=2026-01-01&forms=10-K,10-Q,8-K&rss=true
-        tier: REGULATORY
-        base-weight: 0.9
-        max-items: 10
       # -----------------------------------------------------------------
       # AI Healthcare Government Policy
       # -----------------------------------------------------------------
       - topic-id: 1
-        name: FDA Medical Devices News
+        name: Google News FDA AI Medical Device Clearance
         topic: AI Healthcare Government Policy
-        url: https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-devices/rss.xml
+        url: https://news.google.com/rss/search?q=FDA+AI+medical+device+clearance+approval+510k+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: REGULATORY
-        base-weight: 0.95
+        base-weight: 0.9
         max-items: 15
+        keywords:
+          - FDA
+          - clearance
+          - approval
+          - artificial intelligence
+          - medical device
       - topic-id: 1
         name: WHO News
         topic: AI Healthcare Government Policy
@@ -901,13 +851,6 @@ aihealthcare:
           - pharma
           - hipaa
           - ehr
-      - topic-id: 1
-        name: FierceHealthcare AI
-        topic: Anthropic Healthcare
-        url: https://www.fiercehealthcare.com/rss/xml
-        tier: INDUSTRY
-        base-weight: 0.65
-        max-items: 15
       - topic-id: 1
         name: ClinicalTrialsArena
         topic: Anthropic Healthcare
@@ -1269,13 +1212,6 @@ aihealthcare:
         tier: LEGAL
         base-weight: 0.9
         max-items: 15
-      - topic-id: 1
-        name: Manatt Health AI Policy Tracker
-        topic: Corporate AI & Healthcare Law
-        url: https://www.manatt.com/insights/newsletters/health-highlights/manatt-health-health-ai-policy-tracker
-        tier: LEGAL
-        base-weight: 0.95
-        max-items: 15
       # -----------------------------------------------------------------
       # Health Data Utilities — health data interoperability, FHIR, HL7,
       # data exchange, claims data, health information exchanges (HIEs),
@@ -1421,83 +1357,6 @@ aihealthcare:
         base-weight: 0.9
         max-items: 20
       # -----------------------------------------------------------------
-      # HuggingFace model discovery
-      # -----------------------------------------------------------------
-      - topic-id: 1
-        name: HuggingFace Healthcare LLMs
-        topic: HuggingFace Healthcare LLMs
-        url: https://huggingface.co/api/models?search=healthcare+medical&sort=downloads&direction=-1&limit=25
-        tier: RESEARCH
-        base-weight: 0.75
-        max-items: 25
-      # -----------------------------------------------------------------
-      # NYU Health Sciences Library — curated PubMed AI searches
-      # Source: https://hslguides.med.nyu.edu/aihsl
-      # -----------------------------------------------------------------
-      - topic-id: 1
-        name: NYU PubMed AI Cancer Research
-        topic: General AI Healthcare News
-        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1Rgu23CHIthWzWDUWU1vwPTDNLHmE6KU9BKCiJHoPQ1yZkWwlk&utm_campaign=pubmed-2&fc=20230720125231
-        tier: ACADEMIC
-        base-weight: 0.9
-        max-items: 15
-      - topic-id: 1
-        name: NYU PubMed AI Clinical Ethics
-        topic: General AI Healthcare News
-        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1j1APu8_waJjk_Cm0xxvz7GZ6epE6ohJpU71rjbAcDFwSQKkac&utm_campaign=pubmed-2&fc=20230720113630
-        tier: ACADEMIC
-        base-weight: 0.9
-        max-items: 15
-      - topic-id: 1
-        name: NYU PubMed AI Patient Care
-        topic: General AI Healthcare News
-        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1-ohVP9Y35P5jJTm7BKk2ocknKqzXXZY444hq9BFsGAabBmkq6&utm_campaign=pubmed-2&fc=20230720131511
-        tier: ACADEMIC
-        base-weight: 0.9
-        max-items: 15
-      - topic-id: 1
-        name: NYU PubMed AI Aging
-        topic: General AI Healthcare News
-        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=16OUJQpKnem6sTF-WIxEFeZ_UT233MaplhnMT-QwYwikNyKIRU&utm_campaign=pubmed-2&fc=20230720133044
-        tier: ACADEMIC
-        base-weight: 0.9
-        max-items: 15
-      - topic-id: 1
-        name: NYU PubMed AI Genetics
-        topic: General AI Healthcare News
-        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=16C1W1gAKSbjWNGHbPE9qofuJUA1LiDxLoM92LJ3em7m20XcXZ&utm_campaign=pubmed-2&fc=20230720130248
-        tier: ACADEMIC
-        base-weight: 0.9
-        max-items: 15
-      - topic-id: 1
-        name: NYU PubMed AI Healthcare Education
-        topic: General AI Healthcare News
-        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1JIsr3YNQVW4uN-371EOTOTQKU7008kJLrp--ZoByWq8X2bIw9&utm_campaign=pubmed-2&fc=20230720130508
-        tier: ACADEMIC
-        base-weight: 0.9
-        max-items: 15
-      - topic-id: 1
-        name: NYU PubMed AI Infectious Disease
-        topic: General AI Healthcare News
-        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1BQBHy1Cez3AzhpFxdjMibBhc6u3JH2VPDChgpvdwC9ERK3Iz_&utm_campaign=pubmed-2&fc=20230724145723
-        tier: ACADEMIC
-        base-weight: 0.9
-        max-items: 15
-      - topic-id: 1
-        name: NYU PubMed AI Pharmacy
-        topic: General AI Healthcare News
-        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1pMPQVclnMM7hoD0KaAg4T_NC1RdUWgJoylHMtdWcZrG4Zas9q&utm_campaign=pubmed-2&fc=20230720131618
-        tier: ACADEMIC
-        base-weight: 0.9
-        max-items: 15
-      - topic-id: 1
-        name: NYU PubMed AI Surgery
-        topic: General AI Healthcare News
-        url: https://pubmed.ncbi.nlm.nih.gov/rss-feed/?feed_id=1bOz71MbMW4VKVVQ1Z-VMtD7hfbMTWhEuX0x2rpWJj1xwsXYVN&utm_campaign=pubmed-2&fc=20230720132715
-        tier: ACADEMIC
-        base-weight: 0.9
-        max-items: 15
-      # -----------------------------------------------------------------
       # Yale Biomedical Informatics & Data Science — AI in medicine news
       # Source: https://medicine.yale.edu/biomedical-informatics-data-science/
       # -----------------------------------------------------------------
@@ -1614,13 +1473,6 @@ aihealthcare:
       # University of Pennsylvania — Biostatistics, Epidemiology & Informatics
       # Source: https://dbei.med.upenn.edu
       # -----------------------------------------------------------------
-      - topic-id: 1
-        name: Penn DBEI
-        topic: General AI Healthcare News
-        url: https://dbei.med.upenn.edu/feed/
-        tier: ACADEMIC
-        base-weight: 0.85
-        max-items: 15
       # -----------------------------------------------------------------
       # AI Healthcare Legal & Policy — law, regulation, ethics feeds
       # -----------------------------------------------------------------
@@ -1682,18 +1534,18 @@ aihealthcare:
       # LT-1 extended feeds (added 2026-11-15) — FDA, HHS OCR, FTC, Reuters
       # -----------------------------------------------------------------
       - topic-id: 1
-        name: FDA Warning Letters AI Medical Devices
+        name: Google News FDA AI Device Warning Letters
         topic: AI Healthcare Legal
-        url: https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/warning-letters-rss-feed
+        url: https://news.google.com/rss/search?q=FDA+warning+letter+AI+software+medical+device+algorithm+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.9
         max-items: 15
         keywords:
+          - FDA
+          - warning letter
           - software
           - artificial intelligence
           - algorithm
-          - diagnostic
-          - clinical decision
       - topic-id: 1
         name: HHS OCR HIPAA Enforcement News
         topic: AI Healthcare Legal
@@ -1708,18 +1560,18 @@ aihealthcare:
           - enforcement
           - AI
       - topic-id: 1
-        name: FTC Health Tech Enforcement
+        name: Google News FTC Health AI Enforcement
         topic: AI Healthcare Legal
-        url: https://www.ftc.gov/feeds/press-releases.xml
+        url: https://news.google.com/rss/search?q=FTC+health+tech+AI+enforcement+digital+health+when:30d&hl=en-US&gl=US&ceid=US:en
         tier: LEGAL
         base-weight: 0.9
         max-items: 15
         keywords:
+          - FTC
           - health
           - healthcare
           - AI
-          - algorithm
-          - medical
+          - enforcement
       - topic-id: 1
         name: Reuters Health AI Legal
         topic: AI Healthcare Legal
